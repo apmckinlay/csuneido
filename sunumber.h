@@ -1,0 +1,168 @@
+#ifndef SUNUMBER_H
+#define SUNUMBER_H
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+ * This file is part of Suneido - The Integrated Application Platform
+ * see: http://www.suneido.com for more information.
+ * 
+ * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation - version 2. 
+ *
+ * This program is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License in the file COPYING
+ * for more details. 
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free
+ * Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#include <limits.h>
+#include <string.h>
+#include "std.h"
+#include "suvalue.h"
+
+class Ostream;
+
+enum Sign { MINUS = 0, PLUS = 1 };
+
+const int NDIGITS = 4;	// 16 decimal digits
+const int MAXDIGITS = 16;
+class random_class { };
+extern random_class randnum;
+
+// decimal representation, floating point number values
+class SuNumber : public SuValue
+	{
+private:
+	char sign;
+	schar exp;	// exponent
+	short digits[NDIGITS];	// most significant digit first
+public:
+	void* operator new(size_t n);
+	void* operator new(size_t n, void* p)
+		{ return p; }
+	friend Ostream& operator<<(Ostream&, const SuNumber&);
+
+	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+
+	virtual int integer() const;
+	int64 bigint() const;
+	virtual gcstring gcstr() const;
+	virtual void out(Ostream& os);
+	virtual size_t hashfn();
+	virtual int symnum() const;
+	virtual bool int_if_num(int* pn) const;
+	virtual SuNumber* number()
+		{ return this; }
+
+	virtual int order() const;
+	virtual bool lt(const SuValue& x) const;
+	virtual bool eq(const SuValue& x) const;
+
+	virtual size_t packsize() const;
+	virtual void pack(char* buf) const;
+	static SuNumber* unpack(const gcstring& s);
+
+	static Value literal(const char* s);
+
+	explicit SuNumber(long);
+	static SuNumber* from_int64(int64);
+	explicit SuNumber(const char* buf, short len = -1);
+	explicit SuNumber(random_class);
+	explicit SuNumber(const SuNumber* x) 
+		{ *this = *x; }
+	SuNumber& operator=(const SuNumber& x)
+		{
+		if (this == &x)
+			return *this;
+		sign = x.sign; exp = x.exp;
+		memcpy(digits, x.digits, sizeof digits);
+		return *this;
+		}
+
+	char* format(char* buf) const;
+
+	SuNumber& toint();
+	SuNumber& tofrac();
+	char* mask(char* buf, char* mask);
+
+	double to_double() const;
+	static SuNumber* from_float(float x);
+	static SuNumber* from_double(double x);
+
+	friend int cmp(const SuNumber*, const SuNumber*);
+	friend bool close(const SuNumber*, const SuNumber*);
+	friend SuNumber* add(const SuNumber*, const SuNumber*);
+	friend SuNumber* sub(const SuNumber*, const SuNumber*);
+	friend SuNumber* mul(const SuNumber*, const SuNumber*);
+	friend SuNumber* div(const SuNumber*, const SuNumber*);
+	friend SuNumber* neg(const SuNumber* x);
+
+	static SuNumber zero, one, minus_one, infinity, minus_infinity;
+private:
+	SuNumber(Sign _sign, schar _exp);
+	SuNumber* setsign(char _sign)
+		{ sign = _sign; return this; }
+	void check() const;
+	bool is_zero() const
+		{ return exp == SCHAR_MIN; }
+	bool is_infinity() const	// plus or minus infinity
+		{ return exp == SCHAR_MAX; }
+	SuNumber* negate()
+		{
+		if (! is_zero())
+			sign = 1 - sign;
+		return this;
+		}
+	void shift_right();
+	void shift_left();
+	friend int ucmp(const SuNumber*, const SuNumber*);
+	friend SuNumber* uadd(const SuNumber*, const SuNumber*);
+	friend SuNumber* usub(const SuNumber*, const SuNumber*, SuNumber*);
+	long first9()
+		{ return digits[0] * 100000L + digits[1] * 10L + digits[2] / 1000; }
+	long first8()
+		{ return digits[0] * 10000L + digits[1]; }
+	long first5()
+		{ return digits[0] * 10L + digits[1] / 1000; }
+	void operator -=(const SuNumber& y)
+		{
+		SuNumber tmp(this);
+		(void) usub(&tmp, &y, this);
+		}
+	void product(const SuNumber&, short);
+	};
+
+inline SuNumber* neg(const SuNumber* x)
+	{ return (new SuNumber(x))->negate(); }
+
+inline bool operator==(const SuNumber& x, const SuNumber& y)
+	{ return cmp(&x, &y) == 0; }
+
+inline bool operator<(const SuNumber& x, const SuNumber& y)
+	{ return cmp(&x, &y) < 0; }
+
+inline SuNumber& operator+(const SuNumber& x, const SuNumber& y)
+	{ return *add(&x, &y); }
+
+inline SuNumber& operator-(const SuNumber& x, const SuNumber& y)
+	{ return *sub(&x, &y); }
+
+inline SuNumber& operator*(const SuNumber& x, const SuNumber& y)
+	{ return *mul(&x, &y); }
+
+inline SuNumber& operator/(const SuNumber& x, const SuNumber& y)
+	{ return *div(&x, &y); }
+
+int numlen(const char* s);
+
+SuNumber* neg(Value x);
+
+#endif

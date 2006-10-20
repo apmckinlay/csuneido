@@ -1,0 +1,180 @@
+OUTPUT = vc8
+
+OBJECTS=\
+alert.obj \
+alertwin.obj \
+array.obj \
+bitmap.obj \
+bmalloc.obj \
+btree.obj \
+builtinargs.obj \
+builtins.obj \
+cachemap.obj \
+call.obj \
+callback.obj \
+catstr.obj \
+checksum.obj \
+cmdlineoptions.obj \
+cmpic.obj \
+commalist.obj \
+compile.obj \
+construct.obj \
+cvt.obj \
+database.obj \
+date.obj \
+dbcopy.obj \
+dbhttp.obj \
+dbms.obj \
+dbmslocal.obj \
+dbmsremote.obj \
+dbserver.obj \
+dbserverdata.obj \
+debug.obj \
+dll.obj \
+dump.obj \
+errlog.obj \
+except.obj \
+fatal.obj \
+fibers.obj \
+func.obj \
+gcstring.obj \
+getmacadr.obj \
+getnum.obj \
+globals.obj \
+hashfn.obj \
+hashmap.obj \
+index.obj \
+interp.obj \
+istream.obj \
+istreamfile.obj \
+istreamstr.obj \
+itostr.obj \
+library.obj \
+lisp.obj \
+literal.obj \
+load.obj \
+md5.obj \
+mmfile.obj \
+named.obj \
+numlen.obj \
+olddate.obj \
+opcodes.obj \
+ostream.obj \
+ostreamcon.obj \
+ostreamfile.obj \
+ostreamstr.obj \
+pack.obj \
+params.obj \
+permheap.obj \
+portwin32.obj \
+qcompatible.obj \
+qdifference.obj \
+qexpr.obj \
+qextend.obj \
+qhistable.obj \
+qintersect.obj \
+qjoin.obj \
+qparser.obj \
+qproduct.obj \
+qproject.obj \
+qrename.obj \
+qscanner.obj \
+qselect.obj \
+qsort.obj \
+qsummarize.obj \
+qtable.obj \
+qtempindex.obj \
+query.obj \
+qunion.obj \
+record.obj \
+recover.obj \
+rebuildgui.obj \
+regexp.obj \
+richeditio.obj \
+richeditole.obj \
+row.obj \
+scanner.obj \
+scistyle.obj \
+sesviews.obj \
+slots.obj \
+sockets.obj \
+strdup.obj \
+structure.obj \
+sublock.obj \
+suboolean.obj \
+suclass.obj \
+sudate.obj \
+sudb.obj \
+sufile.obj \
+sufinalize.obj \
+sufunction.obj \
+sumethod.obj \
+suneido.obj \
+sunumber.obj \
+suobject.obj \
+surecord.obj \
+suscanner.obj \
+suseq.obj \
+susetlocale.obj \
+susockets.obj \
+sustring.obj \
+suvalue.obj \
+suwinres.obj \
+symbols.obj \
+tempdest.obj \
+testing.obj \
+thedb.obj \
+tr.obj \
+tracecon.obj \
+transaction.obj \
+type.obj \
+unhandled.obj \
+usertrigger.obj \
+value.obj \
+sucomobject.obj \
+suimage.obj \
+sunapp.obj
+
+CC = cl
+CFLAGS = /nologo /Z7
+CXX = cl
+#CXXFLAGS = /nologo /GR /EHsc /W2 /wd4996 /O2 /DCOMPILER=VC8 /DNDEBUG \
+	/D_SCL_SECURE_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE
+CXXFLAGS = /nologo /GR /EHsc /W2 /wd4996 /Od /Z7 /DCOMPILER=VC8 \
+	/D_SCL_SECURE_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE
+
+.SUFFIXES:
+
+$(OUTPUT)/%.obj : %.c
+	$(CC) $(CFLAGS) /c /Fo"$@" $<
+
+$(OUTPUT)/%.obj : %.cpp
+	$(CXX) $(CXXFLAGS) /c /Fo"$@" $<
+
+LDFLAGS = /nologo \
+	/FIXED /DELAYLOAD:advapi32.dll /DELAYLOAD:wininet.dll /DELAYLOAD:urlmon.dll /DELAYLOAD:ws2_32.dll 
+
+LIBS = gc.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib \
+	advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comctl32.lib \
+	imm32.lib wininet.lib urlmon.lib ws2_32.lib iphlpapi.lib
+
+OBS = $(OBJECTS:%=$(OUTPUT)/%) $(OUTPUT)/suneido.res 
+
+$(OUTPUT)/suneido.exe : $(OBS) gc.lib
+	$(CXX) $(CXXFLAGS) /c /Fo"$(OUTPUT)/build.obj" build.cpp
+#	@echo link
+	cl $(LDFLAGS) /Z7 /Fe"$(OUTPUT)/suneido.exe" $(OBS) $(OUTPUT)/build.obj $(LIBS)
+	
+$(OUTPUT)/suneido.res : suneido.rc resource.h
+	rc /l 0x409 /Fo"$(OUTPUT)/suneido.res"  /i "\Dev\Suneido" /d "NDEBUG" suneido.rc
+
+objects : $(OBJECTS) 
+	
+include depends8
+
+.PHONY : clean
+clean : 
+	del $(OUTPUT)\*.obj $(OUTPUT)\*.res $(OUTPUT)\*.exe
+	
+install : $(OUTPUT)/suneido.exe
+	copy /y $(OUTPUT)\\suneido.exe .

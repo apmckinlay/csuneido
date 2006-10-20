@@ -1,0 +1,128 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+ * This file is part of Suneido - The Integrated Application Platform
+ * see: http://www.suneido.com for more information.
+ * 
+ * Copyright (c) 2005 Suneido Software Corp. 
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation - version 2. 
+ *
+ * This program is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License in the file COPYING
+ * for more details. 
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free
+ * Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#include "btree.h"
+#include "slots.h"
+#include "testing.h"
+#include <vector>
+
+class TestDest
+	{
+public:
+	Mmoffset alloc(int n)
+		{
+		void* p = new char[n];
+		blocks.push_back(p); // protect from garbage collect
+		return reinterpret_cast<Mmoffset>(p);
+		}
+	void free()
+		{ }
+	static void* adr(Mmoffset offset)
+		{ return reinterpret_cast<void*>(offset); }
+	static Mmoffset off(void* adr)
+		{ return reinterpret_cast<Mmoffset>(adr); }
+	void addref(void* p)
+		{ }
+	std::vector<void*> blocks;
+	};
+
+typedef Btree<Vslot,VFslot,Vslots,VFslots,TestDest> TestBtree;
+
+#include "value.h"
+#include <math.h>
+
+#define assertfeq(x, y)		verify(fabs((x) - (y)) < .01)
+#define assertclose(x, y)	verify(fabs((x) - (y)) < .35)
+
+class test_btree : public Tests
+	{
+	TEST(0, rangefrac_onelevel)
+		{
+		TestDest dest;
+		TestBtree bt(&dest);
+
+		assertfeq(bt.rangefrac(key(10), key(20)), 0);
+
+		for (int i = 0; i < 100; ++i)
+			bt.insert(Vslot(key(i)));
+		asserteq(bt.treelevels, 0);
+
+		assertfeq(bt.rangefrac(key(0), endkey(99)), 1);
+		assertfeq(bt.rangefrac(Record(), endkey(99)), 1);
+		assertfeq(bt.rangefrac(Record(), endkey(20)), .2);
+		assertfeq(bt.rangefrac(key(0), endkey(999)), 1);
+		assertfeq(bt.rangefrac(Record(), endkey(999)), 1);
+		assertfeq(bt.rangefrac(key(10), key(20)), .1);
+		assertfeq(bt.rangefrac(key(20), endkey(20)), .01);
+		assertfeq(bt.rangefrac(Record(), Record()), 0);
+		assertfeq(bt.rangefrac(key(999), endkey(999)), 0);
+		}
+	TEST(1, rangefrac_multilevel)
+		{
+		TestDest dest;
+		TestBtree bt(&dest);
+
+		for (int i = 0; i < 100; ++i)
+			bt.insert(Vslot(bigkey(i)));
+		asserteq(bt.treelevels, 2);
+
+		assertfeq(bt.rangefrac(key(0), endkey(99)), 1);
+		assertclose(bt.rangefrac(key(10), key(20)), .1);
+		assertfeq(bt.rangefrac(key(""), key(20)), .2);
+//		asserteq(bt.rangefrac(key(20), endkey(20)), .01);
+		assertfeq(bt.rangefrac(Record(), Record()), 0);
+		assertfeq(bt.rangefrac(key(999), endkey(999)), 0);
+		}
+	Record key(int i)
+		{
+		Record r;
+		r.addval(Value(i));
+		return r;
+		}
+	Record key(char* s)
+		{
+		Record r;
+		r.addval(s);
+		return r;
+		}
+	Record endkey(int i)
+		{
+		Record r = key(i);
+		r.addmax();
+		return r;
+		}
+	Record bigkey(int i)
+		{
+		static gcstring filler = make_filler();
+		Record r;
+		r.addval(Value(i));
+		r.addval(filler);
+		return r;
+		}
+	gcstring make_filler()
+		{
+		gcstring s(500);
+		memset(s.buf(), ' ', 500);
+		return s;
+		}
+	};
+REGISTER(test_btree);

@@ -1,0 +1,496 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+//#include "afxres.h"
+#include "windows.h"
+#define IDC_STATIC (-1)
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+//LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// 24
+//
+
+IDR_MANIFEST            24      MOVEABLE PURE   "res\\suneido.exe.manifest"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_FOLDER              BITMAP  DISCARDABLE     "res\\folder.bmp"
+IDB_OPENFOLDER          BITMAP  DISCARDABLE     "res\\openfolder.bmp"
+IDB_DOCUMENT            BITMAP  DISCARDABLE     "res\\document.bmp"
+IDR_TOOLBAR1            BITMAP  DISCARDABLE     "res\\toolbar1.bmp"
+SPLASHBMP               BITMAP  DISCARDABLE     "res\\splash.bmp"
+IDR_TOOLBAR2            BITMAP  DISCARDABLE     "res\\toolbar2.bmp"
+IDR_TOOLBAR3            BITMAP  DISCARDABLE     "res\\toolbar3.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_TOOLBAR1 TOOLBAR DISCARDABLE  16, 15
+BEGIN
+    BUTTON      ID_BUTTON40004
+    BUTTON      ID_BUTTON40005
+    BUTTON      ID_BUTTON40008
+    BUTTON      ID_BUTTON40009
+    BUTTON      ID_BUTTON40018
+    BUTTON      ID_BUTTON40016
+    BUTTON      ID_BUTTON40017
+    BUTTON      ID_BUTTON40020
+    BUTTON      ID_BUTTON40021
+    BUTTON      ID_BUTTON40022
+    BUTTON      ID_BUTTON40023
+    BUTTON      ID_BUTTON40024
+    BUTTON      ID_BUTTON40025
+    BUTTON      ID_BUTTON40026
+    BUTTON      ID_BUTTON40028
+    BUTTON      ID_BUTTON40029
+    BUTTON      ID_BUTTON40030
+    BUTTON      ID_BUTTON40031
+    BUTTON      ID_BUTTON40032
+    BUTTON      ID_BUTTON40033
+    BUTTON      ID_BUTTON40034
+    BUTTON      ID_BUTTON40035
+    BUTTON      ID_BUTTON40046
+    BUTTON      ID_BUTTON40047
+    BUTTON      ID_BUTTON40048
+    BUTTON      ID_BUTTON40050
+    BUTTON      ID_BUTTON40056
+    BUTTON      ID_BUTTON40059
+    BUTTON      ID_BUTTON40069
+    BUTTON      ID_BUTTON40080
+    BUTTON      ID_BUTTON40083
+    BUTTON      ID_BUTTON40086
+    BUTTON      ID_BUTTON40087
+    BUTTON      ID_BUTTON40088
+    BUTTON      ID_BUTTON40089
+    BUTTON      ID_BUTTON40090
+    BUTTON      ID_BUTTON40091
+    BUTTON      ID_BUTTON40092
+    BUTTON      ID_BUTTON40093
+    BUTTON      ID_BUTTON40094
+    BUTTON      ID_BUTTON40095
+    BUTTON      ID_BUTTON40096
+    BUTTON      ID_BUTTON40097
+    BUTTON      ID_BUTTON40098
+    BUTTON      ID_BUTTON40099
+    BUTTON      ID_BUTTON40100
+    BUTTON      ID_BUTTON40101
+    BUTTON      ID_BUTTON40102
+    BUTTON      ID_BUTTON40103
+    BUTTON      ID_BUTTON40104
+    BUTTON      ID_BUTTON40105
+    BUTTON      ID_BUTTON40106
+    BUTTON      ID_BUTTON40107
+    BUTTON      ID_BUTTON40108
+    BUTTON      ID_BUTTON40109
+    BUTTON      ID_BUTTON40110
+    BUTTON      ID_BUTTON40111
+    BUTTON      ID_BUTTON40165
+    BUTTON      ID_BUTTON40168
+    BUTTON      ID_BUTTON40172
+    BUTTON      ID_BUTTON40183
+    BUTTON      ID_BUTTON40184
+    BUTTON      ID_BUTTON40188
+    BUTTON      ID_BUTTON40190
+    BUTTON      ID_BUTTON40192
+    BUTTON      ID_BUTTON40195
+    BUTTON      ID_BUTTON40196
+    BUTTON      ID_BUTTON40198
+    BUTTON      ID_BUTTON40203
+    BUTTON      ID_BUTTON40206
+    BUTTON      ID_BUTTON40209
+END
+
+IDR_TOOLBAR2 TOOLBAR DISCARDABLE  16, 15
+BEGIN
+    BUTTON      ID_BUTTON40004
+    BUTTON      ID_BUTTON40005
+    BUTTON      ID_BUTTON40008
+    BUTTON      ID_BUTTON40009
+    BUTTON      ID_BUTTON40018
+    BUTTON      ID_BUTTON40016
+    BUTTON      ID_BUTTON40017
+    BUTTON      ID_BUTTON40020
+    BUTTON      ID_BUTTON40021
+    BUTTON      ID_BUTTON40022
+    BUTTON      ID_BUTTON40023
+    BUTTON      ID_BUTTON40024
+    BUTTON      ID_BUTTON40025
+    BUTTON      ID_BUTTON40026
+    BUTTON      ID_BUTTON40028
+    BUTTON      ID_BUTTON40029
+    BUTTON      ID_BUTTON40030
+    BUTTON      ID_BUTTON40031
+    BUTTON      ID_BUTTON40032
+    BUTTON      ID_BUTTON40033
+    BUTTON      ID_BUTTON40034
+    BUTTON      ID_BUTTON40035
+    BUTTON      ID_BUTTON40042
+    BUTTON      ID_BUTTON40043
+    BUTTON      ID_BUTTON40044
+    BUTTON      ID_BUTTON40045
+    BUTTON      ID_BUTTON40056
+    BUTTON      ID_BUTTON40063
+    BUTTON      ID_BUTTON40067
+    BUTTON      ID_BUTTON40079
+    BUTTON      ID_BUTTON40084
+    BUTTON      ID_BUTTON40112
+    BUTTON      ID_BUTTON40115
+    BUTTON      ID_BUTTON40117
+    BUTTON      ID_BUTTON40119
+    BUTTON      ID_BUTTON40121
+    BUTTON      ID_BUTTON40123
+    BUTTON      ID_BUTTON40125
+    BUTTON      ID_BUTTON40127
+    BUTTON      ID_BUTTON40129
+    BUTTON      ID_BUTTON40131
+    BUTTON      ID_BUTTON40133
+    BUTTON      ID_BUTTON40135
+    BUTTON      ID_BUTTON40137
+    BUTTON      ID_BUTTON40139
+    BUTTON      ID_BUTTON40141
+    BUTTON      ID_BUTTON40143
+    BUTTON      ID_BUTTON40145
+    BUTTON      ID_BUTTON40147
+    BUTTON      ID_BUTTON40149
+    BUTTON      ID_BUTTON40151
+    BUTTON      ID_BUTTON40153
+    BUTTON      ID_BUTTON40154
+    BUTTON      ID_BUTTON40156
+    BUTTON      ID_BUTTON40158
+    BUTTON      ID_BUTTON40160
+    BUTTON      ID_BUTTON40162
+    BUTTON      ID_BUTTON40166
+    BUTTON      ID_BUTTON40169
+    BUTTON      ID_BUTTON40173
+    BUTTON      ID_BUTTON40174
+    BUTTON      ID_BUTTON40175
+    BUTTON      ID_BUTTON40176
+    BUTTON      ID_BUTTON40177
+    BUTTON      ID_BUTTON40178
+    BUTTON      ID_BUTTON40179
+    BUTTON      ID_BUTTON40180
+    BUTTON      ID_BUTTON40181
+    BUTTON      ID_BUTTON40204
+    BUTTON      ID_BUTTON40207
+    BUTTON      ID_BUTTON40210
+END
+
+IDR_TOOLBAR3 TOOLBAR DISCARDABLE  16, 15
+BEGIN
+    BUTTON      ID_BUTTON40004
+    BUTTON      ID_BUTTON40005
+    BUTTON      ID_BUTTON40008
+    BUTTON      ID_BUTTON40009
+    BUTTON      ID_BUTTON40018
+    BUTTON      ID_BUTTON40016
+    BUTTON      ID_BUTTON40017
+    BUTTON      ID_BUTTON40020
+    BUTTON      ID_BUTTON40021
+    BUTTON      ID_BUTTON40022
+    BUTTON      ID_BUTTON40023
+    BUTTON      ID_BUTTON40024
+    BUTTON      ID_BUTTON40025
+    BUTTON      ID_BUTTON40026
+    BUTTON      ID_BUTTON40028
+    BUTTON      ID_BUTTON40029
+    BUTTON      ID_BUTTON40030
+    BUTTON      ID_BUTTON40031
+    BUTTON      ID_BUTTON40032
+    BUTTON      ID_BUTTON40033
+    BUTTON      ID_BUTTON40034
+    BUTTON      ID_BUTTON40035
+    BUTTON      ID_BUTTON40051
+    BUTTON      ID_BUTTON40052
+    BUTTON      ID_BUTTON40053
+    BUTTON      ID_BUTTON40054
+    BUTTON      ID_BUTTON40056
+    BUTTON      ID_BUTTON40062
+    BUTTON      ID_BUTTON40066
+    BUTTON      ID_BUTTON40081
+    BUTTON      ID_BUTTON40085
+    BUTTON      ID_BUTTON40113
+    BUTTON      ID_BUTTON40114
+    BUTTON      ID_BUTTON40116
+    BUTTON      ID_BUTTON40118
+    BUTTON      ID_BUTTON40120
+    BUTTON      ID_BUTTON40122
+    BUTTON      ID_BUTTON40124
+    BUTTON      ID_BUTTON40126
+    BUTTON      ID_BUTTON40128
+    BUTTON      ID_BUTTON40130
+    BUTTON      ID_BUTTON40132
+    BUTTON      ID_BUTTON40134
+    BUTTON      ID_BUTTON40136
+    BUTTON      ID_BUTTON40138
+    BUTTON      ID_BUTTON40140
+    BUTTON      ID_BUTTON40142
+    BUTTON      ID_BUTTON40144
+    BUTTON      ID_BUTTON40146
+    BUTTON      ID_BUTTON40148
+    BUTTON      ID_BUTTON40150
+    BUTTON      ID_BUTTON40152
+    BUTTON      ID_BUTTON40155
+    BUTTON      ID_BUTTON40157
+    BUTTON      ID_BUTTON40159
+    BUTTON      ID_BUTTON40161
+    BUTTON      ID_BUTTON40163
+    BUTTON      ID_BUTTON40167
+    BUTTON      ID_BUTTON40170
+    BUTTON      ID_BUTTON40185
+    BUTTON      ID_BUTTON40186
+    BUTTON      ID_BUTTON40187
+    BUTTON      ID_BUTTON40189
+    BUTTON      ID_BUTTON40191
+    BUTTON      ID_BUTTON40193
+    BUTTON      ID_BUTTON40194
+    BUTTON      ID_BUTTON40197
+    BUTTON      ID_BUTTON40199
+    BUTTON      ID_BUTTON40205
+    BUTTON      ID_BUTTON40208
+    BUTTON      ID_BUTTON40211
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_SUNEIDO             ICON    DISCARDABLE     "res\\suneido.ico"
+IDI_FORM                ICON    DISCARDABLE     "res\\form.ico"
+IDI_FOLDER              ICON    DISCARDABLE     "res\\folder.ico"
+IDI_DOCUMENT            ICON    DISCARDABLE     "res\\document.ico"
+IDI_PROCESS             ICON    DISCARDABLE     "res\\process.ico"
+IDI_OPENFOLDER          ICON    DISCARDABLE     "res\\openfolder.ico"
+IDI_DOWNARROW           ICON    DISCARDABLE     "res\\downarrow.ico"
+IDI_XPDOWNARROW         ICON    DISCARDABLE     "res\\xpdownar.ico"
+IDI_XPDOWNARROW_DISABLED ICON    DISCARDABLE     "res\\icon1.ico"
+IDI_DOWNARROW_DISABLED  ICON    DISCARDABLE     "res\\ico00001.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+DIALOG DIALOG DISCARDABLE  0, 0, 187, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+END
+
+REBUILD DIALOG DISCARDABLE  0, 0, 205, 78
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION
+CAPTION "suneido -rebuild"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,148,57,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,91,57,50,14
+    LTEXT           "Rebuild as of:",IDC_REBUILD_STATIC,38,7,160,8
+    EDITTEXT        IDC_REBUILD_DATE,38,18,159,12,ES_AUTOHSCROLL | 
+                    ES_READONLY | NOT WS_TABSTOP
+    ICON            IDI_SUNEIDO,IDC_STATIC,8,9,21,20
+    CONTROL         "Progress1",IDC_PROGRESS1,"msctls_progress32",PBS_SMOOTH,
+                    7,36,190,13
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    "DIALOG", DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    "REBUILD", DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 198
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 71
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0,0,0,0
+ PRODUCTVERSION 0,0,0,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "Suneido Software Corp.\0"
+            VALUE "FileDescription", "Suneido\0"
+            VALUE "FileVersion", "1.0\0"
+            VALUE "InternalName", "Suneido\0"
+            VALUE "LegalCopyright", "Copyright © 2000-2002\0"
+            VALUE "LegalTrademarks", "Suneido TM\0"
+            VALUE "OriginalFilename", "suneido.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "Suneido\0"
+            VALUE "ProductVersion", "1.0\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_FINGER              CURSOR  DISCARDABLE     "res\\hand.cur"
+IDC_DRAG1COPY           CURSOR  DISCARDABLE     "res\\drag1copy.cur"
+IDC_DRAG1               CURSOR  DISCARDABLE     "res\\drag1.cur"
+IDC_DRAGNCOPY           CURSOR  DISCARDABLE     "res\\dragncopy.cur"
+IDC_DRAGN               CURSOR  DISCARDABLE     "res\\dragn.cur"
+IDC_HANDE               CURSOR  DISCARDABLE     "res\\hande.cur"
+IDC_HANDN               CURSOR  DISCARDABLE     "res\\handn.cur"
+IDC_HANDS               CURSOR  DISCARDABLE     "res\\hands.cur"
+IDC_HANDW               CURSOR  DISCARDABLE     "res\\handw.cur"
+IDC_SPLITH              CURSOR  DISCARDABLE     "res\\splith.cur"
+IDC_SPLITV              CURSOR  DISCARDABLE     "res\\splitv.cur"
+IDC_PUSH                CURSOR  DISCARDABLE     "res\\push.cur"
+IDC_ARROWMOVE           CURSOR  DISCARDABLE     "res\\cursor1.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// BINDATA
+//
+
+IDR_COIL                BINDATA DISCARDABLE     "res\\coil.bmp"
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (Canada) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENC)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_CAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BIGFOLDER           BITMAP  DISCARDABLE     "res\\bigfolder.bmp"
+IDB_BIGFORM             BITMAP  DISCARDABLE     "res\\bigform.bmp"
+IDB_BIGDOCUMENT         BITMAP  DISCARDABLE     "res\\bigdocument.bmp"
+IDB_FORM                BITMAP  DISCARDABLE     "res\\form.bmp"
+IDB_BIGPROCESS          BITMAP  DISCARDABLE     "res\\bigprocess.bmp"
+IDB_PROCESS             BITMAP  DISCARDABLE     "res\\process.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_SPLITLEFT           CURSOR  DISCARDABLE     "res\\arrowlef.cur"
+IDC_SPLITRIGHT          CURSOR  DISCARDABLE     "res\\cur00002.cur"
+IDC_SPLITTOP            CURSOR  DISCARDABLE     "res\\cur00001.cur"
+IDC_SPLITBOTTOM         CURSOR  DISCARDABLE     "res\\cur00003.cur"
+IDC_ARROWSTACK          CURSOR  DISCARDABLE     "res\\cur00004.cur"
+#endif    // English (Canada) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

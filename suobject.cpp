@@ -1,0 +1,1374 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+ * This file is part of Suneido - The Integrated Application Platform
+ * see: http://www.suneido.com for more information.
+ * 
+ * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation - version 2. 
+ *
+ * This program is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License in the file COPYING
+ * for more details. 
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free
+ * Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#include "suobject.h"
+#include "interp.h"
+#include "globals.h"
+#include "symbols.h"
+#include "suboolean.h"
+#include "sunumber.h"
+#include "sustring.h"
+#include "sufunction.h"
+#include "func.h"
+#include "suclass.h"
+#include <ctype.h>
+#include "cvt.h"
+#include "pack.h"
+#include "sublock.h" // for persist_if_block
+#include "lisp.h"
+#include "sumethod.h"
+#include "catstr.h"
+#include "ostreamstr.h"
+#include "minmax.h"
+
+extern Value root_class;
+
+enum Values { ITER_KEYS, ITER_VALUES, ITER_ASSOCS };
+
+class SuObjectIter : public SuValue
+	{
+public:
+	explicit SuObjectIter(SuObject* ob, bool l, Values v) 
+		: object(ob), iter(ob->begin()), end(ob->end()), list(l), values(v)
+		{ }
+	virtual void out(Ostream& os)
+		{ os << "ObjectIter"; }
+	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+private:
+	SuObject* object;
+	SuObject::iterator iter;
+	SuObject::iterator end;
+	bool list;
+	enum Values values;
+	};
+
+SuObject::SuObject() : myclass(root_class), readonly(false), has_getter(true), has_setter(true)
+	{
+	init();
+	}
+
+SuObject::SuObject(bool ro) : myclass(root_class), readonly(ro), has_getter(true), has_setter(true)
+	{
+	init();
+	}
+
+void SuObject::init()
+	{
+	static bool first = true;
+	if (first)
+		{
+		setup();
+		first = false;
+		}
+	}
+
+static int ord = ::order("Object");
+
+int SuObject::order() const
+	{ return ord; }
+
+bool SuObject::lt(const SuValue& y) const
+	{
+	int yo = y.order();
+	if (yo == ord)
+		return vec < static_cast<const SuObject&>(y).vec;
+	else
+		return ord < yo;
+	}
+
+static int hash_nest = 0;
+struct HashCount
+	{
+	HashCount()
+		{ ++hash_nest; }
+	~HashCount()
+		{ --hash_nest; }
+	};
+
+size_t SuObject::hashfn()
+	{
+	HashCount nest;
+	size_t hash = size();
+	if (hash_nest > 4)
+		return hash;
+	for (int i = 0; i < vec.size(); ++i)
+		hash += vec[i].hash();
+	for (Map::iterator it = map.begin(); it != map.end(); ++it)
+		hash += it->val.hash() + it->key.hash();
+	return hash;
+	}
+
+HashMap<Value,SuObject::pmfn> SuObject::methods;
+HashMap<Value,SuObject::pmfn> SuObject::basic_methods;
+
+#define METHOD(fn) methods[#fn] = &SuObject::fn
+#define BASIC_METHOD(fn) basic_methods[#fn] = &SuObject::fn
+
+void SuObject::setup()
+	{
+	BASIC_METHOD(Add);
+	BASIC_METHOD(Base);
+	basic_methods["Base?"] = &SuObject::HasBase;
+	BASIC_METHOD(Delete);
+	BASIC_METHOD(Erase);
+	BASIC_METHOD(Eval);
+	BASIC_METHOD(Find);
+	BASIC_METHOD(Iter);
+	BASIC_METHOD(IterKeys);
+	BASIC_METHOD(IterList);
+	BASIC_METHOD(IterListValues);
+	BASIC_METHOD(Join);
+	basic_methods["Member?"] = &SuObject::HasMember;
+	basic_methods["Method?"] = &SuObject::HasMethod;
+	BASIC_METHOD(Members);
+	BASIC_METHOD(MethodClass);
+	BASIC_METHOD(Reverse);
+	basic_methods["Reverse!"] = &SuObject::Reverse;
+	BASIC_METHOD(Size);
+	BASIC_METHOD(Partition);
+	basic_methods["Partition!"] = &SuObject::Partition;
+	BASIC_METHOD(Sort);
+	basic_methods["Sort!"] = &SuObject::Sort;
+	METHOD(Set_default);
+	METHOD(Copy);
+	basic_methods["Readonly?"] = &SuObject::IsReadonly;
+	METHOD(Set_readonly);
+	METHOD(Values);
+	METHOD(Assocs);
+//	METHOD(Get); name conflicts with existing code!
+	}
+
+SuObject::SuObject(const SuObject& ob) : myclass(ob.myclass), defval(ob.defval), 
+	vec(ob.vec), readonly(false), has_getter(true), has_setter(true)
+	{ 
+	for (Map::const_iterator it = ob.map.begin(), end = ob.map.end(); it != end; ++it)
+		map[it->key] = it->val;
+	}
+
+SuObject::SuObject(SuObject* ob, size_t offset) 
+	: myclass(ob->myclass), defval(ob->defval), 
+	vec(ob->vec.begin() + min(offset, ob->vec.size()), ob->vec.end()),
+	readonly(false), has_getter(true), has_setter(true)
+	{
+	for (Map::iterator it = ob->map.begin(), end = ob->map.end(); it != end; ++it)
+		map[it->key] = it->val;
+	}
+
+void SuObject::add(Value x)
+	{ 
+	persist_if_block(x);
+	vec.push_back(x); 
+	// check for migration from map to vec
+	Value num;
+	while (Value* pv = map.find(num = vec.size()))
+		{
+		vec.push_back(*pv);
+		map.erase(num);
+		}
+	}
+
+void SuObject::putdata(Value m, Value x)
+	{
+	if (readonly)
+		except("read only objects cannot be modified");
+	if (has_setter && ! has(m))
+		{
+		static Value Set_("Set_");
+		if (Value method = myclass.getdata(Set_))
+			{
+			Value* oldsp = proc->stack.getsp();
+			proc->stack.push(m);
+			proc->stack.push(x);
+			x = method.call(this, CALL, 2, 0, 0, -1);
+			proc->stack.setsp(oldsp);
+			return ;
+			}
+		else
+			has_setter = false; // avoid future attempts
+		}
+	put(m, x);
+	}
+
+void SuObject::put(Value m, Value x)
+	{
+	if (! x)
+		return ;
+	persist_if_block(x);
+	int i;
+	if (! m.int_if_num(&i) || m != Value(i) || i < 0 || vec.size() < i)
+		map[m] = x;
+	else if (i == vec.size())
+		add(x);
+	else // if (0 <= i && i < vec.size())
+		vec[i] = x;
+	}
+
+Value SuObject::getdata(Value member)
+	{
+/*	if (myclass isnt rootclass)
+	if (const char* s = member.str_if_str())
+		{
+		if (islower(*s))
+			{
+			char* t = STRDUPA(s);
+			*t = toupper(*t);
+			member = Value(t);
+			}
+		}*/
+	return getdefault(member, defval);
+	}
+
+Value SuObject::getdefault(Value member, Value def)
+	{
+	Value x;
+	if ((x = get(member)))
+		return x;
+	if (x = myclass.getdata(member))
+		{
+		if (SuFunction* sufn = val_cast<SuFunction*>(x))
+			return new SuMethod(this, member, sufn);
+		return x;
+		}
+	if (has_getter)
+		{
+		static Value Get_("Get_");
+		if (Value method = myclass.getdata(Get_))
+			{
+			Value* oldsp = proc->stack.getsp();
+			proc->stack.push(member);
+			x = method.call(this, CALL, 1, 0, 0, -1);
+			proc->stack.setsp(oldsp);
+			return x;
+			}
+		else
+			has_getter = false; // avoid future attempts
+		}
+	if ((void*) myclass != (void*) root_class)
+		if (const char* s = member.str_if_str())
+			{
+			Value getter = new SuString(CATSTRA(islower(*s) ? "get_" : "Get_", s));
+			if (Value method = myclass.getdata(getter))
+				{
+				Value* oldsp = proc->stack.getsp();
+				x = method.call(this, CALL, 0, 0, 0, -1);
+				proc->stack.setsp(oldsp);
+				return x;
+				}
+			}
+	if (SuObject* defval_ob = def.ob_if_ob())
+		{
+		x = new SuObject(*defval_ob);
+		put(member, x);
+		return x;
+		}
+	return def; // member not found
+	}
+
+Value SuObject::get(Value m) const
+	{
+	int i;
+	if (m.int_if_num(&i) && 0 <= i && i < vec.size())
+		return vec[i];
+	Value* pv = map.find(m);
+	if (pv)
+		return *pv;
+	else
+		return Value();
+	}
+
+/*
+pack format is:
+	int size of vector
+	list of vector values
+		int size
+		packed value
+	int size of map
+	list of map values
+		member name
+			int size
+			packed value
+		member value
+			int size
+			packed value
+
+*/
+	
+const int NESTING_LIMIT = 20;
+
+class Nest
+	{
+public:
+	Nest()
+		{
+		if (nest > NESTING_LIMIT)
+			except("pack: object nesting limit (" << NESTING_LIMIT << ") exceeded");
+		++nest;
+		}
+	~Nest()
+		{ --nest; }
+private:
+	static int nest;
+	};
+int Nest::nest = 0;
+// TODO: don't output duplicate sub-objects
+
+size_t SuObject::packsize() const
+	{
+	int ps = 1;
+	if (size() == 0)
+		return ps;
+
+	Nest nest;
+	ps += sizeof (long); // vec size
+	int n = vec.size();
+	for (int i = 0; i < n; ++i)
+		ps += sizeof (long) /* value size */ + vec[i].packsize();
+
+	ps += sizeof (long); // map size
+	for (Map::const_iterator iter = map.begin(); iter != map.end(); ++iter)
+		ps += sizeof (long) /* member size */ + iter->key.packsize() +
+			sizeof (long) /* value size */ + iter->val.packsize();
+
+	return ps;
+	}
+
+void SuObject::pack(char* buf) const
+	{
+	*buf++ = PACK_OBJECT;
+	if (size() == 0)
+		return ;
+
+	int nv = vec.size();
+	cvt_long(buf, nv);
+	buf += sizeof (long); 
+	for (int i = 0; i < nv; ++i)
+		buf += packvalue(buf, vec[i]);
+
+	int nm = map.size();
+	cvt_long(buf, nm);
+	buf += sizeof (long);
+	for (Map::const_iterator iter = map.begin(); iter != map.end(); ++iter)
+		{
+		buf += packvalue(buf, iter->key); // member
+		buf += packvalue(buf, iter->val); // value
+		}
+	}
+
+/*static*/ SuObject* SuObject::unpack(const gcstring& s)
+	{
+	return unpack2(s, new SuObject);
+	}
+
+/*static*/ SuObject* SuObject::unpack2(const gcstring& s, SuObject* ob)
+	{
+	if (s.size() <= 1)
+		return ob;
+	const char* buf = s.buf() + 1; // skip PACK_OBJECT
+
+	int nv = cvt_long(buf);
+	buf += sizeof (long);
+	int i;
+	for (i = 0; i < nv; ++i)
+		ob->add(unpackvalue(buf));
+
+	int nm = cvt_long(buf);
+	buf += sizeof (long);
+	for (i = 0; i < nm; ++i)
+		{
+		Value member = unpackvalue(buf);
+		Value value = unpackvalue(buf);
+		ob->put(member, value);
+		}
+	verify(buf == s.end());
+	return ob;
+	}
+
+bool SuObject::erase(Value m)
+	{
+	int i;
+	if (m.int_if_num(&i) && 0 <= i && i < vec.size())
+		{
+		vec.erase(vec.begin() + i);
+//		if (vec.capacity() > vec.size())
+//			vec[vec.size()] = Value(); // clear to help gc
+		return true;
+		}
+	else
+		return map.erase(m);
+	}
+
+// this erase does NOT shift numeric subscripts
+bool SuObject::erase2(Value m)
+	{
+	int i;
+	if (m.int_if_num(&i) && 0 <= i && i < vec.size())
+		{
+		// migrate from vec to map
+		for (int j = vec.size() - 1; j > i; --j)
+			map[j] = vec[j];
+		vec.erase(vec.begin() + i, vec.end());
+		return true;
+		}
+	return map.erase(m);
+	}
+
+Value SuObject::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (member == CALL)
+		member = CALL_INSTANCE;
+	if (proc->super)
+		{
+		short super = proc->super; proc->super = 0;
+		return globals[super].call(self, member, nargs, nargnames, argnames, each);
+		}
+//else if (Value fn = myclass.getdata(member))
+//return fn.call(self, CALL, nargs, nargnames, argnames, each);
+	else if (pmfn* p = basic_methods.find(member))
+		return (this->*(*p))(nargs, nargnames, argnames, each);
+	else if (pmfn* p = methods.find(member))
+		return (this->*(*p))(nargs, nargnames, argnames, each);
+	else
+		return myclass.call(self, member, nargs, nargnames, argnames, each);
+	}
+
+// suneido methods =======================================================
+	
+Value SuObject::Set_default(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 1)
+		except("usage: object.Set_default(value)");
+	if (readonly)
+		except("can't set_default on readonly object");
+	defval = proc->stack.top();
+	if (SuObject* defval_ob = defval.ob_if_ob())
+		if (! defval_ob->readonly)
+			defval = new SuObject(*defval_ob);
+	return this;
+	}
+
+Value SuObject::Copy(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 0)
+		except("usage: object.Copy()");
+	return new SuObject(*this);
+	}
+
+Value SuObject::Size(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	static ushort list = ::symnum("list");
+	if (nargs == 0)
+		return size();
+	else if (nargs == 1 && nargnames == 1 && argnames[0] == list)
+		return vec.size();
+	else
+		except("usage: object.Size() or .Size(list:)");
+	}
+
+Value SuObject::Iter(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 0)
+		except("usage: object.Iter()");
+	return new SuObjectIter(this, false, ITER_VALUES);
+	}
+
+Value SuObject::IterKeys(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 0)
+		except("usage: object.IterKeys()");
+	return new SuObjectIter(this, false, ITER_KEYS);
+	}
+
+Value SuObject::IterList(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 0)
+		except("usage: object.IterList()");
+	return new SuObjectIter(this, true, ITER_KEYS);
+	}
+
+Value SuObject::IterListValues(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 0)
+		except("usage: object.IterListValues()");
+	return new SuObjectIter(this, true, ITER_VALUES);
+	}
+
+template <class Finder>
+Value lookup(SuObject* ob, Finder finder)
+	{
+	SuClass* c = dynamic_cast<SuClass*>(ob);
+	if (! c)
+		{
+		if (! ob->myclass)
+			return Value();
+		c = val_cast<SuClass*>(ob->myclass);
+		}
+	while (c)
+		{
+		if (Value x = finder(c))
+			return x;
+		if (c->base < 0)
+			break ;
+		c = val_cast<SuClass*>(globals[c->base]);
+		}
+	return Value();
+	}
+
+struct MemberFinder
+	{
+	MemberFinder(Value m) : member(m)
+		{ }
+	Value operator()(SuClass* c)
+		{ return c->get(member); }
+	Value member;
+	};
+
+bool SuObject::has(Value mem)
+	{
+	return get(mem) || lookup(this, MemberFinder(mem));
+	}
+
+Value SuObject::HasMember(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 1)
+		except("usage: object.Member?(name)");
+	Value mem = proc->stack.top();
+	return has(mem) ? SuTrue : SuFalse;
+	}
+
+struct MethodFinder
+	{
+	MethodFinder(Value m) : method(m)
+		{ }
+	Value operator()(SuClass* c)
+		{
+		if (Value x = c->get(method))
+			return val_cast<SuFunction*>(x) ? Value(c) : SuFalse;
+		return Value();
+		}
+	Value method;
+	};
+
+Value SuObject::HasMethod(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 1)
+		except("usage: object.Method?(name)");
+	Value x = lookup(this, MethodFinder(proc->stack.top()));
+	return x && x != SuFalse ? SuTrue : SuFalse;
+	}
+
+Value SuObject::MethodClass(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 1)
+		except("usage: object.MethodClass(name)");
+	Value x = lookup(this, MethodFinder(proc->stack.top()));
+	return x ? x : SuFalse;
+	}
+
+// TODO: split Base and Base? into SuClass and SuObject
+Value SuObject::Base(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 0)
+		except("usage: object.Base()");
+	if (SuClass* c = val_cast<SuClass*>(this))
+		return globals[c->base];
+	else
+		return myclass;
+	}
+
+struct BaseFinder
+	{
+	BaseFinder(Value b) : base(b)
+		{ }
+	Value operator()(SuClass* c)
+		{ return c == base.ptr() ? Value(c) : Value(); }
+	Value base;
+	};
+
+Value SuObject::HasBase(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 1)
+		except("usage: object.Base?(class)");
+	return lookup(this, BaseFinder(proc->stack.top())) ? SuTrue : SuFalse;
+	}
+
+Value SuObject::Eval(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs < 1)
+		except("usage: object.Eval(function, args ...)");
+	Value x = ARG(0); // the function to call
+	if (SuMethod* meth = val_cast<SuMethod*>(x))
+		x = meth->fn();
+	return x.call(this, CALL, nargs - 1, nargnames, argnames, each);
+	}
+
+struct PartVal
+	{
+	PartVal(Value v) : val(v)
+		{ }
+	bool operator()(Value x)
+		{ return x < val; }
+	Value val;
+	};
+
+struct PartFn
+	{
+	PartFn(Value f) : fn(f)
+		{ }
+	bool operator()(Value x)
+		{
+		Value* oldsp = proc->stack.getsp();
+		proc->stack.push(x);
+		Value result = docall(fn, CALL, 1, 0, 0, -1);
+		proc->stack.setsp(oldsp);
+		return result == SuTrue;
+		}
+	Value fn;
+	};
+
+Value SuObject::Partition(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (readonly)
+		except("can't partition readonly objects");
+	if (nargs != 1)
+		except("usage: object.Partition(number or string or function)");
+	Value arg = ARG(0);
+	if (arg.is_int() || val_cast<SuNumber*>(arg) || val_cast<SuString*>(arg))
+		return std::stable_partition(vec.begin(), vec.end(), PartVal(arg)) - vec.begin();
+	else
+		return std::stable_partition(vec.begin(), vec.end(), PartFn(arg)) - vec.begin();
+	}
+
+struct Lt
+	{
+	Lt(Value f) : fn(f)
+		{ }
+	bool operator()(Value x, Value y)
+		{
+		Value* oldsp = proc->stack.getsp();
+		proc->stack.push(x);
+		proc->stack.push(y);
+		Value result = docall(fn, CALL, 2, 0, 0, -1);
+		proc->stack.setsp(oldsp);
+		return result == SuTrue;
+		}
+	Value fn;
+	};
+
+Value SuObject::Sort(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (readonly)
+		except("can't sort readonly objects");
+	if (nargs == 0)
+		sort();
+	else if (nargs == 1)
+		{
+		Value fn = ARG(0);
+		std::stable_sort(vec.begin(), vec.end(), Lt(fn));
+		}
+	else
+		except("usage: object.Sort() or object.Sort(less_function)");
+	return this;
+	}
+
+void SuObject::sort()
+	{
+	std::stable_sort(vec.begin(), vec.end());
+	}
+
+Value SuObject::Find(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 1)
+		except("usage: object.Find(value)");
+
+	return find(ARG(0));
+	}
+
+Value SuObject::find(Value value)
+	{
+	for (SuObject::iterator iter = begin(); iter != end(); ++iter)
+		if ((*iter).second == value)
+			return (*iter).first;
+	return SuFalse;
+	}
+
+void SuObject::remove(Value value)
+	{
+	Value member;
+	while (SuFalse != (member = find(value)))
+		erase(member);
+	}
+
+void SuObject::remove1(Value value)
+	{
+	Value member;
+	if (SuFalse != (member = find(value)))
+		erase(member);
+	}
+
+Value SuObject::Delete(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	static ushort all = ::symnum("all");
+	if (nargs != 1 || (nargnames == 1 && argnames[0] != all))
+		except("usage: object.Delete(member) or Delete(all:)");
+	if (readonly)
+		except("can't Delete from readonly objects");
+	if (nargnames)
+		{ // all:
+		std::fill(vec.begin(), vec.end(), Value());
+		vec.clear();
+		map.clear();
+		}
+	else if (! erase(proc->stack.top()))
+		return SuBoolean::f;
+	return this;
+	}
+
+// like Delete, but doesn't move in vector
+Value SuObject::Erase(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 1)
+		except("usage: object.Erase(member)");
+	if (readonly)
+		except("can't Erase from readonly objects");
+	if (! erase2(proc->stack.top()))
+		return SuBoolean::f;
+	return this;
+	}
+
+Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	argseach(nargs, nargnames, argnames, each);
+	static ushort at = ::symnum("at");
+	if (nargnames > 1 || nargnames == 1 && argnames[0] != at)
+		except("usage: object.Add(value, ... [ at: position ])");
+	if (readonly)
+		except("can't Add to readonly objects");
+	int i = INT_MAX;
+	if (nargnames)
+		ARG(nargs - 1).int_if_num(&i);
+	else
+		i = vec.size();
+	if (0 <= i && i <= vec.size())
+		{
+		for (int j = 0; j < nargs - nargnames; ++j, ++i)
+			{
+			vec.insert(vec.begin() + i, ARG(j));
+			// migrate from map to vector if necessary
+			Value num;
+			while (Value* pv = map.find(num = vec.size()))
+				{
+				vec.push_back(*pv);
+				map.erase(num);
+				}
+			}
+		}
+	else if (nargnames == 1 && nargs == 2)
+		putdata(ARG(1), ARG(0));
+	else if (i < INT_MAX)
+		for (int j = 0; j < nargs - 1; ++j, ++i)
+			putdata(i, ARG(j));
+	else
+		except("can only Add multiple values to un-named or to numeric positions");
+	return this;
+	}
+
+Value SuObject::Reverse(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 0)
+		except("usage: object.Reverse()");
+	if (readonly)
+		except("can't Reverse readonly objects");
+	std::reverse(vec.begin(), vec.end());
+	return this;
+	}
+
+Value SuObject::Join(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 1)
+		except("usage: object.Join(separator)");
+	gcstring separator = ARG(0).gcstr();
+	OstreamStr oss;
+	for (std::vector<Value>::iterator iter = vec.begin(); iter != vec.end(); )
+		{
+		if (const char* s = (*iter).str_if_str())
+			oss << s;
+		else
+			oss << *iter;
+		if (++iter == vec.end())
+			break ;
+		oss << separator;
+		}
+	return new SuString(oss.size(), oss.str());
+	}
+
+Value SuObject::Set_readonly(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 0)
+		except("usage: object.Set_readonly()");
+	readonly = true;
+	return this;
+	}
+
+Value SuObject::IsReadonly(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 0)
+		except("usage: object.Readonly?()");
+	return readonly ? SuTrue : SuFalse;
+	}
+
+#include "suseq.h"
+
+Value SuObject::Members(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	static ushort list = ::symnum("list");
+	if (nargs == 0)
+		return new SuSeq(new SuObjectIter(this, false, ITER_KEYS));
+	else if (nargs == 1 && nargnames == 1 && argnames[0] == list)
+		return new SuSeq(new SuObjectIter(this, true, ITER_KEYS));
+	else
+		except("usage: object.Members() or .Members(list:)");
+	}
+
+Value SuObject::Values(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	static ushort list = ::symnum("list");
+	if (nargs == 0)
+		return new SuSeq(new SuObjectIter(this, false, ITER_VALUES));
+	else if (nargs == 1 && nargnames == 1 && argnames[0] == list)
+		return new SuSeq(new SuObjectIter(this, true, ITER_VALUES));
+	else
+		except("usage: object.Values() or .Values(list:)");
+	}
+
+Value SuObject::Assocs(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 0)
+		except("usage: object.Assocs()");
+	return new SuSeq(new SuObjectIter(this, false, ITER_ASSOCS));
+	}
+
+Value SuObject::Get(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 1 && nargs != 2)
+		except("usage: object.Get(member [, default])");
+	return getdefault(ARG(0), nargs == 2 ? ARG(1) : defval);
+	}
+
+// ==================================================================
+
+bool SuObject::eq(const SuValue& y) const
+	{
+	if (const SuObject* ob = dynamic_cast<const SuObject*>(&y))
+		return *this == *ob;
+	else if (const SuSeq* seq = dynamic_cast<const SuSeq*>(&y))
+		return *this == *seq->object();
+	else
+		return false;
+	}
+
+// prevent infinite recursion
+class Track
+	{
+	public:
+		explicit Track(SuObject* ob)
+			{ stack.push(ob); }
+		~Track()
+			{ stack.pop(); }
+		static bool has(SuObject* ob)
+			{ return member(stack, ob); }
+	private:
+		static Lisp<SuObject*> stack;
+	};
+Lisp<SuObject*> Track::stack;
+
+void SuObject::out(Ostream& os)
+	{
+	outdelims(os, "()");
+	}
+
+bool obout_inkey = false;
+struct ObOutInKey
+	{
+	ObOutInKey()
+		{ obout_inkey = true; }
+	~ObOutInKey()
+		{ obout_inkey = false; }
+	};	
+
+void SuObject::outdelims(Ostream& os, char* delims)
+	{
+	static Value ToString("ToString");
+	Value c = lookup(this, MethodFinder(ToString));
+	if (c && c != SuFalse)
+		{
+		Value x = c.call(this, ToString, 0, 0, 0, -1);
+		if (! x)
+			except("ToString must return a value");
+		if (const char* s = x.str_if_str())
+			os << s;
+		else
+			os << x;
+		return ;
+		}
+
+	if (Named* n = myclass.get_named())
+		{
+		os << n->name() << "()";
+		return ;
+		}
+	if (Track::has(this))
+		{
+		os << "...";
+		return ;
+		}
+	Track track(this);
+	if (delims[0] != '[')
+		os << "#";
+	if (myclass && (void*) myclass != (void*) root_class)
+		os << "/*" << myclass << "*/";
+	os << delims[0];
+	int i;
+	for (i = 0; i < vec.size(); ++i)
+		os << (i > 0 ? ", " : "") << vec[i];
+
+	for (Map::iterator it = map.begin(); it != map.end(); ++it)
+		{
+		if (i++ > 0)
+			os << ", ";
+		{
+		ObOutInKey ooik; // adjust output of keys
+		os << it->key;
+		}
+		os << ": " << it->val;
+		}
+
+	os << delims[1];
+	}
+
+SuObject* SuObject::slice(size_t offset)
+	{
+	return new SuObject(this, offset);
+	}
+
+SuObject::iterator& SuObject::iterator::operator++()
+	{
+	if (vi < vec.size())
+		++vi;
+	else if (mi != mend)
+		++mi;
+	return *this;
+	}
+
+bool SuObject::iterator::invec()
+	{
+	return vi < vec.size();
+	}
+
+void SuObject::iterator::rewind()
+	{
+	vi = 0;
+	mi = map.begin();
+	mend = map.end();
+	}
+
+SuObject::Pair SuObject::iterator::operator*()
+	{
+	if (vi < vec.size())
+		return Pair(vi, vec[vi]);
+	else if (mi != mend)
+		return Pair(mi->key, mi->val);
+	else
+		return Pair(Value(), Value());
+	}
+
+bool SuObject::iterator::operator==(const iterator& iter) const
+	{ 
+	return vi == iter.vi && mi == iter.mi;
+	}
+
+// catch self reference
+struct EqNest
+	{
+	EqNest(const SuObject* x, const SuObject* y)
+		{
+		if(n >= MAX)
+			except("object comparison nesting overflow");
+		xs[n] = x;
+		ys[n] = y;
+		++n;
+		}
+	static bool has(const SuObject* x, const SuObject* y)
+		{
+		for (int i = 0; i < n; ++i)
+			if ((xs[i] == x && ys[i] == y) || (xs[i] == y && ys[i] == x))
+				return true;
+		return false;
+		}
+	~EqNest()
+		{ --n; verify(n >= 0); }
+	enum { MAX = 20 };
+	static int n;
+	static const SuObject* xs[MAX];
+	static const SuObject* ys[MAX];
+	};
+int EqNest::n = 0;
+const SuObject* EqNest::xs[MAX];
+const SuObject* EqNest::ys[MAX];
+
+typedef SuObject::Vector Vec;
+
+typedef SuObject::Map Map;
+
+static bool mapeq(const Map& m1, const Map& m2)
+	{
+	if (m1.size() != m2.size())
+		return false;
+	for (Map::const_iterator it = m1.begin(); it != m2.end(); ++it)
+		{
+		Value* pv = m2.find(it->key);
+		if (! pv || *pv != it->val)
+			return false;
+		}
+	return true;
+	};
+
+bool SuObject::operator==(const SuObject& ob) const
+	{
+	if (this == &ob)
+		return true;
+	if (EqNest::has(this, &ob))
+		return true;
+	EqNest eqnest(this, &ob);
+	return myclass == ob.myclass && vec == ob.vec && mapeq(map, ob.map);
+	}
+
+void SuObject::set_members(SuObject* ob)
+	{
+	vec = ob->vec;
+	map = Map();
+	for (Map::iterator it = ob->map.begin(), end = ob->map.end(); it != end; ++it)
+		map[it->key] = it->val;
+	}
+
+// SuObjectIter -------------------------------------------------------
+
+Value SuObjectIter::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+	{
+	static Value NEXT("Next");
+	static Value ITER("Iter");
+	static Value COPY("Copy");
+	static Value REWIND("Rewind");
+
+	if (member == NEXT)
+		{
+		if (nargs != 0)
+			except("usage: objectiter.Next()");
+		if (iter == end || (list && ! iter.invec()))
+			return this; // eof
+		std::pair<Value,Value> assoc = *iter;
+		if (assoc.first == Value() || assoc.second == Value())
+			return this; // eof
+		++iter;
+		switch (values)
+			{
+		case ITER_KEYS :
+			return assoc.first;
+		case ITER_VALUES :
+			return assoc.second;
+		case ITER_ASSOCS :
+			{
+			SuObject* ob = new SuObject();
+			ob->add(assoc.first);
+			ob->add(assoc.second);
+			return ob;
+			}
+		default :
+			unreachable();
+			}
+		}
+	else if (member == COPY)
+		{
+		return new SuObjectIter(object, list, values);
+		}
+	else if (member == REWIND)
+		{
+		if (nargs != 0)
+			except("usage: objectiter.Rewind()");
+		iter.rewind();
+		return this;
+		}
+	else if (member == ITER)
+		{
+		if (nargs != 0)
+			except("usage: objectiter.Iter()");
+		return this;
+		}
+	else
+		except("method not found: " << member);
+	}
+
+// tests ============================================================
+
+#include "testing.h"
+#include "random.h"
+
+class test_object : public Tests
+	{
+	TEST (1, number)
+		{
+		int i;
+		{
+		SuObject ob;
+
+		verify(ob.size() == 0);
+		Value x = 123;
+		ob.add(x);
+		verify(ob.size() == 1);
+		verify(ob.get(0) == x);
+		verify(ob.get(SuZero) == x);
+
+		Value s_zero = new SuString("zero");
+		Value s_one = new SuString("one");
+		Value s_big = new SuString("big");
+		Value s_str = new SuString("string");
+
+		// fast use
+		ob.put(SuZero, s_zero);
+		ob.put(1, s_one);
+		ob.put("big", s_big);
+		ob.put("zero", s_zero);
+		verify(s_zero == ob.get(SuZero));
+		verify(s_one == ob.get(1));
+		verify(s_one == ob.get(new SuNumber(1)));
+		verify(s_big == ob.get("big"));
+		verify(s_zero == ob.get("zero"));
+	
+		// slow use
+		ob.put(123456, s_big);
+		ob.put("string", s_str);
+		verify(s_big == ob.get(123456));
+		verify(s_str == ob.get(new SuString("string")));
+		verify(s_zero == ob.get(0));
+		verify(s_one == ob.get(1));
+		verify(s_big == ob.get("big"));
+		verify(s_zero == ob.get("zero"));
+		}
+
+		// TODO: test with more random keys
+
+		const int N = 10000;
+		const int M = 10;
+		SuObject ob;
+		for (i = 0; i < N; ++i)
+			{
+			Value key = random(M);
+			if (Value data = ob.get(key))
+				ob.put(key, data + 1);
+			else
+				ob.put(key, 1);
+			}
+		int total = 0;
+		for (i = 0; i < M; ++i)
+			{
+			Value data = ob.get(i);
+			verify(data);
+			total += data.integer();
+			}
+		verify(total == N);
+		}
+
+	TEST(2, empty)
+		{
+		SuObject ob;
+		verify(ob.size() == 0);
+		verify(! ob.get(0));
+		verify(! ob.get(10));
+		verify(! ob.get("x"));
+		}
+	TEST(3, no_match)
+		{
+		SuObject ob;
+		int i;
+		for (i = 0; i < 100; ++i)
+			ob.put(i, i);
+		char s[2] = "a";
+		for (i = 0; i < 25; ++i, ++*s)
+			ob.put(s, i);
+				
+		verify(! ob.get(101));
+		verify(! ob.get("z"));
+		}
+	TEST(4, equal)
+		{
+		SuObject ob1;
+		SuObject ob2;
+		verify(ob1 == ob2);
+		int i;
+		for (i = 0; i < 100; ++i)
+			ob1.put(i, i);
+		verify(! (ob1 == ob2));
+		for (i = 0; i < 100; ++i)
+			ob2.put(i, i);
+		verify(ob1 == ob2);
+		char s[2] = "a";
+		for (i = 0; i < 26; ++i, ++*s)
+			ob1.put(s, i);
+				
+		verify(! (ob1 == ob2));
+		*s = 'a';
+		for (int j = 0; j < i; ++j, ++*s)
+			ob2.put(s, j);
+		verify(ob1 == ob2);
+		}
+	TEST(5, slice)
+		{
+		int i;
+
+		//building ob1 to offset
+		SuObject ob1;
+		for (i = 0; i < 100; ++i)
+			ob1.put(i, i);
+		char s[2] = "a";
+		for (i = 0; i < 26; ++i, ++*s)
+			ob1.put(s, i);
+
+		SuObject* ob = ob1.slice(2);
+
+		//building ob2 - should be same as ob1 after slice
+		SuObject ob2;
+		for (i = 0; i < 98; ++i)
+			ob2.put(i, i + 2);
+		*s = 'a';
+		for (i = 0; i < 26; ++i, ++*s)
+			ob2.put(s, i);
+
+		verify(*ob == ob2);
+		}
+	TEST(6, vector)
+		{
+		int i;
+		SuObject ob;
+		for (i = 1; i < 10; i += 2)
+			ob.put(i, i);
+		verify(ob.vecsize() == 0 && ob.mapsize() == 5);
+		for (i = 0; i < 5; i += 2)
+			ob.put(i, i);
+		for (; i < 10; i += 2)
+			ob.put(i, i);
+		verify(ob.vecsize() == 10 && ob.mapsize() == 0);
+		for (i = 0; i < 10; ++i)
+			verify(ob.get(i) == i);
+		}
+	TEST(7, iterate)
+		{
+		int i;
+		SuObject ob;
+		for (i = 0; i < 100; ++i)
+			ob.put(i, i);
+		char s[2] = "a";
+		for (i = 0; i < 26; ++i, ++*s)
+			ob.put(s, i);
+		verify(ob.size() == 126);
+		
+		// iterate
+		SuObject::iterator iter = ob.begin(); 
+		for (i = 0; i < 100; ++i, ++iter)
+			{
+			verify(iter != ob.end());
+			verify((*iter).first == i);
+			verify((*iter).second == i);
+			}
+		for (i = 0; i < 26; ++i, ++iter)
+			{
+			verify(iter != ob.end());
+			std::pair<Value,Value> p = *iter;
+			gcstring s = p.first.gcstr();
+			verify(s.size() == 1 && s[0] >= 'a' && s[0] <= 'z');
+			verify(p.second == s[0] - 'a');
+			}
+		verify(iter == ob.end());
+
+		Value obiter = ob.call(&ob, "IterKeys", 0, 0, 0, -1);
+		for (i = 0; i < 100; ++i)
+			{
+			Value x = obiter.call(obiter, "Next", 0, 0, 0, -1);
+			verify(x == i);
+			}
+		for (i = 0; i < 26; ++i)
+			{
+			Value x = obiter.call(obiter, "Next", 0, 0, 0, -1);
+			gcstring s = x.gcstr();
+			verify(s.size() == 1 && s[0] >= 'a' && s[0] <= 'z');
+			}	
+		verify(obiter == obiter.call(obiter, "Next", 0, 0, 0, -1));
+		}
+	TEST(8, remove)
+		{
+		SuObject ob;
+		ob.remove(SuTrue);
+
+		ob.add(SuTrue);
+		asserteq(ob.size(), 1);
+		ob.remove(SuFalse);
+		asserteq(ob.size(), 1);
+		ob.remove(SuTrue);
+		asserteq(ob.size(), 0);
+
+		ob.add(1);
+		ob.add(2);
+		ob.add(4);
+		ob.put(10, 2);
+		ob.put(11, 3);
+		asserteq(ob.size(), 5);
+		ob.remove(2);
+		asserteq(ob.size(), 3);
+		asserteq(ob.get(0), 1);
+		asserteq(ob.get(1), 4);
+		asserteq(ob.get(11), 3);
+		}
+	TEST(9, remove1)
+		{
+		SuObject ob;
+		ob.remove1(SuTrue);
+
+		ob.add(SuTrue);
+		asserteq(ob.size(), 1);
+		ob.remove1(SuFalse);
+		asserteq(ob.size(), 1);
+		ob.remove1(SuTrue);
+		asserteq(ob.size(), 0);
+
+		ob.add(1);
+		ob.add(2);
+		ob.add(4);
+		ob.put(10, 2);
+		ob.put(11, 3);
+		asserteq(ob.size(), 5);
+		ob.remove1(2);
+		asserteq(ob.size(), 4);
+		asserteq(ob.get(0), 1);
+		asserteq(ob.get(1), 4);
+		asserteq(ob.get(10), 2);
+		asserteq(ob.get(11), 3);
+		}
+	};
+REGISTER(test_object);

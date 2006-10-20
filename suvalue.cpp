@@ -1,0 +1,145 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+ * This file is part of Suneido - The Integrated Application Platform
+ * see: http://www.suneido.com for more information.
+ * 
+ * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation - version 2. 
+ *
+ * This program is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License in the file COPYING
+ * for more details. 
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free
+ * Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#include "suvalue.h"
+#include "except.h"
+#include "ostreamstr.h"
+#include "gcstring.h"
+#include <typeinfo>
+#include "symbols.h"
+#include "interp.h" // for unknown_method 
+#include "ctype.h"
+
+static int ord = ::order("other");
+
+int SuValue::order() const
+	{ return ord; }
+
+bool SuValue::lt(const SuValue& y) const
+	{
+	// this has no lt so it must be other
+	return order() == y.order() && this < &y; 
+	} // default is simply compare addresses
+
+bool SuValue::eq(const SuValue& y) const
+	{
+	return this == &y;
+	} // default is simply compare addresses
+
+size_t SuValue::hashfn()
+	{ return ((ulong) this >> 4); } // default function just uses address
+
+int SuValue::integer() const
+	{ except("can't convert " << type() << " to integer"); }
+
+gcstring SuValue::gcstr() const
+	{ except("can't convert " << type() << " to String"); }
+
+int SuValue::symnum() const
+	{ except("not a valid member: " << type()); }
+
+bool SuValue::int_if_num(int* pn) const
+	{ return false; }
+
+SuNumber* SuValue::number()
+	{ except("can't convert " << type() << " to number"); }
+
+const char* SuValue::str_if_str() const
+	{ return 0; }
+
+SuObject* SuValue::ob_if_ob()
+	{ return 0; }
+
+SuObject* SuValue::object()
+	{
+	if (SuObject* ob = ob_if_ob())
+		return ob;
+	else
+		except("can't convert " << type() << " to object");
+	}
+
+Value SuValue::getdata(Value)
+	{ except(type() << " does not support get"); }
+
+void SuValue::putdata(Value, Value)
+	{ except(type() << " does not support put"); }
+
+size_t SuValue::packsize() const
+	{ except("can't pack " << type()); }
+
+void SuValue::pack(char* buf) const
+	{ except("can't pack " << type()); }
+
+Ostream& operator<<(Ostream& out, SuValue* x)
+	{
+	if (x)
+		x->out(out);
+	else
+		out << "NULL";
+	return out;
+	}
+
+Value SuValue::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (member == CALL)
+		except("can't call " << type());
+	else
+		unknown_method(type(), member);
+	}
+
+int order(char* name)
+	{
+	static char* ord[] = 
+		{ "Boolean", "Number", "String", "Date", "Object", "other" };
+	const int nord = sizeof ord / sizeof (char*);
+	for (int i = 0; i < nord; ++i)
+		if (0 == strcmp(name, ord[i]))
+			{ ord[i] = ""; return i; }
+	error("unknown or duplicate type: " << name);
+	}
+
+const char* SuValue::type() const
+	{
+	const char* s = typeid(*this).name();
+	while (isdigit(*s))
+		++s; // for gcc
+	if (has_prefix(s, "BuiltinClass<"))
+		return "Class";
+	if (has_prefix(s, "BuiltinInstance<"))
+		return "Object";
+	if (has_prefix(s, "class "))
+		s += 6;
+	if (has_prefix(s, "Su"))
+		s += 2;
+	if (0 == strcmp(s, "Symbol"))
+		return "String";
+	return s;
+	}
+
+Named* SuValue::get_named()
+	{
+	return 0;
+	}
+
+void SuValue::finalize()
+	{
+	}
