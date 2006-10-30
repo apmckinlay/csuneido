@@ -1,0 +1,40 @@
+OBJS = alloc.obj reclaim.obj allchblk.obj misc.obj mach_dep.obj os_dep.obj mark_rts.obj headers.obj mark.obj obj_map.obj blacklst.obj finalize.obj new_hblk.obj dbg_mlc.obj malloc.obj stubborn.obj dyn_load.obj typd_mlc.obj ptr_chck.obj mallocx.obj
+
+all: gc.lib gctest.exe
+
+CC = cl
+CFLAGS = /nologo -Ox -DNDEBUG -DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -D_X86_=1 \
+	-DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -D_CRT_SECURE_NO_DEPRECATE
+CXXFLAGS = /nologo -Ox -DNDEBUG -DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -D_X86_=1 \
+	-DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -D_CRT_SECURE_NO_DEPRECATE
+OPTIONS=-DSILENT -DALL_INTERIOR_POINTERS -DDONT_ADD_BYTE_AT_END -DTHREADS -DFIBERS \
+	-D__STDC__ -DGC_NOT_DLL -DGC_BUILD -Iinclude 
+
+.SUFFIXES:
+
+%.obj : %.c
+	@$(CC) $(CFLAGS) $(OPTIONS) /c /Fo"$@" $<
+
+%.obj : %.cpp
+	@$(CXX) $(CXXFLAGS) $(OPTIONS) /c /Fo"$@" $<
+	
+$(OBJS) tests\test.obj: include\private\gc_priv.h include\private\gc_hdrs.h include\gc.h include\private\gcconfig.h include\private\gc_locks.h include\private\gc_pmark.h include\gc_mark.h
+
+gc.lib : $(OBJS)
+	lib /MACHINE:i386 /out:gc.lib $(OBJS)
+	
+GUIFLAGS = -subsystem:windows,5.01
+GUILIBS = kernel32.lib ws2_32.lib mswsock.lib advapi32.lib bufferoverflowu.lib user32.lib gdi32.lib comdlg32.lib winspool.lib
+
+#  This produces a "GUI" applications that opens no windows and writes to the log file
+#  "gc.log".  This is done to make the result runnable under win32s.
+gctest.exe: tests\test.obj gc.lib stubs.obj
+	link /debug $(GUIFLAGS) -out:gctest.exe tests\test.obj $(GUILIBS) gc.lib stubs.obj
+
+.PHONY : clean
+clean :
+	del *.obj *.lib
+	del cord\*.obj
+	del tests\*.obj
+	del gctest.exe
+	
