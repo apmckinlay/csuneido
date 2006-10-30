@@ -1,3 +1,5 @@
+#NOTE: this makefile is written for GNU make
+
 OUTPUT = vc8
 
 OBJECTS=\
@@ -136,20 +138,22 @@ suimage.obj \
 sunapp.obj
 
 CC = cl
-CFLAGS = /nologo /Z7
+CFLAGS = /nologo /Ox /DNDEBUG
 CXX = cl
-#CXXFLAGS = /nologo /GR /EHsc /W2 /wd4996 /O2 /DCOMPILER=VC8 /DNDEBUG \
-	/D_SCL_SECURE_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE
-CXXFLAGS = /nologo /GR /EHsc /W2 /wd4996 /Od /Z7 /DCOMPILER=VC8 \
-	/D_SCL_SECURE_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE
+CXXFLAGS = /nologo /GR /EHsc /W2 /wd4996 /Ox /DCOMPILER=VC8 /DNDEBUG \
+	/D_SCL_SECURE_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE \
+	/D_USE_32BIT_TIME_T
+#CXXFLAGS = /nologo /GR /EHsc /W2 /wd4996 /Od /Z7 /DCOMPILER=VC8 \
+	/D_SCL_SECURE_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE \
+	/D_USE_32BIT_TIME_T
 
 .SUFFIXES:
 
 $(OUTPUT)/%.obj : %.c
-	$(CC) $(CFLAGS) /c /Fo"$@" $<
+	@$(CC) $(CFLAGS) /c /Fo"$@" $<
 
 $(OUTPUT)/%.obj : %.cpp
-	$(CXX) $(CXXFLAGS) /c /Fo"$@" $<
+	@$(CXX) $(CXXFLAGS) /c /Fo"$@" $<
 
 LDFLAGS = /nologo \
 	/FIXED /DELAYLOAD:advapi32.dll /DELAYLOAD:wininet.dll /DELAYLOAD:urlmon.dll /DELAYLOAD:ws2_32.dll 
@@ -161,9 +165,9 @@ LIBS = gc.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib \
 OBS = $(OBJECTS:%=$(OUTPUT)/%) $(OUTPUT)/suneido.res 
 
 $(OUTPUT)/suneido.exe : $(OBS) gc.lib
-	$(CXX) $(CXXFLAGS) /c /Fo"$(OUTPUT)/build.obj" build.cpp
-#	@echo link
-	cl $(LDFLAGS) /Z7 /Fe"$(OUTPUT)/suneido.exe" $(OBS) $(OUTPUT)/build.obj $(LIBS)
+	@$(CXX) $(CXXFLAGS) /c /Fo"$(OUTPUT)/build.obj" build.cpp
+	@echo link
+	@cl $(LDFLAGS) /Fe"$(OUTPUT)/suneido.exe" $(OBS) $(OUTPUT)/build.obj $(LIBS)
 	
 $(OUTPUT)/suneido.res : suneido.rc resource.h
 	rc /l 0x409 /Fo"$(OUTPUT)/suneido.res"  /i "\Dev\Suneido" /d "NDEBUG" suneido.rc

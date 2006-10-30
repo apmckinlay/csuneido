@@ -103,6 +103,7 @@ int pascal WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpszCmdLine, int)
 	try
 		{
 		verify(memcmp("\xff", "\x1", 1) > 0); // ensure unsigned cmp
+		verify(sizeof (time_t) == 4); // required by Commit
 
 		Fibers::init();
 
