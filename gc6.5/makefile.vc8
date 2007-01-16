@@ -1,40 +1,55 @@
-OBJS = alloc.obj reclaim.obj allchblk.obj misc.obj mach_dep.obj os_dep.obj mark_rts.obj headers.obj mark.obj obj_map.obj blacklst.obj finalize.obj new_hblk.obj dbg_mlc.obj malloc.obj stubborn.obj dyn_load.obj typd_mlc.obj ptr_chck.obj mallocx.obj
+ifdef DEBUG
+  OUTPUT=vc8_debug
+  OFLAGS=/Od /Z7
+  LDFLAGS=/Z7
+else
+  OUTPUT=vc8_release
+  OFLAGS=/Ox /DNDEBUG
+  LDFLAGS=
+endif
 
-all: gc.lib gctest.exe
+SOURCES = alloc.c reclaim.c allchblk.c misc.c mach_dep.c os_dep.c \
+	mark_rts.c headers.c mark.c obj_map.c blacklst.c finalize.c \
+	new_hblk.c dbg_mlc.c malloc.c stubborn.c dyn_load.c \
+	typd_mlc.c ptr_chck.c mallocx.c
+OBJECTS = $(patsubst %.c,$(OUTPUT)/%.obj,$(SOURCES))
+
+all: $(OUTPUT)/gc.lib $(OUTPUT)/gctest.exe
 
 CC = cl
-CFLAGS = /nologo -Ox -DNDEBUG -DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -D_X86_=1 \
-	-DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -D_CRT_SECURE_NO_DEPRECATE
-CXXFLAGS = /nologo -Ox -DNDEBUG -DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -D_X86_=1 \
-	-DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -D_CRT_SECURE_NO_DEPRECATE
-OPTIONS=-DSILENT -DALL_INTERIOR_POINTERS -DDONT_ADD_BYTE_AT_END -DTHREADS -DFIBERS \
-	-D__STDC__ -DGC_NOT_DLL -DGC_BUILD -Iinclude 
-
+CFLAGS = /nologo -DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -D_X86_=1 \
+	-DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -D_CRT_SECURE_NO_DEPRECATE \
+	-DSILENT -DALL_INTERIOR_POINTERS -DDONT_ADD_BYTE_AT_END \
+	-DTHREADS -DFIBERS -D__STDC__ -DGC_NOT_DLL -DGC_BUILD -Iinclude
+	
 .SUFFIXES:
 
-%.obj : %.c
-	@$(CC) $(CFLAGS) $(OPTIONS) /c /Fo"$@" $<
+$(OUTPUT)/%.obj : %.c
+	@$(CC) $(CFLAGS) $(OFLAGS) /c /Fo"$@" $<
 
-%.obj : %.cpp
-	@$(CXX) $(CXXFLAGS) $(OPTIONS) /c /Fo"$@" $<
+$(OUTPUT)/test.obj : tests/test.c
+	@$(CC) $(CFLAGS) $(OFLAGS) /c /Fo"$@" $<
 	
-$(OBJS) tests\test.obj: include\private\gc_priv.h include\private\gc_hdrs.h include\gc.h include\private\gcconfig.h include\private\gc_locks.h include\private\gc_pmark.h include\gc_mark.h
+$(OBJECTS) $(OUTPUT)/test.obj : include/private/gc_priv.h include/private/gc_hdrs.h include/gc.h include/private/gcconfig.h \
+	include/private/gc_locks.h include/private/gc_pmark.h include/gc_mark.h
 
-gc.lib : $(OBJS)
-	lib /MACHINE:i386 /out:gc.lib $(OBJS)
+$(OUTPUT)/gc.lib : $(OBJECTS)
+	lib /MACHINE:i386 /out:$(OUTPUT)/gc.lib $^
 	
-GUIFLAGS = -subsystem:windows,5.01
-GUILIBS = kernel32.lib ws2_32.lib mswsock.lib advapi32.lib bufferoverflowu.lib user32.lib gdi32.lib comdlg32.lib winspool.lib
-
-#  This produces a "GUI" applications that opens no windows and writes to the log file
-#  "gc.log".  This is done to make the result runnable under win32s.
-gctest.exe: tests\test.obj gc.lib stubs.obj
-	link /debug $(GUIFLAGS) -out:gctest.exe tests\test.obj $(GUILIBS) gc.lib stubs.obj
+#  This produces a "GUI" applications that opens no windows and writes to "gc.log"
+$(OUTPUT)/gctest.exe : $(OUTPUT)/test.obj $(OUTPUT)/gc.lib $(OUTPUT)/stubs.obj
+	$(CC) /nologo $(LDFLAGS) /Fe"$(OUTPUT)/gctest.exe" $^ user32.lib
 
 .PHONY : clean
 clean :
-	del *.obj *.lib
-	del cord\*.obj
-	del tests\*.obj
-	del gctest.exe
+	del /q $(OUTPUT)\\*.*
 	
+.PHONY : install
+install : $(OUTPUT)/gc.lib
+	copy /y $(OUTPUT)\\gc.lib ..\\suneido\\gc_$(OUTPUT).lib
+	
+.PHONY : test
+test : $(OUTPUT)/gctest.exe
+	del gc.log
+	$(OUTPUT)/gctest
+	type gc.log
