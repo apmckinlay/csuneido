@@ -408,8 +408,8 @@ bool SuObject::erase(Value m)
 	if (m.int_if_num(&i) && 0 <= i && i < vec.size())
 		{
 		vec.erase(vec.begin() + i);
-//		if (vec.capacity() > vec.size())
-//			vec[vec.size()] = Value(); // clear to help gc
+		vec.push_back(Value()); // clear to help gc
+		vec.pop_back();
 		return true;
 		}
 	else
@@ -612,6 +612,7 @@ Value SuObject::HasBase(short nargs, short nargnames, ushort* argnames, int each
 
 Value SuObject::Eval(short nargs, short nargnames, ushort* argnames, int each)
 	{
+	argseach(nargs, nargnames, argnames, each);
 	if (nargs < 1)
 		except("usage: object.Eval(function, args ...)");
 	Value x = ARG(0); // the function to call
