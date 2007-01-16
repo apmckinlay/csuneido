@@ -1,175 +1,52 @@
-OUTPUT = vc7
+include makefile.common
 
-OBJECTS=\
-alert.obj \
-alertwin.obj \
-array.obj \
-bitmap.obj \
-bmalloc.obj \
-btree.obj \
-builtinargs.obj \
-builtins.obj \
-cachemap.obj \
-call.obj \
-callback.obj \
-catstr.obj \
-checksum.obj \
-cmdlineoptions.obj \
-cmpic.obj \
-commalist.obj \
-compile.obj \
-construct.obj \
-cvt.obj \
-database.obj \
-date.obj \
-dbcopy.obj \
-dbhttp.obj \
-dbms.obj \
-dbmslocal.obj \
-dbmsremote.obj \
-dbserver.obj \
-dbserverdata.obj \
-debug.obj \
-dll.obj \
-dump.obj \
-errlog.obj \
-except.obj \
-fatal.obj \
-fibers.obj \
-func.obj \
-gcstring.obj \
-getmacadr.obj \
-getnum.obj \
-globals.obj \
-hashfn.obj \
-hashmap.obj \
-index.obj \
-interp.obj \
-istream.obj \
-istreamfile.obj \
-istreamstr.obj \
-itostr.obj \
-library.obj \
-lisp.obj \
-literal.obj \
-load.obj \
-md5.obj \
-mmfile.obj \
-named.obj \
-numlen.obj \
-olddate.obj \
-opcodes.obj \
-ostream.obj \
-ostreamcon.obj \
-ostreamfile.obj \
-ostreamstr.obj \
-pack.obj \
-params.obj \
-permheap.obj \
-portwin32.obj \
-qcompatible.obj \
-qdifference.obj \
-qexpr.obj \
-qextend.obj \
-qhistable.obj \
-qintersect.obj \
-qjoin.obj \
-qparser.obj \
-qproduct.obj \
-qproject.obj \
-qrename.obj \
-qscanner.obj \
-qselect.obj \
-qsort.obj \
-qsummarize.obj \
-qtable.obj \
-qtempindex.obj \
-query.obj \
-qunion.obj \
-record.obj \
-recover.obj \
-rebuildgui.obj \
-regexp.obj \
-richeditio.obj \
-richeditole.obj \
-row.obj \
-scanner.obj \
-scistyle.obj \
-sesviews.obj \
-slots.obj \
-sockets.obj \
-strdup.obj \
-structure.obj \
-sublock.obj \
-suboolean.obj \
-suclass.obj \
-sudate.obj \
-sudb.obj \
-sufile.obj \
-sufinalize.obj \
-sufunction.obj \
-sumethod.obj \
-suneido.obj \
-sunumber.obj \
-suobject.obj \
-surecord.obj \
-suscanner.obj \
-suseq.obj \
-susetlocale.obj \
-susockets.obj \
-sustring.obj \
-suvalue.obj \
-suwinres.obj \
-symbols.obj \
-tempdest.obj \
-testing.obj \
-thedb.obj \
-tr.obj \
-tracecon.obj \
-transaction.obj \
-type.obj \
-unhandled.obj \
-usertrigger.obj \
-value.obj \
-sucomobject.obj \
-suimage.obj \
-sunapp.obj
+ifdef DEBUG
+  OUTPUT=vc7_debug
+  FLAGS=/Od /Z7 /MLd
+  LDFLAGS=/Z7 /MLd
+else
+  OUTPUT=vc7_release
+  FLAGS=/O2 /DNDEBUG
+  LDFLAGS=/ML
+endif
 
 CC = cl
-CXX = cl
-CXXFLAGS = /nologo /GR /GX /W2 /O2 /DCOMPILER=VC7 /DNDEBUG
+FLAGS += /nologo /GR /GX /W2 /DCOMPILER=VC7
 
 .SUFFIXES:
 
 $(OUTPUT)/%.obj : %.c
-	@$(CC) $(CFLAGS) /c /Fo"$@" $<
+	@$(CC) $(FLAGS) /c /Fo"$@" $<
+	$(call make-depend,$<,$@,$(subst .obj,.d,$@),gcc)
 
 $(OUTPUT)/%.obj : %.cpp
-	@$(CXX) $(CXXFLAGS) /c /Fo"$@" $<
+	@$(CC) $(FLAGS) /c /Fo"$@" $<
+	$(call make-depend,$<,$@,$(subst .obj,.d,$@),g++)
 
-LDFLAGS = /nologo \
-/FIXED /DELAYLOAD:advapi32.dll /DELAYLOAD:wininet.dll /DELAYLOAD:urlmon.dll /DELAYLOAD:ws2_32.dll 
-LIBS = gc.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib \
-advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comctl32.lib \
-imm32.lib wininet.lib urlmon.lib ws2_32.lib iphlpapi.lib
+OBJECTS = $(patsubst %.c,$(OUTPUT)/%.obj,$(subst .cpp,.c,$(SOURCES))) 
+DEPENDS = $(subst .obj,.d,$(OBJECTS))
 
-OBS = $(OBJECTS:%=$(OUTPUT)/%) $(OUTPUT)/suneido.res 
+LDFLAGS += /nologo \
+	/FIXED /DELAYLOAD:advapi32.dll /DELAYLOAD:wininet.dll /DELAYLOAD:urlmon.dll /DELAYLOAD:ws2_32.dll 
+	
+LIBS = gc_$(OUTPUT).lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib \
+	advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comctl32.lib \
+	imm32.lib wininet.lib urlmon.lib ws2_32.lib iphlpapi.lib
 
-$(OUTPUT)/suneido.exe : $(OBS)
-	@$(CXX) $(CXXFLAGS) /c /Fo"$(OUTPUT)/build.obj" build.cpp
+$(OUTPUT)/suneido.exe : $(OBJECTS) $(OUTPUT)/suneido.res
+	@$(CC) $(FLAGS) /c /Fo"$(OUTPUT)/build.obj" build.cpp
 	@echo link
-	@$(CXX) $(LDFLAGS) /Fe"$(OUTPUT)/suneido.exe" $(OBS) $(OUTPUT)/build.obj $(LIBS)
+	@$(CC) $(LDFLAGS) /Fe"$(OUTPUT)/suneido.exe" $^ $(OUTPUT)/build.obj $(LIBS)
 	
 $(OUTPUT)/suneido.res : suneido.rc resource.h
 	rc /l 0x409 /Fo"$(OUTPUT)/suneido.res"  /i "\Dev\Suneido" /d "NDEBUG" suneido.rc
 
-objects : $(OBJECTS) 
-	
-include depends
+-include $(DEPENDS)
 
 .PHONY : clean
 clean : 
-	del *.obj *.res *.exe
+	del /q $(OUTPUT)\\*.*
 	
+.PHONY : install
 install : $(OUTPUT)/suneido.exe
 	copy /y $(OUTPUT)\\suneido.exe .

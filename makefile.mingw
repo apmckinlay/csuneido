@@ -1,170 +1,40 @@
-#OUTPUT = mingw_release
-OUTPUT = mingw_debug
+include makefile.common
 
-ifeq ($(OUTPUT),mingw_release)
-  CXXFLAGS = $(FLAGS) -DCOMPILER=MinGW -O2 -DNDEBUG
-  LDFLAGS = -s
+ifdef DEBUG
+  OUTPUT = mingw_debug
+  FLAGS = -g
+  LDFLAGS =
 else
-  CXXFLAGS = $(FLAGS) -DCOMPILER=MinGW -g
+  OUTPUT = mingw_release
+  FLAGS = -O3 -DNDEBUG
+  LDFLAGS = -s
 endif
 
-OBJECTS=\
-alert.o \
-alertwin.o \
-array.o \
-bitmap.o \
-bmalloc.o \
-btree.o \
-builtinargs.o \
-builtins.o \
-cachemap.o \
-call.o \
-callback.o \
-catstr.o \
-checksum.o \
-cmdlineoptions.o \
-cmpic.o \
-commalist.o \
-compile.o \
-construct.o \
-cvt.o \
-database.o \
-date.o \
-dbcopy.o \
-dbhttp.o \
-dbms.o \
-dbmslocal.o \
-dbmsremote.o \
-dbserver.o \
-dbserverdata.o \
-debug.o \
-dll.o \
-dump.o \
-errlog.o \
-except.o \
-fatal.o \
-fibers.o \
-func.o \
-gcstring.o \
-getmacadr.o \
-getnum.o \
-globals.o \
-hashfn.o \
-hashmap.o \
-index.o \
-interp.o \
-istream.o \
-istreamfile.o \
-istreamstr.o \
-itostr.o \
-library.o \
-lisp.o \
-literal.o \
-load.o \
-md5.o \
-mmfile.o \
-named.o \
-numlen.o \
-olddate.o \
-opcodes.o \
-ostream.o \
-ostreamcon.o \
-ostreamfile.o \
-ostreamstr.o \
-ostreamstd.o \
-pack.o \
-params.o \
-permheap.o \
-portwin32.o \
-qcompatible.o \
-qdifference.o \
-qexpr.o \
-qextend.o \
-qhistable.o \
-qintersect.o \
-qjoin.o \
-qparser.o \
-qproduct.o \
-qproject.o \
-qrename.o \
-qscanner.o \
-qselect.o \
-qsort.o \
-qsummarize.o \
-qtable.o \
-qtempindex.o \
-query.o \
-qunion.o \
-record.o \
-recover.o \
-rebuildgui.o \
-regexp.o \
-richeditio.o \
-richeditole.o \
-row.o \
-scanner.o \
-scistyle.o \
-sesviews.o \
-slots.o \
-sockets.o \
-strdup.o \
-structure.o \
-sublock.o \
-suboolean.o \
-suclass.o \
-sucomobject.o \
-sudate.o \
-sudb.o \
-sufile.o \
-sufinalize.o \
-sufunction.o \
-sumethod.o \
-suneido.o \
-sunumber.o \
-suobject.o \
-surecord.o \
-suscanner.o \
-suseq.o \
-susetlocale.o \
-susockets.o \
-sustring.o \
-suvalue.o \
-suwinres.o \
-symbols.o \
-tempdest.o \
-testing.o \
-thedb.o \
-tr.o \
-tracecon.o \
-transaction.o \
-type.o \
-unhandled.o \
-usertrigger.o \
-suimage.o \
-value.o 
-#sunapp.o \
-
 CC=gcc
-FLAGS = -Wall -Wno-sign-compare -Wfloat-equal -Werror -I ..
-CFLAGS = $(CXXFLAGS)
+CXX=g++
+FLAGS += -Wall -Wno-sign-compare -Wfloat-equal -Werror -DCOMPILER=MinGW 
 
 .SUFFIXES:
 
 $(OUTPUT)/%.o : %.c
 	@echo $<
-	@$(CC) $(CFLAGS) -c -o $@ $<
+	@$(CC) $(FLAGS) -c -o $@ $<
+	$(call make-depend,$<,$@,$(subst .o,.d,$@),gcc)
 
 $(OUTPUT)/%.o : %.cpp
 	@echo $<
-	@$(CXX) $(CXXFLAGS) -c -o $@ $<
+	@$(CXX) $(FLAGS) -c -o $@ $<
+	$(call make-depend,$<,$@,$(subst .o,.d,$@),g++)
 
-OBS = $(OBJECTS:%=$(OUTPUT)/%) $(OUTPUT)/res.o gc.a
+SOURCES := $(subst sunapp.cpp ,,$(SOURCES))
+OBJECTS = $(patsubst %.c,$(OUTPUT)/%.o,$(subst .cpp,.c,$(SOURCES))) 
+DEPENDS = $(subst .o,.d,$(OBJECTS))
 
-$(OUTPUT)/suneido.exe : $(OBS)
+$(OUTPUT)/suneido.exe : $(OBJECTS) gc_$(OUTPUT).a $(OUTPUT)/res.o
 	@echo build.cpp
-	@$(CXX) $(CXXFLAGS) -c -o $(OUTPUT)/build.o build.cpp
+	@$(CXX) $(FLAGS) -c -o $(OUTPUT)/build.o build.cpp
 	@echo link
-	@$(CXX) $(LDFLAGS) -o $@ $(OBS) $(OUTPUT)/build.o \
+	@$(CXX) $(LDFLAGS) -o $@ $^ $(OUTPUT)/build.o \
 		-lws2_32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -luuid -liphlpapi \
 		-mwindows -mconsole
 	
@@ -172,27 +42,8 @@ $(OUTPUT)/res.o : suneido.rc resource.h
 	rc /l 0x409 /fo"$(OUTPUT)/suneido.res" /i "/MinGW/include" /d "NDEBUG" suneido.rc
 	cvtres /nologo /machine:x86 /out:$@ $(OUTPUT)/suneido.res
 
-objects : $(OBJECTS) 
-
-$(OUTPUT)/%.dep : %.c
-	$(CC) -MM -MQ "$(OUTPUT)/$*.o" $< > $@
-
-$(OUTPUT)/%.dep : %.cpp
-	$(CXX) -MM -MQ "$(OUTPUT)/$*.o" $< > $@
-
-include $(OBJECTS:%.o=$(OUTPUT)/%.dep)
-
-BMEMOBS = bitmap.o bmemorytest.o errlog.o fatal.o \
-	ostream.o ostreamfile.o ostreamstd.o ostreamstr.o permheap.o \
-	portwin32.o testing.o testmain.o itostr.o unhandled.o
-bmemory.exe : $(BMEMOBS)
-	$(CXX) $(LDFLAGS) -o $@ $(BMEMOBS)
-	
-bmemorytest.o : bmemory.cpp
-	$(CXX) $(CXXFLAGS) -c -D TESTING -o bmemorytest.o ../bmemory.cpp
-
-all : $(OUTPUT)/suneido.exe
+-include $(DEPENDS)
 
 .PHONY : clean
 clean : 
-	-rm $(OUTPUT)/*.o $(OUTPUT)/suneido.res $(OUTPUT)/*.exe
+	del /q $(OUTPUT)\\*.*
