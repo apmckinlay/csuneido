@@ -192,7 +192,7 @@ int pascal WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpszCmdLine, int)
 			extern char* build_date;
 			alert("Built:  " << build_date << "\n"
 				""
-				"Copyright (C) 2000-2006 Suneido Software Corp.\n"
+				"Copyright (C) 2000-2007 Suneido Software Corp.\n"
 				"All rights reserved worldwide.\n"
 				"Licensed under the GNU General Public License.\n"
 				"\n"
