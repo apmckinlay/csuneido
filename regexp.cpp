@@ -150,8 +150,8 @@ bool RxCompile::match(char* token)
 	//			else s is unchanged, and false is returned
 	{
 	const char* t = s;
-	for (; t < lim && *token; ++t, ++token)
-		if (*t != *token)
+	for (; *token; ++t, ++token)
+		if (t >= lim || *t != *token)
 			return false;
 	s = t;
 	return true;
@@ -896,7 +896,8 @@ static Rxtest rxtests[] =
 	{ "a.c", "(?q)a.c", true },
 	{ "abc", "(?q)a.c", false },
 	{ "a.cd", "(?q)a.c(?-q).", true },
-	{ "abcd", "(?q)a.c(?-q).", false }
+	{ "abcd", "(?q)a.c(?-q).", false },
+	{ "abc", "(?q)(", false }
 	};
 
 class test_regexp : public Tests
