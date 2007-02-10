@@ -45,6 +45,7 @@
 #define IDC_ARROWSTACK                  189
 #define IDI_XPDOWNARROW_DISABLED        190
 #define IDI_DOWNARROW_DISABLED          191
+#define IDI_CLOSE				192
 #define IDC_REBUILD_DATE                1004
 #define IDC_PROGRESS1                   1005
 #define IDC_REBUILD_STATIC              1006

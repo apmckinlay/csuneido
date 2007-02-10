@@ -317,6 +317,7 @@ IDI_DOWNARROW           ICON    DISCARDABLE     "res\\downarrow.ico"
 IDI_XPDOWNARROW         ICON    DISCARDABLE     "res\\xpdownar.ico"
 IDI_XPDOWNARROW_DISABLED ICON    DISCARDABLE     "res\\icon1.ico"
 IDI_DOWNARROW_DISABLED  ICON    DISCARDABLE     "res\\ico00001.ico"
+IDI_CLOSE	ICON DISCARDABLE "res\\close.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
