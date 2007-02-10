@@ -28,7 +28,7 @@
 class Join : public Query2
 	{
 public:
-	Join(Query* s1, Query* s2);
+	Join(Query* s1, Query* s2, Fields by);
 	void out(Ostream& os) const;
 	Fields columns()
 		{ return set_union(source->columns(), source2->columns()); }
@@ -78,7 +78,7 @@ private:
 class LeftJoin : public Join
 	{
 public:
-	LeftJoin(Query* s1, Query* s2);
+	LeftJoin(Query* s1, Query* s2, Fields by);
 	Indexes keys();
 	double nrecords();
 protected:

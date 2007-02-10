@@ -104,8 +104,8 @@ public:
 	static Query* make_extend(Query* source, const Fields& f, Lisp<Expr*> e, const Fields& r);
 	static Query* make_project(Query* source, const Fields& f, bool allbut);
 	static Query* make_summarize(Query* source, const Fields& p, const Fields& c, const Fields& f, const Fields& o);
-	static Query* make_join(Query* s1, Query* s2);
-	static Query* make_leftjoin(Query* s1, Query* s2);
+	static Query* make_join(Query* s1, Query* s2, Fields by);
+	static Query* make_leftjoin(Query* s1, Query* s2, Fields by);
 	static Query* make_product(Query* s1, Query* s2);
 	static Query* make_union(Query* s1, Query* s2);
 	static Query* make_intersect(Query* s1, Query* s2);

@@ -97,6 +97,7 @@ private:
 	int request(int tran);
 	TableSpec table_spec();
 	Lisp<gcstring> column_list();
+	Fields join_by();
 	SuRecord* record();
 	Value constant();
 	Value object();
@@ -880,13 +881,19 @@ Query* QueryParser::query()
 			break ;	
 			}
 		case K_JOIN :
+			{
 			match();
-			q = Query::make_join(q, source());
+			Fields by = join_by();
+			q = Query::make_join(q, source(), by);
 			break ;
+			}
 		case K_LEFTJOIN :
+			{
 			match();
-			q = Query::make_leftjoin(q, source());
+			Fields by = join_by();
+			q = Query::make_leftjoin(q, source(), by);
 			break ;
+			}
 		case K_TIMES :
 			match();
 			q = Query::make_product(q, source());
@@ -949,6 +956,17 @@ Query* QueryParser::query()
 			}
 		}
 	return q;
+	}
+
+Fields QueryParser::join_by()
+	{
+	Fields by;
+	if (scanner.keyword == K_BY)
+		{
+		match();
+		by = column_list();
+		}
+	return by;
 	}
 
 bool QueryParser::isfunc()
@@ -1334,6 +1352,8 @@ static Qptest qptests[] =
 		{ "customer join hist", "(customer) JOIN 1:n on (id) (hist)" },
 		{ "hist join customer", "(hist) JOIN n:1 on (id) (customer)" },
 		{ "customer join supplier", "(customer) JOIN n:n on (name,city) (supplier)" },
+		{ "customer join by (id) hist", "(customer) JOIN 1:n on (id) (hist)" },
+		{ "customer join by (name, city) supplier", "(customer) JOIN n:n on (name,city) (supplier)" },
 
 		{ "hist intersect trans", "(hist) INTERSECT (trans) " },
 		{ "hist intersect trans sort item", "(hist) INTERSECT (trans)  SORT (item)" },
@@ -1405,7 +1425,7 @@ class test_qparser : public  Tests
 
 		for (int i = 0; i < sizeof qptests / sizeof (Qptest); ++i)
 			testone(i, qptests[i].query, qptests[i].result);
-
+		
 		adm("destroy hist");
 		adm("destroy customer");
 		adm("destroy trans");
@@ -1420,5 +1440,9 @@ class test_qparser : public  Tests
 		out << *q;
 		except_if(0 != strcmp(result, out.str()),
 			i << ": " << query << "\n\t=> " << result << "\n\t!= '" << out.str() << "'");
+		}
+	TEST(2, joinby)
+		{
+		xassert(parse_query("tables join by (x) indexes"));
 		}
 	};

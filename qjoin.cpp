@@ -23,17 +23,19 @@
 #include "qjoin.h"
 #include <algorithm>
 
-Query* Query::make_join(Query* s1, Query* s2)
+Query* Query::make_join(Query* s1, Query* s2, Fields by)
 	{
-	return new Join(s1, s2);
+	return new Join(s1, s2, by);
 	}
 
-Join::Join(Query* s1, Query* s2)
+Join::Join(Query* s1, Query* s2, Fields by)
 	: Query2(s1, s2),  type(NONE) ,first(true), cols1(0), cols2(0)
 	{
 	joincols = intersect(source->columns(), source2->columns());
 	if (nil(joincols))
 		except("join: common columns required");
+	if (! nil(by) && by != joincols)
+		except("join: by does not match common columns: " << joincols);
 
 	// find out if joincols include keys
 	Indexes k1 = source->keys();
@@ -265,12 +267,12 @@ void Join::rewind()
 
 // LeftJoin =========================================================
 
-Query* Query::make_leftjoin(Query* s1, Query* s2)
+Query* Query::make_leftjoin(Query* s1, Query* s2, Fields by)
 	{
-	return new LeftJoin(s1, s2);
+	return new LeftJoin(s1, s2, by);
 	}
 
-LeftJoin::LeftJoin(Query* s1, Query* s2) : Join(s1, s2)
+LeftJoin::LeftJoin(Query* s1, Query* s2, Fields by) : Join(s1, s2, by)
 	{ }
 
 Indexes LeftJoin::keys()
