@@ -320,14 +320,16 @@ Value SuDate::parse(char* s, char* order)
 	}
 
 	// scan
-	int type[20];
-	int tokens[20];
+	const int MAXTOKENS = 20;
+	int type[MAXTOKENS];
+	int tokens[MAXTOKENS];
 	int ntokens = 0;
 	bool got_time = false;
-	std::fill(type, type + 20, (int) UNK);
+	std::fill(type, type + MAXTOKENS, (int) UNK);
 	char prev = 0;
 	while (*s)
 		{
+		verify(ntokens < MAXTOKENS);
 		if (isalpha(*s))
 			{
 			char buf[80];
@@ -335,7 +337,7 @@ Value SuDate::parse(char* s, char* order)
 			*dst++ = toupper(*s);
 			for (++s; isalpha(*s); ++s)
 				*dst++ = tolower(*s);
-			verify(dst < buf + 80);
+			verify(dst < buf + sizeof buf);
 			*dst = 0;
 			int i;
 			for (i = 0; i < 12; ++i)
@@ -372,10 +374,12 @@ Value SuDate::parse(char* s, char* order)
 					return SuFalse;
 				}
 			}
-		else if (isdigit(*s))
+		else if ('0' <= *s && *s <= '9')
+		// can't use isdigit because it returns true for non-digits
 			{
 			char* t = s;
 			int n = strtoul(s, &s, 10);
+			verify(s > t);
 			if (s - t == 6 || s - t == 8)
 				{
 				if (s - t == 6)
