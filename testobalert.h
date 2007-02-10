@@ -32,12 +32,14 @@ class TestObserverAlert : public TestObserver
 	{
 public:
 	TestObserverAlert() : ntests(0)
-		{ }
-virtual void start_test(char* group, char* test)
-{
-OstreamFile os("test.log", "a");
-os << group << ' ' << test << endl;
-}
+		{
+		OstreamFile os("test.log", "w"); // truncate
+		}
+	virtual void start_test(char* group, char* test)
+		{
+		OstreamFile os("test.log", "a");
+		os << group << ' ' << test << endl;
+		}
 	virtual void end_test(char* group, char* test, char* error)
 		{
 		if (error)
