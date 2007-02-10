@@ -2,8 +2,8 @@
 
 [Setup]
 AppName=Suneido
-AppVerName=Suneido Version 1.060320
-AppVersion=1.060320
+AppVerName=Suneido Version 1.070204
+AppVersion=1.070204
 AppPublisher=Suneido Software
 AppPublisherURL=http://www.suneido.com
 AppSupportURL=http://www.suneido.com
@@ -12,7 +12,7 @@ DefaultDirName=c:\Suneido
 DefaultGroupName=Suneido
 DisableProgramGroupPage=yes
 LicenseFile=C:\dev\suneido\COPYING
-OutputBaseFilename=SuneidoSetup060320
+OutputBaseFilename=SuneidoSetup070204
 ; cosmetic
 WizardImageBackColor=clWhite
 WizardImageFile=suneidoLarge.bmp
@@ -25,8 +25,9 @@ WizardSmallImageFile=suneidoSmall.bmp
 Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"; MinVersion: 4,4
 
 [Files]
-Source: "c:\suneido060320\suneido.exe"; DestDir: "{app}"; DestName: "suneido_new.exe"; Flags: ignoreversion
-Source: "c:\suneido060320\*.*"; DestDir: "{app}"; Excludes: suneido.exe, suneido.db, makezip.bat, testzip.bat; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\suneido070204\suneido.exe"; DestDir: "{app}"; Flags: ignoreversion
+;Source: "c:\suneido070204\suneido.exe"; DestDir: "{app}"; DestName: "suneido_new.exe"; Flags: ignoreversion
+Source: "c:\suneido070204\*.*"; DestDir: "{app}"; Excludes: suneido.exe, suneido.db; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [INI]
 Filename: "{app}\suneido.url"; Section: "InternetShortcut"; Key: "URL"; String: "http://www.suneido.com"
@@ -38,11 +39,11 @@ Name: "{userdesktop}\Suneido"; Filename: "{app}\suneido.exe"; MinVersion: 4,4; T
 
 [Messages]
 WelcomeLabel1=[name] Setup
-WelcomeLabel2=Copyright © 2000-2006 Suneido Software%nAll rights reserved worldwide.
+WelcomeLabel2=Copyright © 2000-2007 Suneido Software%nAll rights reserved worldwide.
 
 [Run]
 ;===================
-Filename: "{app}\update.bat"; StatusMsg: "Converting database..."; Flags: runhidden
+;Filename: "{app}\update.bat"; StatusMsg: "Converting database..."; Flags: runhidden
 ;===================
 Filename: "{app}\suneido.exe"; Parameters: "-load stdlib"; StatusMsg: "Load Standard Library..."
 Filename: "{app}\suneido.exe"; Parameters: "-load suneidoc"; StatusMsg: "Load Users Manual..."
