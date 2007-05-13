@@ -51,10 +51,14 @@
 #include "testobalert.h"
 #include "prim.h"
 #include "unhandled.h"
+#include "splash.h"
+#include "msgloop.h"
 
 void builtins();
 bool iswindow();
-static void message_loop();
+
+static void init(HINSTANCE hInstance, LPSTR lpszCmdLine);
+static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine);
 
 BOOL CALLBACK splash(HWND, UINT uMsg, WPARAM, LPARAM)
 	{
@@ -62,37 +66,6 @@ BOOL CALLBACK splash(HWND, UINT uMsg, WPARAM, LPARAM)
 	}
 
 char* cmdline = "";
-HACCEL haccel = NULL;
-HWND accel_hwnd = NULL; // to ensure haccel is meant for the active window
-
-static MSG msg;
-static bool exit_pending = false;
-static int exit_status = 0;
-
-Value su_exit()
-	{
-	const int nargs = 1;
-	if (ARG(0) == SuTrue)
-		exit(0);
-	exit_status = ARG(0).integer();
-	exit_pending = true;
-	return Value();
-	}
-PRIM(su_exit, "Exit(status = 0)");
-
-static BOOL CALLBACK destroy_func(HWND hwnd, LPARAM lParam)
-	{
-	DestroyWindow(hwnd);
-	return true; // continue enumeration
-	}
-
-void do_exit()
-	{
-	// destroy windows
-	EnumWindows(destroy_func, (LPARAM) NULL);
-
-	PostQuitMessage(exit_status);
-	}
 
 bool is_server = false;
 bool is_client = false;
@@ -100,134 +73,20 @@ CmdLineOptions cmdlineoptions;
 
 int pascal WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpszCmdLine, int)
 	{
+	init(hInstance, lpszCmdLine);
+
+	RegisterHotKey(0, 0, MOD_CONTROL, VK_CANCEL);
+
+	message_loop();
+
+	return 0;
+	}
+
+static void init(HINSTANCE hInstance, LPSTR lpszCmdLine)
+	{
 	try
 		{
-		verify(memcmp("\xff", "\x1", 1) > 0); // ensure unsigned cmp
-		verify(sizeof (time_t) == 4); // required by Commit
-
-		Fibers::init();
-
-		proc = new Proc;
-		builtins(); // internal initialization
-
-		cmdline = cmdlineoptions.parse(lpszCmdLine);
-
-		if (! cmdlineoptions.no_exception_handling)
-			unhandled();
-
-		switch (cmdlineoptions.action)
-			{
-		case NONE :
-			break ;
-		case DUMP :
-			dump(cmdlineoptions.argstr);
-			exit(EXIT_SUCCESS);
-		case LOAD :
-			load(cmdlineoptions.argstr);
-			exit(EXIT_SUCCESS);
-		case CHECK :
-			db_check_gui();
-			exit(EXIT_SUCCESS);
-		case REBUILD :
-			{
-			bool ok = db_rebuild_gui();
-			exit(ok ? EXIT_SUCCESS : EXIT_FAILURE);
-			}
-		case DBDUMP :
-			dbdump();
-			exit(EXIT_SUCCESS);
-		case COPY :
-			db_copy(cmdlineoptions.argstr);
-			exit(EXIT_SUCCESS);
-		case TESTS :
-			{
-			TestObserverAlert to;
-			TestRegister::runall(to);
-			if (! *cmdline)
-				exit(EXIT_SUCCESS);
-			break ;
-			}
-		case TEST :
-			{
-			TestObserverAlert to;
-			TestRegister::runtest(CATSTRA("test_", cmdlineoptions.argstr), to);
-			exit(EXIT_SUCCESS);
-			}
-		case SERVER :
-			is_server = true;
-			start_dbserver(cmdlineoptions.argstr);
-			start_dbhttp();
-			break ;
-		case CLIENT :
-			{
-			is_client = true;
-			set_dbms_server_ip(cmdlineoptions.argstr);
-			FILE* f = fopen("c:/suneido.err", "r");
-			if (f)
-				{
-				char buf[1024] = "PREVIOUS: ";
-				while (fgets(buf + 10, sizeof buf - 10, f))
-					dbms()->log(buf);
-				fclose(f);
-				remove("c:/suneido.err");
-				}
-			break ;
-			}
-		case COMPACT :
-			{
-			char* tmp = tmpnam(NULL);
-			if (*tmp == '\\')
-				++tmp;
-			db_copy(tmp);
-			extern void close_db();
-			close_db();
-			remove("suneido.db.bak");
-			if (0 != rename("suneido.db", "suneido.db.bak"))
-				except("can't rename suneido.db to suneido.db.bak");
-			if (0 != rename(tmp, "suneido.db"))
-				except("can't rename temp file to suneido.db");
-			exit(EXIT_SUCCESS);
-			}
-		case VERSION :
-			extern char* build_date;
-			alert("Built:  " << build_date << "\n"
-				""
-				"Copyright (C) 2000-2007 Suneido Software Corp.\n"
-				"All rights reserved worldwide.\n"
-				"Licensed under the GNU General Public License.\n"
-				"\n"
-				"Boehm-Demers-Weiser garbage collector\n"
-				"www.hpl.hp.com/personal/Hans_Boehm/gc"
-				);
-			exit(EXIT_SUCCESS);
-		default :
-			unreachable();
-			}
-
-#ifndef __GNUC__
-		sunapp_register_classes();
-#endif
-		HWND hdlg = 0;
-		if (cmdlineoptions.splash)
-			{
-			const int WIDTH = 321;
-			const int HEIGHT = 380;
-			RECT wr;
-			GetWindowRect(GetDesktopWindow(), &wr);
-			int x = wr.left + (wr.right - wr.left - WIDTH) / 2;
-			int y = wr.top + (wr.bottom - wr.top - HEIGHT) / 2;
-			hdlg = CreateWindowEx(WS_EX_TOOLWINDOW, "Static", "splashbmp", 
-				WS_VISIBLE | WS_POPUP | SS_BITMAP,
-				x, y, WIDTH, HEIGHT, NULL, NULL, (HINSTANCE) hInstance, NULL);
-			ShowWindow(hdlg, SW_SHOWNORMAL);
-			UpdateWindow(hdlg);
-			}
-
-		if (run("Init()") == SuFalse)
-			exit(EXIT_FAILURE);
-
-		if (cmdlineoptions.splash)
-			DestroyWindow(hdlg);
+		init2(hInstance, lpszCmdLine);
 		}
 	catch (const Except& x)
 		{
@@ -244,93 +103,131 @@ int pascal WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpszCmdLine, int)
 		fatal("unknown exception");
 		}
 #endif
-
-	RegisterHotKey(0, 0, MOD_CONTROL, VK_CANCEL);
-
-	message_loop();
-
-	return 0;
 	}
 
-#include "awcursor.h"
-
-static long lastinputtime = 0;
-
-static void message_loop()
+static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	{
-	LPTSTR navigable = MAKEINTATOM(GlobalAddAtom("suneido_navigable"));
+	verify(memcmp("\xff", "\x1", 1) > 0); // ensure unsigned cmp
+	verify(sizeof (time_t) == 4); // required by Commit
 
-	for (;;)
+	Fibers::init();
+
+	proc = new Proc;
+	builtins(); // internal initialization
+
+	cmdline = cmdlineoptions.parse(lpszCmdLine);
+
+	if (! cmdlineoptions.no_exception_handling)
+		unhandled();
+
+	switch (cmdlineoptions.action)
 		{
-		// msg declared static above so it can be accessed by handler
-		if (! PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-			{ 
-			if (exit_pending)
-				do_exit();
-			else
-				{
-				Fibers::cleanup();
-				Fibers::yield();
-				}
-			// at this point either message waiting or no runnable fibers
-			GetMessage(&msg, 0, 0, 0);
-			}
-
-		AutoWaitCursor wc;
-
-		if (msg.message == WM_QUIT)
-			{
-			int tn = dbms()->tranlist().size();
-			if (tn > 0)
-				if (is_server)
-					{
-					char buf[20];
-					itoa(tn, buf, 10);
-					errlog("uncompleted transactions:", buf);
-					}
-				else if (! is_client)
-					alert(tn << " uncompleted transactions");
-#ifndef __GNUC__
-			sunapp_revoke_classes();
-#endif
-			exit(msg.wParam);
-			}
-		if ((WM_MOUSEFIRST <= msg.message && msg.message <= WM_MOUSELAST) ||
-			(WM_KEYFIRST <= msg.message && msg.message <= WM_KEYLAST))
-			lastinputtime = msg.time;
-
-		HWND activeWindow = GetActiveWindow();
-
-		// NOTE: have to handle accelerators BEFORE IsDialogMessage
-		if (haccel && activeWindow == accel_hwnd &&
-			TranslateAccelerator(accel_hwnd, haccel, &msg))
-			continue ;
-
-		// let windows control navigation like dialogs
-		HWND hwnd = msg.hwnd, parent;
-		do
-			parent = GetParent(hwnd);
-			while (parent && ! GetProp(hwnd = parent, navigable));
-		if (IsDialogMessage(hwnd, &msg))
-			continue ;
-
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-
-		extern void free_callbacks();
-		free_callbacks();
+	case NONE :
+		break ;
+	case DUMP :
+		dump(cmdlineoptions.argstr);
+		exit(EXIT_SUCCESS);
+	case LOAD :
+		load(cmdlineoptions.argstr);
+		exit(EXIT_SUCCESS);
+	case CHECK :
+		db_check_gui();
+		exit(EXIT_SUCCESS);
+	case REBUILD :
+		{
+		bool ok = db_rebuild_gui();
+		exit(ok ? EXIT_SUCCESS : EXIT_FAILURE);
 		}
-	// shouldn't get here
+	case DBDUMP :
+		dbdump();
+		exit(EXIT_SUCCESS);
+	case COPY :
+		db_copy(cmdlineoptions.argstr);
+		exit(EXIT_SUCCESS);
+	case TESTS :
+		{
+		TestObserverAlert to;
+		TestRegister::runall(to);
+		if (! *cmdline)
+			exit(EXIT_SUCCESS);
+		break ;
+		}
+	case TEST :
+		{
+		TestObserverAlert to;
+		TestRegister::runtest(CATSTRA("test_", cmdlineoptions.argstr), to);
+		exit(EXIT_SUCCESS);
+		}
+	case SERVER :
+		is_server = true;
+		start_dbserver(cmdlineoptions.argstr);
+		start_dbhttp();
+		break ;
+	case CLIENT :
+		{
+		is_client = true;
+		set_dbms_server_ip(cmdlineoptions.argstr);
+		FILE* f = fopen("c:/suneido.err", "r");
+		if (f)
+			{
+			char buf[1024] = "PREVIOUS: ";
+			while (fgets(buf + 10, sizeof buf - 10, f))
+				dbms()->log(buf);
+			fclose(f);
+			remove("c:/suneido.err");
+			}
+		break ;
+		}
+	case COMPACT :
+		{
+		char* tmp = tmpnam(NULL);
+		if (*tmp == '\\')
+			++tmp;
+		db_copy(tmp);
+		extern void close_db();
+		close_db();
+		remove("suneido.db.bak");
+		if (0 != rename("suneido.db", "suneido.db.bak"))
+			except("can't rename suneido.db to suneido.db.bak");
+		if (0 != rename(tmp, "suneido.db"))
+			except("can't rename temp file to suneido.db");
+		exit(EXIT_SUCCESS);
+		}
+	case VERSION :
+		extern char* build_date;
+		alert("Built:  " << build_date << "\n"
+			""
+			"Copyright (C) 2000-2007 Suneido Software Corp.\n"
+			"All rights reserved worldwide.\n"
+			"Licensed under the GNU General Public License.\n"
+			"\n"
+			"Boehm-Demers-Weiser garbage collector\n"
+			"www.hpl.hp.com/personal/Hans_Boehm/gc"
+			);
+		exit(EXIT_SUCCESS);
+	default :
+		unreachable();
+		}
+
+#ifndef __GNUC__
+	sunapp_register_classes();
+#endif
+	HWND hdlg = 0;
+	if (cmdlineoptions.splash)
+		hdlg = splash(hInstance);
+
+	if (run("Init()") == SuFalse)
+		exit(EXIT_FAILURE);
+
+	if (hdlg)
+		DestroyWindow(hdlg);
 	}
 
-Value su_lastinputtime()
-	{
-	return lastinputtime;
-	}
-PRIM(su_lastinputtime, "LastInputTime()");
-
+// called by interp
 void ckinterrupt()
 	{
+	MSG msg;
+	
 	if (HIWORD(GetQueueStatus(QS_HOTKEY)))
 		{
 		bool hotkey = false;
@@ -373,10 +270,11 @@ void handler(const Except& x)
 		}
 	proc->in_handler = true;
 
+// TODO: use GetAncestor
 	// determine top level window responsible
-	HWND hwnd = msg.hwnd;
-	while (HWND parent = GetParent(hwnd))
-		hwnd = parent;
+	HWND hwnd = 0; //msg.hwnd;
+//	while (HWND parent = GetParent(hwnd))
+//		hwnd = parent;
 	
 	try
 		{
