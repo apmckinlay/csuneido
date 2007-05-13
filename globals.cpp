@@ -72,8 +72,8 @@ ushort Globals::operator()(const char* s)
 	char* str = strcpy((char*) ph.alloc(strlen(s) + 1), s);
 	ushort num = (ushort) names.size();
 	names.push_back(str);
-    verify(data.size() <= USHRT_MAX);
-    data.push_back(Value());
+	verify(data.size() <= USHRT_MAX);
+	data.push_back(Value());
 	tbl[str] = num;
 	return num;
 	}
@@ -104,8 +104,11 @@ Value Globals::find(ushort j)
 
 ushort Globals::copy(char* s)	// called by Compiler::suclass for class : _Base
 	{
-	names.push_back("_Name");	// so size is same as data
-	data.push_back(get(s));
+	Value x(get(s + 1));
+	if (! x)
+		except("can't find " << s);
+	names.push_back(strcpy((char*) ph.alloc(strlen(s) + 1), s));
+	data.push_back(x);
 	return (ushort) data.size() - 1;
 	}
 
