@@ -44,7 +44,7 @@ public:
 
 const int MAX_SYMBOLS = 32 * 1024;
 static PermanentHeap symbols("symbol table", MAX_SYMBOLS * sizeof (SuSymbol));
-const int AVG_NAME_LEN = 16;
+const int AVG_NAME_LEN = 18;
 
 struct kofv
 	{
@@ -103,10 +103,10 @@ Value symbol(const gcstring& s)
 	return symbol(s.str());
 	}
 
+static PermanentHeap names("symbol names", MAX_SYMBOLS * AVG_NAME_LEN);
+
 Value symbol(const char* s)
 	{
-	static PermanentHeap names("symbol names", MAX_SYMBOLS * AVG_NAME_LEN);
-
 	if (SuSymbol** psym = symtbl.find(s))
 		return *psym;
 	char* name = strcpy((char*) names.alloc(strlen(s) + 1), s);
@@ -131,6 +131,32 @@ char* symstr(int i)
 		? symbol(i).str()
 		: itostr(i, new char[8], 10);
 	}
+
+#include "prim.h"
+
+#include "ostreamstr.h"
+
+Value su_syminfo()
+	{
+	int n_symbols = symbols.size() / sizeof (SuSymbol);
+	OstreamStr os;
+	os << "Count " << n_symbols << " (max " << MAX_SYMBOLS << "), " <<
+		"Size " << names.size() << " (max " << (MAX_SYMBOLS * AVG_NAME_LEN) << ")";
+	return new SuString(os.str());
+	}
+PRIM(su_syminfo, "SymbolsInfo()");
+
+#include "ostreamfile.h"
+
+Value su_symdump()
+	{
+	OstreamFile f("symbols.txt");
+	for (SuSymbol* ss = (SuSymbol*) symbols.begin(); 
+		ss < (SuSymbol*) symbols.end(); ++ss)
+		f << ss->gcstr() << endl;
+	return Value();
+	}
+PRIM(su_symdump, "DumpSymbols()");
 
 // test =============================================================
 
