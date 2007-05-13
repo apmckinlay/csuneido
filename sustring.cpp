@@ -347,12 +347,17 @@ Value SuString::Eval2(short nargs, short nargnames, ushort* argnames, int each)
 	}
 
 #include "compile.h"
+#include "codecheck.h"
+#include "codevisitor.h"
 
 Value SuString::Compile(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: string.Compile()");
-	return compile(str());
+	CodeVisitor* visitor = 0;
+	if (nargs == 1)
+		visitor = make_codecheck(ARG(0).object());
+	else if (nargs != 0)
+		except("usage: string.Compile() or string.Compile(error_object)");
+	return compile(str(), "", visitor);
 	}
 
 #include "dbms.h"
