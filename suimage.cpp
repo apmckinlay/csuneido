@@ -22,6 +22,8 @@
 
 // uses OleLoadPicture as in the MSDN loadpic sample (Q218972)
 
+// TODO: maybe use OleLoadPicturePath for files
+
 #include "builtinclass.h"
 #include "gcstring.h"
 #include "win.h"
