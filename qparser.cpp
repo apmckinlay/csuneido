@@ -52,9 +52,12 @@ struct Arg
 
 struct IndexSpec
 	{
+	IndexSpec() : key(false), unique(false), lower(false)
+		{ }
 	Lisp<gcstring> columns;
 	bool key;
 	bool unique;
+	bool lower;
 	gcstring fktable;
 	Lisp<gcstring> fkcols;
 	Fkmode fkmode;
@@ -142,7 +145,7 @@ bool is_admin(char* s)
 		case K_CREATE :
 		case K_ALTER :
 		case K_ENSURE :
-		case K_DESTROY :
+		case K_DROP :
 		case K_VIEW :
 		case K_SVIEW :
 		case K_RENAME :
@@ -266,7 +269,8 @@ bool QueryParser::admin()
 				theDB()->add_column(table, *c);
 			for (Lisp<IndexSpec> i = ts.indexes; ! nil(i); ++i)
 				theDB()->add_index(table, fields_to_commas(i->columns), i->key,
-					i->fktable, fields_to_commas(i->fkcols), i->fkmode, i->unique);
+					i->fktable, fields_to_commas(i->fkcols), i->fkmode, 
+					i->unique, i->lower);
 			}
 		catch (const Except& x)
 			{
@@ -352,7 +356,7 @@ bool QueryParser::admin()
 				}
 			int mode = scanner.keyword;
 			if (scanner.keyword != K_CREATE && 
-				scanner.keyword != K_DELETE)
+				scanner.keyword != K_DELETE && scanner.keyword != K_DROP)
 				syntax_error();
 			match();
 
@@ -363,13 +367,13 @@ bool QueryParser::admin()
 			for (Lisp<gcstring> c = ts.columns; ! nil(c); ++c)
 				if (mode == K_CREATE)
 					theDB()->add_column(table, *c);
-				else
+				else // drop
 					theDB()->remove_column(table, *c);
 			for (Lisp<IndexSpec> i = ts.indexes; ! nil(i); ++i)
 				if (mode == K_CREATE)
 					theDB()->add_index(table, fields_to_commas(i->columns), i->key,
 						i->fktable, fields_to_commas(i->fkcols), i->fkmode, i->unique);
-				else
+				else // drop
 					theDB()->remove_index(table, fields_to_commas(i->columns));
 			}
 		catch (const Except& x)
@@ -416,7 +420,7 @@ bool QueryParser::admin()
 		set_session_view(table, def);
 		return  true;
 		}
-	case K_DESTROY : 
+	case K_DROP : 
 		{
 		match();
 		gcstring table = scanner.value;
@@ -434,7 +438,7 @@ bool QueryParser::admin()
 		return true;
 		}
 	default :
-		except("expecting: create, ensure, alter, rename, view, or destroy");
+		except("expecting: create, ensure, alter, rename, view, or drop");
 		}
 	}
 
@@ -562,8 +566,13 @@ TableSpec QueryParser::table_spec()
 			IndexSpec idx;
 			idx.key = (scanner.keyword == K_KEY);
 			match();
-			if (idx.unique = (scanner.keyword == K_UNIQUE))
-				match();
+			for (;; match())
+				if (scanner.keyword == K_UNIQUE)
+					idx.unique = true;
+				else if (scanner.keyword == K_LOWER)
+					idx.lower = true;
+				else
+					break ;
 			idx.columns = column_list();
 			idx.fkmode = BLOCK;
 			if (scanner.keyword == K_IN)
@@ -1377,7 +1386,7 @@ class test_qparser : public  Tests
 		{
 		tran = theDB()->transaction(READWRITE);
 		//create hist file
-		database_admin("destroy hist");
+		database_admin("drop hist");
 		adm("create hist (date,item,id,cost) index(date) key(date,item,id)");
 		req("insert{date: 970101, item: \"disk\", id: \"a\", cost: 100} into hist");
 		req("insert{date: 970101, item: \"disk\", id: \"e\", cost: 200} into hist");
@@ -1385,7 +1394,7 @@ class test_qparser : public  Tests
 		req("insert{date: 970103, item: \"pencil\", id: \"e\", cost: 300} into hist");
 
 		//create customer file
-		database_admin("destroy customer");
+		database_admin("drop customer");
 		adm("create customer (id:string,name:string,city:string) key(id)");
 		req("insert{id: \"a\", name: \"axon\", city: \"saskatoon\"} into customer");
 		req("insert{id: \"c\", name: \"calac\", city: \"calgary\"} into customer");
@@ -1393,7 +1402,7 @@ class test_qparser : public  Tests
 		req("insert{id: \"i\", name: \"intercon\", city: \"saskatoon\"} into customer");
 		
 		//create trans file
-		database_admin("destroy trans");
+		database_admin("drop trans");
 		adm("create trans (date:int,item:string,id:string,cost:number) index(item) key(date,item,id)");
 		req("insert{item: \"mouse\", id: \"e\", cost: 200, date: 960204} into trans");
 		req("insert{item: \"disk\", id: \"a\", cost: 100, date: 970101} into trans");
@@ -1401,7 +1410,7 @@ class test_qparser : public  Tests
 		req("insert{item: \"eraser\", id: \"c\", cost: 150, date: 970201} into trans");
 
 		//create supplier file
-		database_admin("destroy supplier");
+		database_admin("drop supplier");
 		adm("create supplier (supplier:string, name:string, city:string) index(city) key(supplier)");
 		req("insert{supplier: \"mec\", name: \"mtnequipcoop\", city: \"calgary\"} into supplier");
 		req("insert{supplier: \"hobo\", name: \"hoboshop\", city: \"saskatoon\"} into supplier");
@@ -1409,14 +1418,14 @@ class test_qparser : public  Tests
 		req("insert{supplier: \"taiga\", name: \"taigaworks\", city: \"vancouver\"} into supplier");
 
 		//create inven file
-		database_admin("destroy inven");
+		database_admin("drop inven");
 		adm("create inven (item:string, qty:number) key(item)");
 		req("insert{item: \"disk\", qty: 5} into inven");
 		req("insert{item: \"mouse\", qty:2} into inven");
 		req("insert{item: \"pencil\", qty: 7} into inven");
 		
 		//create alias file
-		database_admin("destroy alias");
+		database_admin("drop alias");
 		adm("create alias(id, name2) key(id)");
 		req("insert{id: \"a\", name2: \"abc\"} into alias");
 		req("insert{id: \"c\", name2: \"trical\"} into alias");
@@ -1426,12 +1435,12 @@ class test_qparser : public  Tests
 		for (int i = 0; i < sizeof qptests / sizeof (Qptest); ++i)
 			testone(i, qptests[i].query, qptests[i].result);
 		
-		adm("destroy hist");
-		adm("destroy customer");
-		adm("destroy trans");
-		adm("destroy supplier");
-		adm("destroy inven");
-		adm("destroy alias");
+		adm("drop hist");
+		adm("drop customer");
+		adm("drop trans");
+		adm("drop supplier");
+		adm("drop inven");
+		adm("drop alias");
 		}
 	void testone(int i, char* query, char* result)
 		{
