@@ -11,8 +11,6 @@
 #define IDB_DOCUMENT                    107
 #define IDR_TOOLBAR1                    108
 #define IDI_SUNEIDO                     112
-#define IDD_SPLASH                      113
-#define IDB_SPLASH                      116
 #define IDB_BIGFOLDER                   119
 #define IDB_BIGFORM                     120
 #define IDB_BIGDOCUMENT                 121
@@ -238,7 +236,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        192
+#define _APS_NEXT_RESOURCE_VALUE        193
 #define _APS_NEXT_COMMAND_VALUE         40212
 #define _APS_NEXT_CONTROL_VALUE         1008
 #define _APS_NEXT_SYMED_VALUE           101
