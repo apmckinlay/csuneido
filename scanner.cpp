@@ -64,19 +64,9 @@ void scanner_locale_changed()
 			cclass_[c] = 0;
 	}
 
-Scanner::Scanner(char* s, int i)
+Scanner::Scanner(char* s, int i, CodeVisitor* v)
+	: prev(0), value(""), err(""), source(s), si(i), keyword(0), visitor(v)
 	{
-	start(s, i);
-	}
-
-void Scanner::start(char* s, int i)
-	{
-	source = s;
-	si = i;
-	prev = 0;
-	value = "";
-	err = "";
-	keyword = 0;
 	}
 
 char* Scanner::peek()

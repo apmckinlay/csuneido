@@ -26,13 +26,14 @@
 #include "std.h"
 #include "opcodes.h"
 
+class CodeVisitor;
+
 // lexical scanner for Compiler
 // QueryScanner is derived from this
 class Scanner
 	{
 public:
-	explicit Scanner(char* = "", int = 0);
-	void start(char*, int = 0);
+	explicit Scanner(char* = "", int = 0, CodeVisitor* cv = 0);
 	char* peek();
 	char peeknl();
 	int next();
@@ -49,6 +50,8 @@ public:
 	char* source;
 	int si;
 	int keyword;
+	CodeVisitor* visitor; // not used by Scanner
+	// but placed here to avoid passing around extra argument in compiler
 protected:
 	char doesc(void);
 	virtual int keywords(char*);
