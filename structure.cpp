@@ -130,7 +130,8 @@ Value Structure::call(Value self, Value member, short nargs, short nargnames, us
 		int nargs = 3;
 		char* dst = (char*) ARG(0).integer();
 		ushort member = ARG(1).symnum();
-		for (int i = 0; i < nitems; ++i)
+		int i;
+		for (i = 0; i < nitems; ++i)
 			{
 			if (mems[i] == member)
 				{
@@ -141,6 +142,8 @@ Value Structure::call(Value self, Value member, short nargs, short nargnames, us
 			else
 				dst +=  items[i].type().size();
 			}
+		if (i >= nitems)
+			except("member not found: " << ARG(1));
 		}
 	else
 		unknown_method("struct", member);
