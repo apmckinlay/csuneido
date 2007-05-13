@@ -48,6 +48,7 @@
 #include "params.h"
 #include "surecord.h"
 #include "gc.h"
+#include "codevisitor.h"
 
 using namespace std;
 
@@ -68,7 +69,7 @@ template <class T> T* dup(const vector<T>& x, NoPtrs)
 class Compiler
 	{
 public:
-	explicit Compiler(char* s);
+	explicit Compiler(char* s, CodeVisitor* v = 0);
 	Compiler(Scanner& sc, int t, int sn) // for FunctionCompiler
 		: scanner(sc), stmtnest(sn), token(t)
 		{ }
@@ -175,16 +176,16 @@ private:
 	void record();
 	short literal(Value);
 	short emit_literal();
-	short local();
+	short local(bool init = false);
 	PrevLit poplits();
 	short emit(short, short = 0, short = 0, short = 0, vector<ushort>* = 0);
 	void patch(short);
 	void mark();
 	};
 
-Value compile(char* s, char* gname)
+Value compile(char* s, char* gname, CodeVisitor* visitor)
 	{
-	Compiler compiler(s);
+	Compiler compiler(s, visitor);
 	Value x = compiler.constant(gname);
 	if (compiler.token != -1)
 		compiler.syntax_error();
@@ -202,7 +203,9 @@ Params* compile_params(char* s)
 
 // Compiler ---------------------------------------------------------------
 
-Compiler::Compiler(char* s) : scanner(*new Scanner(strdup(s))), stmtnest(99)
+Compiler::Compiler(char* s, CodeVisitor* visitor)
+	: scanner(*new Scanner(strdup(s), 0, visitor ? visitor : new CodeVisitor)),
+		stmtnest(99)
 	{
 	NEWNUM = symnum("New");
 	match(); // get first token
@@ -343,18 +346,20 @@ Value Compiler::suclass(char* gname) //===========================
 			{
 			matchnew();
 			if (*scanner.value == '_')
-				base = globals.copy(ckglobal(scanner.value + 1));
+				base = globals.copy(ckglobal(scanner.value));
 			else
 				base = globals(ckglobal(scanner.value));
+			scanner.visitor->global(scanner.prev, base);
 			matchnew(T_IDENTIFIER);
 			}
 		}
 	else
 		{
 		if (*scanner.value == '_')
-			base = globals.copy(ckglobal(scanner.value + 1));
+			base = globals.copy(ckglobal(scanner.value));
 		else
 			base = globals(ckglobal(scanner.value));
+		scanner.visitor->global(scanner.prev, base);
 		matchnew(T_IDENTIFIER);
 		}
 	SuClass *ob = new SuClass(base);
@@ -724,11 +729,15 @@ Params* Compiler::params()
 
 Value Compiler::functionCompiler(short base, bool newfn, char* gname)
 	{
+	scanner.visitor->begin_func();
 	FunctionCompiler compiler(scanner, token, stmtnest, base, newfn, gname);
 	Value fn = compiler.function();
+	scanner.visitor->end_func();
 	token = compiler.token;
 	return fn;
 	}
+
+const bool INIT = true;
 
 SuFunction* FunctionCompiler::function()
 	{
@@ -739,7 +748,7 @@ SuFunction* FunctionCompiler::function()
 	if (token == '@')
 		{
 		match();
-		local();
+		local(INIT);
 		match(T_IDENTIFIER);
 		rest = true;
 		nparams = 1;
@@ -750,7 +759,7 @@ SuFunction* FunctionCompiler::function()
 		rest = false;
 		for (nparams = ndefaults = 0; token != ')'; ++nparams)
 			{
-			int i = local();
+			int i = local(INIT);
 			if (i != locals.size() - 1)
 				except("duplicate function parameter (" << scanner.value << ")");
 			match(T_IDENTIFIER);
@@ -820,6 +829,7 @@ void FunctionCompiler::block()
 		while (token == T_IDENTIFIER)
 			{
 			locals.push_back(symnum(scanner.value)); // ensure new
+			scanner.visitor->local(scanner.prev, locals.size() - 1, true);
 			match();
 			if (token == ',')
 				match();
@@ -970,7 +980,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 			value = true;
 			match();
 			}
-		short var = local();
+		short var = local(INIT);
 		match(T_IDENTIFIER);
 		match(K_IN);
 		OPT_PAREN_EXPR2
@@ -1000,6 +1010,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 			{
 			// INITIALIZATION
 			int nc_before = code.size();
+			int local_pos = scanner.prev;
 			exprlist();
 			if (scanner.keyword == K_IN)
 				{ // for (var in expr)
@@ -1012,6 +1023,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 					var = code[nc_before + 1];
 				else
 					syntax_error("usage: for (local_variable in expression)");
+				scanner.visitor->local(local_pos, var, INIT); // fix up previous
 				code.resize(nc_before);
 				last_adr = -1;
 				OPT_PAREN_EXPR2
@@ -1207,7 +1219,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 				match('(');
 				if (token != ')')
 					{
-					ushort exception = local();
+					ushort exception = local(INIT);
 					match(T_IDENTIFIER);
 					if (token == ',')
 						{
@@ -1452,6 +1464,7 @@ void FunctionCompiler::expr0(bool newtype)
 	short option = -1;
 	short id = -1;
 	short incdec = 0;
+	int local_pos = -1;
 	if (token == I_PREINC || token == I_PREDEC)
 		{
 		incdec = token;
@@ -1521,6 +1534,7 @@ void FunctionCompiler::expr0(bool newtype)
 		  			{
 					lvalue = false;
 					id = globals(scanner.value);
+					scanner.visitor->global(scanner.prev, id);
 					if (id == TrueNum || id == FalseNum)
 						{
 						emit(I_PUSH, LITERAL, 
@@ -1532,7 +1546,7 @@ void FunctionCompiler::expr0(bool newtype)
 					{
 					Value x = globals.get(scanner.value + 1);
 					if (! x)
-						except(scanner.value << " not found");
+						except("can't find " << scanner.value);
 					emit(I_PUSH, LITERAL, literal(x));
 					lvalue = value = false;
 					}
@@ -1551,6 +1565,7 @@ void FunctionCompiler::expr0(bool newtype)
 						lvalue = value = false;
 						break ;
 					default :
+						local_pos = scanner.prev;
 						id = local();
 						}
 					}
@@ -1634,9 +1649,11 @@ void FunctionCompiler::expr0(bool newtype)
 		}
 	else if (I_ADDEQ <= token && token <= I_EQ)
 		{
-		short t = token;
+		int t = token;
 		if (! lvalue)
 			syntax_error();
+		if (token == I_EQ && local_pos != -1 && (option == AUTO || option == DYNAMIC))
+			scanner.visitor->local(local_pos, id, INIT); // fix up previous
 		matchnew();
 		if (scanner.keyword == K_FUNCTION || scanner.keyword == K_CLASS)
 			{
@@ -1811,14 +1828,18 @@ short FunctionCompiler::literal(Value x)
 	return literals.size() - 1;
 	}
 
-short FunctionCompiler::local()
+short FunctionCompiler::local(bool init)
 	{
 	ushort num = symnum(scanner.value);
 	for (int i = locals.size() - 1; i >= 0; --i)
 		if (locals[i] == num)
+			{
+			scanner.visitor->local(scanner.prev, i, init);
 			return i;
+			}
 	except_if(locals.size() >= UCHAR_MAX, "too many local variables");
 	locals.push_back(num);
+	scanner.visitor->local(scanner.prev, locals.size() - 1, init);
 	return locals.size() - 1;
 	}
 
