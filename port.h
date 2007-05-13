@@ -34,4 +34,6 @@ void sync_timer(Mmfile* mmf);
 
 int fork_rebuild();
 
+void get_exe_path(char* buf, int buflen);
+
 #endif
