@@ -103,6 +103,8 @@ Value SuClass::getdata(Value member)
 
 size_t SuClass::packsize() const
 	{
+	if (*globals(base) == '_')
+		except("can't pack class with _Name as base");
 	return 1 + // PACK_CLASS
 		packstrsize(globals(base)) +
 		packnamesize(named) +
