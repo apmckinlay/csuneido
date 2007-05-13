@@ -72,8 +72,10 @@ static Record key(const gcstring& table, const gcstring& columns)
 	}
 
 Idx::Idx(const gcstring& table, const Record& r, const gcstring& c, short* n, Index* i, Database* db)
-	: index(i), nnodes(i->get_nnodes()), rec(r), columns(c), colnums(n)
+	: index(i), nnodes(i->get_nnodes()), rec(r), colnums(n)
 	{
+	columns = c.has_prefix("lower:") ? c.substr(6) : c;
+	
 	iskey = (SuTrue == r.getval(I_KEY));
 
 	fksrc.table = rec.getstr(I_FKTABLE).to_heap();
@@ -237,7 +239,7 @@ void Database::add_column(const gcstring& table, const gcstring& col)
 	}
 
 void Database::add_index(const gcstring& table, const gcstring& columns, bool key,
-	const gcstring& fktable, const gcstring& fkcolumns, Fkmode fkmode, bool unique)
+	const gcstring& fktable, const gcstring& fkcolumns, Fkmode fkmode, bool unique, bool lower)
 	{
 	Tbl* tbl = ck_get_table(table);
 	short* colnums = comma_to_nums(tbl->cols, columns);
@@ -247,7 +249,7 @@ void Database::add_index(const gcstring& table, const gcstring& columns, bool ke
 	for (Lisp<Idx> idxs = tbl->idxs; ! nil(idxs); ++idxs)
 		if (idxs->columns == columns)
 			except("add index: index already exists: " << columns << " in " << table);
-	Index* index = new Index(this, tbl->num, columns.str(), key, unique);
+	Index* index = new Index(this, tbl->num, columns.str(), key, unique, lower);
 
 	if (! nil(tbl->idxs) && tbl->nrecords)
 		{
@@ -265,7 +267,8 @@ void Database::add_index(const gcstring& table, const gcstring& columns, bool ke
 			}
 		}
 
-	Record r = record(tbl->num, columns, index, fktable, fkcolumns, fkmode);
+	Record r = record(tbl->num, (lower ? "lower:" : "") + columns, 
+		index, fktable, fkcolumns, fkmode);
 	add_any_record(schema_tran, "indexes", r);
 	tbl->idxs.append(Idx(table, r, columns, colnums, index, this));
 
@@ -279,6 +282,9 @@ bool Database::recover_index(Record& idxrec)
 	if (! tbl)
 		return false;
 	gcstring columns = idxrec.getstr(I_COLUMNS);
+	bool lower = columns.has_prefix("lower:");
+	if (lower)
+		columns = columns.substr(6);
 	short* colnums = comma_to_nums(tbl->cols, columns);
 	if (! colnums)
 		return false; // invalid column name
@@ -286,7 +292,7 @@ bool Database::recover_index(Record& idxrec)
 		if (idxs->columns == columns)
 			return false; // already exists
 	bool key = idxrec.getval(I_KEY) == SuTrue;
-	Index* index = new Index(this, tbl->num, columns.str(), key);
+	Index* index = new Index(this, tbl->num, columns.str(), key, false, lower);
 
 	if (! nil(tbl->idxs))
 		{
@@ -590,7 +596,7 @@ bool Database::record_ok(int oldtran, Mmoffset recadr)
 void Database::remove_table(const gcstring& table)
 	{
 	if (is_system_table(table))
-		except("destroy: can't destroy system table: " << table);
+		except("drop: can't destroy system table: " << table);
 	remove_any_table(table);
 	}
 
@@ -699,7 +705,8 @@ void Database::remove_any_index(Tbl* tbl, const gcstring& columns)
 		except("delete index: nonexistent index: " << columns << " in " << tbl->name);
 	tbl->idxs.erase(*p);
 
-	remove_any_record(schema_tran, "indexes", "table,columns", key(tbl->num, columns));
+	remove_any_record(schema_tran, "indexes", "table,columns", 
+		key(tbl->num, p->rec.getstr(I_COLUMNS))); // not columns cause you need lower:
 	}
 
 void Database::remove_record(int tran, const gcstring& table, const gcstring& index, const Record& key)
@@ -1117,14 +1124,19 @@ Record Database::key(TblNum tblnum, const gcstring& columns)
 Index* Database::mkindex(const Record& r)
 	{
 	verify(! nil(r));
+	char* columns = r.getstr(I_COLUMNS).str();
+	bool lower = has_prefix(columns, "lower:");
+	if (lower)
+		columns += 6;
 	return new Index(this,
 		r.getlong(I_TBLNUM),
-		r.getstr(I_COLUMNS).str(),
+		columns,
 		r.getmmoffset(I_ROOT),
 		r.getlong(I_TREELEVELS), 
 		r.getlong(I_NNODES), 
 		r.getval(I_KEY) == SuTrue,
-		r.getval(I_KEY).gcstr() == "u"
+		r.getval(I_KEY).gcstr() == "u",
+		lower
 		);
 	}
 
@@ -1212,6 +1224,8 @@ Tbl* Database::get_table(const Record& table_rec)
 		{
 		Record r(iter.data());
 		gcstring columns = r.getstr(I_COLUMNS).to_heap();
+		if (columns.has_prefix("lower:"))
+			columns = columns.substr(6);
 		short* colnums = comma_to_nums(cols, columns);
 		verify(colnums);
 		// make sure to use the same index for the system tables
