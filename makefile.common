@@ -14,6 +14,7 @@ catstr.cpp \
 checksum.cpp \
 cmdlineoptions.cpp \
 cmpic.cpp \
+codecheck.cpp \
 commalist.cpp \
 compile.cpp \
 construct.cpp \
@@ -53,6 +54,7 @@ literal.cpp \
 load.cpp \
 md5.cpp \
 mmfile.cpp \
+msgloop.cpp \
 named.cpp \
 numlen.cpp \
 olddate.cpp \
@@ -91,11 +93,13 @@ regexp.cpp \
 richeditio.cpp \
 richeditole.c \
 row.cpp \
+runpiped.cpp \
 scanner.cpp \
 scistyle.cpp \
 sesviews.cpp \
 slots.cpp \
 sockets.cpp \
+splash.cpp \
 strdup.cpp \
 structure.cpp \
 sublock.cpp \
@@ -135,5 +139,5 @@ value.cpp
 
 #$(call make-depend,source-file,object-file,depend-file,cc)
 define make-depend
-	@$4 -MM -MF $3 -MP -MT $2 $1 >nul
+	@\mingw\bin\$4 -MM -MF $3 -MP -MT $2 $1 >nul
 endef
