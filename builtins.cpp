@@ -193,7 +193,9 @@ PRIM(locals, "Locals(offset)");
 Value buffer()
 	{
 	const int nargs = 2;
-	int n = ARG(0).int_if_num();
+	int n;
+	if (! ARG(0).int_if_num(&n))
+		except("usage: Buffer(size, string=\"\")");
 	if (n < 0)
 		except("invalid Buffer size: " << n);
 	SuBuffer* b = new SuBuffer(n, ARG(1).gcstr());
