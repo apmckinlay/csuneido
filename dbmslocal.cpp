@@ -239,7 +239,7 @@ Row DbmsLocal::get(Dir dir, char* querystr, bool one, Header& hdr, int t)
 	AutoQuery q(query(tran, querystr));
 	Row row = q->get(dir);
 	if (one && row != Row::Eof && q->get(dir) != Row::Eof)
-		except("Query1 not unique");
+		except("Query1 not unique: " << querystr);
 	hdr = q->header();
 	return row;
 	}
