@@ -59,8 +59,10 @@ class Index
 public:
 	friend class Database;
 	typedef Record Key;
-	Index(Database* d, TblNum tblnum, const char* idxname, bool k, bool u = false);
-	Index(Database* d, TblNum tblnum, const char* idxname, Mmoffset r, short tl, int nn, bool k, bool u = false);
+	Index(Database* d, TblNum tblnum, const char* idxname, 
+		bool k, bool u = false, bool lo = false);
+	Index(Database* d, TblNum tblnum, const char* idxname, Mmoffset r, short tl, int nn, 
+		bool k, bool u = false, bool lo = false);
 
 	bool insert(int tran, Vslot x);
 	bool erase(const Key& key)
@@ -121,6 +123,8 @@ public:
 		{ return bt.get_nnodes(); }
 	bool is_unique() const
 		{ return unique; }
+	bool is_lower() const
+		{ return lower; }
 private:
 	TranRead* read_act(int tran);
 
@@ -128,6 +132,7 @@ private:
 	IndexBtree bt;
 	bool iskey;
 	bool unique;
+	bool lower;
 	TblNum tblnum;
 	gcstring idxname;
 	};

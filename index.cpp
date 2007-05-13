@@ -25,15 +25,17 @@
 #include "slots.h"
 #include "record.h"
 #include "database.h"
+#include "pack.h" // for PACK_STRING for lower_key
+#include "ctype.h" // for tolower
 
 // Index ============================================================
 
-Index::Index(Database* d, TblNum t, const char* idx, bool k, bool u) 
-	: db(d), bt(d->dest), iskey(k), unique(u), tblnum(t), idxname(idx)
+Index::Index(Database* d, TblNum t, const char* idx, bool k, bool u, bool lo) 
+	: db(d), bt(d->dest), iskey(k), unique(u), lower(lo), tblnum(t), idxname(idx)
 	{ }
 
-Index::Index(Database* d, TblNum t, const char* idx, Mmoffset r, short tl, int nn, bool k, bool u)
-	: db(d), bt(d->dest, r, tl, nn), iskey(k), unique(u), tblnum(t), idxname(idx)
+Index::Index(Database* d, TblNum t, const char* idx, Mmoffset r, short tl, int nn, bool k, bool u, bool lo)
+	: db(d), bt(d->dest, r, tl, nn), iskey(k), unique(u), lower(lo), tblnum(t), idxname(idx)
 	{ }
 
 Index::iterator Index::begin(int tran)
@@ -73,8 +75,26 @@ static bool empty(Record& key)
 	return true;
 	}
 
+// converts IN PLACE
+static void lower_key(Record& key)
+	{
+	int n = key.size();
+	for (int i = 0;  i < n; ++i)
+		{
+		gcstring raw = key.getraw(i);
+		if (raw[0] != PACK_STRING)
+			continue ;
+		int len = raw.size() - 1;
+		char* buf = raw.buf() + 1; // skip type
+		for (int j = 0; j < len; ++j)
+			buf[j] = tolower(buf[j]);
+		}
+	}
+
 bool Index::insert(int tran, Vslot x)
 	{
+	if (lower)
+		lower_key(x.key);
 	if (iskey || (unique && ! empty(x.key)))
 		{
 		// strip off record address
