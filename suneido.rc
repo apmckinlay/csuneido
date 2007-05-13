@@ -14,12 +14,8 @@
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
-/////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
-//LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
 
@@ -65,7 +61,6 @@ IDB_FOLDER              BITMAP  DISCARDABLE     "res\\folder.bmp"
 IDB_OPENFOLDER          BITMAP  DISCARDABLE     "res\\openfolder.bmp"
 IDB_DOCUMENT            BITMAP  DISCARDABLE     "res\\document.bmp"
 IDR_TOOLBAR1            BITMAP  DISCARDABLE     "res\\toolbar1.bmp"
-SPLASHBMP               BITMAP  DISCARDABLE     "res\\splash.bmp"
 IDR_TOOLBAR2            BITMAP  DISCARDABLE     "res\\toolbar2.bmp"
 IDR_TOOLBAR3            BITMAP  DISCARDABLE     "res\\toolbar3.bmp"
 
@@ -402,7 +397,7 @@ BEGIN
             VALUE "FileDescription", "Suneido\0"
             VALUE "FileVersion", "1.0\0"
             VALUE "InternalName", "Suneido\0"
-            VALUE "LegalCopyright", "Copyright © 2000-2002\0"
+            VALUE "LegalCopyright", "Copyright © 2000-2007\0"
             VALUE "LegalTrademarks", "Suneido TM\0"
             VALUE "OriginalFilename", "suneido.exe\0"
             VALUE "PrivateBuild", "\0"
@@ -445,18 +440,8 @@ IDC_ARROWMOVE           CURSOR  DISCARDABLE     "res\\cursor1.cur"
 //
 
 IDR_COIL                BINDATA DISCARDABLE     "res\\coil.bmp"
-#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////////
-// English (Canada) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENC)
-#ifdef _WIN32
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_CAN
-#pragma code_page(1252)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -480,18 +465,4 @@ IDC_SPLITRIGHT          CURSOR  DISCARDABLE     "res\\cur00002.cur"
 IDC_SPLITTOP            CURSOR  DISCARDABLE     "res\\cur00001.cur"
 IDC_SPLITBOTTOM         CURSOR  DISCARDABLE     "res\\cur00003.cur"
 IDC_ARROWSTACK          CURSOR  DISCARDABLE     "res\\cur00004.cur"
-#endif    // English (Canada) resources
 /////////////////////////////////////////////////////////////////////////////
-
-
-
-#ifndef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 3 resource.
-//
-
-
-/////////////////////////////////////////////////////////////////////////////
-#endif    // not APSTUDIO_INVOKED
-
