@@ -99,7 +99,7 @@ Value BuiltinClass<SuFile>::instantiate(BuiltinArgs& args)
 template<>
 Value BuiltinClass<SuFile>::callclass(BuiltinArgs& args)
 	{
-	args.usage("usage: File(filename, mode = 'r', block = false");
+	args.usage("usage: File(filename, mode = 'r', block = false)");
 	char* filename = args.getstr("filename");
 	char* mode = args.getstr("mode", "r");
 	Value block = args.getValue("block", SuFalse);
