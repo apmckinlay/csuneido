@@ -109,7 +109,7 @@ Value su_ScintillaStyle()
 	char* styles = (char*) alloca(size);
 
 	Scanner scan(tr.lpstrText);
-	SendMessage(hwnd, SCI_STARTSTYLING, start, 0xff);
+	SendMessage(hwnd, SCI_STARTSTYLING, start, 0x1f);
 	int token;
 	while (-1 != (token = scan.nextall()))
 		{
@@ -162,7 +162,7 @@ static int tokenStyle(int token, int keyword)
 	switch (token)
 		{
 	case T_COMMENT :	return STYLE_COMMENT;
-	case T_NUMBER :		return STYLE_NUMBER;
+	case T_NUMBER :	return STYLE_NUMBER;
 	case T_STRING :		return STYLE_STRING;
 	case T_WHITE :		return STYLE_WHITESPACE;
 	default : return token < 1000 
