@@ -120,7 +120,7 @@ void dbms_test()
 	int tran;
 
 	// create customer file
-	try { dbms()->admin("destroy dbms_test"); } catch (...) { }
+	try { dbms()->admin("drop dbms_test"); } catch (...) { }
 	dbms()->admin("create dbms_test (id, name, city) key(id)");
 	tran = dbms()->transaction(Dbms::READWRITE);
 	dbms()->request(tran, "insert {id: \"a\", name: \"axon\", city: \"saskatoon\"} into dbms_test");
@@ -152,5 +152,5 @@ void dbms_test()
 	assert_eq(rec.getval(1), Value("Bob"));
 	verify(dbms()->commit(tran)); }
 
-	dbms()->admin("destroy dbms_test");
+	dbms()->admin("drop dbms_test");
 	}
