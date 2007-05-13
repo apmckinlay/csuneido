@@ -24,10 +24,11 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 class Value;
+class CodeVisitor;
 struct Params;
 
 // compile a string of source code
-Value compile(char* s, char* name = "");
+Value compile(char* s, char* name = "", CodeVisitor*  visitor = 0);
 
 // compile paramater specifications
 Params* compile_params(char* s);
