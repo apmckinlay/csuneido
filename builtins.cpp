@@ -51,6 +51,8 @@
 #include "fatal.h"
 #include "gc.h"
 #include "errlog.h"
+#include "port.h"
+#include "msgloop.h"
 
 Value run(const char* s)
 	{
@@ -74,6 +76,34 @@ char* eval(const char* s)
 	}
 
 // primitives -------------------------------------------------------
+
+Value su_msgloop()
+	{
+	int nargs = 1;
+	HWND hwnd = (HWND) ARG(0).integer();
+	message_loop(hwnd);
+	return Value();
+	}
+PRIM(su_msgloop, "MessageLoop(hdlg)");
+
+// for compatibility with old stdlib
+Value su_setaccels()
+	{
+	int nargs = 2;
+	SetWindowLong((HWND) ARG(0).integer(), GWL_USERDATA,  ARG(1).integer());
+	return Value();
+	}
+PRIM(su_setaccels, "SetAccelerators(hwnd, haccels)");
+
+Value su_exit()
+	{
+	const int nargs = 1;
+	if (ARG(0) == SuTrue)
+		exit(0);
+	PostQuitMessage(ARG(0).integer());
+	return Value();
+	}
+PRIM(su_exit, "Exit(status = 0)");
 
 Value errorlog()
 	{
@@ -163,7 +193,7 @@ PRIM(locals, "Locals(offset)");
 Value buffer()
 	{
 	const int nargs = 2;
-	int n = ARG(0).integer();
+	int n = ARG(0).int_if_num();
 	if (n < 0)
 		except("invalid Buffer size: " << n);
 	SuBuffer* b = new SuBuffer(n, ARG(1).gcstr());
@@ -297,17 +327,6 @@ Value make_class()
 	}
 PRIM(make_class, "Class(object, class='Object')");
 
-Value set_accelerators()
-	{
-	extern HACCEL haccel;
-	extern HWND accel_hwnd; // to ensure haccel is meant for the active window
-	const int nargs = 2;
-	accel_hwnd = (HWND) ARG(0).integer();
-	haccel = (HACCEL) ARG(1).integer();
-	return Value();
-	}
-PRIM(set_accelerators, "SetAccelerators(hwnd, haccel)");
-
 Value su_random()
 	{
 	static bool first = true;
@@ -394,7 +413,7 @@ PRIM(su_serverport, "ServerPort()");
 Value su_exepath()
 	{
 	char exefile[1024];
-	GetModuleFileName(NULL, exefile, sizeof exefile);
+	get_exe_path(exefile, sizeof exefile);
 	return new SuString(exefile);
 	}
 PRIM(su_exepath, "ExePath()");
@@ -800,6 +819,8 @@ void builtins()
 	builtin("File", su_file());
 	extern Value su_image();
 	builtin("Image", su_image());
+	extern Value su_runpiped();
+	builtin("RunPiped", su_runpiped());
 
 	for (int i = 0; i < nprims; ++i)
 		{
