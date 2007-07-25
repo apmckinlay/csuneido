@@ -40,6 +40,7 @@
 #include "getnum.h"
 #include "sesviews.h"
 #include <vector>
+#include "errlog.h"
 
 //#define LOGGING
 #ifdef LOGGING
@@ -770,7 +771,7 @@ char* DbServer::cmd_run(char* s)
 
 char* DbServer::cmd_log(char* s)
 	{
-	dbms->log(s);
+	errlog(session_id, s);
 	return "OK\r\n";
 	}
 
