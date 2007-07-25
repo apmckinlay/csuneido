@@ -32,7 +32,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <malloc.h>
 #include "symbols.h"
 #include "minmax.h"
 #include "gc.h"
@@ -125,7 +124,7 @@ bool SuString::lt(const SuValue& y) const
 
 SuBuffer::SuBuffer(size_t n, const gcstring& s) : SuString(n + 1)
 	{ 
-	memcpy(buf(), s.buf(), min(n, (size_t) s.size() + 1));
+	memcpy(buf(), s.buf(), min(n, (size_t) s.size()));
 	buf()[n] = 0;
 	}
 
