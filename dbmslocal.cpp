@@ -30,6 +30,7 @@
 #include "library.h"
 #include "sudate.h"
 #include "suobject.h"
+#include "sustring.h"
 
 // DbmsQueryLocal ===================================================
 
@@ -324,12 +325,12 @@ int DbmsLocal::cursors()
 
 Value DbmsLocal::sessionid(char* s)
 	{
-	static Value session_id = "127.0.0.1";
+	static char* session_id = "127.0.0.1";
 	if (*s)
-		session_id = s;
+		session_id = strdup(s);
 	extern bool is_server;
 	extern char* fiber_id;
-	return is_server ? fiber_id : session_id;
+	return new SuString(is_server ? fiber_id : session_id);
 	}
 
 bool DbmsLocal::refresh(int tran)
