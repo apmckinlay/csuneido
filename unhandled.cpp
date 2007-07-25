@@ -82,7 +82,7 @@ inline void log_and_exit(const char* error, const char* extra = "")
 	if (h_file != INVALID_HANDLE_VALUE)
 		{
 		SetFilePointer(h_file, 0, 0, FILE_END);
-		extern char* session_id;
+		extern char* session_id; // only for clients i.e. dbmsremote
 		write(session_id);
 		if (*session_id != 0)
 			write(": ");
