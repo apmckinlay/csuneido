@@ -33,7 +33,6 @@ using namespace std;
 #include "globals.h"
 #include "symbols.h"
 #include "minmax.h"
-#include <malloc.h>
 #include <math.h>
 #include <errno.h>
 #include "itostr.h"
@@ -51,7 +50,7 @@ random_class randnum;
 
 void* SuNumber::operator new(size_t n)
 	{ 
-	return GC_malloc_atomic(n);
+	return ::operator new (n, noptrs);
 	}
 	
 void SuNumber::out(Ostream& os)

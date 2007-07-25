@@ -35,7 +35,6 @@
 #include "sunumber.h"
 #include "suobject.h"
 #include "pack.h"
-#include <malloc.h>
 #include <ctype.h>
 #include "func.h" // for argseach
 #include "minmax.h"
@@ -48,7 +47,9 @@
 static int ord = ::order("Date");
 
 void* SuDate::operator new(size_t n)
-	{ return GC_malloc_atomic(n); }
+	{ 
+	return ::operator new (n, noptrs);
+	}
 
 int SuDate::order() const
 	{ return ord; }
