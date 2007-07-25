@@ -23,7 +23,7 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-void db_check_gui();
+bool db_check_gui();
 bool db_rebuild_gui();
 
 #endif

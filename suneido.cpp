@@ -131,8 +131,10 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		load(cmdlineoptions.argstr);
 		exit(EXIT_SUCCESS);
 	case CHECK :
-		db_check_gui();
-		exit(EXIT_SUCCESS);
+		{
+		bool ok = db_check_gui();
+		exit(ok ? EXIT_SUCCESS : EXIT_FAILURE);
+		}
 	case REBUILD :
 		{
 		bool ok = db_rebuild_gui();

@@ -30,15 +30,38 @@
 
 static BOOL CALLBACK check_proc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM);
 static BOOL CALLBACK rebuild_proc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM);
+static bool check();
 static bool rebuild();
 
 static DbRecover* dbr = 0;
 
-void db_check_gui()
+bool db_check_gui()
 	{
-	InitCommonControls();
-	DialogBox((HINSTANCE) GetModuleHandle(NULL), "REBUILD", NULL, (DLGPROC) check_proc);
-	delete dbr;
+	if (cmdlineoptions.unattended)
+		return check();
+	else
+		{
+		InitCommonControls();
+		DialogBox((HINSTANCE) GetModuleHandle(NULL), "REBUILD", NULL, (DLGPROC) check_proc);
+		delete dbr;
+		return true;
+		}
+	}
+
+static bool check()
+	{
+	DbRecover* dbr = DbRecover::check("suneido.db");
+	switch (dbr->status())
+		{
+	case DBR_OK :
+		dbr->check_indexes();
+		return dbr->status() == DBR_OK;
+	case DBR_ERROR :
+	case DBR_UNRECOVERABLE :
+		return false;
+	default :
+		unreachable();
+		}
 	}
 
 bool db_rebuild_gui()
