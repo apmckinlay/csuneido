@@ -36,7 +36,7 @@ void errlog(const char* msg1, const char* msg2, const char* msg3)
 	else
 		s[strlen(s) - 1] = 0;
 	log << s << ' ';
-	extern char* session_id;
+	extern char* session_id; // only for clients i.e. dbmsremote
 	if (*session_id)
 		log << session_id << ": ";
 	log << msg1 << " " << msg2 << " " << msg3 << endl;
