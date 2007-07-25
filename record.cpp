@@ -81,7 +81,7 @@ struct DbRep
 		{ return Record(mmf->adr(offset)); } 
 	};
 
-Record::Record(size_t sz) : crep((RecRep<unsigned char>*) GC_malloc_atomic(sz + 1))
+Record::Record(size_t sz) : crep((RecRep<unsigned char>*) ::operator new (sz + 1, noptrs))
 	{
 	init(sz);
 	// ensure that final value is followed by nul
