@@ -12,6 +12,7 @@ call.cpp \
 callback.cpp \
 catstr.cpp \
 checksum.cpp \
+circlog.cpp \
 cmdlineoptions.cpp \
 cmpic.cpp \
 codecheck.cpp \
