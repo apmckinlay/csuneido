@@ -38,7 +38,23 @@
 #include <stdio.h> // for remove
 #include <ctype.h> // for toupper
 #include "sudate.h"
+#include "fatal.h"
 
+void compact()
+	{
+	char* tmp = tmpnam(NULL);
+	if (*tmp == '\\')
+		++tmp;
+	db_copy(tmp);
+	extern void close_db();
+	close_db();
+	remove("suneido.db.bak");
+	if (0 != rename("suneido.db", "suneido.db.bak"))
+		fatal("can't rename suneido.db to suneido.db.bak");
+	if (0 != rename(tmp, "suneido.db"))
+		fatal("can't rename temp file to suneido.db");
+	}
+	
 struct DbCopy
 	{
 	DbCopy(char* dest);
