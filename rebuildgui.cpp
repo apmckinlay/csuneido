@@ -83,6 +83,9 @@ static bool rebuild()
 	switch (dbr->status())
 		{
 	case DBR_OK :
+		if (cmdlineoptions.check_start)
+			return true;
+		// else fall through to rebuild
 	case DBR_ERROR :
 		dbr->rebuild();
 		delete dbr;
@@ -184,6 +187,11 @@ static BOOL CALLBACK rebuild_proc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM)
 		switch (dbr->status())
 			{
 		case DBR_OK :
+			if (cmdlineoptions.check_start)
+				{
+				EndDialog(hDlg, TRUE);
+				return TRUE;
+				}
 			SetWindowText(GetDlgItem(hDlg, IDC_REBUILD_STATIC), "Database is okay, rebuild anyway?");
 			SetWindowText(GetDlgItem(hDlg, IDC_REBUILD_DATE), dbr->last_good_commit());
 			EnableWindow(GetDlgItem(hDlg, IDOK), TRUE);
