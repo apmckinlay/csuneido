@@ -29,6 +29,7 @@
 #include "except.h"
 #include "mmfile.h"
 #include "fatal.h"
+#include "ostreamstr.h"
 
 void get_exe_path(char* buf, int buflen)
 	{	
@@ -222,8 +223,13 @@ int fork_rebuild()
 	{
 	char exefile[1024];
 	GetModuleFileName(NULL, exefile, sizeof exefile);
-	return _spawnl(_P_WAIT, exefile, "suneido.exe", 
-		cmdlineoptions.unattended ? "-r -u" : "-r", NULL);
+	OstreamStr args(20);
+	args << "-r";
+	if (cmdlineoptions.unattended)
+		args << " -u";
+	if (cmdlineoptions.check_start)
+		args << " -cs";
+	return _spawnl(_P_WAIT, exefile, "suneido.exe", args.str(), NULL);
 	}
 
 #include "date.h"
