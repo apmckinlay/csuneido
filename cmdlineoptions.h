@@ -24,14 +24,16 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 enum { NONE = 0, DUMP, LOAD, SERVER, CLIENT, COMPACT,
-	CHECK, REBUILD, DBDUMP, COPY, TEST, TESTS, HELP, VERSION, AFTER_ACTIONS };
+	CHECK, REBUILD, DBDUMP, COPY, TEST, TESTS, HELP, VERSION,
+	UNINSTALL_SERVICE, AFTER_ACTIONS };
 
 class CmdLineOptions
 	{
 public:
 	CmdLineOptions() :
 		action(NONE), argstr(0), argint(0), splash(true), unattended(false),
-		local_library(false), no_exception_handling(false)
+		local_library(false), no_exception_handling(false), install(0), service(0),
+		check_start(false), compact_exit(false)
 		{ }
 	char* parse(char* str);
 	
@@ -43,11 +45,16 @@ public:
 	bool unattended;
 	bool local_library;
 	bool no_exception_handling;
+	char* install;
+	char* service;
+	bool check_start;
+	bool compact_exit;
 
 private:
 	int get_option();
 	void set_action(int a);
 	char* get_word();
+	char* get_string();
 	void skip_white();
 	char* strip_su(char* file);
 	};

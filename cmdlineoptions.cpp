@@ -28,7 +28,9 @@
 #include "gcstring.h"
 
 enum { PORT = AFTER_ACTIONS, NOSPLASH, UNATTENDED, LOCAL_LIBRARY,
-	NO_EXCEPTION_HANDLING, NO_GARBAGE_COLLECTION };
+	NO_EXCEPTION_HANDLING, NO_GARBAGE_COLLECTION,
+	INSTALL_SERVICE, SERVICE,
+	CHECK_START, COMPACT_EXIT };
 
 char* CmdLineOptions::parse(char* str)
 	{
@@ -68,12 +70,19 @@ char* CmdLineOptions::parse(char* str)
 			if (! (argstr = get_word()))
 				argstr = "127.0.0.1";
 			break ;
+		case INSTALL_SERVICE :
+			install = s;
+			break ;
+		case SERVICE :
+			service = s;
+			break ;
 		case TESTS :
 		case CHECK :
 		case REBUILD :
 		case DBDUMP :
 		case COMPACT :
 		case VERSION :
+		case UNINSTALL_SERVICE :
 			break ;
 		// options
 		case PORT :
@@ -94,12 +103,20 @@ char* CmdLineOptions::parse(char* str)
 			break ;
 		case NO_GARBAGE_COLLECTION :
 			break ;
+		case CHECK_START :
+			check_start = true;
+			break ;
+		case COMPACT_EXIT :
+			compact_exit = true;
+			break ;
 		case HELP :
 			alert("options:\n"
 				"	-check\n"
+				"	-c[heck]s[tart]\n"
 				"	-r[ebuild]\n"
 				"	-copy [filename]\n"
 				"	-compact\n"
+				"	-c[compact]e[xit]\n"
 				"	-d[ump] [tablename]\n"
 				"	-l[oad] [tablename]\n"
 				"	-t[ests]\n"
@@ -113,6 +130,8 @@ char* CmdLineOptions::parse(char* str)
 				"	-l[ocal]l[ibrary]\n"
 				"	-e[xception]h[andling]\n"
 				"	-g[arbage]c[ollection]\n"
+				"	-i[nstall]s[ervice][=\"args\"]\n"
+				"	-u[ninstall]s[ervice]\n"
 				);
 			exit(EXIT_SUCCESS);
 		default :
@@ -122,15 +141,17 @@ char* CmdLineOptions::parse(char* str)
 	return s;
 	}
 
+// Note: must put options that are a prefix of other options first e.g. -check before -c
 static struct { char* str; int num; } options[] = { 
 	{ "-dbdump", DBDUMP },
 	{ "-dump", DUMP }, { "-d", DUMP },
 	{ "-locallibrary", LOCAL_LIBRARY }, { "-ll", LOCAL_LIBRARY },
 	{ "-load", LOAD }, { "-l", LOAD },
+	{ "-service", SERVICE }, 
 	{ "-server", SERVER }, { "-s", SERVER },
 	{ "-copy", COPY },
-	{ "-compact", COMPACT },
-	{ "-check", CHECK },
+	{ "-compact", COMPACT }, { "-compactexit", COMPACT_EXIT }, { "-ce", COMPACT_EXIT },
+	{ "-check", CHECK }, { "-checkstart", CHECK_START }, { "-cs", CHECK_START },
 	{ "-client", CLIENT }, { "-c", CLIENT },
 	{ "-eh", NO_EXCEPTION_HANDLING }, { "-exceptionhandling", NO_EXCEPTION_HANDLING },
 	{ "-gc", NO_GARBAGE_COLLECTION }, { "-garbagecollection", NO_GARBAGE_COLLECTION },
@@ -141,8 +162,10 @@ static struct { char* str; int num; } options[] = {
 	{ "-port", PORT }, { "-p", PORT },
 	{ "-nosplash", NOSPLASH }, { "-n", NOSPLASH }, 
 	{ "-help", HELP }, { "-?", HELP }, { "-h", HELP },
-	{ "-unattended", UNATTENDED }, { "-u", UNATTENDED },
-	{ "-version", VERSION }, { "-v", VERSION }
+	{ "-version", VERSION }, { "-v", VERSION },
+	{ "-is", INSTALL_SERVICE }, { "-installservice", INSTALL_SERVICE },
+	{ "-us", UNINSTALL_SERVICE }, { "-uninstallservice", UNINSTALL_SERVICE },
+	{ "-unattended", UNATTENDED }, { "-u", UNATTENDED }
 	};
 const int noptions = sizeof options / sizeof options[0];
 
@@ -169,7 +192,7 @@ void CmdLineOptions::skip_white()
 void CmdLineOptions::set_action(int a)
 	{
 	if (action)
-		except("Please specify only one of: -dump, -load, -server, -client, -check, -rebuild, -copy, -test");
+		except("Please specify only one of: -dump, -load, -server, -client, -check, -rebuild, -copy, -test, -installserver, -uninstallserver");
 	action = a;
 	}
 
@@ -184,6 +207,19 @@ char* CmdLineOptions::get_word()
 	if (*s) // && isspace(*s)
 		*s++ = 0;
 	return *word ? word : 0;
+	}
+
+char* CmdLineOptions::get_string()
+	{
+	char end = ' ';
+	if (*s == '"' || *s == '\'')
+		end = *s++;
+	char* str = s;
+	while (*s && *s != end)
+		++s;
+	if (*s)
+		*s++ = 0;
+	return *str ? str : 0;
 	}
 
 char* CmdLineOptions::strip_su(char* file)
