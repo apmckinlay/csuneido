@@ -53,6 +53,9 @@
 #include "unhandled.h"
 #include "splash.h"
 #include "msgloop.h"
+#include "port.h" // for fork_rebuild for start_check
+
+#include "suservice.h"
 
 void builtins();
 bool iswindow();
@@ -77,7 +80,7 @@ int pascal WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpszCmdLine, int)
 
 	RegisterHotKey(0, 0, MOD_CONTROL, VK_CANCEL);
 
-	message_loop();
+	message_loop(); // doesn't return
 
 	return 0;
 	}
@@ -119,6 +122,20 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 
 	if (! cmdlineoptions.no_exception_handling)
 		unhandled();
+	
+	if (cmdlineoptions.install)
+		{
+		// default to server
+		const char* add = cmdlineoptions.action != CLIENT &&
+			cmdlineoptions.action != SERVER ? "-s" : "";
+		InstallService(cmdlineoptions.install, add);
+		exit(EXIT_SUCCESS);
+		}
+	else if (cmdlineoptions.service)
+		{
+		CallServiceDispatcher(cmdlineoptions.service);
+		exit(EXIT_SUCCESS);
+		}
 
 	switch (cmdlineoptions.action)
 		{
@@ -181,20 +198,11 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		break ;
 		}
 	case COMPACT :
-		{
-		char* tmp = tmpnam(NULL);
-		if (*tmp == '\\')
-			++tmp;
-		db_copy(tmp);
-		extern void close_db();
-		close_db();
-		remove("suneido.db.bak");
-		if (0 != rename("suneido.db", "suneido.db.bak"))
-			except("can't rename suneido.db to suneido.db.bak");
-		if (0 != rename(tmp, "suneido.db"))
-			except("can't rename temp file to suneido.db");
+		compact();
 		exit(EXIT_SUCCESS);
-		}
+	case UNINSTALL_SERVICE :
+		UnInstallService();
+		exit(EXIT_SUCCESS);
 	case VERSION :
 		extern char* build_date;
 		alert("Built:  " << build_date << "\n"
@@ -210,13 +218,17 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	default :
 		unreachable();
 		}
-
+	
 #ifndef __GNUC__
 	sunapp_register_classes();
 #endif
 	HWND hdlg = 0;
 	if (cmdlineoptions.splash)
 		hdlg = splash(hInstance);
+	
+	if (cmdlineoptions.check_start)
+		if (0 != fork_rebuild())
+			fatal("Database corrupt, unable to start");
 
 	if (run("Init()") == SuFalse)
 		exit(EXIT_FAILURE);
