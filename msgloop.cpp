@@ -88,11 +88,16 @@ static void destroy_windows()
 	EnumWindows(destroy_func, (LPARAM) NULL);
 	}
 
+#include "cmdlineoptions.h" // for compact_exit
+#include "dbcopy.h" // for compact
+
 static void shutdown(int status)
 	{
 	destroy_windows(); // so they can do save etc.
 #ifndef __GNUC__
 	sunapp_revoke_classes();
 #endif
+	if (cmdlineoptions.compact_exit)
+		compact();
 	exit(status);
 	}
