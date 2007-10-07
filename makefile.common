@@ -121,6 +121,7 @@ suobject.cpp \
 surecord.cpp \
 suscanner.cpp \
 suseq.cpp \
+suservice.cpp \
 susetlocale.cpp \
 susockets.cpp \
 sustring.cpp \
