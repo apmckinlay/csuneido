@@ -1,3 +1,25 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+ * This file is part of Suneido - The Integrated Application Platform
+ * see: http://www.suneido.com for more information.
+ * 
+ * Copyright (c) 2007 Suneido Software Corp. 
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation - version 2. 
+ *
+ * This program is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License in the file COPYING
+ * for more details. 
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free
+ * Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 // see: http://msdn2.microsoft.com/en-us/library/ms682499.aspx
 
 #include "win.h"
@@ -90,7 +112,7 @@ int RunPiped::read(char* buf, int len)
 	{
 	DWORD dwRead;
 	
-	if (!ReadFile(hChildStdoutRd, buf, len, &dwRead, NULL))
+	if (! ReadFile(hChildStdoutRd, buf, len, &dwRead, NULL))
 		return 0;
 	return dwRead;
 	}
@@ -129,6 +151,7 @@ public:
 		static Method<SuRunPiped> methods[] =
 			{
 			Method<SuRunPiped>("Read", &SuRunPiped::Read),
+			Method<SuRunPiped>("Readline", &SuRunPiped::Readline),
 			Method<SuRunPiped>("Write", &SuRunPiped::Write),
 			Method<SuRunPiped>("CloseWrite", &SuRunPiped::CloseWrite),
 			Method<SuRunPiped>("Close", &SuRunPiped::Close),
@@ -141,6 +164,7 @@ public:
 	void close();
 private:
 	Value Read(BuiltinArgs&);
+	Value Readline(BuiltinArgs&);
 	Value Write(BuiltinArgs&);
 	Value CloseWrite(BuiltinArgs&);
 	Value Close(BuiltinArgs&);
@@ -211,6 +235,33 @@ Value SuRunPiped::Read(BuiltinArgs& args)
 	n = rp->read(gcstr.buf(), n);
 	
 	return n == 0 ? SuFalse : new SuString(gcstr.substr(0, n));
+	}
+
+Value SuRunPiped::Readline(BuiltinArgs& args)
+	{
+	args.usage("usage: runpiped.Readline()");
+	args.end();
+
+	ckopen();
+	bool data = false;
+	char c;
+	std::vector<char> buf;
+	while (0 != rp->read(&c, 1))
+		{
+		data = true;
+		if (c == '\n')
+			break ;
+		if (c == '\r')
+			{
+			rp->read(&c, 1);
+			break ;
+			}
+		buf.push_back(c);
+		}
+	if (! data)
+		return SuFalse;
+	buf.push_back(0); // allow space for nul
+	return new SuString(buf.size() - 1, &buf[0]); // no alloc
 	}
 
 Value SuRunPiped::Write(BuiltinArgs& args)
