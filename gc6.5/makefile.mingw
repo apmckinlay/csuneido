@@ -52,7 +52,7 @@ clean :
 	
 .PHONY : install
 install : $(OUTPUT)/gc.a
-	copy /y $(OUTPUT)\\gc.a ..\\suneido\\gc_$(OUTPUT).a
+	copy /y $(OUTPUT)\\gc.a ..\\gc_$(OUTPUT).a
 	
 .PHONY : test
 test : $(OUTPUT)/gctest.exe
