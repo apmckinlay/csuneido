@@ -1,0 +1,228 @@
+Not a lot of major changes - mostly minor fixes and adjustments. The biggest change is that the version has changed from 0.9 to 1.0.  This is largely because we seem to have reached a "stable" point with Suneido and it has proven itself in several production settings.  However, like most version 1.0 software, this does not mean it's "finished". (Is software ever "finished"?)  We will, of course, continue to develop and improve Suneido.
+
+Some of the more significant changes for this release:
+
+- temporary database indexes now use a separate memory area
+- objects now compare lexicographically i.e. #(1,1) < #(1,2) < #(2,1)
+- added string.Iter i.e. foreach (char in string)
+- new string, number, and object methods (in stdlib)
+- numerous additions to the documentation (largely thanks to Kim Dong)
+
+Compatibility
+
+- string.CountOccurences has been renamed to string.Count
+- object.Iterator has been renamed to object.Iter
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe: 
+
+- added TempDest and Query::close - temporary database indexes now use a separate memory area
+- PermHeap - fixed bug in free
+- better support for objects as default values for object members
+- added option to -copy and Backup to keep only a certain number of days of history
+- added filename option to -copy
+- handle negative counts in string.Repeat
+- increased size of function call frame stack
+- added additional error trapping to -copy and -rebuild
+- suppressed "uncompleted transactions" alert if running as client
+- added exit on WM_ENDSESSION to server
+- minor changes for GCC compatibility
+- sort objects lexicographically
+- added string.Iter to support: for (char in string)
+- minor fixes to SuNumber::integer
+- bmemory.cpp - added check for negative alloc size
+- objects now compare lexicographically i.e. #(1,1) < #(1,2) < #(2,1)
+- added string.Iter i.e. foreach (char in string)
+
+User's Manual:
+
+/Introduction/Command Line Options - added -copy #
+- added note about order
+- added -copy filename option
+/Going Further/Compiled Libraries - fixed minor error
+/Going Further/Report Control Breaks - minor corrections
+/Going Further/Report Parameters - changed inconsistent Form to Vert
+/Language/Reference/Date/date.MinusDays - edited
+/Language/Reference/Date/date.MinusMonths - new
+/Language/Reference/Date/date.MinusSeconds - edited
+/Language/Reference/Number/number.Even? - new
+/Language/Reference/Number/number.Odd? - new
+/Language/Reference/Object/Object.Zip - new
+/Language/Reference/Object/object.Filter - new
+/Language/Reference/Object/object.Iter - new
+/Language/Reference/Object/object.Iterator - removed (use Iter)
+/Language/Reference/Object/object.Map - new
+/Language/Reference/Object/object.Reduce - new
+/Language/Reference/Object/object.Set_default - added Set_default(object)
+/Language/Reference/Point - new
+/Language/Reference/Range - new
+/Language/Reference/Rect - new
+/Language/Reference/String/string.AfterFirst - new
+/Language/Reference/String/string.Alpha? - new
+/Language/Reference/String/string.AlphaNum? - new
+/Language/Reference/String/string.BeforeFirst - new
+/Language/Reference/String/string.Center - new
+/Language/Reference/String/string.Count - renamed from CountOccurences
+/Language/Reference/String/string.Iter - renamed from Iterator
+/Language/Reference/String/string.LeftFill - edited
+/Language/Reference/String/string.Lines - new
+/Language/Reference/String/string.Lower? - new
+/Language/Reference/String/string.Numeric? - new
+/Language/Reference/String/string.Repeat - added count <= 0
+/Language/Reference/String/string.RightFill - new
+/Language/Reference/String/string.Upper? - new
+/Database/Rules - edited
+/Database/Reference/QueryStripSort - new
+/Database/Reference/SaveQuery - new
+/User Interfaces/Reference/Access1Control - new
+/User Interfaces/Reference/Alert - new
+/User Interfaces/Reference/Ask - new
+/User Interfaces/Reference/BrowseControl/BrowseControl - added noHeaderButtons option
+/User Interfaces/Reference/CanvasControl/CanvasX - minor corrections
+/User Interfaces/Reference/ChooseDateControl - new
+/User Interfaces/Reference/ChooseListControl - changed allowNone to mandatory
+/User Interfaces/Reference/DrawControl/DrawLineTracker - minor corrections
+/User Interfaces/Reference/DrawControl/DrawPointTracker - minor corrections
+/User Interfaces/Reference/DrawControl/DrawRectTracker - minor corrections
+/User Interfaces/Reference/EditorControl - changed allowNone to mandatory
+/User Interfaces/Reference/ExplorerListViewControl - fixed the examples.
+/User Interfaces/Reference/FieldHistoryControl - changed allowNone to mandatory
+/User Interfaces/Reference/FillControl - edited
+/User Interfaces/Reference/FlipControl - new
+/User Interfaces/Reference/FlipControl/FlipControl - new
+/User Interfaces/Reference/HeaderControl - new
+/User Interfaces/Reference/HeaderControl/HeaderControl - new
+/User Interfaces/Reference/IdControl - changed allowNone to mandatory
+/User Interfaces/Reference/KeyControl - changed allowNone to mandatory
+/User Interfaces/Reference/ListControl/ListControl - added noDragDrop option
+- added noHeaderButtons option
+/User Interfaces/Reference/MenuButtonControl - new
+/User Interfaces/Reference/PaneControl - new
+/User Interfaces/Reference/RecordControl/recordControl.GetControl - new
+/User Interfaces/Reference/ScrollbarControl - new
+/User Interfaces/Reference/StatusControl - new
+/User Interfaces/Reference/StatusTextControl - new
+/User Interfaces/Reference/TwoListDlgControl - new
+/User Interfaces/Reference/UOMControl - new
+/User Interfaces/Reference/UOMControl/UOMControl - new
+/User Interfaces/Reference/UOMControl/uomControl.Get - new
+/User Interfaces/Reference/UOMControl/uomControl.Set - new
+/User Interfaces/Reference/WebLinkControl - new
+/Reports/Reference/GrandTotalDescFormat - new
+/Reports/Reference/TotalDescFormat - new
+/Appendix/Idioms/Use Join("") to Combine a List of Strings - new
+/Appendix/Idioms/Use try-catch to Check Type - new
+
+stdlib:
+
+AccessAuthorize - new
+AccessControl - return True in check_valid if RecordControl isnt dirty
+- modified Save to accept argument
+- fixed bug where table empty and delete is done on the 1st new record
+- Added Send('AccessBeforeSave')
+BookControl - Added Get_Book for AccessAuthorize
+- changed to use CloseWindowConfirmation
+BookEditControl - fixed to update lib_modified date
+- refactored transactions
+- added link to toolbar
+BrowseControl - fixed the protect_field? method to handle the __protect rules properly
+- added Browse_CellValueChanged message
+- fixed to save and restore dirty in Browse SetQuery
+- Added Refresh_BrowseData
+- fixed the Refresh_BrowseData
+- fixed bug with stickyFields
+- added AddRecord method
+- added noHeaderButtons to the arguments and refactored
+- changes to GetBrowseData to remove gaps in members where records deleted, also removed validation checking on deleted records.
+- changed sticky fields NOT to overwrite values from rules.
+CanvasPolygon - removed inspect
+ChooseDatesControl - new
+ChooseListControl - added splitValue parameter
+CloseWindowConfirmation - new
+Container - added SetFocus
+Control - added HandleTab method for use in Browse
+- added SetFocus method
+Controller - fixed On_Close to work in Dialog
+Dates - added MinusMonths
+Dialog - added CLOSE window checking
+- fixed On_Close to work in Dialog
+EuroNumberControl - new
+EuroNumberFormat - new
+FieldControl - added more checking
+FlipControl - added SetVisible and GetControl methods
+GMR_DAYSTATE - new
+GetNumTable - new (for Import)
+GetNumTableTest - new (for Import)
+GetVolumeInformation - minor changes
+GetVolumeName - minor changes
+GridFormat - added span change
+- modified to take in a font that will be applied to the entire grid
+Handler - changed to just Alert and log errors if user isnt "default"
+HtmlWrap - modified to not put HtmlPrefix and HtmlSuffix on if html tag already exists
+IdFieldControl - fixed minor transaction issue
+- removed Process_newvalue from Get to try to remove unwanted side effects
+- fixed error from missing record when allowOther
+IdFormat - added nameField and abbrevField parameters
+IDTB - added link image
+Import - translated abbrev and name to num and encode using datadict
+- fixed bug with id / name translations.
+InfoControl - added mandatory: to the ChooseList
+KeyFieldControl - refactored transactions
+KeyListView - changed Access Controller to DataController for validation purposes
+- added AccessAuthorize
+- renamed Select button to Search
+- fixed bug where 0 was being passed as the text argument to StaticControl
+- added Substr on query for use with locateby table so the key doesn't get too long
+- fixed bug with SetWhere when join is done
+ListControl - added noDragDrop option
+- added CheckAndInsertRow method (to be called in Browse)
+- changes to allow multiple configurable highlight colors, added option for noHeaderButtons
+ListEditWindow - added a call to ctrl's HandleTab method in case it needs to handle the tab.
+- fixed bug where new control does not have focus
+LocateControl - added Substr on query for use with locateby table so the key doesn't get too long
+MCM - finished it
+MonthCalControl - added daystate and calculated size
+MonthCalDatesDialog - new
+NMDAYSTATE - new
+NumberControl - called Trim on the value to remove leading/trailing whitespace
+Numbers - added EuroFormat
+ObjectTest - added new tests
+Objects - added new methods
+PaneControl - added SetFocus method
+Params - fixed bug where report params get wiped out when choosing Print from a preview window.
+- changes to allow different sizes of devmode structures
+- used RightFill
+ParamsChooseListControl - fixed so you can call it with no values
+ParamsSelectControl - changes to Set so that controls get cleared and protected when necessary.
+- fixed the Valid? method
+PostMessageText - new
+PostalControl - new
+PreviewControl - fixed bug where report params get wiped out when choosing Print from a preview window.
+ProvControl - refactored StateProvControl, added Provinces, States, ProvControl, and StateControl,
+Provinces - refactored StateProvControl, added Provinces, States, ProvControl, and StateControl,
+RecordControl - fixed to save and restore dirty in Browse SetQuery
+Report - added min border of .25 inches
+- modified to pass on the font
+SaveQuery - revised, added QueryStripSort
+SelectControl - for empty/not empty on _name use _num
+StateControl - refactored StateProvControl, added Provinces, States, ProvControl, and StateControl,
+StateProvControl - refactored StateProvControl, added Provinces, States, ProvControl, and StateControl,
+- put the GetList method back
+States - refactored StateProvControl, added Provinces, States, ProvControl, and StateControl,
+Strings - simplified LeftFill, added RightFill
+- removed Mime methods, added new methods, renamed CountOccurences to Count
+StringTest - added tests for new string methods
+SuneidoLog - new for logging errors and generates
+SvcControl - changed to chooselist for tables
+TestControls - added ChooseDates and ParamsChooseList
+TestRunnerGui - fixed bug where no selection and click on 'Run Selected'
+TimeControl - added mandatory
+UOMControl - added HandleTab method for use in Browse
+WindowBase - broke out CLOSE window checking into a new method
+- changed to use CloseWindowConfirmation
+WrapFormat - changed not to wrap numbers
+ZipControl - new

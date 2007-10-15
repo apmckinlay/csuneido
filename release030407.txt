@@ -1,0 +1,411 @@
+Suneido April 7, 2003 Release (1.0.030407)
+
+This is a fairly minor release - mostly small bug fixes and minor IDE improvements.
+
+Some of the more significant changes for this release:
+
+- a small start on some refactoring tools (Library View > Refactor)
+- ImageControl & OpenImageControl improvements (keep proportions, link or embed)
+- a number of improvements to the Go To Definition feature in the IDE
+- added Revert, Undelete, and Locations to Library View
+- the Suneido C++ source code now compiles with GCC 3.2
+- the FAQ, License, and Cookbook are now included in the User's Manual
+
+Compatibility
+
+- DataController has been removed and should be replaced by Controller
+- ImageControl & OpenImageControl require slightly different arguments
+- Scanner.Next was changed to be compatible with other iterators
+- several bugs were fixed that could (rarely) cause previously working code to break
+
+Andrew McKinlay
+Suneido Software
+---------------------------------------------------------------------
+Details of Changes:
+
+suneido.exe:
+
+- fixed class.method_name to return a Method, instead of just a function
+- fixed query "in ()" to return nothing
+- improved Scanner to work with "for", e.g. "for token in Scanner(text)"
+- changed heap size back to 64 mb
+- improved Image exceptions
+- fixed problem with object iterators
+- fixed bug with project'ing the same field more than once
+- fixed decoration of private members of anonymous classes
+- added optional firstDay parameter to date.WeekDay
+- hide server connection windows
+- added -v[ersion] command line option
+
+User's Manual:
+
+/Introduction/Acknowledgments - added contributors
+/Introduction/Command Line Options - added -v[ersion]
+/Introduction/Crash Recovery - updated screenshots
+/Introduction/Frequently Asked Questions - new
+/Introduction/GPL License - new
+/Introduction/Preface - changed TM to (R)
+/Introduction/Startup - renamed LibView to Library View
+/Getting Started/Create a Book - updated screenshots
+/Getting Started/Create a Library - renamed LibView to Library View
+/Getting Started/Create a Report - updated screenshots
+/Getting Started/Create an Access - updated screenshots
+/Getting Started/Getting Help - added CTRL+F
+- updated screenshots
+/Getting Started/LibView - renamed LibView to Library View
+/Getting Started/LibraryView - renamed LibView to Library View
+/Getting Started/QueryView - updated screenshots
+/Getting Started/Running Client Server - updated
+/Getting Started/WorkSpace - updated screenshots
+/Going Further/Master-Detail Relationship - changed DataController to Controller
+/Going Further/Report Parameters - updated screenshots
+/Tools/Access - updated screenshots
+/Tools/Access/Export - updated screenshots
+/Tools/Access/Import - updated screenshots
+/Tools/BookEdit - updated screenshots
+/Tools/Books - updated screenshots
+/Tools/Browse - updated screenshots
+/Tools/ClassView - updated screenshots
+/Tools/Language Translation - updated
+/Tools/LibraryView - updated screenshots
+/Tools/QueryView - updated screenshots
+/Tools/Scheduler - updated screenshots
+/Tools/SchemaView - updated screenshots
+/Tools/Server Monitor - updated screenshots
+/Tools/TestRunner - new
+/Tools/Version Control - updated screenshots
+/Tools/WorkSpace - updated screenshots
+/Language/Blocks - changed foreach to for
+/Language/Classes/this - updated
+/Language/Introduction - changed foreach to for
+/Language/Reference/AddFile - new
+/Language/Reference/Assert - new
+/Language/Reference/AssertEq - new
+/Language/Reference/AssertMatches - new
+/Language/Reference/AssertNeq - new
+/Language/Reference/CommaList - new
+/Language/Reference/Date/date.EndOfDay - new
+/Language/Reference/Date/date.EndOfMonth - new
+/Language/Reference/Date/date.EndOfMonthDay - new
+/Language/Reference/Date/date.ShortDateTime - new
+/Language/Reference/Date/date.WeekDay - updated
+/Language/Reference/Diff - new
+/Language/Reference/DumpText - fixed links
+/Language/Reference/GetFile - new
+/Language/Reference/Inspect - new
+/Language/Reference/Memory - updated
+/Language/Reference/MemoryArena - new
+/Language/Reference/MoneyBag/moneyBag.Display - new
+/Language/Reference/MoneyBag/moneyBag.MinusMB - new
+/Language/Reference/MoneyBag/moneyBag.ToString - new
+/Language/Reference/Number/number.Factorial - new
+/Language/Reference/Number/number.RoundDown - new
+/Language/Reference/Object/object.Assocs - removed invalid links
+/Language/Reference/Object/object.UniqueValues - new
+/Language/Reference/Pack - new
+/Language/Reference/PutFile - new
+/Language/Reference/Scanner/Scanner - updated
+/Language/Reference/Scanner/scanner.Next - updated
+/Language/Reference/Scanner/scanner.Text - updated
+/Language/Reference/SocketServer/socketServer.RemoteUser - new
+/Language/Reference/String/string.Iter - changed foreach to for
+- fixed to say string not object
+/Language/Reference/String/string.Replace - fixed example for Replace using a block
+/Language/Reference/StringView - new
+/Language/Reference/Test - new
+/Language/Reference/TextFile - removed
+/Language/Reference/Unpack - new
+/Database/Language Interface - changed foreach to for
+/Database/Queries/where - added note about not supporting full language expression syntax
+/Database/Reference/Database/Database.Connections - new
+/Database/Reference/Database/Database.CurrentSize - new
+/Database/Reference/Database/Database.Transactions - updated
+/Database/Reference/QueryApply - updated
+/Database/Reference/QueryApplyMulti - new
+/Database/Reference/QueryMax - new
+/Database/Reference/QueryMin - new
+/Database/Reference/QueryStrategy - new
+/Database/Reference/QueryTotal - new
+/Database/Reference/transaction.QueryMax - new
+/Database/Reference/transaction.QueryMin - new
+/Database/Reference/transaction.QueryTotal - new
+/User Interfaces/Implementation - renamed LibView to Library View
+/User Interfaces/Reference/Access1Control - updated screenshots
+/User Interfaces/Reference/AccessControl/AccessControl - fixed reference to allowDelete (was capitalized)
+/User Interfaces/Reference/Alert - updated screenshots
+/User Interfaces/Reference/Ask - updated screenshots
+/User Interfaces/Reference/BookControl - updated screenshots
+/User Interfaces/Reference/BorderControl - updated screenshots
+/User Interfaces/Reference/BrowseControl/BrowseControl - updated screenshots
+/User Interfaces/Reference/CanvasControl - updated screenshots
+/User Interfaces/Reference/CanvasControl/CanvasArc - updated screenshots
+/User Interfaces/Reference/CanvasControl/CanvasEllipse - updated screenshots
+/User Interfaces/Reference/CanvasControl/CanvasImage - updated screenshots
+/User Interfaces/Reference/CanvasControl/CanvasLine - updated screenshots
+/User Interfaces/Reference/CanvasControl/CanvasPolygon - updated screenshots
+/User Interfaces/Reference/CanvasControl/CanvasRectangle - updated screenshots
+/User Interfaces/Reference/CanvasControl/CanvasRoundRect - updated screenshots
+/User Interfaces/Reference/CanvasControl/CanvasStockObject - updated screenshots
+/User Interfaces/Reference/CanvasControl/CanvasText - updated screenshots
+/User Interfaces/Reference/CanvasControl/CanvasX - updated screenshots
+/User Interfaces/Reference/ChooseDateControl - updated screenshots
+/User Interfaces/Reference/ChooseDateTimeControl - updated screenshots
+/User Interfaces/Reference/ChooseManyControl - added more options
+/User Interfaces/Reference/ChooseMonthDayControl - updated screenshots
+/User Interfaces/Reference/ChooseTwoListControl - updated screenshots
+/User Interfaces/Reference/ChooseYearMonthControl - updated screenshots
+/User Interfaces/Reference/DateTimeControl - updated screenshots
+/User Interfaces/Reference/DiffListControl - updated screenshots
+/User Interfaces/Reference/DrawControl - changed to just menu page
+/User Interfaces/Reference/DrawControl/DrawControl - new
+/User Interfaces/Reference/DrawControl/DrawTracker - updated
+/User Interfaces/Reference/EditorControl - fixed links
+/User Interfaces/Reference/ExplorerListViewControl - fixed the description for the model's headFields
+- updated screenshots
+/User Interfaces/Reference/FieldControl - fixed links
+/User Interfaces/Reference/ImageControl - updated
+/User Interfaces/Reference/InspectControl - updated
+/User Interfaces/Reference/KeyControl - added new parameter
+/User Interfaces/Reference/MonthCalControl - updated screenshots
+/User Interfaces/Reference/MonthDayControl - updated screenshots
+/User Interfaces/Reference/OkCancel - new
+/User Interfaces/Reference/OpenImageControl - updated
+/User Interfaces/Reference/StaticControl - corrected, updated
+/User Interfaces/Reference/UOMControl/UOMControl - updated
+/User Interfaces/Reference/YearMonthControl - updated screenshots
+/Reports/Reference/QueryFormat - changed foreach to for
+/Cookbook - new
+/Cookbook/Building a Large String a Piece at a Time - new
+/Cookbook/Determining the Source of Messages - new
+/Cookbook/Library Overloading - new
+/Cookbook/Responding to a Button - new
+/Cookbook/Running Totals on a Report - new
+/Cookbook/Test If a Value is One of a List - new
+/Cookbook/Using RecordControl - new
+/Cookbook/Using Xml to Create XML and XHTML - new
+/Cookbook/Using the Unit Testing Framework - new/Appendix/Idioms/Accept Function and Arguments - updated
+/Appendix/Idioms/Building Separated Lists - added using Join
+
+stdlib:
+
+AboutSuneido - added license
+- updated contributors
+AccessControl - modified AccessGoto to handle fields renamed to _new
+- removed DataController, changed validation to store reference to validation items in top level window
+- handle duplicate keys better when destroying
+- handled case where update record has been deleted
+- give a more user friendly message when save transaction fails to complete
+AlertTransactionCommitFailed - new
+AssertNeq - new
+BookBrowserControl - removed DataController, changed validation to store reference to validation items in top level window
+BookControl - removed DataController, changed validation to store reference to validation items in top level window
+- added current book option to suneidolog
+- removed coils
+- added Go To Definition button to book
+BookEditControl - added Add Paragraph Tagscommand, fixed Link to use .table instead of 'suneidoc'
+- changed to use FieldHistory instead of Field for FindInName and FindInText
+- rearranged menus
+- changed BookExport to FieldHistory
+BookEditSplitControl - improvements to Go To
+- fixed to handle png
+BookExport - fixed to not mangle external links
+- cosmetic changes to exported pages
+BooleanFormat - cosmetic - changed strings to lower case
+BrowseControl - fixed bug with object nesting overflow caused by setting Browse_OriginalRecord
+- clear the status bar when the query is set
+- removed DataController, changed validation to store reference to validation items in top level window
+- set the record's headerfields after restore
+- handled case where update record has been deleted
+- removed parent from default stickyFields
+- give a more user friendly message when save transaction fails to complete
+BuildCallsString - new
+ChooseDateControl - added Name:
+ChooseDateTimeControl - added Name:
+ChooseDatesControl - added GetReadOnly method
+- added Name:
+ChooseField - fixed to highlight text when tabbing into invalid field
+- added SetFocus method
+ChooseList - fixed to have the number of lines in one place
+ChooseListControl - changed Valid to check if the value is in the list instead of just matching the prefix (since the prefix itself isnt valid).
+- added SetFocus method
+- changed maximum height to 10 items
+- fixed to have the number of lines in one place
+ChooseManyControl - Added descListField to ChooseMany
+ChooseManyListControl - Added descListField to ChooseMany
+ChooseMonthDayControl - added Name:
+ChooseTwoListControl - added Name:
+ChooseYearMonthControl - added Name:
+ClassBrowserModel - changed to use for loops for Scanner
+Controller - fixed to handle resize before fully constructed
+DataController - removed DataController, changed validation to store reference to validation items in top level window
+DateTest - Added +1 to DayOfYear method
+- added EndOfMonth and EndOfMonthDay
+- added Test_WeekDay
+Dates - Added +1 to DayOfYear method
+- added EndOfMonth and EndOfMonthDay
+DebuggerControl - improvements to Go To
+DiffListControl - improvements to Go To
+- hide Go To Definition button if not valid
+DoWithoutTriggers - changed num to timestamp
+EuroNumberControl - added status parameter (from Gerardo)
+ExplorerAppsControl - fixed the status message for "Find previous in folders"
+ExplorerControl - added Refresh
+- save item before delete (so in history)
+ExplorerListModel - give a more user friendly message when save transaction fails to complete
+ExplorerListModelLinked - set the record's headerfields after restore
+- handled case where update record has been deleted
+- give a more user friendly message when save transaction fails to complete
+ExplorerListViewControl - ensure that the delete flag gets set on deleted records
+- removed DataController, changed validation to store reference to validation items in top level window
+- fixed bug where using NewModel doesn't reset .query
+- fixed to not allow user to change records with right click when current record is invalid
+- set the record's headerfields after restore
+ExplorerVirtualListViewControl - removed DataController, changed validation to store reference to validation items in top level window
+Field_boolean - changed Encode to handle 'true' and 'false'
+Field_info - modify format
+Field_timestamp - changed to inherit from Field_date_time
+FindInLibraryControl - improved find in library
+GetCurrentDirectory - changed GetCurrentDirectory to return the filename
+GetCurrentDirectoryApi - changed GetCurrentDirectory to return the filename
+GetTranslation - modified to not create column in translatelanguage table if language does not exist
+- fixed to not do ensure (e.g. create bad columns)
+GotoLibView - minor refactoring
+- improvements to Go To
+Gotofind - improvements to Go To,
+Hwnd - fixed to handle resize before fully constructed
+IdFieldControl - added option to remove restrictions when looking up the record
+ImageControl - revised to keep image proportions
+- changed no image from false to '', added message (when no image)
+Import - added checking if abbrev is ""
+ImportExportTest - fixed to run on Axis
+InfoControl - handled invalid types stored in database (from imports)
+- fixed problem with entering prefix and then tabbing out of type portion
+InfoFormat - increased width for Grid so that website and email address do not get cut off
+InfoWindowControl - fixed bug with destroy
+Init - improved find in library
+Inspect - minor improvements
+InspectControl - minor improvements
+KeyControl - added filterOnEmpty
+- changed the ellipsis dialog to use .Window.MainHwnd as the parent (so it works when editing a browse)
+KeyListView - added method to reset the column widths
+- removed DataController, changed validation to store reference to validation items in top level window
+LibCompareReport - renamed
+LibCompareRpt - renamed
+LibTreeModel - fixed to clear committed when pasting copy
+LibViewControl - rearranged menus & toolbar, added Revert Item, Refactor - Rename Variable, Refresh, RefreshAll
+- improvements to Go To
+- added Undelete
+- fixed GotoPathLine to only GotoLine if GotoPath succeeds
+- added Show Locations
+LibraryStrings - changed to use for loops for Scanner
+LibraryStringsTest - changed to use for loops for Scanner
+LinkControl - changed LBUTTONDBLCLK to always return 0
+ListControl - added ability to sort by highlight
+- added List_RightClick message
+- changed RBUTTONDOWN message handler to always return 0
+- bug fix for ListEditWindow getting left behind
+- added method for determining if user changed the header order or header column size
+- fixed SortHighlight method so scrolling isnt done if there are no rows
+- Gerardo's fix for not shading rows when readonly
+- Gerardo's change so FillRect is only called once in PAINT
+- added row parameter into ClearHighlight method and default it to false
+- on clear select, set .focused to false if no rows
+ListEditWindow - added checking for Controller member
+- added MainHwnd method
+- handled alt-f4 in HookFunc
+ListViewControl - added method to reset the column widths
+- Added descListField to ChooseMany
+MonthCalControl - fixed Set to check if Date?
+NightlyChecks - changed to run tests instead of reading test results from a file
+- added runtests? option
+- added sulog_option to suneidolog output
+NumberControl - added status parameter (from Gerardo)
+Numberable? - new
+ObjectTest - added Test_IterBug
+- added Test_AutoMethod
+- updated for fix to private members of anonymous classes
+ObjectTestClass - updated for fix to private members of anonymous classes
+Objects - Added MergeNew
+OkCancel - changed to use Alert
+OpenFileControl - added OFN.NOCHANGEDIR
+OpenImageControl - revised to keep image proportions
+- changed to double click to select image, added Embed as well as Link
+Params - added SetFocus(NULL) to ensure that the controls have sent their newvalue messages before the destroy process starts.
+- validate params on destroy to prevent saving invalid params
+- added hwndOwner to PrintDlg initialization structure to prevent user from doing anything while the print dialog is running.
+- fixed bug when printing from a preview window
+ParamsSelectControl - added mandatory to the controls
+- set allowOther for KeyControl's
+- changed SetReadOnly to SetVisible
+PreviewControl - changed to call .Window.CLOSE instead of Destroy when no pages.
+- fixed bug when printing from a preview window
+QueryApply - added dir
+QueryFormat - fixed to only total values that will convert to number
+QueryTest - added Test_project_dups
+QueryViewControl - improvements to Go To
+- refactored, changed to use for loops for Scanner
+RadioButtonsControl - fixed to not allow setting to ""
+RecordControl - removed DataController, changed validation to store reference to validation items in top level window
+- fixed problem with deleting contents of field not displaying new value from rule
+Refactor - new
+RefactorGui - new
+Refactor_Rename_Local_Variable - new
+Report - added alert to On_Print if no pages
+SaveColumns - only saved the columns if the list header changed
+SaveFileControl - added OFN.NOCHANGEDIR
+ScannerFind - changed to use for loops for Scanner
+ScannerHas? - changed to use for loops for Scanner
+ScannerMap - new
+ScannerReplace - new
+SchemaView - improvements to Go To
+ScintillaControl - added SelectAll and PasteOverAll
+- added SetWordChars method
+- changed GotoLine to extend select to include line end
+SelectControl - added code to prevent join from being done twice on the same master table for the same field suffix.
+- ignore string operations on fields that aren't string or number
+- changed 'matches' to be just =~
+SpinnerControl - added Valid?
+StaticControl - handle multiline text better
+StringTest - added AfterLast, removed default delimiters
+- added test for bug in RightTrim (from Jos Schaars)
+StringView - minor improvements
+Strings - added AfterLast, removed default delimiters
+- fixed bug in RightTrim (from Jos Schaars)
+SuneidoLog - improved logging of errors, added first level of locals that aren't objects.
+- added current book option to suneidolog
+- try to Pack values before saving in suneidolog
+Svc - fixed to not create master's unless something is sent to them, added alert to Get All if local changes
+SvcClient - fixed to not create master's unless something is sent to them, added alert to Get All if local changes
+SvcControl - fixed bugs with buttons when no library selected
+- added LibView RefreshAll after Get
+- improvements to Go To
+- added Get All Library Changes
+- changed not to connect if no server or password provided
+- changed order of Library pull down list
+- fixed to not create master's unless something is sent to them, added alert to Get All if local changes
+- fixed right click Go To
+- changed to Refresh after Get Master Changes
+SvcCore - fixed to not create master's unless something is sent to them, added alert to Get All if local changes
+SvcServer - fixed to not create master's unless something is sent to them, added alert to Get All if local changes
+Svc_EnterPasswords - removed DataController, changed validation to store reference to validation items in top level window
+TabsControl - fixed bug with nested tabs and destroy / Access observers
+TestRunnerGui - improvements to Go To
+- fixed bug where library is invalid
+- modified to highlight errors in red
+Transactions - Added QueryTotal, QueryMax, QueryMin
+TranslateLanguage - modified to not create column in translatelanguage table if language does not exist
+TranslateLanguageTest - modified to not create column in translatelanguage table if language does not exist
+UnionTest - modified to use table 3 instead of table 5
+WM - added WM.APP_SETFOCUS (for InfoControl)
+WMmap - added WM.APP_SETFOCUS (for InfoControl)
+Window - added WM.APP_SETFOCUS (for InfoControl)
+WindowBase - removed DataController, changed validation to store reference to validation items in top level window
+- added MainHwnd method
+WorkSpaceControl - fixed program error when creating a persistent set
+- improved find in library
+- improvements to Go To
+- added SetWordChars to output to include : for Find in Files
+- start with fold margin turned off
+WrapFormat - fixed to convert values that aren't strings
+
+Also replaced all True/False with true/false in both stdlib and Users Manual

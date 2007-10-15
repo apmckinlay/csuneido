@@ -1,0 +1,41 @@
+Installing Suneido
+------------------
+Suneido is very simple to install - simply put the required files 
+somewhere and run it. No registry entries are required, and nothing 
+has to be placed in system directories.You have to have:
+
+	suneido.exe - the executable
+	suneido.db - the database
+	
+For code editing Suneido includes the Scintilla source code editor:
+(www.scintilla.org)
+
+	scilexer.dll
+	
+For PDF output Suneido includes the Haru Free PDF Library 
+(libharu.sourceforge.net)
+
+	libharu.dll
+	
+For text indexing Suneido includes the CLucene library
+(clucene.sourceforge.net)
+
+	clucene.dll
+	
+The DLL's should normally be placed in the same directory
+with suneido.exe
+	
+To use Suneido's "books" and browser component you need
+Internet Explorer.
+	
+To use Suneido in client-server mode you need TCP/IP installed and 
+working on both the client and the server.
+
+The documentation is available within Suneido from the Help menu 
+on the WorkSpace and other IDE windows.  See the Getting Started 
+section for more information.
+
+
+Uninstalling
+------------
+Delete the files.

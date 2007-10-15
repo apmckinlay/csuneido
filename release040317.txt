@@ -1,0 +1,271 @@
+March 17, 2004 Release (1.0.040317)
+
+Mostly bug fixes and minor tweaking. Some of the more significant changes:
+
+- mouse wheel support in ListControl, ListFormat, BrowseControl, ChooseList,
+  ScrollControl, ScrollbarControl
+- improvements to ImageFormat to work better in reports
+- improvements to Canvas and Draw
+- more support for Go To Definition
+- more options on the context menu on tabs in LibraryView 
+- Trace now goes to console window instead of text file, added tracing for queries
+- new Comment/Uncomment in LibraryView (thanks to Johan Samyn)
+- updated to Scintilla 1.59
+- switched to portable date/time implementation
+
+Compatibility
+
+To handle changes to date format and to fix a bug with fields, 
+you should run -compact on old databases (with the new exe) 
+before using them with the new exe.
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe:
+
+- added Adler32
+- fixed bug with distributing project over disjoint union
+- changes for portability to Linux
+- new portable Date implementation
+- added missing argument default to Image
+- made characters > asci 127 valid in identifiers (except for non-breaking space 0xa0)
+- fixed Win32 error from missing _Name
+- fixed query bug with updates during iteration
+- fixed JOIN query optimization
+- fixed problem with outputting too many field values in records
+- fixed query bug with join & compatible calls to select
+- changed Trace from file to console window
+- added query trace
+- added // toolbar button
+- added TimeFormat
+- changed ShortFormat & LongFormat to allow setting
+- added 't' format character (AM/PM in Windows)
+
+User's Manual:
+
+/Getting Started/Running Client Server - corrected
+/Language/Reference/Adler32 - new
+/Language/Reference/Date.LongFormat - updated
+/Language/Reference/Date.ShortFormat - updated
+/Language/Reference/Date.TimeFormat - new
+/Language/Reference/Number/number.ToWords - updated
+/Language/Reference/Number/number.ToWordsSimple - new
+/Language/Reference/Object/object.Project - corrections (from Ajith)
+/Language/Reference/Object/object.ProjectValues - corrections (from Ajith)
+/Language/Reference/String/string.Replace - clarified \U, \L etc. (Ajith's suggestion)
+/Database/Foreign Keys - fixed "cascade updates" to "cascade update" (from Johan Samyn)
+/Database/Reference/RetryTransaction - new
+/Database/Reference/TableCopy - new
+/Database/Reference/TableExists? - new
+/Database/Requests/create - added cascade
+/User Interfaces/Reference/BookControl - updated
+/User Interfaces/Reference/BrowseControl/BrowseControl - added note about delegation to ListFormatControl
+/User Interfaces/Reference/BrowseFolderControl - new
+/User Interfaces/Reference/BrowseFolderName - new
+/Reports/Reference/ImageFormat - updated
+
+stdlib:
+
+Access1Control - changed to not save if AccessBeforeSave returns false
+AccessControl - changed sticky values to be saved per dynamic type if dynamic types used
+- fixed bug with drill down from current save
+- passed excludeSelectFields into GlobalPrint function
+- changed to not save if AccessBeforeSave returns false
+- changes to handle different locate query - from Ajith
+- fixed On_New so setdata isnt done if clicking New or calling On_New repeatedly (except if coming from a delete or restore)
+- don't send aftersave message if current record has been deleted by another user (result in save will be 'deleted').
+- fixed to restore accels on exit (to fix bug in books with F1 not working after an Access)
+- Added AccessAfterSave - to handle popups outside of the transaction.
+AddressFormat - added font option
+Ask - added validation checking on control, added noCancel option and removed the close button.
+BIF - new
+BROWSEINFO - new
+BlockTest - added test
+BookAuthorize - made book options per book
+BookCheck - made book options per book
+BookControl - added SelectTab to fix bug with dialogs during tab switch
+- prevent loading same page twice in the browser
+- added optional button to run NightlyChecks
+- handle case where user is closing and no pages have successfully been loaded (i.e. when start page can not be found)
+- improved Go To Definition from User's Manual
+- added nightlyChecks to the state
+- added help_book option
+- no Help button if help book doesn't exist
+BookEditControl - fixed to pass QueryEnsureKeySort (from Johan Samyn)
+BookEditModel - added Close for queries
+BookExport - added Close for queries
+- fixed to use HtmlPrefix from book instead
+BookModel - added Close for queries
+- made book options per book
+BookPrint - fixed to eval non-html pages and to skip res folder
+BookToolbarControl - added extra_buttons parameter
+BrowseControl - allow transaction to be passed to Refresh
+- changed so linked save returns false when overwrite conflicts occur (stops the Access from saving)
+- update all_browse_data right away when records are deleted from the list (including forced deletes from the save)
+- changed List_WantNewRow method to check for sticky fields without triggering rules
+- changed sticky values so that rules will override.
+- changed stickyFields so that values are only set from new records.
+- clear the sticky values when Set is called and browse is linked to a header record.
+BrowseFolderControl - new
+BrowseFolderName - new
+BuildQueryWhere - added 'not in list' option
+CanvasControl - added SetLineStyle method
+- added SetFont method (from Ajith)
+- added copy and paste to draw control
+CanvasEllipse - started adding ExportSVG and ImportSVG
+CanvasItem - started adding ExportSVG and ImportSVG
+CanvasLine - started adding ExportSVG and ImportSVG
+CanvasPolygon - changed how import and export work
+CanvasRect - renamed CanvasRectangle to CanvasRect
+CanvasRectangle - added ToSVG and FromSVG
+- renamed CanvasRectangle to CanvasRect
+CanvasRoundRect - added ToSVG
+CanvasText - added Resize method
+- changed how import and export work
+CanvasX - removed X from DrawControl
+CapitalizeWordsControl - added 'lower' option to CapitalizeWords
+CheckLibrary - fixed for new exe
+CheckQuery - added check for many to many join
+ChooseDatesControl - changed format of stored dates to handle different shortdate settings
+ChooseList - added MOUSEWHEEL
+ChooseListControl - don't affect dirty flag when invalidating listfield
+- added MOUSEWHEEL
+Controller - added help_book: to Users Manual
+Crosstab - don't require Value field if function is count
+CrosstabFormat - only sort by rowfield if user specified a rowfield
+DoWithoutTriggers - fixed to allow nesting and to clean up even if there is an exception
+DrawCanvasControl - added copy and paste to draw control
+- modified to switch back to select button after drawing
+DrawControl - started adding ExportSVG and ImportSVG
+- renamed CanvasRectangle to CanvasRect
+- added copy and paste to draw control
+- modified to switch back to select button after drawing
+- removed X from DrawControl
+DrawPaletteControl - removed X from DrawControl
+EditorControl - added SetReadOnly method
+EtchedVertLineControl - new - from Johan Samyn
+ExplorerAdapterControl - added GetAll for LibViewControl Status
+ExplorerControl - added Show Locations, Go To Documentation, Go To Associated Test, and Run Associated Test to LibView tab
+- added Edit Documentation to libview tabs
+- improved tabs context menu; refactored; added extraTabMenu option in ExplorerControl
+ExplorerListModelLinked - changed so linked save returns false when overwrite conflicts occur (stops the Access from saving)
+ExplorerListViewControl - added disableOptions
+- changed delete to select the next row instead of always the last row.
+Export - allow using prompts for header on export file (from Ajith)
+ExportCSV - allow using prompts for header on export file (from Ajith)
+ExportTab - allow using prompts for header on export file (from Ajith)
+ExportXML - allow using prompts for header on export file (from Ajith)
+Field_testrunnergui_arena - added Memory Arena column
+GetParamsWhere - added 'not in list' option
+GetRemoteServerStats - Added option to return stats in an object. Added connections to stats.
+GetWheelScrollLines - new
+GlobalExportControl - allow using prompts for header on export file (from Ajith)
+GlobalMemoryStatus - new
+GlobalPrint - added excludeFields option and default to false
+GotoLibView - added list parameter and default to #() - used in Go To Definition from BookControl
+Gotofind - fixed bug where Go To Definition on ListFormat does not work
+GridControl - merged in bug fixes contributed by Elan
+GroupBoxControl - added Set/GetCaption (from Claudio)
+IDTB - renamed Help to Help_Pointer, made Help the same as Question (for Book Help button)
+IdFieldControl - changed to not do fillins when calling Process_newvalue from Get
+IdeController - added help_book to Open a Book (so you get the Find and Print buttons)
+ImageFormat - rewrote (to work in RowFormat)
+- added stretch option
+- fixed so new version is compatible with old version
+Init - added setting date/time formats from Windows settings
+InspectControl - fixed to pass correct hwnd to StringView
+IteratorUpdateBug - new
+JoinBug040229Test - new
+JoinOptimizeTest - new
+KeyListView - ignore conflicts when saving listview info
+- rearranged fields, also allow UP to get to list
+- removed testing code from On_Access method
+LibCompare - trim item's text before comparing to remove leading and trailing whitespace
+LibCompareFormat - changed to do item lookups by name instead of number because the numbers can change
+LibTreeModel - added cache for Children? to reduce querying
+LibViewControl - added Show Locations, Go To Documentation, Go To Associated Test, and Run Associated Test to LibView tab
+- added Edit Documentation to libview tabs
+- improved tabs context menu; refactored; added extraTabMenu option in ExplorerControl
+- changed Status to use view.GetAll instead of explorer.Get to avoid query
+- changed so that Go To Associated Test search for name containing 'Test' or '_Test'
+LibViewRunAll - added Trim to all
+ListControl - changed to always notify of deletions, even when forced by controller.
+- handle true as a result from List_WantEditField - from Martin
+- new SetRowHeight method - from Elan
+- added ClearSelectFocus method
+- added mouse wheel
+ListViewControl - fixed bug where column width was being calculated incorrectly for fields with ImageFormat (using twips), set max column width to 1000.
+LoadText - added Close for queries
+LruCache - added Reset
+MEMORYSTATUS - new
+NightlyChecks - Added max committed date.
+- don't give error message if error.log doesn't exist
+- added params, made locals and calls optional
+- changed to call Nightly Checks plugin
+- added Built()
+- changed runtests? default to false
+- added operating system to suneidolog
+- added federal payroll tax table version date
+- moved payroll stuff to prlib
+NightlyChecksPlugins - new
+NumberControl - handled case where mask is not a constant
+- improved
+Numbers - added ToWordsDutch, ToWordsSimple - from Johan Samyn
+- added Sign
+- added Round2
+NumbersTest - added ToWordsDutch, ToWordsSimple - from Johan Samyn
+- added Sign
+- added Round2
+OpenBook - added help_book to book
+OpenImageControl - removed TOOLWINDOW style (not sizing window properly)
+OperatingSystem - changed to return "" instead of false
+OptionalNumberFormat - handled case where mask is not a constant
+- improved
+OverwriteRecord? - added comment for warning about extended fields
+Params - ignore transaction conflicts caused by users having multiple copies running and leaving print dialogs open.
+ParamsSelectControl - added 'not in list' option
+PersistentWindow - changed Save to use RetryTransaction
+Plugin_NightlyChecks - new
+Prorate_Amount_Test - added test for (-)
+QueryEnsureKeySort - improved to use set difference
+QueryFormat - added .q.Close()
+RadioButtonsControl - throw error that empty radio button labels not allowed rather than getting into a function call overflow
+RetryTransaction - new
+Rule_crosstable_valid - don't require Value field if function is count
+SHBrowseForFolder - new
+SHGetPathFromIDList - new
+SHORT - new
+Schema - added check for non-existent table
+ScrollControl - added MOUSEWHEEL
+ScrollbarControl - added MOUSEWHEEL
+SelectControl - changed Clear button to only clear checkboxes; added Clear All button which clears everything
+- remove excludeSelect fields right after getting fields from the AccessControl (in case _num fields are excluded and don't want user to see name and abbrev fields).
+SpinnerControl - added mandatory
+SpinnerWndProc - added mandatory
+StringTest - added 'lower' option to CapitalizeWords
+Strings - added 'lower' option to CapitalizeWords
+SuneidoAPP - made book options per book
+SuneidoLog - added operating system
+- changed to use new SystemSummary (to show memory)
+SvcControl - handle go to definition on unused libraries better (don't give program error).
+SvcLibrary - improved syntax checking
+- fixed
+SystemSummary - new
+TRACE - added QUERY
+TableCopy - new (from Ajith)
+TabsControl - added Send('SelectTab') to fix bug with dialogs during tab switch,. removed argument from TabsControl_SelectTab
+- fix to handle nested tabs (e.g. Physical/Mailing address)
+- added default to source
+Test - added times
+TestRunner - added times
+TestRunnerGui - added Memory Arena column
+TestTab - fixed
+UOMFormat - handled case where mask is not a constant
+- improved
+- added printZero option
+UnderscoreTest - new
+Window - return old accels from SetupAccels, added RestoreAccels (for Access in book)
+ZoomControl - always set focus to edit window, had to use timer to create a short delay

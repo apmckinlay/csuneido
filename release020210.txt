@@ -1,0 +1,341 @@
+Suneido February 10, 2002 Release
+
+We've been busy doing application development with Suneido
+so most of the changes are stdlib things we needed.
+
+Significant changes include:
+
+- latest 1.44 version of Scintilla (this version includes word wrap which is enabled in BookEdit)
+- added Find to BookEdit and ClassBrowser
+- major changes to AccessControl, BrowseControl, and ExplorerListView for smoother operation and better concurrency handling
+- significant speed improvements to optimizing complex database queries
+- fixes and improvements to numeric conversions and under/overflow
+- new controls including: YearMonth, MonthDay, DateTime, ImageButton
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe:
+
+- added cost caching to query optimization
+- added automatic wait (hourglass) cursor
+- fixed super.method to work with class (static) methods
+- added Md5 builtin function (calls Windows API)
+- cleaned up potential divide by zero problem
+- improved numeric conversions
+- cleaned up numeric under/overflow
+- fixed minor bug in date.Format
+- added "fixed" method to queries to improve UNION performance
+- added check for database table keys too long
+- changed Transaction block form to throw exception if complete fails
+- changed database rebuid to omit columns and indexes for nonexistent tables
+- fixed minor bug with cursor.Close
+- fixed query/cursor problem with hitting end of file multiple times
+- added optional record argument to record.Update
+
+Users Manual:
+
+/Appendix
+    Client-Server Protocol - new
+/Database/Reference
+    SeekCursor - new
+    SeekQuery - new
+/Database/Reference/Cursor
+    cursor.NewRecord - updated
+/Database/Reference/Query
+    query.NewRecord - updated
+/Database/Reference/Record
+    record.Update - updated
+/Getting Started
+    Create a Book - updated
+    Create a Report - updated
+    QueryView - updated
+    Running Client Server - updated
+    WorkSpace - updated
+/Introduction
+    Acknowledgments - updated
+    Command Line Options - updated
+    Crash Recovery - updated
+/Language/Reference
+    Md5 - new
+    Number - updated
+    String - updated
+/Language/Reference/Number
+    number.Pad - new
+/Language/Reference/String
+    string.LeftFill - new
+    string.Split - updated
+    string.SplitOnFirst - new
+/Reports/Reference
+    InfoFormat - updated
+    QueryFormat - updated
+/Tools
+    BookEdit - updated
+    ClassView - updated
+/User Interfaces/Reference
+    ChooseDateTimeControl - new
+    ChooseField - new
+    ChooseMonthDayControl - new
+    ChooseYearMonthControl - new
+    DateTimeControl - new
+    InfoControl - new
+    KeyControl - updated
+    MonthCalControl - new
+    MonthDayControl - new
+    OpenFileName - updated
+    PersistentWindow - new
+    YearMonthControl - new
+/User Interfaces/Reference/AccessControl
+    AccessControl - updated
+    accessControl.AccessGoTo - new
+/User Interfaces/Reference/ListBoxControl
+    ListBoxControl - updated
+    listBoxControl.FindString - new
+    listBoxControl.SetColumnWidth - new
+/User Interfaces/Reference/PersistentWindow
+    PersistentWindow - new
+    persistentWindow.DeleteSet - new
+    persistentWindow.Load - new
+/User Interfaces/Reference/Window
+    Window - updated
+
+stdlib:
+
+AboutSuneido - added Andrew Price
+Access1Control - Set record's dirty flag to True on new records so defaults get saved.
+AccessControl - added start_new parameter
+- fixed bug with On_Current_Print leaving out fields
+- removed Browse_AddRecord (not needed with Tabs changes)
+- moved tran.Complete to after super.Destroy
+- revised transaction handling
+- fixed problem with empty key
+- added default: option to dynamic types
+- keylistview GoTo and fixed to handle modifying keys
+- changed update to use arg to update instead of merge (so dontsave works)
+- changed can't update throw to Alert
+- added checking for concurrent updates
+- Fixed Locate so that composite keys aren't used
+AddressFormat - Added Address Format
+- Refactored with apm
+Alert - added hwnd and flags parameters
+Ask - minor change to title handling
+BookControl - fixed bug with title when persistent
+BookEditControl - added default extension and overwrite warning to export single html file, improved import image overwrite warning
+- added Find in Folders
+- Added Code button
+BookEditModel - added checking for new book name = "".
+BookEditSplitControl - added wrap stuff
+BookMarkContainerControl - right justified bookmarks and changed to Path ellipsis instead of End ellipsis
+- Moved toolbar
+BookSearchControl - removed unnecessary WaitCursor
+BookSplitControl - fixed error if you opened splitter after dragging it shut
+BooleanFormat - added strings parameter
+- Changed to print "" if data is ""
+BrowseControl - added '...' to wrap formats that are longer then the field or have multiple lines
+- Fixed bug where deleting an invalid record doesn't clear the record from the list of invalid records.
+- Fixed potential bug with BrowseControl's Dirty? method (added dirty param).
+- Added RereadQuery so that multiple saves work.
+- removed Browse_AddRecord (not needed with Tabs changes)
+- changes for BrowseObject
+- changed Cursor().Fields() to QueryColumns() (since Cursor() doesn't accept tempindexes)
+- created FieldPreChange to allow you to mark a field as dirty to be saved
+- revised transaction handling
+- changed update to use arg to update instead of merge (so dontsave works)
+- added checking for concurrent updates
+BrowseObjectControl - new
+CheckBoxFormat - new
+CheckMenuItem - new
+ChooseDateControl - modified to use ChooseField's new DialogControl
+ChooseDateTimeControl - new
+ChooseField - moved On_Ellipsis in to avoid duplicate code and added validation
+- fixed bug with width not getting used
+- removed width parameter
+- added ystretch to ellipsis (because of Group change)
+- set xstretch to False
+- added 'x' close button to pop-up dialog
+ChooseManyControl - Changed the save_none option to always save "None" if no selection, not just when the user changes the selection via the list.
+ChooseManyListControl - Changed the save_none option to always save "None" if no selection, not just when the user changes the selection via the list.
+ChooseMonthDayControl - new
+ChooseTwoListControl - modified to use ChooseField's new DialogControl
+ChooseYearMonthControl - new
+ClassBrowser - added Find
+ClassBrowserModel - added Find
+Controller - keylistview GoTo
+Crosstab - modified field_ob to use PromptOrHeading
+CurrentPrint - factored out common code
+DateControl - modified to handle times
+DateTest - added Test_Time
+- additional tests (found bug)
+DateTimeControl - new
+- modified to default time to 12:00pm
+- select current date
+DateTimeFormat - fixed time
+DeleteMenu - new
+Dialog - fix for title not always showing
+DiffListControl - modified On_Previous to show as much of the change as possible (like On_Next)
+ExplorerAdapterControl - added Get_Ctrl method
+ExplorerControl - added Get_Model method
+ExplorerListModel - revised transaction handling
+- added checking for concurrent updates
+ExplorerListModelLinked - revised transaction handling
+- fixed dirty handling
+- changed update to use arg to update instead of merge (so dontsave works)
+- added checking for concurrent updates
+ExplorerListViewControl - changed the way the listview values are updated in Update
+- renamed .list.Getcolumns to GetColumns.
+- changed Cursor().Fields() to QueryColumns() (since Cursor() doesn't accept tempindexes)
+- revised transaction handling
+- minor bug fixes
+- added checking for concurrent updates
+FieldControl - changes to validation and fillins
+Field_confirm_password - new
+Field_date_time - Added date time std datadict entry
+- added DateTime format
+Field_optionaldollars - added allowNone
+Field_password - added Format
+Field_text - added Format
+Field_timestamp - new datadict entry that uses ChooseDateTimeControl
+Field_user - new
+FindInLibrary - added (All) to WorkSpace Find/Replace in Library
+FindInLibraryControl - added (All) to WorkSpace Find/Replace in Library. and refactored
+- changed On_OK to On_Find_All
+- added default button
+- added HandleFocus to fix bug
+GetCurrentDirectory - new
+GetMenu - new
+GetMenuState - new
+GlobalPrint - check for prompt or heading
+- fixed bug with printing keys
+- changed Cursor().Fields() to QueryColumns() (since Cursor() doesn't accept tempindexes)
+- Removed checking on sort fields
+GridFormat - modified parameters to allow a fixed width to be set
+- fixed bug with font
+GridGenFormat - new
+HtmlPrefix - added margin-bottom to img
+IdFieldControl - Fixed bug that happens when special regular expression characters are actually in the value string.
+- changes to validation and fillins
+- changed Valid to Process_newvalue in Get.
+- added String before Prefix
+ImageButtonControl - new
+ImageFormat - added default image if no image is passed in to fix bug with GlobalPrint
+InfoControl - renamed from MultiControl
+- added Top property to fix bug
+InfoFormat - modified to align the colons
+Init - added Suneido.FindReplace.Library (used by WorkSpace Find in Library)
+- added Suneido.FindReplace.Library (used by WorkSpace Find in Library)
+- added (All) to WorkSpace Find/Replace in Library
+- changed FindReplace to Record for HandleFocus fix
+KeyControl - Added feature to use prefixes with the lists for Id/KeyControl.
+- changes to validation and fillins
+- added access: option
+- changed border on the list window from 0 to 2
+- added prefix_column parameter
+- changes to ensure key column is first in the list
+- minor bug fix
+KeyFieldControl - changes to validation and fillins
+- modified to use QueryStripSort
+KeyListView - Added feature to use prefixes with the lists for Id/KeyControl.
+- Fixed bug where columns are False
+- changes to validation and fillins
+- Changed to work with prefix types other than String.
+- added SeekQuery for KeyListView
+- fixed initial prefix
+- changed Cursor().Fields() to QueryColumns() (since Cursor() doesn't accept tempindexes)
+- added access: option
+- keylistview GoTo
+- Removed the Xmin specification to allow the control to size properly horizontally when initially created.
+- added prefix_column parameter
+- removed Xmin
+- improved navigation between field and list (more keyboard accessability to the list)
+LibViewControl - added cascading menus to 'Open a Book', 'Use Library', and 'Unuse Library'
+- Sort'ed Use Library list
+- added HandleFocus to fix bug
+- changed to not remove stdlib from importControl
+LinkControl - fixed bug with InfoControl
+ListBoxControl - added multicolumn parameter
+- added SetColumnWidth and FindString methods
+ListControl - added 'insert after' using the Shift + Ins keystroke
+- added List_SingleClick message
+- Added DeleteAll method
+- added col argument to List_DoubleClick
+- added AllowTab method to disable tabbing in list
+- Moved repaint to before sending List_CelValueChanged
+ListViewControl - Changed prompt to use PromptOrHeading
+- added a GetColumns method
+- added SeekQuery for KeyListView
+- changed to GetColumns
+- Fixed bug with DeleteAllColumns
+- added GetFirstVisibleItem
+ListViewModel - added SeekQuery for KeyListView
+- removed dead code, added rewinds when nearer to begin/end
+ListViewModelTest - added testing ListViewModelCached
+LocateControl - Fixed Locate so that composite keys aren't used
+- changes to ensure key column is first in the list
+- minor bug fix
+MoneyBag - changed Plus to handle MoneyBag amount
+- fixed problem with recent change
+- Added display method
+MoneyBagTest - changed Plus to handle MoneyBag amount
+MonthDayControl - new
+MultiControl - renamed to InfoControl
+NumberControl - major rewrite. - removed char by char checking. - added allowNone. - removed side effects from Valid?. - return raw text for invalid. - don't change '' to 0
+- added Set so it formats
+- modified to make the numbers right align
+- Allowed mask to be False
+OpenFileName - translate title
+- added NOCHANGEDIR so it doesn't change the current directory
+OverwriteRecord? - added checking for concurrent updates
+Params - added Params.ReportDestination
+- changed Params.ReportDestination from "print" to "printer"
+ParamsChooseListControl - Removed the WS_EX_TOOLWINDOW style from the ChooseList dialog.
+PasswordFormat - new
+PersistentWindow - changed Transaction to block form
+QueryEofTest - added test cases
+QueryFormat - Added AfterAll method
+RecordControl - changes to validation and fillins
+- made HandleFocus public
+- added newctrls to handle Tabs changes
+RecordFormat - fixed bug with RecordFormat droping parameters being passed through
+- modified to use GridGenFormat and to change Wrap to WrapGen
+ReplaceInLibrary - added (All) to WorkSpace Find/Replace in Library
+ReplaceInLibraryControl - added (All) to WorkSpace Find/Replace in Library. and refactored
+- added HandleFocus to fix bug
+Report - removed unnecessary SetCursor
+- SelectFont fixes and enhancements
+ReportInstance - SelectFont fixes and enhancements
+SC - added wrap stuff
+SCI - added wrap stuff
+SaveFileName - added NOCHANGEDIR so it doesn't change the current directory
+ScheduleControl - modified Print to strip extra newline
+ScintillaControl - modified menu so that it would translate properly
+- added wrap stuff
+SeekCursor - new
+SeekCursorTest - new
+SeekQuery - new
+SeekQueryTest - new
+SelectControl - Added feature to use prefixes with the lists for Id/KeyControl.
+- check for prompt or heading
+SetMenuItemBitmaps - new
+StateProvControl - Added GetList method
+StringTest - added SplitOnFirst method
+Strings - added SplitOnFirst method
+SummarizeControl - changed Cursor().Fields() to QueryColumns() (since Cursor() doesn't accept tempindexes)
+SvcControl - return count from On_Get_All_Master_Changes
+TabsControl - changed to not destroy tabs you switch away from
+Transactions - added SeekQuery for KeyListView
+TwoListControl - added all and none buttons
+UOMControl - new
+UOMFormat - new
+UnionTest - new
+VfieldsFormat - Revised - was right justifying fields on the page.  Modified to use grid format
+VirtualBrowseControl - removed Browse_AddRecord (not needed with Tabs changes)
+Window - added support for dynamic submenus
+- improved to handle spaces etc. in dynamic menu names
+WorkSpaceControl - added cascading menus to 'Open a Book', 'Use Library', and 'Unuse Library'
+- added (All) to WorkSpace Find/Replace in Library. and refactored
+- changed Find/Replace in Libraries to use Libraries instead of LibraryTables
+- changed edit book menu option to dynamic cascading menu with the book tables as options.
+- added Hwnd to Ask's
+YearMonthControl - new

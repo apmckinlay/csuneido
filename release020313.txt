@@ -1,0 +1,397 @@
+Suneido Mar. 13, 2002 Release
+
+This release introduces an installer/setup download in addition to
+the standard zip file.  Both downloads contain the same files. The
+installer will handle updating a previous version - if there is an
+existing database, it will simply load the new stdlib and suneidoc
+without disturbing any other existing libraries or data.
+
+Lot's of minor changes and bug fixes, including:
+
+- restored RichEdit RTF functionality
+- quite a bit of work on the Users Manual
+- new Going Further section with coverage of Report Parameters and 
+Master-Detail Relationships
+- "contents" pages are now generated automatically
+- new Console class
+- new CanvasControl, undocumented, but see the website article
+- quite a bit of work on on the user interface with respect to 
+validation and protection
+- addition of Norwegian translation (thanks to Arne Christian Riis)
+
+Compatibility
+
+The main thing to watch for with this release is that we renamed a 
+number of parameters to try to standardize our naming.  Here is a 
+list of what was renamed:
+
+abbrevfield --> abbrevField
+abbreviation_field --> abbrevField
+dynamic_types --> dynamicTypes
+exstyle --> exStyle
+header_fields --> headerFields
+link_field --> linkField
+listfield --> listField
+namefield --> nameField
+no_clear --> noClear
+num_field --> numField 
+print_params --> printParams
+prefix_column --> prefixColumn
+protect_field --> protectField
+save_none --> saveNone
+start_last --> startLast
+start_new --> startNew
+sticky_fields --> stickyFields
+valid_field(s) --> validField(s)
+wherefield --> whereField
+
+suneido.exe:
+
+- added record.PreSet
+- fixed Query and Cursor to handle newlines in string constants
+- improved bmalloc error message
+- fixed Database::rename_column
+- fixed Rewind on UNION-LOOKUP 
+- changed bmemory to determine static roots from exe
+- put richedit code back into exe
+- minor fix to automatic wait cursor
+- changed Backup to run at lower priority
+- fixed minor problem in database recovery
+- removed "Server" from server windows
+- added -nosplash option
+- added unique indexes
+- fixed usage of Database tblnum_index and fkey_index
+- changed to use /DELAYLOAD for advapi32.dll, ws2_32.dll, wininet.dll, urlmon.dll
+
+Users Manual:
+
+/Introduction
+    Acknowledgments - updated
+    Command Line Options - updated
+/Getting Started
+    Create a Book - updated
+    Create a Library - updated
+    Create a Report - updated
+    Create an Access - updated
+    WorkSpace - updated
+/Going Further
+    Introduction - new
+    Master-Detail Relationship - new
+    Report Parameters - new
+/Tools
+    Language Translation - updated
+/Language
+    Classes - updated
+    DLL Interface - updated
+    Data Types - updated
+    Expressions - updated
+    Names - updated
+    Reference - updated
+    Statements - updated
+/Language/Reference
+    COMobject - updated
+    Console - new
+    Date - updated
+    Function - updated
+    Image - updated
+    MoneyBag - updated
+    Number - updated
+    Object - updated
+    PopClient - updated
+    Scanner - updated
+    SmtpClient - updated
+    SocketClient - updated
+    SocketServer - updated
+    Stack - updated
+    String - updated
+    Struct - updated
+    TestRules - new
+/Database/Reference
+    Cursor - updated
+    Database - updated
+    Query - updated
+    Record - updated
+    Transaction - updated
+/Database/Reference/Record
+    record.PreSet - new
+/Database/Requests
+    Syntax - updated
+    create - updated
+    ensure - updated
+/User Interfaces
+    Implementation - updated
+    Reference - updated
+/User Interfaces/Reference
+    AtlAxWinControl - updated
+    BrowseControl - updated
+    ButtonControl - updated
+    CaptionButtonControl - updated
+    ChooseListControl - new
+    ChooseManyControl - updated
+    ComboBoxControl - updated
+    ContextMenu - updated
+    Control - updated
+    Controller - updated
+    Dialog - updated
+    ExplorerControl - updated
+    ExplorerListViewControl - updated
+    FieldControl - updated
+    Group - updated
+    Hwnd - updated
+    IdControl - updated
+    ImageButtonControl - new
+    ImageControl - updated
+    KeyControl - updated
+    ListBoxControl - updated
+    ListViewControl - updated
+    PersistentWindow - updated
+    RadioButtonsControl - updated
+    RecordControl - updated
+    ScrollControl - updated
+    StatusBarControl - updated
+    TreeModel - updated
+    TreeViewControl - updated
+    Window - updated
+    WndProc - updated
+/User Interfaces/Reference/AccessControl
+    AccessControl - updated
+    accessControl.GetControl - new
+/User Interfaces/Reference/ProgressBarControl
+    ProgressBarControl - new
+    progressBarControl.SetDeltaPos - new
+    progressBarControl.SetPos - new
+    progressBarControl.SetRange - new
+    progressBarControl.SetStep - new
+    progressBarControl.StepIt - new
+/Reports/Reference
+    IdFormat - updated
+    InputFormat - updated
+    PageHeadFormat - updated
+    Params - updated
+    Report - updated
+    RowFormat - updated
+    VertFormat - updated
+/Appendix/Extending Suneido
+    Adding Builtin Classes - updated
+    Adding Builtin Functions - updated
+
+stdlib:
+
+AboutSuneido - added contributors, updated copyright
+AccessControl - added Reload and fixed AccessGoto
+- sent protectField to the RecordControl
+- fixed problem with overwrite protection
+- prevent record deletions based on protect rule
+- allow deletes on protected new records
+- renamed parameters
+- removed locate setup
+- check for '_num' fields in the keys
+- fixed problems with reload and save
+- destroy TabsControl's non-current tabs on Access_SetData
+- changed AccessGoto to allow going to a record not in the current select.
+- added control validation
+- fixed Current Restore on new records when dynamic types
+- Added set protect to dynamic types
+- added GetControl
+- Remove focus before doing validation checking in Ok_to_Destroy
+AllowDeleteRecord? - new
+AlterRenameTest - new
+BookEditModel - added Detab to Update
+BookExport - updated copyright, made it link to website
+- fixed to handle "calculated" pages
+BookMenuPage - new
+BrowseControl - fixed to copy headerFields to new records (instead of all headerData)
+- changed setting headerFields to use new record.PreSet
+- prevent record deletions based on protect rule
+- allow deletes on protected new records
+- fix for header rules not always updating from browse
+- renamed parameters
+- enhanced protectField option
+- added control validation
+- Added a Refresh method
+ButtonControl - Changed so Ymin and Top are always whole numbers since fractions cause scrolling problems.
+CTRL - new
+CanvasControl - new
+CanvasEllipse - new
+CanvasItem - new
+CanvasLine - new
+CanvasRectangle - new
+CanvasStockObject - new
+CanvasX - new
+CheckBoxControl - disabled triggering of __protect rules in Set
+- changed to not allow Ymin or Top to be a fraction as this causes scrolling issues.
+ChooseDateControl - added control validation
+- added allowNone and readonly check in Valid?()
+ChooseDateTimeControl - added allowNone
+ChooseField - disabled triggering of __protect rules in Set
+- added control validation
+- added allowNone and readonly check in Valid?()
+- Fixed the validation checking in Field's KILLFOCUS message.
+- made ENTER do killfocus stuff
+- don't handle Enter if in Dialog, send NewValue on Enter
+- Added checking if dialog running before doing .Valid?.  Removed Beep when doing alt-z
+ChooseList - new
+ChooseListControl - new
+ChooseManyControl - renamed exstyle to exStyle
+- fixed bug with closing dialog
+- added control validation
+- renamed save_none to saveNone and listfield to listField
+- added checking for exact match in the list separate from prefix matching
+- revised to remove side effects from Valid?
+- added allowOther
+ChooseManyFieldControl - revised to remove side effects from Valid?
+- added allowOther to ChooseManyControl
+ChooseMonthDayControl - added allowNone
+ComboBoxControl - disabled triggering of __protect rules in Set
+- renamed save_none to saveNone and listfield to listField
+Console - new
+Container - added control validation
+Control - added control validation
+Controller - added check to AccessGoto
+CreateWindowEx - renamed exstyle to exStyle
+Crosstab - renamed print_params to printParams
+CursorWndProc - renamed exstyle to exStyle
+DateControl - added control validation
+- added allowNone and readonly check in Valid?()
+- split KillFocus off from Valid
+Dialog - renamed exstyle to exStyle
+- added x and y arguments
+EditorControl - renamed exstyle to exStyle
+EllipsisButtonControl - added arrow option
+ExplorerListModel - replaced code that was lost in previous change.
+ExplorerListModelLinked - changed setting headerFields to use new record.PreSet
+- Fixed bug with NewRecord where they always get saved regardless of whether output was called.
+ExplorerListViewControl - added protectField option
+- prevent record deletions based on protect rule
+- allow deletes on protected new records
+- renamed parameters
+- added LeaveTab
+- added control validation
+- only do RecordControl validation when leaving the record.
+- Remove focus before doing validation checking in Ok_to_Destroy
+ExplorerVirtualListViewControl - renamed parameters
+FieldControl - disabled triggering of __protect rules in Set
+- changed just: to justify:
+- added control validation
+- added allowNone
+- Added checking if dialog running before doing .Valid?
+Field_date - added allowNone and readonly check in Valid?()
+Field_date_time - added allowNone
+Field_dollars_readonly - added width
+Field_optionaldollars_readonly - added control validation
+Field_percent - added allowNone
+Field_phone - added allowNone and readonly check in Valid?()
+Field_zip_postal - added allowNone parameter
+FindInLibraryControl - changed from Libraries() to LibraryTables()
+FindText - fixed minor bug
+FreeConsole - new
+GetCommandLine - new
+HandlerRoutine - new
+IdFieldControl - Save timestamp for valid selections when allowother
+- added allowNone and readonly check in Valid?()
+- changed so restrictions aren't used in validation query
+- added checking for exact match, account for wherefield in Valid?
+- Changed Get to return .num if it's a date otherwise the WindowText
+- fixed bug with non date num
+- renaming parameters
+IdFormat - renaming parameters
+InfoControl - fixed SetReadOnly
+- added Xstretch: False to WndPane so that it stays the size of its control.
+InfoFormat - added font parameter
+Init - set default user_group to admin
+KeyControl - added checking for exact match, account for wherefield in Valid?
+- Added checking if dialog running before doing .Valid?
+- allow for specifying 'prefix' choices
+- renamed abbreviation_field to existing abbrevfield
+- removed duplicate abbrevfield arguments to the FieldControl
+- renaming parameters
+KeyFieldControl - added allowNone and readonly check in Valid?()
+- added checking for exact match, account for wherefield in Valid?
+- renamed abbreviation_field to existing abbrevfield
+- renaming parameters
+KeyListView - renamed exstyle to exStyle
+- allow user to select the prefix_column and store it in a table
+- blocked nested Access's
+- fixed handling of columns (checking for False)
+- modified to use a StaticControl instead of a ComboBoxControl when there is only one key
+- allow for specifying 'prefix' choices
+- added checking for invalid field names being stored in locateby table
+- renaming parameters
+LibraryReport - removed setFirst
+- modified to use new SetParams option
+ListControl - added new message to determine if ok to delete record
+- Minor changes to Delete_Selection
+- Added SetListFocus method
+ListEditWindow - fixed bug where argument missing to SetReadOnly()
+ListViewControl - Added ListDoubleClick to NM_DBCLICK
+- renamed exstyle to exStyle
+LocateControl - made locateby persistent
+- modified to store fieldname instead of the prompt for the key
+- Added allowNone to Locate KeyControl
+- modified to use a StaticControl instead of a ComboBoxControl when there is only one key
+- allow for specifying 'prefix' choices
+NumberControl - changed just: to justify:
+- added control validation
+- added allowNone and readonly check in Valid?()
+Numbers - Added Rounddown method
+PageHeadFormat - renamed print_params to printParams
+Params - changed to save params by user instead of computer
+- modified set_params to handle RadioButtonsControl and CheckBoxControl
+PatternControl - removed side effects from Valid? and fixed Enter
+- added control validation
+- don't handle Enter if in Dialog
+PhoneControl - added allowNone and readonly check in Valid?()
+QueryKeys - new
+QueryTest - added testing for newline bug
+QueryViewControl - added hwnd to strategy Alert
+RadioButtonControl - Changed so Ymin and Top are always whole numbers since fractions cause scrolling problems.
+- changed to manual instead of auto
+RadioButtonsControl - changed to manual instead of auto
+- added horz option
+RecordControl - enhanced protect rules
+- moved observer to setup, added dirty = False to New
+- Checked __protect rules in Set and . TabsControl_SelectTab
+- added control validation
+- added check for dirty flag in Valid()
+RecordTest - new
+ReplaceInLibraryControl - changed from Libraries() to LibraryTables()
+Report - renamed print_params to printParams
+ReportInstance - added Construct
+RichEditControl - fixed / updated
+SaveQuery - new
+ScintillaControl - changed Append to use SendMessageTextIn to handle large strings
+- added show/hide line numbers
+ScrollControl - added GetYscroll method
+- added dyscroll argument
+- changed to not allow maxYscroll to be a fraction as this causes scrolling issues.
+SelectControl - added Trim'ing of field Prompts and Headings to prevent problems when accessing these members of the field_ob,
+- renaming parameters
+SetConsoleCtrlHandler - new
+SetConsoleTitle - new
+StaticControl - changed just: to justify:
+Svc - fixed key(name,group) to key(group,name)
+SvcGetDescription - renamed exstyle to exStyle
+TabsControl - fixed SetReadOnly
+- added checking for LeaveTab method
+- wrapped a WndPane around tab's controls in order to position them properly in the Z order.
+- destroy TabsControl's non-current tabs on Access_SetData
+- added GetControl method
+TestConsole - new
+TestRules - new
+Tests - added quiet:
+- check for data left behind after tests
+- Changed the total row checking to print the difference if not 0
+- added quit_on_failure option to RunLib method
+UOMControl - disabled triggering of __protect rules in Set
+UOMFormat - Changed width defaults to characters and fixed width unit conversion issues.
+UnionTest - added test for bug (fixed now)
+UniqueIndexTest - new
+VfieldsFormat - Modified to use Heading
+VirtualBrowseControl - renamed parameters
+WndPaneControl - added windowClass option
+- added LeaveTab which is used by TabsControl and passes it on to its control
+- added GetControl method
+WordPadControl - fixed / updated
+WrapFormat - Added ability to split on ','
+ZipPostalControl - added control validation
+- modified allowNone to default to False

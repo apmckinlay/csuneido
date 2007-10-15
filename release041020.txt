@@ -1,0 +1,454 @@
+October 20, 2004 Release (1.0.041019)
+
+Some of the more significant changes: (in no particular order)
+
+- new statistics functions from Ajith (QueryMean, QueryMedian, QueryMode, QueryMeanDev, QueryStdDev)
+- added Edit button to AccessControl
+- added auto refresh to BookEdit
+- improvements to DrawControl from Jennie
+- WorkSpace - changed Run to keep variables, added variable pane
+- OpenImageControl now handles "external" files (e.g. pdf)
+- introduction of locales (see SetLocale)
+- optimizations to transaction handling for speed and memory
+- improvements to source code portability
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe:
+
+- allow session view with same name as table
+- fixed bug with session views
+- added /* and SaveAll toolbar button images
+- optimizations to transaction handling for speed and memory
+- changes for VC7 compatibility
+- changes for GCC compatibility
+- merging Linux changes
+- changes to garbage collector for speed and portability
+- added type method to SuImage and SuFile
+- changed to not allocate temp dest address space if not needed (i.e. on client)
+- added extending rule fields
+- added record.GetDeps and record.SetDeps
+- fixed server to count open cursors correctly
+- increased database margin for rebuild from 10mb to 100mb
+- added SetLocale
+- fixed problem with garbage collector markstack overflow
+- improved union keys to handle prefixes
+- added built-in DoWithoutTriggers
+- allow character class shortcuts (\w \W \d \D \s \S) within character classes
+- added Posix character classes that respect locale
+- added built-in versions of string.Lower, Upper, Lower?, Upper?, Alpha?, Numeric?, AlphaNum? that respect locale
+
+User's Manual:
+
+/Getting Started/Introduction - added that you have to exit from Suneido to load (from Gianfranco)
+/Language/Reference/Date/date.GMTime - new
+/Language/Reference/HttpMap - added missing closing </pre> tags
+/Language/Reference/SetLocale - new
+/Language/Reference/String/string.Alpha? - changed to builtin
+/Language/Reference/String/string.AlphaNum? - changed to builtin
+/Language/Reference/String/string.Lower - changed to builtin
+/Language/Reference/String/string.Lower? - changed to builtin
+/Language/Reference/String/string.Numeric? - changed to builtin
+/Language/Reference/String/string.Upper - changed to builtin
+/Language/Reference/String/string.Upper? - changed to builtin
+/Language/Reference/XmlRpcMap - added missing closing </pre> tags
+/Language/Regular Expressions - updated character classes
+/Database/Queries/Syntax - updated for extending rules
+/Database/Queries/extend - updated for extending rules
+/Database/Reference/DoWithoutTriggers - new
+/Database/Reference/Query1 - updated
+/Database/Reference/QueryCount - updated
+/Database/Reference/QueryFirst - updated
+/Database/Reference/QueryLast - updated
+/Database/Reference/QueryMax - updated
+/Database/Reference/QueryMean - new
+/Database/Reference/QueryMeanDev - new
+/Database/Reference/QueryMedian - new
+/Database/Reference/QueryMin - updated
+/Database/Reference/QueryMode - new
+/Database/Reference/QueryRange - new
+/Database/Reference/QueryStdDev - new
+/Database/Reference/QueryStripSort - added missing closing </pre> tags
+/Database/Reference/QueryTotal - updated
+/Database/Reference/Record/record.GetDeps - new
+/Database/Reference/Record/record.SetDeps - new
+/Database/Reference/Transaction/transaction.CkComplete - new
+/Database/Reference/Transaction/transaction.Complete - added "Builtin"
+/Database/Reference/Transaction/transaction.Ended? - added "Builtin"
+/Database/Reference/Transaction/transaction.Query - added "Builtin"
+/Database/Reference/Transaction/transaction.Query1 - updated
+/Database/Reference/Transaction/transaction.QueryAccum - new
+/Database/Reference/Transaction/transaction.QueryApply - new
+/Database/Reference/Transaction/transaction.QueryApply1 - new
+/Database/Reference/Transaction/transaction.QueryDo - new
+/Database/Reference/Transaction/transaction.QueryFirst - updated
+/Database/Reference/Transaction/transaction.QueryLast - updated
+/Database/Reference/Transaction/transaction.QueryMean - new
+/Database/Reference/Transaction/transaction.QueryOutput - new
+/Database/Reference/Transaction/transaction.Rollback - added "Builtin"
+/Database/Reference/Transaction/transaction.Update? - added "Builtin"
+/User Interfaces/Reference/Control/control.Construct - updated - added top
+/User Interfaces/Reference/Group/Group - corrected (from Stefan)
+/User Interfaces/Reference/KeyControl - explained access: better (from Jean Charles)
+/Reports/Reference/RowHeaderFormat - new
+/Cookbook/Adding Context Sensitive Help - missing closing </pre> tags
+/Cookbook/Adding Controls to an AccessControl - new (from web)
+/Cookbook/Getting Selected Rows from a Browse - new (from web)
+/Cookbook/Using Excel from Suneido - new (from web)
+/Cookbook/Using LruCache - new (from web)
+/Cookbook/Using MS-Word from Suneido - new (from web)
+/Appendix/Extending Suneido/Adding Builtin Functions - corrected
+
+stdlib:
+
+AboutSuneido - added contributor
+Abs - new - from Ajith
+Access1Control - added Edit button
+AccessControl - changed buildselectvals method to use SelectPrompt instead of Prompt
+- improved Locate error tips
+- added Edit button
+- removed transaction parameter from Save (not used)
+- moved .data.Dirty?() in on_save to after the AccessAfterSave
+- added excludeSelectFields to Crosstab
+- added excludeSelectFields to CurrentPrint
+- modified On_Current_Delete to check OverwriteRecord
+- fixed issue with deleting new records
+- added EditMode? method to determine if access is being edited or not
+- fixing focus issues
+- modified Access_SetRecord to pass optional argument
+BookBrowserControl - clear the CurrentBookOption when the program page is closed
+BookControl - fixed issue with invalid bookmarks
+- changed ETA to .book
+- changed to only set the CurrentBookOption in the Suneido variable if on a program page to avoid setting it to Help book options
+- changed Print Preview to Preview Section
+- modified Go To Definition to go to BookEdit on html pages
+- added a button email for support
+- replaced BookMemoryWarning with CheckResources (which uses RestartNeeded?)
+BookEditControl - modified to ignore images and other files that are in the res folder
+- removed Add How To Links menu option because this is now done on the fly
+BookEditSplitControl - added auto-refresh
+BookEmailInfo - Added a button to email for support
+BookEnabled - changed so more specific (more slashes) override less specific
+BookEnabled_Test - changed so more specific (more slashes) override less specific
+BookExport - modified Next/Prev links, handled CSS url(...) links
+BookHowToLinks - added "See Also:" before howto links and put howto links in an unordered list with a class of "howto"
+- modified to return the list of HowTo links instead of updating the records
+BookHowToLinksTest - modified to return the list of HowTo links instead of updating the records
+BookMemoryWarning - replaced BookMemoryWarning with CheckResources (which uses RestartNeeded?)
+BookMenuPage - added Assert
+- added a done object to handle problems where there was one more item then columns
+- modified to look for Hide comment instead of hide tags; changed the records object to have the whole page record instead of just the names of the pages to check for submenu comment
+BookPageFind - don't go to hidden pages
+BookPrint - fixed to use HtmlWrap and Asup
+BrowseControl - added Customize Columns option to context menu
+- added way to force Browse edit field to be valid after editing (regardless of what the control returned from Valid?)
+- added Browse_BeforeSave, Browse_Restore and Browse_RestoreAll messages from Browse
+- Customize Columns - fixed issue where rearrange columns not working properly; minor refactor
+- changed warning on SetEditFieldValid method to prevent further use.
+- removed second save from Destroy method because it is being done in the Ok_to_destroy?
+- added new member for new records being added by application code so that it can be checked by the Browse for mandatory fields.
+- added message Browse_AllowUnDelete so that controller can disallow undeletes as well
+- Added Dirty and _browse to AddRecord
+- changed to not save if linked and can't find record to update (treat it like an update conflict)
+- added AfterSave message
+BrowseFolderName - minor refactoring
+BrowserControl - added Refresh method
+BuildQueryWhere - fixed to Encode 'in list' values (from Stefan), minor refactoring
+ButtonControl - removed Enable / Disable methods
+CP - new
+CanvasArc - removed Arc from DrawControl b/c could not figure out how to export the SVG
+- removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+CanvasCaption - fixed the ToString method
+- removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+- working on ToMagick method
+- do not print text rect if there is no text
+- fixed exporting of polygon
+CanvasControl - have to trim off both " and '
+CanvasEllipse - removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+CanvasGroup - added ToSVG method
+- removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+CanvasImage - added ToSVG method for exporting to SVG
+- removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+- working on exporting
+CanvasItem - removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+CanvasLine - removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+CanvasPolygon - removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+- fixed exporting of polygon
+CanvasRect - removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+CanvasRoundRect - removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+- working on exporting
+CanvasStockObject - added ToSVG method
+- removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+CanvasText - working on ToSVG method (getting the line breaks working)
+- removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+- working on exporting
+- minor modifications to the text wrapping
+- removed DT.CENTER flag
+CenterControl - fixed to propagate child stretch (reported by Abe)
+CheckBoxControl - removed unused Top
+- fixing alignment
+CheckBoxFormat - removed width specification (prints too wide)
+CheckBoxPairControl - new
+CheckResources - replaced BookMemoryWarning with CheckResources (which uses RestartNeeded?)
+- changed to only check if client
+ChooseListControl - added SelectedItem (from Claudio)
+ChooseQuantitiesControl - new (from Ajith)
+ChooseTwoListControl - added SetList (from Claudio)
+- SetList on field for validation
+ChooseTwoListFieldControl - added SetList, convert list to strings
+Control - changed Construct to use separate Static for CheckBox label
+- changed to use CheckBoxPair
+- allow specifying top on controls specs
+- added FindControl
+Crosstab - changed to use SelectPrompt instead of PromptOrHeading
+- changed to use SelectFields; added excludeFields option
+CrosstabFormat - modified to handle selecting on abbrev/name
+CurrentPrint - added excludeFields option; modified to use SelectFields
+Dates - added StdShortDateTimeSec
+- added GMTime (from Jos Schaars)
+DbRulesTest - added extend rules
+- added test for selecting on extend rule
+Dialog - added kludge to fix bug with sizing
+- fixing focus issues
+- added ParentHwnd()
+DirEmpty? - new
+DirHas? - new
+DoWithoutTriggers - Added checking if tables is empty object
+- removed (now builtin)
+DoWithoutTriggersTest - added simple test for DoWithoutTriggers
+DrawArcAdapter - removed Arc from DrawControl b/c could not figure out how to export the SVG
+DrawControl - removed Import SVG
+- removed Arc from DrawControl b/c could not figure out how to export the SVG
+- added Export As; added commands (group, ungroup, move to front, move to back, resize) to the edit menu; added try to open
+- removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+- working on exporting
+DrawPaletteControl - removed Arc from DrawControl b/c could not figure out how to export the SVG
+- moved commands (group, ungroup, move to back, move to front, resize) to the edit menu; removed print
+- removed ToSVG() method from canvas classes and remove Export SVG from draw control; adding ToMagick() method to canvas classes and changed Export As to use the ToMagick methods
+DrawSelectTracker - changed to not use the item as the members
+ExplorerControl - added MarkAsModified (for WebEdit)
+- added model parameter to Reset (for WebEdit)
+- minor change to Reset
+ExplorerListViewControl - refresh explorerlist_data from UpdateRecord for validation purposes (so valid rules use correct data)
+- removed protectField code from SetReadOnly - handled better by RecordControl SetReadOnly now
+ExplorerVirtualListViewControl - changed to use .list's SetEnabled method instead of Enable / Disable methods.
+FieldControl - added SetBackColor (from Claudio)
+Field_When - added viewing diff's to version history
+Field_confirm_password - changed prompt to fit in column
+Field_trlang_bulgarian - new - datadict entries for the translatelanguage table
+Field_trlang_czech - new - datadict entries for the translatelanguage table
+Field_trlang_dutch - new - datadict entries for the translatelanguage table
+Field_trlang_french - new - datadict entries for the translatelanguage table
+Field_trlang_german - new - datadict entries for the translatelanguage table
+Field_trlang_hungarian - new - datadict entries for the translatelanguage table
+Field_trlang_italian - new - datadict entries for the translatelanguage table
+Field_trlang_norwegian - new - datadict entries for the translatelanguage table
+Field_trlang_portuguese - new - datadict entries for the translatelanguage table
+Field_trlang_russian - new - datadict entries for the translatelanguage table
+Field_trlang_slovak - new - datadict entries for the translatelanguage table
+Field_trlang_spanish - new - datadict entries for the translatelanguage table
+Field_trlang_vietnamese - new - datadict entries for the translatelanguage table
+GetCurrentObject - new
+GetMapMode - new
+GetParamsWhere - added checking if operation is a member of .ops - user typed in invalid operation on Select payroll transactions
+- Added checking if operation is a range when trying to invalidate that it is a valid operation (range is not in .ops)
+- added range, inlist and no in list to op object.
+- changed contains/does not contain/starts with/ends with to ignore case & special characters (like Access Select)
+GetRemoteServerStats - changed session id to (ServerStats)
+- show port
+GetTimeZoneInformation - new
+GetViewportExtEx - new
+GetWindowExtEx - new
+GridFormat - fixed width when spanning columns
+GridGenFormat - added skip and font to the parameters
+HeaderControl - reset tool tips on first resize (for Reporter)
+Heading - added translation (from Claudio)
+HideControl - new
+HtmInclude - new
+HtmIncludeTest - new
+IDTB - added /* Comment/Uncomment command
+- added Save_All
+ImageControl - added readonly, displayed unhandled filenames
+- fixed embedding, improved readonly handling
+Init - added SetLocale
+KeyControl - Added style
+LC - new
+LibViewControl - added /* Comment/Uncomment command
+- added RefreshAll to Import
+- fixed Print to use GetWorkArea to position Console in case taskbar is at top or left (from Petr)
+- added version history
+- fixed Find in Folders so findItem goes to folder/non-folder correctly
+- standardized toolbar button order
+ListControl - prevent program error when trying to paint invalid cells that no longer exist.
+- changed to shade even if readonly (from Stefan)
+- added rec argument to Print (for GlAcctDeptFormat)
+- added SetHeaderChanged method (used in Browse Customize Columns)
+- added Send List_HeaderTrack
+- added List_GetDlgCode (for Version History) (default same as before)
+ListFormatControl - added rec argument to Print (for GlAcctDeptFormat)
+ListViewControl - removed Enable / Disable methods
+- added map to BEGINLABELEDIT and LVN_BEGINLABELEDIT method; added HeaderChanged?, GetColWidth, and SetColWidth methods for saving column sizes
+LocateControl - improved Locate error tips
+MoneyBag - added new method DeleteMember and test for it
+MoneyBagTest - added new method DeleteMember and test for it
+MoneyBagTotals - modified to take a new parameter additional_totals to handle printing other totals on the same line
+MultiByteToWideChar - new
+MultiByteToWideCharApi - new
+NightlyChecks - changed to StdShortDateTimeSec
+- Added Database.SessionId to SuneidoLog and NightlyChecks
+- modified to use the max between the max committed date and the max modified date
+- modified to also print following lines from error.log that have no date
+- changed System("del to DeleteFile
+- removed user from nightly checks message since it is in the session id
+- added try to max_committed in case lib doesn't have lib_committed field
+OBJ - new
+OpenFileControl - Had to redefine SetReadOnly to work properly since ButtonControl's SetReadOnly is only a stub (used SetEnabled instead)
+OpenFileName - added BeforeFirst to ignore new lines from the unused part of the buffer
+- added file parameter
+OpenImageControl - handle external files with ShellExecute
+- fixed embedding, improved readonly handling
+OverrideControl - changed Override label to separate static
+PairControl - changed to use GetChildren
+Params - added checking in preview if get default printer fails (i.e. no printers)
+- minor refactoring, added Clear button
+ParamsSelectControl - fixed typo in Valid (from Stefan)
+- fixed protect problem
+- fixed protect bug, renamed some variables to be clearer
+ParamsSelectFormat - changed to format 'in list' better, and to translate
+- added missing code for "not in list"
+- translation (from Claudio)
+PhoneControl - changed to handle 1, 2, 3, or 4 digit extensions
+PreviewPageControl - trying to fix Win95 problems with dc
+PromptOrHeading - added translation (from Claudio)
+PurgeSuneidoLog - new
+QuantitiesControl - new (from Ajith)
+QueryAccum - changed to use t.QueryAccum
+QueryApply - changed QueryApply to block form of Query to ensure query is closed
+- changed to use t.QueryApply
+QueryCount - changed to use t.QueryCount
+QueryMax - changed to use t.QueryMax
+QueryMean - new - from Ajith
+QueryMeanDev - new - from Ajith
+QueryMedian - new - from Ajith
+QueryMin - changed to use t.QueryMin
+QueryMode - new - from Ajith
+QueryOutput - changed to use t.QueryOutput
+QueryRange - new - from Ajith
+QueryStdDev - new - from Ajith
+QueryTotal - changed to use t.QueryTotal
+QueryViewControl - added Keys
+RadioButtonsControl - added Valid? method that returns false if value is not contained in items ('' is valid)
+RecordControl - added Set/GetReadOnly (for Access Edit button)
+- fixed readonly when no protectField
+- fixed problem with __protect rule (from Edit changes)
+- fixed bug - changed to set readonly to false if the field was not a member and allbut is false
+- changed .Member?("SetValid") to .Method?
+RemoteBackup - set session id to (Backup)
+Report - fixed ReporterColHeads problem from recent WithCopyDC change
+- trying to fix Win95 problems in WithCopyDC
+- trying to fix Win95 problems with dc
+ReportInstance - added GetDimens (needed by VertFormat change)
+- fixed ReporterColHeads problem from recent WithCopyDC change
+- trying to fix Win95 problems with dc
+Reporter - added more checking for invalid sort
+- added more error checking, made open dialog resizable
+- caught exception from key being too large, gave user message "Invalid Sort"
+- delete columns from coloptions
+- added ',' to query in report() method (to fix error non-existent column when select fields are not in column fields)
+ReporterColumnsControl - delete columns from coloptions
+ReporterDataSource - fixed bug (from Jean Charles)
+ReporterUpdate040624 - added Customer Payment => Payments and Credits
+RestartNeeded? - new
+RetryTransaction - added an error to catch
+RowFormat - handle skip parameter
+RuleTest - added get/set deps
+Rule_nodespace - new
+SaveFileName - added BeforeFirst to ignore new lines from the unused part of the buffer
+- added file parameter
+ScheduleAddEditControl - added time span fields
+- removed commented and unecessary code
+ScheduleControl - changed to use an ensure
+- added time span fields
+- refactoring; fixed some bugs with the time span fields
+- changed condition checking so that the next event gets set when running as a service
+ScheduleTask - added time span fields
+ScheduleThreading - removed - no longer used
+ScheduleWindowControl - added a Run button
+- changed message box to alert
+ScintillaControl - added /* Comment/Uncomment command
+- added EN_CHANGE
+- changed Append to AppendText because Append is a method in Objects
+Select2Control - fixed bugs with empty_field method
+SelectFields - added OrigFields
+- added trim to remove spaces
+- added option to not do joins
+SendNightlyChecks - new - general function that uses the new BookEmailInfo object
+- added space between abbrev and company name
+- added user and password parameters
+- added helo_arg parameter
+Square - new - from Ajith
+StringTest - added WrapLines and Divide methods
+Strings - added WrapLines and Divide methods
+- Modified to not count ' ' at the end
+SuneidoLog - removed GetCurrentDirectory()
+- Added Database.SessionId to SuneidoLog and NightlyChecks
+- removed pslist logging
+Svc - added version history
+SvcClient - added GetBefore
+- added get10before
+- refactored version history
+SvcControl - added checking for a "." indicating that the name has an image file extention so that HtmlPrefix and Copyright are displayed as text in version control
+- added version history
+- fixed problem with observer hanging around
+- changed Local to Standalone in the Settings
+SvcCore - added GetBefore
+- refactored
+- optimized Get10Before
+SvcServer - added GetBefore
+- added get10before
+SviewTest - new
+TIME_ZONE_INFORMATION - new
+TabControl - fixed to not allow themed if bottom
+TabsControl - added GetChildren so broadcasts (e.g. SetReadOnly) go to all tabs
+- fixed GetChildren to include tab control itself
+- added GetTabCount
+TextFormat - kludged to CALCRECT in a copy of the dc - otherwise it greatly increases size of preview emf
+- fixed ReporterColHeads problem from recent WithCopyDC change
+- trying to fix Win95 problems with dc
+- modified GetSize.h to use tm.Height
+- added GetFont (for GlAcctDeptFormat)
+Tip - added pos parameter, added TOPMOST
+Transactions - changed QueryApply to block form of Query to ensure query is closed
+- changed to use block form of Query, added dir to QueryApply, optimized QueryMax and QueryMin
+- optimized QueryCount, added QueryMean
+TwoListControl - fixed bug with SetList
+UOMControl - changes to handle flat rates
+- removed trim from Get (otherwise Split_UOM doesn't work properly)
+Unless - new (from Kevin Kinnell)
+VersionHistoryControl - added version history
+VertFormat - changed to continue when item.Y >= _report.GetDimens().H in GetSize method
+- fix for empty Vert's (for pgo/pge)
+WebEditControl - new (incomplete)
+WebEditModel - new (incomplete)
+WebEditSplitControl - new (incomplete)
+When - new (from Kevin Kinnell)
+WikiFormat - modified to not print headings and edit and find links
+- hide "^" after headings when printing
+- removed "^" link to go back to the top of the page
+WikiTemplate - modified to not print headings and edit and find links
+- moved noPrint div to include the last edited line
+WikiView - modified to not print headings and edit and find links
+WinErrTest - changed to handle other languages
+Window - fixing focus issues
+WithCopyDC - new
+WorkSpaceControl - kept local variables across Run's, added Variables pane to show them
+- changed so find works on output pane
+- added Comment/Uncomment Lines and Comment/Uncomment Selection commands
+- standardized toolbar button order
+WorkSpacePaneControl - new
+WrapFormat - kludged to CALCRECT in a copy of the dc - otherwise it greatly increases size of preview emf
+- fixed ReporterColHeads problem from recent WithCopyDC change
+- trying to fix Win95 problems with dc 

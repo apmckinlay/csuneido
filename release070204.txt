@@ -1,0 +1,526 @@
+Suneido February 4, 2007 Release
+
+Highlights:
+
+added join by (see Database > Queries > join and leftjoin)
+improvements to catch (see Language > Exceptions)
+added Database.Kill to force the server to disconnect a client
+fixed object.Eval to accept @args
+added string.Eval2 - useful to determine if code returned a value
+changes to allow building with VC8 (e.g. free Visual C++ 2005 Express)
+
+AccessControl - new historyFields and nextnum options
+BrowseControl - new facility for users to create custom fields
+QueryView - added tooltips for values that don't fit in column
+- added right click context menu options to Copy and Inspect values
+ListViewControl - added stretch_to_fill, usercolumns, tips, and menu parameters
+OpenImageControl, ImageControl - added support for drag and drop
+Reporter - added ability to export report data
+- various fixes to handle multiple monitors better
+
+suneido.exe:
+
+builtins.cpp - added pragma to disable VC stack overflow warning
+callback.cpp - changes to compile in VC8
+database.cpp - added test
+database.cpp - fixed to reverse tables update and remove index entries if output fails
+database.cpp - moved user_trigger to end of add_any_record to handle errors better
+database.h - fixed Col operator== to use column instead of colnum (which is always -1 for rules)
+dbms.cpp - changed to use TLS
+dbms.h, dbmslocal.cpp, dbmsremote.cpp, dbserver.cpp, sudb.cpp - added kill
+dbmsremote.cpp, dbserver.cpp - improved logging
+fibers.cpp, interp.cpp - added thread (fiber) local storage (TLS) and switched to using it
+getmacadr.cpp - new
+interp.cpp - improvements to catch_match
+load.cpp - errlog and alert exceptions during load (and continue on)
+named.h - changed int to ushort to avoid sign extension issues
+port.h, portwin32.cpp - removed get_page_size (no longer used)
+portwin32.cpp, callback.cpp - replaced alloc/free executable with Heap
+prim.h - added missing include
+qjoin.cpp - added extra checking (only in debug builds)
+qselect.cpp - fixed bug in convert_select where it didn't detect conflict with fixed
+qselect.cpp - fixed select to handle conflicting
+query.cpp - improved tracing
+query.h, qjoin.cpp, qjoin.h, qparser.cpp - added join by
+recover.cpp - fixed to set max chunks mapped after index checking
+regexp.cpp - fixed bug with patterns ending in '('
+sesviews.cpp - added thread (fiber) local storage (TLS) so session views aren't lost by context switches
+slots.h - changed iterator types to avoid compiler warnings
+sudate.cpp - fixed bug in parse with garbage input
+suneido.cpp - added assert for VC8, updated copyright, updated -version info
+suobject.cpp - change in erase for VC8, added argseach to Eval
+sustring.h, sustring.cpp - added Eval2
+tempdest.h, tempdest.cpp - replaced mem_committed with Heap (to avoid limit on number of VirtualAllocs)
+testobalert.h - added test.log
+transaction.cpp - added cast to suppress compiler warning
+
+suneidoc:
+
+/Database/Queries/join - added "by"
+/Database/Queries/leftjoin - added "by"
+/Database/Reference/Database/Database.Kill - new
+/Database/Reference/DoWithoutTriggers - added note that it doesn't work on client
+/Database/Reference/QueryAddWhere - new
+/Database/Reference/QueryGetSort - new
+/Database/Reference/QueryList - corrections from Ajith
+/Database/Rules/Stored Dependencies - fixed typo (from Mauro)
+/Language/Data Types/Number - added note that hex & octal limited to 32 bits (from Mauro)
+/Language/Exceptions - updated - added '*' and '|' and examples
+/Language/Reference/Asup - new
+/Language/Reference/Date/date.MinusMinutes - new
+/Language/Reference/GetMacAddress - new
+/Language/Reference/InvertHtml - new
+/Language/Reference/Object/object.AddMany! - new
+/Language/Reference/Object/object.Erase - fix from Mauro
+/Language/Reference/Object/object.Remove - updated for multiple arguments
+/Language/Reference/OutOfHeap - corrected typo
+/Language/Reference/Scanner - added see also ScannerFind
+/Language/Reference/ScannerFind - new
+/Language/Reference/SocketClient/SocketClient - added not that timeout doesn't apply to connecting
+/Language/Reference/String/string.Eval - updated
+/Language/Reference/String/string.Eval2 - new
+/Reports/Reference/GridFormat - added span example
+/Tools/Language Translation - updated
+/User Interfaces/Reference/AccessControl - added historyFields option
+/User Interfaces/Reference/AccessControl/Messages - added new messages
+- updated
+/User Interfaces/Reference/AccessNavControl - fixed to use h3 instead of h4
+- corrections from Ajith
+/User Interfaces/Reference/AtlAxWinControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/AttachmentsControl - new
+/User Interfaces/Reference/BrowseControl - added stretch option
+/User Interfaces/Reference/BrowseControl/Methods - Added Max_records to SetQuery method
+/User Interfaces/Reference/BrowseImageControl - new from Claudio Mascioni
+/User Interfaces/Reference/BrowseImageName - new from Claudio Mascioni
+/User Interfaces/Reference/ButtonControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/CaptionButtonControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/CenterTitleControl - additional parameters
+- split out Methods (from Jos Schaars)
+/User Interfaces/Reference/ChooseManyControl - added a text parameter that will be displayed between the list and the buttons
+/User Interfaces/Reference/ComboBoxControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/Container - fixed to use h3 instead of h4
+/User Interfaces/Reference/ContextMenu - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/Control - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/Controller - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/CustomizableControl - fixed to use h3 instead of h4
+/User Interfaces/Reference/Dialog - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/DrawControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/EtchedLineControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/EtchedVertLineControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/ExplorerControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/FlipControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/FormControl - added note about overlap
+- split out Methods (from Jos Schaars)
+/User Interfaces/Reference/Group - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/HeaderControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/HorzControl - added overlap:
+/User Interfaces/Reference/Hwnd - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/IdControl - added documentation for the new invalidRestrictions option.
+/User Interfaces/Reference/ImageControl - updated for drag & drop
+/User Interfaces/Reference/ListBoxControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/ListControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/ListViewControl - split out Methods (from Jos Schaars)
+- updated, added tips
+/User Interfaces/Reference/ListViewControl/Messages - new
+/User Interfaces/Reference/OpenBrowseImageControl - new from Claudio Mascioni
+/User Interfaces/Reference/OpenFileControl - added mandatory:
+/User Interfaces/Reference/OpenImageControl - updated for drag & drop
+/User Interfaces/Reference/PersistentWindow - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/ProgressBarControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/RadioButtonsControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/RecordControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/RecordControl/Methods - New forceCheck option to Valid method.
+/User Interfaces/Reference/SaveFileControl - added mandatory:
+/User Interfaces/Reference/ScrollControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/ScrollbarControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/ShowHideControl - added ShowAll
+/User Interfaces/Reference/StateProvControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/StatusControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/TabControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/TabsControl - split out Methods (from Jos Schaars)
+- additions (from Claudio)
+/User Interfaces/Reference/TabsControl/Messages - new (from Claudio)
+/User Interfaces/Reference/TabsControl/Methods - additions (from Claudio)
+/User Interfaces/Reference/TitleControl - additional parameters
+- split out Methods (from Jos Schaars)
+/User Interfaces/Reference/TreeModel - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/TreeViewControl - split out Methods (from Jos Schaars)
+- fixed to be "SetImageList" instead of "SetImagelist"
+/User Interfaces/Reference/UOMControl - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/UserColumns - new
+/User Interfaces/Reference/VertControl - added overlap:
+/User Interfaces/Reference/Window - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/WndProc - split out Methods (from Jos Schaars)
+/User Interfaces/Reference/YesNo - new
+/User Interfaces/Reference/ZipControl - corrected
+
+stdlib:
+
+AboutSuneido - added 2007 copyright
+AccessControl - moved accessing of valid rule from setdata to edit_mode method (we don't need to access the valid rules unless we need to modify the record)
+- modified to not allow deleting records that are being edited
+- do not check if the record is locked if it is already in edit mode when deleting
+- Addition of messages to prevent users from deleting, restoring, and discarding changes on new records (used when we don't want to lose control numbers, ie: order numbers)
+- Fixed issue where check_valid was causing record_change_members to get reset if the access record changes during the check_valid (end up not sending notifications for certain fields changing)
+- changed to pass ".data" to Access_AfterNewRecord send message
+- fixed to handle outside book inside controller (problem reported by Ajith)
+- if the record the user is trying to delete is protected and there is a reason, display it when Current -> Delete is selected so they have more of an explanation
+- Handle transaction conflicts / errors throughout the whole save process; simplified exception handling in AccessControl save method (and methods called from save).
+- Added an assert that access is in edit mode when saving. Need to know if it is happening because it can potentially cause problems.
+- Added a t parameter to the SaveFor, so saving can be done in the same transaction.
+- made KeyException catch's more specific to make debugging easier
+- added historyFields option to access to handle Current -> History more automatic
+- fixed problem where Alert from Select was not using right Hwnd
+- Improved Current Delete so that errors  from the AccessBeforeDelete message are handled properly
+- changed to only show "History" option on the "Current" menu button if there's historyFields argument passing into access
+- changed Assert that access is in edit mode when saving to just log an error instead of an assertion failure, user gets stuck if we throw an exception each time.
+- changed save_selects to be done in one transaction; added test.
+- changed to catch "Transaction.Complete failed" error and give users a more user-friendly message.
+- added data: to Access_NewRecord message
+- started to add support for ActiveRecord models.
+- added support for new GetNextNum (nextNum:)
+- changed First/Last/Next/Prev buttons to be pressed instead of disabled (so you can still press them)
+- removed unused GetAccessTransaction function
+- added SetEditMode
+AccessKey - new - for adding mac address to validation keys
+AccessNavControl - added overlap: to default control
+- minor change to be more compatible with AccessControl
+AccessNavListControl - renamed EmulateTrackMouseEvent to TrackMouseEvent (to match Windows API)
+ActiveRecord - new
+AddressControl - Added extra_fields so we could use AddressControl in more places
+AlertTransactionCommitFailed - moved SuneidoLog - to log message before alert - so we can have a more realistic timestamp when the error occurred
+- changed wording to be more user friendly; added CAUGHT to the suneidolog  because it is unclear in the log where errors are coming from
+AttachmentsControl - container to allow drag and drop of multiple files
+Base64 - improved decode to automatically add trailing '='
+BookControl - started a standard Notification system for the book control
+- added a kludge to get around the uninitialized BookControl_tree error
+- Changed BookControl's GetState to check members before adding to the state object to handle uninit member errors.
+- BookControl has the ability to start with no book initially; changed Destroy to handle case where no book was ever loaded.
+BookEditModel - fixed issue with non-existent column "lib_committed" when renaming item (lib_committed column does not exist until item is sent to version control)
+- added t option (a transaction) to Nextnum method
+BookExport - added link to suneido.com on navigation bar
+BookExportOne - wrapped test in HtmlWrap to handle code in the pages
+- fixed to only put the HtmlPrefix on once; fixed to eval records that are not html code
+- need to do Asup to evaluate any calls in the pages (HtmlWrap used to do this)
+BookLabelsControl - fixed to specify resize: to toolbar.SetLabels
+BookMarkContainerControl - refactored SetupCommands from Window and Dialog to WindowBase
+BookMenuPage - added headings parameter to split list when using one column
+BookModel - moved the remove and the add for the book plugins into a RetryTransaction to avoid transaction conflict errors
+BookNotification - new
+BookNotifyIncludes? - new
+BookPrint - Gave user better error message if the temp file can't be opened for printing.
+BookToolbarControl - fixed SetLabels to refresh window properly
+BrowseControl - added print to the BrowseControl context menu (by Mauro)
+- added Reason Protected to BrowseControl
+- modified protect_field? method to handle string result
+- added max_records param to SetQuery
+- modified On_Context_Customize_Columns method to handle case where columns was not set yet.
+- modified List_WantNewRow to add more conditions to checking whether to set sticky (was kicking in the rule when checking if value was "")
+- added checking on Reason_Protected for .protectField set to false
+- fixing delays that occurred when adding records to browse.
+- fixed problem where save_rec member was uninitialized (could happen if error occurred in Browse_BeforeSave); fixed problem where last record was always selected after a duplicate key error, instead of the record that was being saved.
+- added a way to hide Browse/List contents, but keep the browse functional.
+- modified On_Context_Print to use parent's hwnd
+- changed Save method to catch more specific errors
+- changed to catch "Transaction.Complete failed" error and give users a more user-friendly message.
+- added stretch option
+- added a way to add custom columns to BrowseControls
+BrowseFlipFormControl - moved Flip button to the top so it is always visible to the user. Browse can be tall if the form is tall since the smaller of the two is always sized to match the larger.
+- added mandatoryFields option to be used for "Customize Columns" command.
+- made Flip button a little smaller
+BrowseFolderControl - overrode the Set to handle when the user selects the root of a directory
+- additions (from Claudio Mascioni)
+BrowseFolderName - additions (from Claudio Mascioni)
+BrowseImageControl - new (from Claudio Mascioni)
+BrowseImageName - new (from Claudio Mascioni)
+- changes (from Claudio)
+CheckBoxControl - added lefttext parameter, adjusted sizing (from Jos Schaars)
+- added focus rect around prompt, allowed clicking on prompt
+CheckBoxFormat - added 'w' and 'width' options (Reporter uses these for column widths)
+CheckBoxPairControl - handled checkbox prompt and NoPrompt in Construct
+- restored to use CheckBoxPairControl so prompt isn't greyed when protected
+- Added Get/Set methods (needed by mileage option controls)
+- fixed vertical alignment of checkboxes
+- removed the Recalc and the Resize methods because they are not needed anymore; the Recalc was adding to the Ymin which was adding unnecessary spacing around the checkbox
+- added focus rect around prompt, allowed clicking on prompt
+- fixed to ignore clicks on text if checkbox isn't enabled
+- changed to set .Top to the checkbox top to fix alignment issues
+- ignore mouse click if disabled
+- fixed to Send NewValue when you click on prompt
+CheckResources - changed to show memory arena in mb
+CheckTableIndexCounts - showed strategy if wrong
+ChecksumLibraries - changed to not re-output reporter reports menu all the times.
+ChooseDatesControl - Fixed problem where incorrect dates are being saved when different short date formats are used.
+ChooseListControl - fixed problem where listField GetField was not returning the proper value (message was not handled by Controller so 0 was returned). Just set the list to an empty list in this case.
+- fixed to handle multiple monitors
+ChooseManyControl - added a text parameter that will be displayed between the list and the buttons
+- fixed problem where Set was changing the value to "None" but not notifying RecordControl. Wasn't saving the change.
+- NewValue in Set was causing problems with initial record being loaded in AccessControl (if the Access was using the Access_AfterField message and referencing the Access as .Access)
+ChooseManyListControl - added a text parameter that will be displayed between the list and the buttons
+- fixed vertical sizing
+- handled case where description does not exist for a list item.
+CommaListControl - new control used to enter comma separated lists
+- handled trimming of items better; allow user to type the list directly in the field.
+CommaListDlgControl - new control used to enter comma separated lists
+- handled trimming of items better; allow user to type the list directly in the field.
+Control - handled checkbox prompt and NoPrompt in Construct
+- fixed NoPrompt change
+- restored to use CheckBoxPairControl so prompt isn't greyed when protected
+- changed CheckBoxPair to just take prompt
+Controller - fixed Resize to handle if Xmin changes (e.g. from Set on Static)
+CountryFromStateProv - Added variations for Quebec (PQ), Newfoundland (NF) that are sometimes used and added Nunuvit (NU)
+CreateProcess - new (from Santiago Ottonello)
+CursorWndProc - renamed EmulateTrackMouseEvent to TrackMouseEvent (to match Windows API)
+CustomPromptValid - Added validation when users are able to customize field prompts - to avoid entering numbers that will cause problems later (formulas in reporter)
+- made '#' a valid character in custom prompts
+CustomizableFieldDialog - Added validation when users are able to customize field prompts - to avoid entering numbers that will cause problems later (formulas in reporter)
+Datadict - modified to handle printing select params for the same field more than once on reporter reports; added test.
+DateTimeFormat - added ability to specify width, allows date/time columns to be resized in reporter.
+Dates - added MinusMinutes method
+Dialog - added SetupAccels (like Window)
+- refactored common accelerator code from Dialog and Window to WindowBase
+- refactored SetupCommands from Window and Dialog to WindowBase
+- added SetAccels (but accels still don't work)
+- fixed to handle multiple monitors
+DropDownButtonControl - renamed EmulateTrackMouseEvent to TrackMouseEvent (to match Windows API)
+DumpLibrariesControl - using _hwnd
+EditControl - changed so Copy does SelectAll if selection was empty
+EditorControl - added Print command (Ctrt+P)
+- only mark the control dirty after zooming if the text actually changed.
+EmulateTrackMouseEvent - renamed EmulateTrackMouseEvent to TrackMouseEvent (to match Windows API)
+ExplorerListModel - changed to catch "Transaction.Complete failed" error and give users a more user-friendly message.
+ExplorerListModelLinked - changed to catch "Transaction.Complete failed" error and give users a more user-friendly message.
+ExplorerListViewControl - fixed problem where selection was lost when doing a restore
+- removed the SetSelection from Restore because it causes problems when saving the record by leaving it.
+- fixed problem where On_Save was losing the record selection (causing changes to the record after using the Save button to be lost)
+- added a new message to notify controllers when a field in the ExplorerListView's view changes
+- changed to catch "Transaction.Complete failed" error and give users a more user-friendly message.
+Export - Allow export from global reporter.
+- Fix XML export tag names to be valid (via simple 0xNN translation).
+- modified Export() method to format date values.
+- renamed format_date method to format_dates; improved code in format_dates method.
+ExportXML - Fix XML export tag names to be valid (via simple 0xNN translation).
+- Updated test and empty string case.
+FindWindow - new (from Santiago Ottonello)
+FirstLastNameControl - added Valid? method so that validation works in RecordControl.
+FormControl - added overlap parameter (from Jos Schaars)
+- added Dir: 'horz' (to fix AddressControl) (from Jos Schaars)
+GetMacAddressHex - new
+GetMonitorInfo - new - multiple monitor stuff
+GetMonitorInfoApi - new - multiple monitor stuff
+GetNextNum - new - version that handles "putting back" numbers
+GetRemoteServerStats - changed to show MAC address
+- changed to get the MAC address from the server instead of from the client
+GetWorkArea - fixed to take optional rect to handle multiple monitors
+GlobalExportControl - Allow export from global reporter.
+GotoLibView - fixed for names ending in '!'
+GridFormat - making adjustments to handle borders
+- fixed to center within leading (from Joshua)
+GroupBoxControl - size adjustments (from Jos Schaars)
+HideControl - removed - use ShowHideControl
+HtmlWrap - added Asup to suneidoc
+Html_ahref_Control - renamed EmulateTrackMouseEvent to TrackMouseEvent (to match Windows API), simplified invalidates
+HttpPostQueue - new
+Hwnd - split out DestroyWindow method from Destroy (to use from ListView)
+IdFieldControl - added the ability to select multiple items at a time when using the "in list" report option.
+- added status option in case we need to add a tip for the user.
+- fixed to not save " "
+- added invalidRestrictions option to IdControl
+- made exact matches work on the abbrev field
+IdeActions - moved the plugin options on the IDE menu to their own sub-menu because the IDE menu was getting long
+- moved the WorkSpace, LibView, QueryView, SchemaView, ViewsView, and ClassView to a Views submenu; refactored the submenu code to work for both the Plugins submenu and the Views submenu
+- using _hwnd
+ImageButtonControl - renamed EmulateTrackMouseEvent to TrackMouseEvent (to match Windows API)
+ImageControl - added support for drag and drop
+InfoWindowControl - factored out MakeRectVisible!
+Inspect - using _hwnd
+InvertHtml - new
+Iso3166CountryCodes - new
+KeyControl - added the ability to select multiple items at a time when using the "in list" report option.
+- fixed multi-select when columns are not passed to the KeyControl
+- added status option in case we need to add a tip for the user.
+- Changed to handle "refreshing" restrictions (when restrictions come from a rule) when the field gets the focus and when the drop-down is used.
+- added invalidRestrictions option to IdControl - allows two sets of restrictions to be specified, one being valid restrictions and one being invalid.
+KeyException - improvements
+KeyFieldControl - added status option in case we need to add a tip for the user
+KeyListView - change "Search" button to "Select" on Locate pop up list
+- fixed Go button when used with fields that are not strings (needed to encode)
+LibIO - changed to ignore blank lines at the end of the file or between records in the file when importing.
+- changed LibIO to handle images in books that are in the res folder
+LibViewControl - changed to use Eval2 to not show "" unless code returns ""
+- removed unnecessary extra OkCancel on Go To Definition
+LinkButtonControl - new
+ListControl - Added a way to hide Browse/List contents, but keep the browse functional.
+- added locals to GetField and SetField methods that get logged with any exceptions to help track down errors where selection size isnt 1
+- fixed to handle multiple monitors
+- fixed issue with "uninitialized member 0" from ListEditWindow_Commit when data is empty.
+ListEditWindow - fixed for multiple monitors
+ListViewControl - added stretch_to_fill and usercolumns options, added header notifications
+- added tooltips, refactoring
+- added menu: parameter and On_Copy
+- added On_Inspect
+ListViewModel - fixed problem where records were being counted in a different transaction than the queries were being done in. Was causing Asserts in the model to fail (in rare cases).
+LocateControl - simplified Pos (used by Access locate tip)
+LockManagerImpl - Changed error when lock not found in Renew method to just log an INFO message. User does not need to get an error. Fixed test.
+- changed lock manager to add the lock if the Renew method doesn't find the original lock.
+LogMemoryEmail - Sending of emails was failing silently
+LoggedInUsers - changed to a control and added a button to allow users to disconnect other connections
+MakeRectVisible! - new
+MapButtonControl - fixed to not save if not changed
+- changed to LinkButton
+MenuButtonControl - changed to use DrawState so you don't need disabled icon (from Claudio)
+- renamed EmulateTrackMouseEvent to TrackMouseEvent (to match Windows API)
+MonitorFromRect - new - multiple monitor stuff
+MonthCalDatesDialog - Fixed problem where incorrect dates are being saved when different short date formats are used.
+MoveFileEx - new
+MultiSelectControl - added the ability to select multiple items at a time when using the "in list" report option.
+- made the list read-only
+- added a title to the multi select
+NoPromptControl - handled checkbox prompt and NoPrompt in Construct
+Numbers - added ToRGB (from Claudio)
+Objects - improved Remove to handle multiple arguments, added AddMany!
+OpenBrowseImageControl - new (from Claudio Mascioni)
+OpenFileControl - added mandatory:
+OpenImageControl - added support for drag and drop
+OptimizeNeeded? - fixed so that optimize occurs every monday if no backup is found to compare the size.
+OptionalNumberFormat - added justify option
+- changed to show "" instead of "I.nf"  for the formula result in Reporter, when a number was divided by 0
+- fixed Convert method to handle where data is not a number
+PageHeadFormat - added header font to allow customizing the title font
+PaneControl - added missing GetChildren
+Params - Modified so ReportDestination gets set even if not using ParamsControl - directly calling On_Preview
+- fixed the Clear button to set all the parameters to empty
+ParamsChooseListControl - added validation to not allow empty lists; was being treated as having all values selected.
+ParamsChooseListDlgControl - allow deleting items from saved lists (right-click); changes to the save dialog
+- modified set_list method to clear values_list
+- added the ability to select multiple items at a time when using the "in list" report option.
+- Changed message when trying to use Multi-Select with controls other than KeyControl derived controls.
+ParamsSelectControl - fixed problem where controls being destroyed were sending NewValue causing program errors when trying to get their value
+ParamsSelectFormat - fixed issue where data for checkmark fields printing in an unreadable format
+PersistentWindow - fixed transaction conflicts that occurred when closing the persistent window, caused by ALLINDEX issue
+Plugin_AccessMenus - added historyFields option to access to handle Current -> History more automatic
+Plugin_FieldTypes - changed to use boolean format instead of CheckMark on custom fields to fix issues with printing being cutoff
+Plugin_IdeMenu - added Views View
+- Added option to turn on the ShowAll for the ShowHideControl
+- moved the plugin options on the IDE menu to their own sub-menu because the IDE menu was getting long
+- moved the WorkSpace, LibView, QueryView, SchemaView, ViewsView, and ClassView to a Views submenu
+- changed ShowAll to allow true/false/""
+Plugin_NotifyUser - started a standard Notification system for the book control
+Plugin_UI - moved the plugin options on the IDE menu to their own sub-menu because the IDE menu was getting long
+- moved the WorkSpace, LibView, QueryView, SchemaView, ViewsView, and ClassView to a Views submenu; refactored the submenu code to work for both the Plugins submenu and the Views submenu
+Plugins - using _hwnd
+PreviewControl - disabled First and Prev buttons when on first page; disabled Last and Next when on last page.
+- added check for .Window before destroying because somehow it can get destroyed while in the print process.
+PreviewPageControl - disabled First and Prev buttons when on first page; disabled Last and Next when on last page.
+- catch temp file write errors to give users a better message
+QueryAddWhere - updated for ScannerFind change
+QueryGetSort - updated for ScannerFind change
+QueryGetTable - new
+QueryStripSort - updated for ScannerFind change
+QueryViewControl - added gridlines and tooltips
+- added menu with Copy
+- added Inspect
+RadioButtonControl - adjusted sizing and alignment (from Jos Schaars)
+RadioButtonsControl - adjusted sizing and alignment (from Jos Schaars)
+- changed Picked method to not doing "Set" and send "NewValue" if readonly is true
+Range - added params to the low > high error
+- logs the calls when low > high, logs params as a record instead of object.
+- simplified Overlaps?
+RecordControl - fix for white border left around fields when protecting (from Jos Schaars)
+- Added a way to force control's validation checking even when the RecordControl is not dirty
+Reporter - Modifications to allow Exporting Global Reports to a file
+- Allow export from global reporter.
+- added a way to set permissions to "Private", "Group", and "Public"; defaults to "Private"
+- protect the Field if the Function selected is "count" in the Summarize
+- changed to not allow summarize on calculated fields that have summarized columns.
+- modified to take in a report name to load after constructing
+- fixed issue where report name was saved wrong thus causing page setup not working properly.
+- prevented errors that occurred when invalid reports were saved and then loaded again.
+- added startOnPrint option
+- changed startOnPrint to printMode; added defaults to the parameters for New; do not set the title if using printMode; do not show the buttons at the top if using printMode, display the title instead; added to the Window validation items to get the Ok_to_Destroy? if in printMode
+- checked if Tabs exist before selecting the print tab in case Reporter was destroyed already.
+- added an option to not display the report on the menu
+- needed to track a new variable (.save_name) which is the value from the report field in the params table because the report_name field not longer contains the "~Axon ETA"
+- handle exclude from datasource as a function or string (function name) in addition to Object; added validField option
+- changed to not re-output reporter reports menu all the times.
+- moved prints buttons to footer instead of tab; renamed Print tab to Select; minor re-arrangement to fields on formula tab so that it would fit 800x600
+- fixed issue where printParams printing internal fields (i.e. calc0, calc1, etc.) instead of prompts.
+- changed dialog style so min/max buttons don't show on title bar
+- changed to handle printing more than one select for the same field.
+- modified to handle printing select params for the same field more than once on reporter reports; added test.
+- fixed problem where column options were saved in an object and then were getting set back into RecordControl as an object (objects not supported in RecordControl)
+- fixed problem where invalid field prompts are saved in the fields list and it caused a program error when selecting columns. Changed to ignore these columns (don't add back into cols list when processing new columns).
+ReporterFormat - changed to print the summary with the same format as the field
+- fixed issue where "Show Before" gets cut off when the value is  too long
+- modified Before_field method to handle timestamp values (i.e. when "Show Before" option from Reporter is checked)
+ReporterOpenDialog - created a public method to build the list of available reports
+- fixed to handle duplicate report name on Rename
+- changed to not re-output reporter reports menu all the times
+- fixed to handle deleting old menu options and adding new menu options when renaming reporter reports
+RetryTransaction - added random fallback
+SSNSINControl - changed to remove all non-numeric characters before formatting to fix issues when users enter non-numeric characters
+SaveColumns - added deprecated comment
+SaveFileControl - added mandatory:
+ScannerFind - changed to return string.Size() instead of false (like string.Find does)
+ScheduleControl - changed to output errors to suneidolog table instead of the schdmsg.txt file
+- fixed issue with "uninitialized member: testDate" when using the "Date At" run time parameter in ScheduleControl
+ScintillaControl - fixed to show parameters for names ending in '!'
+ScrollControl - replaced duplicate adjust - needed in some cases
+ScrollbarControl - Added GetEnabled method to match overridden SetEnabled method
+SelectControl - fixed problem where Alert from Select was not using right Hwnd
+SendNightlyChecks - Sending of emails was failing silently
+SetColumns - added deprecated comment
+ShowHideControl - added Suneido.ShowAll override
+- changed when hidden to use (Skip 1) instead of (Static "") so if a whole row is hidden it doesn't leave a blank line
+ShowHideDialog - changed ShowAll to allow true/false/""
+ShowNewEntriesControl - added a standard notification system for BookControl
+SmtpSendMessage - sending of emails was failing silently
+StateProvControl - added width
+StaticControl - adjusted sizing (from Jos Schaars)
+- added focus rect around prompt, allowed clicking on prompt
+- added tip and tabstop options
+- added Delayed to Set > Window Refresh (wasn't working properly)
+StringToIdentifier - new
+StringXor - new
+Strings - added ToHex, FromHex, Base64Encode/Decode, Xor, GlobalName?, Identifier?, TruncateLeftFill, TruncateRightFill
+SuneidoLog - changed "<cant save>" to "???" 
+Svc - added Master_list method, removed useless sort
+SvcBook - modified the query to ignore custom reporter reports
+SvcControl - changed to give an OK/Cancel warning if sending a record bigger than 100K; minor refactored.
+- added DeleteRecord method to handle deleted records so that the auto update builder can override and track what records were deleted
+- changed so you can't send changes without having all run the tests successfully :-)
+- changed T toolbar button to not select a particular library in the test runner (since you need to run all tests)
+- changed to track last svc get (to require you to re-run tests)
+SystemMemory - extracted the system memory code into a separate function
+SystemSummary - extracted the system memory code into a separate function
+TabControl - added SetImage (from Claudio)
+TabsControl - changed to allow hiding tabs
+- added SetImageList and SetImage (from Claudio)
+Test - changed to cleanup suneidolog records created by the tests automatically
+TestRunnerGui - changed "Run All" to default to "(All)"
+- changed so you can't send changes to version control without having all run the tests successfully :-)
+Tip - improved positioning
+TrackMouseEvent - renamed EmulateTrackMouseEvent to TrackMouseEvent (to match Windows API)
+TransactionHistoryDialog - added historyFields option to access to make Current -> History more automatic
+UserColumns - new (to replace SaveColumns and SetColumns)
+VfieldsFormat - Add justify option
+ViewsModel - added Views View
+ViewsView - added Views View
+WebLinkControl - added Set method (from Claudio)
+Window - refactored common accelerator code from Dialog and Window to WindowBase
+- refactored SetupCommands from Window and Dialog to WindowBase
+- fixed to handle negative x or y from multiple monitors
+WindowBase - refactored common accelerator code from Dialog and Window to WindowBase
+- refactored SetupCommands from Window and Dialog to WindowBase
+WndPaneControl - fixed to handle multiple monitors
+WndProc - fixed to handle multiple monitors
+WorkSpaceControl - changed commenting keyboard shortcuts to be same as LibView
+- used new Eval2 in Run to only show result if there is one
+- changed Run to print ok if no result (so you can tell it's finished)
+- changed top toolbar button to clear output and variables
+XmlContentHandler - added <$ Code $>
+XmlEntityEncode - added &apos;
+XmlReader - added <$ Code $>
+YesNo - new
+ZoomControl - added Print command (Ctrt+P)
+- changed timer to Delayed, adjusted toolbar if readonly

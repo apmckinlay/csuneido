@@ -1,0 +1,791 @@
+Suneido July 15, 2003 Release (1.0.030715)
+
+This release has taken a little longer than usual so there are 
+lots of fixes and improvements.
+
+Some of the more significant changes:
+
+- XP theme/visual styles support
+- updated to Scintilla 1.53
+- fixed several rare but potentially serious database query bugs
+- start of object/record unification - addition of [...]
+- books can now define their own HtmlPrefix and HtmlSuffix 
+  (e.g. custom stylesheets)
+- better support for tooltips, tooltips added to some controls
+- new tools in LibraryView - View as of, Diff to, Revert to
+
+Compatibility
+
+- regular expressions - removed \i \c \= added (?i) (?-i) (?q) (?-q)
+- [...] is now a record, it is no longer shorthand for this[...]
+- the stylesheet from HtmlPrefix in stdlib has been moved to suneidoc, 
+  there is no longer a default stylesheet
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe:
+
+- fixed bug in Object put with non-integer numbers
+- added [...] (record)
+- added "not" keyword for queries
+- added Get_ and Set_
+- split out builtins.cpp
+- renamed functions to have sunapp_ prefix
+- fixed Method by adding missing hashfn
+- added Mbstowcs and Wcstomb methods
+- regular expressions - removed \i \c \= added (?i) (?-i) (?q) (?-q)
+- queries - changed optimize and nrecords to double
+- fixed bug with "if Name \n {"
+- COMObject - added propertyget
+- Date - added ShortFormat and LongFormat
+- fixed minor bug with calling records
+- added XP manifest to resources
+- rewrote builtinclass, updated Image and File to use it
+- fixed bug with multiple rename queries
+- added summarize query "list" option
+- fixed bug with sequential project query
+- fixed bug with rebuild with deleted/renamed tables
+- added last good commit date to rebuild.log
+- fixed query bug with tables with empty key
+- fixed bug with command line options with getword going past nul
+- fixed bug with temporary indexes on complex queries
+- fixed bug with regular expression group repetition matching
+- added exception for attempts to Use/Unuse libraries from client
+- don't allow creating views if name exists (as table or view)
+- fixed bug with client-server delete and update requests containing newlines
+
+User's Manual:
+
+/Introduction/Acknowledgments - added contributors
+/Introduction/Command Line Options - updated - added links
+/Introduction/Startup - updated
+/Tools/Language Translation - added Portugese and Bulgarian
+/Tools/LibraryView - updated
+/Language/Blocks - updated
+/Language/Classes - split out Overview's
+/Language/Classes/Get Methods - updated
+/Language/Classes/Overview - split out Overview's
+- updated
+/Language/Classes/Set Methods - new
+/Language/Classes/ToString - added order
+/Language/Expressions - split out Overview's
+/Language/Expressions/Function Calls - updated
+/Language/Expressions/Integer - fixed typo (from Jussi)
+/Language/Expressions/Overview - split out Overview's
+- fixed mistake (from Jussi)
+/Language/Field Definitions - new
+/Language/Field Definitions/Overview - new
+/Language/Field Definitions/Field_boolean - new
+/Language/Field Definitions/Field_date - new
+/Language/Field Definitions/Field_number - new
+/Language/Field Definitions/Field_string - new
+/Language/Libraries - updated (from Jussi)
+/Language/Reference/Date/date.EndOfMonth - updated
+/Language/Reference/Date/date.EndOfMonthDay - updated
+/Language/Reference/Date/date.Format - updated
+/Language/Reference/Date/date.LongFormat - new
+/Language/Reference/Date/date.ShortFormat - new
+/Language/Reference/GetFile - updated
+/Language/Reference/Neg - corrected (from Jussi)
+/Language/Reference/Number/number.Pad - updated
+/Language/Reference/Number/number.Round - updated
+/Language/Reference/Number/number.RoundDown - updated
+/Language/Reference/Object/object.Merge - updated
+/Language/Reference/Object/object.Method - deprecated
+/Language/Reference/String/string.Count - updated
+/Language/Reference/String/string.CountUnique - new
+/Language/Reference/String/string.Mbstowcs - new
+/Language/Reference/String/string.Tr - corrected (from Jussi)
+/Language/Reference/String/string.Wcstombs - new
+/Language/Reference/StringLines - new
+/Language/Regular Expressions - updated for (?i) (?q)
+/Language/Statements - split out Overview's
+/Language/Statements/Overview - split out Overview's
+- updated
+/Language/Statements/continue - corrected (from Jussi)
+/Language/Statements/do while - corrected (from Jussi)
+/Language/Statements/switch - updated (from Jussi)
+/Language/Statements/while - corrected (from Jussi)
+/Language/Whitespace - updated
+/Database/Queries/remove - corrected mistake (from Ajith)
+/Database/Queries/times - corrected mistake (from Claudio)
+/Database/Queries/summarize - updated
+/Database/Reference/Backup - updated - default filename
+/Database/Reference/Transaction/transaction.QueryCount - new
+/User Interfaces/Reference/AccessControl/AccessControl - fixed reference to allowDelete and example of allowDelete (capitalization)
+/User Interfaces/Reference/BookControl - updated
+/User Interfaces/Reference/BrowseControl/BrowseControl - added notifyLast option
+/User Interfaces/Reference/ButtonControl/ButtonControl - added more options
+/User Interfaces/Reference/ChooseDatesControl - new
+/User Interfaces/Reference/ChooseManyControl - documented status and columnsWidth parameters
+/User Interfaces/Reference/DateControl - new
+/User Interfaces/Reference/FieldControl - updated
+/User Interfaces/Reference/HeadingControl - new
+/User Interfaces/Reference/IdControl - added filterOnEmpty option
+/User Interfaces/Reference/InfoControl - minor changes
+/User Interfaces/Reference/MainFieldControl - new
+/User Interfaces/Reference/MonthCalControl - updated
+/User Interfaces/Reference/MonthCalDatesDialog - new
+/User Interfaces/Reference/MshtmlControl - new
+/User Interfaces/Reference/NoPromptControl - new
+/User Interfaces/Reference/NoWaitCursor - new
+/User Interfaces/Reference/OkCancel - minor changes
+/User Interfaces/Reference/StaticControl - added color
+/Reports/Formats - updated
+/Reports/Reference/BooleanFormat - updated
+/Reports/Reference/CheckBoxFormat - new
+/Reports/Reference/CheckMarkFormat - new
+/Reports/Reference/DateTimeFormat - new
+/Reports/Reference/GridFormat - documented border parameter
+/Reports/Reference/LongDateFormat - new
+/Reports/Reference/ShortDateFormat - new
+/Cookbook/Adding Context Sensitive Help - new
+/Cookbook/Sending and Receiving Email - new
+/Cookbook/Using Browse on Access for Master-Detail Relationships - new
+/Cookbook/Working With Images - new
+
+stdlib:
+
+AboutSuneido - added contributors
+- added Send('AccessBeforeSave')
+Access1Control - added Restore button
+- rewrote
+- added return value to save_output method (required by save method)
+- fixed new record / original record
+AccessBase - new
+AccessControl - removed unnecessary Method's and simplified ClearCallback's
+- changed to use CenterTitle
+- suppress No Records message from select: option
+- changed Reload to return true if on a new record
+- put buttons in HorzEven
+- fixed restore on new record
+- changed Select to Select...
+- set focus to first field on new record
+- added saveOnlyLinked
+Accumulator - changed [...] to this[...]
+Base64 - new
+Base64Test - new
+Biz_Menu_Authorize - changes to hide option in book
+- renamed Biz_Menu_Authorize to BookAuthorize
+BookAuthorize - renamed Biz_Menu_Authorize to BookAuthorize
+BookBrowserControl - added ProgramPage? method
+BookCheck - new
+- added path to error messages
+- changed to class to inherit in Accountinglib
+BookControl - changed [...] to this[...]
+- fixed browse setting problems with two books open
+- fixed Go To Definition
+- added Help(F1)
+- modified F12 to only work if the User is 'default'
+- added xmin and ymin
+- only call new if .book is false
+- fixed bug where Go To Definition command causes error on html pages
+- made help context sensitive
+- changed so that Go To Definition from User Manual works (will go to the code)
+- added Ok_to_CloseWindow?() method to go back to the menu first
+- changed to bring up already open help book instead of opening another
+BookEditControl - added image tag button
+- removed unnecessary Method's and simplified ClearCallback's
+- added HtmlWrap to get styles
+- added Trim to Link
+- cleaned up
+- changed \i and \= to (?i) and (?q)
+- added H1, H2, H3, added BookEdit_GetTable
+- added H4 and LI, improved Add Paragraph Tags and insertFormat
+- refactor
+- SetFocus is needed in case label is being edited to commit the edit
+BookEditLinkListControl - changed Data(Control) to Record(Control)
+BookEditSplitControl - added HtmlWrap to get styles
+- cleaned up
+- handle Eval'ing text
+- put back accidentally removed HtmlWrap
+- changed \i and \= to (?i) and (?q)
+- allow res/HtmlPrefix and res/HtmlSuffix in books
+BookExportOne - changed \i and \= to (?i) and (?q)
+- fixed
+BookLabelsControl - revised/simplified tooltips
+BookMarkActiveControl - revised/simplified tooltips
+BookMarkContainerControl - revised/simplified tooltips
+BookMenuPage - added heading level parameter
+BookModel - changes to hide option in book
+- renamed Biz_Menu_Authorize to BookAuthorize
+- used full path for menu authorization
+BookSearchControl - removed unnecessary Method's and simplified ClearCallback's
+- changed \i and \= to (?i) and (?q)
+BookToolbarControl - moved NEEDTEXT into TTN
+- fixed Xmin
+- fixed to size properly on different versions of Windows
+BorderControl - fixed stretch
+BrowseControl - call .list's FinishEdit before save
+- bug fixed
+- removed unnecessary Method's and simplified ClearCallback's
+- added notifyLast option
+- added idx and invalidate options to SetField
+- improvements (from Jos Schaars)
+- added new message if user double-clicks the deleted column
+- improvements to save (from Jos Schaars)
+- put save delete back to old version
+- Stopped resizing and dragging on deleted column
+- changed GetSelection to return empty object instead of false
+- disable list context menu if readonly
+- changed Export to save, changed Import to save and then restore
+- added Browse_CellValid message
+- renamed List_CellValid message to List_AfterEdit
+- changed handling of deleting list rows in save (Jos Schaars' suggestion)
+BrowserControl - fixed browse setting problems with two books open
+ButtonControl - added style parameter
+- added tooltip
+CWPSTRUCT - new
+CanvasItem - changed to take block instead of handle
+CanvasLine - changed to take block instead of handle
+CapitalizeWordsControl - new
+- moved CapitalizeWords to Strings
+CaptionButtonControl - revised/simplified tooltips
+- changed to flat style
+CenterTitleControl - new
+Cgi - modified to handle POST and GET
+- added remote_addr
+- changed to take one parameter
+- modified to use new WebMapGet, added header to get rid of cache
+- named env so it's optional
+CgiGet - new
+- edited
+- removed
+CgiPost - new
+- removed
+CheckBoxControl - improved sizing for browse (from Jos Schaars)
+- fixed size & alignment
+CheckMarkFormat - new
+- added font and width parameters
+ChooseButton - renamed ChooseFieldButton to ChooseButton
+- fixed the choose list arrow when there are no themes
+- removed - replaced by DropDownButton
+ChooseControl - new - base for ChooseField and ChooseListControl
+- changed ChooseButton to DropDownButton
+- tweaked sizing
+ChooseDateControl - added width parameter
+ChooseDateTimeControl - added width option (from Ajith)
+ChooseDatesControl - added protectBefore
+ChooseField - removed unnecessary Method's and simplified ClearCallback's
+- updated to handle XP themes
+- made button bigger if XpThemes?()
+- added tooltip
+- changed ... to downarrow
+- refactored
+- position dialog below field
+- adjusted dialog style
+- changed dropdown dialogs to use new posRect parameter of dialog
+- prevent program error if user manages to destroy the control before the dialog is closed (when MainHwnd is used)
+ChooseFieldButton - new
+- renamed ChooseFieldButton to ChooseButton
+ChooseList - added missing listSeparator
+ChooseListControl - removed unnecessary Method's and simplified ClearCallback's
+- added listSeparator (from Jos Schaars)
+- refactored
+- simplified list positioning
+- fixed bug, minor refactoring
+- added otherListOptions
+- fixed issue with field's dirty status
+ChooseManyControl - fixed bug where saveNone option is used and None is selected from the list but isnt saved ("" is saved instead).
+- changed On_Ellipsis to On_DropDown
+- replaced On_DropDown with Get_DialogControl
+- added status
+- added ColumnWidths param
+ChooseManyFieldControl - added status
+- always save "None" if saveNone option is used and value is ''. mandatory option should not be checking saveNone ('None' is valid)
+ChooseManyListControl - changed to add equal amounts to value and description columns on resize
+- added ColumnWidths param
+ChooseMonthDayControl - fixed diappearing ellipsis button
+- added status
+- fixed validation issue
+ChooseTwoListControl - removed title
+ChooseYearMonthControl - fixed for ChooseField size change
+- added status
+ClassBrowser - added Goto method
+- added IdeMenu
+- moved Goto to IdeController
+CloseBookConfirmation - added confirmation message when closing book
+- minor change
+- removed
+CloseThemeData - new
+ComboBoxControl - added NoWaitCursor
+CompileTest - new
+Console - removed unnecessary Method's and simplified ClearCallback's
+Container - improved SetFocus method
+Controller - allowed no control
+Crosstab - fixed to get list of funcs from Accumulator
+- added mandatory to value and function parameter controls
+DRAWITEMSTRUCT - new
+DataControl - removed - not used, replaced by RecordControl
+DateControl - revised to handle 2 digit year formats better
+- improved status messages
+- updated status messages
+DateTimeControl - changed Data(Control) to Record(Control)
+Dates - added LongDateTime
+DebuggerControl - changed Courier to Courier New (from Jussi)
+Delayed - new
+Delete - new
+- removed
+Dialog - changed [...] to this[...]
+- added jump option to help position dropdown dialogs
+- commented out toolwindow size adjustment - doesn't seem needed???
+- added posRect parameter to handle positioning the dialog around the perimeter of the posRect depening on where there is sufficient space
+DiffImageControl - removed unnecessary Method's and simplified ClearCallback's
+- modified to use Mshtml for png formats
+- changed to always use Mshtml for images
+DiffListControl - removed unnecessary Method's and simplified ClearCallback's
+- split lines automatically
+- added WM_MOUSEWHEEL
+- simplified scrolling code
+- fixed so clicks activate
+DrawImageAdapter - refactored
+DrawThemeBackground - new
+DrawThemeText - new
+DropDownButton - new
+- changed CLICK to LBUTTONDOWN
+- fixed pressed state
+- minor correction
+DummyStatus - new
+EVENTMSG - new
+EditControl - removed unnecessary code
+EditorControl - used .Window.MainHwnd for the zoom dialog's parent
+EllipsisButtonControl - removed stretch: 0
+- revised/simplified tooltips
+- adjusted for downarrow changes
+- adjusted for downarrow changes
+- removed - replaced by ChooseButton
+EmptyKeyTest - added test for bug
+EnableMenuItem - new
+ExcludeClipRect - new
+ExplorerControl - changed SearchControl from DataControl to RecordControl
+ExplorerListModelLinked - removed unnecessary Method's and simplified ClearCallback's
+- allow different classes to be used for linked explorerlistview models (redefine SaveChanges)
+ExplorerListViewControl - removed unnecessary Method's and simplified ClearCallback's
+- changes to handle case where new, non-dirty records get deleted when switching the selection (have to retain the selection)
+- changed to use CenterTitle
+- changed to allow context menu on current item instead of disabling the entire window when invalid
+- added Save to context menu
+- call On_New when insert key pressed
+- changed GetSelection to return empty object instead of false
+- allow different classes to be used for linked explorerlistview models (redefine SaveChanges)
+- handled restore when linked and record has not been output yet (can't restore, just return)
+- cleared list on delete so that the list matches the model's data (otherwise, there can be problems)
+- changed to load entries after first resize instead of in the New method (which was too early for the list)
+- moved AddValidationItem back to the New
+ExplorerVirtualListViewControl - removed unnecessary Method's and simplified ClearCallback's
+- changed to use CenterTitle
+ExportCSV - modified export to convert newlines to spaces
+ExportTab - modified export to convert newlines to spaces
+FieldControl - updated to handle XP themes
+- added tooltip for status
+Field_abbrev - added status
+Field_boolean_checkmark - new
+Field_date - changed Encode to handle string values that start with "#"
+Field_firstlast_name - new
+Field_info1 - added Select Prompt
+Field_info2 - added Select Prompt
+Field_info3 - added Select Prompt
+Field_info4 - added Select Prompt
+Field_info5 - added Select Prompt
+Field_info6 - added Select Prompt
+Field_listrow_deleted - removed
+Field_percent - added width
+Field_source - new
+FindControl - changed Data(Control) to Record(Control)
+FindInFoldersControl - refactor
+FindInLibraryControl - changed Find/Replace in Library to Libraries
+- added Clear Output First
+FindText - changed \i and \= to (?i) and (?q)
+FirstLastNameControl - new
+- added bothMandatory
+- fixed name specifications on fields
+- fixed mandatory
+FirstLastNameFormat - new
+FixNumControl - new (from Jos Schaars)
+FormControl - fixed sizing bug
+- fixed bug from recent change
+GetFile - changed to return false if it fails
+GetWindowTheme - new
+GlobalPrint - changed to use SelectPrompt
+- added Save, Load and Clear
+- added validation to sort specification on global report
+Gotofind - changed not to continue if name is already matched with variation
+GotoLibView - give option to create new definition if it does not exist.
+GotoUserManual - new
+GridFormat - added border
+HCBT - new
+HDN - Stopped resizing and dragging on deleted column
+HandleSplitterControl - revised/simplified tooltips
+Handler - added option to SHOW: specific error message (instead of "program error")
+HeaderControl - set normal size to same as scrollbar, added SetItemFormat (from Jos Schaars)
+- Stopped resizing and dragging on deleted column
+HeadingControl - new
+- changed from 14 to 13 so not bigger than Field
+HelpMenu - new
+HorzEvenControl - new
+HtmlPrefix - added type to style
+- moved stylesheet to suneidoc
+HtmlTextControl - added missing charset
+HtmlWrap - allow res/HtmlPrefix and res/HtmlSuffix in books
+- changed <html> to <html
+HttpLinkControl - improved status messages
+HttpServer - changed \i and \= to (?i) and (?q)
+- modified to use new WebMapGet
+- removed Capitalize
+Hwnd - changed [...] to this[...]
+- improve focus handling in SetVisible
+- removed changes (caused problems with tabbing)
+- added destroy_hfont, GetExStyle
+- added checking in Destroy to detect if Destroy has already been done (will cause errors second time).
+- added DisableTheme
+- minor correction
+- used XpThemes?()
+- added ToolTip
+IDI - added XPDOWNARROW
+IdeController - new
+- disabled On_Version_Control (doesn't work)
+- added Goto, made windows persistent
+- changed Access/Browse a Query to use KeyControl on tables instead of history
+- changes to allow use from LibView
+- made Access and Browse Ask's wider
+IdeMenu - new
+ImageButtonControl - added tooltip option
+ImageControl - allowed multi-line message, added context menu message
+- added tooltip
+ImageFilter - refactored
+ImageFormat - added top
+ImagePage - changed \i and \= to (?i) and (?q)
+ImagesList - changed \i and \= to (?i) and (?q)
+Import - if importing records with empty name fields, use abbrev.
+- fixed bug with import where empty abbrev and name fields caused infinite loop. Added detection for infinite loops.
+InflateRect - new
+Init - revised startup so errors are not just ignored
+- check if persistent table exists before doing the query on it
+InfoControl - added Status method
+InspectControl - fixed to handle click outside items better
+IntersectTest - changed \i and \= to (?i) and (?q)
+IsAppThemed - new
+IsClass? - new
+JoinStrings - new
+KeyControl - only invalidate field in On_Ellipsis if the user selected something
+- updated to handle XP themes
+- changed On_Ellipsis to On_DropDown
+- position dialog below field
+- adjusted dialog style
+- changed dropdown dialogs to use new posRect parameter of dialog
+KeyListView - removed unnecessary Method's and simplified ClearCallback's
+- fixed min size, refactored
+- refactored get/save keylistview_info
+LibTreeModel - added LibName(num) method
+LibViewControl - removed unnecessary Method's and simplified ClearCallback's
+- improved Show Locations
+- changed syntax check slightly, added View Item as of
+- added Diff Item to
+- fixed problem with findItem if record has been added to library but it's not in tree
+- color statusbar red when run fails
+- fixed error from paste if svc_deleted doesn't exist
+- tweaked tab close button
+- added IdeMenu and HelpMenu, delegate to IdeController
+- fixed Goto
+- refactor
+- Show Location - modified to show what was found
+- slight change to FindInFolders
+- changed GetSelection to return empty object instead of false
+- added Rename_Member, check for current record in refactor
+- added CloseFolder method which is used in GotoLibView
+- added Go To Documentation command
+LibViewNewItemControl - new
+LibViewNewItemModel - new
+LibraryStrings - changed \i and \= to (?i) and (?q)
+ListBoxControl - added multiple selection option
+ListControl - moved code to destroy editor out of Destroy into new FinishEdit method
+- fixed NextCell method to skip columns with widths <= 5
+- removed unnecessary Method's and simplified ClearCallback's
+- fixed issues with GetNextCell
+- added AllowContextOnly method
+- prevent resizing and dragging on deleted column
+- changed GetSelection to return empty object instead of false
+- changed HighlightValues to take a list instead of members
+- renamed List_CellValid message to List_AfterEdit
+- changed from object to record
+- major improvements from Jos Schaars
+- fixed bug with rowOffset in DeleteRows
+- ensure editor is destroyed when context menu is chosen
+- changed invalid cells to be tracked by column name instead of index to handle case where columns are reordered
+ListEditWindow - removed unnecessary Method's and simplified ClearCallback's
+- minor refactoring (from Jos Schaars)
+ListViewControl - changed [...] to this[...]
+- added close_model
+- removed unnecessary Method's and simplified ClearCallback's
+ListViewModelCached - removed unnecessary Method's and simplified ClearCallback's
+LocateControl - removed unnecessary Method's and simplified ClearCallback's
+- fixed so Static starts with correct value instead of being set later - to handle xmin better
+LongDateFormat - added same parameters as ShortDateFormat
+- handled non-date values being passed to New
+MA - new
+MOUSEHOOKSTRUCT - new
+MailLinkControl - improved status messages
+MainFieldControl - new
+MemoryMonitor - removed unnecessary Method's and simplified ClearCallback's
+MenuButtonControl - fixed to support xmin and ymin
+- changed to match ButtonControl better
+- moved arrow down to match larger button
+- rewrote to derive from Button to get XP theme
+- added XP downarrow
+- handle THEMECHANGED
+- rwrote as owner draw
+MimeEntity - changed [...] to this[...]
+MinusTest - changed \i and \= to (?i) and (?q)
+MonthCalControl - added MCN_SELCHANGE (thanks to webfrank)
+- fixed state highlighting
+MonthCalDatesDialog - added protectBefore
+MonthDayControl - changed Data(Control) to Record(Control)
+MonthDayFieldControl - fixed diappearing ellipsis button
+MshtmlControl - added kludge so embedded stylesheets work
+- changed name to Mshtml
+- simplified
+NameSplit - new
+NameSplitTest - new
+NewObjectTest - new
+NightlyChecks - added rebuild log
+- only print errors, added calls and locals
+- added new line to separate multiple errors
+NoPromptControl - new
+- fixed to set name to field
+NumberControl - added justify option
+Numbers - improvements from Jos Schaars
+- fixed IntDigit and FracDigits (from Jos Schaars)
+- changed IntDigits to return 0 for 0
+NumbersTest - improvements from Jos Schaars
+- added tests for IntDigit and FracDigits
+- changed IntDigits to return 0 for 0
+ODS - new
+ObjectTest - added Test_FracBug
+- added test for Min and Max
+Objects - changed [...] to this[...]
+- fixed Min and Max
+- changed pred to block
+- updated comments, modified MergeUnionIf
+ObserverTest - changed [...] to this[...]
+OpenImageControl - refactored
+- added view, print, delete options
+- added tooltip
+OpenThemeData - new
+OperatingSystem - adjusted names
+POINTinRECT - new
+POINTinRECT_Test - new
+PageHeadFormat - cleaned up printParams font
+- translate "Page"
+PairControl - added SetFocus method
+Params - changed to use Title
+- passed parent window to page setup dialog to prevent user from opening multiple at a time
+ParamsChooseListControl - bug fix in Set - modified to handle when value is ""
+- changed On_Ellipsis to On_DropDown
+- replaced On_DropDown with Get_DialogControl
+ParamsChooseListDlgControl - fixed bug where field has no prompt
+ParamsSelectControl - renamed protect to setVisible, handle invalid ops better
+- removed changes (caused problems with tabbing)
+- added translation (from Jos Schaars)
+- fixed bugs from translation changes
+ParamsSelectFormat - cleaned up printParams font
+PassthruController - changed [...] to this[...]
+PersistentWindow - checked Use's
+PhoneControl - updated status messages
+PopServer - changed [...] to this[...]
+PostalControl - updated status messages
+PreviewControl - changed no pages message
+ProvControl - updated status messages
+QueryApplyMulti - removed outter transaction
+QueryExtrasTest - added QueryCount
+QueryFormat - changed [...] to this[...]
+- moved start of Transaction to just before it's needed
+QueryFormatTest - disabled the test
+QueryMax - added QueryStripSort
+QueryMin - added QueryStripSort
+QueryTest - added Test_project_empty_string
+QueryTotal - added QueryStripSort
+QueryViewControl - changed to IdeController
+- moved Goto to IdeController
+Queue - changed [...] to this[...]
+RadioButtonControl - fixed size & alignment
+RadioButtonsControl - changed [...] to this[...]
+- fixed size & alignment
+- fixed Top when vertical
+RecordControl - removed unnecessary Method's and simplified ClearCallback's
+Refactor - create instance, allow Setup to return false
+Refactor_Rename - factored out common base class
+Refactor_Rename_Local - renamed, improved
+Refactor_Rename_Local_Test - new
+Refactor_Rename_Local_Variable - renamed, improved
+Refactor_Rename_Member - new
+- minor fix
+Refactor_Rename_Member_Test - new
+RemoveMenu - new
+ReplaceControl - changed Data(Control) to Record(Control)
+ReplaceInLibraryControl - changed Find/Replace in Library to Libraries
+Report - changed no pages message
+- fixed problem with duplicate header
+Rule_globalreport_valid - added validation to sort specification on global report
+- added validation of fields (columns) parameter
+SC_CLOSE - new
+ScannerMap - track prev, prev2, and next
+ScannerReplace - updated for ScannerMap changes
+ScannerReplaceTest - new
+ScheduleControl - removed unnecessary Method's and simplified ClearCallback's
+ScheduleTask - changed [...] to this[...]
+ScheduleWindowControl - fixed bug where 'x' button used on edit dialog
+SchemaView - changed to IdeController
+- moved Goto to IdeController
+ScintillaControl - added GetCurrentPos (from Jussi)
+- changed Courier to Courier New (from Jussi)
+ScrollControl - removed unnecessary Method's and simplified ClearCallback's
+- only show 3D border if scrollbars are visible
+- fixed recent change re. 3D border
+SearchControl - translate operations (from Jos Schaars)
+- changed from DataControl to RecordControl, added empty
+SelectControl - fixed starts-with
+- changed \i and \= to (?i) and (?q)
+- Added Ok_to_Destroy to handle if user types invalid field and clicks on X.
+- added translation (from Jos Schaars)
+- added alert for invalid operations
+- added 'continue' if invalid operator for field is used
+SetWindowTheme - new
+ShortDateFormat - handled non-date values being passed to New
+SmtpClient - added authentication
+SmtpServer - changed [...] to this[...]
+SpinnerControl - minor refactoring
+- fixed size & alignment
+SpinnerWndProc - renamed, minor improvements
+- fixed size & alignment
+- tweaked sizing, added SetReadOnly
+- fixed bug from sizing changes
+Stack - changed [...] to this[...]
+StateControl - updated status messages
+StateProvControl - updated status messages
+StaticControl - convert Set value to string
+- fixed size calculation to search for the longest line
+- added color option
+StaticLongDateTimeControl - new
+StaticShortDateTimeControl - new
+StaticTextControl - new
+StatusControl - changed to default to normal color
+- added translation
+StatusTextControl - added translation
+StatusbarControl - added DisableTheme
+- only disable themes if SETBKCOLOR is used
+StringTest - improvements from Jos Schaars
+- changed \i and \= to (?i) and (?q)
+- added Test_Capitalize and Test_CapitalizeWords
+Strings - improvements from Jos Schaars
+- changed Capitalize to Lower rest of string, added CapitalizeWords
+SummarizeControl - added validation before performing the query
+SuneidoAPP - changed \i and \= to (?i) and (?q)
+- allow res/HtmlPrefix and res/HtmlSuffix in books
+Svc - fixed to display correct comment for deletes
+SvcBook - fixed restore losing first letter of name
+SvcClient - fixed splitting of LIST lines to handle names with commas
+- Modified SplitListLine lib committed to add one to Substr (handle different date formats)
+- fixed to display correct comment for deletes
+SvcControl - removed unnecessary Method's and simplified ClearCallback's
+- changed to IdeController
+- added GetState/SetState for settings
+- changed Get All Library Changes to Get All Master Changes (i.e. including books)
+- fixed to display correct comment for deletes
+- modified to use Mshtml for png formats
+- fixed Get All Master Changes
+- changed to always use Mshtml for images
+- fixed bug where clicking in conflicts / master changes list with no selection
+- added F12 command for Go To Definition
+SvcCore - fixed to display correct comment for deletes
+SvcGetDescription - added Standard descriptions button
+- added "updated"
+- added to Standard comments
+- changed Courier to Courier New (from Jussi)
+SvcServer - changed [...] to this[...]
+- fixed to display correct comment for deletes
+- added 0 to 9
+SvcTest - fixed splitting of LIST lines to handle names with commas
+THEME - new
+- added button stuff
+TTN - moved NEEDTEXT into TTN
+TTN_NEEDTEXT - moved NEEDTEXT into TTN
+TTS - new
+TabControl - added DisableTheme
+- removed translation
+TaskbarIconControlTest - renamed
+Test - changed [...] to this[...]
+TestControls - added FirstLastName
+- minor change to ComboBox
+TestRunner - Removed prlib's from library's until they work without demodata (hangs up customers system)
+- removed removal of pr libraries into prcadlib
+- handle tests with syntax errors
+TestRunnerGui - changed Goto Selected to Go To Definition
+- added line: 1 to GotoLibView to specify exact name
+- changed to IdeController
+- changed GetSelection to return empty object instead of false
+- handle tests with syntax errors
+- fixed recently added bug
+TimeControl - updated status messages
+TitleControl - new
+TitleScrollControl - new
+Tmp - new
+- removed
+Tmp2 - new
+- removed
+ToolTipControl - revised/simplified tooltips
+ToolbarControl - moved NEEDTEXT into TTN
+TopAlignFormat - new
+- added X/Ymin/stretch, removed Default
+- moved to Composite folder
+Transactions - added QueryCount, added QueryStripSort to QueryMin/Max/Total
+TranslateLanguage - improvements from Jos Schaars
+TreeViewControl - removed unnecessary Method's and simplified ClearCallback's
+TwoListControl - removed sort: from list2
+- added tooltips for buttons
+UOMControl - added uom_mandatory option
+UOMFormat - expanded uom width
+ViewStrategyTest - improved error message
+VirtualBrowseControl - changed to use CenterTitle
+WM - added CTLCOLOR (altho deprecated?)
+- added THEMECHANGED
+- added WM_MOUSEWHEEL
+WMmap - added CTLCOLOR (altho deprecated?)
+- added THEMECHANGED
+- added WM_MOUSEWHEEL
+WebMap - new
+- added functions for wiki pages
+- removed axis methods
+- removed Capitalize
+WebMapGet - new
+Wiki - added else to catch invalid request methods
+WikiFind - changed \i and \= to (?i) and (?q)
+Window - moved set accels to later (so it isn't done if there's an error)
+- improved setSize (from Jos Schaars)
+- changed setSize back to subtracting estimated task bar height
+- added EnableClose() method
+WindowBase - changed [...] to this[...]
+- added ToolTip
+WndProc - changed [...] to this[...]
+- added CTLCOLORSTATIC
+- added DRAWITEM reflection
+WndProcSpinControl - renamed, minor improvements
+WordPadControl - changed Courier to Courier New (from Jussi)
+WorkSpaceControl - added F12 for Go To Definition, changed Find/Replace in Library to Libraries
+- removed cascading menu from Version Control
+- changed to IdeController
+- removed methods that were moved to IdeController
+- moved Goto to IdeController, removed svc_data
+- added Clear Output First
+- changed Run when nothing selected to select lines before/around cursor instead of everything (from Jussi)
+- removed unused "first" parameter to New
+- changed On_Run to set select if there wasn't one
+XpThemes? - new
+- added IsAppThemed()
+YearMonthControl - changed DataControl to RecordControl
+ZipControl - improved status messages
+- updated status messages
+ZipPostalControl - improved status messages
+- updated status messages

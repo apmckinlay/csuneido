@@ -1,0 +1,326 @@
+Suneido Nov. 29, 2001 Release
+
+Lots of small changes, a few bug fixes. Some of the more significant 
+improvements include:
+
+dll interface 
+- improved support for int64
+- added float and double
+
+network sockets
+- added timeouts
+- improved readline performance
+- fixed speed conflict with Nagle algorithm
+
+Thanks to Helmut Enck-Radena, Jeremy Cowgar, and Roberto Artigas Jr. 
+for their contributions to this release. And thanks, as always, to 
+the Suneido crew - Jeff, Tracy, and Jennie.
+
+Andrew McKinlay
+Suneido Software
+
+
+Compatibility Issues With Previous Release
+
+- QuickSort (stdlib) has been replaced by additional functionality in 
+object.Sort (built-in)
+
+- The leading character for hiding columns in ListView (and therefore 
+IdControl and KeyControl) has changed from underscore (_) to dash (-). 
+However, in most cases it is no longer necessary to hide columns in 
+IdControl and KeyControl since they now automatically include 
+(and hide) the required column.
+
+
+Details of Changes:
+
+suneido.exe:
+
+- added timeouts to SocketClient
+- changed Object to prevent iterators from being invalidated by assignment to existing members
+- improved support for int64
+- added read buffer to synchronous sockets (to improve performance of readline)
+- added better compiler error message for invalid base class
+- added check for valid fields in EXTEND expressions
+- added object.Partition
+- changed object.Sort to stable_sort, added ability to sort by supplied comparison function
+- fixed bug with UNION's of PROJECT's of JOIN's
+- added write buffer to sockets to prevent problems with Nagle algorithm
+- added support for float and double to dll interface
+- fixed bug with output to EXTEND when columns had been deleted from table
+- changed suneido: protocol to return error if SuneidoAPP returns False
+
+SuneiDoc:
+
+/Database/Reference
+    QueryCount - new
+/Introduction
+    Acknowledgments - updated
+/Language/DLL Interface
+    Dll - updated
+    Struct - updated
+/Language/Reference
+    Client? - new
+    Date - updated
+    Export - new
+    ExportCSV - new
+    ExportTab - new
+    ExportXML - new
+    Import - new
+    ImportCSV - new
+    ImportTab - new
+    ImportXML - new
+    LibraryStrings - new
+    Server? - new
+    Shutdown - new
+    Timer - new
+    TranslateLanguage - new
+/Language/Reference/COMobject
+    COMobject - updated
+/Language/Reference/Image
+    Image - updated
+/Language/Reference/Object
+    object.Eval - updated
+    object.Method? - updated
+    object.Partition - new
+    object.Sort - updated
+    object.Swap - new
+/Language/Reference/SmtpClient
+    smtpclient.SendMail - updated
+/Reports/Reference
+    ImageFormat - updated
+    WrapFormat - new
+    WrapItemsFormat - new
+/Tools
+    Access - updated
+    Language Translation - updated
+    WorkSpace - updated
+/Tools/Access
+    Export - new
+    Import - new
+/User Interfaces/Reference
+    BookControl - updated
+    BrowseControl - updated
+    ChooseManyControl - updated
+    ChooseTwoListControl - updated
+    DiffListControl - updated
+    EditorControl - updated
+    EtchedLineControl - updated
+    ExplorerListViewControl - updated
+    FieldControl - updated
+    FillControl - updated
+    HorzSplitControl - updated
+    IdControl - updated
+    ImageControl - updated
+    InspectControl - updated
+    KeyControl - new
+    MultiControl - new
+    NumberControl - new
+    OkCancelControl - updated
+    SpinnerControl - updated
+    Split - updated
+    StaticControl - updated
+    TabControl - updated
+    TabsControl - updated
+    TwoListControl - updated
+    VertSplitControl - updated
+/User Interfaces/Reference/AccessControl
+    AccessControl - updated
+/User Interfaces/Reference/ButtonControl
+    ButtonControl - updated
+/User Interfaces/Reference/CaptionButtonControl
+    captionButtonControl.GetType - updated
+    captionButtonControl.SetType - updated
+/User Interfaces/Reference/ComboBoxControl
+    ComboBoxControl - updated
+/User Interfaces/Reference/ListBoxControl
+    ListBoxControl - updated
+/User Interfaces/Reference/ListViewControl
+    ListViewControl - updated
+
+stdlib:
+
+AboutSuneido - added Jeremy
+AccessControl - Added the ability to pass in a list of fields to be excluded from the select.
+- changed validation to be based on one rule, instead of a list of rules, made parameter names consistent between controls.
+- added current print
+Beep - try both default beeps
+BookBrowserControl - added On_Copy to forward to either browser or focus
+BookControl - redirected On_Copy to BookBrowser
+- renamed the SelectTab method to TabClick so it's done whenever a tab is clicked, not only when the selected tab changes.
+BookEditControl - re-organized menus
+- changed export to say it appends
+- Changed the appearance of the import and added a Bold button and an Italic button to the toolbar.
+BookEditModel - Transaction Updates
+BookExport - Transaction handling update
+- fixed relative links and problem with certain image tags
+BookModel - Transaction Updates
+BrowseControl - added a Default method that passes the request on to the ListControl.
+- fixed Observer_ListRow to work with all rows not just selected;. fixed to observe new rows
+- changed validation to be based on one rule, instead of a list of rules, made parameter names consistent between controls.
+ButtonControl - Removed the SETFOCUS method
+CheckBoxControl - fixed set argument
+ChooseField - added auto complete
+ChooseManyControl - added auto complete
+- fixed a bug that set the field to false when the list was closed using the 'x'
+- added checking for invalid entries
+- checking for valid entries.
+ChooseTwoListControl - Trimmed items entered by the user
+ClassBrowser - removed unused code
+ClassBrowserModel - replaced QuickSort with builtin object.Sort
+Client? - new
+ColHeadsFormat - allow for heading on formats
+Control - don't make pair if prompt is ""
+- fixed Dirty? to take optional argument
+Controller - added GetFocus() and GetChild()
+CrosstabFormat - changed private member access to public methods
+CurrentPrint - new
+DiffListControl - changed to ListViewNewControl to improve speed
+ExplorerControl - Transaction handling update
+ExplorerListModel - Transaction Updates
+ExplorerListViewControl - changed to call SetReadOnly on the view only, so that the listview can still be used.
+- added extra checking so False isnt passed to StaticControl
+- changed validation to be based on one rule, instead of a list of rules, made parameter names consistent between controls.
+ExplorerVirtualListViewControl - changed to call SetReadOnly on the view only, so that the listview can still be used.
+- prevent False from being passed to StaticControl
+- changed validation to be based on one rule, instead of a list of rules, made parameter names consistent between controls.
+Export - Import/Export XML functions.  Export can also create a DTD.
+ExportXML - Import/Export XML functions.  Export can also create a DTD.
+FieldControl - renamed the SetFocus message to Field_SetFocus
+Field_abbrev - changed prompt from Abbrev to Abbreviation
+Field_info - new
+Field_info1 - new
+Field_info2 - new
+Field_info3 - new
+Field_info4 - new
+Field_info5 - new
+Field_info6 - new
+FindInLibrary - Added a 'Find in Name' field to the 'Find in Library' and 'Replace in Library' on the Workspace and 'Find in Folders' in LibView.  The 'Find in Library' now also prints a heading before the results of the search. 
+FindInLibraryControl - Added a 'Find in Name' field to the 'Find in Library' and 'Replace in Library' on the Workspace and 'Find in Folders' in LibView.  The 'Find in Library' now also prints a heading before the results of the search. 
+FindText - Added a 'Find in Name' field to the 'Find in Library' and 'Replace in Library' on the Workspace and 'Find in Folders' in LibView.  The 'Find in Library' now also prints a heading before the results of the search. 
+GetTranslation - added caching
+GlobalPrint - Added a checking method to ensure that the sort fields are in the project.
+GridFormat - new
+HeaderBugTest - new
+HtmlPrefix - tweaking
+Hwnd - Addition of SetFocus method contributed by Jeremy Cowgar.
+IdFieldControl - changes to handle _name or _abbrev fields passed as the field parameter.
+IdFormat - Changed to print the data as a string if the lookup fails.
+Import - changes for Import/Export XML
+ImportCSV - changes for Import/Export XML
+ImportExportTest - Import/Export XML
+ImportXML - Import/Export XML functions.  Export can also create a DTD.
+InfoFormat - new
+Init - Added a 'Find in Name' field to the 'Find in Library' and 'Replace in Library' on the Workspace and 'Find in Folders' in LibView.  The 'Find in Library' now also prints a heading before the results of the search. 
+KeyControl - Changed so that value field will be added to columns as a hidden column if not present.
+- renamed SetFocus method to Field_SetFocus
+- changed the '_' to a '-'
+KeyFieldControl - Transaction Updates
+- Transaction handling update
+KeyListView - Changed listview style from NOCOLUMNHEADER to NOSORTHEADER.
+- Removed the ListViewControl EnsureVisible call, it must have been getting done too early and was causing the list to scroll improperly.
+LibCompare - Transaction Updates
+LibViewControl - added Go To Line
+- changed to use GotoLine method
+- changed export to say it appends
+- took Go To Line off context menu, moved to LibView
+- Added a 'Find in Name' field to the 'Find in Library' and 'Replace in Library' on the Workspace and 'Find in Folders' in LibView.  The 'Find in Library' now also prints a heading before the results of the search. 
+LibraryStrings - reads through a library and prints all entries that could be added to the TranslateLanguage table.
+- minor changes
+LibraryStringsTest - reads through a library and prints all entries that could be added to the TranslateLanguage table.
+LinkControl - added width argument
+ListControl - Sends List_DoubleClick when user double clicks.
+- Added item highlighting
+- Fixed some of the problems with the focus rectangle and horizontal scrolling.
+- replaced QuickSort with builtin object.Sort
+ListEditWindow - minor improvements/corrections
+ListViewControl - changed the '_' to a '-'
+ListViewModelTest - Added checking for the number of rows before and after all of the calls to Getitem and Getrecord.
+ListViewNewControl - additions and improvements (for DiffListControl)
+LocateControl - added allowOther to the KeyControl
+LookupControl - Transaction Updates
+LruCache - modified work with any type of key, not just numbers
+MultiControl - new
+NameAbbrevControl - new
+NewSvcControl - working on new version control
+NewSvcLocalControl - new
+NewSvcMasterControl - new
+Number - added Trim
+NumberControl - removed the MULTILINE editor style
+Objects - fixed Transform
+- moved Swap to object.Swap
+OpenFileName - increased the size of the buffer to handle more files & longer paths
+PBM - new
+PBS - new
+PageHeadFormat - added param wrap
+- made the parameter font the same size as the data and page number
+PaneControl - added comment
+ParamsSelectFormat - made the parameter font the same size as the data and page number
+PersistentWindow - added PersistentWindow.CloseSet
+PhoneControl - added width argument
+- added extension (x###)
+PopClient - added timeout argument for the SocketClient
+ProgressBarControl - Added ProgressBarControl and PBM constant
+- added style parameter
+PromptOrHeading - new
+QueryCount - new
+QueryViewControl - changed errors in queries to alert instead of debug
+QuickSort - replaced QuickSort with builtin object.Sort
+QuickSortTest - replaced QuickSort with builtin object.Sort
+RadioButtonsControl - added a line to send the initial value to the RecordControl
+RecordControl - added GetControl
+RecordPrintFormat - new
+ReplaceInLibrary - Added a 'Find in Name' field 
+ReplaceInLibraryControl - Added a 'Find in Name' field 
+RowFormat - allow for heading on formats
+ScheduleControl - Transaction Updates
+ScheduleTask - Transaction Updates
+ScheduleWindowControl - Transaction Updates
+Schema - Transaction Updates
+SchemaModel - Transaction Updates
+ScintillaControl - added default of n = 0 to SetSelect. fixed RBUTTONDOWN to not change select if you click within select. fixed Goto Definition to not extend select if you have one
+- added Go To Line, increased selection margin
+- Inserted Helmut's code for the CallTips.
+SelectControl - made regular expression matching ignore case
+- Added the ability to pass in a list of fields to be excluded from the select.
+- minor changes to excludeSelect
+- fixed previous change
+- Changed variable name from excludeSelect to excludeSelectFields as Jeff suggested.
+ShortDateFormat - made the parameter font the same size as the data and page number
+Shutdown - new
+- added PersistentWindow.CloseSet
+SkipControl - changed amt to amount to match documentation
+SmtpClient - added timeout argument for the SocketClient
+- changed to return error string instead of False
+SmtpSendMessage - updated comment
+SpinnerControl - Added set and width options
+- added mask
+SuneidoAPP - added /eval?
+Svc - changed throw to Alert for screwy dates
+SvcClient - changed to transfer record text in one block instead of line by line (for speed)
+SvcControl - added Print Master Changes
+- print master changes
+- fixed params to be Dialogs
+SvcServer - changed to transfer record text in one block instead of line by line (for speed)
+Swap - moved Swap to object.Swap
+TabControl - overrides SetReadonly so that tabs aren't disabled.
+- Handled the click notification, and now sends a TabClick message.
+TranslateLanguage - added support for arguments in strings (based on code Roberto sent)
+- fixed to do parameter substitution for English
+- added caching
+- minor improvements
+TranslateLanguageTest - added support for arguments in strings (based on code Roberto sent)
+Type - Import/Export XML functions.  Export can also create a DTD.
+VertFormat - added top option
+WikiFormat - allow digits in links
+Window - Changes to allow nested menus contributed by Jeremy Cowgar
+- changed Simulate Resolution to Set Size, added 1280 x 1024, removed "temporary" comments
+WndPaneControl - new
+- added missing SubClass
+WndProcSpinControl - removed border so it draws properly
+- resized SpinControl (cosmetic)
+- Added width option and minor cosmetic change.
+- added mask
+- added TABSTOP style, and set focus to the NumberControl when gaining focus.
+WorkSpaceControl - Added a 'Find in Name' field to the 'Find in Library' and 'Replace in Library' on the Workspace and 'Find in Folders' in LibView.  The 'Find in Library' now also prints a heading before the results of the search. 
+WrapItemsFormat - new

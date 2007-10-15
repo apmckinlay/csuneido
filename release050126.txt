@@ -1,0 +1,406 @@
+Suneido January 26, 2005 Release (1.050126)
+
+Some of the more significant changes: (in no particular order)
+
+- added overview bars to LibraryView and TestRunner
+- allow clicking on overview bars to scroll to that position
+- LibraryView does automatic syntax checking
+- added double click in WorkSpace Output pane to go to library record
+- new Internet connection class (from Martin Ledoux)
+- allow changing the default gui font
+- improvements to ListControl (from Jos Schaars)
+- new Polish and a second Czech translation
+- fixed resource leak related to tooltips
+- added Formulas to Reporter
+
+Compatibility:
+
+- DumpText and LoadText no longer put the table name in the file
+- fixed Hwnd.SetFont to standardize font sizes - you'll need to 
+reduce your font sizes to keep the same size on the screen
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe:
+
+- improved registration of builtins
+- fixed transaction tests to not require suneido.db
+- fixed problem compiling character class shortcuts and posix classes within character classes
+- improved library error message
+- added transaction refresh
+- fixed bug in object packing nesting
+- made session id work on server
+- changed record.Copy to not copy observers
+- added LastInputTime
+- added Trace(value)
+- added transaction to query tracing
+- added locale workaround for VC6 for tolower and toupper
+- changes for GCC compatibility
+- changes for Linux Wine compatibility
+- improved client-server error handling
+- added session_id to error.log output
+- added StackOverflow and OutOfHeap builtin functions for debugging
+- increased object packing nesting limit from 10 to 20
+- added -eh and -gc command line options for debugging
+- fixed problem with compiling lines starting with + or -
+
+User's Manual:
+
+/Introduction/Acknowledgments - added contributor
+/Introduction/Command Line Options - added -eh and -gc, put in alphabetical order
+/Introduction/Error Handling - new
+/Introduction/Frequently Asked Questions - changed WorkSpace Tools menu to IDE, added limits question
+/Getting Started/Create a Book - changed WorkSpace Tools menu to IDE, removed Refresh, added Nvu
+/Getting Started/Create a Table - changed WorkSpace Tools menu to IDE
+/Getting Started/LibraryView - changed WorkSpace Tools menu to IDE
+/Getting Started/QueryView - changed WorkSpace Tools menu to IDE
+/Going Further/Report Control Breaks - improved (from Ra Kumar Sankar)
+/Tools/Books - changed WorkSpace Tools menu to IDE
+/Tools/Language Translation - changed WorkSpace Tools menu to IDE
+/Tools/QueryView - changed WorkSpace Tools menu to IDE
+/Language/Data Types - added see also Date
+/Language/Reference/Base64 - new
+/Language/Reference/Bitnames - new
+/Language/Reference/DirExt - new (from Jos Schaars)
+/Language/Reference/DirExt/DirExt - new (from Jos Schaars)
+/Language/Reference/DirExt/dirExt.Count - new (from Jos Schaars)
+/Language/Reference/DirExt/dirExt.Details - new (from Jos Schaars)
+/Language/Reference/DirExt/dirExt.Directories - new (from Jos Schaars)
+/Language/Reference/DirExt/dirExt.FileSize - new (from Jos Schaars)
+/Language/Reference/DirExt/dirExt.Foreach - new (from Jos Schaars)
+/Language/Reference/DirExt/dirExt.Names - new (from Jos Schaars)
+/Language/Reference/DirExt/dirExt.RealName - new (from Jos Schaars)
+/Language/Reference/DumpText - updated
+/Language/Reference/Internet - new
+/Language/Reference/Internet/Internet - new
+/Language/Reference/Internet/Internet.AutoConnect - new
+/Language/Reference/Internet/Internet.AutoDisConnect - new
+/Language/Reference/Internet/Internet.ByLan? - new
+/Language/Reference/Internet/Internet.ByModem? - new
+/Language/Reference/Internet/Internet.ByProxy? - new
+/Language/Reference/Internet/Internet.ConfiguredConnection? - new
+/Language/Reference/Internet/Internet.Connect - new
+/Language/Reference/Internet/Internet.Connected? - new
+/Language/Reference/Internet/Internet.Disconnect - new
+/Language/Reference/Internet/Internet.GoOnline - new
+/Language/Reference/Internet/Internet.ModemIsBusy? - new
+/Language/Reference/Internet/Internet.Offline? - new
+/Language/Reference/Internet/Internet.RasInstalled? - new
+/Language/Reference/Internet/Internet.TryToConnect - new
+/Language/Reference/LoadText - corrections (from Jos Schaars)
+/Language/Reference/Number/number.Binary - corrections (from Jos Schaars)
+/Language/Reference/Object/object.MaxWith - new
+/Language/Reference/Object/object.MinWith - new
+/Language/Reference/OutOfHeap - new
+/Language/Reference/SmtpClient/SmtpClient - updated, improved rfc links
+/Language/Reference/SmtpSendMessage - updated
+/Language/Reference/StackOverflow - new
+/Language/Reference/String/string.FindRxLast - corrections (from Jos Schaars)
+/Language/Reference/Thread - fixed example (from Petr Antos)
+/Language/Reference/Trace - added Trace(value)
+/Database/Reference/Database/Database.Final - new
+/Database/Reference/KeyQuery - new
+/Database/Reference/QueryDelete - new
+/Database/Reference/QueryInsert - new
+/Database/Reference/Record/record.Copy - new
+/Database/Reference/RecordExists? - new
+/Database/Reference/ShortestKey - new
+/Database/Reference/Transaction/transaction.Refresh - new
+/Database/Reference/Transaction/transaction.SeekQuery - fixed links (from Ajith.R)
+/User Interfaces/Commands - updated
+/User Interfaces/Controls - updated
+/User Interfaces/Implementation - updated
+/User Interfaces/Implementation/Construction - updated
+/User Interfaces/Implementation/Containment Requirements - updated
+/User Interfaces/Implementation/Writing a Controller - updated
+/User Interfaces/Implementation/Writing a Hwnd Control - updated
+/User Interfaces/Implementation/Writing a Layout Control - updated
+/User Interfaces/Implementation/Writing a WndProc Control - updated
+/User Interfaces/Introduction - updated
+/User Interfaces/Reference/CanvasControl - updated to reflect changes made to CanvasControl
+/User Interfaces/Reference/CanvasControl/CanvasText - updated to reflect changes made to CanvasControl
+/User Interfaces/Reference/CanvasControl/CanvasX - updated to reflect changes made to CanvasControl
+/User Interfaces/Reference/CenterTitleControl - corrections (from Jos Schaars)
+/User Interfaces/Reference/ChooseListControl - updated
+/User Interfaces/Reference/Control/control.AlertError - new
+/User Interfaces/Reference/Control/control.AlertInfo - new
+/User Interfaces/Reference/Control/control.AlertWarn - new
+/User Interfaces/Reference/Dialog - updated
+/User Interfaces/Reference/Dialog/dialog.Result - new
+/User Interfaces/Reference/DrawControl/DrawLineTracker - corrections (from Jos Schaars)
+/User Interfaces/Reference/DrawControl/DrawPointTracker - corrections (from Jos Schaars)
+/User Interfaces/Reference/DrawControl/DrawRectTracker - corrections (from Jos Schaars)
+/User Interfaces/Reference/FieldControl - updated
+/User Interfaces/Reference/FieldHistoryControl - updated
+/User Interfaces/Reference/Hwnd/Hwnd - updated
+/User Interfaces/Reference/Hwnd/hwnd.CreateWindow - updated
+/User Interfaces/Reference/Hwnd/hwnd.FixedFont - new
+/User Interfaces/Reference/Hwnd/hwnd.GetFont - new
+/User Interfaces/Reference/Hwnd/hwnd.Mapcmd - updated
+/User Interfaces/Reference/Hwnd/hwnd.PostMessage - new
+/User Interfaces/Reference/Hwnd/hwnd.Repaint - new
+/User Interfaces/Reference/Hwnd/hwnd.SendMessage - new
+/User Interfaces/Reference/Hwnd/hwnd.SetFont - new
+/User Interfaces/Reference/Hwnd/hwnd.Update - new
+/User Interfaces/Reference/LastInputTime - new
+/User Interfaces/Reference/OpenFileControl - added width parameter
+/User Interfaces/Reference/SaveFileControl - added width parameter
+/User Interfaces/Reference/UOMControl/UOMControl - fixed links (from Ajith.R)
+/User Interfaces/Reference/Window/Window - updated
+/User Interfaces/Reference/Window/window.Commands - corrections (from Jos Schaars)
+/User Interfaces/Reference/Window/window.Result - new
+/User Interfaces/Reference/WindowBase - new
+/User Interfaces/Reference/WndProc/WndProc - updated
+/User Interfaces/Reference/WndProc/wndProc.SubClass - updated
+/Cookbook/Sending and Receiving Email - improved rfc links
+/Appendix/Idioms/Chaining Method Calls - new
+
+stdlib:
+
+AboutSuneido - reduced font sizes to match Hwnd change
+- added contributor
+AccessControl - added Reason Protected option to the Current menu
+- factored out common code in On_First/Last/Next/Prev
+- changed to use ShortestKey
+Alert - added the ability to redirect Alert (for tests)
+AllowDeleteRecord? - added comment
+BackupPath - new
+BitNames - new
+BitNames_Test - new
+BookBrowserControl - added .Window.NewTips() to Close to free tool tips
+BookControl - added "(SupportEmail)" to messages to differentiate from junk mail
+- added helo_arg option when sending support emails
+- named the hwnd arg to Working function
+- added font LogFont to Get/SetState
+BookEditControl - added Export Image
+BookEditSplitControl - fixed bug with res images "sticking"
+BookPathControl - changed > font to match links
+BrowseControl - in List Double-click message, added checking for col being -1
+- added method for Setting a field valid/invalid
+- refactored, reduced number of queries
+- fixed refresh issue when coming back from the Customize Columns dialog
+- added headerSelectPrompt option
+- modified On_Context_Customize_Columns method to use SelectPrompt if headerSelectPrompt is enabled
+- changed Set to clear sticky values only when the value changed (different header record)
+- fixed issue with right-click "Edit Field" option passing invalid column to ListControl.Edit
+ButtonControl - changed sizing to handle different fonts better
+- changed default padding to be relative to font size
+CFO - new
+CHOOSEFONT - new
+CanvasControl - removed incorrect DeleteObject(oldfont)
+CheckBoxControl - changed sizing to handle different fonts better
+CheckLibrary - fixed to avoid a-z
+ChooseControl - improvements to ListControl (from Jos Schaars)
+ChooseFont - new
+ChooseListControl - improvements to ListControl (from Jos Schaars)
+- added font parameter
+ChooseManyControl - invalidate the description rule so that the description updates like the list
+ChooseQuantitiesControl - fixed name missed when renaming
+Control - added AlertError/Warn/Info
+Controller - replaced .Window.CLOSE with .Window.Destroy
+DatabaseStats - included database stats in nightly checks
+DebuggerControl - added Suneido.AfterDebug (for tests)
+- changed for ScintillaControl changes
+- reduced font sizes to match Hwnd change
+Dialog - fixed problem with ListControl inside Dialog
+- overrode Destroy to call CLOSE
+DiffListControl - handle scrolling to row selected on the overview bar
+- adjusted font size
+Dir - added details: option (from Jos Schaars)
+DirExists? - fixed comments
+DirExt - new (from Jos Schaars)
+DrawColorControl - reduced font sizes to match Hwnd change
+DumpLoadText_Test - new
+DumpText - changed to not put table name in file
+EditControl - added ReplaceSel method
+- improvements to ListControl (from Jos Schaars)
+ErrorColor - factored out ErrorColor from StatusControl, FieldControl, and TestRunnerGui
+ExplorerAdapterControl - changed Controller_ctrl to GetChild
+ExplorerAppsControl - changed to use FindControl('Explorer')
+ExplorerListViewControl - force a new record when there is no entries to load
+FONTTYPE - new
+FieldControl - factored out ErrorColor from StatusControl, FieldControl, and TestRunnerGui
+- made trim = true the default
+FieldHistoryControl - added font parameter
+- added trim parameter
+Field_abbrev - added trim option to prevent saving just whitespace
+Field_mandatory_name - added trim option to prevent saving just whitespace
+Field_password - changed to Arial to get consistent character
+Field_testrunnergui_result - adding empty Heading so nothing displays in list headers
+Field_trlang_polish - new
+Field_trlang_czech2 - new
+FindControl - changed font to Courier New
+FindInFoldersControl - changed font to Courier New
+FindInLibraryControl - added (In Use) to Find in Libraries
+- changed font to Courier New
+ForeignKeyTest - added test for update record blocked by foreign key
+GetMessageTime - new
+GetNextNumber - moved from Accountinglib
+GetScrollBarInfo - new
+GotoLibView - added checking for size of parts
+GotoUserManual - modified to have Find and Print on the toolbar on the User's Manual window when Go To Documentation from LibView (consistent with IDE > Open a Book)
+GridFormat - fixed GetSize width
+GroupBox - changed sizing to handle different fonts better
+GroupBoxControl - changed sizing to handle different fonts better
+HeaderControl - changed to use PromptOrHeading
+- added headerSelectPrompt option
+HeadingControl - changed size to +3
+HorzScrollBar? - new
+HtmlTextControl - changed size to be more standard
+Hwnd - changed default font to Suneido.logfont/hfont, added +- font sizes, added SetLogFont
+- changed default font size to match previous
+- allow relative size even if font specified
+- added a flag to know whether to delete font
+- changed SetFont to use default weight (instead of 500)
+INTERNET - new (from Martin Ledoux)
+Init - set Suneido.logfont and Suneido.hfont
+Internet - new (from Martin Ledoux)
+InternetAttemptConnect - new (from Martin Ledoux)
+InternetAutoDial - new (from Martin Ledoux)
+InternetAutoHangup - new (from Martin Ledoux)
+InternetDial - new (from Martin Ledoux)
+InternetGetConnectedState - new (from Martin Ledoux)
+InternetGoOnline - new (from Martin Ledoux)
+InternetHangup - new (from Martin Ledoux)
+KeyQuery - new
+KeyQuery_Test - new
+LibViewControl - fixed issue where name also exists as a folder
+- added delayed set focus to GotoPathLine for WorkSpace output double click goto
+- added overview bar and automatic syntax checking
+LibViewViewControl - added overview bar and automatic syntax checking
+LinkControl - removed font, no longer necessary
+ListControl - changed xmin and ymin handling to be more standard
+- improvements to ListControl (from Jos Schaars)
+- factored end drag code into separate method.
+- bug fix when inserting rows
+- added GetRowHeight() (used in TestRunnerGui for OverviewBar)
+- added headerSelectPrompt option (used in Dispatching - All Orders and All Trips)
+ListEditWindow - improvements to ListControl (from Jos Schaars)
+ListFormatControl - improvements to ListControl (from Jos Schaars)
+ListFormatting - improvements to ListControl (from Jos Schaars)
+- changed to use Suneido.hfont
+LoadText - fixed to handle multi-line fields (from Martin Ledoux)
+- changed to not put table name in file
+MoneyBagTotals - added checking if cur is "" and amount is 0 - do not print anything
+NightlyChecks - changed to use Dir
+- added checking for RESTART in suneidolog
+- changed to use new BackupPath
+- included database stats in nightly checks
+OBJID - new
+Objects - added MinWith
+OpenFileControl - added width parameter
+OverviewBarControl - added ClearMarks()
+- added Repaint to AddMark and ClearMarks
+- fixed so PAINT does Begin/EndPaint even if numRows is 0
+- added RemoveMark method
+- modified to send Overview_LButtonUp
+- added GetNumRows method
+- adjusting over view bar top margin
+- improvements to overview bar click
+- allow for horz scroll bar
+PatternControl - fixed problem with ^ escape (from Ajith.R)
+PersistentWindow - fixed typo in comment
+Prefix? - added calculated fields to Reporter
+PreviewControl - replaced .Window.CLOSE with .Window.Destroy
+QuantitiesControl - added xmin and ymin to List
+QueryColumns - added QueryStripSort
+QueryDelete - new (from Ajith.R)
+QueryInsert - new (from Ajith.R)
+QueryKeys - added QueryStripSort
+QueryMax - added default of false
+QueryMin - added default of false
+QueryViewControl - removed font & size from Scintilla (not used)
+RecordControl - handle the protect_val being a string
+- modified so Change doesn't set dirty for protect fields, refactored to use Before/AfterLast
+RecordExists? - new (from Ajith.R)
+ReplaceControl - changed font to Courier New
+ReplaceInLibraryControl - changed font to Courier New
+Reporter - added calculated fields to Reporter
+- added validation for formulas, switch to relevant tab on error
+- added error checking for bad query from formulas
+- fixed bugs
+- fixed Add Field to not include the field you're on
+- fixed so formula fields show up in Sort
+- fixed to catch run time errors in formulas
+- reduced font sizes to match Hwnd change
+- added reverse sort
+- added Show Before to Sort's
+ReporterFormat - added calculated fields to Reporter
+- added Show Before to Sort's
+Reporter_sortcolumns_test - new
+RestartNeeded? - made restart more "aggressive"
+RowFormat - fixed problem with Wrap with span in Row
+Rule_crosstable_valid - added validation checking where rows field must be different with columns field
+Rule_reporter_sortcolumns - fixed putting chosen columns first
+- changed to omit fields with Wrap format
+SCI - added TEXTHEIGHT
+SCN - added ZOOM
+SCNotification - added modificationType
+SCROLLBARINFO - new
+SC_MOD - new
+STATE_SYSTEM - new
+SaveFileControl - added width parameter
+ScheduleControl - fixed problem with intervals
+ScintillaControl - added double click, some refactoring
+- added notifications and messages
+- added modificationType
+SelectFields - added calculated fields to Reporter
+- removed commented out code
+SelectFields_Test - added calculated fields to Reporter
+SendNightlyChecks - changed to use helo_arg from BookEmailInfo if not passed in
+SetGuiFont - new
+ShortestKey - new
+ShortestKey_Test - new
+SmtpServer - changed to handle space after RCPT TO: (not standard but inserted by AVG 7)
+- improved MAIL parsing
+StaticControl - added logfont parameter to Set
+StaticShortDateControl - new
+StaticTextControl - pass args to super
+StatusControl - factored out ErrorColor from StatusControl, FieldControl, and TestRunnerGui
+StringTest - added tests for Suffix? and Prefix?
+Strings - removed methods that are now builtin, fixed to not assume a-z etc.
+- fixed Suffix?("") to return true (from Ajith.R)
+SuneidoAPP - changed to return the current page instead of false
+SvcControl - reduced font sizes to match Hwnd change
+- removed Use Local button
+SvcGetDescription - reduced font sizes to match Hwnd change
+SvcTest - fixed to destroy svc_empty_master if it was created
+TabControl - changed sizing to handle different fonts better
+TabsControl - fixed issue with protection (from Ajith.R)
+- added destroyOnSwitch option (from Ajith.R)
+- fixed problem with nested Tabs and constructAll (from Nigel)
+- changed sizing to handle different fonts better
+- added DestroyTab method
+Test - used Suneido.AfterDebug to Teardown after RunDebug
+TestRunnerGui - added OverviewBar
+- factored out ErrorColor from StatusControl, FieldControl, and TestRunnerGui
+TitleControl - reduced font sizes to match Hwnd change
+- changed to relative font size
+ToolTipControl - changed to not use TTF_SUBCLASS (to fix resource leak in Windows), renamed Relay to RelayEvent (to match TTM_RELAYEVENT)
+TranRefreshTest - new
+UserFuncs - new (for Reporter)
+UserFuncs_Test - new (Reporter)
+VersionHistoryControl - minor fix
+- reduced font sizes to match Hwnd change
+VertFormat - Added InsertConstructed method
+VfieldsFormat - handled info fields differently
+- changed to use BeforeFirst and AfterFirst instead of Substr
+WM - added MOUSELAST
+WS - removed CHILDWINDOW (same as CHILD)
+WindowBase - added NewTips, changed CLOSE to return 'callsuper' instead of calling DestroyWindow, fixed so DESTROY doesn't unintentionally create tips
+WndProc - fixed NCDESTROY to return 'callsuper' to stop resource leak
+- added tooltip RelayEvent
+- added comment
+- have to reset prevproc to false when destroying
+WorkSpaceControl - added try to Clear Variables Rollback
+- added (In Use) to Find in Libraries
+- added double click goto on output pane
+- moved focus delay to eliminate flashing on output double click
+- made output double click more specific
+- modified Find In Libraries to print number of matches
+- modified Replace In Libraries to print number of updates
+- fixed problem with Run
+Working - changed to use Window's Destroy method

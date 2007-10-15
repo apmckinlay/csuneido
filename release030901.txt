@@ -1,0 +1,369 @@
+Suneido Sept. 1, 2003 Release (1.0.030901)
+
+Some of the more significant changes:
+
+- SAX like XmlReader and XmlWriter (see the article)
+- simple XmlRpc (client and server)
+- beginnings of plug-in architecture (see the article)
+- improvements to GridControl - spanning and better alignment
+- added Builtin tags to Users Manual Reference pages
+- added Run/F9 auto-select to QueryView (like WorkSpace)
+- new OverviewBar added to DiffListControl
+
+Compatibility
+
+- ExportXML/ImportXml - format has changed slightly
+- Type now returns slightly different values
+- WebMap (for HttpServer) renamed to HttpMap and modified
+- HttpGet arguments changed
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe:
+
+- changed tempdest from vector to deque to avoid large allocations
+- File - change Readline to return final line without newline
+- fixed bug with automatic rebuild when exe path has spaces
+- fixed bug in date parsing (thanks to Jos Schaars for reporting this)
+- fixed bug with @args and exceptions
+- fixed client-server bug in libget with global names containing newlines
+- changed fatal to use message (separate thread)
+- added built-in Type function
+- added block option to Cursor and transaction Query
+
+User's Manual:
+
+/Introduction/Acknowledgments - added Tony Hallett to contributors
+/Going Further/Compiled Libraries - corrected
+/Language/Classes/this - corrected
+/Language/Reference/Add - added Builtin tag
+/Language/Reference/And - added Builtin tag
+/Language/Reference/BookTables - added See also
+/Language/Reference/Boolean? - added Builtin tag
+- added examples, moved folder
+- added See also's
+/Language/Reference/Buffer - added Builtin tag
+/Language/Reference/Built - added Builtin tag
+/Language/Reference/COMobject/COMobject - added Builtin tag
+- added Release to example
+/Language/Reference/Callbacks - added Builtin tag
+/Language/Reference/Cat - added Builtin tag
+/Language/Reference/Cgi - new
+/Language/Reference/Class - added Builtin tag
+/Language/Reference/Class? - added Builtin tag
+- added See also's
+/Language/Reference/ClearCallback - added Builtin tag
+/Language/Reference/Client? - added Builtin tag
+/Language/Reference/Cmdline - added Builtin tag
+/Language/Reference/Construct - added Builtin tag
+/Language/Reference/Date - added Builtin tag
+/Language/Reference/Date/Date - added Builtin tag
+/Language/Reference/Date? - added examples, moved folder
+- added See also's
+/Language/Reference/Function? - added examples, moved folder
+- added See also's
+/Language/Reference/HttpGet - updated
+/Language/Reference/HttpMap - new
+/Language/Reference/HttpPost - new
+/Language/Reference/HttpServer - updated
+/Language/Reference/LibraryTables - added See also
+/Language/Reference/Number? - added examples, moved folder
+- added See also's
+/Language/Reference/Object/object.Accum - updated
+/Language/Reference/Object/object.Accum1 - new
+/Language/Reference/Object/object.GetDefault - new
+/Language/Reference/Object/object.HasIf? - new
+/Language/Reference/Object/object.MergeNew - new
+/Language/Reference/Object/object.MergeUnion - new
+/Language/Reference/Object/object.Method - changed to use style for deprecated
+/Language/Reference/Object? - added examples, moved folder
+- added See also's
+/Language/Reference/Plugins - new
+/Language/Reference/SplitAddr - new
+/Language/Reference/String/string.AfterLast - new
+/Language/Reference/String/string.BeforeLast - new
+/Language/Reference/String/string.CapitalizeWords - new
+/Language/Reference/String/string.FindRx - new
+/Language/Reference/String/string.FindRxLast - new
+/Language/Reference/String? - added examples, moved folder
+- added See also's
+/Language/Reference/StringLines - added Remainder
+/Language/Reference/Test - added MakeTable
+/Language/Reference/Type - new
+/Language/Reference/Xml - updated
+/Language/Reference/XmlContentHandler - new
+/Language/Reference/XmlReader - new
+/Language/Reference/XmlRpc - new
+/Language/Reference/XmlRpcMap - new
+/Language/Reference/XmlWriter - new
+/Database/Reference/Cursor/Cursor - added block option
+/Database/Reference/QueryAccum - corrected
+/Database/Reference/QueryApply - added See also
+- updated
+/Database/Reference/QueryApply1 - new
+/Database/Reference/QueryApplyMulti - updated
+/Database/Reference/QueryEnsureKeySort - new
+/Database/Reference/Record? - added examples, moved folder
+- added See Also
+/Database/Reference/Transaction/transaction.Query - added block option
+/Database/Reference/WithQuery - new
+/User Interfaces/Reference/AccessControl/AccessControl - added to select:
+- updated
+/User Interfaces/Reference/CenterTitleControl - new
+/User Interfaces/Reference/GridControl - added span
+/User Interfaces/Reference/HeadingControl - updated
+/User Interfaces/Reference/StatusBarControl - fixed StatusBar to Statusbar
+/User Interfaces/Reference/StatusbarControl - fixed StatusBar to Statusbar
+/User Interfaces/Reference/StatusbarControl/StatusBarControl - fixed StatusBar to Statusbar
+/User Interfaces/Reference/StatusbarControl/StatusbarControl - fixed StatusBar to Statusbar
+/User Interfaces/Reference/StatusbarControl/statusBarControl.Set - fixed StatusBar to Statusbar
+/User Interfaces/Reference/StatusbarControl/statusbarControl.Set - fixed StatusBar to Statusbar
+/User Interfaces/Reference/TabControl - added themed option
+/User Interfaces/Reference/TitleControl - new
+/Cookbook/Adding Context Sensitive Help - added more about html
+/Appendix/Idioms/CallClass for Singleton - new
+
+stdlib:
+
+AboutSuneido - added Tony Hallett to contributors
+AccessControl - added Dirty?() method
+- changed key prompts to use SelectPrompt
+- fixed bug with On_Current_Delete
+- removed X close button from Select
+- modified to save field, operation, and value for user entered selects
+- fixed finding new_button
+- refactored/fixed buildselectvals
+- removed (not)empty from buildselectvals - didn't work
+- modified AccessGoto to encode value so it has proper type
+- added GetQuery method (used in SummarizeControl)
+- fixed to not create default layout when dynamic types
+- changed BeforeRecord to Send "Access_BeforeRecord" message
+- added GetRecordControl, added default to Dirty? parameter
+AlterRenameTest - refactored - changed to use MakeTable
+BookControl - refactored and fixed context sensitive stuff if book is already open
+- renamed
+- minor modifications to context sensitive help
+- modified so that Go to Definition will go to BookEdit if on html pages
+- fixed bug on Go To Definition from html pages
+- changed tabs to themed
+BookEditControl - saved EditBooks in Suneido variable for Go to Definition purpose
+- added EtchedLine under toolbar
+BookPageFind - rename BookPageMatch to BookPageFind
+BookPageFindTest - new
+BookPageMatch - minor modifications to context sensitive help
+- rename BookPageMatch to BookPageFind
+BrowseControl - fixed linked browses so browse will save when a querycolumn's value changes
+- added Print, Summarize, Cross Table to Context menu; renamed Save to Save All
+- added GetFields method (used in SummarizeControl)
+- simplified Summarize
+BuildQueryWhere - minor refactor
+CallBugTest - new test for exe bug
+CanvasStockObject - added Get_Item
+CanvasText - added color option
+Cgi - allow scripts to supply content-type
+- changed WebMapGet to HttpMap
+ClassBrowserTest - refactored - changed to use MakeTable
+ConflictTest - refactored - changed to use MakeTable
+Controller - allowed Controls to be a function
+- added ChangeControl
+CrosstabFormat - added Tony Hallett sortcols change
+CrosstabSamples - added Tony Hallett sortcols change
+Curry - new
+DatabaseObjectsTest - refactored - changed to use MakeTable
+DateTest - added 'does not match'
+DbRulesTest - refactored - changed to use MakeTable
+Delayed - removed arg, caller can Curry
+DeleteFieldTest - refactored - changed to use MakeTable
+DiffListControl - modified so that Go To Definition will go to the selected line from DiffListControl
+- modified to close Dialog if click on Go to Definition button
+- moved "tags" to separate control
+- added OverviewBar
+- improved OverviewBar
+DoWithoutTriggers - 'try' to Unuse do_without_triggers before destroying.
+DontSaveTest - refactored - changed to use MakeTable
+DrawStockObjectTracker - fixed to remove old wrapper before adding new one
+EmptyForeignKeyTest - refactored - changed to use MakeTable
+EmptyKeyTest - refactored - changed to use MakeTable
+EuroNumberControl - fixed KillFocus dirty handling
+ExplorerControl - changed tabs to themed
+- changed Reset to use tree.Reset, added ImageList_Destroy
+ExplorerListViewControl - modified so that Print, Summarize, CrossTable, Export, and Import commands work from context menu
+ExportXML - added XmlEntityEncode
+Field_image - new
+FieldsTest - refactored - changed to use MakeTable
+FixNumControl - fixed dirty handling
+ForeignKeyTest - refactored - changed to use MakeTable
+GetBookPage - minor modifications to context sensitive help
+- rename BookPageMatch to BookPageFind
+GetNumTableTest - refactored - changed to use MakeTable
+GetRunText - new - used in Run method in QueryView and WorkSpace
+GlobalExportControl - made import/export formats plugins
+GlobalImportControl - made import/export formats plugins
+GlobalPrint - modified to print params on top of report
+- don't show blank lines in field lists
+GotoLibView - go to User Manual if it's built in
+- changed so that Go to Definition of undefined name would open/select the tree to the same folder as the current record
+Gotofind - handle where libs is empty
+GridControl - added span
+- added Top align and stretch to fit cell
+HeaderBugTest - refactored - changed to use MakeTable
+HttpGet - changed to use SplitAddr
+HttpMap - changed WebMap and WebMapGet to just HttpMap
+HttpPost - new
+HttpSend - new
+HttpServer - put more inside try, used HttpSend
+- changed WebMapGet to HttpMap
+IdFieldControl - modified to check if the restrictions is a rule
+- remember value that was "Set", this will always be valid if in the base_query
+ImportExportTest - updated
+ImportXML - added XmlEntityDecode, fixed decoding values
+- updated for new builtin Type function
+IntersectTest - refactored - changed to use MakeTable
+JoinSortTest - refactored - changed to use MakeTable
+JoinUpdateTest - refactored - changed to use MakeTable
+KeyControl - modified to check if the restrictions is a rule
+- fixed bug where button was not disabled when readonly
+KeyListView - changed key prompts to use SelectPrompt
+- allow 2 levels of 'Access'ing
+- extracted '-' from hidden column field
+LVIR - new
+LVM - added GETHEADER
+LibCompareTest - refactored - changed to use MakeTable
+LibIOTest - refactored - changed to use MakeTable
+LibTreeModel - changed so that when deleting folder, its children would be added to svc_deleted so version control would display correctly
+LibViewControl - changed so that Go to Definition of undefined name would open/select the tree to the same folder as the current record
+- changed refactors to plugins
+LibViewNewItemControl - changed so that Go to Definition of undefined name would open/select the tree to the same folder as the current record
+LibraryStringsTest - refactored - changed to use MakeTable
+ListControl - check for row in case row was deleted while editing (happens in various situations)
+- minor changes / bug fixes reported by Jos Schaars
+- minor changes regarding savedSelection and deleting suggested by Jos Schaars
+ListViewModelTest - refactored - changed to use MakeTable
+ListViewNewControl - modified so that Go To Definition will go to the selected line from DiffListControl
+- added GetItemRect and GetHeader
+LocateControl - changed key prompts to use SelectPrompt
+- changed so "by" is translated (thanks to jessihash)
+LongTest - renamed TypeTest to LongTest, added new TypeTest
+MemoryMonitor - added Memory button
+MenuButtonControl - fixed Pushed
+- fixed translation (thanks to jessihash)
+MinusTest - refactored - changed to use MakeTable
+NumberControl - fixed KillFocus dirty handling (thanks to Jos Schaars)
+NumberSortBugTest - refactored - changed to use MakeTable
+ObjectTest - added Append
+- added Accum1
+Objects - added Append
+- added Accum1 and GetDefault
+OpenBook - renamed
+- added checking if book exists
+- minor modifications to context sensitive help
+- rename BookPageMatch to BookPageFind
+- modified to handle Go To BookEditControl
+OpenHelpBook - refactored and fixed context sensitive stuff if book is already open
+- renamed
+OpenImageControl - added 64k limit to embedded images
+- improved error message for large embedded images
+- changed to default to link
+OverviewBarControl - new
+OverwriteRecord? - changed to show all changes; changed to show users
+Params - saved preview scale
+PatternControl - fixed KillFocus dirty handling
+Plugin_ImportExport - made import/export formats plugins
+Plugin_LibView - new
+Plugin_Refactor - new
+Plugins - new
+PluginsTest - new
+PreviewControl - saved preview scale
+PreviewPageControl - saved preview scale
+Prorate_Amount - new
+Prorate_Amount_Test - new
+QueryApply - added checking for updating without sorting by key
+- fixed to handle sort reverse
+- refactored
+QueryApply1 - new
+QueryApply1Test - new
+QueryApplyMulti - added QueryEnsureKeySort
+QueryApplyTest - new
+QueryEnsureKeySort - new
+QueryEnsureKeySortTest - new
+QueryEofTest - refactored - changed to use MakeTable
+QueryGetSort - new
+QueryGetSortTest - new
+QueryTest - refactored - changed to use MakeTable
+QueryViewControl - changed Run to work like WorkSpace
+RecordDeleteTest - refactored - changed to use MakeTable
+Rule_export_formats - made import/export formats plugins
+Rule_globalreport_valid - allow up to 4 sort fields, but not image fields
+Rule_import_formats - made import/export formats plugins
+SINControl - new
+SINValid? - new
+SINValidTest - new
+SchemaView - added Refresh
+SearchControl - improvements from Jos Schaars
+- minor refactor
+- fixed bug with encoding values
+SeekCursorTest - refactored - changed to use MakeTable
+SeekQueryTest - refactored - changed to use MakeTable
+SelectControl - added checkmark column
+- made numrows public
+- refactored (from Jos)
+- added 'does not match'
+- fixed bug with encoding values, removed Set_defualt from record
+ServerMemoryMonitor - new
+SplitAddr - new
+SplitAddrTest - new
+SplitterControl - added "handle"
+StatsTest - refactored - changed to use MakeTable
+StatusbarControl - fixed ymin
+- kludged problem with blanking after Show Desktop
+Strings - added USA to CapitalizeWords exceptions
+- added BeforeLast
+- simplified CapitalizeWords, fixed AfterLast to return "" if delimiter not found
+- added FindRx and RindRxLast
+SummarizeControl - modified to work with Browse
+- refactored
+SummarizeTest - refactored - changed to use MakeTable
+SvcControl - changed to go to BookEditControl if it is not a library
+- modified so that Go to Definition will go to BookEdit for book tables
+TabControl - changed ymin from 30 to 24, added themed option (default false)
+Test - added MakeTable
+- added MakeView, MakeFile, MakeLibraryRecord, added option to add records to MakeTable
+- fixed MakeFile cleanup
+TreeViewControl - added Reset
+TriggerTest - refactored - changed to use MakeTable
+- fixed to not run when client
+Trigger_triggertest - removed - no longer used
+Type - removed - replaced by builtin
+TypeTest - renamed TypeTest to LongTest, added new TypeTest
+UnionTest - refactored - changed to use MakeTable
+UniqueIndexTest - refactored - changed to use MakeTable
+UpdateMultiTest - refactored - changed to use MakeTable
+ViewTest - refactored - changed to use MakeTable
+VirtualBrowseModelTest - refactored - changed to use MakeTable
+WebMap - changed to function
+- changed WebMap and WebMapGet to just HttpMap
+WebMapGet - changed WebMap to function
+- changed WebMap and WebMapGet to just HttpMap
+Wiki - added <html> tags
+WikiEdit - added <html> tags
+WikiFind - added <html> tags
+WithQuery - new
+WorkSpaceControl - refactored
+Xml - handle <?...
+- added XmlEntityEncode and <!-- comments
+- removed recent change
+XmlContentHandler - new
+XmlContentHandlerSample - new
+XmlEntityDecode - new
+XmlEntityEncode - new
+XmlReader - new
+XmlReaderTest - new
+XmlRpc - new
+XmlRpcMap - new
+XmlRpcTest - new
+XmlTest - added XmlEntityEncode and <!-- comments
+- added dateTime and XmlEntityDecode, fixed bug with boolean
+XmlWriter - new

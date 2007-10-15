@@ -1,0 +1,653 @@
+Suneido September 12, 2001 Release
+
+This update has taken a little longer than normal. It wasn't because we weren't doing anything, it was the opposite, things were changing so much it was hard to stabilize!  
+
+Most of the changes to the executable are fairly small, mostly minor improvements and bug fixes. The new built-in File class replaces the previous stdlib Textfile class.  It's based on stdio so it should be more portable, and it's faster and more complete.
+
+Lots of changes in stdlib.  One big one is the all new ListControl, and the new BrowseControl based on it.  This is a control similar to the Windows ListView but allowing editing.  It's a big improvement over our previous BrowseControl. (Thanks Victor!)
+
+We've also made some good progress on cleaning up the user interface control architecture and implementation.  There's more to do, but it's already a big improvement.  (Thanks Victor!)
+
+We've also added a Wiki Wiki Web implementation.  This isn't documented yet, but I'll try to write up something in the near future.  At the same time, we rewrote HttpServer to be more CGI-like.  You can try out the Wiki by running HttpServer() from the WorkSpace and then from your browser, access: http://127.0.0.1/Wiki (capital 'W') For more information on Wiki's see Ward Cunningham's Wiki at http://www.c2.com/cgi/wiki
+
+There have been a number of small improvements to the development environment, which I think you'll find useful.  For example, global Replace in Library on the WorkSpace, and Run and Syntax Check on LibView.  Find and replace now have allow you to choose Regular Expressions or not.
+
+Special thanks to Victor Schappert for major contributions to this update.  Unfortunately, he's gone back to school now :-( Although that's also why things have stabilized enough to release!
+
+As usual, we aren't making as much progress on the documentation as I'd like.  Any and all contributions are welcome in this area.
+
+Andrew McKinlay
+Suneido Software
+
+
+suneido.exe:
+
+- added query syntax error if "sort" not at the end
+- improved update queries to order by "best" key
+- added support for user defined methods in "Records"
+- allow Complete/Rollback within Transaction blocks
+- fixed so Cursor's do NOT use temporary indexes
+- allow "break" in try or catch
+- changed -load and -merge to make ".su" optional
+- fixed to allow recursive foreign keys
+- fixed "sort" on "where ... in ..."
+- fixed adding columns (create, alter, ensure) to NOT convert column names to lower case
+- "finished" File (replaces stdlib Textfile)
+- object.Join - handled types other than string & number
+- fixed "where ... in ..." queries to work with dates 
+- if an object has a ToString() method it will be used by Display (and thus Print)
+- fixed bug that caused numbers like 0.001 to be interpreted as 0
+- added number.Hex, number.Octal, number.Binary
+- added Refresh and Check toolbar button resources
+- fixed a bug with struct args to callbacks
+- added #{...} (curly braces) for Record constants
+- fixed Date to return False instead of assertion failure for certain bad dates
+- fixed callbacks to work with blocks
+- fixed bugs with several obscure uses of blocks (e.g. nested)
+- fixed Image to allow spaces in file names
+- fixed Frame to return False properly when you reach end
+- improved string.Replace so replacement can now be a callable value e.g. block
+- added non-greedy quantifiers to regular expressions (??, +?, *?)
+- added literal matching to regular expressions (\=)
+- fixed Random(0) to return 0
+- fixed bug with query.Order not working for certain queries
+- added FlushViewOfFile every minute to ensure database changes are written to disk
+- fixed queries to handle whitespace and/or comments at the start of queries
+- fixed problem with SocketServer final Read (before client Close) failing
+- changed rebuild to show last commit date even when okay
+- improved error message for non-existent database (from obscure assert to "can't open suneido.db")
+- cleaned up database opening, this may improve startup especially for big databases (it was actually opening the database 3 times, now it only opens once)
+- added automatic rebuild i.e. if you start up Suneido and it wasn't shut down properly, it automatically runs rebuild and when it's finished it starts Suneido 
+- fixed bugs with unknown method calls on File
+- fixed File("")
+- removed 32K compile source limit
+- added transaction.Update?() and transaction.Ended?()
+- added string.Unescape()
+- fixed the splash screen so it's sized properly regardless of font size in Display Properties > Settings 
+- allowed passing False to image.GetWidth & image.GetHeight to get HIMETRIC size
+- added "resource" type
+- added coils bitmap
+- SocketClient.Read - updated
+- SocketClient.Readline - new
+- SocketClient.Writeline - new
+- SocketServer.Read - updated
+- SocketServer.Readline - new
+- SocketServer.Writeline - new
+- updated to latest Scintilla version 1.39
+
+
+SuneiDoc:
+
+AccessControl - updated
+CheckBoxControl - updated
+Container - new
+Dll - added "resource" parameter type 
+HttpServer - updated
+object.Remove - new
+OpenFileControl - new
+PopClient.Top - new
+PopClient.GetMessageSize - new
+PopClient.List - new
+RadioButtonsControl - updated (added screenshot)
+RadioGroupsControl - new (including screenshot)
+SaveFileControl - new
+SocketClient.Read - updated
+SocketClient.Readline - new
+SocketClient.Writeline - new
+SocketServer.Read - updated
+SocketServer.Readline - new
+SocketServer.Writeline - new
+string.Unescape - new
+transaction.Ended? - new
+transaction.Query1 - new
+transaction.QueryFirst - new
+transaction.QueryLast - new
+transaction.Update? - new
+UrlDecode - new
+UrlDecodeValues - new
+
+
+stdlib:
+
+AboutSuneido - new
+AccessControl - Fixed bug where delete was leaving the current status invalid, after deleting an invalid record.
+- ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- added ability to specify labels on dynamic types (for the menubutton)
+- changed format of code in the setdata method
+- Fixed Ok_to_Destroy to respect data.Dirty and On_Current_Restore to set data.Dirty to False.
+- Fixed bug where save does not complete the transaction.
+- Fixed bugs that occurred when switching book tabs when in a Browse on an Access and the Browse is in edit mode.
+- Fixed bug with Restore and Dynamic types where Restore was actually saving the record.  These records would cause an error when loaded in the view because they don't have a type.
+- Removed title specification from dynamic types.  Now the member names from the dynamic_types object are used for the title.
+- added keyboard accellerators (but they won't work inside books)
+- removed style from Dialog's
+- Changed BrowseAddRecord to Browse_AddRecord. Added Browse_AddRecord to new BrowseControl.
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+Alert - changed to modal, increased max text
+Ask - Minor change: ability to specify a control for Ask.
+Asup - new
+AsupTest - new
+BlockTest - fixed whitespace problem
+BookBrowserControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Fixed resize bug. Split up data and interface.
+BookControl - removed "Cover" from chapter tabs
+- Split up data and interface.
+- changes to handle book coils
+BookEditControl - changed "Delete" key to "Del" to aid translation
+- changed refresh toolbar button
+- added Run (like LibView)
+- added multiple file support to Import Image
+BookMarkActiveControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+BookMarkContainerControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+BookSplitControl - changes to handle book coils
+- fixed Open?
+BookToolbarControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+BorderControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Converted to Container.
+BrowseAccessControl - Updated to work with latest stdlib changes.
+BrowseControl - new
+BrowserControl - Added default border of "3D".
+- Split up data and interface.
+ButtonControl - strip invalid characters (e.g. to handle &)
+- Changed so that '.' isnt removed from the name.
+- stripped out "&" when translating the button text
+- Took off disabling on SetReadOnly.
+CWPRETSTRUCT - new
+CallNextHookEx - new
+CaptionButtonControl - new
+CenterControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Added SetEnabled and SetVisible implementations.
+- Converted to Container.
+CheckBoxControl - Fixed bug where control's height would be 0 when there is no associated text.
+- ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Fixed bug with field protection when the __protect rules don't exist.
+- added readonly option (defaults to False)
+- added set argument to New
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+ChooseDateControl - Fixed to store *correct* value for dirty.
+- Changed On_Change to On_Ellipsis.
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+- Passes the field's value to the MonthCalDialog
+ChooseField - Fixed bug with field protection when the __protect rules don't exist.
+- Fixed to store *correct* value for dirty.
+- Removed ButtonHwnd (no longer required). Added default border of "3D". Added EllipsisButton instead of standard Button. Used field.border instead of field.clientedge (removed).
+- Fixes to some of the ChooseField's trials and tribulations.
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+ChooseManyControl - Changed On_Choose to On_Ellipsis
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+ChooseManyListControl - fixed bug where number items were handled incorrectly.
+ChooseTwoListControl - Changed On_Choose to On_Ellipsis
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+ComboBoxControl - Added default border of "3D".
+- Fixed to not die when GetField doesn't return a string.
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+- Fixed ignoring of protect rules.
+ConsoleControl - new
+Container - new
+Control - Added a SetEnabled function 
+- Added SetVisible stub to Control and implementation to Hwnd. This needs more widespread implementation (e.g. in Group and Controller)
+- Added GetChildren stub.
+- Added Set3D and GetRect stubs.
+- Implemented GetRect and GetClientRect in Hwnd.  Attempted to implement Set3D without much luck.
+- Added border to control specifications. Added SetReadOnly stub. Removed Set3D stub.
+- Added a GetReadOnly stub to Control (returns False). Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+Controller - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Added SetVisible
+- Added SetEnabled implementation. Modified SetVisible to call super.SetVisible. 
+- Added handling for passing border to child.
+- new AboutSuneido
+- Converted to Container.
+Copyright - added Print
+- added "All rights reserved worldwide."
+CursorTempindexTest - new
+Datadict - Changed Datadict to catch all kinds of exceptions.
+DateControl - Fixed to store *correct* value for dirty.
+- Removed clientedge argument.
+DbNameCaseTest - new
+DebuggerControl - changed error display to two lines, made code readonly, fixed SHIFT + DBLCLICK on variables, added Cancel button
+Dialog - only set default style & exstyle if no style is passed in
+DialogBoxParam - added "resource" type
+Diff - fixed off-by-one bugs in Diff.Three (SVC conflicts)
+DiffFormat - changed font from 9 point to 8 point
+DiffListControl - changed conflict display to show L (local) and M (master) instead of 1 & 2
+DrawAnimatedRects - new
+EDGE - updated scintilla to 1.38
+ENUMLOGFONTEX - new
+ESB - new
+ETO - new
+EditorControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Added default border of "3D".
+- added SelectAll
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+- Split up data and interface.
+EllipsisButtonControl - new
+EnumChildProc - Changed EnumChildProc to WNDENUMPROC.
+EnumChildWindows - Changed EnumChildWindows to use WNDENUMPROC.
+EnumFontFamiliesEx - new
+EnumThreadWindows - new
+EnumWindows - new
+ExplorerAppsControl - changed "Delete" key to "Del" to aid translation
+ExplorerControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Added notification to LibView for close tab CaptionButton.  Added method GetTabs as alternative to messy private member access.
+- Changed method call from NoUpdate? to more friendly OKToSave?
+- changed OKToSave? check from "is True" to "isnt False" to handle no method return of 0
+ExplorerListModel - Added NewRecord method
+ExplorerListViewControl - Only do record validation if the record is dirty
+- Added ability to remove status bar.
+- Added GetModel and fixed up the NewModel and Load_entries methods to eliminate flicker on the listview.
+- Took out code that called GetSelected and SelectItem in SelectChanged.  This is to prevent recursion and function call overflows in some cases.
+- Instead of wrapping everything in the ScrollControl, only the view is scrollable.
+- Added NewRecord method
+- Added GetView method
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+- Fixed the updating of list values when the record is saved.
+ExplorerVirtualListViewControl - Added GetView and GetModel, moved Scroll so it wraps only the view.
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+Export - minor changes, switched TextFile to File
+ExtTextOut - new
+FONTENUMPROC - new
+FONTSIGNATURE - new
+FieldControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Fixed bug with field protection when the __protect rules don't exist.
+- Added SelectAll method. Removed clientedge argument to New. Added default border of "3D".
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+- Split up data and interface.
+- added initial size - otherwise SelectAll in Set can cause text to scroll
+Field_abbrev - additional standard field types
+- Added lowercase style to the control.
+Field_boolean - Added a default width to format
+Field_percent - additional standard field types
+FileTest - additions and improvements
+- error message changed
+- added Test_bad_method
+- added test for "" filename
+FindControl - added "Regular expression" checkbox to Find & Replace dialogs
+FindInLibrary - renamed from GrepLib, minor changes
+FindInLibraryControl - renamed from GrepLib, minor changes
+FindResource - new
+FindText - factored this code out into separate function
+- added Unescape if regular expression
+FlipControl - new
+ForeignKeyTest - new
+FormControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Converted to Container.
+FramesTest - new
+GetCurrentThreadId - new
+GetSaveFileName - new
+GetScrollInfo - new
+GetSystemMenu - new
+GlobalExportControl - changed RadioButtons to not have GroupBox
+- cleaned up, used SaveFileControl
+GlobalImportControl - changed RadioButtons to not have GroupBox
+- cleaned up, used OpenFileControl
+GrandTotalDescFormat - to help format totals and their descriptions
+- refactored, incorporated right justify into TotalDesc's
+GrandTotalFormat - set vertical alignment
+- refactored, incorporated right justify into TotalDesc's
+GrepLib - improved performance
+- renamed to FindInLibrary
+GrepLibControl - renamed "Grep Library" to "Find in Library", added "Regular expression" checkbox
+- renamed to FindInLibrary
+GridControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+Group - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- added SetEnabled (this handles Vert and Horz)
+- Added SetVisible to Controller
+- added GetChildren
+- changed to use GetChildren
+- Converted to Container.
+GroupBoxControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Changed to Container.
+HC - new
+HOOKPROC - new
+HandleSplitterControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- changes to handle book coils
+Handler - added WS.MAXIMIZEBOX so you can maximize
+HeaderControl - Various improvements to Browse including expanding column sizes on selection and scrolling edit controls into view.
+- Took off ugly WS.BORDER styling. Fixed broken style feature.
+- Added item clicking. Changed item dragging to ignore order array. Minor improvements and Get/Sets.
+- Fixed minor problems in browse.
+HlineFormat - to help format totals and their descriptions
+- refactored, incorporated right justify into TotalDesc's
+HorzFormat - to help format totals and their descriptions
+- minor fix and cleanup
+- changed data default to #{} (record)
+Html_table - new
+Html_tableTest - new
+Html_table_crosstab - new
+Html_table_query - new
+HtmlPrefix - minor change to make font size of 'pre' smaller
+HttpGet - fix to handle SocketClient throwing exception for lost connection
+- changed SocketClient/Server Read and added Readline and Writeline
+HttpServer - major rewrite to be more CGI-like
+- changed SocketClient/Server Read and added Readline and Writeline
+Hwnd - added GetFont(), moved Destroy to the end
+- Added pre/postconditions; Added Get/SetEnabled methods; added erase feature to Repaint.  Moved data into data section.
+- Fixed minor bug - missing parentheses in Hwnd.SetEnabled.
+- Added ability to get and set ExStyles.
+- Added HasStyle?, AddStyle and RemStyle functions.
+- Changed to use the default GUI font.
+- Added SetVisible stub to Control and implementation to Hwnd. This needs more widespread implementation (e.g. in Group and Controller)
+- Modified SetVisible slightly: now calls super.SetVisible.
+- Implemented GetRect and GetClientRect in Hwnd.  Attempted to implement Set3D without much luck.
+- Added handling for border control spec. Removed Set3D method.
+- Added default read-only behavior to Hwnd (disables window). Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+IDANI - new
+IDR_COIL - new
+IDTB - added Refresh and Check
+IdFieldControl - Removed clientedge argument.
+- Matched prefixes against the abbreviation field as well as the name field.
+ImageControl - Added Get/Set.
+ImageFormat - fixed scaling 
+ImageList_LoadImage - added "resource" type
+ImageTileControl - new
+Import - minor changes, switched TextFile to File
+InfoWindowControl - new
+Init - Minor change to Suneido.FindReplace initialization.
+- Added a new window class with a tooltip-style background.
+- added "Regular expression" checkbox to find & replace dialogs
+- minor change for Find in Library
+- renamed GrepLib to FindInLibrary
+- changed "Whole file" to "Entire text"
+Inspect - removed TOOLWINDOW and added WS.MAXIMIZEBOX so you can maximize
+InspectControl - Fixed inspecting of objects indexed by non-string member names
+- added hwnd arg for SHIFT+DBLCLICK in Debug
+Integer? - Added a function to test whether a value is an integer.
+IsWindowEnabled - new
+KeyControl - Changed On_Choose to On_Ellipsis
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+- refreshed the wherefield when the button is chosen.
+KeyFieldControl - Removed clientedge argument.
+- Matches the prefix on the abbreviation field if it exists.
+LONG - new
+LVM - Added LVM_GETEXTENDEDLISTVIEWSTYLE
+LibViewControl - Added a CaptionButton for closing tabs;  Added Run and Run Record features.
+- Added closing console on LibView close
+- Added an Inspect Record feature.
+- Minor changes: "Run record" renamed to "syntax check"; "Syntax check" is now safe in base components.  "Inspect record" is safe[r].
+- minor refactoring of Print
+- added Check Syntax toolbar button
+- You can now run Reports and Accesses (among other things) with the run command.
+- cleaned-up run reporting AND added run member support.
+- Added Run to context menu.  Fixed-up member run a little.
+- added Beep when Goto unsuccessful
+- changed Goto so if it fails it tries Control and Format suffixes
+- removed OKToSave - want to be able to save incomplete code
+- added menu option and F12 shortcut for Goto Definition
+- improved Use Library to have a list of libraries
+- Added Display to Prints, so that strings are quoted.
+- added "Regular expression" checkbox to Find & Replace dialogs
+- factored out FindText, removed GroupBox from findcontrol
+- Added Import/Export to and from text to Tools menu.
+LibraryTables - new
+LibraryTablesControl - new
+ListBoxControl - Added default border of "3D".
+ListControl - new
+ListEditWindow - new
+ListViewControl - Changed New to call SetColumns. SetColumns now behaves in a logical manner with respect to hidden fields.
+- added checking to SetColumns so that nothing is done if the columns are the same as the previous set.
+- fixed bug with Setcolumns after the list had been destroyed and recreated.
+- Added default border of "3D".
+ListViewNewControl - new
+LoadBitmap - added "resource" type
+LoadBitmapId - not necessary or used
+LoadCursor - added "resource" type
+LoadIcon - added "resource" type
+LoadImage - added "resource" type
+LoadResource - new
+LockResource - new
+MOUSEEVENTF - new
+MenuButtonControl - Fixed bug where the menu options wouldn't work if the button's text was translated.
+MoneyBag - returned 'this' from Plus and Minus, add ToString
+- moved pre & post comments to standard positions
+- Added Zero? method
+- Added Merge method to MoneyBag
+MoneyBagTest - Added Zero? method
+- Added Merge method to MoneyBag
+MonthCalControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Added default border of "3D".
+- added a date parameter
+MonthCalDialog - added a date parameter
+Mouse_event - new
+MshtmlControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Added default border of "3D".
+- Changed ancestor class to Container.
+NEWTEXTMETRIC - new
+NEWTEXTMETRICEX - new
+Numbers - Added Pad function to Numbers class
+NumbersTest - Added Pad function to Numbers class
+OPENFILENAME - changed file from string to buffer for multiple selection
+ObjectTest - added other type to Test_Join
+- added Test_ToString
+- added Accum, cleaned up JoinCSV
+- added Remove
+Objects - moved DoWithTran from Objects to Records
+- added MergeUnion
+- added Accum, cleaned up JoinCSV
+- Added Front()
+- added Subset? method
+- added Remove
+- added "return this" to Remove
+- Added MergeUnionIf and HasIf?
+OpenFileControl - new
+OpenFileName - added multiple selection
+OptionalNumberFormat - added 1 to size - seems to fix HP printing problem
+- changed to calculate mask width better
+PageHeadFormat - split out PageHeadName so it can be overloaded
+PageHeadName - split out PageHeadName so it can be overloaded
+PaletteWindow - new
+PaneControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Added SetEnabled and SetVisible implementations.
+- Added default border of "3D" and handling for it (including Resize). 
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+Params - Modified update_params to not save if no report name
+- Changed so params dialog is closed after the report is printed.
+ParamsChooseListControl - Changed On_Choose to On_Ellipsis
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+ParamsSelectControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+Point - new
+PointTest - new
+PopClient - Added GetMessageSize, List and Top methods.
+- changed SocketClient/Server Read and added Readline and Writeline
+PopServer - changed SocketClient/Server Read and added Readline and Writeline
+PreviewControl - Added Print option
+QueryAccum - new
+QueryColumns - new
+QueryFormat - added Append method
+QueryTest - new
+QueryViewControl - changed "Delete" key to "Del" to aid translation
+QuickSort - new
+QuickSortTest - new
+RDW - new
+RT - new
+RadioButtonControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- added Name
+- changed Xmin and Ymin
+RadioButtonsControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- changed RadioButtons to not have GroupBox
+RadioGroupsControl - new
+Range - new
+RangeTest - new
+RecordControl - Added SetFieldDefault method that does not change the dirty flag.
+- Fixed bugs that occurred when switching book tabs when in a Browse on an Access and the Browse is in edit mode.
+- Modified to work with changes to TabsControl.
+- Put in a special handler to convert __protect fields to calls to SetReadOnly. Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+Records - moved DoWithTran from Objects to Records
+Rect - new
+RectTest - new
+RedrawWindow - new
+RemoteBackup - new
+ReplaceControl - added "Regular expression" checkbox to find & replace dialogs
+- changed RadioButtons to not have GroupBox
+- changed "Whole file" to "Entire text"
+ReplaceInLibrary - new
+ReplaceInLibraryControl - new
+ReplaceText - new
+Report - fixed bug with specs like #( fieldname .). (wasn't setting name)
+RestoreDC - new
+RichEditControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Added default border of "3D".
+RowFormat - fixed to ensure not wider than width
+- changed to use vertical alignment point (baseline align)
+- set w (width in twips) on child formats, fixed bug with setting font, changed data default to #{} (record)
+- changed to handle rules better
+SB - new
+SBARS - new
+SBM - new
+SBPART - new
+SBS - new
+SBT - new
+SC - updated scintilla to 1.38
+SCEN - updated scintilla to 1.38
+SCI - updated scintilla to 1.38
+SCK - updated scintilla to 1.38
+SCLEX - updated scintilla to 1.38
+SCMOD - updated scintilla to 1.38
+SCN - updated scintilla to 1.38
+SCWS - updated scintilla to 1.38
+SPI - new
+SPIF - new
+SaveDC - new
+SaveFileControl - new
+- changed to derive from OpenFileControl to reduce duplication
+SaveFileName - new
+ScheduleConsoleControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+ScheduleControl - fixed bug that didn't begin scheduling until window first shown.
+- Fixed bug that wouldn't hide the notification icon popup menu on NT when clicking outside it by adding ShowMenu to TaskbarIconControl and displaying the menu via TaskbarIconControl.
+- ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Updated a pre/postcondition pair; Minor changes.
+- minor changes to message format
+ScheduleWindowControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+SchemaView - changed "Delete" key to "Del" to aid translation
+ScintillaControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Added Set/GetFirstVisibleLine methods and switched internals to use these intead of SendMessage.
+- changes to fonts
+- updated scintilla to 1.38
+- fixed Goto Definition to strip leading/trailing whitespace
+- another fix for goto word select
+- fixed disappearing calltips problem
+- fixed Replace All to obey Whole Words and Match Case
+- fixed to not show calltip for methods (e.g. .SendMessage)
+- fixed bug with Append changing control to readonly (e.g. for large Set's)
+- added "Regular expression" checkbox to Find & Replace dialogs
+- factored out FindText (fixed whole word match without regular expressions)
+- changed EN_KILLFOCUS to SCEN_KILLFOCUS
+- Added default border of "3D".
+- fixed problems with long records and Get.
+- changed "Whole file" to "Entire text", fixed Replace issues
+ScrollControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- fixed scrolling bug that only happened on Ken's machine
+- Added some public get methods, replace hardcoded width/height of scrollbars with values from GetSystemMetrics.
+- Fixed bug that stopped you from tabbing through controls, usually in Dialogs.
+- Added SetEnabled and SetVisible implementations.
+- Added GetChildren method in order to provide access to the contained controls.
+- Added default border of "3D". Minor cleanup (tabs, etc.)
+ScrollbarControl - new
+SelectControl - Changed to use Headings in the pick list if there is a conflict with the prompts
+SetForegroundWindow - new
+SetScrollRange - new
+SetWindowsHookEx - new
+SizeofResource - new
+SmtpClient - allowed multiple recipients when sending mail.
+- changed SocketClient/Server Read and added Readline and Writeline
+SmtpSendMessage - new
+SmtpServer - changed SocketClient/Server Read and added Readline and Writeline
+SpinnerControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+Split - improved handling for vert when bottom half is scrollable
+- changed to use GetChildren
+- changes to handle book coils
+SplitterControl - Commented-out PAINT method which does nothing.  
+- ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- changes to handle book coils
+Stack - added ToString
+StaticControl - improved to allow overriding size, added NOPREFIX
+- Took off disabling on SetReadOnly.
+StatusControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+StatusTextControl - changed .Hwnd_hfont to GetFont()
+StatusbarControl - Added capability to add panels and set text in different panels.
+- Statusbar now has all CommCtrl STATUSBAR functionality.
+String - enhanced to handle all types
+StringTest - new ReplaceSubstr method
+- cleaned up SplitCSV
+- added tests for block replace
+- added test for regular expression changes
+- added test for Unescape
+Strings - new ReplaceSubstr method
+- cleaned up SplitCSV
+- added LeftFill
+Svc - added check for local committed > master committed
+SvcClient - fixed bug with displaying master deletes
+- changed SocketClient/Server Read and added Readline and Writeline
+SvcControl - added etched line under menu, changed name of print option
+- improved comment display
+- Added Library to report title
+- changed conflict display to L (local) and M (master) instead of 1 and 2
+- added library name to title bar
+- added test button
+- added name 'Svc' to the control
+SvcGetDescription - changed font to Courier for readability
+- added comment history
+SvcServer - changed SocketClient/Server Read and added Readline and Writeline
+Swap - new
+SystemParametersInfo - new
+TabControl - Minor change: uses only un-named members as tabs.
+- Added GetSelected() for TabControl.
+TabsControl - [Potentially] major changes: instead of sending ReSet, now sends TabsControl_SelectTab;. passes .ctrl as argument to TabsControl_SelectTab;. Resizes control before sending msg.
+- Added SetVisbible and SetEnabled to TabsControl.
+TaskbarIconControl - Fixed bug that wouldn't hide the notification icon popup menu on NT when clicking outside it by adding ShowMenu to TaskbarIconControl and displaying the menu via TaskbarIconControl.
+- Minor repair: changed use of SetActiveWindow to SetForegroundWindow.
+- ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+TestServer - changed SocketClient/Server Read and added Readline and Writeline
+Tests - added ability to define a "set" of tests
+- Added RunLog method
+- modified RunLog to return results
+- added RunLib to run the tests from one library
+- changed RunLib and RunAll to return errors
+- added "Test Results" title to result Alert's
+ToolTipControl - Simplified ToolTipControl; changed it from WndProc to Hwnd
+TotalDescFormat - new
+TotalFormat - set vertical alignment
+- refactored, incorporated right justify into TotalDesc's
+- fixed to pass data properly
+TransactionTest - new
+Transactions - don't close query if update transaction
+TreeViewControl - Added default border of "3D".
+TwoListControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+UnhookWindowsHookEx - new
+UrlDecode - new
+UrlDecodeTest - new
+UrlDecodeValues - new
+VertFormat - added GetItems method
+- changed data default to #{} (record), minor refactoring
+VirtualBrowseControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Modified to work with changes to TabsControl.
+- Changed HeaderResize to HeaderTrack.
+- Changed BrowseAddRecord to Browse_AddRecord. Added Browse_AddRecord to new BrowseControl.
+WH - new
+WNDENUMPROC - new
+Wiki - new
+WikiEdit - new
+WikiFind - new
+WikiFormat - new
+WikiFormatTest - new
+WikiRecent - new
+WikiSave - new
+WikiTemplate - new
+WikiView - new
+Window - changed "Delete" key to "Del" to aid translation
+- Added a 'Simulate Resolution' option to the window (system) menu on Window.  You can get this option from any Window by clicking the system menu icon at the top left or pressing Alt+Space.
+- Added menu hotkey (&e) so you can press. . Alt+Space > e > 6 for 640 x 480 or. Alt+Space > e > 8 for 800 x 600 or. Alt+Space > e > 1 for 1024 x 768
+- Added provision for resizing previously maximized windows.
+WndProcSpinControl - ensured that Destroy's call super.Destroy(). ensured that Destroy method is last in class. ensured that data controls have Send("NoData")
+- Added default border of "3D".
+- Standardized read-only: Changed Protect to SetReadOnly and. Protected? to GetReadOnly.
+WorkSpaceControl - changed "Delete" key to "Del" to aid translation
+- improved Run Tests to let you pick one or all libraries
+- renamed "Grep Library" to "Find in Library", added "Regular expression" checkbox
+- added ReplaceInLibrary, renamed GrepLib to FindInLibrary
+- added Clear Output to toolbar
+- fixed Open Book to check for ""
+WrapFormat - handled vertical alignment, refactored
+Xml - new
+XmlTest - new

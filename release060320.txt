@@ -1,0 +1,327 @@
+suneido.exe:
+
+sudate.cpp - improved error message
+builtins.cpp, dbms.h, dbms.cpp - added ServerIP
+scanner.h, scanner.cpp, compile.cpp - added compile time checking of dll definitions
+dbmsremote.cpp - increased buffer size to allow for exceptions
+database.cpp - added conflict details for update and delete exceptions
+qexpr.cpp - checked for no return value from FunCall::eval
+dbserver.cpp - added catch for std::exception and ... since unhandled doesn't seem to work for server
+portwin32.cpp - increased max exe path size
+builtins.cpp - added ServerPort and ExePath
+compile.cpp - added NORETURN to syntax_error
+interp.cpp - removed mmfile overflow warning (no longer used)
+sufile.cpp - added template<> for GCC 4
+sudate.cpp - better argument checking for date.Plus
+[many files] - changes for larger databases
+portwin32.cpp, callback.cpp - added alloc/free_executable (for DEP)
+callback.cpp, suneido.cpp - fixed to delay freeing callbacks
+qtempindex.cpp - improved key too large error
+build.cpp - added COMPILER
+[many files] - switched from bmemory.cpp to Boehm-Demers-Weiser garbage collector
+tempdest.h, tempdest.cpp - changed to use mem_committed/release instead of permheap (to remove size limit)
+surecord.h, surecord.cpp, sudb.cpp, qparser.cpp, row.h, row.cpp, dbmslocal.cpp - added _TS feature
+sockets.cpp - improved bind error
+sunumber.cpp - fixed rounding issue in mask
+recover.h, recover.cpp, rebuildgui.cpp - improved rebuild error handling
+gcstring.cpp - fixed bug in has_suffix
+database.cpp - improved error messages
+dbhttp.cpp - added built info
+builtins.cpp - added ErrorLog
+recover.h, recover.cpp, rebuildgui.cpp - added check_indexes
+recover.cpp - fixed bug with renamed tables, added tests
+load.cpp - fixed to handle large records
+except.h - improved asserteq
+database.cpp - fixed bug in record_ok
+usertrigger.cpp - don't do triggers for schema_tran
+
+suneidoc:
+
+/Introduction/Command Line Options - removed -garbagecollection
+/Introduction/Frequently Asked Questions - updated limits
+/Tools/Access - added link to reference
+/Tools/AccessNav - new (from Jos Schaars)
+/Tools/Browse - added link to reference
+/Tools/Language Translation - updated
+/Tools/Reporter - fixed selection buttons to be referenced from suneidoc book
+/Language/Reference/Dir - added missing parameters
+/Language/Reference/ExePath - new
+/Language/Reference/Memory - no longer available
+/Language/Reference/MemoryArena - updated
+/Language/Reference/MoneyBag/moneyBag.Display - Added format to arguments
+/Language/Reference/Object/object.Sort! - updated example to not return from the sort block
+/Language/Reference/ServerIP - new
+/Language/Reference/ServerPort - new
+/Database/Automatic Timestamp Fields - new
+/Database/Reference/Transaction/transaction.QueryList - fixed mistake
+/Database/Rules - added SetDeps/GetDeps and warning about side effects
+/User Interfaces/Reference/AccessControl - added documentation for public AccessControl methods and messages
+- split methods/messages/example into separate records & linked them
+/User Interfaces/Reference/AccessControl/Messages - split methods/messages/example into separate records & linked them
+/User Interfaces/Reference/AccessControl/Methods - split methods/messages/example into separate records & linked them
+/User Interfaces/Reference/AccessControl/accessControl.AccessGoTo - moved methods into main record
+/User Interfaces/Reference/AccessControl/accessControl.ChangeQuery - moved methods into main record
+/User Interfaces/Reference/AccessControl/accessControl.GetControl - moved methods into main record
+/User Interfaces/Reference/AccessControl/accessControl.GetData - moved methods into main record
+/User Interfaces/Reference/AccessControl/accessControl.Save - moved methods into main record
+/User Interfaces/Reference/AccessNavControl - new (from Jos Schaars)
+/User Interfaces/Reference/Alert - updated (from Ajith)
+/User Interfaces/Reference/BrowseControl - split methods/messages/example into separate records & linked them
+/User Interfaces/Reference/BrowseControl/BrowseControl - removed references to ListFormatControl
+/User Interfaces/Reference/BrowseControl/Methods - split methods/messages/example into separate records & linked them
+/User Interfaces/Reference/CenterTitleControl - additional parameters (from Jos Schaars)
+/User Interfaces/Reference/ChooseDateControl - updated to have the new checkValid parameter
+/User Interfaces/Reference/DateControl - added documentation for checkCurrent option
+- updated to have the new checkValid parameter
+/User Interfaces/Reference/FormControl - added note about overlap
+/User Interfaces/Reference/HorzControl - added overlap:
+/User Interfaces/Reference/MainFieldControl - added weight parameter
+/User Interfaces/Reference/NoPromptControl - added weight parameter
+/User Interfaces/Reference/SpinnerControl - added euro, increase, and rollover options (from Luis Alfredo Barrasa)
+/User Interfaces/Reference/StaticControl - more complete, including new features (from Claudio)
+/User Interfaces/Reference/TitleControl - additional parameters (from Jos Schaars)
+/User Interfaces/Reference/ToolbarControl - additions (from Claudio)
+- minor correction
+/User Interfaces/Reference/TrackBarControl - new (from Claudio)
+- added image for TrackBarControl
+- split methods/messages/example into separate records & linked them
+/User Interfaces/Reference/TrackBarControl/Example - split methods/messages/example into separate records & linked them
+/User Interfaces/Reference/TrackBarControl/Methods - split methods/messages/example into separate records & linked them
+/User Interfaces/Reference/VertControl - added overlap:
+/User Interfaces/Reference/WebLinkControl - added prefix parameter
+/Cookbook/Using Graphviz from Suneido - new
+
+stdlib:
+
+AboutSuneido - Updated copyright year.
+- added Scintilla and Boehm collector
+AccessControl - fixed protect option and program errors when no record is loaded
+- added descriptions to Asserts that didn't have them
+- added new message - need to notify controller when attempting to save but before validation is done. (for sorting picks and drops)
+- removed unused message
+- switched order to prevent looping.
+AccessNavControl - new (from Jos Schaars)
+AccessNavEditControl - new (from Jos Schaars)
+AccessNavListControl - new (from Jos Schaars)
+AlertError - modified to allow user to email report when program error occurs
+Assert - changed to show the name of the method/function containing the Assert
+AssertEqw_Test - changed to show the name of the method/function containing the Assert
+BookBrowserControl - added item.CloseWindowConfirmation() (from Jos Schaars)
+BookControl - added plugin to add buttons to the BookControl
+BookEditControl - fixed to work as PersistentWindow (similar approach as BookControl)
+BookEditModel - added checks for svc_deleted existing, removed try
+BookModel - fixed bug where Create was not creating the num column
+BookSplitControl - fixed problem with prevsplit (from Jos Schaars)
+BrowseControl - changed save_row to save_rec and looked for the record in the list instead of trying to save the index of the row we were saving (should be safer than using the index, since deletes can shift the indexes).
+- changes to handle GlAcctDeptControl inside ListControl (no browse)
+- Added mandatory fields for customized column control.
+- changed 'mandatoryFields' parameter name to 'mandatory_list' in TwoListControl and TwoListDlgControl since the items may not necessarily be fields.
+- Changed observer to check for original record and compare values from original to the current record before marking the  record dirty (shouldn't be dirty if rule was just invalidated and value didn't change).
+BrowseFlipFormControl - allow Controller to disallow moving items in the list
+- resend Browse_ExtraValid for Access to use
+- added new method Browse_AllowDelete (used for checking deleting picks/drops on Orders)
+BuiltDate - new
+CLR - additions (from Claudio)
+CenterTitleControl - changed to derive from Static, added parameters (from Jos Schaars)
+CheckBoxControl - minor changes (from Jos Schaars)
+CheckResources - changed to log server resource warning before alerting user.
+- logged arena size in suneidolog
+- increased memory size to 300 mb
+CheckTableIndexCounts - new
+ChecksumLibraries - modified to handle books checksums
+- changed to ignore plugin entries in the books
+- added sorts to the queries because the order the records are read in affects the checksum result
+- changed to delete checksum_results file before adding to it
+ChooseControl - added Update method to update Field and Button
+ChooseDateControl - added checkCurrent option to date controls and datadict entries  for transaction dates to warn users if date entered is more than 6 months in future or past.
+- modified to pass new parameter checkValid through to the DateControl to check for dates before the company protection date in Accountinglib
+- improved checkCurrent option on date controls to not check if readonly, and to give the field name that the warning applies to.
+ChooseDateTimeControl - added checkCurrent option to date controls and datadict entries  for transaction dates to warn users if date entered is more than 6 months in future or past.
+- modified to pass the checkValid parameter through to DateControl
+ChooseListControl - fixed to destroy ListEditWindow when you click off the pull down list (gave SetField requires single row select)
+ColorRectControl - changed to use WS_EX.STATICEDGE (from Jos Schaars)
+Controller - modified to only call Update if .ctrl is not false
+- added checking if .ctrl is false to AccessGoto method (all other methods that use .ctrl check first)
+CreateIconFromResource - new (from Claudio)
+Customizable - Use default table if none provided
+CustomizableControl - added Scroll control around the custom form
+- moved .Send('TabsControl_SelectTab') out of the New method and into Resize because it was happening before the RecordControl had its data set (causing nextnum rules to use up numbers).
+CustomizableDialog - stop the user from adding the same field more than once
+- changed message and changed to use .AlertError instead of just Alert
+Customizable_Test - fixed to destroy configlib if it's created
+DateControl - added checkCurrent option to date controls and datadict entries  for transaction dates to warn users if date entered is more than 6 months in future or past.
+- added new checkValid parameter that is used by KillFocus to call the CheckValidDate method to do extra validation; Used in Accountinglib to check for dates before the protection date
+DateControl_Test - added checkCurrent option to date controls and datadict entries  for transaction dates to warn users if date entered is more than 6 months in future or past.
+DateEncode_Test - changed Field_date's Encode to use system shortdate format unless string starts with '#' in which case we let the format default. Added test.
+- changed to restore the date format in the Teardown method in case the test method does not finish.
+DrawControl - removed call to controls method in the new, this was previously changed to be defined in the Controls member instead.
+DumpLibrariesControl - added an option to the IDE menu to dump selected libraries
+DumpLibrariesControl_Test - added an option to the IDE menu to dump selected libraries
+EtchedLineControl - changed to use SS.ETCHEDHORZ (from Jos Schaars)
+EtchedVertLineControl - changed to use SS.ETCHEDVERT (from Jos Schaars)
+ExplorerListViewControl - fixed first Resize to avoid infinite recursion
+ExtractIconEx - new (from Claudio)
+Field_TS_Test - new
+Field_abbrev_largefont - new
+Field_date - changed Field_date's Encode to use system shortdate format unless string starts with '#' in which case we let the format default. Added test.
+Field_next_event - new - for when modifying the tasks table through AccessControl
+Field_prev_event - new - for when modifying the tasks table through AccessControl
+Field_prev_interval - new - for when modifying the tasks table through AccessControl
+FirstLastNameControl - added width, size, and heading parameters
+- added weight parameter
+FormControl - overlap rows, refactored (from Jos Schaars)
+GetBookImage - new (from Claudio)
+GetNextNumber - changed to use a Transaction block to make sure the transactions are always closed
+GetNextNumberTest - moved from Accountinglib, rewrote
+- added Test_conflict
+GetRemoteServerStats - modified to handle the formatting of database size when it's 1 G or more.
+- updated for new memory version
+GotoLibView - modified to not offer "create new item" on invalid name (i.e. name containing special characters)
+- modified to handle go to on name that ends with "?"
+GridFormat - fixed issues with cell alignment and spanning
+Group - added overlap:, refactored (from Jos Schaars)
+GroupBox - fixed sizing issue (from Ajith)
+HandleSplitterControl - improved painting (from Jos Schaars)
+Handler - modified to allow user to email report when program error occurs
+- more improvements on AlertError
+HeadingControl - changed to fit new alignment
+HtmlTextControl - improved painting (from Jos Schaars)
+HttpSend - added debugging
+IDB_TOOLBAR - new (from Claudio)
+IDI - additions (from Claudio)
+ILD - new (from Claudio)
+IconButtonControl - new (from Claudio)
+IdFieldControl - added noClear option and modified fillin_fields method to take noClear option into account.
+- if going from "other" value to another "other" value - do not clear fillin fields
+- refactored - made improvements
+IdFormat - changed Format's DataToString method to also take in the record. Needed to get the string val for some formats.
+ImageList_GetIcon - new (from Claudio)
+ImageList_GetImageCount - new (from Claudio)
+ImageList_Read - new (from Claudio)
+ImagePage - added error message
+InfoControl - fixed alignment, added overlap:
+KeyException - modified to allow user to email report when program error occurs
+- more improvements on AlertError
+- added translation (from Jos Schaars)
+KeyFieldControl - made fillin method Public - to accomodate changes in Ar_payivcFieldControl
+KeyListView - removed the "+ 2" when loading the size from the saved keylist_info (may have been needed before, was making the list window grow 2 pixels each time - should be no longer needed)
+- stripped off number suffix from query when saving keylistview info to handle cases where the view name needs to be unique and has a number appended to it
+- extracted keylistview info code
+KeyListViewInfo - extracted keylistview info code
+LVS_EX - additional constants (from Jos Schaars)
+LayoutToForm - changes to not allow duplicate fields in custom forms
+LayoutToForm_Test - changes to not allow duplicate fields in custom forms
+LibViewControl - added a Dump context menu option to libraries in LibView
+- fixed Find in Folders to handle "(All)" from WorkSpace, changed All to In Use
+ListControl - modified GetCol method to return false for non-existing column
+- modified GetCol method to use GetDefault instead of checking for member
+- changes to handle GlAcctDeptControl inside ListControl (no browse)
+- added locals to GetField/SetField that get logged with any exceptions to help track down errors where selection size isnt 1
+- changed to not allow moving lines when list is readonly
+- removed code that "saved" the selection (suspected issues with code, can be replaced later from history again if necessary).
+- changed to end editing and set focus to list when context menu is displayed (fixes errors that occur when editor sticks around after record is deleted)
+ListEditWindow - changes to handle GlAcctDeptControl inside ListControl (no browse)
+- fixed new changes to handle GlAcctDept in ListControl - wasn't checking if Controller was member of parent as the browse checking was.
+- modified to not startHook if control is destroyed.
+ListFormatting - changed Format's DataToString method to also take in the record. Needed to get the string val for some formats.
+ListStretchControl - extracted common code to make the last column in a ListControl take up the rest of the width and put it in ListStretchControl; switched the Show Plugins, Test Runner, and Version History to use new control
+ListViewControl - added CheckPopupItem and EnablePopupItem (from Claudio)
+- added LVS_EX.DOUBLEBUFFER (from Jos Schaars)
+LoadImageFrom - new (from Claudio)
+Mail_Processor - split Server into PopServer and SmtpServer
+- increased default timeout to 60 seconds
+MainFieldControl - added weight parameter
+MemoryMonitor - removed dbmargin; no longer used
+- handle db size over 1gb
+- updated for new memory version
+MoneyBag - added format option to Display() method
+NameAbbrevControl - changed to MainField
+- changed weight to 600
+NightlyChecks - changed Suneido.Alert to not be messagebox to avoid hanging the nightly checks; refactored
+- extracted code that formatting suneidolog entries into its own method so can be shared from SendErrorControl
+- added ETA and ETAHelp to nightly checks checksums
+- Added check for imagebook.
+- changed to use BuiltDate() to get the version for the current exe
+NightlyChecksPlugins - only add the count if running summary
+- In summary mode, show nightly check failure or warning if the result contains one.
+NightlyChecks_Test - Added check for imagebook.
+NoPromptControl - added weight parameter
+OBM - new (from Claudio)
+OCR - new (from Claudio)
+OIC - new (from Claudio)
+OpenImageControl - fixed (from Claudio)
+- Changed "File" to "Attachment", changed "Delete File" to "Remove Attachment".
+OptimizeNeeded? - changed to at least optimize every 7 days.
+OverviewBarControl - improved painting (from Jos Schaars)
+Params - modified to delete and output new params in the same transaction
+ParamsSelectControl - changed to not use the checkCurrent option when containing Date controls
+- skip over checkValid dates on parameter screens
+- added overlap:
+Plugin_BookButtons - added plugin to add buttons to the BookControl
+Plugin_IdeMenu - added an option to the IDE menu to dump selected libraries
+Plugin_NightlyChecks - moved CheckTableIndexCounts from Accountinglib
+Plugins - added the "/*block:"*/ to the catch in ForeachContribution method for debugging purposes.
+QueryKeyConstants - new (from Jos Schaars)
+RadioButtonControl - minor changes (from Jos Schaars)
+RemoteBackup - Change timeout to 30 min
+RemoteDump - new
+RemoteDump10 - new
+Report - modified Constuct to handle heading
+Reporter - fixed program error that occurred when user types an invalid summarize function, then picks a field
+- fixed reporter to not allow summarize function columns to be chosen in the Summarize By list
+- catch errors from the sort on the query
+- modified to call CheckName in the On_Save_As method to override in Accountinglib to check for ~Axon ETA
+- trimmed Formula and Field so spaces aren't valid
+ReporterOpenDialog - added AllowDelete? and AllowRename? methods to make checking in Accountinglib easier
+Reporter_summarizeby_cols_Test - fixed reporter to not allow summarize function columns to be chosen in the Summarize By list
+RestartNeeded? - increased memory limit for new exe
+Rule_reporter_summarizeby_cols - fixed reporter to not allow summarize function columns to be chosen in the Summarize By list
+STN - new
+ScrollControl - added SetReadOnly method so that it calls SetReadOnly on its control rather than disabling all controls within itself.
+- changes / refactoring (from Jos Schaars)
+SeekCursor - checked if cursor exists before closing
+SendMessageTBButton - new (from Claudio)
+SendNightlyChecks - changed nightly checks to be in summary mode
+- added the ability to use user name and password members out of the BookEmailInfo object.
+ServerMemoryMonitor - removed dbmargin - no longer needed
+- handle db size over 1gb
+- updated for new memory
+ShowPluginsControl - changed to use GetClientRect (simpler)
+- extracted common code to make the last column in a ListControl take up the rest of the width and put it in ListStretchControl; switched the Show Plugins, Test Runner, and Version History to use new control
+SmtpClient - fixed to accept "250" as well as "OK", improved error messages
+SpinnerControl - added euro, increase, and rollover options (from Luis Alfredo Barrasa)
+SpinnerWndProc - added euro, increase, and rollover options (from Luis Alfredo Barrasa)
+Split - handle borders (from Jos Schaars)
+SplitterControl - improved painting (from Jos Schaars)
+StaticControl - new features (from Claudio)
+StaticTimeControl - new - used for displaying time values from records.
+StatusControl - improved painting (from Jos Schaars)
+StatusbarControl - improved painting (from Jos Schaars)
+Strings - modified CapitalizeWords to not capitalize letters that come after '
+- removed unneeded pipe from character class in CapitalizeWords (was meant to mean "or" but was actually literal in the character class)
+StringsTest - modified CapitalizeWords to not capitalize letters that come after '
+SummarizeControl - Modified Summarize to use SelectPrompt
+SuneidoLog - improved to log objects (one level) and to elide long strings
+- modified to allow user to email report when program error occurs
+TB - added ENDTRACK for TrackBar (from Claudio)
+TBM - new (from Claudio)
+TBS - new (from Claudio)
+TabsControl - added item.CloseWindowConfirmation(), improved Resize (from Jos Schaars)
+TestRunner - added noalert option to RunAll
+TestRunnerGui - extracted common code to make the last column in a ListControl take up the rest of the width and put it in ListStretchControl; switched the Show Plugins, Test Runner, and Version History to use new control
+TitleControl - changed to derive from Static, added parameters (from Jos Schaars)
+ToolbarControl - additions (from Claudio)
+ToolbarControl_Ex - new (from Claudio)
+TrackBarControl - new (from Claudio)
+TrackBarControl_Ex - new (from Claudio)
+TwoListControl - Added mandatory_list option.
+TwoListDlgControl - Added mandatory_list option.
+UOMControl - added overlap
+UnionTest - updated test to match new exe message
+VersionHistoryControl - extracted common code to make the last column in a ListControl take up the rest of the width and put it in ListStretchControl; switched the Show Plugins, Test Runner, and Version History to use new control
+WebLinkControl - added prefix parameter
+WikiFormat - added tables
+WikiFormatTest - added tables
+Window - added Center and Move (from Claudio)
+WindowBase - added ENTERSIZEMOVE and EXITSIZEMOVE to add/remove WS.CLIPCHILDREN to improve redraw (from Jos Schaars)
+WorkSpaceControl - changed to use BuiltDate() to get the version for the current exe

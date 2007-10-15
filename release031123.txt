@@ -1,0 +1,414 @@
+Some of the more significant changes:
+
+- improvements to QueryOptimization
+- speed/memory improvements to client-server
+- improvements to Canvas and Draw controls
+- improvements to plugin framework
+- progress on MinGW GCC version
+- updates to Spanish translation (thanks to Gerardo)
+
+Compatibility
+
+- removed record.DoSave and DontSave
+- removed record.Query()
+- removed object.Method
+- removed automatic finalization of transactions and queries
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe:
+
+- fixed bug with return from nested blocks
+- fixed int_if_num to check if int
+- changed record update and delete to use record address instead of key
+- changed DbServer to use DbmsLocal to reduce duplication of code
+- added record.Update(tran) and record.Delete(tran)
+- removed record.DoSave and DontSave
+- changed update and delete transaction conflicts to exceptions
+- fixed problem with parsing month and day 
+- added "unattended" command line option
+- changed all logging to error.log
+- fixed tran.Rollback to close associated queries on server
+- improved blocked by foreign key error to give table
+- improved Ctrl+Break interrupt handling
+- increased size of global name space
+- improvements to query optimization index selection
+- changed query.Order to only return sort
+- removed record.Query()
+- made Query1, QueryFirst, QueryLast and corresponding transaction methods builtin
+- fixed bug with LEFTJOIN
+- seeded Random with clock
+- removed object.Method
+- removed redefinition of malloc/free for MinGW compatibility
+- added GCC versions of inline assembler for dll and callback
+- removed automatic finalization of transactions and queries to fix bugs
+- added Database.TempDest
+
+User's Manual:
+
+/Introduction/Command Line Options - added -unattended
+- updated
+/Language/Classes/Set Methods - updated
+/Language/Reference/Object/object.Front - corrected (thanks to Bjorn)
+/Language/Reference/Object/object.MergeUnion - fixed typo
+/Language/Reference/Object/object.Method - removed
+/Language/Reference/Plugins - updated
+/Language/Reference/Random - new
+/Language/Reference/Type - corrected (thanks to Ajith)
+/Database/Reference/Database/Database.TempDest - new
+/Database/Reference/Query1 - added "Builtin"
+/Database/Reference/QueryFirst - added "Builtin"
+/Database/Reference/QueryLast - added "Builtin"
+/Database/Reference/Record/record.Delete - updated
+/Database/Reference/Record/record.DoSave - removed
+/Database/Reference/Record/record.DontSave - removed
+/Database/Reference/Record/record.Query - removed
+/Database/Reference/Record/record.Update - added record.Update(tran)
+- deprecated Update(object)
+/Database/Reference/Transaction/transaction.Query1 - added "Builtin"
+/Database/Reference/Transaction/transaction.QueryFirst - added "Builtin"
+/Database/Reference/Transaction/transaction.QueryLast - added "Builtin"
+/User Interfaces/Reference/Access1Control - updated
+/User Interfaces/Reference/GridControl - updated
+/User Interfaces/Reference/KeyControl - removed '-' to hide column (no longer needed)
+/User Interfaces/Reference/ListControl/ListControl - added documentation for ListControl highlighting
+/User Interfaces/Reference/ListControl/listControl.AddHighlight - added documentation for ListControl highlighting
+/User Interfaces/Reference/ListControl/listControl.ClearHighlight - added documentation for ListControl highlighting
+/User Interfaces/Reference/ListControl/listControl.GetHighlighted - added documentation for ListControl highlighting
+/User Interfaces/Reference/ListControl/listControl.HighlightValues - added documentation for ListControl highlighting
+/User Interfaces/Reference/ListControl/listControl.RowHighlighted? - added documentation for ListControl highlighting
+/User Interfaces/Reference/ListControl/listControl.SortHighlight - added documentation for ListControl highlighting
+/User Interfaces/Reference/PatternControl - updated, added < and >
+/User Interfaces/Reference/SetAccelerators - new
+/User Interfaces/Reference/TabControl - updated
+/User Interfaces/Reference/TabControl/TabControl - new
+/User Interfaces/Reference/TabControl/tabControl.Count - new
+/User Interfaces/Reference/TabControl/tabControl.GetData - new
+/User Interfaces/Reference/TabControl/tabControl.GetImage - new
+/User Interfaces/Reference/TabControl/tabControl.GetSelected - new
+/User Interfaces/Reference/TabControl/tabControl.GetText - new
+/User Interfaces/Reference/TabControl/tabControl.Insert - new
+/User Interfaces/Reference/TabControl/tabControl.Remove - new
+/User Interfaces/Reference/TabControl/tabControl.SetData - new
+/User Interfaces/Reference/TabControl/tabControl.SetImageList - new
+/User Interfaces/Reference/TabControl/tabControl.SetPadding - new
+/User Interfaces/Reference/TabControl/tabControl.SetText - new
+/User Interfaces/Reference/TabsControl - added documentation for TabsControl methods.
+/User Interfaces/Reference/TabsControl/TabsControl - added documentation for TabsControl methods.
+/User Interfaces/Reference/TabsControl/tabsControl.ConstructTab - added documentation for TabsControl methods.
+/User Interfaces/Reference/TabsControl/tabsControl.Constructed? - added documentation for TabsControl methods.
+/User Interfaces/Reference/TabsControl/tabsControl.GetControl - added documentation for TabsControl methods.
+/User Interfaces/Reference/TabsControl/tabsControl.GetSelected - added documentation for TabsControl methods.
+/User Interfaces/Reference/TabsControl/tabsControl.Select - added documentation for TabsControl methods.
+/Reports/Reference/QueryFormat - added OutputFormat, cleaned up
+/Appendix/Client-Server Protocol - updated
+/Appendix/Extending Suneido/Adding Builtin Functions - updated
+/Appendix/Idioms/Getters for Read-Only Members - new
+/Appendix/Idioms/Prevent Creation of Members - new
+/Appendix/Idioms/Using Window.ResizeToMin - new
+
+stdlib:
+
+Access1Control - added ChangeQuery
+AccessControl - added notification message on restore
+- made accelerator keys work in book, added tooltips to buttons
+- added ResetAccels and ResetRedir
+- Added AccessAfterSave
+- changed Current menu to use Plugins
+- added devel option to Current menu plugin
+- fixed bug where saveonlyLinked and header is deleted by another user
+- added transaction block around Save and Delete. Passed t through Send.
+- Added CkComplete to Current_Delete
+AccessGoTo - new - factored out
+AssertMatch - new
+AssertNoMatch - new
+BlockTest - added test for "return from nested block" bug
+BookControl - modified Go to Definition to work with name embedded in an object
+- fixed conflict between Access Next and Book Next
+- improved Go To Definition from User's Manual
+- fixed bug with deleting old bookmarks where paths are renamed 
+BookEditModel - removed extra argument to QueryFirst
+BookMarkControl - removed - not used
+BookToolbarControl - fixed conflict between Access Next and Book Next
+BorderControl - added GetChild()
+BrowseControl - Moved checking OverwriteRecord to first for loop of save 
+BrowserControl - put try in front of .COMobject.GoForward in GoForward method to fix bug.
+CC - new
+CHOOSECOLOR - fixed custColors to be pointer
+CanvasArc - added Move method
+CanvasCaption - new
+CanvasControl - modified to handle colors
+- added line color
+- added null pen and brush
+- split out ItemAtPoint from SelectPoint
+- return selected item if there is one
+CanvasEllipse - renamed handle to block
+- added Move method
+- changed to 4 because handles are 4x4
+CanvasGroup - handle colors in groups
+- added Move method
+CanvasImage - added Move method
+- changed to 4 because handles are 4x4
+CanvasItem - modified to handle colors
+- added line color
+- added methods to fix errors when trying to print blank screen
+- made handle area bigger
+CanvasLine - added Move method
+- changed to 4 because handles are 4x4
+CanvasPolygon - renamed handle to block
+- added Move method
+- changed to 4 because handles are 4x4
+CanvasRectangle - added Move method
+- changed to 4 because handles are 4x4
+CanvasRoundRect - added Move method
+- changed to 4 because handles are 4x4
+CanvasStockObject - added Move method
+CanvasText - added Move method
+CanvasX - renamed handle to block
+- added Move method
+- changed to 4 because handles are 4x4
+CascadeBugTest - new
+CheckLibraries - check for interrupt
+CheckLibrary - check for interrupt
+CheckQuery - improved CheckQuery
+ChooseColorControl - new
+ChooseManyControl - invalidate list field rule before getting the list
+- fixed extra space in Name (from Claudio)
+ChooseYearControl - new
+ColorRectControl - new
+ColorRectFormat - new
+ConflictTest - updated for exe changes
+Controller - minor fixes to ChangeControl
+- added ResetRedir
+- added Detach/AttachControl methods
+- added RemoveRedir
+CrosstabFormat - added missing sort
+CursorTempindexTest - changed to use AssertMatch and QueryStrategy
+DateTest - added WeekNumber and IsoWeekDay (from Jean-Charles)
+- added test for month/day issue
+Dates - added WeekNumber and IsoWeekDay (from Jean-Charles)
+DepsRenameTest - refactored - changed to use MakeTable
+Dialog - added ResetAccels
+DiffListControl - fixed for conflict compare (3 way)
+- added second overview bar
+DontSaveTest - removed
+DrawCanvasControl - modified to handle colors
+- added line color
+- draw focus rect when resizing
+- fixed rectangular resizing
+DrawCaptionTracker - new
+DrawColorControl - Added color functions and added custom color dialog
+- changes to color
+- added line color
+- added custom color for lines
+- fixed x'ed out owner on ChooseColor
+- added null pen and brush
+- modified to default to previous color choice
+DrawControl - added caption, modified to handle colors
+- added menu
+- fixed error from ungrouping a non-group item
+- added line color
+- added New, Save As, Print, and Exit to menu
+- changed Load to Open, adjusted menus, adjusted current file name handling
+DrawPaletteControl - added caption and removed fill
+- removed save and open buttons
+- changed image
+DrawRectTracker - draw focus rect when resizing
+- fixed rectangular resizing
+DrawSelectTracker - added dragging items
+- initialize dragging variable
+- handle moving multiple items that are selected and selected items behind other items
+EditControl - added EN_CHANGE notification message
+ExplorerControl - added Run command to tab context menu
+- removed Select Tab from Tab context menu
+- saved the current item before run selected item
+ExplorerListViewControl - changed not to add CenterTitle if title is empty
+FieldControl - added trim option
+- moved trim initialization to before set
+Field_boolean - changed Encode to ignore case
+FieldsTest - added to tests
+FieldsToPrompts - new
+FieldsToPromptsTest - new
+FirstLastNameControl - dont include comma in value if no last name
+- specified widths
+FlipControl - fixed/simplified construction
+ForeignKeyTest - fixed test for exe change
+GetRemoteServerStats - changed to use Database.TempDest
+GlobalExportControl - allow choosing fields
+GlobalPrint - changed to use FieldsToPrompts and PromptsToFields
+GridControl - fixed spanning problems
+- fixed xstretch bug
+Handler - check for interrupt
+HeadingControl - added Name
+HistoryTest - added to tests
+IDC - added new cursors in exe
+IdeController - added Plugin Errors to IDE menu
+IdeMenu - added Plugin Errors to IDE menu
+ImageButtonControl - modified to stay pushed in if set
+- added RBUTTONDOWN
+ImagePage - sorted directory
+ImagesList - sorted directory
+InetMesg - new
+InetMesgTest - new
+JoinUpdateTest - removed
+KeyException - added new exception
+- changed dup key message to use SelectPrompt
+- log error messages when displaying program error message to user.
+KeyFieldControl - minor change for new code
+KeyListView - factored out AccessGoTo
+- moved count from KeyListView to AccessGoTo
+LibCompare - changed to close queries
+LibCompareTest - changed to use QueryOutput
+LibIO - changed Unload to LibUnload
+LibIOTest - changed to MakeLibrary
+LibTreeModel - changed so that when deleting folder contains nested folders, deleted items would show properly thru version control
+- changed Unload to LibUnload
+LibUnload - new - needed for plugins
+LibViewControl - modified CloseFolder method so that Go to Definition does not open all folders when Create New Item
+- minor fix and changes to refactoring
+- added Run Associated Test command to menu and toolbar; refactorred in On_Run method
+- fixed bug with uninitalized member Print when click on Run Associated Test
+- saved the current item before Run Associated Test
+- modified to open Show Locations in a window instead of dialog
+- added item name to window's title
+- call Plugins.Clear() on Use/Unuse
+- changed so that Run would save first
+- On_Run_Associated_Test - removed '?' at the end of name (if any) before adding Test
+LibViewNewItemControl - changed DefaultButton to Create
+LibViewRunAll - new
+ListControl - added row to List_AllowMove message, added List_BeforeMove message
+- Removed the List_BeforeMove message, and the row parameter from List_AllowMove
+- don't allow tabbing into fields on deleted rows.
+- removed .Method call
+- moved asserts into guard clause in SelectRow and DeSelectRow
+LocateControl - changed so enter does previous window procedure first, then sends "On_Go"
+LogN - new
+LogNTest - new
+Mail_Processor - new
+MshtmlControl - added sending Data and NoData messages
+- fixed to handle Set before first Resize
+NightlyChecks - changed rebuild.log to error.log
+- handled different date formats in error.log
+- changed to a warning instead of error if cannot connect to server
+NumberStringControl - new
+Numbers - added EnFrancais (from Jean-Charles)
+NumbersTest - added EnFrancais (from Jean-Charles)
+ObjectTest - added MaxWith
+- added test for bug
+- added FindMin
+Objects - added MaxWith
+- added FindMin
+OpenBook - changed books to open as a persistent window
+- fixed bug where Go To Definition from User's Manual causing program error
+Params - set hwndOwner on retry of Page Setup dialog
+- made Scroll as an option
+PatternControl - added < and > (from Jean Charles)
+Plugin_AccessMenus - new
+Plugin_ImportExport - fixed xml capitalization
+Plugins - added try catch
+- changed plugin errors to Alert instead of exception
+- fixed to make union disjoint
+- added more error handling
+- added new method
+- improved error checking
+- added LibUnload observer and Clear
+- modified ForeachContribution to handle break and continue
+- corrected error message
+PluginsTest - updated
+PopClient - added Top nlines default of 0
+PopClientStress - new
+PromptsToFields - new
+PromptsToFieldsTest - new
+Query1 - removed - builtin now
+Query1Test - new
+QueryApply1 - refactored to handle if query returns false
+QueryColumns - return Object() instead of #()
+QueryEofTest - changed to close queries
+QueryFirst - removed - builtin now
+QueryFormat - improved CheckQuery
+QueryLast - removed - builtin now
+QuerySelectBugTest - new
+QueryViewControl - changed On_Strategy to auto-select like On_Run; removed code that is not used
+- modified to make F12 work for Go To Definition
+RIBControl - new (from Jean Charles)
+RIBValid? - new (from Jean Charles)
+RIBValidTest - new (from Jean Charles)
+RadioButtonsControl - fixed bug where values saved in record were overwritten by first option.
+Range - changed to not give error when low > high, just change high and log error.
+RecordControl - fixed bug where control's send NewValue in Set, but dirty flag is overwritten (ex. RadioButtons).
+RecordTest - added tests for exe changes
+- updated
+Refactor_Rename - added Unload, changed to QueryApply1
+- changed Unload to LibUnload
+RemoteBackup - moved to Misc
+Rule_globalreport_valid - changed to use FieldsToPrompts and PromptsToFields
+SIRENControl - new (from Jean Charles)
+SIRENValid? - new (from Jean Charles)
+SIRENValidTest - new (from Jean Charles)
+SSNSINControl - new
+SchemaModel - removed unnecessary Display
+- fixed/improved display of datadict for columns
+SchemaView - added Find, Find Next, and Find Previous to Tool Menu
+- changed so that F12 works on Go To Definition
+ScintillaControl - added Find command to Context Menu
+SearchControl - initialized dd
+SeekCursor - changed Seek to handle invalid queries
+SeekCursorTest - added test for invalid query
+SelectControl - minor fix for translation
+- changed not to encode if string operation
+- check the checkbox when user changes value in FieldControl.
+SelectPrompt - fixed to handle Prompt/Heading of ""
+ShowLocationsControl - modified to open Show Locations in a window instead of dialog
+- added item name to window's title
+SmtpClient - added \r\n to the end of each line in the message
+- added optional parameter for argument to HELO
+- added trim to the HELO line
+SmtpSendMessage - added authentication for smtp client
+- added optional parameter for argument to HELO
+SortTest - new
+SpinnerControl - added status and justify
+SpinnerWndProc - added status and justify
+SplitterControl - minor fix
+StaticControl - refactored and fixed setsize to handle text of ""
+- added SetColor method
+- modified to default to previous color choice
+SummarizeTest - added another test
+Svc - changed Unload to LibUnload
+SvcControl - changed Unload to LibUnload
+TableExists? - new
+TableExistsTest - new
+TabsControl - added themed option
+Test - changed MakeLibraryRecord to MakeLibrary
+- added tempdest check
+TestPopServer - new
+Transactions - added QueryApply1
+- refactored to handle if query returns false
+- removed QueryFirst/Last/1 - builtin now
+- Added CkComplete
+- minor fixes
+TransformTest - refactored - changed to use MakeTable
+- refactored to output records with MakeTable
+TreeViewControl - fixed problem with dragging items after Reset method is called.
+TriggerTest - changed to MakeLibrary
+UnionTest - changed to use AssertMatch
+ViewStrategyTest - removed
+ViewTest - removed test
+WhereTest - made asserts more flexible
+Window - added Result
+- added SetupAccels
+- added ResetAccels
+Wizard - new
+WizardPage - new
+WizardSample - new
+WorkSpaceControl - changed Unload to LibUnload
+XmlReader - handle whitespace around = on attributes
+- fixed whitespace handling, lowered tag and attribute names
+XmlReaderTest - handle whitespace around = on attributes
+- fixed whitespace handling, lowered tag and attribute names
+XmlRpc - fixed whitespace handling, lowered tag and attribute names
+- added missing values to EndElement method
+XmlRpcTest - more tests
+YearMonthControl - simplified

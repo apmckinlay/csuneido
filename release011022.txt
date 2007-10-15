@@ -1,0 +1,341 @@
+Suneido October 22, 2001 Release
+
+The most visible change this time is probably support for folding in
+Scintilla.  If you don't like it (e.g. on the WorkSpace) you can turn
+it off from the right click context menu.  Scintilla has also been 
+updated to the latest version 1.40.
+
+No major changes in the executable.  Some work on the documentation.  
+Lots of small bug fixes and changes to stdlib.  The new language 
+translation support is included in this release along with data for
+Spanish, Italian, French, German, Russian, and Czech. (Note: You still 
+have to load the translation data in order to use it.)
+
+NOTE: The Run key has changed from F2 to F9, since F2 has other
+standard meanings.
+
+NOTE: TextFile is gone, please use File instead.
+
+NOTE: string.Strip has been renamed to string.Trim
+
+The other significant addition this time is automatic version checking.
+When WorkSpace starts up it spawns vercheck.exe which reads a file
+called version.txt from the Suneido web site and compares it to your
+current version (if you're connected to the Internet).  If there's a
+newer version available it'll let you know.  Vercheck is a generic 
+utility - see source/vercheck/vercheck.txt  The reason for this addition 
+is that we're finding a lot of people running out of date versions of 
+Suneido that they've downloaded from other sites.  If you don't like 
+this, you can simple delete vercheck.exe or comment out the call from 
+WorkSpace.  NOTE: vercheck is read-only, it does not send any information.
+
+Enjoy!
+
+Andrew McKinlay
+Suneido Software
+
+
+suneido.exe:
+
+- added folding to Scintilla styler
+- added pointer value to display of Handle and GdiObject
+- made [c] escape any character except ^
+- added sort reverse to database queries (just overall, not per field yet)
+- fixed bug when growing small record to very large
+- factored out "unknown method" error message
+- added rebuild.log
+- added [in] attribute to dll string parameters
+- added System and Spawn built-in functions
+- fixed bug with splitting where over leftjoin query
+- added timeout to synchronous socket connections
+- minor improvements to query optimization of union
+
+SuneiDoc:
+
+/Introduction
+    Acknowledgments - updated
+/Getting Started
+    Create a Book - updated
+    Running Client Server - updated
+/Tools
+    Access - new
+    BookEdit - new
+    Books - new
+    Browse - new
+    ClassView - new
+    LibraryView - new
+    QueryView - new
+    Scheduler - new
+    SchemaView - new
+    Version Control - updated
+    WorkSpace - updated
+    Language Translation - new
+/Language
+    Regular Expressions - updated
+/Language/DLL Interface
+    Dll - updated
+/Language/Reference
+    Dir - new
+    DirExists? - new
+    FileExists? - new
+    Html_table - new
+    Html_table_query - new
+    Max - new
+    Min - new
+    Scanner - updated
+    scanner.Keyword - updated
+    scanner.Type - updated
+    SocketClient - updated
+    socketClient.Read - updated
+    socketClient.Readline - updated
+    socketClient.Write - updated
+    socketClient.Writeline - updated
+    SocketServer - updated
+    Spawn - new
+    String - updated
+    string.Trim - renamed from Strip
+    System - new
+    TextFile - updated
+    Xml - new
+/Database/Queries - updated
+    Syntax - updated
+    sort - new
+/User Interfaces/Implementation
+    Construction - updated
+    Containment Requirements - updated
+    Writing a Controller - updated
+    Writing a Hwnd Control - updated
+    Writing a Layout Control - updated
+    Writing a WndProc Control - updated
+/User Interfaces/Reference
+    IdControl - new
+    PatternControl - new
+    PhoneControl - new
+    ScheduleControl - new
+    ZipPostalControl - new
+/Reports/Reference 
+    IdFormat - new
+
+stdlib:
+
+AboutSuneido - added contributors
+AccessControl - changed Global Print to Report, added ...'s
+- Added another Tr to find_typename method so button name would match
+AppendMenu - added [in] to applicable string parameters
+AtlAxGetControl - combined LONGOB and LongStruct into LONG
+Beep - changed to "default" beep
+BookControl - added Ctrl+C / Copy
+BookEditControl - added Ctrl+H accellerator for Replace
+- added title to OpenFileName in Insert File
+- renamed Strings.Strip to Trim, allowed specifying the characters
+- Added methods for importing / exporting records and also added these to the tools menu.
+- changed Run to F9
+BookEditModel - Transaction updates
+BookExport - added "All rights reserved worldwide." to copyright
+- Transaction updates
+BookModel - Transaction updates
+BrowseControl - Modfied browse SetHeaderData method to only set fields passed in
+- Fixed the validation code.
+- made title consistent with Access, added SetField (for IdControl fillins)
+BrowserControl - added Ctrl+C / Copy
+ButtonControl - renamed Strings.Strip to Trim, allowed specifying the characters
+- fixed to make xmin & ymin minimums not fixed sizes (for translation)
+CallWindowProcText - added [in] to applicable string parameters
+CaptionButtonControl - changed to use Trim
+CenterControl - removed Update (use default)
+ChooseManyControl - Fixed so that the buttons aren't cut off.
+- Fixed sizing issues
+ChooseManyListControl - renamed Strings.Strip to Trim, allowed specifying the characters
+- added Resize that sets column width to control width
+- removed Ymin
+- Fixed sizing issues
+ClassBrowser - new
+ClassBrowserModel - new
+ClassBrowserTest - new
+ComboBoxControl - renamed Strings.Strip to Trim, allowed specifying the characters
+Container - minor refactoring, changed GetReadOnly from any child is readonly to all children are readonly - same as GetEnabled
+- added default Update method
+ContextMenu - added language translation
+- fixed method name creation
+Controller - fixed to only set border on control if not false
+- changed to only set Ymin in Resize if not set by Controller
+CreateDC - added [in] to applicable string parameters
+CreateDirectory - added [in] to applicable string parameters
+CreateDirectoryEx - added [in] to applicable string parameters
+CreateEnhMetaFile - added [in] to applicable string parameters
+CreateFile - added [in] to applicable string parameters
+CreateFont - added [in] to applicable string parameters
+CreateWindowEx - added [in] to applicable string parameters
+Crosstab - renamed Strings.Strip to Trim, allowed specifying the characters
+DeleteFile - added [in] to applicable string parameters
+Dir - new
+DrawStatusText - added [in] to applicable string parameters
+DrawText - added [in] to applicable string parameters
+DrawTextEx - added [in] to applicable string parameters
+ExplorerControl - Added RootSelected? method
+- added Delete Redir
+- Transaction updates
+ExplorerListModel - Transaction updates
+ExplorerListViewControl - Fixed an issue with list selection
+Export - Added XML format
+ExportXML - Added XML format
+ExtTextOut - added [in] to applicable string parameters
+Field_trlang_from - Minor changes to the language translation code.
+Field_trlang_name - Minor changes to the language translation code.
+Field_trlang_to - Minor changes to the language translation code.
+FindAtom - added [in] to applicable string parameters
+FindControl - changed layout to make buttons the same size without using a fixed size (for translation)
+FindFirstFile - added [in] to applicable string parameters
+GetComputerNameApi - combined LONGOB and LongStruct into LONG
+GetFileSize - combined LONGOB and LongStruct into LONG
+GetLanguage - Minor changes to the language translation code.
+GetProcAddress - added [in] to applicable string parameters
+GetTextExtentPoint32 - added [in] to applicable string parameters
+GetVolumeInformation - added [in] to applicable string parameters
+GlobalExportControl - Added XML format
+GlobalFindAtom - added [in] to applicable string parameters
+GlobalImportControl - Added XML format
+GlobalPrint - renamed Strings.Strip to Trim, allowed specifying the characters
+GridControl - changed to Container
+Group - did Int on stretched sizes
+HeaderControl - changed ENDDRAG notification to use the NMHEADER2 structure.
+HtmlPrefix - added bottom margin to tables
+- removed font size overrides
+Html_table_query - added newlines to output
+HttpServer - Capitalize'd function name
+ImagesPage - new
+Import - changed TextFile to File
+- Added XML format
+ImportExportTest - changed TextFile to File
+- Added XML format
+ImportXML - Added XML format
+Inet_addr - added [in] to applicable string parameters
+Init - renamed Strings.Strip to Trim, allowed specifying the characters
+- Minor changes to the language translation code.
+KeyFieldControl - Transaction updates
+LONG - combined LONGOB and LongStruct into LONG
+LONGOB - combined LONGOB and LongStruct into LONG
+LibCompare - Transaction updates
+LibCompareTest - added try destroy's at start
+LibIO - changed TextFile to File
+LibViewControl - added Ctrl+H accellerator for Replace, renamed Import/Export Records
+- renamed Strings.Strip to Trim, allowed specifying the characters
+- changed layout to make buttons the same size without using a fixed size (for translation). also fixed typo
+- changed Run to F9, Check Syntax to Shift+F9
+- rewrote Find in Folders to fix bugs
+ListEditWindow - added SetFocus to SendParent to ensure controls call Valid?
+LoadLibrary - added [in] to applicable string parameters
+LoadText - changed TextFile to File
+LocateControl - re-formatted GETDLGCODE if
+LongStruct - combined LONGOB and LongStruct into LONG
+LookupControl - Transaction updates
+MenuButtonControl - Added Enable / Disable methods and stubs for Set/GetReadOnly so instances behave like ButtonControl.
+- removed Enable / Disable methods
+- fixed method name creation
+MessageBox - added [in] to applicable string parameters
+MimeEntity - renamed Strings.Strip to Trim, allowed specifying the characters
+NewSvcControl - start of combined view
+NumberControl - Added set to parameter list
+Numbers - added Factorial
+NumbersTest - added Test_Factorial
+OpenFileControl - fixed Browse button (send NewValue)
+OptionalNumberFormat - changed "+ 1" kludge to "+ 2"
+P - new
+Params - Changed so params aren't saved or loaded for reports with no name.
+- Transaction updates
+ParamsSelectControl - Changed to support use within an AccessControl.
+PatternControl - changed from key-at-a-time to after-entire-entry
+- removed unecessary .SubClass()
+- changed so ENTER does validation/formatting
+- escaped literal chars with []
+- fixed escaping special chars
+PersistentWindow - Transaction updates
+QueryFormat - Moved .append_data to start of method
+- added data parameter to Append
+- Transaction updates
+QueryViewControl - renamed Strings.Strip to Trim, allowed specifying the characters
+- added nofolding to scintilla control
+- changed Run to F9, added Redo, rearranged menus
+- Transaction updates
+QuickSort - Check for empty range
+RadioGroupsControl - changed to PassthruController
+- Fixed Set()
+ReadFile - combined LONGOB and LongStruct into LONG
+RegisterClipboardFormat - added [in] to applicable string parameters
+RemoveDirectory - added [in] to applicable string parameters
+ReplaceControl - changed layout to make buttons the same size without using a fixed size (for translation)
+Report - Transaction updates
+RowHeaderFormat - new
+Rule_test_running_total - Transaction updates
+SC - added dwell
+SCAN - new
+SCI - added new defines
+SCN - added dwell
+SaveFileControl - fixed Browse button (send NewValue)
+ScheduleAddEditControl - renamed Suspend to Disable. commented out Threads
+ScheduleControl - Transaction updates
+ScheduleTask - Transaction updates
+ScheduleWindowControl - Transaction updates
+Schema - Transaction updates
+SchemaModel - Transaction updates
+ScintillaControl - combined LONGOB and LongStruct into LONG
+- added folding, added indentation guide highlighting, added to context menu
+- added nofolding option
+- updated to Scintilla 1.40 (changed EM_ messages to SCI_ messages). made use of [in] via SendMessageTextIn
+- added Redo & Delete, converted from WM to SCI messages
+SelectControl - added checking so that if _name and _abbrev fields existed in the query no join is done and the num field is removed.
+Send - added [in] to applicable string parameters
+SendMessageSel - combined LONGOB and LongStruct into LONG
+SendMessageTextIn - SendMessageText with [in]
+ServerStress - Transaction updates
+SetProp - added [in] to applicable string parameters
+SetSockOpt - added [in] to applicable string parameters
+SetWindowText - added [in] to applicable string parameters
+ShortDateFormat - Added justify parameter
+SmtpClient - renamed Strings.Strip to Trim, allowed specifying the characters
+StackTrace - new
+StringTest - Removed Setup because its data wasn't being used.
+- renamed Strip to Trim, allowed specifying the characters
+Strings - renamed Strings.Strip to Trim, allowed specifying the characters
+Svc - working on history
+SvcClient - added NextHistory
+SvcControl - fixed resizing problems
+SvcCore - working on history
+SvcGetDescription - renamed Strings.Strip to Trim, allowed specifying the characters
+SvcHistoryControl - working on history
+SvcServer - added NextHistory
+TabControl - Added "bottom" option for TCS.BOTTOM style.
+TabsControl - Added "bottom" option for TCS.BOTTOM style.
+- changed Ymin to 100
+TextFile - replaced by File
+TextFileTest - replaced by File
+TextOut - added [in] to applicable string parameters
+ToolbarControl - fixed to set Xmin
+TranslateLanguage - Minor changes to the language translation code.
+- Changed handling of ampersands
+TranslateLanguageBrowse - Updated the translatelanguage schema
+TranslateLanguageTest - Minor changes to the language translation code.
+- handled case where translatelanguage table is empty
+- Changed handling of ampersands
+TreeModel - Transaction updates
+UnregisterClass - added [in] to applicable string parameters
+UpdateLanguages - Updated the translatelanguage schema
+UrlDecodeTest - fixed to handle encoded ampersands in values
+UrlDecodeValues - fixed to handle encoded ampersands in values
+VK - added A-Z so accellerators work (e.g. Ctrl+H for Replace)
+WikiFind - improved find results page
+- Removed img tag that was getting our logo from z:\
+WikiTemplate - fixed title links
+- Removed img tag that was getting our logo from z:\
+WikiView - fixed title formatting
+WinHelp - added [in] to applicable string parameters
+- removed accelerator translation, removed ignoring standard accelerators
+WindowBase - added SetReadOnly
+WorkSpaceControl - added Ctrl+H accellerator for Replace
+- get/set editor state
+- added Access / Browse a Query options to the Tools menu
+- added ... to Access and Browse
+- Added Class View to Tools Menu
+- changed Run to F9
+- added version checking
+WriteFile - combined LONGOB and LongStruct into LONG

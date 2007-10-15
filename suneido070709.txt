@@ -1,0 +1,26 @@
+Suneido July 9, 2007 Snapshot
+
+See the forum for recent changes included in this snapshot.
+
+To use:
+- unzip into a new directory
+- from a command prompt
+	cd to the new directory
+	suneido -load stdlib
+	suneido -load suneidoc
+This will create a new database containing only stdlib and suneidoc
+	
+You may also copy the files to an existing directory and 
+load stdlib and suneidoc into an existing database.
+
+Contents:
+suneido.exe
+splash.bmp
+stdlib.su 
+suneidoc.su
+scilexer.dll	(1.7.4)
+libhpdf.dll	(2.0.8)
+
+Note: snapshots are intended as a preview of new features.
+Please report any bugs to mckinlay@suneido.com
+If you are a beginner with Suneido please use a release version.

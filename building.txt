@@ -1,0 +1,41 @@
+Building Suneido
+
+The supplied executable is built with the free
+Microsoft Visual C++ 2003 Toolkit.
+(no longer available)
+
+Suneido can also be built with the free
+Microsoft Visual C++ 2005 Express Edition.
+You will also require the
+Windows® Server 2003 R2 Platform SDK 
+
+It is also possible to build with MinGW, although
+the Internet Explorer interface (SuneidoAPP)
+which is used by "Books" is not supported.
+
+Assuming standard configurations,
+use one of the following batch files:
+
+mingw_debug.bat
+mingw_release.bat
+vc7_debug.bat
+vc7_release.bat
+vc8_debug.bat
+vc8_release.bat
+
+The title bar on your Command Prompt window
+should change accordingly.
+
+You can then build using GNU make.
+
+Suneido uses the Boehm-Demers-Weiser 
+garbage collector.
+(http://www.hpl.hp.com/personal/Hans_Boehm/gc/)
+
+A precompiled gc.lib is supplied, to build it
+yourself use make in the gc directory 
+after running one of the above batch files.
+
+Note: The setup batch files add to the path,
+to switch to a different configuration,
+start a new command prompt window.

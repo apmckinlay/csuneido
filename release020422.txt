@@ -1,0 +1,478 @@
+Suneido April 22, 2002 Release
+
+Some of the more significant changes for this release:
+- support for compiled libraries - see Compiled Libraries under Going Further
+- Tests was split into Test (the base class for tests) and TestRunner (used to run tests)
+- a new TestRunnerGui user interface for interactively running tests (try Run Tests from the WorkSpace Tools menu)
+- enhancements to Browse - user changes to column sizes and order are saved, deleted records are marked instead of removed and may be restored, right click context menu added
+- ExplorerListView now uses report formats for display
+- new Going Further topics - Creating a Form Report and Using IdControl
+- the version control has been extended to handle books
+- added exitOnClose option to Window
+- improved Go To Definition, popup menu if multiple matches, works from Debug and WorkSpace (editor and output panes)
+- added Show Parameters to Scintilla right click context menu
+- more canvas items and the addition of DrawControl
+- SchemaView now shows rules and triggers
+
+Compatibility
+
+- Tests renamed to Test
+- SetCols and Setcolumns renamed to SetColumns
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe: 
+
+- fixed ENSURE and ALTER to handle unique indexes
+- many minor changes for GCC compatibility
+- changed auto-wait cursor back to GETMESSAGE
+- fixed bug with optimize-then-rebuild losing history records
+- fixed bug with database sizes off by 100 after rebuild
+- moved method setup to handle class call before object call
+- refactored Named to eliminate multiple inheritance
+- added Database.CurrentSize (local only)
+- fixed table rename bug
+- added packing of functions and classes (for compiled libraries)
+- added support for "compiled" field in libraries
+- fixed bug in TypeResource get
+- fixed minor problems with command line options (e.g. -nosplash)
+- increased size of global name string space from 32k to 64k
+
+User's Manual:
+
+/Introduction
+    Acknowledgments - updated
+/Going Further
+    Compiled Libraries - new
+    Creating a Form Report - new
+    Master-Detail Relationship - updated
+    Using IdControl - new
+/Language
+    Classes - updated
+    DLL Interface - updated
+    Data Types - updated
+    Expressions - updated
+    Names - updated
+    Statements - updated
+/Language/Reference
+    Date - updated
+    MoneyBag - updated
+    Number - updated
+    Object - updated
+    Queue - new
+    String - updated
+/Language/Reference/Number
+    number.Frac - updated
+    number.FracDigits - new
+    number.Int - updated
+    number.IntDigits - new
+/Language/Reference/Object
+    object.AddUnique - new
+    object.Back - updated
+    object.Front - new
+/Language/Reference/Queue
+    queue.PopBack - new
+    queue.PopFront - new
+    queue.PushBack - new
+    queue.PushFront - new
+/Language/Reference/String
+    string.CountOccurences - new
+    string.SplitOnLast - new
+/Database
+    Requests - updated
+    Updating - updated
+/Database/Reference
+    DoWithTran - new
+    Record - updated
+    Transaction - updated
+    record.DoWithTran - updated
+/User Interfaces
+    Implementation - updated
+/User Interfaces/Reference
+    CanvasControl - new
+    DiffImageControl - new
+    DrawControl - new
+        DrawCanvasControl - new
+        DrawLineTracker - new
+        DrawPointTracker - new
+        DrawRectTracker - new
+        DrawTracker - new
+    EditorControl - updated
+    IdControl - updated
+    AccessControl - updated
+    CanvasControl - new
+        CanvasArc - new
+        CanvasEllipse - new
+        CanvasImage - new
+        CanvasItem - new
+        CanvasLine - new
+        CanvasPolygon - new
+        CanvasRectangle - new
+        CanvasRoundRect - new
+        CanvasStockObject - new
+        CanvasText - new
+        CanvasX - new
+    PersistentWindow - updated
+    Window - updated
+/Reports
+    Implementation - updated
+/Reports/Reference
+    GetParamsWhere - new
+    MoneyBagTotal - new
+    Params - updated
+    report.GetParamsWhere - new
+/Appendix
+    Patterns - updated
+    
+stdlib:
+
+AboutSuneido - added contributors
+AccessControl - reset control's valid when restore is done
+- depressed select when on, enable or disable first/last/next/prev buttons
+- added an observer to the record so that we can clear the validation if the user fixes the record.
+- handle duplicate key exceptions
+- fixed check_valid method
+- handle blocked by foreign key
+- added "omitTypes" option to dynamic types option
+- modification so that Access observers return True or False, if 'save' and observer returns False Access aborts tran
+- only set status messages from controls if the status bar is valid (not red)
+- save and load select fields
+- added Access_Save method for controls that need to send a message
+- only beep once when the Access becomes invalid
+- use regular New button if only 1 dynamic type
+- fixed bugs caused by invalid locate by.
+- added RemoveAccessObserver method
+AccessLightControl - removed, no longer used
+Alert - modified to translate
+Arc - new
+Ask - modified to translate
+BS - added brush styles
+BlockTest - removed Disasm check (doesn't work compiled)
+BlockTestFn - removed (no longer used)
+BookEditControl - modified to keep selection in case more styles need to be applied
+BookEditModel - modified for SVC
+BookMenuPage - remove text parameter and added before and after parameters
+BookSearchControl - fixed GETDLGCODE so text is highlighted on SetFocus when invalid
+BookTablesControl - changed ComboBox to ChooseList
+BooleanFormat - modified to translate
+- refactored GetSize and Print
+- removed duplicated checking for ""
+- changes to allow undeleting in Browse using a new deleted column
+BrowseAccessControl - removed, no longer used
+BrowseControl - improvements to validation
+- added new message Browse_AddRecord 
+- added field to the BrowseData_Changed message.
+- handle duplicate key exceptions
+- put .Save() back in Destroy
+- fixed logic in protect_field? method
+- do deletes first in browse to prevent duplicate key errors
+- defined List_NewRowAdded (message from ListControl) to make sure validation is done on new records
+- handle blocked by foreign key
+- moved format handling to ListFormatControl
+- changed Save to check valid and return True or False
+- modification so that Access observers return True or False, if 'save' and observer returns False Access aborts tran
+- modified to save columns' order and width
+- added ContextMenu for resetting the columns. Added reset option to SetColumns.
+- when cell value changes, set cell valid initially, then if editted from a control, control's Valid is used to set cell valid.
+- changes to the row observer to prevent cycling between row and header observers
+- fixed Remove within foreach
+- changes to allow undeleting in Browse using a new deleted column
+- fixed problem where deleted column doesn't show up when columns haven't been saved yet. Fixed bug where deleted rows were being validated.
+- moved getting datadict control from Browse to ListFormat
+- added "Edit Field" and "Delete/Undelete" to ContextMenu
+- renamed SetCols and Setcolumns to SetColumns
+- split column setting and saving code out.
+- added Restore to context menu
+- fixed screen flickering caused by Browse
+- added Send to remove observer from AccessControl when destroyed
+- forced deleted column to left
+BrowseObjectControl - Fixed to work with new ListFormat control
+- removed call to .list.CreateFormats, changed Get to return .GetBrowseData
+CanvasArc - new
+CanvasImage - new
+CanvasItem - added BoundingRect
+CanvasPolygon - new
+CanvasRectangle - added BoundingRect
+CanvasRoundRect - new
+CanvasText - new
+CheckLibrary - improved
+CheckMenuItem - removed trailing semicolons (syntax error)
+ChooseDateControl - modified allowNone to default to False
+ChooseField - removed validation code from field procedure's KILLFOCUS checking because it is done in FieldControl
+- modified to have a border of 0
+- fixed GETDLGCODE so text is highlighted on SetFocus when invalid
+ChooseList - fixed focus issues
+- fixed scroll problem
+ChooseListControl - fixed focus issues
+- always check Valid? in KILLFOCUS, added SetValid
+- fixed prefix matching when value entered is ""
+- set ystretch to False
+- modified exact matches to be case insensitive
+- modified to bring list up above field when at bottom of screen
+- fixed beeping when list closes
+- fixed GETDLGCODE so text is highlighted on SetFocus when invalid
+- changes to refresh the list on SETFOCUS
+- removed .get_list call from SETFOCUS condition
+- changed default to first match
+- eliminated beep when enter is pressed on the field
+ChooseManyFieldControl - handle saveNone option in Valid?
+ChooseMonthDayControl - modified to set selections in list to value in field
+ChooseYearMonthControl - modified to set selections in list to value in field
+ComboBoxControl - removed 'extra' stuff
+Crosstab - changed ComboBox to ChooseList
+DMPAPER - fixed typos
+DateTimeControl - set default to current date and time
+- modified to handle setting to '12 am'
+- modified to set selections in list to value in field
+DebuggerControl - changed to skip over Assert's
+- implemented Go To Definition
+DiffImageControl - new
+DiffListControl - changed to use two listviews with synchronized scrolling
+DoWithTran - new
+DrawArcAdapter - new
+DrawCanvasControl - new
+DrawControl - new
+DrawImageAdapter - new
+DrawLineTracker - new
+DrawMenuBar - removed trailing semicolons (syntax error)
+DrawPointTracker - new
+DrawRectTracker - new
+DrawSelectTracker - new
+DrawTextAdapter - new
+DrawTracker - new
+EditorControl - added allowNone and Valid? method
+EmfFormat - new
+ExplorerListModel - handle blocked by foreign key
+- modification so that Access observers return True or False, if 'save' and observer returns False Access aborts tran
+- changed ExplorerListView to use ListFormatControl
+ExplorerListModelLinked - handle blocked by foreign key
+- added observer on header data to keep it up to date
+- modification so that Access observers return True or False, if 'save' and observer returns False Access aborts tran
+- changed ExplorerListView to use ListFormatControl
+- fixed minor bugs with new conversion to ListFormatControl
+ExplorerListViewControl - only SetReadOnly if readonly is True
+- modified to handle duplicate key error
+- added Valid? method
+- added SetReadOnly method and changed required for protectField to work with header fields
+- changed Save to check valid and return True or False
+- modification so that Access observers return True or False, if 'save' and observer returns False Access aborts tran
+- renamed SetCols and Setcolumns to SetColumns
+- changed ExplorerListView to use ListFormatControl
+- checked if valid column before setting column width in HideColumn method
+- added Send to remove observer from AccessControl when destroyed
+- added check to load last entry method to see if in the process of deleting an item
+- added Reset Columns to header context menu
+- load entries automatically if standalone
+- removed call to .list.CreateFormats
+ExtCreatePen - new
+FieldControl - always set window text in Set()
+FieldHistoryControl - new
+Field_boolean - changes to allow undeleting in Browse using a new deleted column
+Field_info1 - added allowNone
+Field_info2 - added allowNone 
+Field_info3 - added allowNone 
+Field_info4 - added allowNone 
+Field_info5 - added allowNone 
+Field_info6 - added allowNone 
+Field_listrow_deleted - changes to allow undeleting in Browse using a new deleted column
+Field_report_option - changed ComboBox to ChooseList
+Field_state_prov - added allowNone
+Field_testrunnergui_dbspace - new TestRunnerGui
+Field_testrunnergui_errors - new TestRunnerGui
+Field_testrunnergui_lib - new TestRunnerGui
+Field_testrunnergui_name - new TestRunnerGui
+Field_testrunnergui_result - new TestRunnerGui
+Field_testrunnergui_time - new TestRunnerGui
+Field_text - added allowNone: to Editor Control
+FindControl - added FieldHistoryControl
+FindInLibraryControl - changed ComboBox to ChooseList
+- added FieldHistoryControl
+GetEnhMetaFile - new
+GetMenu - removed trailing semicolons (syntax error)
+GetMenuState - removed trailing semicolons (syntax error)
+GetParamsWhere - factored out GetParamsWhere
+- modified to ignore __protect rules
+GetWorkArea - new
+GlobalExportControl - changed ComboBox to ChooseList
+GlobalImportControl - changed ComboBox to ChooseList
+GotoLibView - factor out GotoLibView
+Gotofind - new
+IdFieldControl - if field text is "" don't do lookups
+- added restrictionsValid option
+ImagesPage - fixed to handle no images
+InfoControl - changed ComboBox to ChooseList
+- minor fixes
+InfoFormat - added font parameter
+- extended grid width
+InputFormat - fixed to handle nested InputFormat's
+Inspect - changed style slightly, made ESC work
+InspectWindow - removed, not used
+KeyControl - added restrictionsValid option
+KeyException - modified to handle duplicate key error
+- handle blocked by foreign key
+KeyFieldControl - if field text is "" don't do lookups
+KeyListView - changed ComboBox to ChooseList
+- Modified to sort by abbrev
+- fixed bug with keys and colnames
+- set prefixColumn before building query sort based on this column.
+- fixed GETDLGCODE so text is highlighted on SetFocus when invalid
+LOGBRUSH - new
+LibTreeModel - fixed to handle renaming in version control
+LibViewControl - changed ComboBox to ChooseList
+- changed Go To Definition 
+- added Rule_ and Field_, popup list
+- added Get_Explorer / minor modifications
+- added 'Show Parameters'
+- added FieldHistoryControl
+LibraryReport - changed ComboBox to ChooseList
+LibraryTablesControl - changed ComboBox to ChooseList
+LinkControl - added allowNone
+ListControl - Added methods for painting invalid cells
+- improvements to validation
+- renamed AddHighlight to HighlightValues, added simple AddHighlight
+- prevent use of shift to do multi-select when multiple selection is disabled
+- added new List_NewRowAdded message
+- moved to List folder under Tools
+- added ScrollRowToView to SetSelection method
+- added method RowHighlighted?, used in handle editing grouped associations
+- Added sending of ContectMenu message for Controller to handle and also an option for resetting the columns.
+- changed CONTEXTMENU to SetSelection
+- moved getting datadict control from Browse to ListFormat
+- added GetDataRowFromY
+- renamed SetCols and Setcolumns to SetColumns
+- always reset header when setting columns
+- changed CONTEXTMENU to handle header separately
+- fixed to reset focused and rowOffset in Set
+- added CreateFormats
+ListEditWindow - removed SetFocus from create because it was causing the control to lose focus right away and then the validation is done.
+- moved to List folder under Tools
+ListFormatControl - new
+- moved getting datadict control from Browse to ListFormat
+ListViewControl - renamed SetCols and Setcolumns to SetColumns
+LocateControl - changed ComboBox to ChooseList
+- fixed GETDLGCODE so text is highlighted on SetFocus when invalid
+- Fixed bugs caused by invalid locate by.
+LongDateFormat - changed to print invalid dates
+LookupControl - changed ComboBox to ChooseList
+MCS - fixed typos
+MoneyBagTotals - new
+MonthDayControl - modified to set selections in list to value in field
+NumberControl - changed back to return "" for invalid
+NumberFormat - added a Convert method that "tries" to convert to Number, then applies the mask if it can. Used where ever Number() was used
+Numbers - added IntDigits and FracDigits
+ObjectTest - changed Test_Find to AssertEq
+Objects - added AddUnique method
+- changed Intersect to keep order of this
+OptionalNumberFormat - added a Convert method that "tries" to convert to Number, then applies the mask if it can. Used where ever Number() was used
+Params - modified to use saved params if set params are empty
+- added parameter validation and saving parameters on Destroy
+- Set the RecordControl to Record() in set_params so the observer gets set up (to handle protects)
+- Added control validation
+ParamsSelectControl - changed ComboBox to ChooseList
+- fixed bug where trying to set val2 control and it doesn't exist
+- Added Valid method
+- added check in Valid if there is no operation then the control is valid
+- fixed tab order
+PatternControl - changed super.Get() to .Get()
+- fixed GETDLGCODE so text is highlighted on SetFocus when invalid
+PersistentWindow - added exitOnClose option
+PhoneControl - added Get() to strip off country code
+Polygon - new
+PolygonApi - new
+PreviewControl - added page number to title
+PreviewPageControl - added GetPageNum method
+QueryFormat - Added AddToTotals Method
+Queue - new
+QueueTest - new
+RadioGroupsControl - fixed to set RadioButton
+- added SetEnabled & SetReadonly
+- Added registration with RecordControl.
+RecordControl - Removed "Fields" from the invalid prompt.
+- added SetAllValid method
+ReplaceControl - added FieldHistoryControl
+ReplaceInLibraryControl - changed ComboBox to ChooseList
+- added FieldHistoryControl
+Report - factored out GetParamsWhere
+- Added data member to fields in GetParamsWhere
+SaveColumns - split column setting and saving code out.
+ScheduleAddEditControl - added allowNone: to Editor Control
+ScheduleWindowControl - renamed SetCols and Setcolumns to SetColumns
+Schema - modified to handle unique indexes
+SchemaModel - added Rules and Triggers
+ScintillaControl - added PointFromPosition
+- added container_menu option to get the menu without the container lexer
+- added 'Show Parameters'
+- fixed Go To Definition
+SearchControl - changed ComboBox to ChooseList
+SelectControl - changed ComboBox to ChooseList
+- save and load select fields
+SetColumns - split column setting and saving code out.
+- moved user_columns ensure to SetColumns
+SetCurrentDirectory - new
+SetMenuItemBitmaps - removed trailing semicolons (syntax error)
+SetROP2 - new
+ShortDateFormat - changed to print invalid dates
+SmtpServer - modified Send to return a message indicating whether or not the send was successful
+StateProvControl - changed ComboBox to ChooseList
+- added allowNone
+StatusControl - Added Get method
+- added GetValid method
+StatusTextControl - Added Get method
+StringTest - fixed SplitOnFirst to handle multi-character delimiters
+- added SplitOnLast
+Strings - added CountOccurences
+- fixed SplitOnFirst to handle multi-character delimiters
+- added SplitOnLast
+SummarizeControl - changed ComboBox to ChooseList
+Svc - modified to handle books
+SvcBook - modified to handle books
+SvcClient - modified to handle books
+SvcControl - modified to handle books
+SvcCore - modified to handle books
+SvcGetDescription - added allowNone: to Editor Control
+SvcHistoryControl - modified to handle books
+SvcLibrary - modified to handle books
+SvcServer - fixes for book names with spaces
+SvcTest - modified to handle books
+TA - fixed typos
+TPM - fixed typos
+TabsControl - had to do .SelectTab in Select since the message doesn't get sent from TabControl.
+- added .Window.Resize_Ctrl() to fix scrolling issues in TabsControl
+- modification so that Access observers return True or False, if 'save' and observer returns False Access aborts tran
+TestControls - added allowNone to InfoControl
+- added FieldHistoryControl
+- added Editor control
+TestRules - split off TestRunner
+TestRunner - split off TestRunner
+- refactored (ForeachTest)
+- changed to not print anything if quiet is on
+TestRunnerGui - new
+TestTriggers - new
+Tests - stopped test when database reaches limit size
+- added database growth reporting
+- split off TestRunner
+- added RunDebug method
+- renamed Tests to Test
+TextFormat - changes to allow undeleting in Browse using a new deleted column
+- improved multiline handling
+TranslateLanguage - added arguments translations
+TranslateLanguageTest - Modified to not delete the translatelanguage table if it exists but is empty
+- moved ensure to make sure spanish column exists
+- added arguments translations
+UniqueIndexTest - add tests for ensure and alter
+VfieldsFormat - Modified to use Heading
+Window - added exitOnClose option
+WindowBase - added Resize_Ctrl to fix scrolling issues in TabsControl
+- Added validation checking to CLOSE.
+WndPaneControl - added setting .Left
+WndProcSpinControl - changed SetReadOnly to SetEnabled
+WordPadControl - modified On_Save and On_Open to allow the user to select the file to save to or open
+WorkSpaceControl - changed ComboBox to ChooseList
+- added "Go To Definition" functionality to both panes
+- split off TestRunner
+- changed to use TestRunnerGui
+Working - modified to translate
+YearMonthControl - modified to set selections in list to value in field

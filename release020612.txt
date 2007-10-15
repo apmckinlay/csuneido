@@ -1,0 +1,450 @@
+Only minor changes to the executable this time, mostly small bug fixes. We are preparing to install our first beta site running our Suneido applications so we have been concentrating on bug fixes.
+
+Some of the more significant changes for this release:
+
+- BookEdit is now capable of displaying the images that have been added to the book. If you add a folder called "res" to the top level of the book, the images will show up here.
+- changes to BrowseControl including background shading and context menu items.
+- changes to Draw and Canvas controls (incomplete)
+- added Go To Definition from more places
+- added status bar to QueryView to show results of requests
+- new section in User's Manual - Going Further - Report Control Breaks 
+- new language translation for Vietnamese
+
+Compatibility
+
+- allowNone: was replaced by mandatory: on all controls so the default is now optional. If you have specified allowNone: on controls, these should now be removed. Anywhere you want fields to be required, you will need to add mandatory:
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe: 
+
+- added getbyref for params.getall (to optimize dll interface)
+- scanner.cpp - minor change for internationalization
+- fixed bug in Project:::transform
+- increased max schema size for suneido -load
+- fixed to allow empty keys in fkey_target_block
+- fixed bug in deriving from _Name
+- added Final builtin (for debugging purposes)
+- builtinclass.h - fixed missing break in switch
+- btree.h - fixed minor syntax error
+
+User's Manual:
+
+/Getting Started/Running Standalone - changed name of persistent set to be different from book
+/Going Further/Creating a Form Report - minor changes to report code
+/Going Further/Master-Detail Relationship - minor corrections
+/Going Further/Report Control Breaks - new documentation for report control breaks
+/Tools/BookEdit - Added Link documentation
+/Tools/WorkSpace - minor corrections
+/Database/Reference/QueryKeys - new
+/User Interfaces/Reference/AccessControl/AccessControl - added "newOptions" parameter
+/User Interfaces/Reference/BorderControl - new
+/User Interfaces/Reference/BrowseControl - minor editing
+/User Interfaces/Reference/BrowseControl/BrowseControl - new
+/User Interfaces/Reference/BrowseControl/browseControl.Get - new
+/User Interfaces/Reference/BrowseControl/browseControl.GetColumns - new
+/User Interfaces/Reference/BrowseControl/browseControl.GetProtectField - new
+/User Interfaces/Reference/BrowseControl/browseControl.GetQuery - new
+/User Interfaces/Reference/BrowseControl/browseControl.GetStickyFields - new
+/User Interfaces/Reference/BrowseControl/browseControl.Save - new
+/User Interfaces/Reference/BrowseControl/browseControl.SaveColumns - new
+/User Interfaces/Reference/BrowseControl/browseControl.Set - new
+/User Interfaces/Reference/CanvasControl - minor corrections
+/User Interfaces/Reference/CanvasControl/CanvasArc - minor corrections
+/User Interfaces/Reference/DrawControl - minor corrections
+/User Interfaces/Reference/DrawControl/DrawCanvasControl - minor corrections
+/User Interfaces/Reference/ExplorerListViewControl - added itemShading argument documentation and updated images
+- renamed itemShading to noShading
+/User Interfaces/Reference/FormControl - inserted graphical example instead of text
+/User Interfaces/Reference/GroupBoxControl - new
+/User Interfaces/Reference/ListControl - new
+/User Interfaces/Reference/ListControl/ListControl - new
+/User Interfaces/Reference/ListControl/listControl.AddRow - new
+/User Interfaces/Reference/ListControl/listControl.AddRows - new
+/User Interfaces/Reference/ListControl/listControl.DeleteAll - new
+/User Interfaces/Reference/ListControl/listControl.DeleteSelection - new
+/User Interfaces/Reference/ListControl/listControl.Get - new
+/User Interfaces/Reference/ListControl/listControl.GetCol - new
+/User Interfaces/Reference/ListControl/listControl.GetNumCols - new
+/User Interfaces/Reference/ListControl/listControl.GetNumRows - new
+/User Interfaces/Reference/ListControl/listControl.GetRow - new
+/User Interfaces/Reference/ListControl/listControl.GetSelection - new
+/User Interfaces/Reference/ListControl/listControl.InsertRow - new
+/User Interfaces/Reference/ListControl/listControl.Repaint - new
+/User Interfaces/Reference/ListControl/listControl.RepaintRow - new
+/User Interfaces/Reference/ListControl/listControl.Set - new
+/User Interfaces/Reference/ListControl/listControl.SetRow - new
+/User Interfaces/Reference/PersistentWindow/PersistentWindow - removed comment on exitOnClose option (because it was removed)
+
+stdlib:
+
+AccessControl - changed to reread record on restore
+- added noInsert option for protect rules
+- renamed Restore to Reload
+- renamed Reload back to Restore
+- removed sending of RecordChanged (nothing uses it), and added Access_SetRecord message.
+- moved button enabling from On_Go to AccessGoto
+- added way for user to save current record
+- Modified On_New to not use dummy record in AllowInsert
+- do nothing if on non-dirty, New record
+- changed On_Prev to read previous before saving
+- added newOptions parameter. . fixed bug with New where switching types on new non-dirty record didn't work
+- validation improvements
+- fixed bug with On_Prev
+- closed cursor
+- added extra checking when looking up dynamic type name from a value
+- changed SetWhere to return False if no records
+AllowInsertRecord? - added noInsert option for protect rules
+Ask - added valid parameter
+BookEditControl - fixed Set Order to only update if number changed
+- Added Link option under the Tools menu and a Renumber Children option under the Tools menu
+- fixed bug with order not getting set
+- added .bmp extension Import Image filter
+- changed to use mandatory instead of allowNone
+BookEditLinkListControl - Added Link option under the Tools menu and a Renumber Children option under the Tools menu
+BookEditModel - fixed rename version control bug
+- added GetTable method
+BookEditSplitControl - modified to that images in the /res folder could be seen in BookEditControl
+- added Go To Definition to context menu
+BrowseControl - clear .not_deleted when the list is cleared
+- refactored BrowseData_Changed message
+- renamed List_Deletion_Ok to List_DeleteRecord
+- changed Restore to re-read record
+- changed to reread record on restore
+- added Import & Export to context menu
+- added method to get all the browse data, including the deleted lines
+- added noInsert option for protect rules
+- changed Cursor to use QueryKeys
+- renamed Restore to Reload
+- renamed Reload back to Restore
+- Renamed GetCols to GetColumns
+- allow 'actual delete' of new records
+- changed handling of deleted browse items
+- don't allow editing the deleted column
+- added RepaintRow to List_DeleteRecord message so that each row in the selection gets repainted with the new deleted status
+- changed to not validate new non-dirty records. These are deleted when saving.
+- added Restore All
+- Removed repaint checking from set_headerdata
+- Fixed selection bug, added new context menu items
+- added item shading to ListControl
+- added some more notifications for controllers
+- changed to use mandatory instead of allowNone
+- changed to Invalidate all_browse_data as well as the dataMember when browse lines change
+- changed itemShading to noShading
+- don't call save from Destroy if linked
+BuildQueryWhere - added extra space in front of where clause in case calling function doesn't handle it
+CanvasArc - added selection and deletion
+- added group, ungroup, resize, save, load and the palette
+CanvasControl - added selection and deletion
+- added group, ungroup, resize, save, load and the palette
+- fixed RemoveItem to remove from .selected as well
+- added AddItemAndSelect
+- added DeleteAll and color methods
+CanvasEllipse - added selection and deletion
+- added group, ungroup, resize, save, load and the palette
+- major modifications
+CanvasGroup - added group, ungroup, resize, save, load and the palette
+- major modifications
+CanvasImage - added selection and deletion
+- added group, ungroup, resize, save, load and the palette
+- major modifications
+CanvasItem - added selection and deletion
+- major modifications
+CanvasLine - added selection and deletion
+- added group, ungroup, resize, save, load and the palette
+- major modifications
+CanvasPolygon - modified to take points object instead of args
+- major modifications
+CanvasRectangle - added selection and deletion
+- added group, ungroup, resize, save, load and the palette
+- major modifications
+CanvasRoundRect - added selection and deletion
+- added group, ungroup, resize, save, load and the palette
+- major modifications
+CanvasStockObject - added selection and deletion
+- major modifications
+CanvasText - added selection and deletion
+- added group, ungroup, resize, save, load and the palette
+- major modifications
+CanvasX - added selection and deletion
+- added group, ungroup, resize, save, load and the palette
+- added handles initialization
+- major modifications
+ChooseDateControl - changed to use mandatory instead of allowNone
+ChooseDateTimeControl - changed to use mandatory instead of allowNone
+ChooseField - fixed alignment problem
+- fixed tab bug
+- fixed problem with Enter wiping out new values
+- added buttonBefore option
+- changed to use mandatory instead of allowNone
+ChooseListControl - removed extra 1 pixel at bottom
+- fixed alignment problem
+- fixed tab bug
+- fixed beep on alt-z by handling the SYSCHAR message
+- changed to use mandatory instead of allowNone
+ChooseManyControl - added width option to ChooseMany
+- changed to use mandatory instead of allowNone
+ChooseManyFieldControl - added width option to ChooseMany
+- added style parameter
+- changed to use mandatory instead of allowNone
+ChooseManyListControl - added DeleteAll method
+ChooseMonthDayControl - changed to use mandatory instead of allowNone
+- Modified to handle valid entries
+ChooseTwoListControl - added allowNone option
+- changed to use mandatory instead of allowNone
+ClipCursor - new
+Controller - added Select All
+Crosstab - changed to use mandatory instead of allowNone
+DateControl - added style parameter
+- fixed problem where text wasn't being selected when getting focus
+- changed to use mandatory instead of allowNone
+DateTimeControl - added feature to default the minutes portion of the control
+DateTimeFormat - changed to print Time format from the windows control panel settings
+DebuggerControl - added Go To Definition
+DrawCanvasControl - added selection and deletion
+- added group, ungroup, resize, save, load and the palette
+- major modifications
+DrawColorControl - major modifications
+DrawControl - added selection and deletion
+- added group, ungroup, resize, save, load and the palette
+- major modifications
+DrawFileControl - added group, ungroup, resize, save, load and the palette
+- no longer needed
+DrawImageAdapter - check if user selected an image before pressing ok
+- major modifications
+DrawItemFormat - major modifications
+DrawPaletteControl - renamed
+- major modifications
+DrawPolygonTracker - major modifications
+DrawRectTracker - added selection and deletion
+DrawSelectTracker - added selection and deletion
+- major modifications
+DrawStockObjectTracker - major modifications
+DrawTextAdapter - added selection and deletion
+EditorControl - added set parameter
+- changed to use mandatory instead of allowNone
+EmptyForeignKeyTest - new
+ExplorerAppsControl - added Select All
+ExplorerControl - added translation
+- Added Link option under the Tools menu and a Renumber Children option under the Tools menu
+- added Select All
+ExplorerListModelLinked - added noInsert option for protect rules
+- reset the previous data when saving the records
+ExplorerListViewControl - renamed List_Deletion_Ok to List_DeleteRecord
+- changed to reread record on restore
+- added noInsert option for protect rules
+- changed Cursor to use QueryKeys
+- renamed Restore to Reload
+- renamed Reload back to Restore
+- fixed bug and modified to discard saved columns if columns change
+- use doubleclick to insert, also updates list as record is changed
+- bug fixes
+- removed Alert when add entry failed, this is now redundant because of KeyException messages
+- Fixed issues with new records
+- fixed delete bugs
+- ignore selection messages while loading the list
+- added Restore All method
+- added context menu and minor refactoring
+- added restore to context even if not linked
+- only delete row from list in SaveRecord if the record is found in the list
+- added way for user to save current record
+- fixed bug where model can't delete record but it still deletes from the list
+- added item shading to ListControl
+- wrapped the view specification in a RecordControl.
+- changed itemShading to noShading
+- don't call save from Destroy if linked, also don't save if invalid
+- minor modifications to Select
+ExplorerVirtualListViewControl - wrapped the view specification in a RecordControl.
+FieldControl - changed to use mandatory instead of allowNone
+FieldHistoryControl - changed to use mandatory instead of allowNone
+Field_boolean - changed to use mandatory instead of allowNone
+Field_city - Added allowNone
+- changed to use mandatory instead of allowNone
+Field_date - changed to use mandatory instead of allowNone
+Field_date_time - added width so that can see both date and time
+- changed to use mandatory instead of allowNone
+- changed format width
+Field_dollars - added mandatory:
+Field_dollars_readonly - added allowNone
+- changed to use mandatory instead of allowNone
+Field_hours - new
+Field_info1 - changed to use mandatory instead of allowNone
+Field_info2 - changed to use mandatory instead of allowNone
+Field_info3 - changed to use mandatory instead of allowNone
+Field_info4 - changed to use mandatory instead of allowNone
+Field_info5 - changed to use mandatory instead of allowNone
+Field_info6 - changed to use mandatory instead of allowNone
+Field_mandatory_date - new
+Field_mandatory_name - new
+Field_optionaldollars - changed to use mandatory instead of allowNone
+Field_optionaldollars_readonly - changed to use mandatory instead of allowNone
+Field_percent - changed to use mandatory instead of allowNone
+Field_phone - changed to use mandatory instead of allowNone
+Field_state_prov - Increased width to fit Heading
+- changed to use mandatory instead of allowNone
+Field_testrunnergui_errors - changed to use mandatory instead of allowNone
+Field_text - changed to use mandatory instead of allowNone
+Field_zip_postal - changed to use mandatory instead of allowNone
+GetClipCursor - new
+GlobalPrint - added allowNone to params
+- changed to use mandatory instead of allowNone
+GotoLibView - made scintilla optional, and improved finding LibView
+Gotofind - added Trigger
+Group - major modifications
+IdFieldControl - added style parameter
+- fixed syntax error
+- added SelectAll to Set
+- changed to use mandatory instead of allowNone
+IdFormat - added DataToString method used for sorting in ListFormatControl.
+ImageButtonControl - added group, ungroup, resize, save, load and the palette
+- major modifications
+ImagesPage - added UrlDecode to handle spaces
+InfoControl - changed to use mandatory instead of allowNone
+InspectControl - added StringView
+KeyControl - set prefix field in KeyListView if lookup on Key/Id control's current value succeeds
+- changed to use mandatory instead of allowNone
+KeyException - changed to throw an exception instead of an Alert
+- changed the throw back to Alert
+KeyFieldControl - added style parameter
+- changed to use mandatory instead of allowNone
+KeyListView - miscellaneous bug fixes
+- fixed bug where columns change after Access is done
+- changed so list isn't changed when newvalue from key chooselist is invalid (would cause an error)
+- only update locateby table if key entered by user is valid
+- set prefix field in KeyListView if lookup on Key/Id control's current value succeeds
+- changed list selection to use index returned by list's Seek method instead of first visible item.
+- bug fix for when control gets destroyed when Access is open.
+- minor modifications to Select
+LibIO - removed prints
+- added lib_modified date to imported records to work with SVC
+LibIOTest - removed prints
+LibViewControl - changed Print Library to Dialog
+- added Select All
+LibraryStrings - removed prints
+LibraryStringsTest - removed prints
+LinkControl - changed to use mandatory instead of allowNone
+ListControl - renamed List_Deletion_Ok to List_DeleteRecord
+- added extra space at the bottom for inserting
+- fixed SetSelection to handle past end
+- Renamed GetCols to GetColumns
+- added a message that is used to disallow editing a cell
+- draw the selected items with grey background if list not focused
+- preventing editing non-existing column
+- had to take out fix for extra space at the bottom, because it would mess up the scroll bars when at the top.
+- added List_DeleteKeyDown message
+- added GetSortColumn method so ListFormatControl can access .sortCol
+- changed to always allow at least one blank row at the bottom
+- Fixed selection bug, added new context menu items
+- added item shading to ListControl
+- fixed insert when no rows
+- Added Send "List_KeyDown" Message
+- changed itemShading to noShading
+- moved brush creation from Set to New
+- fixed drawing of focus rectangle
+ListFormatControl - redefined DefCompareFunc to check format for DataToString method in order to get values that can be sorted properly.
+- added Destroy, moved ReportInstance creation to new
+ListViewControl - changed Seek method to return item index
+LocateControl - miscellaneous bug fixes
+- changed to use mandatory instead of allowNone
+MonthDayFieldControl - Modified to handle valid entries
+NumberControl - changed to use mandatory instead of allowNone
+OkCancel - added translation
+OverrideControl - new
+PaletteControl - added group, ungroup, resize, save, load and the palette
+- modified to use default book
+- renamed
+Params - print reports in thread, added Printing window with Cancel
+- fixed to print report without title
+- Added wait option to print in background or not
+- Modified wait to check for member otherwise use thread
+- Added more checking to Treading - handle if report is object (called On_Print directly)
+- modified to return an Alert instead of a Debug window when there is no printer
+- temporarily disabled printing in a thread
+- changed params to use RecordControl's GetControlData method
+- Fixed debug errors that occur when no printers are set up.
+ParamsChooseListControl - changed title
+- used ChooseField's buttonBefore option
+ParamsChooseListDlgControl - do not add empty or duplicate values to the list
+ParamsSelectControl - changed to use mandatory instead of allowNone
+PatternControl - changed to use mandatory instead of allowNone
+PersistentWindow - removed exitOnClose option
+PhoneControl - modified to handle 4-digit extention #'s; improved status message
+- changed to use mandatory instead of allowNone
+QueryViewControl - added Statusbar to give feedback to user
+- added Find and Replace commands
+RecordControl - removed ValidationChanged message
+- added GetControlData method
+ReplaceControl - replace in select - keep select
+Report - print reports in thread, added Printing window with Cancel
+ReportInstance - added Destroy and SetDC
+ResetSizeControl - added group, ungroup, resize, save, load and the palette
+- major modifications
+Rule_svc_password_new - added passwords to version control
+Rule_svc_password_valid - added passwords to version control
+SaveColumns - Renamed GetCols to GetColumns
+ScheduleAddEditControl - changed to use mandatory instead of allowNone
+ScintillaControl - added Select All
+- replace in select - keep select
+- added bookedit_menu option
+- added new methods so that Undo/Redo/Delete commands will work on context menu
+ScrollControl - fixed height specification for one page
+SearchControl - changed to use mandatory instead of allowNone
+SeekCursor - added Close method
+SelectControl - changed to use mandatory instead of allowNone
+- minor modifications to Select
+SetColumns - fixed bug and modified to discard saved columns if columns change
+StateProvControl - changed to use mandatory instead of allowNone
+StaticControl - changed get to return untranslated text
+- save untranslated text on Set
+StringTest - added BeforeFirst, AfterFirst, fixed SplitOnLast
+StringView - new
+Strings - added BeforeFirst, AfterFirst, fixed SplitOnLast
+SummarizeControl - changed to use mandatory instead of allowNone
+- changed to use mandatory instead of allowNone
+SuneidoAPP - added bmp to extension list
+- added SuneidoAPP_Authorize
+SuneidoAPP_Authorize - added SuneidoAPP_Authorize
+Svc - added passwords to version control
+SvcClient - added passwords to version control
+- changed Close to read response to QUIT command from server.
+SvcControl - added Select Table to the menu
+- added passwords to version control
+- modified to display sorted table menu
+SvcDemoData - renamed TestData to DemoData
+SvcGetDescription - changed to use mandatory instead of allowNone
+SvcHistoryControl - added passwords to version control
+SvcServer - added passwords to version control
+SvcTestData - renamed TestData to DemoData
+Svc_EnterPasswords - added passwords to version control
+TabsControl - changed to not do SetReadOnly when control already exists and switching tabs to it. This prevents overriding the protect rules.
+- fixed focus problems with switching tabs
+Test - fixed to always run Teardown
+TestControls - fixed KeyControl spec
+- changed to use mandatory instead of allowNone
+- added OverrideControl
+TestRunner - added time to test log
+TestRunnerGui - changed so that run selection updates status bar, some refactoring.
+- added Go To Definition
+- added total time and db space
+- changed to use mandatory instead of allowNone
+Transactions - added QueryAccum method
+TranslateLanguageTest - changed Spanish translation of Delete to match new translation in table
+- modified translation to match table changes
+- fixed test because a translation in use by the test changed in the master translations table
+- changed to use french instead of spanish
+- fixing the test to use french translations
+WordPadControl - changed On_Print to Alert("not implemented")
+WorkSpaceControl - added Select All
+- added Version Control to Tools menu
+- added passwords to version control
+- minor changes
+- Changed to save SVC passwords
+- modified to display sorted table menu
+- added Local? option to SVC dialog
+- changed to use mandatory instead of allowNone
+- fixed Find/Replace in Libraries so (All) means all, not just in-use
+- don't wipe out svc IP when local is checked
+ZipPostalControl - changed to use mandatory instead of allowNone

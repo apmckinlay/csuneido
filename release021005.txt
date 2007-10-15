@@ -1,0 +1,251 @@
+Suneido October 5, 2002 Release (1.0.021005)
+
+Some of the more significant changes for this release:
+
+- increased GCC compatibility - thanks to work by Steve Heyns (aka zippy) (and past work by Jos van Roosmalen) Suneido now compiles with MinGW 1.1 (GCC 2.95.3) and successfully runs all the built-in tests. This is a significant step towards porting to Linux (and eliminating our dependence on Visual C++).  
+- improvements for functional programming - operator functions, ability to call class methods functionally, new functions (Any?, Each?, Take, Drop)
+- the compiler now does constant folding (e.g. 2 * 4 will be evaluated to 8 at compile time)
+- improved command line option handling, relaxed ordering requirements, added short forms
+- Go To Definition now works from more places, goes to correct line from debugger
+- syntax changes to reduce punctuation and capitalization (optional parenthesis on if, while, etc., true and false instead of True and False) 
+- Scintilla (code editing component) has been upgraded to version 1.48
+
+Compatibility
+
+- the ~~ operator has been removed (it has been deprecated for some time) use =~ instead (Replace in Library can be used to update your libraries)
+- foreach is now deprecated and will be removed in the future, use "for" instead
+- True and False are now deprecated and will be removed in the future, use true and false instead
+- object.Transform has been renamed to object.Map!
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe: 
+
+- numerous changes for GCC compatibility
+- added functions for operators (Eq, Neq, Lt, Lte, Gt, Gte, Neg, Add, Sub, Mul, Div, Mod, Match, NoMatch, And, Or, Not)
+- added #symbol, symbol(object, ...) is equivalent to object.symbol(...)
+- added for (x in y)
+- allowed trailing '!' on names (for mutating methods e.g. Map! versus Map)
+- removed ~~ (use =~ instead)
+- added true and false (True and False are deprecated)
+- made parenthesis optional around the expression on if, for-in, foreach, while, do-while, switch
+- added object.Values and object.Assocs
+- added Seq
+- changed object.Members, object.Values, object.Assocs to return sequences like Seq
+- fixed bug with record.Invalidate triggering observer twice (reported and fixed bu Steve Heyns)
+- allow symbols and object constants in database queries
+- added constant folding to compiler
+- added Exit(true) for immediate forced exit
+- improved command line option handling
+- fixed bug with PROJECT query indexes
+- added TRACE_SLOWQUERIES
+
+User's Manual:
+
+/Introduction/Command Line Options - updated
+/Going Further/Report Parameters - fixed error in example
+/Language/Data Types/Boolean - changed to true and false
+/Language/Data Types/Symbol - new
+/Language/Names - added trailing '!'
+/Language/Names/Keywords - added true and false
+/Language/Expressions/Arithmetic - minor addition
+/Language/Expressions/Comparison - removed ~~
+/Language/Expressions/Integer - added see also
+/Language/Statements/do while - optional parenthesis
+/Language/Statements/for - added "for x in ob"
+/Language/Statements/foreach - deprecated
+/Language/Statements/if - optional parenthesis
+/Language/Statements/switch - optional parenthesis
+/Language/Statements/while - optional parenthesis
+/Language/Reference/Add - new
+/Language/Reference/Any? - new
+/Language/Reference/And - new
+/Language/Reference/Cat - new
+/Language/Reference/Div - new
+/Language/Reference/Drop - new
+/Language/Reference/Eq - new
+/Language/Reference/Every? - new
+/Language/Reference/Exit - added status of true for immediate forced exit
+/Language/Reference/Gt - new
+/Language/Reference/Gte - new
+/Language/Reference/Lt - new
+/Language/Reference/Lte - new
+/Language/Reference/Map - new
+/Language/Reference/Match - new
+/Language/Reference/Mod - new
+/Language/Reference/Mul - new
+/Language/Reference/Neg - new
+/Language/Reference/Neq - new
+/Language/Reference/NoMatch - new
+/Language/Reference/Not - new
+/Language/Reference/Object/object.Assocs - new
+/Language/Reference/Object/object.Iter - updated
+/Language/Reference/Object/object.List - new
+/Language/Reference/Object/object.ListValues - new
+/Language/Reference/Object/object.Map - updated
+/Language/Reference/Object/object.Map! - renamed object.Transform to Map!
+/Language/Reference/Object/object.Members - changed to return a sequence
+- added list: option
+/Language/Reference/Object/object.Reduce - added default argument
+/Language/Reference/Object/object.Size - added list: option
+/Language/Reference/Object/object.Transform - renamed object.Transform to Map!
+/Language/Reference/Object/object.Values - new
+/Language/Reference/Object/Object.Zip - renamed Object.Zip to object.Zip and updated
+/Language/Reference/Object/object.Zip - renamed Object.Zip to object.Zip and updated
+/Language/Reference/Or - new
+/Language/Reference/Seq - new
+/Language/Reference/String/string.Capitalized? - new
+/Language/Reference/Sub - new
+/Language/Reference/Take - new
+/Language/Reference/Trace - added SLOWQUERY
+/User Interfaces/Reference/EditControl - new
+/User Interfaces/Reference/EditorControl - modified to inherit from EditControl
+/User Interfaces/Reference/FieldControl - modified to inherit from EditControl
+/User Interfaces/Reference/PostalControl - new
+/User Interfaces/Reference/ProvControl - new
+/User Interfaces/Reference/RecordControl/RecordControl - updated, added example
+/User Interfaces/Reference/RecordControl/recordControl.Set - changed argument to record instead of object
+/User Interfaces/Reference/ScrollControl/ScrollControl - added example
+/User Interfaces/Reference/StateControl - new
+/User Interfaces/Reference/StateProvControl - new
+/User Interfaces/Reference/StateProvControl/StateProvControl - new
+/User Interfaces/Reference/StateProvControl/stateProvControl.GetList - new
+/User Interfaces/Reference/ZipControl - new
+/Reports/Reference/AddressFormat - new
+/Reports/Reference/GridFormat - minor modifications
+/Reports/Reference/IdFormat - minor modifications
+/Reports/Reference/PasswordFormat - new
+/Appendix/Errors - new
+/Appendix/Errors/too many literals - new
+/Appendix/Errors/too many local variables - new
+
+stdlib:
+
+AccessControl - added new record message
+- changed select to save name instead of title
+- added Send to On_Current_Delete
+AddressFormat - added justification option
+- changed to use Hfill
+Any? - new
+BookControl - added BookExit for PC Miler
+BookEditControl - modified checking for matches
+- add un-bold, un-italic, and un-code
+- modified refresh to Detab
+- fixed renumbering
+- added Ctrl+L for Link
+- added underline to toolbar
+- fixed links to have double quotes instead of single quotes
+BookEditLinkListControl - fixed minor bugs
+BookEditSplitControl - rearranged arguments pass into GotoLibView function
+BookExit - new
+BuildQueryWhere - added space around operator
+Call - removed (not used)
+CheckLibrary - only check valid identifiers
+- changed to return string instead of Print, ignored LoadLibrary errors
+ChooseListControl - modified to allow listField as an object
+ChooseManyListControl - changed to Passthru, added SetMenu
+DateTimeFormat - added ShortDateTime
+Dates - added ShortDateTime
+DebuggerControl - rearranged arguments pass into GotoLibView function
+- fixed bug in Go To Definition
+- modified to go to the right line on "Go To Definition" 
+DefaultTest - fixed tests for change in error messages
+Drop - new
+EditControl - new
+EditorControl - moved duplicate code to new EditControl
+Every? - new
+ExplorerListModel - changed to use PreSet for Explorer_PreviousData
+ExplorerListModelLinked - changed to use PreSet for Explorer_PreviousData
+ExplorerListViewControl - changed to use PreSet for Explorer_PreviousData
+FieldControl - moved duplicate code to new EditControl
+Field_boolean_yesno - added width
+Field_confirm_password - added "New"
+FileTest - fixed tests for change in error messages
+ForTest - new
+ForeignKeyTest - fixed for exe changes
+GotoLibView - rearranged arguments and default hwnd to 0
+- added library argument
+- modified to go to the right line on "Go To Definition" from Debugger
+Gotofind - added library argument
+- added uncapitalize for rule fields
+- changed to remove white space on name
+Handler - removed unused code
+- removed "Please call Axon"
+- added ERROR: to log
+HeaderControl - minor refactoring
+- added TranslateLanguage
+IdFieldControl - put Process_newvalue back into Get
+- modified Get to only call Process_newvalue if the field is dirty
+ImageFormat - fixed to handle stretch
+ImportExportTest - fixed for exe changes
+InfiniteSequence - new
+InfiniteSequenceTest - new
+Init - set Suneido.start_time
+KeyControl - fixed bug with switching locateby in KeyListView
+KeyException - minor refactoring
+KeyListView - fixed bug with switching locateby in KeyListView
+LibViewControl - modified to handle Go To Definition to previous def
+- fix check syntax to handle text after line number
+- added modified and committed to status bar
+ListControl - fixed tabbing issue
+ListEditWindow - ignore Data messages from controls
+ListViewControl - init use_menu to False, added SetMenu, Send menu events
+LocateControl - fixed bug with switching locateby in KeyListView
+Map - new
+MoneyBag - Modified .bag to be public
+MoveFile - new
+ObjectTest - fixed for exe changes
+- more tests
+Objects - changed Zip, rename Transform to Map!, added default to Reduce
+- added RemoveIf, removed Range
+ObserverTest - added test for invalidate bug
+PageHeadFormat - fixed to not print colon if prompt is ""
+Params - modified On_Preview to return window
+- fixed for non-existent devmode
+ParamsSelectControl - fixed alignment problem
+PersistentWindow - in SetState, if size > screen size then maximize
+- moved Use's to Create to support controls in other libraries
+- added ENDSESSION
+PreviewControl - switched Next and Prev buttons around (to match AccessControl)
+QueryFormat - added Close and RegisterForClose
+- changed Append() to handle multiple lines
+- Modified More to loop until it gets something to output
+QueryFormatTest - added Close and RegisterForClose
+QueryTest - added test for objects in queries
+- more tests
+QueryViewControl - added Goto method
+RemoteBackup - changed to keep last 10 copies
+Report - added Close and RegisterForClose
+SchemaModel - modified to show foreign key table targets
+SchemaView - changed to Scintilla control
+- added Go To Definition
+ScintillaControl - fixed bug in update_status, fixed Dirty? to handle setting to True
+- added ! to wordchars
+SeqTest - new
+SetColumns - added nodeletecolumns
+- fixed bug where adding new column messed up orders and sizes
+StringTest - added Capitalized? method
+- more tests
+Strings - added Capitalized? method
+SvcControl - add Go To Definition from local changes
+- changed AddMenu to SetMenu
+- removed not needed argument in GotoLibView
+- added Refresh (F5) option
+- put Object around argument in GotoLibView function call
+- fixed bug on display for record has been deleted
+SymbolTest - new
+TabControl - minor refactoring
+- added TranslateLanguage
+TabsControl - added ConstructTab method
+Take - new
+TestRules - minor refactoring
+TestRunner - minor changes
+TestRunnerGui - rearranged arguments pass into GotoLibView function
+- changed to set color of status bar to red as soon as the 1st failure occurs
+TranslateLanguageTest - modified to remove french column if it was added to the table.
+UOMControl - Added Valid?
+VfieldsFormat - added promptfont option
+WorkSpaceControl - rearranged arguments pass into GotoLibView function

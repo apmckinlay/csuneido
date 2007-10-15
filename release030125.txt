@@ -1,0 +1,277 @@
+Suneido January 25, 2003 Release (1.0.030125)
+
+Some of the more significant changes for this release:
+
+- some major improvements to memory usage for user interfaces and certain reports
+- new Hungarian translations (thanks to Mark Gabor)
+- updated French translation (thanks to Jean-Luc Chervais)
+- added CTRL+F on book html pages (e.g. help)
+- improved Print Preview to save pages in a temp. file instead of in memory to handle large reports
+- improvements to query optimization, especially for union's
+
+Compatibility
+
+- the additional checking on string subscripts may break some incorrect code that previously worked
+- the new Control.Destroy  may break some code that previously worked
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe:
+
+- added Pack and Unpack built-in functions
+- added check for invalid subscript on string
+- changed "Error in Debug" message to "Error in Error Handler"
+- fixed ENSURE to not allow creating a table without a key
+- only allow Set_default of "" on Records
+- support @args on Date methods
+- added toolbar buttons for digits
+- changed realloc to maintain has-pointers status (to help garbage collection)
+- made socket buffers non-pointer (to help garbage collection)
+- OstreamStr - changed initial buffer size from 0 to 32 (to reduce allocation)
+- OstreamStr - made buffer non-pointer (to help garbage collection)
+- DbmsRemote - added trailing nul to records to fix bug
+- DbmsRemote - moved OstreamStr into class (to reduce allocation)
+- fixed bug with distributing select over union/intersect/difference
+- removed Query::cursorable (not used)
+- added constant folding optimization to WHERE expressions
+- removed view parameters (not used)
+- fixes and improvements to Query::fixed
+- fixed problems with disjoint union/intersect/difference
+- fixed problem with history tables when client/server
+- added MemoryArena built-in function
+- object.Delete(all:) - zero vector (to help garbage collection)
+- ClearCallBack - zero thunk (to help garbage collection)
+- added Database.Connections()
+- fixed Database.CurrentSize() to work client/server
+- added warning for heap space getting close to running out
+- improvements to garbage collect sweep (chopped up free space and marked it as non-pointer)
+- added socketServer.RemoteUser
+- fixed potential bug if realloc shrinks
+- changed virtual memory allocation to MEM_TOP_DOWN (to help garbage collection)
+
+User's Manual:
+
+/Introduction/Acknowledgments - added Mark Gabor (Hungarian translation)
+- added Jean-Luc Chervais (French translation)
+/Introduction/Preface - changed TM to (R)
+/Getting Started/Getting Help - added CTRL+F
+/Language/Reference/AddFile - new
+/Language/Reference/CommaList - new
+/Language/Reference/Date/date.EndOfDay - new
+/Language/Reference/Date/date.ShortDateTime - new
+/Language/Reference/GetFile - new
+/Language/Reference/Memory - updated
+/Language/Reference/MemoryArena - new
+/Language/Reference/Number/number.RoundDown - new
+/Language/Reference/Object/object.Assocs - removed invalid links
+/Language/Reference/Object/object.UniqueValues - new
+/Language/Reference/Pack - new
+/Language/Reference/PutFile - new
+/Language/Reference/SocketServer/socketServer.RemoteUser - new
+/Language/Reference/TextFile - removed
+/Language/Reference/Unpack - new
+/Database/Reference/Database/Database.Connections - new
+/Database/Reference/Database/Database.CurrentSize - new
+/Database/Reference/Database/Database.Transactions - updated
+/Database/Reference/QueryApply - updated
+/Database/Reference/QueryApplyMulti - new
+/Database/Reference/QueryMax - new
+/Database/Reference/QueryMin - new
+/Database/Reference/QueryStrategy - new
+/Database/Reference/QueryTotal - new
+/User Interfaces/Reference/StaticControl - corrected, updated
+/res/usersmanual.gif - changed TM to (R)
+
+Plus some minor editing and corrections. Thanks to Stefan Schmiedl for a number of corrections.
+
+stdlib:
+
+AboutSuneido - added Mark Gabor (Hungarian translation)
+- updated copyright years
+- changed TM to (R), added Jean-Luc CherVais
+AccessControl - redo key query after update
+AssertMatches - new
+AtlAxWinControl - added Find on Page
+Backup10 - Modified to only take backup path
+BookControl - added Find on Page
+BookEditControl - Modified On_Import_Image to use QueryMax
+BookEditModel - fixed so delete adds to svc_deleted
+- fixed rename to output to svc_deleted
+BookExport - updated copyright
+BookMarkContainerControl - fixed destroy problem
+BookModel - removed text from Children to use less memory
+BookSearchControl - moved super.Destroy to end of Destroy
+BrowseControl - added ListCtrlUp and ListCtrlDown
+- moved ctrl up/down from browse to list, added mouse drag
+- fixed bug on Observer called after Destroy
+- added checking for Empty? to observer
+BrowserControl - added Find on Page
+CanvasPolygon - fixed polygon drawing
+CheckLibraries - new
+CheckQuery - new
+CheckViews - new
+ChooseField - moved super.Destroy to end of Destroy
+ChooseList - only destroy window if not already destroyed
+ChooseListControl - moved super.Destroy to end of Destroy
+CommaList - new
+CommaListTest - new
+Container - fixed BookEdit problem caused by Destroy changes
+Control - added .Delete(all:) to Destroy
+DateControl - changed to maintain date member (valid date or false)
+DateTest - revised date.Replace to catch invalid arguments
+Dates - revised date.Replace to catch invalid arguments
+DeleteFieldTest - converted to transaction block
+DiffImageControl - moved super.Destroy to end of Destroy
+DiffListControl - handle if lists are empty
+- moved super.Destroy to end of Destroy
+DoWithoutTriggers - new
+DrawPolygonTracker - fixed polygon drawing
+ExplorerControl - added resetting flag to fix tab problems when using/unusing libraries in LibView
+- fixed bug with cut/paste
+ExplorerListModelLinked - fixed bug with initially loading ALL data
+ExplorerListViewControl - changed to not delete new non-dirty records if it is the only record in the list
+- changed to do current restore on update (if not linked). This handles refreshing view with other user's changes if user chooses not to overwrite.
+GW - new
+GetEnhMetaFileBits - new
+GetFile - changed to return "" for empty file
+GetRemoteServerStats - new
+GetTempFileName - new
+GetTempFileNameApi - new
+GetTempPath - new
+GetTempPathApi - new
+GetWindow - new
+HfieldsFormat - Modified Hfields to use Heading instead of Prompt
+HistoryTest - new
+HtmlWrap - removed manpage stuff - not used
+HttpServer - added remote_user to env
+Hwnd - added super.Destroy
+IDC - added missing cursors
+IDTB - added digits
+Import - changed to handle duplicate keys
+ImportExportTest - changed to handle duplicate keys
+- added set_boolean method / enhanced test
+ImportXML - added set_boolean method / enhanced test
+InfiniteSequence - changed sequence numbers from object to string
+InfiniteSequenceStart - new
+InfiniteSequenceTest - changed sequence numbers from object to string
+IntToStr - new
+IntToStrTest - new
+IntersectTest - added more tests
+- improvements and corrections
+KeyException - changed to display generic program error message if not a key related error.
+- minor improvements
+LibIO - fixed bug with Import not always Unload'ing
+LibIOTest - fixed bug with Import not always Unload'ing
+- fixed teardown
+- fixed to not run Test_unload if client-server (can't Use)
+LibTreeModel - another fix for when not using version control
+- fixed renaming for version control
+LibViewControl - fixed bug where library chooselist is empty causing error; cosmetic
+- fixed bug with cut/paste
+ListControl - added ListCtrlUp and ListCtrlDown
+- moved ctrl up/down from browse to list, added mouse drag
+- added SetCursor for drag
+- adjusted drag cursor
+ListViewControl - fixes for Destroy changes
+ListViewNewControl - minor refactoring
+LocateControl - fixed problem cause by Destroy changes
+LogMemory - new
+LogMemoryEmail - new
+ManpagePrefix - removed, not used
+MemoryArenaDisplay - new
+- renamed, added final & callbacks
+MemoryMonitor - renamed, added final & callbacks
+MinusTest - added more tests
+- improvements and corrections
+MoneyBag - removed semicolons
+MshtmlControl - fixed BookEdit problem caused by Destroy changes
+NewSvcControl - old - removed
+NewSvcLocalControl - old - removed
+NewSvcMasterControl - old - removed
+NightlyChecks - modified path for tests.txt
+- changed to use new GetRemoteServerStats function
+- added CheckViews and CheckLibraries
+PM - new
+Params - changed return to return false in On_Preview
+ParamsSelectFormat - converted format to TextFormat if it is WrapFormat
+PeekMessage - new
+PreviewControl - fixed bug with empty reports
+PreviewPageControl - changed to save pages in a file instead of in memory, added Alert for no pages
+Provinces - changed Newfoundland and Labrador from NF to NL
+QueryApplyMulti - new
+QueryColumns - return #() if error
+QueryFormat - added CheckQuery
+- fixed bug with Close not getting called if no AfterAll
+QueryMax - new
+QueryMin - new
+QueryTotal - new
+QueryViewControl - fixed to ignore leading whitespace and comments
+RecordControl - fixed for Destroy changes
+- added handling for validation items
+ScintillaControl - added set parameter
+- changed GotoLine to not highlight *first* line
+SelectControl - changed missing/duplicate prompt to Warning
+SetEnhMetaFileBits - new
+SpinnerControl - fixed bug where typing the value wasn't saving the value
+StaticControl - added default Name of Static
+StrToInt - new
+Svc - testing version control
+- refactored, removed svc_lastget, changed to get lib_committed from server
+- more fixes
+- changed Restore to work immediately and get same version you had, made Restore method in Svc
+- fixed Restore to Unload
+- fixed name bug with books
+- fixed problem with sending book changes (again)
+SvcBook - changed Restore to work immediately and get same version you had, made Restore method in Svc
+- check for syntax errors before sending local changes
+SvcClient - refactored, removed svc_lastget, changed to get lib_committed from server
+SvcControl - added more checking to display
+- refactored, removed svc_lastget, changed to get lib_committed from server
+- fixed bug where Go To Definition on a new item causing error
+- refactored, added toolbar, added Test Runner command
+- fixed to ignore invalid tables
+- changed Restore to work immediately and get same version you had, made Restore method in Svc
+- fixed sizing problem
+- check for syntax errors before sending local changes
+- fixed merge
+SvcCore - refactored, removed svc_lastget, changed to get lib_committed from server
+- fixed problem with Remove not updating asof
+SvcCoreTest - refactored, removed svc_lastget, changed to get lib_committed from server
+- removed
+SvcDemoData - old - removed
+SvcLibrary - changed Restore to work immediately and get same version you had, made Restore method in Svc
+- check for syntax errors before sending local changes
+SvcServer - refactored, removed svc_lastget, changed to get lib_committed from server
+SvcTest - refactored, removed svc_lastget, changed to get lib_committed from server
+- changed Restore to work immediately and get same version you had, made Restore method in Svc
+TabsControl - added RemoveAccessObserver to the destroy
+Test - fixed for no history tables
+- moved to Tests/Framework folder
+TestControls - added SpinnerControl
+TestRunner - added "try" to ForeachTest
+- fixed ForeachTest to skip invalid instead of ending loop
+TestRunnerGui - added F5 refresh
+- cosmetic, added lib arg (for SvcControl)
+- added Goto Selected button
+- fixed double click error
+TransformTest - improvements and corrections
+UnionTest - added more tests
+- improvements and corrections
+Warning - new
+WhereTest - new
+Wiki - lock pages when editing
+WikiEdit - lock pages when editing
+WikiLock - new
+WikiSave - lock pages when editing
+WikiTest - new
+WikiUnlock - lock pages when editing
+WikiView - lock pages when editing
+WindowBase - added ResizeToMin (thanks to Steve Heyns)
+- prevent ctrl resizing after window is destroyed
+WndProcSpinControl - fixed bug where typing the value wasn't saving the value
+WorkSpaceControl - added Schema View to toolbar
+
+Also replaced all foreach's with for's (thanks for update function from Stefan Schmiedl)

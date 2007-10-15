@@ -1,0 +1,468 @@
+Mostly bug fixes and minor tweaking. Some of the more significant changes:
+
+- new and improved Reporter (Global > Report)
+- improvements to language translation and character set handling
+- added session views (sview)
+- added ability to enter expressions into NumberControl
+- added Quickbooks style shortcuts (t, m, h, y, r, and +/-) to DateControl
+- added How Do I option to books
+- updated to Scintilla 1.61
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe:
+
+- fixed Database.Connections to work on server
+- made Dump argument optional (defaults to entire database, like command line option)
+- added -locallibrary (-ll) option (request by Elan)
+- include query in query.Output error
+- improved logging in dbserver
+- changed/fixed SuDate::literal
+- added tempdest, transactions, cursors, and connections to http server monitor
+- fixed problem with do-while without final semicolon
+- added tracing for symbols
+- changes to avoid creating unnecessary symbols
+- fixed select query to not use temp. indexes for cursors
+- fixed project query to not use temp. indexes for cursors, and to free temp. index in get
+- added Database.Cursors and Margin
+- added session views
+- improved index usage for summarize queries
+- fixed so objects can be used as hash keys
+- added Getenv
+- added Database.SessionId
+- fixed bug with union query needs
+- added 8 hour client session inactivity timeout
+- fixed rounding bug in multiplication
+- added WinErr
+- fixed bug with empty query.Order when client-server
+- fixed problem with chars > 127 in scanner
+- parenthesize view definitions inserted into queries
+
+User's Manual:
+
+/Introduction/Acknowledgments - added contributors
+/Introduction/Frequently Asked Questions - added missing link (from Petr Antos)
+/Getting Started/QueryView - updated F9 description (from Francek Prijatelj)
+/Getting Started/Running Client Server - added note about timeout
+/Getting Started/WorkSpace - updated F9 description (from Francek Prijatelj)
+/Language/Names/Keywords - added throw (from Ajith)
+/Language/Reference/AssertEq - updated
+/Language/Reference/AssertGt - new
+/Language/Reference/AssertLt - new
+/Language/Reference/AssertMatch - renamed
+/Language/Reference/AssertMatches - renamed
+/Language/Reference/AssertNeq - updated
+/Language/Reference/AssertNoMatch - new
+/Language/Reference/Date/Date.Begin - added See also's
+/Language/Reference/Date/Date.End - added See also's
+/Language/Reference/Date/Date.LongFormat - renamed from date to Date
+/Language/Reference/Date/Date.ShortFormat - renamed from date to Date
+/Language/Reference/Date/Date.TimeFormat - renamed from date to Date
+/Language/Reference/Date/date.Format - updated
+/Language/Reference/Date/date.LongFormat - updated
+- renamed from date to Date
+/Language/Reference/Date/date.ShortFormat - updated
+- renamed from date to Date
+/Language/Reference/Date/date.TimeFormat - new
+/Language/Reference/Dll.Trace - updated
+/Language/Reference/GetLastWriteTime - new
+/Language/Reference/Getenv - new
+/Language/Reference/Trace - updated
+/Language/Reference/WinErr - new
+/Database/Reference/Database/Database.Connections - updated
+/Database/Reference/Database/Database.Cursors - new
+/Database/Reference/Database/Database.Margin - new
+/Database/Reference/Database/Database.SessionId - new
+/Database/Reference/Dump - updated
+/Database/Reference/Record/record.Update - updated
+/Database/Requests/sview - new
+/User Interfaces/Reference/BrowseControl/BrowseControl - added documentation for ColumnsSaveName option
+/User Interfaces/Reference/CanvasControl/CanvasRect - corrected name from CanvasRectangle to CanvasRect (from Ajith)
+/User Interfaces/Reference/CanvasControl/CanvasRectangle - corrected name from CanvasRectangle to CanvasRect (from Ajith)
+/User Interfaces/Reference/ChooseListControl - updated
+/User Interfaces/Reference/ChooseTwoListControl - fixed example (from Claudio)
+/User Interfaces/Reference/NumberControl - updated
+/User Interfaces/Reference/StaticControl - corrected (from Ajith)
+/Reports/Reference/NumberFormat - updated
+
+stdlib:
+
+AboutSuneido - added contributors
+AccessControl - changed MenuButton to pass exact option
+- reload the record if delete fails (observers may have cleared their lists)
+- added GetStartPos (for SelectControl)
+- added saves to the beginning of global functions
+- changed to Reporter
+- roll back transaction if delete fails
+- fixed ChangeQuery
+- fixed error when outputting to a query with a join
+- default x to false in AccessGoto method
+- minor - changed to t.QueryOutput
+- added .Copy() to fix dynamic types problem
+- gave an Alert in AccessGoto method when doesn't match the current Select
+- changes to not allow deleting header records when line-item records are protected
+AlertTransactionCommitFailed - added ERROR:
+AllowDeleteRecord? - changes to not allow deleting header records when line-item records are protected
+AssertGt - new
+AssertLt - new
+AssertMatches - removed (use AssertMatch)
+AssertNoMatch - corrected message
+Asup - changed to use Find instead of Match
+BookBrowserControl - fixed Discard/Correct confirmation
+BookCheck - added book argument to IgnorePage method call.
+- modified to trim "where" condition off of book name
+BookCheckPaths - new
+BookCheckRes - added check for images in the res folder that are not in use
+BookControl - added How Do I button
+- changed to use How To Index
+- fixed Discard/Correct confirmation
+- removed enable/disble of Next/Prev buttons (slow), changed Go To Def from SetVisible to SetEnabled
+- fixing translation issues
+- changed click on tab to go to parent instead of all the way up
+BookEditControl - Import Image now creates res folder if necessary (from Ajith)
+- added Build How To Index
+- changed to ignore case when looking for partial match
+- added BookHowToLinks to add How Do I links to help book pages; added to File menu in EditBook
+- added Open Book menu option
+- added IDE menu
+BookEditModel - updated
+BookEnabled - moved up from Accountinglib
+BookEnabled_Test - moved up from Accountinglib
+BookExport - fixed problem with invalid chars in names
+- improved image export
+- fixed to use HtmlWrap
+- get copyright from book
+BookHowToIndex - new
+BookHowToIndexTest - new
+BookHowToLinks - new - add How Do I links to help book pages; added to File menu in EditBook
+BookHowToLinksTest - new
+BookMenuPage - fixed to work at top level
+- added checking if page is hidden
+- modified to be a class to handle inheritance from Accountinglib
+- pass the book to GetHeading and GetLink
+- if headingLevel is 0, do not add the Heading to the menu
+- added new lines and fixed to not output blank table rows
+BookModel - modified to close previous query before reassigning q
+- fixed Next/Prev BookAuthorize to work when client/server (and refactored)
+BookPageFind - improved BookPageFind
+BookPageFindTest - improved BookPageFind
+BookToolbarControl - fixed dropdowns to only include used buttons
+- changed OperatingSystem() !~ "2000|XP" to OperatingSystem() !~ "XP" in New method
+BrowseControl - added columnsSaveName option for browses where there is no initial query and no title for saving the columns.
+- initialized .columnsSaveName before the SetQuery is done
+- added ButtonBar option to BrowseControl and ExplorerListView
+- added GlobalReport
+- changed to Reporter
+- changed to use CenterTitleControl for title
+- closed query
+- changes to not allow deleting header records when line-item records are protected
+BrowserControl - added try to GoBack (from Elan)
+BuildQueryWhere - fixed query syntax errors when using in lists
+ButtonBar - added ButtonBar option to BrowseControl and ExplorerListView
+- made buttons same size
+ButtonControl - added pad option
+CanvasArc - added resize method
+CanvasCaption - handle resizing better
+- added text to caption
+- changing text to use rect tracker instead of point tracker
+- fixing color
+- fixed text resizing
+- refactored
+- changed to Editor
+CanvasControl - fixed some color issues with copying and saving
+- added offset for repeat pastes; modified to select pasted items
+- new method AddItemAt
+- added MoveToBack and MoveToFront
+- default fill color to white
+CanvasGroup - fixed some color issues with copying and saving
+CanvasImage - moved IsHandle? method to CanvasItem
+CanvasItem - moved IsHandle? method to CanvasItem
+CanvasRect - moved IsHandle? method to CanvasItem
+CanvasRoundRect - moved IsHandle? method to CanvasItem
+CanvasText - added text to caption
+- changing text to use rect tracker instead of point tracker
+- fixing color
+- corrected
+CheckBoxControl - fixed size/align problems
+CheckLibrary - ignore missing dll functions
+ChooseControl - ignore tab CHAR message in field's window procedure (we don't want tabs in the field's value)
+ChooseDateTimeControl - changed to use DateTimeSize
+ChooseField - fixed problem in browse with control staying underneath sometimes
+ChooseListControl - fixed to Send RecordDirty? instead of Dirty? (too many controls have Dirty?)
+- added SelectItem (from Claudio)
+ChooseTwoListControl - added width
+- added validation
+- fixed title (from Claudio)
+- added SetList (from Claudio)
+ChooseTwoListFieldControl - added validation
+- added SetList (from Claudio)
+Control - changed Send to allow specifying source:
+CopyFile - new
+CursorTempindexTest - fixed to close cursors
+DateControl - added QuickBooks shortcuts - t, m, h, y, r, and +/-
+- separated code to translate to dates into get method so it could be also called from Get.
+- fixed year formatting
+DateParamInRange - new
+DateParamInRange_Test - new
+DateTimeControl - made double click do OK
+DateTimeFormat - changed to use DateTimeSize
+- added Round(0) to fix size issue
+DateTimeSize - new - used by ChooseDateTimeControl and DateTimeFormat
+Dates - fixed revert/view/diff "as of"
+- added StdShortDateTime
+Delayed - return timer id (for KillTimer)
+DepsRenameTest - fixed to close cursors
+Dialog - improved error message
+DoWithoutTriggers - fixed to work with new exe and LibraryTables
+- added Assert to Use
+DrawCanvasControl - moved to fix Polygon drawing
+DrawControl - started move to back and move to front
+- changing text to use rect tracker instead of point tracker
+DrawPaletteControl - started move to back and move to front
+- added tips and new images
+DrawRectTracker - default varyy and varyx to 'none' to fix error when resizing caption
+DrawTextAdapter - changing text to use rect tracker instead of point tracker
+EditorControl - fixed Set to Display non-strings
+ExplorerControl - added skipFolder? option to GotoPath (GotoLibView uses it)
+ExplorerListViewControl - update explorerlistdata in Set method without affecting the dirty flag
+- added ButtonBar option to BrowseControl and ExplorerListView
+- added GlobalReport
+- changed to Reporter
+- changes to not allow deleting header records when line-item records are protected
+- fixed ExplorerListView to save when selection is cleared
+ExplorerVirtualListViewControl - added GlobalReport
+- changed to Reporter
+FieldControl - factored out GetFontSize (for NumberControl)
+Field_date_readonly - new
+Field_date_time - made width slightly smaller, added comments
+Field_dollars - removed width
+Field_dollars_readonly - removed width
+Field_euro - removed width
+Field_image - added SelectPrompt
+- added Heading
+Field_num - added Format of Text to display properly on Browse
+Field_numberstring - new
+Field_optionaldollars - removed width
+Field_optionaldollars_readonly - removed width
+Field_sort0 - new
+Field_sort1 - new
+Field_sort2 - new
+Field_sort3 - new
+Field_sort4 -new
+Field_sort5 - new
+Field_sulog_calls - new
+Field_sulog_locals - new
+Field_sulog_message - new
+Field_sulog_opsys - new
+Field_sulog_option - new
+Field_sulog_params - new
+Field_sulog_timestamp - new
+Field_sulog_user - new
+FileTimeToLocalFileTime - new
+FindInLibraryControl - put in-use libraries first in list (like SVC)
+ForeignKeyTest - changed AssertMatches to AssertMatch
+GetBookPage - rewrote to not call BookPageFind
+GetClipboardFormatName - minor corrections to buffer/string dll arguments
+GetCurrentProcessId - new
+GetLastWriteTime - new
+GetLocaleInfo - new
+GetParamsWhere - trim ob.operation
+GetRemoteServerStats - added Display around connections when appending to msg string since it will be an object
+- added cursors
+- added SystemSummary and db size & margin
+- added number of connections
+- fixed to handle larger uptime (seconds was wrapping)
+- changed to StdShortDateTime
+GetTempFileName - minor corrections to buffer/string dll arguments
+- added error checking
+GetTempFileNameApi - minor corrections to buffer/string dll arguments
+GetTempPath - minor corrections to buffer/string dll arguments
+- added error checking
+GetTempPathApi - minor corrections to buffer/string dll arguments
+GlobalPrint - converted to use SelectFields so name and abbrev are available
+- made stretchable
+GlobalReport - new
+GotoLibView - added skipFolder? option
+Gotofind - put try/catch around the lookup to handle issue where record is not found.
+HDF - added SORTUP and SORTDOWN
+Handler - don't alert or log if err is ""
+HeaderControl - added comments
+- rename GetNumItems to GetItemCount (to be same as Windows message)
+- added GetItem and GetItemFormat
+- added HitTest
+- added tooltip per column support
+- uncommented ENDTRACK, moved Send('HeaderReorder' to end of ENDDRAG (for Reporter)
+HtmlWrap - changed to use Query1Cached
+Hwnd - changed can't CreateWindow to Alert and log
+- log GetLastError
+- added PostMessage method
+- improved error message
+IDI - added disabled downarrows
+IdFieldControl - don't match value to abbrevField if query does not have abbrevField
+IdFormat - changed to use Suneido.ReportQueryCache
+ImageControl - added broken link image
+- fixed problem with deleting image causing broken link display
+ImageFormat - fixed issue with stretch
+InetMesg - added Lower to Address
+InetMesgTest - added Lower to Address
+InfoWindowControl - added GETDLGCODE and SYSKEYDOWN to destroy on other keys (e.g. ESC)
+Init - set date and time formats from windows settings
+- remove seconds from time format
+KeepAlive - new
+KeyControl - fixed problem in browse with control staying underneath sometimes
+KeyListView - fixed keys/prefixColumn handling (locateby wasn't reloading)
+- minor improvements
+- fixed problem with Access Locate, increased min size
+LANG - new
+LANG_USER_DEFAULT - new
+LOCALE - new
+LOCALE_USER_DEFAULT - new
+LibViewControl - fixed revert/view/diff "as of"
+- added skipFolder? option to GotoPathLine method
+ListControl - added comments
+- fixed ExplorerListView to save when selection is cleared
+ListViewControl - added option for mouse drag support, defaulted to false
+- added LVN.COLUMNCLICK => ListView_ColumnClick
+ListViewModel - fixed Close to close queries
+ListViewNewControl - rename GetNumItems to GetItemCount (to be same as Windows message)
+LocaleSORT - new
+LogMemoryEmail - changed to StdShortDateTime
+LruCache - minor refactoring
+- added label to Assert so it can be more easily identified
+LruCacheTest - changed to not use Random
+MAKELANGID - new
+MAKELCID - new
+Mail_Processor - minor changes
+- added delete to toobig
+MemoryMonitor - added tempdest and transactions
+- added db size and margin
+MenuButtonControl - changed MenuButton to pass exact option
+- allow building menu
+- fixed to draw downarrow disabled
+MonthDayControl - made double click do OK
+NameAbbrevControl - fixed spacing problem
+NightlyChecks - changed so that lines with no dates in error.log are not displayed.
+- additional checking for date in error.log (skip lines that don't have dates)
+- changed to StdShortDateTime
+NumberControl - made ENTER work, added ability to enter expression with +-*/
+- fixed bug with UomControl in browse in dialog
+- fixed sizing
+- fixed to scroll when possible (not 95/NT)
+ObjectTest - added Any? and Every?
+- added Test_Object_as_Key
+Objects - added Any? and Every?
+OpenBook - improved BookPageFind
+OpenImageControl - fixed printing to size image to page
+OptionalNumberFormat - fixed GetSize
+- improved mask/width handling
+PageHeadFormat - don't print param if checkmark is used and value is false
+- added title2 parameter
+Params - improved to handle printer names > 32 chars
+- refactored, simplified transactions
+- fixed to handle missing devmode devnames
+ParamsChooseListControl - changed to handle readonly when used in AccessControl, also have to copy values when Getting / Setting so that RecordControl registers a change (objects are referenced)
+ParamsSelectControl - fixed problem with protection
+PreviewControl - fixing translation issues
+PreviewPageControl - added mousewheel support
+- added timer for SetFocus (to get mousewheel to work from dialog)
+- changed eta to su
+- fixed problem with running out of heap space from previewing large images
+ProcessIdToSessionId - new
+Prorate_Amount - modified to handle if object is all zeros, or if object nets out to zero.
+- minor refactoring
+- modified to use the prorate_amount sign
+Prorate_Amount_Test - modified to handle if object is all zeros, or if object nets out to zero.
+- modified to use the prorate_amount sign
+Query1CacheReset - new
+Query1Cached - new
+QueryAll - new
+QueryFormat - fixed bug where query didn't get closed properly
+- added Before_ and After_ (for Reporter)
+- fixed query not getting closed if no data
+- added GetTotals method
+QueryOrder - new
+QueryOrderBugTest - new
+QueryTest - fixed to close cursors
+QueryViewControl - added sview
+RecordControl - changed TabsControl_SelectTab to re-send message (from Claudio)
+RecordNewTest - fixed to close cursors
+Report - added Suneido.ReportQueryCache, added .Close to end of .Print
+- fixed so you get "no data" message in more situations
+- updated for Params changes
+- changed charset from ANSI to DEFAULT
+ReportInstance - added fontScale and GetFont (for Reporter)
+- changed charset from ANSI to DEFAULT
+Reporter - new
+ReporterColHeadsControl - new
+ReporterColumnsControl - new
+ReporterDataSource - new
+ReporterFormat - new
+ReporterMaxChars - new
+ReporterUpdate040624 - new
+Rule_globalreport_valid - converted to use SelectFields so name and abbrev are available
+Rule_reporter_sortcolumns - new
+SHGetPathFromIDList - fixed definition
+SUBLANG - new
+SchemaModel - removed unnecessary "where"
+ScintillaControl - fixed start_calltip (show parameters) to handle names with '?'
+- fixed click on fold margin not on +/- (changed to old behaviour - ignore)
+SeekCursorTest - fixed to close cursors
+SeekQuery - added Close
+Select2Control - split out Select2Control (for Reporter)
+- added ChangeSF (for Reporter)
+- made fields wider
+SelectControl - changed layout to QueryApply
+- changed to use SelectFields
+- set default button
+- only allow empty and not empty for images
+- change access.GetStartPos to defaultButton parameter
+- split out Select2Control (for Reporter)
+SelectFields - new - extracted from SelectControl to use from GlobalPrint
+- fixed warning for no select prompt
+- fixed problem with missing prompts
+- changed join to leftjoin
+- added FieldToPrompt
+ServerMemoryMonitor - added tempdest
+- added transactions and cursors
+- removed unnecessary ServerEval's
+- added db size and margin
+StaticControl - fixed problem with Set with color
+- added whitebgnd option
+SummarizeTest - changed AssertMatches to AssertMatch
+- added test for exe fix
+SuneidoLog - limit stack trace to 10 levels
+- logged process list to a file when error message is "can't CreateWindow"
+SvcControl - fixed issue where Local? is checked, Server is empty and get no results
+TRACE - added SYMBOLS, changed LIBLOAD, QUERY, and SLOWQUERY to plural
+TabsControl - factored out construct(i), added constructAll:
+- modified access_setdata to handle contructAll
+Test - added checking for cursors not closed (only functional when client-server)
+TestRunner - changed to StdShortDateTime
+TextFormat - added Round(0) to width calculation
+Tip - new - similar to InfoWindowControl, for dispatch tooltips
+TitleControl - changed to dark blue
+TransformTest - fixed to close cursors
+TranslateLanguageTest - fixed to close cursors
+TwoListControl - select moved item
+- added SetList (from Claudio), minor refactoring
+UnionTest - changed AssertMatches to AssertMatch
+Unless - new (from Kevin Kinnell)
+VirtualBrowseModel - fixed to close cursors
+When - new (from Kevin Kinnell)
+WTS - new
+WTSFreeMemory - new
+WTSQuerySessionInformation - new
+WTS_GetClientProtocolType - new
+WTS_GetSessionId - new
+WhereTest - changed AssertMatches to AssertMatch
+WinErrTest - new
+Window - fixing translation issues
+WindowBase - fixed Discard/Correct confirmation
+- added Tips()
+- added GetTitle (from Claudio)
+WithDC - new
+WndPaneControl - added context menu
+YearMonthControl - made double click do OK

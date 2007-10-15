@@ -1,0 +1,406 @@
+Suneido Sept. 1, 2005 Release (1.050901)
+
+suneido.exe
+
+- dbmsremote.cpp - increased buffer sizes
+- gcstring.cpp - fixed problem with find not flattening argument
+- index.cpp - modified tracing
+- qselect.cpp - fixed convert_select to handle min-to-max range
+- builtins.cpp - added prev parameter to Adler32
+- qextend.cpp - changed to allow expressions to use rules in same extend
+- qtable.cpp - improved exception
+- sunumber.cpp - changed Hex, Octal, and Binary to unsigned
+- changed to memory map database in sections, removed database margin
+- qselect.cpp - fixed to initialize fixdone
+- sunumber.cpp - fixed bug in divide in partial product method
+- sockets.cpp - increased max connections from 32 to 99, made overflow fatal
+- regexp.cpp - fixed bug in replen with "\\", improved lookahead
+- compile.cpp - changed to allow @# on dll names
+- qtable.cpp - fixed to use <= in cost comparisons
+- sucomobject - added floats (untested)
+- dbserver.cpp - changed Database.Connections() to readonly
+- sudate.cpp - removed ShortDate, LongDate, Time, ShortFormat, LongFormat, TimeFormat,
+	- renamed Format to FormatEn
+	- changed default parse format to yMd instead of ShortFormat
+	
+suneidoc
+
+/CookBook/Using Graphviz from Suneido - new
+/Database/Reference/Database/Database.CurrentSize - removed database margin
+/Database/Reference/Database/Database.Margin - removed database margin
+/Database/Reference/QueryList - new
+/Database/Reference/Transaction/transaction.QueryCount - added QueryList to see also's
+/Database/Reference/Transaction/transaction.QueryList - new
+/Introduction/Command Line Options - removed database margin
+/Language/DLL Interface/Dll - added @# on names
+/Language/Reference/Abs - changes from Ajith
+/Language/Reference/AddFile - changes from Ajith
+/Language/Reference/Adler32 - updated
+/Language/Reference/AssertEq - updated
+/Language/Reference/AssertEqw - new
+/Language/Reference/AssertNeq - updated
+/Language/Reference/Date/Date.LongFormat - removed
+/Language/Reference/Date/Date.ShortFormat - removed
+/Language/Reference/Date/Date.TimeFormat - removed
+/Language/Reference/Date/date.Format - date/time formatting changes
+/Language/Reference/Date/date.FormatEn - date/time formatting changes
+/Language/Reference/Date/date.IsoWeekDay - new
+/Language/Reference/Date/date.LongDate - date/time formatting changes
+/Language/Reference/Date/date.LongDateTime - new
+/Language/Reference/Date/date.ShortDate - date/time formatting changes
+/Language/Reference/Date/date.ShortDateTime - date/time formatting changes
+/Language/Reference/Date/date.ShortDateTimeSec - new
+/Language/Reference/Date/date.StdShortDate - new
+/Language/Reference/Date/date.StdShortDateTime - new
+/Language/Reference/Date/date.StdShortDateTimeSec - new
+/Language/Reference/Date/date.Time - date/time formatting changes
+/Language/Reference/Date/date.WeekNumber - new
+/Language/Reference/Md5 - updated
+/Language/Reference/Object/object.Shuffle! - new
+/Reports/Reference/Params - updated
+/Tools - new Reporter documentation
+/Tools/Reporter - new Reporter documentation
+/User Interfaces/Implementation/Writing a Hwnd Control - fixed example (from Claudio)
+/User Interfaces/Reference/BrowseControl/browseControl.AddRecord - new
+/User Interfaces/Reference/BrowseControl/browseControl.GetCurrentRecord - new
+/User Interfaces/Reference/BrowseControl/browseControl.GetField - new
+/User Interfaces/Reference/BrowseControl/browseControl.SetField - new
+/User Interfaces/Reference/ButtonControl/ButtonControl - added pad and .Name
+/User Interfaces/Reference/ChooseManyControl - updated
+/User Interfaces/Reference/CustomizableControl - new
+/User Interfaces/Reference/FormControl - updating screen shots
+/User Interfaces/Reference/GridControl - updating screen shots
+/User Interfaces/Reference/GroupBoxControl - updating screen shots
+/User Interfaces/Reference/HeaderControl/headerControl.AddItem - updated
+/User Interfaces/Reference/HeaderControl/headerControl.InsertItem - updated
+/User Interfaces/Reference/ImageButtonControl - updated
+/User Interfaces/Reference/ListViewControl/ListViewControl - updated
+/User Interfaces/Reference/MenuButtonControl - updated
+/User Interfaces/Reference/OpenFileControl - updated (from Claudio Mascioni)
+/User Interfaces/Reference/OpenFileName - updated (from Claudio Mascioni)
+/User Interfaces/Reference/OpenImageControl - updated (from Claudio Mascioni)
+/User Interfaces/Reference/RecordControl/recordControl.Valid - updated
+/User Interfaces/Reference/SINValid? - new
+/User Interfaces/Reference/SSNSINControl - new
+/User Interfaces/Reference/SaveFileControl - updated (from Claudio Mascioni)
+/User Interfaces/Reference/SaveFileName - updated (from Claudio Mascioni)
+/User Interfaces/Reference/StatusbarControl - updated (from Claudio Mascioni)
+/User Interfaces/Reference/Window/Window.CheckPopupItem - new (from Claudio Mascioni)
+/User Interfaces/Reference/Window/Window.EnablePopupItem - new (from Claudio Mascioni)
+/User Interfaces/Reference/Window/Window.GetPopupItemInfo - new (from Claudio Mascioni)
+/User Interfaces/Reference/Window/Window.PopupItemChecked? - new (from Claudio Mascioni)
+/User Interfaces/Reference/Window/Window.PopupItemEnabled? - new (from Claudio Mascioni)
+/User Interfaces/Reference/Window/Window.SetPopupItemInfo - new (from Claudio Mascioni)
+/User Interfaces/Reference/Window/window.GetPopupHandle - new (from Claudio Mascioni)
+
+stdlib
+
+AboutSuneido - improvements (from Jos Schaars)
+AccessBrowseControl - changed to send a list of members changed when sending Access_RecordChange
+AccessControl - passed the excludeFields from the access to the KeyListView to use in the SearchControl
+- changed to not add Title if ""; added transactions parameter to Save method
+- working on AccessBrowseControl
+- removed Select and Global buttons if the access was linked
+- fixed bug where record_change method is getting called after the destroy - added test
+- changed ChangeQuery method to take start_last option into consideration
+- fixed issue where newrecord? set to false when save failed
+- refactored SetupControls; modified to handle sortFields
+- minor changes to button controls (from Jos Schaars)
+- changed Report to Reporter
+- handled case where Access is destroyed before the last Access_RecordChanged message is sent
+- fixed issue where Access_RecordChange was being sent too late when switching records with hot-keys and focus hasn't left edit field yet.
+- added RefreshQuery for Customizable
+- changed to do checking for record change without delay in Save
+- changed to send a list of members changed when sending Access_RecordChange
+- changed Get_Commands to Commands() to work in Window (outside book)
+AccessControl_Test - fixed bug where record_change method is getting called after the destroy - added test
+AccessCurrentPrint - replaced PromptorHeading with SelectPrompt (fixes where SelectPrompt was defined and different from Prompt and then data wasnt printing)
+AccessGoTo - added newRecord parameter
+AccessKeyStats - new
+AlertError - extracted AlertError, changed "program error" to "unexpected problem"
+AutoUpdate - added () to fix auto update bug
+- fixed so no libraries isnt an error
+- changed so that suneidolog is consistent with auto_updates_history status (i.e. suneidolog says "...unzip failed.." but auto_updates_history says status is true)
+- modified to handle deleting records
+- changes to handle books when deleting records in auto-update; have to also handle exporting old book records for this as well
+- fixed issue with autoupdate status logging
+- added option for doing update with -load option
+- changed to handle locking load updates better; also handled cleaning up su files
+- added more info to suneidolog when autoupdate failed
+- changed BookEmailInfo to be a function call
+- extracted Libraries() and BookTables() into methods so that can redefine in the test to improve speed
+- modified to only download files that are dated after last good update; added more test
+- modified to return right away after the *.su autoupdate
+- modified to retry downloads if it failed (up to 3 tries)
+AutoUpdateStats - extracted autoupdate checking into a separated function; also showed the loaded date for the autoupdate.
+AutoUpdate_Test - fixed so no libraries isnt an error
+- added test for deleting records
+- changes to handle books when deleting records in auto-update; have to also handle exporting old book records for this as well
+- fixed issue with autoupdate status logging
+- added option for doing update with -load option
+- handled case in update_load test where suneidolog table gets created by the test.
+- changed to handle locking load updates better; also handled cleaning up su files
+- handled case where Accountinglib is not being used
+- modified delete_records method to handle non-existent table
+- added more info to suneidolog when autoupdate failed
+- handled cleaning up empty loadupdate batch file after test
+- fixed to use current directory (not root)
+BookControl - renamed "Email Support" button to "Contact Axon"; added address, phone, fax, email, cpm info
+- changed to call nightly checks with summary option
+- fixed Go To Definition to handle translation (from Jos Schaars)
+BookEditControl - added Options to the Tools menu; added Automatic Refresh option
+- added DT and DD
+- removed flags from Open/SaveFileName (use defaults)
+- fixed to work as PersistentWindow
+BookEditModel - changed BookEditModel to call Create() in BookModel
+BookEditSplitControl - changed to use new BookScintillaControl so that the color changes when it is readonly
+BookEmailInfo - changed BookEmailInfo to be a function call
+BookHowToLinks - removed break before links
+BookModel - modified to handle plugins contributing book pages
+- added Create method
+BookPrint - fixed to use BookAuthorize
+BookScintillaControl - new - color changes when readonly
+BrowseControl - made delete method public so AccessBrowse can call it; had to rename because of builtin Delete method.
+- working on AccessBrowseControl
+- added AllowNextDelete method to force a delete like you can in ListControl
+- handle validating form.  when browse reloads data and you're on the form, have to flip back because form record is no longer valid
+- changed BeforeSet to AfterSet message, need the message after the new records have been loaded.
+- added a way for applications to "force" record adds.
+- changed Report to Reporter
+- changes to GetField, SetField, and GetCurrentRecord (from Jos Schaars)
+- fixed bug where error occurs in save and  save_row is already deleted from the list
+BrowseFlipFormControl - new
+BuildAutoUpdateFile - added Alert to show numbers of exported records
+- modified to handle deleting records
+- changed to also read the svc_deleted table for deleted records (in case changes did not get sent to version control)
+- changes to handle books when deleting records in auto-update; have to also handle exporting old book records for this as well
+- fixied issue with zipping autoupdate files
+- changed the BuildAutoUpdateFile to create the checksums files if a zip file is created
+- removed automatically generating the checksums files.  This will now have to be done manually
+BuildCallsString - need to name the function fn in the calls object so that Format can deal with it
+ButtonBar - changed Report to Reporter
+ButtonControl - minor changes to button controls (from Jos Schaars)
+CLargeInt - new
+ChecksumLibraries - new
+ChooseColorControl - minor changes to button controls (from Jos Schaars)
+ChooseControl - added SetFont and SetStatus (from Claudio Mascioni)
+ChooseFieldTypeControl - new
+ChooseListControl - changed to use Get method when sending NewValue in case a sub-class overrides Get (for example returning a timestamp mapped to the list string item)
+- fixed bug where list item width exceeds screen width
+ChooseManyControl - improved to allow listField to be object
+ChooseManyFieldControl - improved to allow listField to be object
+ChooseTwoListControl - improved to accept object or comma separated string
+ChooseTwoListFieldControl - improved to accept object or comma separated string
+CurrentPrint - changed not to do joins for _num fields since the _num fields have the proper formats that do the lookups
+Customizable - new
+CustomizableControl - new
+CustomizableDialog - new
+CustomizableFieldDialog - new
+Customizable_Test - new
+Datadict - improved to handle max, min, average as well as total
+Datadict_Test - new
+DateControl - changes for language translation
+DateTest - added tests for some methods missing tests
+- renamed, changed to FormatEn
+Dates - added StdShortDate
+- changes for language translation
+DatesTest - renamed, changed to FormatEn
+DateTimeSize - changed to use Suneido.TimeFormat
+Dir - minor change to use existing dll function
+DrawControl - removed flags from Open/SaveFileName (use defaults)
+EditorControl - changed to not absorb ESCAPE (so you can escape from dialogs with Editors - like SVC Send Local Changes)
+EnableMenuItem - fixed return value (from Claudio)
+ExplorerControl - changed the icon to a document if the page is a plugin
+ExplorerListViewControl - changed Report to Reporter
+ExtendTest - new
+FieldControl - added SetStatus (from Claudio Mascioni)
+Field_count - new
+Field_date_time - changes for language translation
+Field_summarize_by - new
+Field_summarize_field0 - new
+Field_summarize_field1 - new
+Field_summarize_field2 - new
+Field_summarize_field3 - new
+Field_summarize_field4 - new
+Field_summarize_field5 - new
+Field_summarize_func0 - new
+Field_summarize_func1 - new
+Field_summarize_func2 - new
+Field_summarize_func3 - new
+Field_summarize_func4 - new
+Field_summarize_func5 - new
+Flatten - new
+Flatten_Test - new
+FlipAccessControl - moved Flip code out of AccessControl into FlipAccessControl
+- only redir the Flip accelerator in the imbedded FlipAccessControl
+FormControl - removed references to 'foreach' loops from  comments
+- fixed to handle empty form
+GetDiskFreeSpace - new
+GetDiskFreeSpaceEx - new
+GetRemoteServerStats - added disk free space
+- changed to get disk free space for the drive where ETA is installed instead of defaulting to C:/
+- removed database margin
+GotoLibView 
+- don't include the record you are on from the matched list
+- changed not to offer "create new item" on blank name; refactored.
+GotoUserManual - fixed to handle translation, made address optional (from Jos Schaars)
+Handler - extracted AlertError, changed "program error" to "unexpected problem"
+- modified not to log interrupt as an error
+HeaderControl - fixed to initiale .tips before the call to AddItem b/c AddItem calls InsertItem which adds to .tips
+HorzEvenControl - changed to ignore Skip's
+Hwnd - fixes to font handling (from Jos Schaars)
+IdeActions - changed BookEdit to PersistentWindow
+IdFieldControl - fixed bug where Get wasn't returning proper text when allowOther used and Set was called with string value.
+- send IdField_Set; needed for the GlAcctDeptControl
+InfoControl - fixed problem where type is changed and value isnt formatted (and actually saved  with invalid formatting)
+Init - changes for language translation
+KeyControl - passed the excludeFields from the access to the KeyListView to use in the SearchControl
+- modified On_DropDown method to return in case the control is destroyed after coming back from dialog
+KeyException - extracted AlertError, changed "program error" to "unexpected problem"
+KeyFieldControl - changed valid? method to call GetReadOnly so that the validation does not kick in it a protect rule sets the KeyControl to readOnly
+- modified to do lookup in Valid when wherefield is used (even when fields value hasn't changed, in case where value changed)
+KeyListView - passed the excludeFields from the access to the KeyListView to use in the SearchControl
+KeyNumberStringControl - new
+LayoutToForm - new
+LayoutToForm_Test - new
+LeftJoinTest - new
+LibIO - changes to handle books when deleting records in auto-update
+- changed to use Display instead of manually putting in quotes
+- modified get_record method to handle folders in libraries with same name as item
+LibIOTest - modified get_record method to handle folders in libraries with same name as item
+LibViewControl - changed Status to use ErrorColor (from Jos Schaars)
+- added ResetAll
+- added Export Record option to Tab Context Menu; also minor fix to TabMenu_Run
+- modified TabMenu_Export_Record method to do the save first
+- fixed Go To Definition on a method to not bring up the "create new item" dialog
+- added "Export Record" option to tree context menu
+- added an option to LibView to auto-add closing caracters )}]'" (Tools -> Options -> Auto Complete)
+- fixed issue with "Import Records" and did not specify a valid library
+- added the automatic syntax checking to the Options
+LibViewNewItemControl - modified to put Rule or Field in front of the name automatically when Rules or Fields folder is chosen.
+ListBoxControl - added a Get method to use ListBoxControl inside an Ask
+ListControl - fix for column resizing (from Jos Schaars)
+- fix to SetReadOnly for grayOut (from Jos Schaars)
+- minor changes (from Jos Schaars)
+ListEditWindow - added checking in MainHwnd method to prevent an error if parent outlasts the ListEditWindow
+ListFormatting - minor changes (from Jos Schaars)
+ListViewControl - added GetPopupHandle (from Claudio Mascioni)
+ListViewModel - changed to use QueryCount
+LocateControl - passed the excludeFields from the access to the KeyListView to use in the SearchControl
+- added sortFields to allow sorting by a field that is not a key
+LoggedInUsers - fixed to copy connections object
+MemoryMonitor - removed database margin
+MenuButtonControl - minor changes to button controls (from Jos Schaars)
+MFS - new (from Claudio)
+MockObject - fixed bug with no call expected
+MoneyBagTotals - removed references to 'foreach' loops from  comments
+NightlyChecks - added auto update dates to the Nightly Checks
+- changed to use new ChecksumLibraries instead of just displaying the last committed date
+- added AutoUpdate site
+- added current release
+- changed to use the date from the file not the date the update ran
+- modified to handle where ETAHelp table does not exist
+- added INFO so that the logged messages that have INFO in them get included in the nightly checks
+- extracted autoupdate checking into a separated function; also showed the loaded date for the autoupdate.
+- added a summary option to the Nightly Checks to only display checks that failed
+- added AccessKeyStats; changed to not hard-code in "FTP Stats".
+NightlyChecksPlugins - added a summary option to the Nightly Checks to only display checks that failed
+- added SUCCEEDED count
+NumberStringControl - made convert method public so KeyNumberString control can use it
+Objects - added Shuffle!
+OpenBook - changed to a class; fixed to handle if pageinfo is false; wrote test
+OpenBook_Test - changed to a class; fixed to handle if pageinfo is false; wrote test
+OpenFileControl - minor changes to button controls (from Jos Schaars)
+- improvements (from Claudio Mascioni)
+OpenFileName - improvements (from Claudio Mascioni)
+OpenImageControl - added min size, fixed closing with X
+- improvements (from Claudio Mascioni)
+- changed "Image" to "File"
+OptionsControl - new - generic OptionsControl and Plugin
+Params - let user print page range
+- added noPageRange option (for "generates")
+- removed scroll option. Scroll should be added in the Params specification in each report as needed.
+ParamsChooseListDlgControl - added Load and Save options to the InList control
+ParamsChooseListDlgControl_Test - new
+ParamsChooseListOpenDialog - new
+ParamsSelectControl - fixed program error in ParamsSelect that occured when invalid operation is entered.
+- take focus away in Destroy so that field processing has a chance to be done before it's destroyed
+ParamsSelectControl_Test - fixed program error in ParamsSelect that occured when invalid operation is entered.
+PhoneControl - added comment
+Plugin_BookPages - new
+Plugin_FieldTypes - new - changed field types to plugin
+Plugin_IdeMenu - added "Reset Plugins" option to the IDE menu
+- added Show Plugins to the IDE menu
+Plugin_Options - new - generic OptionsControl and Plugin
+Plugins - added an Extenpts method
+- added option to throw errors when looping through contributions
+QuantitiesControl - fixed missing parameter on List_AllowCellEdit (from olddog)
+QueryExtrasTest - added QueryList method
+QueryList - new
+QueryViewControl - modified to use standard ErrorColor on status bar
+RecordFormat - replaced PromptorHeading with SelectPrompt (fixes where SelectPrompt was defined and different from Prompt and then data wasnt printing)
+- changed to handle GlAcctDeptFormat
+Report - let user print page range
+Reporter - added help button
+- moved Select onto Print tab, added Summarize to Input tab, fixed select on formula to encode
+- fixed to not total invalid columns
+- fixed to handle changing Data Source
+- fixed problem with commas in joinfields in make_query
+- changed to use ChooseFieldType
+- Added more validation - do not allow user to save report with no data source; do not allow user to save report with no name.
+- when opening a report, if the heading1 is "", set to the PageHeadName() (the company name)
+ReporterFormat - changed field types to plugin
+Reporter_UpdatePrompt - new function to update Reporter reports when a prompt changes
+RestartNeeded? - removed database margin
+RetryTransaction - changed to use Prefix? and Has? on error message instead of match
+RetryTransaction_Test - new
+RowFormat - minor change so font size passed in is treated as max font size
+Rule_reporter_cols - new (for summarize)
+Rule_reporter_sortcolumns - changed to use design_cols (to handle summarize)
+STRING - new - for dll interface
+SaveColumns - added TODO comment
+SaveFileControl - improvements (from Claudio Mascioni)
+SaveFileName - improvements (from Claudio Mascioni)
+ScheduleControl - split up evalDate method to fit on one page; minor refactoring
+ScheduleControl - modified to not run skipped events unless they are set up to run at an interval
+ScheduleControlTest - added more tests
+ScheduleWindowControlTest - removed - empty
+ScintillaControl - added a property to LibView to auto-add closing caracters )}]'" (File -> Properties -> Auto Complete)
+SeekCursor - added Order method for Customizable
+Select2Control - fixes for translation (from Jos Schaars)
+- added fields, except, and extra_dd (for Reporter)
+- handled invalid operators better
+- changed SelectFields PromptToField to return false if field not found, handled this in Select2Control (to give a more user friendly error).
+SelectControl - needed the set because the Get was changed to copy the data
+- changed Clear to Uncheck All, changed to HorzEven
+SelectFields - fixed to allow Date() in the formulas
+- changed SelectFields PromptToField to return false if field not found, handled this in Select2Control (to give a more user friendly error).
+SelectFields_Test - fixed to allow Date() in the formulas
+- changed SelectFields PromptToField to return false if field not found, handled this in Select2Control (to give a more user friendly error).
+SendNightlyChecks - changed BookEmailInfo to be a function
+ServerMemoryMonitor - removed database margin
+ServerStress - improved
+SetChecksums - new
+ShowPluginsControl - new
+StateProvControl - changed to use StatesProvs
+StatesProvs - new
+Strings - added an option to leave SplitCSV values as strings
+- added IsOneOf? (from Jos Schaars)
+StringsTest - added an option to leave SplitCSV values as strings
+- added IsOneOf? (from Jos Schaars)
+- added test
+SvcBook - modified the query to ignore book pages contributed by plugins
+SvcControl - extracted LibsChanged method
+TabsControl - added keepFocus option to Select method when we don't want the focus to change (to fix problems with buttons in Access to not work)
+Test - changed to run test methods in sorted order
+TestRunnerGui - changed On_Run_Failed to match button
+Transactions - added a newline to handle comments at the end of queries
+- added QueryList method
+TranslateLanguage - added remove/replace leading/trailing whitespace
+- cleaned up leading/trailing whitespace handling (from Jos Schaars)
+TranslateLanguageTest - added remove/replace leading/trailing whitespace
+ULARGE_INTEGER - new
+UOMFormat - added Max and Min to the uom printing
+VersionHistoryControl - added checking if .get1() returned a line because gave error if no line selected
+Window - added Popup menu methods (from Claudio Mascioni)
+YearMonthControl - Added '#' when checking Date()

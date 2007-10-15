@@ -1,0 +1,183 @@
+Suneido Dec. 28, 2001 Release
+
+Significant changes include:
+
+- Find in books (allows searching the documentation)
+(See Tools > BookEdit)
+
+- export book to single large html file (e.g. to import into word processor)
+(See Tools > BookEdit)
+
+- print sections directly from book
+(See Tools > Books)
+
+- OpenImageControl - simple way to display external images
+(e.g. we use this to attach/display pictures of job applicants)
+
+- preliminary version of web (http) based server monitor
+(See Tools > Server Monitor)
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe:
+
+- added pack/unpack Record (separate from Object)
+- fixed int64 problems in dll interface
+- fixed problems with large numeric literals
+- fixed index problem in SUMMARIZE queries
+- changed SUMMARIZE to give error if no functions
+(should use PROJECT instead)
+- fixed problem with syntax styling of multiline strings
+- fixed problem with regular expressions due to signed chars
+- added dbhttp server monitor
+
+Users Manual:
+
+/Getting Started
+    Create a Book - updated
+    Getting Help - updated
+    LibView - updated
+    Running Standalone - updated
+/Tools
+    Access - updated
+    BookEdit - updated
+    Books - updated
+    Browse - updated
+    LibraryView - updated
+    Server Monitor - new
+/Language/Reference
+    BookTables - new
+    Datadict - new
+    Heading - new
+    Prompt - new
+    PromptOrHeading - new
+/Language/Reference/PopClient
+    PopClient - updated
+    popclient.GetMessage - updated
+/Language/Reference/SmtpClient
+    SmtpClient - updated
+/User Interfaces/Reference
+    AddressControl - new
+    BrowseControl - updated
+    Controller - updated
+    Dialog - updated
+    ExplorerListViewControl - updated
+    Group - updated
+    HorzControl - updated
+    NameAbbrevControl - new
+    OpenFileControl - updated
+    OpenFileName - new
+    OpenImageControl - new
+    SaveFileName - new
+    VertControl - updated
+    Working - new
+/User Interfaces/Reference/Controller
+    controller.On_Users_Manual - new
+/User Interfaces/Reference/Group
+    Group - updated
+    group.Append - new
+    group.Insert - updated
+    group.Remove - new
+    group.RemoveAll - new
+    group.Tally - new
+/Reports/Reference
+    GridFormat - new
+    InfoFormat - new
+    RecordFormat - new
+    Report - updated
+
+stdlib:
+
+Access1Control - added Border
+AccessControl - added Border
+Basename - fixed bug - need parenthesis
+BookBrowserControl - fixed to display errors (not just blank page) and not get "stuck"
+BookControl - added Find to BookControl
+- changed On_Print, fixed SetState to not override Title
+- enable/disable Print button, added Drop_Print menu
+BookEditControl - added Export to Single Html File
+- changed "Suneido Help" to "Users Manual", added Bold and Italic to Tools menu
+BookEditModel - Trim'ed text, refactored transactions
+BookExportOne - new
+BookPrint - new
+BookSearchControl - added Find to BookControl
+BookTables - new
+BookTablesControl - new
+BookToolbarControl - fixed toolbar translation
+- added Find to BookControl
+- refactored, disabled tooltips if labels showing, changed Print to dropdown
+BrowseControl - Fixed problem with Browse in an Access but not linked via linkField.
+- Added option to rename the browse_data data member.
+BrowserControl - added PrintPreview, Ready?
+- added try to Print, PrintSetup, and Send("ProgramPage")
+ButtonControl - added defaultButton parameter
+ChooseDateControl - added titles to dialogs
+ChooseManyControl - Fixed bug where typed entries aren't saved.
+- Marked Field dirty after calling Set in Valid method.
+- changed Valid method so that the dirty flag is restored after the Set.
+- minor fix for if there are spaces in the list.
+- trimmed items that comes from a listfield
+- added titles to dialogs
+- fixed bug with .savenone
+ClassBrowser - changed "Suneido Help" to "Users Manual"
+ComboBoxControl - added allowOther (but doesn't handle "descriptions")
+Controller - changed "Suneido Help" to "Users Manual"
+Dialog - added titles to dialogs
+ExplorerAppsControl - changed "Suneido Help" to "Users Manual"
+ExplorerControl - changed "Suneido Help" to "Users Manual"
+ExplorerListModel - ExplorerListView update to allow linking to an AccessControl.
+ExplorerListModelLinked - ExplorerListView update to allow linking to an AccessControl.
+- Added feature that puts line items onto the header record (similar to Browse).
+ExplorerListViewControl - ExplorerListView update to allow linking to an AccessControl.
+- Added feature that puts line items onto the header record (similar to Browse).
+- Changed the sequence in Destroy to be more like BrowseControl
+- added border
+Field_abbrev - widened Format to handle "Abbreviation"
+Field_dollars - Added width
+Field_optionaldollars - Added width
+Field_optionaldollars_readonly - Added width parameter
+GetTranslation - fixed a couple of minor bugs
+Group - added Append and Tally
+IDTB - added version of Print with disabled and hot images
+INT64 - new
+ImageControl - modified to refresh image on set
+- minor changes
+KeyControl - added titles to dialogs
+LibViewControl - Find In Folders - default Find in Text to current selection
+- changed "Suneido Help" to "Users Manual"
+LinkControl - added set parameter
+ListViewModel - fixed bug with Close not getting called
+LocateControl - fixed 'Locate' and 'by' translation
+MonthYearControl - new
+MultiControl - fixed bug with Set not changing field control
+NameAbbrevControl - changed from Form to Horz (simpler)
+OpenFileControl - added:   Name: 'OpenFile'
+- added filter option
+OpenFileName - added filter option
+- translated title
+OpenImageControl - new control to allow user to select a image file and see it on the screen
+ParamsChooseListControl - added titles to dialogs
+ParamsChooseListDlgControl - minor fix for using rules to set up the list.
+QueryViewControl - changed "Suneido Help" to "Users Manual"
+RadioGroupsControl - fixed bug with setting initial RadioGroup value
+SaveFileName - modified to translate the title
+ScheduleControl - added Print redirection
+- fixed bug if Suneido.Print uninit
+SchemaView - changed "Suneido Help" to "Users Manual"
+SmtpClient - added header_to to SendMail
+SmtpSendMessage - added header_extra parameter
+StaticControl - fixed bugs with Set
+StringLines - handle \r\r\n line ending
+SvcControl - changed "Suneido Help" to "Users Manual"
+TranslateLanguage - fixed a couple of minor bugs
+WaitCursor - new
+WikiFind - minor adjustment
+WikiSave - delete empty pages
+Window - changed to allow better control of style
+WindowBase - fixed GETMINMAXINFO to handle restoring from minimized
+WorkSpaceControl - used BookTables
+- changed "Suneido Help" to "Users Manual"
+Working - new

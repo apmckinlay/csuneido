@@ -1,0 +1,350 @@
+Suneido December 15, 2002 Release (1.0.021215)
+
+Some of the more significant changes for this release:
+	
+- rewrite of database history handling for improved performance
+- a number of fixes to client-server operation
+- union/intersect/minus no longer require identical columns
+- improvements to query optimization of disjoint union/intersect/minus
+- version control changed to not rely on database history
+
+Compatibility
+
+- return from a block will now return from the function containing the block
+- database history is now accessed via history(table) rather than _history_table
+- insert/update/delete requests now return count instead of true/false
+- database summarize triggers are no longer supported
+
+WARNING: The database format has changed - you can't use old databases
+with the new exe, or new databases with old exe's.  To migrate old databases, 
+dump them with the old exe and then load them with the new exe. The installer 
+version of the download does this automatically. See also: upgrading.txt
+
+Andrew McKinlay
+Suneido Software
+
+Details of Changes:
+
+suneido.exe: 
+
+- changed to automatically return methods wrapped in Method
+- fixed to check read-only in Object.Reverse
+- changed Function? to recognize Method's
+- fixed output and update to PROJECT
+- improved compiler syntax errors
+- added default client ip address of 127.0.0.1
+- fixed rename table to put correct size on history
+- fixed rebuild to handle renamed tables
+- changed return from block to return from containing function
+- added break and continue from blocks
+- fixed rebuild and dump losing unique from index
+- minor improvement to disasm (thanks to Steve Heyns)
+- revised #literal handling in queries
+- improved Record.Copy to copy dependencies
+- fixed "invalid Close" client-server error
+- added try-catch to dbserver
+- changes for compatibility with Visual C++ .Net
+- catch mark stack overflows, increased mark stack size
+- change "out of memory" to "out of heap space"
+- fixed Number packing so negative numbers sort correctly in database
+- added letters and ? to toolbar buttons
+- improved uncaught exception handling
+- run auto rebuild in separate process
+- rewrite of database history handling
+- changed union, intersect, and minus to not require same columns
+- improved query optimization with "fixed" fields
+- added -compact command line option
+- fixed Date.MinusDays to ignore time
+- added REMOVE query operator
+- fixed problem with object iterators
+- changed Memory() to show sizes in K
+- ignore exceptions in socket servers (no alert)
+- more error checking and better close in sockets
+- fixed problems with compiling _Name
+- changed insert/update/delete requests to return count
+- eliminate disjoint difference query operations
+- increased maximum heap size from 64mb to 96mb
+
+User's Manual:
+
+/Introduction/Command Line Options - updated
+/Introduction/Acknowledgments - added Maxwell
+/Getting Started/Running Client Server - fixed to say myset instead of mybook
+/Language/Blocks - updated
+/Language/Reference/Object/object.Accum - updated
+/Language/Reference/SmtpClient/SmtpClient - updated
+/Language/Reference/SmtpSendMessage - new
+/Language/Reference/String/string.Compile - new
+/Language/Reference/String/string.Eval - updated
+/Language/Reference/String/string.LeftTrim - new
+/Language/Reference/String/string.RightTrim - new
+/User Interfaces/Reference/ExplorerListViewControl - added noHeaderButtons parameter and primary_accessobserver parameter
+/User Interfaces/Reference/ListViewControl/ListViewControl - added column_widths option
+/User Interfaces/Reference/ListViewControl/listViewControl.GetColumnWidth - new
+/User Interfaces/Reference/ListViewControl/listViewControl.GetColumnWidths - new
+/Database/Introduction - updated
+/Database/Language Interface - updated to use File instead of TextFile
+/Database/Queries - updated
+/Database/Queries/Syntax - updated
+/Database/Queries/history - new
+/Database/Queries/join - updated
+/Database/Queries/project - updated
+/Database/Queries/remove - new
+/Database/Reference/QueryAccum - updated
+/Database/Reference/QueryCount - updated
+/Database/Requests/Syntax - updated
+/Database/Requests/alter - updated
+/Database/Requests/create - updated
+/Database/Requests/ensure - updated
+/Database/System Tables - updated
+/Database/Updating - updated
+/Appendix/Client-Server Protocol - updated
+/Appendix/Idioms/Forward Method Calls - updated
+
+stdlib:
+
+AccessControl - changed to use Vert instead of Form 
+- added new Access_AfterField message
+- fixed saving of selects when Parent is a stdlib control.
+- only do save and load selects when the Select option is available
+- added way to add Access observers at different positions (so they get notified in a specific order)
+- renamed "Record_NewValueObserver" message to "Record_NewValue"
+- changed AllowDeleteRecord to check neverDelete option and check for new record
+- added new Access_RecordChange message
+- changed OverwriteRecord? to loop through the query columns instead of the update record's members.
+AccessCurrentPrint - refactored
+AddFile - updated to use File
+AllowDeleteRecord? - changed AllowDeleteRecord to check neverDelete option and check for new record
+Backup10 - new
+BlockTest - changes for block return/continue/break
+BookEditControl - changes for block return/continue/break
+- fix to hiding res folder
+BookModel - fixed to exclude res from tree
+BookTables - changes for block return/continue/break
+- history changes
+BrowseControl - modified to send messages through after processing
+- set default query_columns
+- stopped browse from validating old records that weren't marked as dirty
+- Modified Observer_ListRow to be a function
+- changed save to do deletes first and also remove the records from the data.
+- changes to save to prevent duplicate keys when modifying key and outputting old key again.
+- added cut and paste record feature
+- added comment
+- added new Browse_CelEdit and Browse_AllowDelete messages
+- Changed Browse_PreviousData to Browse_OriginalRecord and set Dirty flag
+- minor bug fixes, invalidate valid field before checking.
+- removed the Invalidate on the validation rule
+- changed AllowDeleteRecord to check neverDelete option and check for new record
+- fixed bug where selection was cleared every time save was done
+- save the column settings before resetting columns in SetQuery
+- changed OverwriteRecord? to loop through the query columns instead of the update record's members.
+ButtonControl - added GetReadOnly method, return true if not a user editable control
+CanvasControl - fixed bug with DeleteAll (thanks to Steve Heyns)
+CaptionButtonControl - added GetReadOnly method, return true if not a user editable control
+CheckLibrary - changed to use Compile instead of Eval
+CheckmarkFormat - new
+ChooseListControl - changed so list is moved to the left if it goes past the work area.
+- fixed to accept ALT + up/down arrow
+ClassBrowserModel - changes for block return/continue/break
+CLIENTCREATESTRUCT - new
+ClientServerUnionBugTest - new
+ContextMenu - added rcExclude to Show and ShowCall
+Copyright - changes for block return/continue/break
+CreateMDIWindow - new
+DateTimeControl - bug fix, also added default for time to be noon
+Dates - Added NoTime to DayOfYear method
+- added EndOfDay
+DefFrameProc - new
+DefMDIChildProc - new
+Dialog - fixed bug where size wasn't calculated properly with small caption style
+DiffListControl - added Go To Definition button
+DumpText - refactored, updated
+EllipsisButtonControl - added GetReadOnly method, return true if not a user editable control
+EtchedLineControl - added GetReadOnly method, return true if not a user editable control
+EuroNumberControl - fixed bugs
+ExplorerListModel - changed OverwriteRecord? to loop through the query columns instead of the update record's members.
+ExplorerListModelLinked - changes to handle outputs / updates / deletes from the code rather than the UI.
+ - changed OverwriteRecord? to loop through the query columns instead of the update record's members
+ExplorerListViewControl - changes to handle outputs / updates / deletes from the code rather than the UI.
+- added primary_accessobserver option that adds an observer at the first position (will be first notified)
+- added noHeaderButtons parameter
+- changed AllowDeleteRecord to check neverDelete option and check for new record
+FieldHistoryControl - added selectFirst option
+Field_euro - new
+Field_percent - add negative
+FillControl - added GetReadOnly method, return true if not a user editable control
+FindText - bug fix
+ForeignKeyTest - changed insert/update/delete queries to return number of records affected
+Generator - added PageFooter
+GetFile - updated to use File
+GetParamsWhere - changed timestamp handling to use Date.EndOfDay
+GetPutFileTest - updated to use File
+GetSubMenu - new
+GlobalPrint - removed project from query
+GroupBox - added GetReadOnly method, return true if not a user editable control
+HeaderControl - added GetReadOnly method, return true if not a user editable control
+HistoryTest - removed
+IDTB - added letters
+- added Question
+IdControl - renamed Setup to Setup_KeyControl
+IdFieldControl - Modified that Set method has whereField added to query before doing Query1
+ImageButtonControl - added GetReadOnly method, return true if not a user editable control
+ImageControl - added GetReadOnly method, return true if not a user editable control
+ImagePage - changed ImagesPage to use frames
+ImagesList - changed ImagesPage to use frames
+ImagesPage - ignore case on image extensions
+- added file: to work on Mozilla
+- changed ImagesPage to use frames
+ImportTab - modified to strip off double quotes
+- changed to use .Substr instead of .Tr on string
+ImportXML - fixed to handle multi-line fields
+InfoWindowControl - added GetReadOnly method, return true if not a user editable control
+InputFormat - added PageFooter
+IsWindow - new
+LibTreeModel - fixed to handle rename & rename back
+ListBoxControl - added sort option
+JoinUpdateTest - changed insert/update/delete queries to return number of records affected
+KeyControl - moved Process_newvalue before NewValue so fillins are done before newvalue
+- renamed Setup to Setup_KeyControl
+- Added InvalidateFields on Ellipsis
+KeyListView - Added checking if prefix is blank
+- save window size and column widths
+LibIOTest - changed insert/update/delete queries to return number of records affected
+LibTreeModel - changed to output to _deleted table
+- fix rename to add to svc_deleted
+LibViewControl - took delete off toolbar
+- changed to use .Compile for syntax check
+LibraryTables - changes for block return/continue/break
+- history changes
+ListControl - added List_LButtonUp notification
+- only set default on new items if they are not records
+ListViewControl - added column_widths option
+LoadText - refactored, updated
+MDICREATESTRUCT - new
+MDICreateWindowEx - new
+MenuButtonControl - added GetReadOnly method, return true if not a user editable control
+- fixed the popup above button
+MoneyBag - Added MinusMB
+MoneyBagTotals - refactored
+MultiTreeViewControl - fixed bug where selection didn't match actual treeview selection during drag.
+NightlyChecks - new
+NumberSortBugTest - new
+ObjectTest - added test for reversing readonly
+- added test for Seq bug
+Objects - changes for block return/continue/break
+OverwriteRecord? - changed OverwriteRecord? to loop through the query columns instead of the update record's members.
+Params - changes for block return/continue/break, refactored
+- added previewDialog option
+- added maximize box to print preview
+- minor bug fix, extra checking
+PersistentWindow - changed not to subtract 20 pixels from xmax and ymax.
+PreviewPageControl - fixed to use same dc for report.NextPage and report.Paint
+ProgressBarControl - added GetReadOnly method, return true if not a user editable control
+PutFile - updated to use File
+Query1 - changes for block return/continue/break
+QueryApply - changes for block return/continue/break
+QueryDo - changes for block return/continue/break
+- changed insert/update/delete queries to return number of records affected
+QueryFirst - changes for block return/continue/break
+QueryFormat - added OutputFormat
+- Added SubtractFromTotals; modified to handle moneybag
+QueryLast - changes for block return/continue/break
+QueryOutput - changes for block return/continue/break
+QueryStrategy - new
+QueryTest - added test for disjoint unions
+- added tests for disjoint intersect and minus
+- added test for bug with distributing selects over union/intersect/minus
+QueryViewControl - added Strategy toolbar button
+- changed insert/update/delete queries to return number of records affected
+RecordControl - added Record_NewValueObserver message
+- renamed "Record_NewValueObserver" message to "Record_NewValue"
+RecordTest - added test for copying dependencies
+RemoteBackup - factored out Save10
+RemoteBackup10 - new
+Report - added PageFooter
+- fixes for .fonts
+- added Italic option to font
+RowFormat - minor changes
+RuleTest - new test for record copy with dependencies
+Save10 - new
+SaveColumns - truncated title when saving and loading usercolumns to prevent duplicate key errors
+Schema - removed summarize triggers
+SchemaModel - changed to show "cascade" on foreign key targets
+ScintillaControl - fixed bug with find previous from the find dialog
+- changed GotoLine to select line
+ScrollbarControl - added GetReadOnly method, return true if not a user editable control
+- added Thumbposition message
+SelectControl - changed to SelectPrompt; logged duplicate or empty prompts; changed contains, does not contain, start with to ignore special characters
+- added control validation
+- Bug fix - projecting num, name, and abbrev but only renaming field that is selected on
+SelectPrompt - new
+SendCreateMDIWindow - new
+SetColumns - truncated title when saving and loading usercolumns to prevent duplicate key errors
+SkipControl - added GetReadOnly method, return true if not a user editable control
+StackTrace - added optional limit
+StateProvControl - added method to get just the abbreviations
+StaticControl - added GetReadOnly method, return true if not a user editable control
+StatusControl - added GetReadOnly method, return true if not a user editable control
+StatusTextControl - added GetReadOnly method, return true if not a user editable control
+StatusbarControl - added GetReadOnly method, return true if not a user editable control
+StringTest - changes for block return/continue/break
+- added tests for string.Compile
+- added LeftTrim and RightTrim
+Strings - added LeftTrim and RightTrim
+SummaryTest - removed
+SuneidoAPP - changed to ignore case
+Svc - default "new" and "removed" descriptions, removed initial dialog, other changes
+- changed to not use history
+- changed insert/update/delete queries to return number of records affected
+SvcBook - removed old history stuff
+SvcClient - default "new" and "removed" descriptions, removed initial dialog, other changes
+- changed MasterList to MasterChanges
+SvcControl - default "new" and "removed" descriptions, removed initial dialog, other changes
+- added default user to settings
+- added Go To Definition button
+- show connection error
+- make Refresh refresh list of tables
+SvcCore - default "new" and "removed" descriptions, removed initial dialog, other changes
+- changed to not use history
+SvcCoreTest - default "new" and "removed" descriptions, removed initial dialog, other changes
+- changed Svc to not use history
+- fixed tests for last svc changes
+SvcGetDescription - default "new" and "removed" descriptions, removed initial dialog, other changes
+- modified to use previous comment (if any) on an old item
+- changed not to save 'new' and 'removed' in Suneido.svc_comments variable
+SvcLibrary - removed old history stuff
+SvcServer - default "new" and "removed" descriptions, removed initial dialog, other changes
+- changed to not use history
+SvcTest - default "new" and "removed" descriptions, removed initial dialog, other changes
+- changed Svc to not use history
+- changed insert/update/delete queries to return number of records affected
+TPMPARAMS - new
+TabControl - added GetReadOnly method, return true if not a user editable control
+TabsControl - added Constructed? method
+Test - modified to display tables on record count differences
+- history changes
+TestRunnerGui - changed to display outstanding transactions
+ToolTipControl - added GetReadOnly method, return true if not a user editable control
+ToolbarControl - added GetReadOnly method, return true if not a user editable control
+TrackPopupMenuEx - new
+Transactions - changes for block return/continue/break
+- changed insert/update/delete queries to return number of records affected
+TwoListControl - sorted lists
+UOMControl - added GetReadOnly method
+- removed GetReadOnly method
+UpDownControl - added GetReadOnly method, return true if not a user editable control
+ViewStrategyTest - new
+WikiFormat - changes for block return/continue/break
+WikiRecent - changed to not use history
+WikiSave - changed to not use history
+WikiView - changed to not use history
+Window - changed so setup commands appends instead of resetting
+WindowBase - fix for zombie dialogs (from Steve Heyns)
+WndProcSpinControl - added GetReadOnly method, return true if not a user editable control
+WorkSpaceControl - default "new" and "removed" descriptions, removed initial dialog, other changes
+- minor modification
+- added Find in Libraries and TestRunner to toolbar
+- added selectFirst to Access and Browse
+- added toolbar button for version control
+WrapFormat - rewrote to wrap even if no breaks
+WrapFormatTest - new

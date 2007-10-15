@@ -1,0 +1,39 @@
+Upgrading Suneido with a New Release
+
+All the code and data that you create with Suneido is in the database -
+suneido.db. The installer download handles updating an existing database.
+However, the zip file download includes a new database. If your old
+database contains anything you want to keep you don't want to install a
+new release over your existing one. There are several ways you can handle
+the upgrade, I'll just describe one of them.
+
+Note: If you use the setup / installer version of the download, it handles 
+this process automatically - just install over your previous version.
+
+Of course, it's always a good idea to make backups, just in case!
+
+1. Dump any tables you want to keep from your old database.
+   For example:
+
+    C:\suneido> suneido -dump applib
+    C:\suneido> suneido -dump appbook
+
+2. Rename your database, just in case you need it back:
+
+    C:\suneido> ren suneido.db suneido.bak
+
+3. Unzip the new release into your existing Suneido directory.
+
+4. Load your tables into the new database.
+   For example:
+
+    C:\suneido> suneido -load applib
+    C:\suneido> suneido -load appbook
+
+Note: If you are on Windows 9x, you'll find that you are returned back to
+the MSDOS prompt immediately after a dump or load command, before the
+command is complete. If you try to run another command right away, you'll
+get an error saying the database is in use. To avoid this you can prefix
+the dump and load lines with "start/w", for example:
+
+    start/w suneido -load applib

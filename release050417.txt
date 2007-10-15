@@ -1,0 +1,427 @@
+Suneido April 17, 2005 Release (1.050417)
+
+suneido.exe
+
+- changes to avoid float equals
+- minor fix to validate_reads
+- made record.Copy maintain status
+- fixed bug in object slice
+- fixed GCC warnings
+- fixed suneido and callback to catch more exceptions
+- added images and richedit to GCC version
+- moved using declarations out of headers
+- removed external include guards
+- standardized iterators in slots.h
+- changed usertrigger force to object() to handle seq
+- track details for transaction conflicts
+- changed Eval to extract function from Method
+- fixed to avoid recusion on out of heap, fallback on mem_committed
+- changed Function? to include blocks
+- fixed problem with arguments in Construct
+- added check for too many arguments with @args
+- added Sort!, Reverse!, and Partition!
+  (Sort, Reverse, and Partition are deprecated)
+- added TRACE_ALLINDEX, TRACE_TABLE, TRACE_SELECT, TRACE_TEMPINDEX, TRACE_QUERYOPT
+- improvements and fixes for query optimization
+- refactored qselect.cpp
+- changed exception handling so "block return" is not caught
+- additional built-in tests
+- fixed bug in is_term (qexpr.cpp)
+- added min of .001 to rangefrac (index.h)
+- improved query optimization to split select over extend and summarize
+- improved TRACE macro to catch missing semicolons
+- fixed problem with multiple deleted fields when client-server
+
+stdlib
+
+AboutSuneido - increased height to work with large fonts setting
+- added Luis Alfredo to contributors
+AccessBrowseControl - new
+AccessControl - factored select stuff out of Access
+- pass error to AlertTransactionCommitFailed (for extra details)
+- added check if tran ended before rollback in On_Current_Delete
+- minor change to New to use GetDefault and FakeObject
+- added pessimistic locking
+- changed On_New and On_Edit to handle protect option
+- always disable the Edit button when protect option is used
+- changed QueryFirst(.keyquery) to Query1, added QueryStripSort to .buildkeyquery
+- changed save to not do view_mode stuff if record is false (no record loaded yet)
+- don't change edit mode if saving on a new, non-dirty record
+- refactored save method (to eliminate nested try statements in same function which currently isnt working properly)
+- changed to not leave edit mode if save fails (invalid)
+- delayed check_valid so that it only gets done once
+- changed edit mode to reload record first; also changed Reload to use .edit_mode() instead of calling SetReadOnly directly.
+- killed valid_timer in destroy
+- changed Delayed to have its own Kill so it can ClearCallback
+- added Delayed so record_changed only gets done once
+AccessControlTest - renamed, removed commenting
+AccessControlTestOld - renamed, removed commenting
+- moved tests into 'Tests' folder
+AccessSelectMgr - factored select stuff out of Access
+AccessSelectMgr_Test - factored select stuff out of Access
+- moved tests into 'Tests' folder
+AddressControl - added Map button
+Alert - default hwnd to _hwnd
+AlertTransactionCommitFailed - pass in error (to get extra info)
+AssertEqw - new
+AssertEqw_Test - new
+AutoUpdate - new
+AutoUpdateSite - new
+AutoUpdate_Test - new
+BlockTest - added test for return not caught
+BookControl - changed to not display the results of the nightly checks if they all pass
+BookEditControl - fixed mistake in menu (from Jos Schaars)
+- converted Refactor, IDE, and Help menus to plugins
+BookEditLinkListControl - added missing parameter on ListBoxSelect
+BookEditModel - fixed to reset cache if HtmlPrefix/Suffix are modified
+BookEditRefresh - new
+BookEditSplitControl - fixed bug when using Go To Definition from BookEdit
+- extracted refresh delay
+- changed Delayed to have its own Kill so it can ClearCallback
+BookMarkActiveControl - added tooltip relayevent (automatic relaying was removed previously to fix resource leak)
+BookMarkContainerControl - added tooltip relayevent (automatic relaying was removed previously to fix resource leak)
+BrowseControl - added Browse_AfterField message
+- pass error to AlertTransactionCommitFailed (for extra details)
+- changed Sort and Reverse to Sort! and Reverse!
+- added new send message to add custom options to context menu
+- changed ListFormat to just List
+- added method to return whether or not a field in a browse record is protected or not
+- added workaround for Save being called after Browse is destroyed
+BrowserControl - changed Sort and Reverse to Sort! and Reverse!
+BuildAutoUpdateFile - new class for building automatic update files
+BuildCallsString - changed to class to split off formatting, removed duplicates, removed indenting
+BuildCallsString_Test - new
+ButtonControl - added support for ContextMenu
+CheckBoxControl - changed to Wndproc and added ability to add tool tips
+CheckSyntax - extracted CheckSyntax, colored syntax ok green
+CheckSyntax_Test - extracted CheckSyntax, colored syntax ok green
+ChooseControl - renamed DropDownButton to DropDownButtonControl
+- factored out some of field window procedure so it can be used by other controls
+- added topwindow for window procedure method that we call directly from other classes (without an instance of the class)
+ChooseQuantitiesControl - changed Sort and Reverse to Sort! and Reverse!
+ChooseTwoListControl - added a listField parameter to ChooseTwoListControl
+- made list parameter optional
+ChooseTwoListFieldControl - added a listField parameter to ChooseTwoListControl
+ClassBrowser - changed Sort and Reverse to Sort! and Reverse!
+- converted Refactor, IDE, and Help menus to plugins
+ClassBrowserModel - changed Sort and Reverse to Sort! and Reverse!
+ClassHelp - new
+ClassHelp_Test - new
+ConstructTest - removed commented out code
+Controller - added the ability to Redir to functions (or methods)
+CountryFromStateProv - new
+CreateDirectory - made security arg optional
+CreateDirectoryApi - made security arg optional
+Crosstab - changed Sort and Reverse to Sort! and Reverse!
+CrosstabFormat - changed Sort and Reverse to Sort! and Reverse!
+CurrentPrint - changed Sort and Reverse to Sort! and Reverse!
+DateTimeControl - fixed ListBoxDoubleClick missing parameter
+Delayed - changed Delayed to have its own Kill so it can ClearCallback
+DeleteFieldTest - added test
+DiffListControl - changed clicking on the overview bar in Version Control, Test Runner, and LibView to scroll the highlighted line to the middle of the screen
+Dir - minor change to use existing dll function (from Jos Schaars)
+DrawControl - converted Refactor, IDE, and Help menus to plugins
+DropDownButtonControl - added for layouts
+ExplorerControl - fixed extra tab menu items when translating (from Jos Schaars)
+- fixed to use tab image to know whether to go to folder or item
+ExplorerListModel - pass error to AlertTransactionCommitFailed (for extra details)
+ExplorerListModelLinked - pass error to AlertTransactionCommitFailed (for extra details)
+ExplorerListViewControl - changed ListFormat to just List
+FakeObject - new
+Field_comment - for svc
+Field_image - added format width (so that it has a reasonable width on reporter)
+Field_path - for svc
+Field_type - for svc
+FieldsToPrompts - changed Sort and Reverse to Sort! and Reverse!
+FieldsToPromptsTest - moved tests into 'Tests' folder
+FlipControl - changed to inherit from PassthruController so messages can be sent from dispatch
+FunctionTest - new
+GetFullPathName - new - for DirExt (from Jos Schaars)
+GetLongPathName - new - for DirExt (from Jos Schaars)
+GetUserName - new
+GetUserNameApi - new
+GlobalPrint - changed Sort and Reverse to Sort! and Reverse!
+GoToRandomCode - new
+GotoDllDoc - new
+GotoLibView - refactored, added initial text for tests and rules
+Gotofind - moved Reverse
+- changed Sort and Reverse to Sort! and Reverse!
+HandleSplitterControl - added tooltip relayevent (automatic relaying was removed previously to fix resource leak)
+HelpMenu - removed - converted to plugins
+IdFieldControl - do not need to do any lookups if the val is ""
+IdeActions - new (moved from IdeController)
+IdeController - removed - converted to plugins
+IdeMenu - removed - converted to plugins
+ImagePage - changed Sort and Reverse to Sort! and Reverse!
+ImagesList - changed Sort and Reverse to Sort! and Reverse!
+InspectControl - changed Sort and Reverse to Sort! and Reverse!
+IsClass? - moved into ClassHelp
+KeyException - added calls: to SuneidoLog
+KeyListView - set initial focus to the locate field if no prefix was used (focus goes to list if prefix used)
+LibHelp - new
+LibHelp_Test - new
+LibIO - added transaction and export options to Import method, minor refactoring.
+- changed not to pass filename into update_lib_record method since it's not used
+- modified the update_lib_record method to export all the old records into one file instead of exporting it to separate file for each record
+- refactored
+- improvement on import/export book; minor refactoring
+LibViewControl - add translation for titles (from Jos Schaars)
+- added GetEditor, renamed current_library to CurrentLibrary, renamed current_name to CurrentName, simplified refactor plugin
+- improved syntax check timer
+- changed SC_MOD. to SC.MOD_
+- added find next/prev selected
+- added Go To Definition for methods
+- fixed error where extra arg sent to .importControl class constructor
+- changed menus to plugins
+- changed how syntax errors reported
+- changed clicking on the overview bar in Version Control, Test Runner, and LibView to scroll the highlighted line to the middle of the screen
+- converted Refactor, IDE, and Help menus to plugins
+- changed Plugins to Singleton
+- extracted CheckSyntax, colored syntax ok green
+- added Create Test Method
+- changed so that when sitting on the test and clicking 'Run Associated Test', it would run the current record
+- modified method On_Run_Associated_Test to give option to create the associated test if it doesn't exist
+- modified Goto method to strip the '.' from name if not in a class so that Go To Definition works correctly
+- added keyboard shortcuts
+- added Ctrl+L shortcut for Show Locations
+- changed ListFormat to just List
+- fixed Find in Folders to not insert multi-line selections
+- added Ctrl+/ and Shift+Ctrl+/ shortcuts for commenting
+- made Go To Documentation use Google for DLL's
+- extracted refresh delay
+- changed Delayed to have its own Kill so it can ClearCallback
+LibViewRefresh - new
+ListBoxControl - added context menu
+ListControl - changed Sort and Reverse to Sort! and Reverse!
+- fixed case where getNextCell is moving back through list cells and gets to very first cell (triggers an infinite loop if no cells can be edited)
+- fix for column resizing (from Jos Schaars)
+- fix to SetReadOnly for grayOut (from Jos Schaars)
+ListEditWindow - removed @ to fix bug
+- Blocked NewValue message in Msg method. Used to always send message through but was passing args incorrectly so it wasn't working anyway.
+ListFormatting - added GetJustify method for formats so ListFormatting can access the justify setting without accessing the private member.
+ListViewControl - changed Delayed to have its own Kill so it can ClearCallback
+LockManager - new
+LockManagerImpl - new
+LockManagerImpl_Test - new
+LoggedInUsers - changed Sort and Reverse to Sort! and Reverse!
+Login - added PostLogin function for use after a user has logged in
+MapButtonControl - new
+MapGoogle - new
+MapGoogle_Test - new
+MapQuest - new
+MapQuest_Test - new
+MapWeb - new
+MapYahoo - new
+MapYahoo_Test - new
+MockObject - new
+MoneyBagTotals - added vskip
+- refactored and added tests
+MoneyBagTotalsTest - refactored and added tests
+MonthCalDatesDialog - changed Sort and Reverse to Sort! and Reverse!
+MonthDayControl - fixed ListBoxDoubleClick missing parameter
+NameSplit - changed Sort and Reverse to Sort! and Reverse!
+NightlyChecks - changed to list all files in backup folder
+- changed Sort and Reverse to Sort! and Reverse!
+- changed to include logs from auto-update
+added stats? parameter to not run the database stats
+NightlyChecksPlugins - Added try catch in order for the nightly checks email to still come through
+- made changed recomended by apm
+Nth - new
+Nth_Test - new
+NumberNth - new
+NumberNth_Test - new
+Numbers - added ToWordSpanish (from Luis Alfredo)
+NumbersTest - added ToWordSpanish (from Luis Alfredo)
+ObjectTest - changed Sort and Reverse to Sort! and Reverse!
+Objects - fixed bug in Slice
+OptimizeNeeded? - new
+Params - added tooltip to Clear button
+Plugin_HelpMenu - changed menus to plugins (not finished), changed how syntax errors reported
+Plugin_IdeMenu - changed menus to plugins (not finished), changed how syntax errors reported
+- converted Refactor, IDE, and Help menus to plugins
+Plugin_Map - new
+Plugin_RandomLibraryRecord - new
+Plugin_Refactor - fixing plugins for refactor menu contributions
+- changed menus to plugins (not finished), changed how syntax errors reported
+- added option to convert a function to a class to the Refactor menu
+Plugin_UI - changed menus to plugins (not finished), changed how syntax errors reported
+Plugins - catch exceptions in ForeachContribution
+- changed Plugins to Singleton
+PostLogin - added PostLogin function for use after a user has logged in
+PromptsToFieldsTest - moved tests into 'Tests' folder
+QuantitiesControl - changed Sort and Reverse to Sort! and Reverse!
+QueryApply1Test - cleaned up
+QueryEnsureKeySort - changed Sort and Reverse to Sort! and Reverse!
+QueryNth - new
+QueryNth_Test - new
+QuerySelectTest - new
+QueryViewControl - converted Refactor, IDE, and Help menus to plugins
+RandomLibraryRecord - new
+Refactor - simplified refactor plugin
+- added comments
+- added default controls
+- comments
+- added SelectWord option
+RefactorControl - fixed sizing
+- simplified refactor plugin
+- added SelectWord option
+Refactor_Convert_Function_To_Class - added option to convert a function to a class to the Refactor menu
+- added todo comment
+Refactor_Convert_Function_To_Class_Test - added option to convert a function to a class to the Refactor menu
+Refactor_Extract_Method - new
+Refactor_Extract_Method_Test - new
+Refactor_Rename - simplified refactor plugin
+- move focus to second field
+Refactor_Rename_Member - changed IsClass? to ClassHelp.Class?
+ReplaceInLibraryControl - standardized lib list
+Reporter - added Delete on Open list box context menu
+- split off ReporterOpenDialog
+- added printParams option; refactored the report method
+- changed Sort and Reverse to Sort! and Reverse!
+- modified On_AddRemove_Columns method to use width variable instead of dd.Format.width for Image format
+ReporterFormat - fixed formats for numeric formula fields to handle negative values
+ReporterOpenDialog - new - split off from Reporter
+Reporter_Test - new
+RetryTransaction - added an option to force the retry transaction (simulates transaction failure).
+- changed to use GetDefault method for forceRetryTransaction option in Suneido object
+RuleTest - changed Sort and Reverse to Sort! and Reverse!
+SC - updated
+SCI - updated
+SC_MOD - removed - use SC.MOD_
+ScannerWithContext - new
+ScannerWithContext_Test - new
+ScheduleControl - added index parameter (it is passed from TaskbarIconControl)
+SchemaView - converted Refactor, IDE, and Help menus to plugins
+ScintillaControl - extracted EnsureVisibleLine, fixed problem with scrolling with Find Next/Prev
+- set caret policy, added find next/prev selected
+- minor fixes to find, extracted select_current_word, include leading '.' on Go_To_Definition
+- improved auto-indent
+- fixed Find Next/Prev Selected to use (?q)
+- made SelectCurrentWord public
+- changed to set all line endings to \r\n
+SearchControl - changed Sort and Reverse to Sort! and Reverse!
+Select2Control - fixed minor bug in translation
+- added printParams option
+- fixed wrong number of parameters on Record_NewValue
+- changed Sort and Reverse to Sort! and Reverse!
+Select2Control_Test - new
+SelectControl - cleared invalid selects (prompt changed), refactored
+SelectFields - Added trim to scan_formula method
+- added blank space before leftjoin (to fix query syntax issue)
+- fixed slow queries
+SelectFields_Test - moved tests into 'Tests' folder
+ServerEvalProxy - new
+ServerEvalProxy_Test - new
+SetColumns - changed Sort and Reverse to Sort! and Reverse!
+ShortestKey - improved to prefer _num and avoid _name
+ShortestKey_Test - added unit test
+ShowHideControl - new control
+- changed to accept a callable or global definition name instead of a rule name
+ShowLocationsControl - add translation for titles (from Jos Schaars)
+- changed ListFormat to just List
+Singleton - new
+Singleton_Test - new
+Singleton_TestClass - new
+SplitAddr - added comment
+StateProvControl - changed Sort and Reverse to Sort! and Reverse!
+StateProvName - new
+StateProvName_Test - new
+StatusbarControl - minor - changed Set to SendMessageTextIn
+StringTest - added White?()
+- added string.LineCount()
+- renamed so Goto/Run Test works
+Strings - changed WrapLines to not remove blank lines
+- added White?()
+- added string.LineCount()
+StringsTest - renamed so Goto/Run Test works
+SummarizeControl - changed Sort and Reverse to Sort! and Reverse!
+Svc - changed Sort and Reverse to Sort! and Reverse!
+SvcControl - added "Export Record" option to the local list context menu
+- converted Refactor, IDE, and Help menus to plugins
+SvcCore - added additional key to master tables
+TRACE - added ALLINDEX, TABLE, SELECT, TEMPINDEX, QUERYOPT
+TabsControl - changed to use GetDefault
+Test - added AddTeardown, fixed to only do required teardown's
+TestRunnerGui - changed Sort and Reverse to Sort! and Reverse!
+- changed clicking on the overview bar in Version Control, Test Runner, and LibView to scroll the highlighted line to the middle of the screen
+- minor refactor in Overview_Click
+- converted Refactor, IDE, and Help menus to plugins
+- fixed bug with clicking on the red marks
+- changed ListFormat to just List
+- added Run Failed button
+TextFormat - added GetJustify method for formats so ListFormatting can access the justify setting without accessing the private member.
+Todo - new
+TransactionTest - added Test_conflict
+TranslateLanguageTest - fixed to restore Suneido.Language properly
+TreeViewControl - minor fix to ContextMenu
+UrlEncode - new
+UrlEncode_Test - new
+VK - added '/'
+VersionHistoryControl - add translation for titles (from Jos Schaars)
+- changed Sort and Reverse to Sort! and Reverse!
+- changed ListFormat to just List
+VirtualBrowseModel - changed Sort and Reverse to Sort! and Reverse!
+VirtualKey - new
+WebEditControl - converted Refactor, IDE, and Help menus to plugins
+WikiRecent - changed Sort and Reverse to Sort! and Reverse!
+Window - added support for plugin menus
+- translation fix for plugin menus (from Jos Schaars)
+WorkSpaceControl - converted Refactor, IDE, and Help menus to plugins
+XmlRpc - made line endings consistent
+XmlRpcTest - changed to use AssertEqw
+YearMonthControl - fixed ListBoxDoubleClick missing parameter
+
+Users Manual
+
+/Introduction/Acknowledgments - added Luis Alfredo to contributors
+/Language/Classes/Methods - new
+/Language/Reference/AssertEq - updated
+/Language/Reference/AssertEqw - new
+/Language/Reference/AssertNeq - updated
+/Language/Reference/CountryFromStateProv - new
+/Language/Reference/FakeObject - new
+/Language/Reference/Function? - added block
+/Language/Reference/Internet/Internet.AutoConnect - minor fixes from Ajith.R
+/Language/Reference/Internet/Internet.AutoDisConnect - minor fixes from Ajith.R
+/Language/Reference/Internet/Internet.AutoDisconnect - minor fixes from Ajith.R
+/Language/Reference/Internet/Internet.ByLan? - minor fixes from Ajith.R
+/Language/Reference/Internet/Internet.ByModem? - minor fixes from Ajith.R
+/Language/Reference/Internet/Internet.ByProxy? - minor fixes from Ajith.R
+/Language/Reference/Internet/Internet.Connect - minor fixes from Ajith.R
+/Language/Reference/Internet/Internet.Disconnect - minor fixes from Ajith.R
+/Language/Reference/Internet/Internet.Offline? - minor fixes from Ajith.R
+/Language/Reference/Internet/Internet.TryToConnect - minor fixes from Ajith.R
+/Language/Reference/LONG - new
+/Language/Reference/MockObject - new
+/Language/Reference/Object/object.Eval - updated
+/Language/Reference/Object/object.Partition - added !, deprecated old versions
+/Language/Reference/Object/object.Partition! - added !, deprecated old versions
+/Language/Reference/Object/object.Reverse - added !, deprecated old versions
+/Language/Reference/Object/object.Reverse! - added !, deprecated old versions
+/Language/Reference/Object/object.Sort - added !, deprecated old versions
+/Language/Reference/Object/object.Sort! - added !, deprecated old versions
+/Language/Reference/SHORT - new
+/Language/Reference/Singleton - new
+/Language/Reference/String/string.LineCount - new
+/Language/Reference/String/string.White? - new
+/Language/Reference/String/string.WrapLines - new
+/Language/Reference/UrlEncode - new
+/Database/Reference/Record/record.Copy - added note about maintaining New? status
+/Database/Reference/Transaction/transaction.Conflict - new
+/User Interfaces/Implementation/Writing Wrapper Controls - new
+/User Interfaces/Reference/CheckBoxControl - added tip parameter
+/User Interfaces/Reference/ChooseTwoListControl - updated
+/User Interfaces/Reference/Controller/controller.Redir - updated - now supports functions
+/User Interfaces/Reference/ListBoxControl/ListBoxControl - added Send's
+/User Interfaces/Reference/ListBoxControl/listBoxControl.Count - renamed from Count to GetCount to match message
+/User Interfaces/Reference/ListBoxControl/listBoxControl.GetCount - renamed from Count to GetCount to match message
+/User Interfaces/Reference/RecordControl - changed to two columns
+/User Interfaces/Reference/RecordControl/recordControl.AddObserver - new
+/User Interfaces/Reference/RecordControl/recordControl.HasControl? - new
+/User Interfaces/Reference/RecordControl/recordControl.Valid - new
+/User Interfaces/Reference/ShowHideControl - new
+/User Interfaces/Reference/TabsControl/TabsControl - added constructAll and destroyOnSwitch
+/Reports/Reference/QueryFormat - added Before_ and After_
+/Cookbook/A Mock Object for Testing - new
+/Cookbook/A Simple Dynamic Server Proxy - new
+/Cookbook/Implementing the Singleton Pattern - new
