@@ -33,6 +33,10 @@
 #include "heap.h"
 #include "lisp.h"
 
+#ifdef _MSC_VER
+#pragma warning(disable:4309) // truncation of constant value
+#endif
+
 long callback(Value fn, Callback* cb, char* src);
 
 static Heap heap(true); // true = executable
