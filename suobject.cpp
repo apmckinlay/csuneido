@@ -47,8 +47,9 @@ enum Values { ITER_KEYS, ITER_VALUES, ITER_ASSOCS };
 class SuObjectIter : public SuValue
 	{
 public:
-	explicit SuObjectIter(SuObject* ob, bool l, Values v) 
-		: object(ob), iter(ob->begin()), end(ob->end()), list(l), values(v)
+	explicit SuObjectIter(SuObject* ob, Values v, bool iv = true, bool im = true)
+		: object(ob), iter(ob->begin(iv, im)), end(ob->end()), values(v),
+		include_vec(iv), include_map(im)
 		{ }
 	virtual void out(Ostream& os)
 		{ os << "ObjectIter"; }
@@ -57,8 +58,8 @@ private:
 	SuObject* object;
 	SuObject::iterator iter;
 	SuObject::iterator end;
-	bool list;
 	enum Values values;
+	bool include_vec, include_map;
 	};
 
 SuObject::SuObject() : myclass(root_class), readonly(false), has_getter(true), has_setter(true)
@@ -475,40 +476,44 @@ Value SuObject::Copy(short nargs, short nargnames, ushort* argnames, int each)
 Value SuObject::Size(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static ushort list = ::symnum("list");
+	static ushort named = ::symnum("named");
+
 	if (nargs == 0)
 		return size();
 	else if (nargs == 1 && nargnames == 1 && argnames[0] == list)
 		return vec.size();
+	else if (nargs == 1 && nargnames == 1 && argnames[0] == named)
+		return vec.size();
 	else
-		except("usage: object.Size() or .Size(list:)");
+		except("usage: object.Size() or .Size(list:) or .Size(named:)");
 	}
 
 Value SuObject::Iter(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
 		except("usage: object.Iter()");
-	return new SuObjectIter(this, false, ITER_VALUES);
+	return new SuObjectIter(this, ITER_VALUES);
 	}
 
 Value SuObject::IterKeys(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
 		except("usage: object.IterKeys()");
-	return new SuObjectIter(this, false, ITER_KEYS);
+	return new SuObjectIter(this, ITER_KEYS);
 	}
 
 Value SuObject::IterList(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
 		except("usage: object.IterList()");
-	return new SuObjectIter(this, true, ITER_KEYS);
+	return new SuObjectIter(this, ITER_KEYS, true, false);
 	}
 
 Value SuObject::IterListValues(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
 		except("usage: object.IterListValues()");
-	return new SuObjectIter(this, true, ITER_VALUES);
+	return new SuObjectIter(this, ITER_VALUES, true, false);
 	}
 
 template <class Finder>
@@ -841,30 +846,38 @@ Value SuObject::IsReadonly(short nargs, short nargnames, ushort* argnames, int e
 Value SuObject::Members(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static ushort list = ::symnum("list");
+	static ushort named = ::symnum("named");
+
 	if (nargs == 0)
-		return new SuSeq(new SuObjectIter(this, false, ITER_KEYS));
+		return new SuSeq(new SuObjectIter(this, ITER_KEYS));
 	else if (nargs == 1 && nargnames == 1 && argnames[0] == list)
-		return new SuSeq(new SuObjectIter(this, true, ITER_KEYS));
+		return new SuSeq(new SuObjectIter(this, ITER_KEYS, true, false));
+	else if (nargs == 1 && nargnames == 1 && argnames[0] == named)
+		return new SuSeq(new SuObjectIter(this, ITER_KEYS, false, true));
 	else
-		except("usage: object.Members() or .Members(list:)");
+		except("usage: object.Members() or .Members(list:) or .Members(named:)");
 	}
 
 Value SuObject::Values(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static ushort list = ::symnum("list");
+	static ushort named = ::symnum("named");
+
 	if (nargs == 0)
-		return new SuSeq(new SuObjectIter(this, false, ITER_VALUES));
+		return new SuSeq(new SuObjectIter(this, ITER_VALUES));
 	else if (nargs == 1 && nargnames == 1 && argnames[0] == list)
-		return new SuSeq(new SuObjectIter(this, true, ITER_VALUES));
+		return new SuSeq(new SuObjectIter(this, ITER_VALUES, true, false));
+	else if (nargs == 1 && nargnames == 1 && argnames[0] == named)
+		return new SuSeq(new SuObjectIter(this, ITER_VALUES, false, true));
 	else
-		except("usage: object.Values() or .Values(list:)");
+		except("usage: object.Values() or .Values(list:) or .Values(named:)");
 	}
 
 Value SuObject::Assocs(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
 		except("usage: object.Assocs()");
-	return new SuSeq(new SuObjectIter(this, false, ITER_ASSOCS));
+	return new SuSeq(new SuObjectIter(this, ITER_ASSOCS));
 	}
 
 Value SuObject::Get(short nargs, short nargnames, ushort* argnames, int each)
@@ -979,15 +992,10 @@ SuObject::iterator& SuObject::iterator::operator++()
 	return *this;
 	}
 
-bool SuObject::iterator::invec()
-	{
-	return vi < vec.size();
-	}
-
 void SuObject::iterator::rewind()
 	{
-	vi = 0;
-	mi = map.begin();
+	vi = include_vec ? 0 : vec.size();
+	mi = include_map ? map.begin() : map.end();
 	mend = map.end();
 	}
 
@@ -1083,7 +1091,7 @@ Value SuObjectIter::call(Value self, Value member, short nargs, short nargnames,
 		{
 		if (nargs != 0)
 			except("usage: objectiter.Next()");
-		if (iter == end || (list && ! iter.invec()))
+		if (iter == end)
 			return this; // eof
 		std::pair<Value,Value> assoc = *iter;
 		if (assoc.first == Value() || assoc.second == Value())
@@ -1108,7 +1116,7 @@ Value SuObjectIter::call(Value self, Value member, short nargs, short nargnames,
 		}
 	else if (member == COPY)
 		{
-		return new SuObjectIter(object, list, values);
+		return new SuObjectIter(object, values, include_vec, include_map);
 		}
 	else if (member == REWIND)
 		{

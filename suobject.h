@@ -99,16 +99,13 @@ public:
 	class iterator
 		{
 	public:
-		iterator(const Vector& v, const Map& m) 
-			: vec(v), vi(0), map(m), mi(m.begin()), mend(m.end())
-			{ }
-		iterator(const Vector& v, const Map& m, bool) 
-			: vec(v), vi(v.size()), map(m), mi(m.end()), mend(m.end())
+		iterator(const Vector& v, const Map& m, bool iv, bool im) 
+			: vec(v), vi(iv ? 0 : v.size()), map(m), mi(im ? m.begin() : m.end()), mend(m.end()),
+			include_vec(iv), include_map(im)
 			{ }
 		bool operator==(const iterator& iter) const;
 		iterator& operator++();
 		Pair operator*();
-		bool invec();
 		void rewind();
 	private:
 		const Vector& vec;
@@ -116,11 +113,12 @@ public:
 		const Map& map;
 		Map::const_iterator mi;
 		Map::const_iterator mend;
+		bool include_vec, include_map;
 		};
-	iterator begin()
-		{ return iterator(vec, map); }
+	iterator begin(bool include_vec = true, bool include_map = true)
+		{ return iterator(vec, map, include_vec, include_map); }
 	iterator end()
-		{ return iterator(vec, map, false); }
+		{ return iterator(vec, map, false, false); }
 	Value find(Value value);
 	void remove(Value value);
 	void remove1(Value value);
