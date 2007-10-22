@@ -46,7 +46,7 @@ clean :
 	
 .PHONY : install
 install : $(OUTPUT)/gc.lib
-	copy /y $(OUTPUT)\\gc.lib ..\\suneido\\gc_$(OUTPUT).lib
+	copy /y $(OUTPUT)\\gc.lib ..\\gc_$(OUTPUT).lib
 	
 .PHONY : test
 test : $(OUTPUT)/gctest.exe
