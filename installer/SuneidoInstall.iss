@@ -2,8 +2,8 @@
 
 [Setup]
 AppName=Suneido
-AppVerName=Suneido Version 1.071015
-AppVersion=1.071015
+AppVerName=Suneido Version 1.071021
+AppVersion=1.071021
 AppPublisher=Suneido Software
 AppPublisherURL=http://www.suneido.com
 AppSupportURL=http://www.suneido.com
@@ -12,7 +12,7 @@ DefaultDirName=c:\Suneido
 DefaultGroupName=Suneido
 DisableProgramGroupPage=yes
 LicenseFile=C:\dev\suneido\COPYING
-OutputBaseFilename=SuneidoSetup071015
+OutputBaseFilename=SuneidoSetup071021
 ; cosmetic
 WizardImageBackColor=clWhite
 WizardImageFile=suneidoLarge.bmp
@@ -25,9 +25,9 @@ WizardSmallImageFile=suneidoSmall.bmp
 Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"; MinVersion: 4,4
 
 [Files]
-Source: "c:\suneido071015\suneido.exe"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "c:\suneido071015\suneido.exe"; DestDir: "{app}"; DestName: "suneido_new.exe"; Flags: ignoreversion
-Source: "c:\suneido071015\*.*"; DestDir: "{app}"; Excludes: suneido.exe, suneido.db; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "c:\suneido071021\suneido.exe"; DestDir: "{app}"; Flags: ignoreversion
+;Source: "c:\suneido071021\suneido.exe"; DestDir: "{app}"; DestName: "suneido_new.exe"; Flags: ignoreversion
+Source: "c:\suneido071021\*.*"; DestDir: "{app}"; Excludes: suneido.exe, suneido.db; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [INI]
 Filename: "{app}\suneido.url"; Section: "InternetShortcut"; Key: "URL"; String: "http://www.suneido.com"
