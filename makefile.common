@@ -1,6 +1,5 @@
-SOURCES = \
+PORTSOURCES = \
 alert.cpp \
-alertwin.cpp \
 array.cpp \
 bitmap.cpp \
 bmalloc.cpp \
@@ -23,22 +22,16 @@ cvt.cpp \
 database.cpp \
 date.cpp \
 dbcopy.cpp \
-dbhttp.cpp \
 dbms.cpp \
 dbmslocal.cpp \
-dbmsremote.cpp \
 dbserver.cpp \
 dbserverdata.cpp \
-debug.cpp \
-dll.cpp \
 dump.cpp \
 errlog.cpp \
 except.cpp \
 fatal.cpp \
-fibers.cpp \
 func.cpp \
 gcstring.cpp \
-getmacadr.cpp \
 getnum.cpp \
 globals.cpp \
 hashfn.cpp \
@@ -55,13 +48,10 @@ literal.cpp \
 load.cpp \
 md5.cpp \
 mmfile.cpp \
-msgloop.cpp \
 named.cpp \
 numlen.cpp \
-olddate.cpp \
 opcodes.cpp \
 ostream.cpp \
-ostreamcon.cpp \
 ostreamfile.cpp \
 ostreamstr.cpp \
 pack.cpp \
@@ -89,55 +79,69 @@ query.cpp \
 qunion.cpp \
 record.cpp \
 recover.cpp \
-rebuildgui.cpp \
 regexp.cpp \
-richeditio.cpp \
-richeditole.c \
 row.cpp \
-runpiped.cpp \
 scanner.cpp \
-scistyle.cpp \
 sesviews.cpp \
 slots.cpp \
-sockets.cpp \
-splash.cpp \
 strdup.cpp \
 structure.cpp \
 sublock.cpp \
 suboolean.cpp \
 suclass.cpp \
-sucomobject.cpp \
 sudate.cpp \
 sudb.cpp \
 sufile.cpp \
 sufinalize.cpp \
 sufunction.cpp \
-suimage.cpp \
 sumethod.cpp \
-sunapp.cpp \
-suneido.cpp \
 sunumber.cpp \
 suobject.cpp \
 surecord.cpp \
 suscanner.cpp \
 suseq.cpp \
-suservice.cpp \
 susetlocale.cpp \
-susockets.cpp \
 sustring.cpp \
 suvalue.cpp \
-suwinres.cpp \
 symbols.cpp \
 tempdest.cpp \
 testing.cpp \
 thedb.cpp \
 tr.cpp \
-tracecon.cpp \
 transaction.cpp \
-type.cpp \
-unhandled.cpp \
 usertrigger.cpp \
 value.cpp
+
+WINSOURCES=\
+alertwin.cpp \
+dbhttp.cpp \
+dbmsremote.cpp \
+debug.cpp \
+dll.cpp \
+fibers.cpp \
+getmacadr.cpp \
+msgloop.cpp \
+olddate.cpp \
+ostreamcon.cpp \
+rebuildgui.cpp \
+richeditio.cpp \
+richeditole.c \
+runpiped.cpp \
+scistyle.cpp \
+sockets.cpp \
+splash.cpp \
+sucomobject.cpp \
+suimage.cpp \
+sunapp.cpp \
+suneido.cpp \
+suservice.cpp \
+susockets.cpp \
+suwinres.cpp \
+tracecon.cpp \
+type.cpp \
+unhandled.cpp
+
+SOURCES := $(PORTSOURCES) $(WINSOURCES)
 
 #$(call make-depend,source-file,object-file,depend-file,cc)
 define make-depend

@@ -23,6 +23,10 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#ifdef ACE_SERVER
+#error ACE_SERVER should not be using win.h
+#endif
+
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
 #ifndef NOMINMAX

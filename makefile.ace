@@ -1,0 +1,50 @@
+include makefile.common
+
+ifdef DEBUG
+  OUTPUT = ace_debug
+  BASEFLAGS = -g
+  LDFLAGS =
+else
+  OUTPUT = ace_release
+  BASEFLAGS = -O3 -DNDEBUG
+  LDFLAGS = -s
+endif
+
+CC=gcc
+CXX=g++
+FLAGS = $(BASEFLAGS) -Wall -Wno-sign-compare -Wfloat-equal -Werror -DCOMPILER=MinGW -DACE_SERVER
+
+.SUFFIXES:
+
+$(OUTPUT)/%.o : %.c
+	@echo $<
+	@$(CC) $(FLAGS) -c -o $@ $<
+	$(call make-depend,$<,$@,$(subst .o,.d,$@),gcc)
+	
+$(OUTPUT)/%.o : %.cpp
+	@echo $<
+	@$(CXX) $(FLAGS) -c -o $@ $<
+	$(call make-depend,$<,$@,$(subst .o,.d,$@),g++)
+
+SOURCES := aceserver.cpp ace.cpp $(PORTSOURCES)
+OBJECTS = $(patsubst %.c,$(OUTPUT)/%.o,$(subst .cpp,.c,$(SOURCES))) 
+DEPENDS = $(subst .o,.d,$(OBJECTS))
+
+$(OUTPUT)/suneido.exe : $(OBJECTS) gc_mingw_debug.a
+	@echo build.cpp
+	@$(CXX) $(FLAGS) -c -o $(OUTPUT)/build.o build.cpp
+	@echo link
+	@$(CXX) $(LDFLAGS) -o $@ $^ $(OUTPUT)/build.o \
+		-lws2_32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -luuid -liphlpapi \
+		-mconsole /ACE_Wrappers/ace/libACE.dll.a
+		
+$(OUTPUT)/aceserver.o : aceserver.cpp
+	@echo $<
+	$(CXX) $(BASEFLAGS) -I/ACE_wrappers -c -o $@ $<
+	$(call make-depend,$<,$@,$(subst .o,.d,$@),g++ -I/ACE_wrappers)
+
+-include $(DEPENDS)
+
+.PHONY : clean
+clean : 
+	del /q $(OUTPUT)\\*.*

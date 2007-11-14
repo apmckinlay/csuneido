@@ -44,10 +44,12 @@ typedef void (_stdcall *pNewServer)(void*);
 // calls supplied newserver function for connections
 void socketServer(char* title, int port, pNewServer newserver, void* arg, bool exit);
 
+#ifndef ACE_SERVER
 // create a synchronous (waits) socket connection
 SocketConnect* socketClientSynch(char* addr, int port, int timeout = 9999);
 
 // create an asynch (message driven) socket connection
 SocketConnect* socketClientAsynch(char* addr, int port);
+#endif
 
 #endif

@@ -41,6 +41,7 @@ TLS(thedbms);
 
 Dbms* dbms()
 	{
+#ifndef ACE_SERVER
 	if (server_ip)
 		{
 		if (! thedbms)
@@ -49,6 +50,7 @@ Dbms* dbms()
 		return thedbms;
 		}
 	else
+#endif
 		{
 		static Dbms* local = dbms_local();
 		return local;

@@ -28,6 +28,24 @@ struct Proc;
 typedef void (*StackFn)(void* org, void* end);
 typedef void (*ProcFn)(Proc* proc);
 
+#ifdef ACE_SERVER
+
+struct Fibers
+	{
+	static void priority(int p)
+		{ }
+	static void yieldif()
+		{ }
+	static void end()
+		{ }
+	static void foreach_stack(StackFn fn)
+		{ }
+	static void foreach_proc(ProcFn fn)
+		{ }
+	};
+
+#else
+
 struct Fibers
 	{
 	static void init();
@@ -68,6 +86,8 @@ struct Fibers
 	};
 
 void sleepms(int ms);
+
+#endif
 
 extern char* fiber_id;
 
