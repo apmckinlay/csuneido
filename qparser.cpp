@@ -974,6 +974,8 @@ Fields QueryParser::join_by()
 		{
 		match();
 		by = column_list();
+		if (nil(by))
+			syntax_error();
 		}
 	return by;
 	}
