@@ -34,7 +34,7 @@ Join::Join(Query* s1, Query* s2, Fields by)
 	joincols = intersect(source->columns(), source2->columns());
 	if (nil(joincols))
 		except("join: common columns required");
-	if (! nil(by) && by != joincols)
+	if (! nil(by) && ! set_eq(by, joincols))
 		except("join: by does not match common columns: " << joincols);
 
 	// find out if joincols include keys
