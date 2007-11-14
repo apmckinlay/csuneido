@@ -64,7 +64,7 @@ Value SuBlock::call(Value self, Value member, short nargs, short nargnames, usho
 	if (nargs != nparams)
 		except("invalid arguments to block");
 	// TODO: full argument handling
-	Framer framer(frame, pc, first, nargs);
+	Framer framer(frame, pc, first, nargs, self.ptr() == this ? frame->self : self);
 	return proc->fp->run();
 	}
 

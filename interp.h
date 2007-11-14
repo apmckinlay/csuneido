@@ -99,7 +99,7 @@ public:
 		{ }
 	Frame(BuiltinFunc*, Value self);
 	Frame(SuFunction*, Value self);
-	Frame(Frame* fp, int pc, int first, int nargs);
+	Frame(Frame* fp, int pc, int first, int nargs, Value self);
 
 	Value run();
 //private:
@@ -166,9 +166,9 @@ struct Framer
 		{
 		new(nextfp()) Frame(prim, self);
 		}
-	Framer(Frame* fp, int pc, int first, int nargs)
+	Framer(Frame* fp, int pc, int first, int nargs, Value self)
 		{
-		new(nextfp()) Frame(fp, pc, first, nargs);
+		new(nextfp()) Frame(fp, pc, first, nargs, self);
 		}
 	Frame* nextfp()
 		{
