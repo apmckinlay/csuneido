@@ -143,6 +143,7 @@ private:
 	Value Base(short nargs, short nargnames, ushort* argnames, int each);
 	Value HasBase(short nargs, short nargnames, ushort* argnames, int each);
 	Value Eval(short nargs, short nargnames, ushort* argnames, int each);
+	Value Eval2(short nargs, short nargnames, ushort* argnames, int each);
 	Value Set_default(short nargs, short nargnames, ushort* argnames, int each);
 	Value Copy(short nargs, short nargnames, ushort* argnames, int each);
 	Value Partition(short nargs, short nargnames, ushort* argnames, int each);

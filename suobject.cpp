@@ -132,6 +132,7 @@ void SuObject::setup()
 	BASIC_METHOD(Delete);
 	BASIC_METHOD(Erase);
 	BASIC_METHOD(Eval);
+	BASIC_METHOD(Eval2);
 	BASIC_METHOD(Find);
 	BASIC_METHOD(Iter);
 	BASIC_METHOD(IterKeys);
@@ -624,6 +625,15 @@ Value SuObject::Eval(short nargs, short nargnames, ushort* argnames, int each)
 	if (SuMethod* meth = val_cast<SuMethod*>(x))
 		x = meth->fn();
 	return x.call(this, CALL, nargs - 1, nargnames, argnames, each);
+	}
+
+Value SuObject::Eval2(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	Value result = Eval(nargs, nargnames, argnames, each);
+	SuObject* ob = new SuObject;
+	if (result)
+		ob->add(result);
+	return ob;
 	}
 
 struct PartVal
