@@ -40,7 +40,7 @@ $(OUTPUT)/suneido.exe : $(OBJECTS) $(OUTPUT)/suneido.res
 	@echo link
 	@$(CC) $(LDFLAGS) /Fe"$(OUTPUT)/suneido.exe" $^ $(OUTPUT)/build.obj $(LIBS)
 	
-$(OUTPUT)/suneido.res : suneido.rc resource.h
+$(OUTPUT)/suneido.res : suneido.rc resource.h res/suneido.exe.manifest
 	rc /l 0x409 /Fo"$(OUTPUT)/suneido.res"  /i "\Dev\Suneido" /d "NDEBUG" suneido.rc
 
 -include $(DEPENDS)
