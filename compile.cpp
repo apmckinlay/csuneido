@@ -1521,6 +1521,7 @@ void FunctionCompiler::expr0(bool newtype)
 			if (isupper(scanner.value[*scanner.value == '_' ? 1 : 0]) && 
 				'{' == (expecting_compound ? scanner.peeknl() : *scanner.peek()))
 				{ // Name { => class
+//tout() << "Name { => class" << endl;
 				emit_literal();
 				option = LITERAL;
 				lvalue = value = false;
@@ -1599,7 +1600,7 @@ void FunctionCompiler::expr0(bool newtype)
 		}
 	while (token == '.' || token == '[' || token == '(' || token == '{')
 		{
-		if (value && token != '(' && token != '{')
+		if (value && (token == '.' || token == '['))
 			{
 			emit(I_PUSH, option, id);
 			option = -1;
@@ -1619,6 +1620,8 @@ void FunctionCompiler::expr0(bool newtype)
 			match(T_IDENTIFIER);
 			if (id == NEWNUM)
 				syntax_error();
+			if (! expecting_compound && token == T_NEWLINE && *scanner.peek() == '{')
+				match();
 			}
 		else if (token == '[')
 			{
