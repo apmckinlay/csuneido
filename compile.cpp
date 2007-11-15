@@ -1597,9 +1597,9 @@ void FunctionCompiler::expr0(bool newtype)
 	default :
 		syntax_error();
 		}
-	while (token == '.' || token == '[' || token == '(')
+	while (token == '.' || token == '[' || token == '(' || token == '{')
 		{
-		if (value && token != '(')
+		if (value && token != '(' && token != '{')
 			{
 			emit(I_PUSH, option, id);
 			option = -1;
@@ -1627,9 +1627,10 @@ void FunctionCompiler::expr0(bool newtype)
 			option = SUB;
 			match(']');
 			}
-		else if (token == '(')
+		else if (token == '(' || // function call
+			token == '{') // func { } == func() { } == func({ })
 			{
-			short nargs;
+			short nargs = 0;
 			vector<ushort> argnames;
 			args(nargs, argnames);
 			if (super)
@@ -1687,7 +1688,9 @@ void FunctionCompiler::expr0(bool newtype)
 void FunctionCompiler::args(short& nargs, vector<ushort>& argnames, char* delims)
 	{
 	nargs = 0;
-	match(delims[0]);
+	bool just_block = (token == '{');
+	if (! just_block)
+		match(delims[0]);
 	if (token == '@')
 		{
 		match();
@@ -1705,39 +1708,42 @@ void FunctionCompiler::args(short& nargs, vector<ushort>& argnames, char* delims
 		}
 	else
 		{
-		bool key = false;
-		for (nargs = 0; token != delims[1]; ++nargs)
+		if (! just_block)
 			{
-			if (*scanner.peek() == ':')
+			bool key = false;
+			for (nargs = 0; token != delims[1]; ++nargs)
 				{
-				key = true;
-				int id;
-				if (token == T_IDENTIFIER || token == T_STRING)
-					id = symnum(scanner.value);
-				else if (token == T_NUMBER)
+				if (*scanner.peek() == ':')
 					{
-					id = strtoul(scanner.value, NULL, 0);
-					if (id >= 0x8000)
-						except("numeric subscript overflow: (" << scanner.value << ")");
+					key = true;
+					int id;
+					if (token == T_IDENTIFIER || token == T_STRING)
+						id = symnum(scanner.value);
+					else if (token == T_NUMBER)
+						{
+						id = strtoul(scanner.value, NULL, 0);
+						if (id >= 0x8000)
+							except("numeric subscript overflow: (" << scanner.value << ")");
+						}
+					else
+						syntax_error();
+					if (find(argnames.begin(), argnames.end(), id) != argnames.end())
+						except("duplicate argument name (" << scanner.value << ")");
+					argnames.push_back(id);
+					match();
+					match();
 					}
+				else if (key)
+					syntax_error("un-named arguments must come before named arguments");
+				if (key && (*scanner.peek() == ':' || token == ',' || token == delims[1]))
+					emit(I_PUSH, LITERAL, literal(SuTrue));
 				else
-					syntax_error();
-				if (find(argnames.begin(), argnames.end(), id) != argnames.end())
-					except("duplicate argument name (" << scanner.value << ")");
-				argnames.push_back(id);
-				match();
-				match();
+					expr();
+				if (token == ',')
+					match();
 				}
-			else if (key)
-				syntax_error("un-named arguments must come before named arguments");
-			if (key && (*scanner.peek() == ':' || token == ',' || token == delims[1]))
-				emit(I_PUSH, LITERAL, literal(SuTrue));
-			else
-				expr();
-			if (token == ',')
-				match();
+			match(delims[1]);
 			}
-		match(delims[1]);
 		if (token == T_NEWLINE && ! expecting_compound && *scanner.peek() == '{')
 			match();
 		if (token == '{')
