@@ -355,8 +355,8 @@ Value Frame::run()
 			break ;
 		case I_BLOCK :
 			jump = fetch_jump();
-			i = fetch_local();
-			nargs = fetch_local();
+			i = fetch_local(); // first
+			nargs = fetch1();
 			push(suBlock(proc->fp, ip - fn->code, i, nargs));
 			ip += jump - 2;
 			break ;
