@@ -49,6 +49,7 @@
 #include "surecord.h"
 #include "gc.h"
 #include "codevisitor.h"
+#include "sublock.h" // for BLOCK_REST
 
 using namespace std;
 
@@ -822,24 +823,39 @@ void FunctionCompiler::body()
 void FunctionCompiler::block()
 	{
 	int first = locals.size();
+	verify(first < BLOCK_REST);
+	int nparams = 0;
 	if (*scanner.peek() == '|')
 		{ // parameters
 		match('{');
 		match(I_BITOR);
-		while (token == T_IDENTIFIER)
+		if (token == '@')
 			{
+			match();
 			locals.push_back(symnum(scanner.value)); // ensure new
 			scanner.visitor->local(scanner.prev, locals.size() - 1, true);
-			match();
-			if (token == ',')
+			match(T_IDENTIFIER);
+			nparams = BLOCK_REST;
+			}
+		else
+			{
+			// TODO: handle named and default parameters
+			while (token == T_IDENTIFIER)
+				{
+				locals.push_back(symnum(scanner.value)); // ensure new
+				scanner.visitor->local(scanner.prev, locals.size() - 1, true);
 				match();
+				if (token == ',')
+					match();
+				}
+			nparams = locals.size() - first;
 			}
 		if (token != I_BITOR) // i.e. |
 			syntax_error();
 		}
+	int last = locals.size();
 	int a = emit(I_BLOCK, 0, -1);
 	code.push_back(first);
-	int nparams = locals.size() - first;
 	code.push_back(nparams); // number of params
 	bool prev_inblock = inblock;
 	inblock = true; // for break & continue
@@ -847,8 +863,9 @@ void FunctionCompiler::block()
 	inblock = prev_inblock;
 	patch(a);
 	// hide block parameter locals from rest of code
-	for (int i = 0; i < nparams; ++i)
-		locals[first + i] = symnum(CATSTRA("_", symstr(locals[first + i])));
+	// TODO: cleaner way to hide e.g. parallel bool vector to mark as hidden
+	for (int i = first; i < last; ++i)
+		locals[i] = symnum(CATSTRA("_", symstr(locals[i])));
 	}
 
 void FunctionCompiler::compound(short cont, short* pbrk)
@@ -1521,7 +1538,6 @@ void FunctionCompiler::expr0(bool newtype)
 			if (isupper(scanner.value[*scanner.value == '_' ? 1 : 0]) && 
 				'{' == (expecting_compound ? scanner.peeknl() : *scanner.peek()))
 				{ // Name { => class
-//tout() << "Name { => class" << endl;
 				emit_literal();
 				option = LITERAL;
 				lvalue = value = false;

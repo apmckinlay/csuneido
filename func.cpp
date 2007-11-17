@@ -36,26 +36,29 @@ Value Func::call(Value self, Value member, short nargs, short nargnames, ushort*
 	static Value Params("Params");
 
 	if (member == Params)
-		{
-		OstreamStr out;
-		out << "(";
-		short j = 0;
-		for (int i = 0; i < nparams; ++i)
-			{
-			if (i != 0)
-				out << ",";
-			if (i == nparams - rest)
-				out << "@";
-			out << symstr(locals[i]);
-			if (i >= nparams - ndefaults - rest && i < nparams - rest)
-				out << "=" << literals[j++];
-			}
-		out << ")";
-		return new SuString(out.str());
-		}
+		return params();
 	else
 		unknown_method("function", member);
 	return Value();
+	}
+
+Value Func::params()
+	{
+	OstreamStr out;
+	out << "(";
+	short j = 0;
+	for (int i = 0; i < nparams; ++i)
+		{
+		if (i != 0)
+			out << ",";
+		if (i == nparams - rest)
+			out << "@";
+		out << symstr(locals[i]);
+		if (i >= nparams - ndefaults - rest && i < nparams - rest)
+			out << "=" << literals[j++];
+		}
+	out << ")";
+	return new SuString(out.str());
 	}
 
 void Func::args(short nargs, short nargnames, ushort* argnames, int each)
@@ -67,7 +70,7 @@ void Func::args(short nargs, short nargnames, ushort* argnames, int each)
 	if (! rest && unamed > nparams)
 		except("too many arguments to " << this);
 
-	verify(!rest || nparams == 1);	// rest must be only param
+	verify(! rest || nparams == 1);	// rest must be only param
 	verify(each == -1 || nargs == 1);	// each must be only arg
 
 	if (nparams > nargs)

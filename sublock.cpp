@@ -25,12 +25,33 @@
 #include "interp.h"
 #include "sufunction.h"
 #include "ostream.h"
+#include "func.h"
 
-class SuBlock : public SuValue
+class SuBlock : public Func
 	{
 public:
-	SuBlock(Frame* f, int p, int i, int n) : frame(f), pc(p), first(i), nparams(n)
-		{ verify(frame->fn); } // i.e. not a primitive
+	SuBlock(Frame* f, int p, int i, int n) : frame(f), pc(p), first(i)
+		{
+		verify(frame->fn); // i.e. not a primitive
+		if (n != BLOCK_REST)
+			nparams = n;
+		else
+			{
+			nparams = 1;
+			rest = true;
+			}
+		literals = frame->fn->literals;
+		locals = frame->fn->locals + first;
+		// strip '_' prefix off params (first time)
+		// if compile used a different way to hide block params this wouldn't be needed
+		for (int i = 0; i < nparams; ++i)
+			{
+			char* s = symstr(locals[i]);
+			if (*s != '_')
+				break ; // already stripped previously
+			locals[i] = ::symnum(s + 1);
+			}
+		}
 	void out(Ostream& out);
 	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
 	void persist();
@@ -39,7 +60,6 @@ private:
 	Frame* frame;
 	int pc;
 	short first;
-	short nparams;
 	};
 
 inline bool sameframe(Frame* f1, Frame* f2)
@@ -60,12 +80,16 @@ void SuBlock::out(Ostream& out)
 
 Value SuBlock::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	{
-	argseach(nargs, nargnames, argnames, each);
-	if (nargs != nparams)
-		except("invalid arguments to block");
-	// TODO: full argument handling
-	Framer framer(frame, pc, first, nargs, self.ptr() == this ? frame->self : self);
-	return proc->fp->run();
+	static Value Params("Params");
+
+	if (member == CALL)
+		{
+		args(nargs, nargnames, argnames, each);
+		Framer framer(frame, pc, first, nparams, self.ptr() == this ? frame->self : self);
+		return proc->fp->run();
+		}
+	else
+		return Func::call(self, member, nargs, nargnames, argnames, each);
 	}
 
 void persist_if_block(Value x)

@@ -43,6 +43,9 @@ public:
 
 	void out(Ostream& out);
 	void args(short nargs, short nargnames, ushort* argnames, int each);
+	
+private:
+	Value params();
 	};
 
 // abstract base class for Primitive and Dll
