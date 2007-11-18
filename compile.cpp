@@ -150,6 +150,7 @@ private:
 	// for loops
 	enum { maxtest = 100 };
 	uchar test[maxtest];
+	bool it_used; // for blocks
 
 	void block();
 	void statement(short = -1, short* = NULL);
@@ -853,15 +854,34 @@ void FunctionCompiler::block()
 		if (token != I_BITOR) // i.e. |
 			syntax_error();
 		}
+	
+	static int it = symnum("it");
+	bool it_param = false;
+	if (nparams == 0)
+		{
+		// create an "it" param, remove later if not used
+		it_param = true;
+		locals.push_back(it); // ensure new
+		scanner.visitor->local(scanner.prev, locals.size() - 1, true);
+		}
 	int last = locals.size();
+	
 	int a = emit(I_BLOCK, 0, -1);
 	code.push_back(first);
+	int nparams_loc = code.size();
 	code.push_back(nparams); // number of params
 	bool prev_inblock = inblock;
 	inblock = true; // for break & continue
+	
+	it_used = false;
 	body();
+	
 	inblock = prev_inblock;
 	patch(a);
+	
+	if (it_param && it_used)
+		code[nparams_loc] = 1;
+	
 	// hide block parameter locals from rest of code
 	// TODO: cleaner way to hide e.g. parallel bool vector to mark as hidden
 	for (int i = first; i < last; ++i)
@@ -1856,6 +1876,12 @@ short FunctionCompiler::literal(Value x)
 short FunctionCompiler::local(bool init)
 	{
 	ushort num = symnum(scanner.value);
+	
+	// for blocks
+	static ushort it_num = symnum("it");
+	if (num == it_num)
+		it_used = true;
+	
 	for (int i = locals.size() - 1; i >= 0; --i)
 		if (locals[i] == num)
 			{
