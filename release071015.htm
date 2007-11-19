@@ -1,0 +1,267 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+
+
+  
+  
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type" />
+
+
+  
+  
+  <title>Suneido October 15, 2007 Release Candidate</title>
+</head>
+
+
+<body>
+
+
+
+<h1>Suneido October 15, 2007 Release Candidate</h1>
+
+
+
+<h3 style="margin-top: 0in; margin-bottom: 0in;">Miscellaneous</h3>
+
+
+
+<ul>
+
+
+
+  <li>Thanks to <span class="sb_messagebody">Santiago
+Ottonello </span>you can now run Suneido as a Windows service
+without any additional software</li>
+
+
+
+  <li>Dialogs now run in Suneido's own message loop, solving
+problems with keyboard accelerators while dialogs are open</li>
+
+
+
+  <li>There is a new RunPiped built-in function that allows you
+to run another program with pipes connected to its input and output</li>
+
+
+
+  <li>You can now create database indexes that are forced to
+lower case to get a sort order that ignores case</li>
+
+
+
+  <li>The splash screen is now in an external BMP file which you
+can remove or replace</li>
+
+
+
+  <li>Book models (table of contents) are now cached for faster
+startup and navigation</li>
+
+
+
+  <li>You can use Ctrl+Tab and Shift+Ctrl+Tab to switch tabs
+within books</li>
+
+
+  <li>Scintilla updated to version 1.74</li>
+
+
+
+</ul>
+
+
+
+<h3>PDF Support</h3>
+
+
+
+<p>Thanks to Mauro Giubileo and <span class="sb_messagebody">Claudio
+Mascioni</span>, you can now output
+reports to PDF files using the <a href="http://libharu.sourceforge.net/">Haru Free PDF Library</a>.</p>
+
+
+
+<p><img src="release071015/pdf.png" alt="" /></p>
+
+
+
+<p>PDF output requires libhpdf.dll (included in the download). If
+the dll is not available the PDF button will not be shown.</p>
+
+
+
+<p>Also notice the changed appearance of the operation selection
+(ParamsSelectControl) and the pull down arrows on choose lists.</p>
+
+
+
+<h3>Report Presets</h3>
+
+
+
+<p>Report Params now have the ability to save and load
+options.&nbsp;</p>
+
+
+
+<img src="release071015/presets1.png" alt="" align="top" />
+&nbsp; &nbsp; &nbsp;<img src="release071015/presets2.png" alt="" />
+<p><span style="font-weight: bold;">Note</span>:
+Params must specify name: or the Presets button will not
+appear. This name is used to store the presets so it should be unique
+(e.g. the same as the name of the library record).&nbsp;</p>
+
+
+
+<h3>Notes</h3>
+
+
+
+<p>Users can now enter their own comments for each screen.</p>
+
+
+
+<p><img src="release071015/notes.png" alt="" /></p>
+
+
+
+<h3>CLucene Interface</h3>
+
+
+
+<p>Also thanks to Mauro Giubileo, Suneido now has an interface to
+<a href="http://clucene.sourceforge.net">CLucene</a>.
+Currently this is only used in Help books and in the Wiki.</p>
+
+
+
+<img src="release071015/bookclucene.png" alt="" /><br />
+
+
+
+Note: To use the CLucene search you must build the index using Build
+CLucene Index on the File menu of Book Edit. This will create a
+directory called "clindex_" $ bookname eg. "clindex_suneidoc". CLucene
+requires CLucene.dll (included in the download).<br />
+
+
+
+<h3>LibraryView Improvements</h3>
+
+
+
+<p>If you mouse over the icon on a tab, the icon will change to a
+close
+button that you can click on to close the tab. (Quicker than right
+clicking and choosing Close.)</p>
+
+
+
+<img src="release071015/tabclose.png" alt="" /><br />
+
+
+
+<p>If you close a tab by mistake (which you might do until you
+get used
+to this feature) you can now re-open a tab from the tab right click
+context menu.</p>
+
+
+
+<img src="release071015/tabreopen.png" alt="" /><br />
+
+
+
+A more major feature is the code "spell check". This will mark:<br />
+
+
+
+<ul>
+
+
+
+  <li>variable that are set but never used
+and&nbsp;parameters that are passed in but not used</li>
+
+
+
+  <li>variables that are used but are not initialized (or passed
+in as parameters)</li>
+
+
+
+</ul>
+
+
+
+<p>To suppress the warnings about unused parameters you can
+change the name to "unused" or follow them by /*unused*/</p>
+
+
+
+<p><img src="release071015/codecheck.png" alt="" /></p>
+
+
+
+<p>Note: These are "warnings" not errors, they do not stop the
+code from being compiled or run.</p>
+
+
+
+<h3>WorkSpace Output and Find Tabs</h3>
+
+
+
+<img src="release071015/workspaceoutput.png" alt="" /><img src="release071015/workspacefind.png" alt="" /><br />
+
+
+
+<h3>Header Tooltips</h3>
+
+
+
+<p>If a column heading is too narrow you can mouse over it to get
+a tooltip showing the full text. (This is in addition to the tooltips
+on the actual values within a list view.)</p>
+
+
+
+<img src="release071015/headertip.png" alt="" />
+<h3>BulletGraph and Sparkline</h3>
+
+
+
+<p>Again, thanks to Mauro Giubileo we now have bulletgraphs:</p>
+
+
+
+<img src="release071015/bulletgraph.png" alt="" />
+<br />
+
+
+
+<p>and sparklines:</p>
+
+
+
+<img src="release071015/sparkline.png" alt="" /><br />
+
+
+
+these can be displayed on screens or printed on reports.<br />
+
+
+
+<br />
+
+
+
+<br />
+
+
+
+</body>
+</html>

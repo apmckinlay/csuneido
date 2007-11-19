@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Suneido Sept. 2005 Release</title></head>
+<body style="color: rgb(0, 0, 0);" alink="#ee0000" link="#0000ee" vlink="#551a8b">
+<h1>Suneido Sept. 1, 2005 Release</h1>
+
+<p style="font-weight: bold;"><big>Compatibility</big></p>
+
+<ul>
+
+<li>
+    <span style="font-weight: bold;">NOTE</span>: the database format has changed
+you must dump with the old exe and load with the new one</li>
+<li>Database.Margin() is gone, and the corresponding +# command line option</li>
+<li>Date(string) now defaults to yMd rather than the Windows&nbsp;setting
+(but DateControl still uses Windows setting)</li><li>ButtonControl now trims its name</li>
+<li>Browse GetField, SetField, GetCurrentRecord now throw exceptions if there is no current record</li><li>the argument to Access_RecordChanged is now a list of members rather than a single member name</li>
+</ul>
+
+<p><span style="font-weight: bold;">Database margin</span> is no longer a fixed size. i.e. he amount the database can grow during one session is not limited.</p>
+
+<p><span style="font-weight: bold;">Date.Format</span> now translatable</p>
+<pre style="background-color: rgb(204, 255, 255);">Suneido.Language = #(name: "french", charset: "DEFAULT")<br>Date().LongDate()<br>&nbsp;&nbsp;&nbsp; =&gt; "mardi, ao&ucirc;t 30, 2005"</pre>
+
+<p style="background-color: transparent;"><span style="font-weight: bold;">AccessBrowseControl</span> - mostly functional but not well tested</p>
+
+<p><span style="font-weight: bold;">BrowseFlipFormControl</span> - only tested when embedded/linked in an AccessControl</p>
+
+<p><span style="font-weight: bold;">Reporter</span> - new Summarize facility</p>
+
+<p><img src="release050901/reportersummarize.png" alt=""></p>
+<p style="font-weight: bold;">LibraryView &gt; Tools &gt; Options</p>
+
+<img src="release050901/libviewoptions.png" alt="">
+<p style="font-weight: bold;">BookEdit &gt; Tools &gt; Options</p>
+
+<p><img src="release050901/bookeditoptions.png" alt=""></p>
+
+<p style="font-weight: bold;">IDE &gt; Reset Plugins<span style="font-weight: normal;"> - new</span></p>
+
+<p><img src="release050901/resetplugins.png" alt=""></p>
+
+<p style="font-weight: bold;">IDE &gt; Show Plugins<span style="font-weight: normal;"> - new</span></p>
+
+<p><img src="release050901/showplugins.png" alt=""></p>
+
+<p><span style="font-weight: bold;">CustomizableControl</span> - allows end users to add fields to a table and design a screen layout for them</p>
+
+<p><img src="release050901/customizable.png" alt=""></p>
+
+</body></html>

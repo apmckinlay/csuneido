@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Suneido April 2005 Release</title></head>
+<body>
+<h1>Suneido April 17, 2005 Release</h1>
+
+<h3>Plugins</h3>
+
+<ul>
+
+<li>The IDE, Refactor, and Help menus are now plugins</li>
+<li>You can add menu options to any window using plugins</li>
+<li>You can add these menus to your own windows</li>
+<li>You can add items to these menus</li>
+</ul>
+
+<h3>Refactoring</h3>
+
+<ul>
+
+<li>Convert Function to Class - converts a function to a class with a CallClass method<p>
+<img src="release050417/refactormenu.png" alt="">
+</p></li><li>Extract Method - automatically determines inputs and output from the code segment<p>
+<img src="release050417/extractmethod.png" alt="">
+</p></li>
+<li>Refactorings are now undo-able</li>
+</ul>
+
+<h3>Go To's</h3>
+
+<ul>
+
+<li>Ctrl+F3 and Shift+Ctrl+F3 find the next or previous occurrence of
+the selected text (or the current word if you don't have a selection)</li>
+<li>Go To Definition now works with methods. It will even find the
+definition of methods in superclasses. If the method isn't found you
+have the option to automatically create it (handy for "programming by intention").
+<p><img src="release050417/createmethod.png" alt=""></p>
+</li><li>For DLL's Go To Documentation will now use Google to bring up MSDN documentation</li><li>Go To Random Line of Code (currently plugged into the Refactor menu)</li>
+</ul>
+
+<h3>Testing Tools</h3>
+
+<ul>
+
+<li>New MockObject and FakeObject classes</li><li>New Run Failed button on TestRunner
+<p><img src="release050417/runfailed.png" alt=""></p></li><li>Added Create Test for Method (on LibraryView Tools menu)
+<p><img src="release050417/createtestmethod.png" alt=""></p></li><li>Run Associated Test (on LibraryView tab right-click
+context menu) now gives option to create the associated test if it
+doesn't exist<p><img src="release050417/createtest.png" alt=""></p></li>
+</ul>
+
+<h3>Design Patterns</h3>
+
+<ul>
+
+<li>New Singleton abstract base class for implementing the "singleton" design pattern</li>
+<li>New MockObject class to help write "unit tests"</li>
+<li>New FakeObject class useful for tests or for implementing the "null object" or "special case" design patterns</li>
+<li>New ServerEvalProxy for writing classes that exeute on the database server via ServerEval</li>
+</ul>
+
+<h3>Miscellaneous</h3>
+
+<ul>
+
+<li>New MapButtonControl used by AddressControl - brings up Google, Yahoo, or MapQuest map for location
+<p><img src="release050417/mapbutton.png" alt=""></p></li>
+<li>New number.SpanishToWords (contributed by Luis Alfredo)</li>
+<li>CheckBoxControls can now have tooltips
+<p><img src="release050417/checkboxtip.png" alt=""></p></li>
+<li>Improved auto-indent in ScintillaControl (e.g. in LibraryView)</li>
+<li>Added string.White? and string.LineCount</li>
+<li>New UrlEncode</li><li>Refresh delays in LibraryView and BookEdit can be controlled by redefining LibViewRefresh and BookEditRefresh</li><li>Dutch translation updates thanks to Jos Schaars</li>
+<li>French translation updates from Jean-Luc Chervais</li><li>updated to Scintilla 1.63</li>
+</ul>
+
+<h3>Application Components<br>
+</h3>
+
+<ul>
+
+<li>Added pessimistic locking to AccessControl
+<p><img src="release050417/anotheruser.png" alt=""></p></li>
+<li>Added ability to rename and delete reports from Reporter &gt; Open
+<p><img src="release050417/reporteropen.png" alt=""></p></li>
+<li>Added ability to print Select's on Reporter reports
+<p><img src="release050417/reporterselect.png" alt=""></p>
+<p><img src="release050417/reporterprintselect.png" alt=""></p></li>
+</ul>
+
+<h3>Language</h3>
+
+<ul>
+
+<li>try-catch no longer catches "block return"</li>
+<li>record.Copy() now maintains .New?() status</li>
+<li>Function?() now returns true for blocks</li>
+<li>@args now checks for too many arguments (warning: this may uncover errors in existing code)</li>
+<li>Added Sort!, Reverse!, and Partition! (Sort, Reverse, and Partition are deprecated)</li>
+</ul>
+
+<h3>Portability</h3>
+
+<ul>
+
+<li>GCC version now supports Image and RichEdit (e.g. WordPadControl)</li>
+<li>GCC now compiles with no warnings</li>
+</ul>
+
+</body></html>

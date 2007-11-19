@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Suneido March 20, 2006 Release</title></head>
+<body style="color: rgb(0, 0, 0);" alink="#ee0000" link="#0000ee" vlink="#551a8b">
+<h1>Suneido March 20, 2006 Release</h1>
+
+<p style="font-weight: bold;"><big>Compatibility</big></p>
+
+<ul>
+
+<li>
+    <span style="font-weight: bold;">NOTE</span>: the database format has changed
+you must dump with the old exe and load with the new one</li><li>Final() and Memory() are gone (but MemoryArena() is still available)</li>
+</ul>
+
+<p><span style="font-weight: bold;">Maximum database size</span> is now 16gb (instead of roughly 2gb)</p>
+<p><span style="font-weight: bold;">Heap size</span> is no longer limited to 64mb (changed to the Boehm-Demers-Weiser garbage collector)</p>
+<p><span style="font-weight: bold;">Suneido.exe</span> is now built with the free&nbsp;<span class="sb_messagebody">Microsoft Visual C++ Toolkit 2003 which has reduced&nbsp;exe size and improved&nbsp;speed</span></p>
+<p style="background-color: transparent;"><span style="font-weight: bold;">Automatic timestamp fields</span>
+- a field ending with "_TS " will automatically be set to a new
+timestamp every time a record is saved. Useful for tracking a "last
+updated" date/time and for a "version number" for checking if another
+user has updated the record.</p>
+<span style="font-weight: bold;">Windows Data Execution Protection (DEP)</span> can now be enabled without problems.<br>
+<br style="font-weight: bold;">
+<span style="font-weight: bold;">Added index checking</span> to suneido -check<br>
+<br>
+<span style="font-weight: bold;">Added tables to Wiki</span>.<br>
+<br>
+<span style="font-weight: bold;">GUI redraw improvements</span> to reduce flashing (from Jos Schaars)<br>
+<p style="background-color: transparent;"><span style="font-weight: bold;">AccessNavControl</span> - new (from Jos Schaars)</p>
+
+<span style="font-weight: bold;"></span><img style="width: 603px; height: 366px;" alt="AccessNav screenshot" src="release060320/accessnav.png"><br>
+<br>
+</body></html>
