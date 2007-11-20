@@ -1621,6 +1621,8 @@ void FunctionCompiler::expr0(bool newtype)
 		match(T_IDENTIFIER);
 		if (id == NEWNUM)
 			syntax_error();
+		if (! expecting_compound && token == T_NEWLINE && *scanner.peek() == '{')
+			match();
 		break ;
 	case '[' :
 		record();
