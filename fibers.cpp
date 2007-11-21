@@ -214,19 +214,12 @@ static void switchto(Fiber& fiber)
 	MySwitchToFiber(fiber.fiber);
 	}
 
-int yield_allowed = 0; // 0 = allowed
-
-//#include "circlog.h"
-
 void Fibers::yieldif()
 	{
 	// only yield if any messages waiting
 	// this includes time slice events
-	if (yield_allowed <= 0 && curfiber != &main_fiber && HIWORD(GetQueueStatus(QS_ALLEVENTS)))
-//{
-//circ_log(gcstring() + fiber_id + " yield");
+	if (curfiber != &main_fiber && HIWORD(GetQueueStatus(QS_ALLEVENTS)))
 		switchto(main_fiber);
-//}
 	}
 
 void Fibers::yield()
