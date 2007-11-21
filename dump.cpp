@@ -26,18 +26,36 @@
 #include "thedb.h"
 #include "ostreamfile.h"
 #include "ostreamstr.h"
+#include "fibers.h" // for yieldif
 
-static int dump1(OstreamFile& fout, const gcstring& table, bool output_name = true);
+static int dump1(OstreamFile& fout, int tran, const gcstring& table, bool output_name = true);
+
+struct Session
+	{
+	Session()
+		{
+		Fibers::priority(-1);
+		tran = theDB()->transaction(READONLY);
+		}
+	~Session()
+		{
+		theDB()->commit(tran);
+		Fibers::priority(0);
+		}
+	int tran;
+	};
 
 void dump(const gcstring& table)
 	{
+	Session session;
+	
 	if (table != "")
 		{
 		OstreamFile fout((table + ".su").str(), "wb");
 		if (! fout)
 			except("can't create " << table + ".su");
 		fout << "Suneido dump 1.0" << endl;
-		dump1(fout, table, false);
+		dump1(fout, session.tran, table, false);
 		}
 	else
 		{
@@ -52,13 +70,13 @@ void dump(const gcstring& table)
 			gcstring table = r.getstr(T_TABLE);
 			if (theDB()->is_system_table(table))
 				continue ;
-			dump1(fout, table);
+			dump1(fout, session.tran, table);
 			}
-		dump1(fout, "views");
+		dump1(fout, session.tran, "views");
 		}
 	}
 
-static int dump1(OstreamFile& fout, const gcstring& table, bool output_name)
+static int dump1(OstreamFile& fout, int tran, const gcstring& table, bool output_name)
 	{
 	fout << "====== "; // load needs this same length as "create"
 	if (output_name)
@@ -73,10 +91,10 @@ static int dump1(OstreamFile& fout, const gcstring& table, bool output_name)
 	int nrecs = 0;
 	Index* idx = theDB()->first_index(table);
 	verify(idx);
-	int tran = theDB()->transaction(READONLY);
 	for (Index::iterator iter = idx->begin(tran);
 		! iter.eof(); ++iter, ++nrecs)
 		{
+		Fibers::yieldif();
 		Record rec(iter.data());
 		if (squeeze)
 			{
@@ -91,7 +109,6 @@ static int dump1(OstreamFile& fout, const gcstring& table, bool output_name)
 		fout.write(&n, sizeof n);
 		fout.write(rec.ptr(), n);
 		}
-	theDB()->commit(tran);
 	int zero = 0;
 	fout.write(&zero, sizeof zero);
 	return nrecs;
