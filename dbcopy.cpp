@@ -158,6 +158,7 @@ void DbCopy::copy_records(const gcstring& table)
 	Mmoffset last = 0;
 	for (Index::iterator iter = idx->begin(tran); ! iter.eof(); ++iter)
 		{
+		Fibers::yieldif();
 		Record rec(iter.data());
 		if (squeeze)
 			{
@@ -182,7 +183,6 @@ void DbCopy::copy_records(const gcstring& table)
 			if (! first)
 				first = last;
 			}
-		Fibers::yieldif();
 		if (++i % 100 == 0)
 			{
 			verify(newdb.commit(wtran));
