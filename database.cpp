@@ -37,6 +37,7 @@
 #include "fatal.h"
 #include "checksum.h"
 #include "value.h"
+#include "fibers.h" // for yieldif for create_indexes
 
 const int DB_VERSION = 1; // increment this for non-compatible database format changes
 
@@ -458,6 +459,7 @@ void Database::create_indexes(Tbl* tbl, Mmoffset first, Mmoffset last)
 			{
 			if (iter.type() == MM_COMMIT)
 				continue ;
+			Fibers::yieldif();
 			verify(iter.type() == MM_DATA);
 			Mmoffset off = iter.offset() + sizeof (int);
 			Record r(mmf, off);
