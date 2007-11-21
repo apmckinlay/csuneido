@@ -31,22 +31,8 @@
 
 static Lisp<int> disabled_triggers;
 
-/* extern char* fiber_id;
-extern int yield_allowed;
-struct NoYield
-	{
-	NoYield()
-		{ verify(yield_allowed >= 0); ++yield_allowed; }
-	~NoYield()
-		{ verify(yield_allowed > 0); --yield_allowed; }
-	};
-#include "circlog.h"
- */
 void Tbl::user_trigger(int tran, const Record& oldrec, const Record& newrec)
 	{
-//NoYield noyield; // temporary to see if solves o&i problem
-//circ_log(gcstring() + fiber_id + " Trigger_" + name);
-	
 	if (tran == schema_tran)
 		return ;
 	if (! trigger)
