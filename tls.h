@@ -23,6 +23,9 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#ifdef ACE_SERVER
+#define TLS(var)
+#else
 void register_tls(void** pvar);
 
 struct Tls
@@ -34,5 +37,6 @@ struct Tls
 	};
 
 #define TLS(var) Tls tls_##var(reinterpret_cast<void**>(&var))
+#endif
 
 #endif

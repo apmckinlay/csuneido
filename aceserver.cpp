@@ -6,6 +6,37 @@
 #include "ace/Sock_Stream.h"
 #include "ace/Thread_Manager.h"
 
+#include "sockets.h"
+
+class AceSocketConnect : public SocketConnect
+	{
+public:
+	AceSocketConnect(ACE_SOCK_Stream* s) : sock(s)
+		{ }
+	virtual bool read(char* buf, int n)
+		{
+		sock->recv_n(buf, n);
+		}
+	virtual bool readline(char* buf, int n)
+		{ return false; } // not used
+	virtual void write(char* buf, int n)
+		{
+		iovec v[2];
+		v[0].iov_base = wrbuf.buffer();
+		v[0].iov_len = wrbuf.size();
+		v[1].iov_base = buf;
+		v[1].iov_len = n;
+		ACE_Time_Value timeout(10);
+		sock->sendv_n(v, 2, &timeout); // what if this fails?
+		}
+	virtual void close()
+		{ }
+	virtual char* getadr()
+		{ return ""; } // TODO: implement
+private:
+	ACE_SOCK_Stream* sock;
+	};
+
 class Acceptor : public ACE_Event_Handler
 	{
 public:
@@ -32,10 +63,13 @@ private:
 	ACE_SOCK_Acceptor acceptor_;
 	};
 
+class DbServer;
+DbServer* make_dbserver(SocketConnect*);
+
 class Handler : public ACE_Event_Handler
 	{
 public:
-	Handler(ACE_Reactor* r ) : ACE_Event_Handler(r)
+	Handler(ACE_Reactor* r) : ACE_Event_Handler(r), sc(&peer_), dbs(make_dbserver(&sc))
 		{ }
 	virtual int open();
 	virtual int handle_input(ACE_HANDLE = ACE_INVALID_HANDLE); // new connection to accept
@@ -45,11 +79,14 @@ public:
 	ACE_SOCK_Stream& peer()
 		{ return peer_; }
 private:
-	ACE_SOCK_Stream peer_;
+	ACE_SOCK_Stream peer_; // how does this get set ???
+	AceSocketConnect sc;
+	DbServer* dbs;
 	};
 
-int Acceptor::handle_input(ACE_HANDLE) // new connection to accept
+int Acceptor::handle_input(ACE_HANDLE)
 	{
+	// new connection creates new handler
 	Handler* handler;
 	ACE_NEW_RETURN(handler, Handler(reactor()), -1);
 	if (acceptor_.accept(handler->peer()) == -1)
@@ -119,13 +156,15 @@ int Handler::handle_close(ACE_HANDLE, ACE_Reactor_Mask)
 
 //===================================================================
 
+extern int su_port;
+
 template <class ACCEPTOR> class Server : public ACCEPTOR
 	{
 public:
 	Server(ACE_Reactor* reactor) : ACCEPTOR(reactor)
 		{
 		ACE_TYPENAME ACCEPTOR::PEER_ADDR server_addr;
-		u_short port = 4321;
+		u_short port = su_port;
 		int result = server_addr.set(port, (ACE_UINT32) INADDR_ANY);
 		if (result != -1)
 			result = ACCEPTOR::open(server_addr);
@@ -142,9 +181,7 @@ static ACE_THR_FUNC_RETURN event_loop(void* arg)
 	return 0;
 	}
 
-const int N_THREADS = 4;
-
-int main(int argc, char** argv)
+int aceserver(int n_threads)
 	{
 	ACE_TP_Reactor tp_reactor;
 	ACE_Reactor reactor(&tp_reactor);
@@ -152,6 +189,6 @@ int main(int argc, char** argv)
 	Server<Acceptor>* server = 0;
 	ACE_NEW_RETURN(server, Server<Acceptor>(&reactor), 1);
 	ACE_NEW_RETURN(quit_handler, Quit_Handler(&reactor), 1);
-	ACE_Thread_Manager::instance()->spawn_n(N_THREADS, event_loop, ACE_Reactor::instance());
+	ACE_Thread_Manager::instance()->spawn_n(n_threads, event_loop, ACE_Reactor::instance());
 	return ACE_Thread_Manager::instance()->wait();
 	}

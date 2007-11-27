@@ -47,12 +47,6 @@ static OstreamFile& log()
 #define LOG(stuff)
 #endif
 
-void SocketConnect::write(char* s)
-	{ write(s, strlen(s)); }
-
-void SocketConnect::writebuf(char* s)
-	{ writebuf(s, strlen(s)); }
-
 const int WM_SOCKET	= WM_USER + 1;
 
 // protect from garbage collection ==================================
@@ -205,52 +199,6 @@ static int CALLBACK listenWndProc(HWND hwnd, int msg, int wParam, int lParam)
 
 // asynch connection - used by server & async client ================
 
-const int BUFSIZE = 4000;
-
-class Buffer
-	{
-public:
-	explicit Buffer(int n = BUFSIZE);
-	char* reserve(int n);
-	void add(char* s, int n);
-	void remove(int n);
-	int size()
-		{ return siz; }
-	char* buffer()
-		{ return buf; }
-	void added(int n)
-		{ siz += n; }
-	void clear()
-		{ siz = 0; }
-private:
-	int cap;
-	int siz;
-	char* buf;
-	};
-
-Buffer::Buffer(int n) : cap(n), siz(0), buf(new(noptrs) char[n])
-	{ }
-
-char* Buffer::reserve(int n)
-	{
-	if (siz + n > cap)
-		buf = (char*) GC_realloc(buf, cap = 2 * cap + n);
-	return buf + siz;
-	}
-
-void Buffer::add(char* s, int n)
-	{
-	memcpy(reserve(n), s, n);
-	added(n);
-	}
-
-void Buffer::remove(int n)
-	{
-	verify(n <= siz);
-	memmove(buf, buf + n, siz - n);
-	siz -= n;
-	}
-
 class SocketConnectAsynch : public SocketConnect
 	{
 public:
@@ -274,8 +222,7 @@ private:
 	int sock;
 	void* arg;
 	bool close_pending;
-	Buffer rdbuf;
-	Buffer wrbuf;
+	SockBuf rdbuf;
 	enum { SIZE, LINE, CLOSED } mode;
 	void* blocked;
 	char* blocked_buf;
@@ -288,11 +235,6 @@ void SocketConnectAsynch::write(char* s, int n)
 	{
 	wrbuf.add(s, n);
 	event(FD_WRITE);
-	}
-
-void SocketConnectAsynch::writebuf(char* s, int n)
-	{
-	wrbuf.add(s, n);
 	}
 
 void SocketConnectAsynch::close()
@@ -480,15 +422,12 @@ public:
 	bool read(char* dst, int n);
 	bool readline(char* dst, int n);
 	void close();
-	void* getarg()
-		{ return 0; }
 	char* getadr()
 		{ return ""; }
 private:
 	int sock;
 	struct timeval tv;
-	Buffer rdbuf;
-	Buffer wrbuf;
+	SockBuf rdbuf;
 	};
 
 SocketConnect* socketClientSynch(char* addr, int port, int timeout)
@@ -513,11 +452,6 @@ SocketConnect* socketClientSynch(char* addr, int port, int timeout)
 		except("can't connect to " << addr << " port " << port);
 	
 	return new SocketConnectSynch(sock, timeout);
-	}
-
-void SocketConnectSynch::writebuf(char* buf, int n)
-	{
-	wrbuf.add(buf, n);
 	}
 
 #define FDS(fds, sock) struct fd_set fds; FD_ZERO(&fds); FD_SET(sock, &fds);

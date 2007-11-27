@@ -799,6 +799,7 @@ void builtins()
 	SuFalse = SuBoolean::f;
 	SuEmptyString = SuString::empty_string;
 
+#ifndef ACE_SERVER
 	// struct, dll, callback types
 	builtin("bool", new TypeBool);
 	builtin("char", new TypeInt<char>);
@@ -813,8 +814,9 @@ void builtins()
 	builtin("instring", new TypeString(true));
 	builtin("buffer", new TypeBuffer);
 	builtin("resource", new TypeResource);
-	builtin("mkrec", new MkRec);
+#endif
 
+	builtin("mkrec", new MkRec);
 	builtin("False", SuFalse);
 	builtin("True", SuTrue);
 	builtin("Object", root_class = new RootClass);
@@ -826,10 +828,10 @@ void builtins()
 	builtin("Cursor", new CursorClass);
 	builtin("Record", new SuRecord);
 	builtin("Date", SuDate::suclass());
-	builtin("SocketServer", suSocketServer());
 	extern Value su_file();
 	builtin("File", su_file());
 #ifndef ACE_SERVER
+	builtin("SocketServer", suSocketServer());
 	extern Value su_image();
 	builtin("Image", su_image());
 	extern Value su_runpiped();

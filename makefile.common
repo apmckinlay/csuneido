@@ -8,7 +8,6 @@ builtinargs.cpp \
 builtins.cpp \
 cachemap.cpp \
 call.cpp \
-callback.cpp \
 catstr.cpp \
 checksum.cpp \
 circlog.cpp \
@@ -29,7 +28,6 @@ dbserverdata.cpp \
 dump.cpp \
 errlog.cpp \
 except.cpp \
-fatal.cpp \
 func.cpp \
 gcstring.cpp \
 getnum.cpp \
@@ -84,8 +82,8 @@ row.cpp \
 scanner.cpp \
 sesviews.cpp \
 slots.cpp \
+sockbuf.cpp \
 strdup.cpp \
-structure.cpp \
 sublock.cpp \
 suboolean.cpp \
 suclass.cpp \
@@ -114,10 +112,12 @@ value.cpp
 
 WINSOURCES=\
 alertwin.cpp \
+callback.cpp \
 dbhttp.cpp \
 dbmsremote.cpp \
 debug.cpp \
 dll.cpp \
+fatal.cpp \
 fibers.cpp \
 getmacadr.cpp \
 msgloop.cpp \
@@ -130,6 +130,7 @@ runpiped.cpp \
 scistyle.cpp \
 sockets.cpp \
 splash.cpp \
+structure.cpp \
 sucomobject.cpp \
 suimage.cpp \
 sunapp.cpp \

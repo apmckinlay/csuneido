@@ -23,28 +23,33 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "sockbuf.h"
+
 // abstract base class (interface) for socket connections
 class SocketConnect
 	{
 public:
 	virtual bool read(char* buf, int n) = 0;
 	virtual bool readline(char* buf, int n) = 0;
-	virtual void writebuf(char* buf, int n) = 0;
 	virtual void write(char* buf, int n) = 0;
+	void writebuf(char* buf, int n)
+		{ wrbuf.add(buf, n); }
 	void write(char* s);
 	void writebuf(char* s);
 	virtual void close() = 0;
-	virtual void* getarg() = 0;
+	virtual void* getarg()
+		{ return 0; }
 	virtual char* getadr() = 0;
+
+	SockBuf wrbuf;
 	};
 
-typedef void (_stdcall *pNewServer)(void*);
-
+#ifndef ACE_SERVER
 // start a socket server (to listen)
 // calls supplied newserver function for connections
+typedef void (_stdcall *pNewServer)(void*);
 void socketServer(char* title, int port, pNewServer newserver, void* arg, bool exit);
 
-#ifndef ACE_SERVER
 // create a synchronous (waits) socket connection
 SocketConnect* socketClientSynch(char* addr, int port, int timeout = 9999);
 

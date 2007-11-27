@@ -148,6 +148,16 @@ const bool SEND_FIELDS = true;
 
 Dbms* DbServer::dbms = 0;
 
+int su_port = 3147;
+
+static int dbserver_clock;
+
+#ifdef ACE_SERVER
+DbServer* make_dbserver(SocketConnect* sc)
+	{
+	return new DbServer(sc);
+	};
+#else
 static void _stdcall dbserver(void* sc)
 	{
 	try
@@ -160,8 +170,6 @@ static void _stdcall dbserver(void* sc)
 	Fibers::end();
 	}
 
-int dbserver_clock;
-
 void DbServer::timer_proc()
 	{
 	++dbserver_clock;
@@ -170,14 +178,13 @@ void DbServer::timer_proc()
 			dbservers[i]->close();
 	}
 
-int su_port = 3147;
-
 void start_dbserver(char* name)
 	{
 	socketServer(name, su_port, dbserver, 0, true);
 	extern void dbserver_timer(void (*pfn)());
 	dbserver_timer(DbServer::timer_proc);
 	}
+#endif
 
 DbServer::DbServer(SocketConnect* s) 
 	: sc(s), textmode(true), data(DbServerData::create()), session_views(0)
@@ -187,6 +194,11 @@ DbServer::DbServer(SocketConnect* s)
 	fiber_id = session_id = sc->getadr();
 	dbserver_connections().add(session_id);
 	dbservers.push_back(this);
+	
+	os << "Suneido Database Server (" << build_date << ")\r\n";
+	write(os.str());
+
+	proc = new Proc;
 	}
 
 DbServer::~DbServer()
@@ -200,11 +212,6 @@ DbServer::~DbServer()
 
 void DbServer::run()
 	{
-	os << "Suneido Database Server (" << build_date << ")\r\n";
-	write(os.str());
-
-	proc = new Proc;
-
 	const int bufsize = 32000;
 	char buf[bufsize];
 	while (sc->readline(buf, bufsize))
