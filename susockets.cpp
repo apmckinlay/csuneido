@@ -96,7 +96,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		if (nargs != 1)
 			except("usage: socketClient.Writeline(string)");
 		gcstring s = proc->stack.top().gcstr();
-		sc->write(s.buf(), s.size());
+		sc->writebuf(s.buf(), s.size());
 		sc->write("\r\n", 2);
 		return Value();
 		}
