@@ -59,19 +59,19 @@ SuObject& dbserver_connections()
 	return ob;
 	}
 
-class DbServer // one instance per connection
+class DbServerImp : public DbServer // one instance per connection
 	{
 public:
-	DbServer(SocketConnect* s);
-	~DbServer();
+	DbServerImp(SocketConnect* s);
+	~DbServerImp();
 	void run();
+	void request(char* buf);
 	void close()
 		{
 		sc->close();
 		}
 	static void timer_proc();
 private:
-	void request(char* buf);
 	static void abort_fn(int tran)
 		{
 		dbms->abort(tran);
@@ -142,27 +142,31 @@ private:
 	int last_activity;
 	};
 
-static std::vector<DbServer*> dbservers;
+static std::vector<DbServerImp*> dbservers;
 
 const bool SEND_FIELDS = true;
 
-Dbms* DbServer::dbms = 0;
+Dbms* DbServerImp::dbms = 0;
 
 int su_port = 3147;
 
 static int dbserver_clock;
 
 #ifdef ACE_SERVER
-DbServer* make_dbserver(SocketConnect* sc)
+#include "ostreamstd.h"
+//~ #undef LOG
+//~ #define LOG(stuff) cout << stuff << endl
+
+DbServer* DbServer::make(SocketConnect* sc)
 	{
-	return new DbServer(sc);
+	return new DbServerImp(sc);
 	};
 #else
 static void _stdcall dbserver(void* sc)
 	{
 	try
 		{
-		DbServer dbs((SocketConnect*) sc);
+		DbServerImp dbs((SocketConnect*) sc);
 		dbs.run();
 		}
 	catch (...)
@@ -170,7 +174,7 @@ static void _stdcall dbserver(void* sc)
 	Fibers::end();
 	}
 
-void DbServer::timer_proc()
+void DbServerImp::timer_proc()
 	{
 	++dbserver_clock;
 	for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
@@ -182,26 +186,26 @@ void start_dbserver(char* name)
 	{
 	socketServer(name, su_port, dbserver, 0, true);
 	extern void dbserver_timer(void (*pfn)());
-	dbserver_timer(DbServer::timer_proc);
+	dbserver_timer(DbServerImp::timer_proc);
 	}
 #endif
 
-DbServer::DbServer(SocketConnect* s) 
+DbServerImp::DbServerImp(SocketConnect* s) 
 	: sc(s), textmode(true), data(DbServerData::create()), session_views(0)
 	{
 	if (! dbms)
-		dbms = dbms_local();
+		dbms = ::dbms();
 	fiber_id = session_id = sc->getadr();
 	dbserver_connections().add(session_id);
 	dbservers.push_back(this);
-	
+
 	os << "Suneido Database Server (" << build_date << ")\r\n";
 	write(os.str());
 
 	proc = new Proc;
 	}
 
-DbServer::~DbServer()
+DbServerImp::~DbServerImp()
 	{
 	dbservers.erase(std::remove(dbservers.begin(), dbservers.end(), this));
 	dbserver_connections().remove1(session_id);
@@ -210,11 +214,10 @@ DbServer::~DbServer()
 	sc->close();
 	}
 
-void DbServer::run()
+void DbServerImp::run()
 	{
-	const int bufsize = 32000;
-	char buf[bufsize];
-	while (sc->readline(buf, bufsize))
+	char buf[32000];
+	while (sc->readline(buf, sizeof buf))
 		request(buf);
 	}
 
@@ -228,12 +231,12 @@ inline bool match(char* s, char* pre)
 struct Cmd
 	{
 	char* cmd;
-	char* (DbServer::*fn)(char* buf);
+	char* (DbServerImp::*fn)(char* buf);
 	};
 
-#define CMD(name)	{ #name, &DbServer::cmd_##name }
+#define CMD(name)	{ #name, &DbServerImp::cmd_##name }
 
-void DbServer::request(char* buf)
+void DbServerImp::request(char* buf)
 	{
 	static Cmd cmds[] =
 		{ // most frequently used first
@@ -332,24 +335,24 @@ static char* bool_result(bool result)
 	return (char*) (result ? "t\r\n" : "f\r\n");
 	}
 
-char* DbServer::cmd_text(char* req)
+char* DbServerImp::cmd_text(char* req)
 	{
 	textmode = true;
 	return "OK\r\n";
 	}
 
-char* DbServer::cmd_binary(char* req)
+char* DbServerImp::cmd_binary(char* req)
 	{
 	textmode = false;
 	return "OK\r\n";
 	}
 
-char* DbServer::cmd_admin(char* s)
+char* DbServerImp::cmd_admin(char* s)
 	{
 	return bool_result(dbms->admin(s));
 	}
 
-char* DbServer::cmd_cursor(char* s)
+char* DbServerImp::cmd_cursor(char* s)
 	{
 	int qlen = ck_getnum('Q', s);
 	char* buf = (char*) alloca(qlen + 1);
@@ -360,7 +363,7 @@ char* DbServer::cmd_cursor(char* s)
 	return os.str();
 	}
 
-char* DbServer::cmd_close(char* s)
+char* DbServerImp::cmd_close(char* s)
 	{
 	int n;
 	bool ok = false;
@@ -371,7 +374,7 @@ char* DbServer::cmd_close(char* s)
 	return (char*) (ok ? "OK\r\n" : "ERR invalid CLOSE\r\n");
 	}
 
-char* DbServer::cmd_transaction(char* s)
+char* DbServerImp::cmd_transaction(char* s)
 	{
 	Dbms::TranType mode;
 	if (match(s, "read"))
@@ -386,7 +389,7 @@ char* DbServer::cmd_transaction(char* s)
 	return os.str();
 	}
 
-char* DbServer::cmd_request(char* s)
+char* DbServerImp::cmd_request(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	if (! textmode)
@@ -402,7 +405,7 @@ char* DbServer::cmd_request(char* s)
 	return os.str();
 	}
 
-char* DbServer::cmd_query(char* s)
+char* DbServerImp::cmd_query(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	int qlen = ck_getnum('Q', s);
@@ -415,7 +418,7 @@ char* DbServer::cmd_query(char* s)
 	return os.str();
 	}
 
-char* DbServer::cmd_libget(char* name)
+char* DbServerImp::cmd_libget(char* name)
 	{
 	Lisp<gcstring> srcs = dbms->libget(name);
 
@@ -439,37 +442,37 @@ char* DbServer::cmd_libget(char* name)
 	return 0;
 	}
 
-char* DbServer::cmd_libraries(char*)
+char* DbServerImp::cmd_libraries(char*)
 	{
 	os << dbms->libraries() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_tranlist(char*)
+char* DbServerImp::cmd_tranlist(char*)
 	{
 	os << data->get_trans() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_size(char*)
+char* DbServerImp::cmd_size(char*)
 	{
 	os << 'S' << mmoffset_to_int(dbms->size()) << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_tempdest(char*)
+char* DbServerImp::cmd_tempdest(char*)
 	{
 	os << 'D' << dbms->tempdest() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_cursors(char*)
+char* DbServerImp::cmd_cursors(char*)
 	{
 	os << 'N' << dbms->cursors() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::value_result(Value x)
+char* DbServerImp::value_result(Value x)
 	{
 	int n = x.packsize();
 	os << 'P' << n << "\r\n";
@@ -480,12 +483,12 @@ char* DbServer::value_result(Value x)
 	return 0;
 	}
 
-char* DbServer::cmd_connections(char*)
+char* DbServerImp::cmd_connections(char*)
 	{
 	return value_result(&dbserver_connections());
 	}
 
-char* DbServer::cmd_sessionid(char* s)
+char* DbServerImp::cmd_sessionid(char* s)
 	{
 	if (*s)
 		{
@@ -497,19 +500,19 @@ char* DbServer::cmd_sessionid(char* s)
 	return os.str();
 	}
 
-char* DbServer::cmd_refresh(char* s)
+char* DbServerImp::cmd_refresh(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	return bool_result(dbms->refresh(tran));
 	}
 
-char* DbServer::cmd_final(char*)
+char* DbServerImp::cmd_final(char*)
 	{
 	os << 'N' << dbms->final() << "\r\n";
 	return os.str();
 	}
 
-DbmsQuery* DbServer::q_or_c(char*& s)
+DbmsQuery* DbServerImp::q_or_c(char*& s)
 	{
 	DbmsQuery* q = 0;
 	int n;
@@ -522,28 +525,28 @@ DbmsQuery* DbServer::q_or_c(char*& s)
 	return q;
 	}
 
-char* DbServer::cmd_explain(char* s)
+char* DbServerImp::cmd_explain(char* s)
 	{
 	DbmsQuery* q = q_or_c(s);
 	os << q->explain() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_header(char* s)
+char* DbServerImp::cmd_header(char* s)
 	{
 	DbmsQuery* q = q_or_c(s);
 	os << q->header().schema() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_order(char* s)
+char* DbServerImp::cmd_order(char* s)
 	{
 	DbmsQuery* q = q_or_c(s);
 	os << q->order() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_keys(char* s)
+char* DbServerImp::cmd_keys(char* s)
 	{
 	getnum('T', s); // not used
 	DbmsQuery* q = q_or_c(s);
@@ -551,7 +554,7 @@ char* DbServer::cmd_keys(char* s)
 	return os.str();
 	}
 
-DbmsQuery* DbServer::q_or_tc(char*& s)
+DbmsQuery* DbServerImp::q_or_tc(char*& s)
 	{
 	DbmsQuery* q = 0;
 	int n, t;
@@ -568,7 +571,7 @@ DbmsQuery* DbServer::q_or_tc(char*& s)
 	return q;
 	}
 
-char* DbServer::cmd_get(char* s)
+char* DbServerImp::cmd_get(char* s)
 	{
 	Dir dir;
 	if (*s == '+')
@@ -583,14 +586,14 @@ char* DbServer::cmd_get(char* s)
 	return get(q, dir);
 	}
 
-char* DbServer::get(DbmsQuery* q, Dir dir)
+char* DbServerImp::get(DbmsQuery* q, Dir dir)
 	{
 	Row row = q->get(dir);
 	Header hdr = q->header();
 	return row_result(row, hdr);
 	}
 
-char* DbServer::row_result(const Row& row, const Header& hdr, bool sendhdr)
+char* DbServerImp::row_result(const Row& row, const Header& hdr, bool sendhdr)
 	{
 	if (nil(row.data))
 		return "EOF\r\n";
@@ -641,7 +644,7 @@ char* DbServer::row_result(const Row& row, const Header& hdr, bool sendhdr)
 		}
 	}
 
-char* DbServer::cmd_get1(char* s)
+char* DbServerImp::cmd_get1(char* s)
 	{
 	Dir dir = NEXT;
 	bool one = false;
@@ -667,7 +670,7 @@ char* DbServer::cmd_get1(char* s)
 	return row_result(row, hdr, true);
 	}
 
-char* DbServer::cmd_rewind(char* s)
+char* DbServerImp::cmd_rewind(char* s)
 	{
 	getnum('T', s); // not used
 	DbmsQuery* q = q_or_c(s);
@@ -675,7 +678,7 @@ char* DbServer::cmd_rewind(char* s)
 	return "OK\r\n";
 	}
 
-char* DbServer::cmd_output(char* s)
+char* DbServerImp::cmd_output(char* s)
 	{
 	DbmsQuery* q = q_or_tc(s);
 
@@ -687,7 +690,7 @@ char* DbServer::cmd_output(char* s)
 	return bool_result(q->output(rec));
 	}
 
-char* DbServer::cmd_erase(char* s)
+char* DbServerImp::cmd_erase(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	Mmoffset recadr = int_to_mmoffset(ck_getnum('A', s));
@@ -695,7 +698,7 @@ char* DbServer::cmd_erase(char* s)
 	return "OK\r\n";
 	}
 
-char* DbServer::cmd_update(char* s)
+char* DbServerImp::cmd_update(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	Mmoffset recadr = int_to_mmoffset(ck_getnum('A', s));
@@ -709,14 +712,14 @@ char* DbServer::cmd_update(char* s)
 	return os.str();
 	}
 
-char* DbServer::cmd_recordok(char* s)
+char* DbServerImp::cmd_recordok(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	Mmoffset recadr = int_to_mmoffset(ck_getnum('A', s));
 	return bool_result(dbms->record_ok(tran, recadr));
 	}
 
-char* DbServer::cmd_commit(char* s)
+char* DbServerImp::cmd_commit(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	data->end_transaction(tran);
@@ -730,7 +733,7 @@ char* DbServer::cmd_commit(char* s)
 		}
 	}
 
-char* DbServer::cmd_abort(char* s)
+char* DbServerImp::cmd_abort(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	data->end_transaction(tran);
@@ -738,7 +741,7 @@ char* DbServer::cmd_abort(char* s)
 	return "OK\r\n";
 	}
 
-char* DbServer::cmd_timestamp(char* s)
+char* DbServerImp::cmd_timestamp(char* s)
 	{
 	os << dbms->timestamp() << "\r\n";
 	return os.str();
@@ -746,7 +749,7 @@ char* DbServer::cmd_timestamp(char* s)
 
 #include "dump.h"
 
-char* DbServer::cmd_dump(char* s)
+char* DbServerImp::cmd_dump(char* s)
 	{
 	dbms->dump(s);
 	return "OK\r\n";
@@ -754,13 +757,13 @@ char* DbServer::cmd_dump(char* s)
 
 #include "dbcopy.h"
 
-char* DbServer::cmd_copy(char* s)
+char* DbServerImp::cmd_copy(char* s)
 	{
 	dbms->copy(s);
 	return "OK\r\n";
 	}
 
-char* DbServer::cmd_run(char* s)
+char* DbServerImp::cmd_run(char* s)
 	{
 	Value x = dbms->run(s);
 	if (! x)
@@ -776,13 +779,13 @@ char* DbServer::cmd_run(char* s)
 		}
 	}
 
-char* DbServer::cmd_log(char* s)
+char* DbServerImp::cmd_log(char* s)
 	{
 	errlog(session_id, s);
 	return "OK\r\n";
 	}
 
-char* DbServer::cmd_kill(char* s)
+char* DbServerImp::cmd_kill(char* s)
 	{
 	int n_killed = 0;
 	for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase

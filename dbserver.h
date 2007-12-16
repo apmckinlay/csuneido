@@ -23,6 +23,19 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#ifndef ACE_SERVER
 void start_dbserver(char* name);
+#endif
+
+class SocketConnect;
+
+class DbServer
+	{
+public:
+	static DbServer* make(SocketConnect*);
+	virtual void request(char* buf) = 0;
+	virtual ~DbServer()
+		{ }
+	};
 
 #endif
