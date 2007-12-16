@@ -23,6 +23,7 @@
 #include "gc.h"
 #include <memory.h>
 
+#ifdef ACE_SERVER
 static bool gc_init_done = false;
 #define INIT_FIRST_TIME \
 	if (! gc_init_done) \
@@ -30,6 +31,9 @@ static bool gc_init_done = false;
 		gc_init_done = true; \
 		GC_init(); \
 		}
+#else
+#define INIT_FIRST_TIME
+#endif
 
 NoPtrs noptrs;
 
