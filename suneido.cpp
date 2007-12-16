@@ -126,9 +126,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	if (cmdlineoptions.install)
 		{
 		// default to server
-		const char* add = cmdlineoptions.action != CLIENT &&
-			cmdlineoptions.action != SERVER ? "-s" : "";
-		InstallService(cmdlineoptions.install, add);
+		InstallService(cmdlineoptions.install);
 		exit(EXIT_SUCCESS);
 		}
 	else if (cmdlineoptions.service)
