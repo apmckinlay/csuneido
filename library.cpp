@@ -169,7 +169,7 @@ Value su_libraries()
 	}
 PRIM(su_libraries, "Libraries()");
 
-// low level libget (local or server)
+// low level libget used by dbmslocal
 
 #include "database.h"
 #include "thedb.h"
