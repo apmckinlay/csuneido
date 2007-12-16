@@ -36,14 +36,16 @@ char* get_dbms_server_ip()
 	return server_ip;
 	}
 
+#ifndef ACE_SERVER
 Dbms* thedbms; // this should only be used by fibers
 TLS(thedbms);
+#endif
 
 Dbms* dbms()
 	{
 #ifndef ACE_SERVER
 	if (server_ip)
-		{
+		{ // client
 		if (! thedbms)
 			thedbms = (Fibers::current() == Fibers::main() ? 
 				dbms_remote(server_ip) : dbms_remote_asynch(server_ip));
