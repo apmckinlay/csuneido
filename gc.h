@@ -27,6 +27,7 @@ typedef unsigned int size_t;
 
 extern "C"
 {
+void GC_init();
 void* GC_malloc(size_t n);
 void* GC_malloc_atomic(size_t n);
 void* GC_realloc(void* p, size_t n);
