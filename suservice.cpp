@@ -133,7 +133,7 @@ struct ServiceHandle
 	SC_HANDLE handle;
 	};
 
-void InstallService(char* args, const char* add)
+void InstallService(char* args)
 	{
 	ServiceHandle scm = OpenSCManager(0, 0, SC_MANAGER_CREATE_SERVICE);
 	if (! scm)
@@ -143,7 +143,7 @@ void InstallService(char* args, const char* add)
 		}
 	
 	OstreamStr cmd(200);
-	cmd << exe_path()->path << " -service " << add << " " << args;
+	cmd << exe_path()->path << " -service " << args;
 
 	ServiceHandle myService = CreateService(scm,
 		exe_path()->name,

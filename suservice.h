@@ -24,7 +24,7 @@
 #define SUSERVICE_H
 
 void CallServiceDispatcher(char* args);
-void InstallService(char* args, const char* add);
+void InstallService(char* args);
 void UnInstallService();
 
 #endif	// SUSERVICE_H
