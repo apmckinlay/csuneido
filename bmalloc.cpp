@@ -23,26 +23,38 @@
 #include "gc.h"
 #include <memory.h>
 
+static bool gc_init_done = false;
+#define INIT_FIRST_TIME \
+	if (! gc_init_done) \
+		{ \
+		gc_init_done = true; \
+		GC_init(); \
+		}
+
 NoPtrs noptrs;
 
 void* operator new(size_t n)
 	{
+	INIT_FIRST_TIME
 	return GC_malloc(n);
 	}
 
 void* operator new(size_t n, NoPtrs)
 	{ 
+	INIT_FIRST_TIME
 	return GC_malloc_atomic(n); 
 	}
 
 void* operator new[](size_t n)
 	{ 
+	INIT_FIRST_TIME
 	return GC_malloc(n); 
 	}
 	
 void* operator new[](size_t n, NoPtrs)
 	{ 
-	return GC_malloc_atomic(n); 
+	INIT_FIRST_TIME
+	return GC_malloc_atomic(n);
 	}
 
 void operator delete(void*)
