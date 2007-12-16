@@ -33,7 +33,7 @@ public:
 	CmdLineOptions() :
 		action(NONE), argstr(0), argint(0), splash(true), unattended(false),
 		local_library(false), no_exception_handling(false), install(0), service(0),
-		check_start(false), compact_exit(false)
+		check_start(false), compact_exit(false), ignore_version(false)
 		{ }
 	char* parse(char* str);
 	
@@ -49,6 +49,7 @@ public:
 	char* service;
 	bool check_start;
 	bool compact_exit;
+	bool ignore_version;
 
 private:
 	int get_option();

@@ -37,6 +37,7 @@
 #include "value.h"
 #include "sustring.h"
 #include "gc.h"
+#include "cmdlineoptions.h" // for ignore_version
 
 //#define LOGGING
 #ifdef LOGGING
@@ -394,7 +395,8 @@ DbmsRemote::DbmsRemote(SocketConnect* s) : sc(s)
 	char buf[80];
 	sc.readline(buf, sizeof buf);
 	os << "Suneido Database Server (" << build_date << ")\r\n";
-	if (0 != strcmp(buf, os.str()))
+	if (! cmdlineoptions.ignore_version && 
+		0 != strcmp(buf, os.str()))
 		except("connect failed\nexpected: " << os.str() << "\ngot: " << buf);
 	sc.write("BINARY\r\n");
 	sc.ck_ok();

@@ -30,7 +30,7 @@
 enum { PORT = AFTER_ACTIONS, NOSPLASH, UNATTENDED, LOCAL_LIBRARY,
 	NO_EXCEPTION_HANDLING, NO_GARBAGE_COLLECTION,
 	INSTALL_SERVICE, SERVICE,
-	CHECK_START, COMPACT_EXIT };
+	CHECK_START, COMPACT_EXIT, IGNORE_VERSION };
 
 char* CmdLineOptions::parse(char* str)
 	{
@@ -109,6 +109,9 @@ char* CmdLineOptions::parse(char* str)
 		case COMPACT_EXIT :
 			compact_exit = true;
 			break ;
+		case IGNORE_VERSION :
+			ignore_version = true;
+			break ;
 		case HELP :
 			alert("options:\n"
 				"	-check\n"
@@ -130,7 +133,7 @@ char* CmdLineOptions::parse(char* str)
 				"	-l[ocal]l[ibrary]\n"
 				"	-e[xception]h[andling]\n"
 				"	-g[arbage]c[ollection]\n"
-				"	-i[nstall]s[ervice][=\"args\"]\n"
+				"	-i[nstall]s[ervice] [options]\n"
 				"	-u[ninstall]s[ervice]\n"
 				);
 			exit(EXIT_SUCCESS);
@@ -165,7 +168,8 @@ static struct { char* str; int num; } options[] = {
 	{ "-version", VERSION }, { "-v", VERSION },
 	{ "-is", INSTALL_SERVICE }, { "-installservice", INSTALL_SERVICE },
 	{ "-us", UNINSTALL_SERVICE }, { "-uninstallservice", UNINSTALL_SERVICE },
-	{ "-unattended", UNATTENDED }, { "-u", UNATTENDED }
+	{ "-unattended", UNATTENDED }, { "-u", UNATTENDED },
+	{ "-ignoreversion", IGNORE_VERSION }, { "-iv", IGNORE_VERSION }
 	};
 const int noptions = sizeof options / sizeof options[0];
 
