@@ -41,6 +41,7 @@ public:
 		{ return 0; }
 	virtual char* getadr() = 0;
 
+	SockBuf rdbuf;
 	SockBuf wrbuf;
 	};
 

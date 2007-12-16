@@ -222,7 +222,6 @@ private:
 	int sock;
 	void* arg;
 	bool close_pending;
-	SockBuf rdbuf;
 	enum { SIZE, LINE, CLOSED } mode;
 	void* blocked;
 	char* blocked_buf;
@@ -427,7 +426,6 @@ public:
 private:
 	int sock;
 	struct timeval tv;
-	SockBuf rdbuf;
 	};
 
 SocketConnect* socketClientSynch(char* addr, int port, int timeout)
