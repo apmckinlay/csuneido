@@ -833,6 +833,16 @@ void FunctionCompiler::body()
 		}
 	}
 
+struct Save
+	{
+	Save(bool& cur) : current(cur)
+		{ save = current; }
+	~Save()
+		{ current = save; }
+	bool& current;
+	bool save;
+	};
+
 void FunctionCompiler::block()
 	{
 	int first = locals.size();
@@ -885,6 +895,7 @@ void FunctionCompiler::block()
 	bool prev_inblock = inblock;
 	inblock = true; // for break & continue
 	
+	{ Save save_it_used(it_used);
 	it_used = false;
 	body();
 	
@@ -896,7 +907,7 @@ void FunctionCompiler::block()
 			code[nparams_loc] = 1;
 		else
 			scanner.visitor->local(scanner.prev, first, false); // mark as used to prevent code warning
-	
+	}
 	// hide block parameter locals from rest of code
 	// TODO: cleaner way to hide e.g. parallel bool vector to mark as hidden
 	for (int i = first; i < last; ++i)
