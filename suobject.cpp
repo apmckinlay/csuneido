@@ -474,19 +474,29 @@ Value SuObject::Copy(short nargs, short nargnames, ushort* argnames, int each)
 	return new SuObject(*this);
 	}
 
-Value SuObject::Size(short nargs, short nargnames, ushort* argnames, int each)
+static void list_named(short nargs, short nargnames, ushort* argnames, 
+	bool& listq, bool& namedq, char* usage)
 	{
+	if (nargs > nargnames || nargs > 2)
+		except(usage);
 	static ushort list = ::symnum("list");
 	static ushort named = ::symnum("named");
+	listq = namedq = (nargs == 0 || ! (ARG(0) == SuTrue));
+	for (int i = 0; i < nargs && i < nargnames; ++i)
+		if (argnames[i] == list)
+			listq = (ARG(i) == SuTrue);
+		else if (argnames[i] == named)
+			namedq = (ARG(i) == SuTrue);
+		else
+			except(usage);
+	}
 
-	if (nargs == 0)
-		return size();
-	else if (nargs == 1 && nargnames == 1 && argnames[0] == list)
-		return vec.size();
-	else if (nargs == 1 && nargnames == 1 && argnames[0] == named)
-		return vec.size();
-	else
-		except("usage: object.Size() or .Size(list:) or .Size(named:)");
+Value SuObject::Size(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	bool listq, namedq;
+	list_named(nargs, nargnames, argnames, listq, namedq,
+		"usage: object.Size() or .Size(list:) or .Size(named:)");
+	return (listq ? vec.size() : 0) + (namedq ? map.size() : 0);
 	}
 
 Value SuObject::Iter(short nargs, short nargnames, ushort* argnames, int each)
@@ -851,23 +861,6 @@ Value SuObject::IsReadonly(short nargs, short nargnames, ushort* argnames, int e
 	return readonly ? SuTrue : SuFalse;
 	}
 
-static void list_named(short nargs, short nargnames, ushort* argnames, 
-	bool& listq, bool& namedq, char* usage)
-	{
-	if (nargs > nargnames || nargs > 2)
-		except(usage);
-	static ushort list = ::symnum("list");
-	static ushort named = ::symnum("named");
-	listq = namedq = (nargs == 0);
-	for (int i = 0; i < nargs && i < nargnames; ++i)
-		if (argnames[i] == list)
-			listq = (ARG(i) == SuTrue);
-		else if (argnames[i] == named)
-			namedq = (ARG(i) == SuTrue);
-		else
-			except(usage);
-	}
-
 #include "suseq.h"
 
 Value SuObject::Members(short nargs, short nargnames, ushort* argnames, int each)
@@ -880,24 +873,18 @@ Value SuObject::Members(short nargs, short nargnames, ushort* argnames, int each
 
 Value SuObject::Values(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	static ushort list = ::symnum("list");
-	static ushort named = ::symnum("named");
-
-	if (nargs == 0)
-		return new SuSeq(new SuObjectIter(this, ITER_VALUES));
-	else if (nargs == 1 && nargnames == 1 && argnames[0] == list)
-		return new SuSeq(new SuObjectIter(this, ITER_VALUES, true, false));
-	else if (nargs == 1 && nargnames == 1 && argnames[0] == named)
-		return new SuSeq(new SuObjectIter(this, ITER_VALUES, false, true));
-	else
-		except("usage: object.Values() or .Values(list:) or .Values(named:)");
+	bool listq, namedq;
+	list_named(nargs, nargnames, argnames, listq, namedq,
+		"usage: object.Values() or .Values(list:) or .Values(named:)");
+	return new SuSeq(new SuObjectIter(this, ITER_VALUES, listq, namedq));
 	}
 
 Value SuObject::Assocs(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: object.Assocs()");
-	return new SuSeq(new SuObjectIter(this, ITER_ASSOCS));
+	bool listq, namedq;
+	list_named(nargs, nargnames, argnames, listq, namedq,
+		"usage: object.Assocs() or .Assocs(list:) or .Assocs(named:)");
+	return new SuSeq(new SuObjectIter(this, ITER_ASSOCS, listq, namedq));
 	}
 
 Value SuObject::Get(short nargs, short nargnames, ushort* argnames, int each)
@@ -1401,3 +1388,42 @@ class test_object : public Tests
 		}
 	};
 REGISTER(test_object);
+
+class test_object2 : public Tests
+	{
+	TEST (1, list_named)
+		{
+		asserteq(3, run("[1, 2, a: 3].Size()"));
+		asserteq(2, run("[1, 2, a: 3].Size(list:)"));
+		asserteq(1, run("[1, 2, a: 3].Size(named:)"));
+		asserteq(3, run("[1, 2, a: 3].Size(list:, named:)"));
+		asserteq(2, run("[1, 2, a: 3].Size(list:, named: false)"));
+		asserteq(1, run("[1, 2, a: 3].Size(list: false, named:)"));
+		asserteq(0, run("[1, 2, a: 3].Size(list: false, named: false)"));
+
+		asserteq(run("#(0, 1, a)"), run("[1, 2, a: 3].Members()"));
+		asserteq(run("#(0, 1)"), run("[1, 2, a: 3].Members(list:)"));
+		asserteq(run("#(a)"), run("[1, 2, a: 3].Members(named:)"));
+		asserteq(run("#(0, 1, a)"), run("[1, 2, a: 3].Members(list:, named:)"));
+		asserteq(run("#(0, 1)"), run("[1, 2, a: 3].Members(list:, named: false)"));
+		asserteq(run("#(a)"), run("[1, 2, a: 3].Members(list: false, named:)"));
+		asserteq(run("#()"), run("[1, 2, a: 3].Members(list: false, named: false)"));
+
+		asserteq(run("#(1, 2, 3)"), run("[1, 2, a: 3].Values()"));
+		asserteq(run("#(1, 2)"), run("[1, 2, a: 3].Values(list:)"));
+		asserteq(run("#(3)"), run("[1, 2, a: 3].Values(named:)"));
+		asserteq(run("#(1, 2, 3)"), run("[1, 2, a: 3].Values(list:, named:)"));
+		asserteq(run("#(1, 2)"), run("[1, 2, a: 3].Values(list:, named: false)"));
+		asserteq(run("#(3)"), run("[1, 2, a: 3].Values(list: false, named:)"));
+		asserteq(run("#()"), run("[1, 2, a: 3].Values(list: false, named: false)"));
+
+		asserteq(run("#((0, 1), (1, 2), (a, 3))"), run("[1, 2, a: 3].Assocs()"));
+		asserteq(run("#((0, 1), (1, 2))"), run("[1, 2, a: 3].Assocs(list:)"));
+		asserteq(run("#((a, 3))"), run("[1, 2, a: 3].Assocs(named:)"));
+		asserteq(run("#((0, 1), (1, 2), (a, 3))"), run("[1, 2, a: 3].Assocs(list:, named:)"));
+		asserteq(run("#((0, 1), (1, 2))"), run("[1, 2, a: 3].Assocs(list:, named: false)"));
+		asserteq(run("#((a, 3))"), run("[1, 2, a: 3].Assocs(list: false, named:)"));
+		asserteq(run("#()"), run("[1, 2, a: 3].Assocs(list: false, named: false)"));
+		}
+	};
+REGISTER(test_object2);
