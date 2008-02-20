@@ -851,21 +851,31 @@ Value SuObject::IsReadonly(short nargs, short nargnames, ushort* argnames, int e
 	return readonly ? SuTrue : SuFalse;
 	}
 
+static void list_named(short nargs, short nargnames, ushort* argnames, 
+	bool& listq, bool& namedq, char* usage)
+	{
+	if (nargs > nargnames || nargs > 2)
+		except(usage);
+	static ushort list = ::symnum("list");
+	static ushort named = ::symnum("named");
+	listq = namedq = (nargs == 0);
+	for (int i = 0; i < nargs && i < nargnames; ++i)
+		if (argnames[i] == list)
+			listq = (ARG(i) == SuTrue);
+		else if (argnames[i] == named)
+			namedq = (ARG(i) == SuTrue);
+		else
+			except(usage);
+	}
+
 #include "suseq.h"
 
 Value SuObject::Members(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	static ushort list = ::symnum("list");
-	static ushort named = ::symnum("named");
-
-	if (nargs == 0)
-		return new SuSeq(new SuObjectIter(this, ITER_KEYS));
-	else if (nargs == 1 && nargnames == 1 && argnames[0] == list)
-		return new SuSeq(new SuObjectIter(this, ITER_KEYS, true, false));
-	else if (nargs == 1 && nargnames == 1 && argnames[0] == named)
-		return new SuSeq(new SuObjectIter(this, ITER_KEYS, false, true));
-	else
-		except("usage: object.Members() or .Members(list:) or .Members(named:)");
+	bool listq, namedq;
+	list_named(nargs, nargnames, argnames, listq, namedq,
+		"usage: object.Members() or .Members(list:) or .Members(named:)");
+	return new SuSeq(new SuObjectIter(this, ITER_KEYS, listq, namedq));
 	}
 
 Value SuObject::Values(short nargs, short nargnames, ushort* argnames, int each)
