@@ -1393,37 +1393,37 @@ class test_object2 : public Tests
 	{
 	TEST (1, list_named)
 		{
-		asserteq(Value(3), run("[1, 2, a: 3].Size()"));
-		asserteq(Value(2), run("[1, 2, a: 3].Size(list:)"));
-		asserteq(Value(1), run("[1, 2, a: 3].Size(named:)"));
-		asserteq(Value(3), run("[1, 2, a: 3].Size(list:, named:)"));
-		asserteq(Value(2), run("[1, 2, a: 3].Size(list:, named: false)"));
-		asserteq(Value(1), run("[1, 2, a: 3].Size(list: false, named:)"));
-		asserteq(Value(0), run("[1, 2, a: 3].Size(list: false, named: false)"));
+		asserteq(Value(3), run("#(1, 2, a: 3).Size()"));
+		asserteq(Value(2), run("#(1, 2, a: 3).Size(list:)"));
+		asserteq(Value(1), run("#(1, 2, a: 3).Size(named:)"));
+		asserteq(Value(3), run("#(1, 2, a: 3).Size(list:, named:)"));
+		asserteq(Value(2), run("#(1, 2, a: 3).Size(list:, named: false)"));
+		asserteq(Value(1), run("#(1, 2, a: 3).Size(list: false, named:)"));
+		asserteq(Value(0), run("#(1, 2, a: 3).Size(list: false, named: false)"));
 
-		asserteq(run("#(0, 1, a)"), run("[1, 2, a: 3].Members()"));
-		asserteq(run("#(0, 1)"), run("[1, 2, a: 3].Members(list:)"));
-		asserteq(run("#(a)"), run("[1, 2, a: 3].Members(named:)"));
-		asserteq(run("#(0, 1, a)"), run("[1, 2, a: 3].Members(list:, named:)"));
-		asserteq(run("#(0, 1)"), run("[1, 2, a: 3].Members(list:, named: false)"));
-		asserteq(run("#(a)"), run("[1, 2, a: 3].Members(list: false, named:)"));
-		asserteq(run("#()"), run("[1, 2, a: 3].Members(list: false, named: false)"));
+		asserteq(run("#(0, 1, a)"), run("#(1, 2, a: 3).Members()"));
+		asserteq(run("#(0, 1)"), run("#(1, 2, a: 3).Members(list:)"));
+		asserteq(run("#(a)"), run("#(1, 2, a: 3).Members(named:)"));
+		asserteq(run("#(0, 1, a)"), run("#(1, 2, a: 3).Members(list:, named:)"));
+		asserteq(run("#(0, 1)"), run("#(1, 2, a: 3).Members(list:, named: false)"));
+		asserteq(run("#(a)"), run("#(1, 2, a: 3).Members(list: false, named:)"));
+		asserteq(run("#()"), run("#(1, 2, a: 3).Members(list: false, named: false)"));
 
-		asserteq(run("#(1, 2, 3)"), run("[1, 2, a: 3].Values()"));
-		asserteq(run("#(1, 2)"), run("[1, 2, a: 3].Values(list:)"));
-		asserteq(run("#(3)"), run("[1, 2, a: 3].Values(named:)"));
-		asserteq(run("#(1, 2, 3)"), run("[1, 2, a: 3].Values(list:, named:)"));
-		asserteq(run("#(1, 2)"), run("[1, 2, a: 3].Values(list:, named: false)"));
-		asserteq(run("#(3)"), run("[1, 2, a: 3].Values(list: false, named:)"));
-		asserteq(run("#()"), run("[1, 2, a: 3].Values(list: false, named: false)"));
+		asserteq(run("#(1, 2, 3)"), run("#(1, 2, a: 3).Values()"));
+		asserteq(run("#(1, 2)"), run("#(1, 2, a: 3).Values(list:)"));
+		asserteq(run("#(3)"), run("#(1, 2, a: 3).Values(named:)"));
+		asserteq(run("#(1, 2, 3)"), run("#(1, 2, a: 3).Values(list:, named:)"));
+		asserteq(run("#(1, 2)"), run("#(1, 2, a: 3).Values(list:, named: false)"));
+		asserteq(run("#(3)"), run("#(1, 2, a: 3).Values(list: false, named:)"));
+		asserteq(run("#()"), run("#(1, 2, a: 3).Values(list: false, named: false)"));
 
-		asserteq(run("#((0, 1), (1, 2), (a, 3))"), run("[1, 2, a: 3].Assocs()"));
-		asserteq(run("#((0, 1), (1, 2))"), run("[1, 2, a: 3].Assocs(list:)"));
-		asserteq(run("#((a, 3))"), run("[1, 2, a: 3].Assocs(named:)"));
-		asserteq(run("#((0, 1), (1, 2), (a, 3))"), run("[1, 2, a: 3].Assocs(list:, named:)"));
-		asserteq(run("#((0, 1), (1, 2))"), run("[1, 2, a: 3].Assocs(list:, named: false)"));
-		asserteq(run("#((a, 3))"), run("[1, 2, a: 3].Assocs(list: false, named:)"));
-		asserteq(run("#()"), run("[1, 2, a: 3].Assocs(list: false, named: false)"));
+		asserteq(run("#((0, 1), (1, 2), (a, 3))"), run("#(1, 2, a: 3).Assocs()"));
+		asserteq(run("#((0, 1), (1, 2))"), run("#(1, 2, a: 3).Assocs(list:)"));
+		asserteq(run("#((a, 3))"), run("#(1, 2, a: 3).Assocs(named:)"));
+		asserteq(run("#((0, 1), (1, 2), (a, 3))"), run("#(1, 2, a: 3).Assocs(list:, named:)"));
+		asserteq(run("#((0, 1), (1, 2))"), run("#(1, 2, a: 3).Assocs(list:, named: false)"));
+		asserteq(run("#((a, 3))"), run("#(1, 2, a: 3).Assocs(list: false, named:)"));
+		asserteq(run("#()"), run("#(1, 2, a: 3).Assocs(list: false, named: false)"));
 		}
 	};
 REGISTER(test_object2);
