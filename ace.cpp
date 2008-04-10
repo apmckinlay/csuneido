@@ -30,6 +30,8 @@
 #include <exception>
 #include "gc-7.0/include/gc.h"
 #include "interp.h" // for proc
+#include "testobstd.h"
+#include "catstr.h"
 
 void builtins();
 
@@ -43,12 +45,29 @@ char* session_id = "";
 const int N_THREADS = 2; // for initial development
 
 int main(int argc, char**argv)
-	{
+	{ 
 	GC_init();
 	try
 		{
 		proc = new Proc;
 		builtins(); // internal initialization
+		if (argc == 2 && 0 == strcmp(argv[1], "-t"))
+			{
+			TestObserverStd to;
+			TestRegister::runall(to);
+			exit(EXIT_SUCCESS);
+			}
+		else if (argc == 3 && 0 == strcmp(argv[1], "-t"))
+			{
+			TestObserverStd to;
+			TestRegister::runtest(CATSTRA("test_", argv[2]), to);
+			exit(EXIT_SUCCESS);
+			}
+		else if (argc != 1)
+			{
+			cout << "usage: suneido [-t [test]]" << endl;
+			exit(EXIT_FAILURE);
+			}
 		aceserver(N_THREADS);
 		}
 	catch (const Except& x)
