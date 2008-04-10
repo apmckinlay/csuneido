@@ -354,6 +354,7 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 		}
 	else
 		{
+		// TODO: calling object methods shouldn't require Records
 		static ushort gRecords = globals("Records");
 		Value Records = globals.find(gRecords);
 		SuObject* ob;
