@@ -1393,13 +1393,13 @@ class test_object2 : public Tests
 	{
 	TEST (1, list_named)
 		{
-		asserteq(3, run("[1, 2, a: 3].Size()"));
-		asserteq(2, run("[1, 2, a: 3].Size(list:)"));
-		asserteq(1, run("[1, 2, a: 3].Size(named:)"));
-		asserteq(3, run("[1, 2, a: 3].Size(list:, named:)"));
-		asserteq(2, run("[1, 2, a: 3].Size(list:, named: false)"));
-		asserteq(1, run("[1, 2, a: 3].Size(list: false, named:)"));
-		asserteq(0, run("[1, 2, a: 3].Size(list: false, named: false)"));
+		asserteq(Value(3), run("[1, 2, a: 3].Size()"));
+		asserteq(Value(2), run("[1, 2, a: 3].Size(list:)"));
+		asserteq(Value(1), run("[1, 2, a: 3].Size(named:)"));
+		asserteq(Value(3), run("[1, 2, a: 3].Size(list:, named:)"));
+		asserteq(Value(2), run("[1, 2, a: 3].Size(list:, named: false)"));
+		asserteq(Value(1), run("[1, 2, a: 3].Size(list: false, named:)"));
+		asserteq(Value(0), run("[1, 2, a: 3].Size(list: false, named: false)"));
 
 		asserteq(run("#(0, 1, a)"), run("[1, 2, a: 3].Members()"));
 		asserteq(run("#(0, 1)"), run("[1, 2, a: 3].Members(list:)"));
