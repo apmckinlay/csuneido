@@ -95,6 +95,8 @@ Mmoffset Mmfile::alloc(size_t n, char t)
 	// (by alloc'ing remainder) 
 	int chunk = file_size / chunk_size;
 	int remaining = (chunk + 1) * chunk_size - file_size;
+int r = chunk_size - (file_size % chunk_size);
+verify(remaining == r);
 	verify(remaining >= MM_OVERHEAD);
 	if (remaining < n + MM_OVERHEAD)
 		{
@@ -198,7 +200,7 @@ MmCheck Mmfile::mmcheck(Mmoffset o)
 // TODO: check if off + n is in different chunk
 	void* q = (char*) p + n;
 	if (o + n + sizeof (size_t) > file_size ||
-		*((size_t*) q) != (n ^ (o + n)))
+		*((size_t*) q) != (n ^ (unsigned) (o + n)))
 		return MMERR;
 	return MMOK;
 	}
@@ -236,7 +238,7 @@ Mmfile::iterator& Mmfile::iterator::operator--()
 			off = mmf->begin().off;
 			return *this;
 			}
-		void* p = mmf->adr(off );
+		void* p = mmf->adr(off);
 		size_t n = *((size_t*) p) ^ off;
 // TODO: check if off - n is in different chunk
 		if (n > MB_PER_CHUNK * 1024 * 1024 || n > off)
