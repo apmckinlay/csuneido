@@ -137,15 +137,20 @@ void Mmfile::map(int chunk)
 		{ verify(VirtualFree(unmapped[chunk], 0, MEM_RELEASE)); unmapped[chunk] = 0; }
 #endif
 	verify(! base[chunk]);
+	
+	int64 end = (int64) (chunk + 1) * chunk_size;
 	fm[chunk] = CreateFileMapping(f,
 		NULL, // no security attributes
-		PAGE_READWRITE, 0, chunk_size * (chunk + 1),
+		PAGE_READWRITE, 
+		(unsigned) (end >> 32), (unsigned) (end & 0xffffffff),
 		NULL); // no name for mapping
 	if (! fm[chunk])
 		fatal("can't create file mapping for database");
+
 	int64 offset = (int64) chunk * chunk_size;
 	base[chunk] = (char*) MapViewOfFile(fm[chunk], FILE_MAP_WRITE,
-		offset >> 32, offset & 0xffffffff, chunk_size);
+		(unsigned) (offset >> 32), (unsigned) (offset & 0xffffffff), chunk_size);
+		
 	if (! base[chunk])
 		{
 		char buf[1000];
@@ -156,7 +161,7 @@ void Mmfile::map(int chunk)
 			dw,
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 			buf,
-			sizeof buf, NULL );
+			sizeof buf, NULL);
 		fatal("can't map view of database file", buf);
 		}
 	}
