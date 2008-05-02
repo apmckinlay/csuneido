@@ -85,7 +85,7 @@ inline size_t len(void* p)
 inline char typ(void* p)
 	{ return p ? ((size_t*) p)[-1] & (MM_ALIGN - 1) : 0; }
 
-Mmoffset Mmfile::alloc(size_t n, char t)
+Mmoffset Mmfile::alloc(size_t n, char t, bool zero)
 	{
 	verify(n < chunk_size);
 	last_alloc = n;
@@ -109,7 +109,8 @@ verify(remaining == r);
 	file_size += n + MM_OVERHEAD;
 	set_file_size(file_size);	// record new file size
 	void* p = adr(offset);
-	memset((char*) p - MM_HEADER, 0, n + MM_OVERHEAD);	// zero block
+	if (zero)
+		memset((char*) p - MM_HEADER, 0, n + MM_OVERHEAD);	// zero block
 	// header
 	((size_t*) p)[-1] = n | t;
 	// trailer
@@ -325,6 +326,9 @@ class test_mmfile : public Tests
 		{
 		remove("testmm");
 		{ Mmfile m("testmm", true);
+{ for (int i = 0; i < 1100; ++i)
+m.alloc(4000000, 1, false); }
+Mmfile::iterator begin = m.end();
 
 		static char* data[] =
 			{ "andrew", "leeann", "ken sparrow", "tracy" };
@@ -334,7 +338,7 @@ class test_mmfile : public Tests
 		for (i = 0; i < ndata; ++i)
 			add(m, data[i]);
 
-		char* p = (char*) m.first();
+		char* p = (char*) *begin;//m.first();
 		for (i = 0; i < ndata; ++i)
 			{
 			verify(0 == strcmp(p, data[i]));
@@ -342,11 +346,11 @@ class test_mmfile : public Tests
 			}
 
 		Mmfile::iterator iter;
-		for (i = 0, iter = m.begin(); iter != m.end(); ++iter, ++i)
+		for (i = 0, iter = begin; iter != m.end(); ++iter, ++i)
 			verify(0 == strcmp((char*) *iter, data[i]));
 		asserteq(i, ndata);
 		
-		for (i = ndata - 1, iter = m.end(); iter != m.begin(); --i)
+		for (i = ndata - 1, iter = m.end(); iter != begin; --i)
 			verify(0 == strcmp((char*) *--iter, data[i]));
 		asserteq(i, -1);
 
