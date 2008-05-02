@@ -48,7 +48,7 @@ public:
 	friend class test_mmfile;
 	explicit Mmfile(char* filename, bool create = false);
 	~Mmfile();
-	Mmoffset alloc(size_t n, char type);
+	Mmoffset alloc(size_t n, char type, bool zero = true);
 	void unalloc(size_t n);
 	int64 size()
 		{ return file_size; }
