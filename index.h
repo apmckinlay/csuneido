@@ -92,13 +92,13 @@ public:
 		bool eof()
 			{ return iter.eof(); }
 		void reset_prevsize()
-			{ prevsize = ULONG_MAX; }
+			{ prevsize = _I64_MAX; }
 	private:
 		bool visible();
 
 		Index* ix;
 		IndexBtree::iterator iter;
-		size_t prevsize;
+		Mmoffset prevsize;
 		int tran;
 		Key from;
 		Key to;
