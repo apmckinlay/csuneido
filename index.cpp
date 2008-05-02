@@ -117,7 +117,7 @@ Vslot Index::find(int tran, const Key& key)
 // Index::iterator ==================================================
 
 Index::iterator::iterator(Index* i, int tr, Key f, Key t, TranRead* trd)
-	: ix(i), prevsize(ULONG_MAX), tran(tr), from(f), to(t), rewound(true), tranread(trd)
+	: ix(i), prevsize(_I64_MAX), tran(tr), from(f), to(t), rewound(true), tranread(trd)
 	{ 
 	}
 
@@ -222,7 +222,7 @@ void Index::iterator::operator--()
 
 #include "testing.h"
 #include "random.h"
-#include <stdio.h> // for remove
+#include "tempdb.h"
 
 const int keysize = 16;
 
@@ -245,6 +245,8 @@ Record k(ulong recnum)
 	r.addval(buf);
 
 	r.addval(recnum);
+	r.addmmoffset((recnum << 2) + ((Mmoffset) 1 << 30));
+	asserteq((r.getmmoffset(r.size() - 1) - ((Mmoffset) 1 << 30)), (recnum << 2));
 
 	verify(kk(r) == recnum);
 	return r;
@@ -254,20 +256,19 @@ class test_index : public Tests
 	{
 	TEST(0, standalone)
 		{
-		remove("testdb");
-		{ Database db("testdb", DBCREATE);
+		TempDB tempdb;
 
-		Index f(&db, 0, "", false);
+		Index f(thedb, 0, "", false);
 
 		const int N = 4000;
 
-		int tran = db.transaction(READWRITE);
+		int tran = thedb->transaction(READWRITE);
 
 		//insert
 		int i;
 		for (i = 0; i < N; ++i)
-    		{
-    		verify(f.insert(tran, Vslot(k(i))));
+			{
+			verify(f.insert(tran, Vslot(k(i))));
    			}
 
 		//find
@@ -315,17 +316,15 @@ class test_index : public Tests
 		for (i = 1; i < N; i += 2)
 			{ rand(); verify(f.erase(k(i))); }
 
-		verify(db.commit(tran));
-
-		} verify(0 == remove("testdb"));
+		verify(thedb->commit(tran));
 		}
 	TEST(1, single)
 		{
-		remove("testdb");
-		{ Database db("testdb", DBCREATE);
-		db.add_table("test");
-		db.add_column("test", "name");
-		db.add_index("test", "name", false);
+		TempDB tempdb;
+		
+		thedb->add_table("test");
+		thedb->add_column("test", "name");
+		thedb->add_index("test", "name", false);
 
 		Record recs[] =
 			{
@@ -340,15 +339,15 @@ class test_index : public Tests
 		int i;
 		Index::iterator iter;
 
-		int t = db.transaction(READWRITE);
+		int t = thedb->transaction(READWRITE);
 		for (i = 0; i < n; ++i)
-			db.add_record(t, "test", recs[i]);
-		verify(db.commit(t));
+			thedb->add_record(t, "test", recs[i]);
+		verify(thedb->commit(t));
 
-		Index* index = db.get_index("test", "name");
+		Index* index = thedb->get_index("test", "name");
 		verify(index);
 
-		t = db.transaction(READONLY);
+		t = thedb->transaction(READONLY);
 
 		// find
 		verify(nil(index->find(t, key(""))));
@@ -383,18 +382,16 @@ class test_index : public Tests
 		iter = index->begin(t, key("m"), key("r"));
 		verify(iter.eof());
 
-		verify(db.commit(t));
-
-		} verify(0 == remove("testdb"));
+		verify(thedb->commit(t));
 		}
 	TEST(2, multi)
 		{
-		remove("testdb");
-		{ Database db("testdb", DBCREATE);
-		db.add_table("test");
-		db.add_column("test", "city");
-		db.add_column("test", "name");
-		db.add_index("test", "city,name", true);
+		TempDB tempdb;
+		
+		thedb->add_table("test");
+		thedb->add_column("test", "city");
+		thedb->add_column("test", "name");
+		thedb->add_index("test", "city,name", true);
 
 		Record recs[] =
 			{
@@ -409,15 +406,15 @@ class test_index : public Tests
 		int i;
 		Index::iterator iter;
 
-		int t = db.transaction(READWRITE);
+		int t = thedb->transaction(READWRITE);
 		for (i = 0; i < n; ++i)
-			db.add_record(t, "test", recs[i]);
-		verify(db.commit(t));
+			thedb->add_record(t, "test", recs[i]);
+		verify(thedb->commit(t));
 
-		Index* index = db.get_index("test", "city,name");
+		Index* index = thedb->get_index("test", "city,name");
 		verify(index);
 
-		t = db.transaction(READONLY);
+		t = thedb->transaction(READONLY);
 
 		// find
 		verify(nil(index->find(t, key(""))));
@@ -450,9 +447,7 @@ class test_index : public Tests
 			--iter, i = 4; i >= 1; --iter, --i)
 			verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
 
-		verify(db.commit(t));
-
-		} verify(0 == remove("testdb"));
+		verify(thedb->commit(t));
 		}
 private:
 	Record record(char* s)
