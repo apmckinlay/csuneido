@@ -547,7 +547,9 @@ class test_record : public Tests
 		int64 n = 88888;
 		r.addmmoffset(n);
 		asserteq(r.getmmoffset(0), n);
-		n = static_cast<int64>(1) << 32;
+		n = 4 + (static_cast<int64>(1) << 32);
+		int m = mmoffset_to_int(n);
+		asserteq(n, int_to_mmoffset(m));
 		r.addmmoffset(n);
 		asserteq(r.getmmoffset(1), n);
 		}
@@ -564,9 +566,12 @@ class test_record : public Tests
 		Record r3 = Record::from_int(n, 0);
 		asserteq(r, r3);
 		
-		Mmoffset mmo = (int64) 3 * 1024 * 1024 * 1024;
-		n = mmoffset_to_tagged_int(mmo);
-		asserteq(tagged_int_to_mmoffset(n), mmo);
+		for (int64 i = 1; i < 16; ++i)
+			{
+			Mmoffset mmo = i * 1024 * 1024 * 1024;
+			n = mmoffset_to_tagged_int(mmo);
+			asserteq(tagged_int_to_mmoffset(n), mmo);
+			}
 		}
 	};
 REGISTER(test_record);
