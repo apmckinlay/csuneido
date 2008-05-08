@@ -35,7 +35,7 @@ LIBS = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib \
 
 $(OUTPUT)/suneido.exe : $(OBJECTS) gc_$(OUTPUT).lib $(OUTPUT)/suneido.res
 	@$(CC) $(FLAGS) /c /Fo"$(OUTPUT)/build.obj" build.cpp
-	@echo link
+	@echo link $(OUTPUT)/suneido.exe
 	@$(CC) $(LDFLAGS) /Fe"$(OUTPUT)/suneido.exe" $^ $(OUTPUT)/build.obj $(LIBS)
 	
 $(OUTPUT)/suneido.res : suneido.rc resource.h res/suneido.exe.manifest

@@ -37,7 +37,7 @@ DEPENDS = $(subst .obj,.d,$(OBJECTS))
 
 $(OUTPUT)/suneido.exe : $(OBJECTS) $(OUTPUT)/suneido.res
 	@$(CC) $(FLAGS) /c /Fo"$(OUTPUT)/build.obj" build.cpp
-	@echo link
+	@echo link $(OUTPUT)/suneido.exe
 	@$(CC) $(LDFLAGS) /Fe"$(OUTPUT)/suneido.exe" $^ $(OUTPUT)/build.obj $(LIBS)
 	
 $(OUTPUT)/suneido.res : suneido.rc resource.h res/suneido.exe.manifest
