@@ -36,8 +36,10 @@ public:
 		remove("tempdb");
 		savedb = thedb; 
 		thedb = new Database("tempdb", DBCREATE);
-		//~ for (int i = 0; i < 1100; ++i)
-			//~ thedb->mmf->alloc(4000000, MM_OTHER, false);
+#ifdef BIGDB
+		for (int i = 0; i < 1100; ++i)
+			thedb->mmf->alloc(4000000, MM_OTHER, false);
+#endif
 		}
 	void reopen()
 		{

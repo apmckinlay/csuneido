@@ -245,8 +245,14 @@ Record k(ulong recnum)
 	r.addval(buf);
 
 	r.addval(recnum);
-	r.addmmoffset((recnum << 2) + ((Mmoffset) 1 << 30));
-	asserteq((r.getmmoffset(r.size() - 1) - ((Mmoffset) 1 << 30)), (recnum << 2));
+	const Mmoffset offset = 
+#ifdef BIGDB
+		((Mmoffset) 1 << 30);
+#else
+		1 << 10;
+#endif
+	r.addmmoffset((recnum << 2) + offset);
+	asserteq((r.getmmoffset(r.size() - 1) - offset), (recnum << 2));
 
 	verify(kk(r) == recnum);
 	return r;
