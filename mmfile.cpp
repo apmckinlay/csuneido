@@ -326,9 +326,9 @@ class test_mmfile : public Tests
 		{
 		remove("testmm");
 		{ Mmfile m("testmm", true);
-{ for (int i = 0; i < 1100; ++i)
-m.alloc(4000000, 1, false); }
-Mmfile::iterator begin = m.end();
+		//~ for (int i = 0; i < 1100; ++i)
+			//~ m.alloc(4000000, 1, false);
+		Mmfile::iterator begin = m.end();
 
 		static char* data[] =
 			{ "andrew", "leeann", "ken sparrow", "tracy" };
@@ -338,7 +338,7 @@ Mmfile::iterator begin = m.end();
 		for (i = 0; i < ndata; ++i)
 			add(m, data[i]);
 
-		char* p = (char*) *begin;//m.first();
+		char* p = (char*) *begin;
 		for (i = 0; i < ndata; ++i)
 			{
 			verify(0 == strcmp(p, data[i]));
