@@ -115,7 +115,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 
 	Fibers::init();
 
-	proc = new Proc;
+	tss_proc() = new Proc;
 	builtins(); // internal initialization
 
 	cmdline = cmdlineoptions.parse(lpszCmdLine);
@@ -275,12 +275,12 @@ void message(const char* s, const char* t)
 
 void handler(const Except& x)
 	{
-	if (proc->in_handler)
+	if (tss_proc()->in_handler)
 		{
 		message("Error in Error Handler", x.exception);
 		return ;
 		}
-	proc->in_handler = true;
+	tss_proc()->in_handler = true;
 
 // TODO: use GetAncestor
 	// determine top level window responsible
@@ -296,7 +296,7 @@ void handler(const Except& x)
 			calls = new SuObject;
 			if (f->fn && f->fn->named.num == globals("Assert"))
 				--f;
-			for (; f > proc->frames; --f)
+			for (; f > tss_proc()->frames; --f)
 				{
 				SuObject* call = new SuObject;
 				SuObject* vars = new SuObject;
@@ -332,5 +332,5 @@ void handler(const Except& x)
 		{
 		message("Error in Debug", x.exception);
 		}
-	proc->in_handler = false;
+	tss_proc()->in_handler = false;
 	}

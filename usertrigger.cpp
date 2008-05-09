@@ -47,26 +47,36 @@ void Tbl::user_trigger(int tran, const Record& oldrec, const Record& newrec)
 	Value fn = globals.find(trigger);
 	if (! fn)
 		return ;
-	Value* oldsp = proc->stack.getsp();
+	KEEPSP
 	SuTransaction* t = new SuTransaction(tran);
-	proc->stack.push(t);
+	PUSH(t);
 	if (nil(oldrec))
-		proc->stack.push(SuFalse);
+		PUSH(SuFalse);
 	else
-		proc->stack.push(new SuRecord(oldrec, flds, t));
+		PUSH(new SuRecord(oldrec, flds, t));
 	if (nil(newrec))
-		proc->stack.push(SuFalse);
+		PUSH(SuFalse);
 	else
-		proc->stack.push(new SuRecord(newrec, flds, t));
+		PUSH(new SuRecord(newrec, flds, t));
 	fn.call(fn, CALL, 3, 0, 0, -1);
-	proc->stack.setsp(oldsp);
 	}
 
-static void pop(int n)
+struct DisabledTriggers
 	{
-	while (--n >= 0)
-		disabled_triggers.pop();
-	}
+	DisabledTriggers() : n(0)
+		{ }
+	void push(int t)
+		{
+		disabled_triggers.push(t);
+		++n;
+		}
+	~DisabledTriggers()
+		{
+		while (n-- > 0)
+			disabled_triggers.pop();
+		}
+	int n;
+	};
 
 #include "prim.h"
 
@@ -75,27 +85,16 @@ Value su_do_without_triggers()
 	int nargs = 2;
 
 	SuObject* ob = ARG(0).object();
-	int n = 0;
-	for (n = 0; ob->has(n); ++n)
+	DisabledTriggers dt;
+	for (int i = 0; ob->has(i); ++i)
 		{
-		char* table = ob->get(n).str();
+		char* table = ob->get(i).str();
 		int trigger = globals(CATSTRA("Trigger_", table));
-		disabled_triggers.push(trigger);
+		dt.push(trigger);
 		}
 
+	KEEPSP
 	Value block = ARG(1);
-	try
-		{
-		Value* sp = proc->stack.getsp();
-		Value result = block.call(block, CALL, 0, 0, 0, -1);
-		proc->stack.setsp(sp);
-		pop(n);
-		return result;
-		}
-	catch (const Except&)
-		{
-		pop(n);
-		throw ;
-		}
+	return block.call(block, CALL, 0, 0, 0, -1);
 	}
 PRIM(su_do_without_triggers, "DoWithoutTriggers(object, block)");

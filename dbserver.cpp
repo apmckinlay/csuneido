@@ -138,8 +138,10 @@ private:
 	DbServerData* data;
 	char* session_id;
 	static Dbms* dbms;
-	void* session_views;
 	int last_activity;
+	
+	Proc proc;
+	SesViews session_views;
 	};
 
 static std::vector<DbServerImp*> dbservers;
@@ -191,18 +193,19 @@ void start_dbserver(char* name)
 #endif
 
 DbServerImp::DbServerImp(SocketConnect* s) 
-	: sc(s), textmode(true), data(DbServerData::create()), session_views(0)
+	: sc(s), textmode(true), data(DbServerData::create())
 	{
 	if (! dbms)
 		dbms = ::dbms();
-	fiber_id = session_id = sc->getadr();
+	tss_fiber_id() = session_id = sc->getadr();
 	dbserver_connections().add(session_id);
 	dbservers.push_back(this);
 
 	os << "Suneido Database Server (" << build_date << ")\r\n";
 	write(os.str());
 
-	proc = new Proc;
+	tss_proc() = &proc;
+	tss_session_views() = &session_views;
 	}
 
 DbServerImp::~DbServerImp()
@@ -293,7 +296,6 @@ void DbServerImp::request(char* buf)
 			{
 			try
 				{
-				new_session(&session_views);
 				char* s = (this->*(cmds[i].fn))(buf + strlen(cmds[i].cmd) + 1);
 				if (s)
 					{
@@ -493,7 +495,7 @@ char* DbServerImp::cmd_sessionid(char* s)
 	if (*s)
 		{
 		dbserver_connections().remove1(session_id);
-		fiber_id = session_id = strdup(s);
+		tss_fiber_id() = session_id = strdup(s);
 		dbserver_connections().add(session_id);
 		}
 	os << session_id << "\r\n";

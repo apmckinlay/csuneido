@@ -55,12 +55,12 @@ Value Construct::call(Value self, Value member, short nargs, short nargnames, us
 		c = globals[s];
 		}
 	if (nargs == 2)
-		proc->stack.pop(); // suffix
+		POP(); // suffix
 	if (ob)
 		return c.call(c, INSTANTIATE, 1, 0, 0, 1);	// nargs=1, each=1 => c(@+1 ob)
 	else
 		{
-		proc->stack.pop(); // class
+		POP(); // class
 		return c.call(c, INSTANTIATE, 0, 0, 0, -1);
 		}
 	}

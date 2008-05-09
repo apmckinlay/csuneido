@@ -83,11 +83,11 @@ Value SuSymbol::call(Value self, Value member, short nargs, short nargnames, ush
 			except("usage: #symbol(object, ...)");
 		// remove first argument (object) from stack
 		argseach(nargs, nargnames, argnames, each); // have to expand first
-		Value* args = proc->stack.getsp() - nargs + 1;
+		Value* args = GETSP() - nargs + 1;
 		Value ob = args[0];
 		for (int i = 1; i < nargs; ++i)
 			args[i - 1] = args[i];
-		proc->stack.pop();
+		POP();
 		return ob.call(ob, this, nargs - 1, nargnames, argnames, each);
 		}
 	return SuString::call(self, member, nargs, nargnames, argnames, each);

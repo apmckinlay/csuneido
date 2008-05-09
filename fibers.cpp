@@ -28,7 +28,6 @@
 #include "winlib.h"
 #include <vector>
 #include <algorithm>
-#include "tls.h"
 
 // use function pointers to allow loading from kernel32 or w95fiber
 
@@ -48,43 +47,46 @@ static pDF MyDeleteFiber;
 
 struct Proc;
 class Dbms;
-
-const int MAX_TLS = 8;
-static void** tls_vars[MAX_TLS];  // addresses of static tls variable
-static int n_tls_vars = 0;
-
-void register_tls(void** pvar)
-	{
-	verify(n_tls_vars < MAX_TLS);
-	tls_vars[n_tls_vars++] = pvar;
-	}
+class SesViews;
 
 struct Fiber
 	{
 	enum Status { READY, BLOCKED, ENDED };
 	explicit Fiber(void* f) 
-		: fiber(f), status(READY), proc(0), dbms(0), priority(0), stack_ptr(0), stack_end(0)
-		{
-		std::fill(tls, tls + MAX_TLS, (void*) 0);
-		}
+		: fiber(f), status(READY), priority(0), stack_ptr(0), stack_end(0),
+		tss_proc(0), tss_thedbms(0), tss_session_views(0), tss_fiber_id("")
+		{ }
 	bool operator==(Status s)
 		{ return status == s; }
 	void* fiber;
 	Status status;
-	Proc* proc;
-	Dbms* dbms;
 	char* id;
 	int priority; // 0 = normal, -1 = low (dbcopy)
 	// for garbage collector
 	void* stack_ptr;
 	void* stack_end;
 	// thread/fiber local storage
-	void* tls[MAX_TLS];
+	Proc* tss_proc;
+	Dbms* tss_thedbms;
+	SesViews* tss_session_views;
+	char* tss_fiber_id;
 	};
 
 static Fiber main_fiber(0);
 static std::vector<Fiber> fibers;
 static Fiber* curfiber = &main_fiber;
+
+Proc*& tss_proc()
+	{ return curfiber->tss_proc; }
+
+Dbms*& tss_thedbms()
+	{ return curfiber->tss_thedbms; }
+
+SesViews*& tss_session_views()
+	{ return curfiber->tss_session_views; }
+
+char*& tss_fiber_id()
+	{ return curfiber->tss_fiber_id; }
 
 static void* getproc(char* name)
 	{
@@ -194,21 +196,12 @@ void* Fibers::create(void (_stdcall *fiber_proc)(void* arg), void* arg)
 	return f;
 	}
 
-char* fiber_id = "";
-TLS(fiber_id);
-
 static void switchto(Fiber& fiber)
 	{
 	verify(fiber.status == Fiber::READY);
 	if (&fiber == curfiber)
 		return ;
 	save_stack();
-	
-	for (int i = 0; i < n_tls_vars; ++i)
-		curfiber->tls[i] = *(tls_vars[i]);
-	
-	for (int i = 0; i < n_tls_vars; ++i)
-		*(tls_vars[i]) = fiber.tls[i];
 	
 	curfiber = &fiber;
 	MySwitchToFiber(fiber.fiber);
@@ -319,12 +312,9 @@ void Fibers::foreach_stack(StackFn fn)
 
 void Fibers::foreach_proc(ProcFn fn)
 	{
-	extern Proc* proc;
-
-	fn(proc);
 	for (int i = 0; i < fibers.size(); ++i)
 		if (fibers[i].status != Fiber::ENDED)
-			fn(fibers[i].proc);
+			fn(fibers[i].tss_proc);
 	}
 
 void sleepms(int ms)

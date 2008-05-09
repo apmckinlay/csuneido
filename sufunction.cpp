@@ -43,7 +43,7 @@ Value SuFunction::call(Value self, Value member, short nargs, short nargnames, u
 		{
 		args(nargs, nargnames, argnames, each);
 		Framer frame(this, self);
-		return proc->fp->run();
+		return tss_proc()->fp->run();
 		}
 	else if (member == Disasm)
 		{

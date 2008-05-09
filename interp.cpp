@@ -36,21 +36,6 @@
 #include "globals.h"
 #include "suclass.h"
 #include "sumethod.h"
-#include "tls.h"
-
-Proc* proc;
-TLS(proc);
-
-inline void push(Value x)
-	{ proc->stack.push(x); }
-inline Value& top()
-	{ return proc->stack.top(); }
-inline Value pop()
-	{ return proc->stack.pop(); }
-inline Value* getsp()
-	{ return proc->stack.getsp(); }
-inline void setsp(Value* newsp)
-	{ proc->stack.setsp(newsp); }
 
 static bool catch_match(char*, char*);
 
@@ -85,43 +70,43 @@ Value docall(Value x, Value member, short nargs, short nargnames, ushort* argnam
 	}
 
 #define POSTCALL(nargnames, name) \
-	setsp(oldsp); \
-	push(result); \
+	SETSP(oldsp); \
+	PUSH(result); \
 	each = -1; \
 	ip += nargnames * sizeof (ushort); \
-	if (! top() && *ip != I_POP && *ip != I_RETURN) \
+	if (! TOP() && *ip != I_POP && *ip != I_RETURN) \
 		except(name << " has no return value")
 
 #define CALLX(x, member, nargs, nargnames, argnames, name) \
-	oldsp = getsp() - nargs; \
+	oldsp = GETSP() - nargs; \
 	result = docall(x, member, nargs, nargnames, argnames, each); \
 	POSTCALL(nargnames, name)
 
 #define CALLTOP(member, nargs, nargnames, argnames, name) \
-	oldsp = getsp() - nargs - 1; \
+	oldsp = GETSP() - nargs - 1; \
 	result = docall(oldsp[1], member, nargs, nargnames, argnames, each); \
 	POSTCALL(nargnames, name)
 
 #define CALLPOP(x, member, nargs, nargnames, argnames) \
-	oldsp = getsp() - nargs; \
+	oldsp = GETSP() - nargs; \
 	docall(x, member, nargs, nargnames, argnames, each); \
-	setsp(oldsp); \
+	SETSP(oldsp); \
 	each = -1;
 
 #define CALLTOPPOP(member, nargs, nargnames, argnames) \
-	oldsp = getsp() - nargs - 1; \
+	oldsp = GETSP() - nargs - 1; \
 	docall(oldsp[1], member, nargs, nargnames, argnames, each); \
-	setsp(oldsp); \
+	SETSP(oldsp); \
 	each = -1;
 
 #define CALLSUB(nargs, nargnames, argnames) \
-	oldsp = getsp() - nargs - 2; \
+	oldsp = GETSP() - nargs - 2; \
 	subscript = oldsp[2]; \
 	result = docall(oldsp[1], subscript, nargs, nargnames, argnames, each); \
 	POSTCALL(nargnames, subscript);
 
 #define CALLSUBSELF(nargs, nargnames, argnames) \
-	oldsp = getsp() - nargs - 1; \
+	oldsp = GETSP() - nargs - 1; \
 	subscript = oldsp[1]; \
 	result = docall(self, subscript, nargs, nargnames, argnames, each); \
 	POSTCALL(nargnames, subscript);
@@ -130,15 +115,15 @@ Value docall(Value x, Value member, short nargs, short nargnames, ushort* argnam
 // exception if any other value
 inline bool topbool()
 	{
-	if (top() == SuTrue)
+	if (TOP() == SuTrue)
 		return true;
-	else if (top() != SuFalse)
-		except("conditionals require true or false, got: " << top());
+	else if (TOP() != SuFalse)
+		except("conditionals require true or false, got: " << TOP());
 	return false;
 	}
 inline bool popbool()
 	{
-	Value x = pop();
+	Value x = POP();
 	if (x == SuTrue)
 		return true;
 	else if (x != SuFalse)
@@ -147,16 +132,16 @@ inline bool popbool()
 	}
 
 Frame::Frame(BuiltinFunc* p, Value s) :
-	prim(p), fn(0), self(s), rule(proc->fp[-1].rule), blockframe(0)
+	prim(p), fn(0), self(s), rule(tss_proc()->fp[-1].rule), blockframe(0)
 	{ }
 
 Frame::Frame(SuFunction* f, Value s) :
-	prim(0), fn(f), self(s), ip(fn->code), local(1 + getsp() - fn->nparams),
-	rule(proc->fp[-1].rule), catcher(0), blockframe(0)
+	prim(0), fn(f), self(s), ip(fn->code), local(1 + GETSP() - fn->nparams),
+	rule(tss_proc()->fp[-1].rule), catcher(0), blockframe(0)
 	{
 	for (int i = fn->nparams; i < fn->nlocals; ++i)
 		local[i] = Value();
-	setsp(getsp() + (fn->nlocals - fn->nparams));
+	SETSP(GETSP() + (fn->nlocals - fn->nparams));
 	}
 
 // used by SuBlock::call
@@ -165,7 +150,7 @@ Frame::Frame(Frame* fp, int pc, int first, int nargs, Value s) :
 	local(fp->local), rule(fp->rule), catcher(0), blockframe(fp)
 	{
 	for (int i = nargs - 1; i >= 0; --i)
-		local[first + i] = pop();
+		local[first + i] = POP();
 	}
 
 Value Frame::run()
@@ -177,7 +162,7 @@ Value Frame::run()
 	Value* oldsp;
 
 	each = -1;
-	proc->super = 0;
+	tss_proc()->super = 0;
 	for (;;)
 	try
 		{
@@ -197,13 +182,13 @@ Value Frame::run()
 			Fibers::yieldif();
 			break;
 		case I_POP :
-			pop();
+			POP();
 			break ;
 		case I_DUP :
-			push(top());
+			PUSH(TOP());
 			break ;
 		case I_SUPER :
-			proc->super = fetch_global();
+			tss_proc()->super = fetch_global();
 			break ;
 		case I_PUSH_LITERAL | 0 : case I_PUSH_LITERAL | 1 :
 		case I_PUSH_LITERAL | 2 : case I_PUSH_LITERAL | 3 :
@@ -213,7 +198,7 @@ Value Frame::run()
 		case I_PUSH_LITERAL | 10 : case I_PUSH_LITERAL | 11 :
 		case I_PUSH_LITERAL | 12 : case I_PUSH_LITERAL | 13 :
 		case I_PUSH_LITERAL | 14 : case I_PUSH_LITERAL | 15 :
-			push(fn->literals[op & 15]);
+			PUSH(fn->literals[op & 15]);
 			break ;
 		case I_PUSH_AUTO | 0 : case I_PUSH_AUTO | 1 :
 		case I_PUSH_AUTO | 2 : case I_PUSH_AUTO | 3 :
@@ -226,20 +211,20 @@ Value Frame::run()
 			arg = local[op & 15];
 			if (! arg)
 				except("uninitialized variable: " << symstr(fn->locals[op & 15]));
-			push(arg);
+			PUSH(arg);
 			break ;
 		case I_EQ_AUTO | 0 : case I_EQ_AUTO | 1 :
 		case I_EQ_AUTO | 2 : case I_EQ_AUTO | 3 :
 		case I_EQ_AUTO | 4 : case I_EQ_AUTO | 5 :
 		case I_EQ_AUTO | 6 : case I_EQ_AUTO | 7 :
-			local[op & 7] = top();
+			local[op & 7] = TOP();
 			break ;
 		case I_EQ_AUTO_POP | 0 : case I_EQ_AUTO_POP | 1 :
 		case I_EQ_AUTO_POP | 2 : case I_EQ_AUTO_POP | 3 :
 		case I_EQ_AUTO_POP | 4 : case I_EQ_AUTO_POP | 5 :
 		case I_EQ_AUTO_POP | 6 : case I_EQ_AUTO_POP | 7 :
-			local[op & 7] = top();
-			pop();
+			local[op & 7] = TOP();
+			POP();
 			break ;
 		case I_CALL_GLOBAL | 0 : case I_CALL_GLOBAL | 1 :
 		case I_CALL_GLOBAL | 2 : case I_CALL_GLOBAL | 3 :
@@ -289,31 +274,31 @@ Value Frame::run()
 		case I_PUSH | LITERAL :	case I_PUSH | AUTO :
 		case I_PUSH | MEM :		case I_PUSH | MEM_SELF :
 		case I_PUSH | DYNAMIC :	case I_PUSH | GLOBAL :
-			push(get(op));
+			PUSH(get(op));
 			break ;
 		case I_PUSH_VALUE | FALSE :
-			push(SuFalse);
+			PUSH(SuFalse);
 			break ;
 		case I_PUSH_VALUE | TRUE :
-			push(SuTrue);
+			PUSH(SuTrue);
 			break ;
 		case I_PUSH_VALUE | EMPTY_STRING :
-			push(SuEmptyString);
+			PUSH(SuEmptyString);
 			break ;
 		case I_PUSH_VALUE | MINUS_ONE :
-			push(SuMinusOne);
+			PUSH(SuMinusOne);
 			break ;
 		case I_PUSH_VALUE | ZERO :
-			push(SuZero);
+			PUSH(SuZero);
 			break ;
 		case I_PUSH_VALUE | ONE :
-			push(SuOne);
+			PUSH(SuOne);
 			break ;
 		case I_PUSH_VALUE | SELF :
-			push(self);
+			PUSH(self);
 			break ;
 		case I_PUSH_INT :
-			push((short) fetch2());
+			PUSH((short) fetch2());
 			break ;
 		case I_CALL | SUB :
 			nargs = fetch1();
@@ -357,7 +342,7 @@ Value Frame::run()
 			jump = fetch_jump();
 			i = fetch_local(); // first
 			nargs = fetch1();
-			push(suBlock(proc->fp, ip - fn->code, i, nargs));
+			PUSH(suBlock(tss_proc()->fp, ip - fn->code, i, nargs));
 			ip += jump - 2;
 			break ;
 		case I_JUMP | UNCOND :
@@ -378,40 +363,40 @@ Value Frame::run()
 			break ;
 		case I_JUMP | CASE_YES :
 			jump = fetch_jump();
-			arg = pop();
-			if (top() == arg)
+			arg = POP();
+			if (TOP() == arg)
 				{
 				ip += jump;
-				pop();
+				POP();
 				}
 			break ;
 		case I_JUMP | CASE_NO :
 			jump = fetch_jump();
-			arg = pop();
-			if (top() != arg)
+			arg = POP();
+			if (TOP() != arg)
 				ip += jump;
 			else
-				pop();
+				POP();
 			break ;
 		case I_JUMP | ELSE_POP_YES :
 			jump = fetch_jump();
 			if (topbool())
 				ip += jump;
 			else
-				pop();
+				POP();
 			break ;
 		case I_JUMP | ELSE_POP_NO :
 			jump = fetch_jump();
 			if (! topbool())
 				ip += jump;
 			else
-				pop();
+				POP();
 			break ;
 		case I_TRY :
 			// save the catcher offset & stack pointer
 			jump = fetch_jump();
 			catcher = ip + jump;
-			catcher_sp = getsp();
+			catcher_sp = GETSP();
 			catcher_x = fetch_literal();
 			break ;
 		case I_CATCH :
@@ -422,9 +407,14 @@ Value Frame::run()
 			ip += jump;
 			break ;
 		case I_THROW :
-			arg = pop();
+			{
+			static Value block_return("block return");
+			arg = POP();
+			if (arg == block_return)
+				tss_proc()->block_return_value = POP();
 			throw Except(arg.str());
 			break ;
+			}
 		case I_ADDEQ | (SUB << 4) : case I_ADDEQ | (SUB_SELF << 4) :
 		case I_ADDEQ | (AUTO << 4) : case I_ADDEQ | (DYNAMIC << 4) :
 		case I_ADDEQ | (MEM << 4) : case I_ADDEQ | (MEM_SELF << 4) :
@@ -487,7 +477,7 @@ Value Frame::run()
 			case I_POSTDEC :
 				break ;
 			default :
-				y = pop();
+				y = POP();
 				}
 
 			// assignment operators need old value EXCEPT straight assignment
@@ -495,13 +485,13 @@ Value Frame::run()
 			switch ((op - 0x80) >> 4)
 				{
 			case SUB :
-				m = pop();
-				ob = pop();
+				m = POP();
+				ob = POP();
 				if (! eq && ! (x = ob.getdata(m)))
 					except("uninitialized member: " << m);
 				break ;
 			case SUB_SELF :
-				m = pop();
+				m = POP();
 				ob = self;
 				if (! eq && ! (x = self.getdata(m)))
 					except("uninitialized member: " << m);
@@ -519,7 +509,7 @@ Value Frame::run()
 					except("uninitialized variable: " << symstr(fn->locals[i]));
 				break ;
 			case MEM :
-				ob = pop();
+				ob = POP();
 				m = symbol(fetch_member());
 				if (! eq && ! (x = ob.getdata(m)))
 					except("uninitialized member: " << m);
@@ -573,106 +563,106 @@ Value Frame::run()
 				unreachable();
 				}
 
-			push(z);
+			PUSH(z);
 			break ;
 			}
 		case I_RETURN_NIL :
-			push(Value());
+			PUSH(Value());
 			// fall thru
 		case I_RETURN :
 			goto done;
 		case I_UMINUS :
-			top() = -top();
+			TOP() = -TOP();
 			break ;
 		case I_BITNOT :
-			top() = ~ top().integer();
+			TOP() = ~ TOP().integer();
 			break ;
 		case I_NOT :
-			top() = topbool() ? SuFalse : SuTrue;
+			TOP() = topbool() ? SuFalse : SuTrue;
 			break ;
 		case I_ADD :
-			arg = pop();
-			top() = top() + arg;
+			arg = POP();
+			TOP() = TOP() + arg;
 			break ;
 		case I_SUB :
-			arg = pop();
-			top() = top() - arg;
+			arg = POP();
+			TOP() = TOP() - arg;
 			break ;
 		case I_CAT :
-			arg = pop();
-			top() = new SuString(top().gcstr() + arg.gcstr());
+			arg = POP();
+			TOP() = new SuString(TOP().gcstr() + arg.gcstr());
 			break ;
 		case I_MUL :
-			arg = pop();
-			top() = top() * arg;
+			arg = POP();
+			TOP() = TOP() * arg;
 			break ;
 		case I_DIV :
-			arg = pop();
-			top() = top() / arg;
+			arg = POP();
+			TOP() = TOP() / arg;
 			break ;
 		case I_MOD :
-			arg = pop();
-			top() = top().integer() % arg.integer();
+			arg = POP();
+			TOP() = TOP().integer() % arg.integer();
 			break ;
 		case I_IS :
-			arg = pop();
-			top() = top() == arg ? SuTrue : SuFalse;
+			arg = POP();
+			TOP() = TOP() == arg ? SuTrue : SuFalse;
 			break ;
 		case I_ISNT :
-			arg = pop();
-			top() = top() != arg ? SuTrue : SuFalse;
+			arg = POP();
+			TOP() = TOP() != arg ? SuTrue : SuFalse;
 			break ;
 		case I_LT :
-			arg = pop();
-			top() = top() < arg ? SuTrue : SuFalse;
+			arg = POP();
+			TOP() = TOP() < arg ? SuTrue : SuFalse;
 			break ;
 		case I_LTE :
-			arg = pop();
-			top() = top() <= arg ? SuTrue : SuFalse;
+			arg = POP();
+			TOP() = TOP() <= arg ? SuTrue : SuFalse;
 			break ;
 		case I_GT :
-			arg = pop();
-			top() = top() > arg ? SuTrue : SuFalse;
+			arg = POP();
+			TOP() = TOP() > arg ? SuTrue : SuFalse;
 			break ;
 		case I_GTE :
-			arg = pop();
-			top() = top() >= arg ? SuTrue : SuFalse;
+			arg = POP();
+			TOP() = TOP() >= arg ? SuTrue : SuFalse;
 			break ;
 		case I_MATCH :
 			{
-			gcstring sy = pop().gcstr();
-			gcstring sx = top().gcstr();
-			top() = rx_match(sx.buf(), sx.size(), rx_compile(sy))
+			gcstring sy = POP().gcstr();
+			gcstring sx = TOP().gcstr();
+			TOP() = rx_match(sx.buf(), sx.size(), rx_compile(sy))
 				? SuTrue : SuFalse;
 			break ;
 			}		
 		case I_MATCHNOT :
 			{
-			gcstring sy = pop().gcstr();
-			gcstring sx = top().gcstr();
-			top() = rx_match(sx.buf(), sx.size(), rx_compile(sy))
+			gcstring sy = POP().gcstr();
+			gcstring sx = TOP().gcstr();
+			TOP() = rx_match(sx.buf(), sx.size(), rx_compile(sy))
 				? SuFalse : SuTrue;
 			break ;
 			}		
 		case I_BITAND :
-			arg = pop();
-			top() = (ulong) top().integer() & (ulong) arg.integer();
+			arg = POP();
+			TOP() = (ulong) TOP().integer() & (ulong) arg.integer();
 			break ;
 		case I_BITOR :
-			arg = pop();
-			top() = (ulong) top().integer() | (ulong) arg.integer();
+			arg = POP();
+			TOP() = (ulong) TOP().integer() | (ulong) arg.integer();
 			break ;
 		case I_BITXOR :
-			arg = pop();
-			top() = (ulong) top().integer() ^ (ulong) arg.integer();
+			arg = POP();
+			TOP() = (ulong) TOP().integer() ^ (ulong) arg.integer();
 			break ;
 		case I_LSHIFT :
-			arg = pop();
-			top() = (ulong) top().integer() << arg.integer();
+			arg = POP();
+			TOP() = (ulong) TOP().integer() << arg.integer();
 			break ;
 		case I_RSHIFT :
-			arg = pop();
-			top() = (ulong) top().integer() >> arg.integer();
+			arg = POP();
+			TOP() = (ulong) TOP().integer() >> arg.integer();
 			break ;
 		default :
 			error("invalid op code " << hex << (short) op);
@@ -684,26 +674,27 @@ Value Frame::run()
 			{
 			if (blockframe || x.fp->fn != fn)
 				throw ;
-			// return value on stack
+			PUSH(tss_proc()->block_return_value);
+			tss_proc()->block_return_value = Value();
 			goto done;
 			}
 		else if (catcher &&
 			catch_match(fn->literals[catcher_x].str(), x.exception))
 			{
 			// catch
-			verify(getsp() >= catcher_sp);
-			setsp(catcher_sp);
+			verify(GETSP() >= catcher_sp);
+			SETSP(catcher_sp);
 			ip = catcher;
 			catcher = 0;
-			push(new SuString(x.exception));
+			PUSH(new SuString(x.exception));
 			each = -1;
 			}
 		else
 			throw ;
 		};
 done:
-	persist_if_block(top());
-	return pop();
+	persist_if_block(TOP());
+	return POP();
 	}
 
 static bool catch_match(char* s, char* exception)
@@ -754,12 +745,12 @@ Value Frame::get(uchar op)
 	switch (op & 7)
 		{
 	case SUB :
-		m = pop();
-		ob = pop();
+		m = POP();
+		ob = POP();
 		x = getdata(ob, m);
 		break ;
 	case SUB_SELF :
-		m = pop();
+		m = POP();
 		x = getdata(self, m);
 		break ;
 	case LITERAL :
@@ -780,7 +771,7 @@ Value Frame::get(uchar op)
 			except("uninitialized variable: " << symstr(fn->locals[i]));
 		break ;
 	case MEM :
-		ob = pop();
+		ob = POP();
 		m = symbol(fetch_member());
 		x = getdata(ob, m);
 		break ;
@@ -802,7 +793,7 @@ Value Frame::get(uchar op)
 
 Value Frame::dynamic(ushort name)
 	{
-	for (Frame* f = proc->fp - 1; f >= proc->frames; --f)
+	for (Frame* f = tss_proc()->fp - 1; f >= tss_proc()->frames; --f)
 		{
 		if (! f->fn)
 			continue ; // skip primitives

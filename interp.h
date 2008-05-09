@@ -151,9 +151,10 @@ struct Proc
 	short super;
 	bool in_handler;
 	Frame* except_fp;
+	Value block_return_value;
 	};
 
-extern Proc* proc; // current Proc
+extern Proc*& tss_proc(); // current Proc
 
 // push and pop Frame's
 struct Framer
@@ -172,14 +173,14 @@ struct Framer
 		}
 	Frame* nextfp()
 		{
-		if (proc->fp >= proc->frames + Proc::MAXFRAMES - 1)
+		if (tss_proc()->fp >= tss_proc()->frames + Proc::MAXFRAMES - 1)
 			except("function call overflow");
-		proc->except_fp = 0; 
-		return ++proc->fp;
+		tss_proc()->except_fp = 0; 
+		return ++tss_proc()->fp;
 		}
 	~Framer()
 		{
-		--proc->fp;
+		--tss_proc()->fp;
 		}
 	};
 
@@ -188,7 +189,30 @@ extern int callnest;
 // call a standalone or member function
 Value docall(Value x, Value member, short nargs = 0, short nargnames = 0, ushort* argnames = 0, int each = -1);
 
-#define ARG(i)	proc->stack.getsp()[1 - nargs + i]
+#define ARG(i) tss_proc()->stack.getsp()[1 - nargs + i]
+
+inline void PUSH(Value x)
+	{ tss_proc()->stack.push(x); }
+inline Value& TOP()
+	{ return tss_proc()->stack.top(); }
+inline Value POP()
+	{ return tss_proc()->stack.pop(); }
+inline Value* GETSP()
+	{ return tss_proc()->stack.getsp(); }
+inline void SETSP(Value* newsp)
+	{ tss_proc()->stack.setsp(newsp); }
+
+extern Value block_return;
+
+struct KeepSp
+	{
+	KeepSp()
+		{ sp = GETSP(); }
+	~KeepSp()
+		{ SETSP(sp); }
+	Value* sp;
+	};
+#define KEEPSP	KeepSp keep_sp;
 
 // evaluate a string of source code
 Value run(const char* source);

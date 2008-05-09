@@ -208,20 +208,10 @@ Value BuiltinClass<SuRunPiped>::callclass(BuiltinArgs& args)
 	rp->init(cmd);
 	if (block == SuFalse)
 		return rp;
-	try
-		{
-		Value* sp = proc->stack.getsp();
-		proc->stack.push(rp);
-		Value result = block.call(block, CALL, 1, 0, 0, -1);
-		proc->stack.setsp(sp);
-		rp->close();
-		return result;
-		}
-	catch(...)
-		{
-		rp->close();
-		throw ;
-		}
+	Closer<SuRunPiped*> closer(rp);
+	KEEPSP
+	PUSH(rp);
+	return block.call(block, CALL, 1, 0, 0, -1);
 	}
 
 Value SuRunPiped::Read(BuiltinArgs& args)

@@ -164,10 +164,9 @@ Value TransactionClass::call(Value self, Value member, short nargs, short nargna
 		Value block = ARG(1);
 		try
 			{
-			Value* sp = proc->stack.getsp();
-			proc->stack.push(t);
+			KEEPSP
+			PUSH(t);
 			Value result = block.call(block, CALL, 1, 0, 0, -1);
-			proc->stack.setsp(sp);
 			if (! t->isdone())
 				if (! t->commit())
 					except("Transaction: block commit failed: " << t->get_conflict());
@@ -222,20 +221,10 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 			except("transaction.Query: block not allowed on request");
 		// else do block with query
 		Value block = ARG(1);
-		try
-			{
-			Value* sp = proc->stack.getsp();
-			proc->stack.push(q);
-			Value result = block.call(block, CALL, 1, 0, 0, -1);
-			proc->stack.setsp(sp);
-			val_cast<SuQuery*>(q)->close();
-			return result;
-			}
-		catch (...)
-			{
-			val_cast<SuQuery*>(q)->close();
-			throw ;
-			}
+		Closer<SuQuery*> closer(val_cast<SuQuery*>(q));
+		KEEPSP
+		PUSH(q);
+		return block.call(block, CALL, 1, 0, 0, -1);
 		}
 	else if (member == QueryFirst)
 		{
@@ -365,20 +354,10 @@ Value CursorClass::call(Value self, Value member, short nargs, short nargnames, 
 			return c;
 		// else do block with cursor
 		Value block = ARG(1);
-		try
-			{
-			Value* sp = proc->stack.getsp();
-			proc->stack.push(c);
-			Value result = block.call(block, CALL, 1, 0, 0, -1);
-			proc->stack.setsp(sp);
-			c->close();
-			return result;
-			}
-		catch (...)
-			{
-			c->close();
-			throw ;
-			}
+		Closer<SuCursor*> closer(c);
+		KEEPSP
+		PUSH(c);
+		return block.call(block, CALL, 1, 0, 0, -1);
 		}
 	else
 		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
@@ -509,7 +488,7 @@ Value SuQuery::call(Value, Value member, short nargs, short nargnames, ushort* a
 		{
 		if (nargs != 1)
 			except("usage: query.Output(object)");
-		return output(proc->stack.top().object());
+		return output(TOP().object());
 		}
 	else if (member == Close)
 		{

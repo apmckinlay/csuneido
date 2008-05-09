@@ -31,13 +31,11 @@
 
 Value call(const char* fname, Lisp<Value> args)
 	{
-	Value* oldsp = proc->stack.getsp();
+	KEEPSP
 	int nargs = 0;
 	for (; ! nil(args); ++args, ++nargs)
-		proc->stack.push(*args);
-	Value result = docall(globals[fname], CALL, nargs, 0, 0, -1);
-	proc->stack.setsp(oldsp);
-	return result;
+		PUSH(*args);
+	return docall(globals[fname], CALL, nargs, 0, 0, -1);
 	}
 
 // used by sunapp

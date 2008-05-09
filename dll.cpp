@@ -115,7 +115,7 @@ Value Dll::call(Value self, Value member, short nargs, short nargnames, ushort* 
 	const int params_size = params.size();
 	if (params_size > maxbuf)
 		except("dll arguments too big");
-	Value* args = proc->stack.getsp() - nparams + 1;
+	Value* args = GETSP() - nparams + 1;
 	params.putall(dst, dst2, lim2, args);
 	verify(dst == buf + params_size);
 

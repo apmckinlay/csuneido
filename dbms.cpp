@@ -22,7 +22,6 @@
 
 #include "dbms.h"
 #include "fibers.h"
-#include "tls.h"
 
 static char* server_ip = 0; // local
 
@@ -37,8 +36,7 @@ char* get_dbms_server_ip()
 	}
 
 #ifndef ACE_SERVER
-Dbms* thedbms; // this should only be used by fibers
-TLS(thedbms);
+extern Dbms*& tss_thedbms();
 #endif
 
 Dbms* dbms()
@@ -46,10 +44,10 @@ Dbms* dbms()
 #ifndef ACE_SERVER
 	if (server_ip)
 		{ // client
-		if (! thedbms)
-			thedbms = (Fibers::current() == Fibers::main() ? 
+		if (! tss_thedbms())
+			tss_thedbms() = (Fibers::current() == Fibers::main() ? 
 				dbms_remote(server_ip) : dbms_remote_asynch(server_ip));
-		return thedbms;
+		return tss_thedbms();
 		}
 	else
 #endif

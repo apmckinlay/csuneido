@@ -63,7 +63,7 @@ Value Func::params()
 
 void Func::args(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	Value* args = proc->stack.getsp() - nargs + 1;
+	Value* args = GETSP() - nargs + 1;
 	short unamed = nargs - nargnames - (each == -1 ? 0 : 1);
 	short i, j;
 	
@@ -75,7 +75,7 @@ void Func::args(short nargs, short nargnames, ushort* argnames, int each)
 
 	if (nparams > nargs)
 		// expand stack (before filling it)
-		proc->stack.setsp(proc->stack.getsp() + nparams - nargs);
+		SETSP(GETSP() + nparams - nargs);
 
 	if (each != -1 && rest)
 		{
@@ -149,7 +149,7 @@ void Func::args(short nargs, short nargnames, ushort* argnames, int each)
 
 	if (nargs > nparams)
 		// shrink stack (after processing args)
-		proc->stack.setsp(proc->stack.getsp() + nparams - nargs);
+		SETSP(GETSP() + nparams - nargs);
 
 	// check that all parameters now have values
 	verify(locals);
@@ -164,7 +164,7 @@ void argseach(short& nargs, short& nargnames, ushort*& argnames, int& each)
 		return ;
 	verify(nargs == 1);
 	verify(nargnames == 0);
-	SuObject* ob = proc->stack.pop().object();
+	SuObject* ob = POP().object();
 	int i = 0;
 	nargs = 0;
 	int vs = ob->vecsize();
@@ -175,7 +175,7 @@ void argseach(short& nargs, short& nargnames, ushort*& argnames, int& each)
 			continue ;
 		if (i >= vs) // named members
 			argnames[nargnames++] = (*iter).first.symnum();
-		proc->stack.push((*iter).second);
+		PUSH((*iter).second);
 		++nargs;
 		}
 	each = -1;

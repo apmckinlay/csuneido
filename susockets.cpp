@@ -87,7 +87,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		{
 		if (nargs != 1)
 			except("usage: socketClient.Write(string)");
-		gcstring s = proc->stack.top().gcstr();
+		gcstring s = TOP().gcstr();
 		sc->write(s.buf(), s.size());
 		return Value();
 		}
@@ -95,7 +95,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		{
 		if (nargs != 1)
 			except("usage: socketClient.Writeline(string)");
-		gcstring s = proc->stack.top().gcstr();
+		gcstring s = TOP().gcstr();
 		sc->writebuf(s.buf(), s.size());
 		sc->write("\r\n", 2);
 		return Value();
@@ -206,7 +206,7 @@ public:
 
 static void _stdcall suserver(void* arg)
 	{
-	Proc p; proc = &p;
+	Proc p; tss_proc() = &p;
 
 	SocketConnect* sc = (SocketConnect*) arg;
 	try
@@ -220,8 +220,11 @@ static void _stdcall suserver(void* arg)
 	catch (...)
 		{ }
 	sc->close();
-	extern Dbms* thedbms;
-	delete thedbms;
+	
+	extern Dbms*& tss_thedbms();
+	delete tss_thedbms();
+	tss_thedbms() = 0;
+	
 	Fibers::end();
 	}
 
@@ -264,7 +267,7 @@ Value SuServerInstance::call(Value self, Value member, short nargs,
 		{
 		if (nargs != 1)
 			except("usage: socketServer.Write(string)");
-		gcstring s = proc->stack.top().gcstr();
+		gcstring s = TOP().gcstr();
 		sc->write(s.buf(), s.size());
 		return Value();
 		}
@@ -272,7 +275,7 @@ Value SuServerInstance::call(Value self, Value member, short nargs,
 		{
 		if (nargs != 1)
 			except("usage: socketServer.Writeline(string)");
-		gcstring s = proc->stack.top().gcstr();
+		gcstring s = TOP().gcstr();
 		sc->write(s.buf(), s.size());
 		sc->write("\r\n", 2);
 		return Value();

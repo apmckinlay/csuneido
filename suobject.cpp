@@ -197,11 +197,10 @@ void SuObject::putdata(Value m, Value x)
 		static Value Set_("Set_");
 		if (Value method = myclass.getdata(Set_))
 			{
-			Value* oldsp = proc->stack.getsp();
-			proc->stack.push(m);
-			proc->stack.push(x);
-			x = method.call(this, CALL, 2, 0, 0, -1);
-			proc->stack.setsp(oldsp);
+			KEEPSP
+			PUSH(m);
+			PUSH(x);
+			method.call(this, CALL, 2, 0, 0, -1);
 			return ;
 			}
 		else
@@ -255,11 +254,9 @@ Value SuObject::getdefault(Value member, Value def)
 		static Value Get_("Get_");
 		if (Value method = myclass.getdata(Get_))
 			{
-			Value* oldsp = proc->stack.getsp();
-			proc->stack.push(member);
-			x = method.call(this, CALL, 1, 0, 0, -1);
-			proc->stack.setsp(oldsp);
-			return x;
+			KEEPSP
+			PUSH(member);
+			return method.call(this, CALL, 1, 0, 0, -1);
 			}
 		else
 			has_getter = false; // avoid future attempts
@@ -270,10 +267,8 @@ Value SuObject::getdefault(Value member, Value def)
 			Value getter = new SuString(CATSTRA(islower(*s) ? "get_" : "Get_", s));
 			if (Value method = myclass.getdata(getter))
 				{
-				Value* oldsp = proc->stack.getsp();
-				x = method.call(this, CALL, 0, 0, 0, -1);
-				proc->stack.setsp(oldsp);
-				return x;
+				KEEPSP
+				return method.call(this, CALL, 0, 0, 0, -1);
 				}
 			}
 	if (SuObject* defval_ob = def.ob_if_ob())
@@ -437,9 +432,9 @@ Value SuObject::call(Value self, Value member, short nargs, short nargnames, ush
 	{
 	if (member == CALL)
 		member = CALL_INSTANCE;
-	if (proc->super)
+	if (tss_proc()->super)
 		{
-		short super = proc->super; proc->super = 0;
+		short super = tss_proc()->super; tss_proc()->super = 0;
 		return globals[super].call(self, member, nargs, nargnames, argnames, each);
 		}
 //else if (Value fn = myclass.getdata(member))
@@ -460,7 +455,7 @@ Value SuObject::Set_default(short nargs, short nargnames, ushort* argnames, int 
 		except("usage: object.Set_default(value)");
 	if (readonly)
 		except("can't set_default on readonly object");
-	defval = proc->stack.top();
+	defval = TOP();
 	if (SuObject* defval_ob = defval.ob_if_ob())
 		if (! defval_ob->readonly)
 			defval = new SuObject(*defval_ob);
@@ -566,7 +561,7 @@ Value SuObject::HasMember(short nargs, short nargnames, ushort* argnames, int ea
 	{
 	if (nargs != 1)
 		except("usage: object.Member?(name)");
-	Value mem = proc->stack.top();
+	Value mem = TOP();
 	return has(mem) ? SuTrue : SuFalse;
 	}
 
@@ -587,7 +582,7 @@ Value SuObject::HasMethod(short nargs, short nargnames, ushort* argnames, int ea
 	{
 	if (nargs != 1)
 		except("usage: object.Method?(name)");
-	Value x = lookup(this, MethodFinder(proc->stack.top()));
+	Value x = lookup(this, MethodFinder(TOP()));
 	return x && x != SuFalse ? SuTrue : SuFalse;
 	}
 
@@ -595,7 +590,7 @@ Value SuObject::MethodClass(short nargs, short nargnames, ushort* argnames, int 
 	{
 	if (nargs != 1)
 		except("usage: object.MethodClass(name)");
-	Value x = lookup(this, MethodFinder(proc->stack.top()));
+	Value x = lookup(this, MethodFinder(TOP()));
 	return x ? x : SuFalse;
 	}
 
@@ -623,7 +618,7 @@ Value SuObject::HasBase(short nargs, short nargnames, ushort* argnames, int each
 	{
 	if (nargs != 1)
 		except("usage: object.Base?(class)");
-	return lookup(this, BaseFinder(proc->stack.top())) ? SuTrue : SuFalse;
+	return lookup(this, BaseFinder(TOP())) ? SuTrue : SuFalse;
 	}
 
 Value SuObject::Eval(short nargs, short nargnames, ushort* argnames, int each)
@@ -661,11 +656,9 @@ struct PartFn
 		{ }
 	bool operator()(Value x)
 		{
-		Value* oldsp = proc->stack.getsp();
-		proc->stack.push(x);
-		Value result = docall(fn, CALL, 1, 0, 0, -1);
-		proc->stack.setsp(oldsp);
-		return result == SuTrue;
+		KEEPSP
+		PUSH(x);
+		return SuTrue == docall(fn, CALL, 1, 0, 0, -1);
 		}
 	Value fn;
 	};
@@ -689,12 +682,10 @@ struct Lt
 		{ }
 	bool operator()(Value x, Value y)
 		{
-		Value* oldsp = proc->stack.getsp();
-		proc->stack.push(x);
-		proc->stack.push(y);
-		Value result = docall(fn, CALL, 2, 0, 0, -1);
-		proc->stack.setsp(oldsp);
-		return result == SuTrue;
+		KEEPSP
+		PUSH(x);
+		PUSH(y);
+		return SuTrue == docall(fn, CALL, 2, 0, 0, -1);
 		}
 	Value fn;
 	};
@@ -763,7 +754,7 @@ Value SuObject::Delete(short nargs, short nargnames, ushort* argnames, int each)
 		vec.clear();
 		map.clear();
 		}
-	else if (! erase(proc->stack.top()))
+	else if (! erase(TOP()))
 		return SuBoolean::f;
 	return this;
 	}
@@ -775,7 +766,7 @@ Value SuObject::Erase(short nargs, short nargnames, ushort* argnames, int each)
 		except("usage: object.Erase(member)");
 	if (readonly)
 		except("can't Erase from readonly objects");
-	if (! erase2(proc->stack.top()))
+	if (! erase2(TOP()))
 		return SuBoolean::f;
 	return this;
 	}

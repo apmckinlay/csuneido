@@ -120,7 +120,7 @@ Lisp<gcstring> libraries()
 
 Value su_use()
 	{
-	gcstring lib = proc->stack.top().gcstr();
+	gcstring lib = TOP().gcstr();
 	if (member(libdb()->libraries(), lib))
 		return SuFalse;
 	if (is_client && ! cmdlineoptions.local_library)
@@ -147,7 +147,7 @@ PRIM(su_use, "Use(string)");
 
 Value su_unuse()
 	{
-	gcstring lib = proc->stack.top().gcstr();
+	gcstring lib = TOP().gcstr();
 	if (! member(libdb()->libraries(), lib))
 		return SuFalse;
 	if (is_client && ! cmdlineoptions.local_library)

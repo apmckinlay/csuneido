@@ -27,13 +27,13 @@
 
 Except::Except(char* x) : exception(x)
 	{
-	if (proc)
+	if (tss_proc())
 		{
-		fp = proc->fp;
-		sp = proc->stack.getsp();
+		fp = tss_proc()->fp;
+		sp = GETSP();
 		// prevent clear_unused from wiping exception info
-		if (fp > proc->except_fp)
-			proc->except_fp = fp;
+		if (fp > tss_proc()->except_fp)
+			tss_proc()->except_fp = fp;
 		}
 	else
 		{

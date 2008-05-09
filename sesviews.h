@@ -24,13 +24,17 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "gcstring.h"
+#include "hashmap.h"
+
+class SesViews : public HashMap<gcstring,gcstring>
+	{ };
+
+extern SesViews*& tss_session_views();
 
 void set_session_view(const gcstring& name, const gcstring& def);
 
 gcstring get_session_view(const gcstring& name);
 
 void remove_session_view(const gcstring& name);
-
-void new_session(void** p);
 
 #endif

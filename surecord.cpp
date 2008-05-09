@@ -256,7 +256,7 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 			except("method not found: Call");
 		SuRecord* ob = new SuRecord;
 		// convert args to members
-		Value* args = proc->stack.getsp() - nargs + 1;
+		Value* args = GETSP() - nargs + 1;
 		short unamed = nargs - nargnames;
 		// un-named
 		int i;
@@ -466,10 +466,9 @@ void SuRecord::call_observer(ushort member)
 			continue ;
 		TrackObserver track(this, *obs, member);
 
-		Value* sp = proc->stack.getsp();
-		proc->stack.push(symbol(member));
+		KEEPSP
+		PUSH(symbol(member));
 		(*obs).call(this, CALL, 1, 1, &argname, -1);
-		proc->stack.setsp(sp);
 		}
 	}
 
@@ -477,8 +476,8 @@ Value SuRecord::getdata(Value m)
 	{
 	log("getdata " << m);
 	int i = m.symnum();
-	if (proc->fp->rule.rec == this)
-		add_dependent(proc->fp->rule.mem, i);
+	if (tss_proc()->fp->rule.rec == this)
+		add_dependent(tss_proc()->fp->rule.mem, i);
 	Value result = get(m);
 	if (! result || invalid.find(i))
 		{
@@ -526,15 +525,14 @@ Value SuRecord::call_rule(ushort i)
 
 	log("call_rule " << symstr(i));
 
-	Rule old_rule = proc->fp->rule;
-	proc->fp->rule.rec = this;
-	proc->fp->rule.mem = i;
+	Rule old_rule = tss_proc()->fp->rule;
+	tss_proc()->fp->rule.rec = this;
+	tss_proc()->fp->rule.mem = i;
 
-	Value* oldsp = proc->stack.getsp();
+	KEEPSP
 	Value x = fn.call(this, CALL, 0, 0, 0, -1);
-	proc->stack.setsp(oldsp);
 
-	proc->fp->rule = old_rule;
+	tss_proc()->fp->rule = old_rule; // BUG not restored if exception?
 	
 	if (x)
 		put(symbol(i), x);

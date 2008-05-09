@@ -153,7 +153,7 @@ static Lisp<void*> to_free;
 
 Value su_ClearCallback()
 	{
-	Value x = proc->stack.top();
+	Value x = TOP();
 	Cb* cb = callbacks.find(x);
 	if (cb)
 		to_free.push(cb->fn);
@@ -176,7 +176,7 @@ long callback(Value fn, Callback* cb, char* src)
 
 long Callback::callback(Value fn, char* src)
 	{
-	Value* oldsp = proc->stack.getsp();
+	KEEPSP
 	try
 		{
 		try
@@ -185,13 +185,11 @@ long Callback::callback(Value fn, char* src)
 			for (int i = 0; i < nitems; ++i)
 				{
 				Value x = items[i].type().get(src, Value());
-				proc->stack.push(x ? (Value) x : (Value) &SuNumber::zero);
+				PUSH(x ? (Value) x : (Value) &SuNumber::zero);
 				}
 	
 			// call function
-			Value result = docall(fn, CALL, nitems);
-			proc->stack.setsp(oldsp);
-			return result.integer();
+			return docall(fn, CALL, nitems).integer();
 			}
 		catch (const std::exception& e)
 			{ except(e.what()); }
@@ -207,7 +205,6 @@ long Callback::callback(Value fn, char* src)
 		{
 		extern void handler(const Except& x);
 		handler(x);
-		proc->stack.setsp(oldsp);
 		return 0;
 		}
 	}

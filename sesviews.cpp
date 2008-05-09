@@ -21,36 +21,24 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "sesviews.h"
-#include "hashmap.h"
-#include "tls.h"
-
-static HashMap<gcstring,gcstring>* session_views = 0;
-TLS(session_views);
 
 void set_session_view(const gcstring& name, const gcstring& def)
 	{
-	if (! session_views)
-		session_views = new HashMap<gcstring,gcstring>;
-	(*session_views)[name] = def;
+	if (! tss_session_views())
+		tss_session_views() = new SesViews;
+	(*tss_session_views())[name] = def;
 	}
 
 gcstring get_session_view(const gcstring& name)
 	{
-	if (session_views)
-		if (gcstring* p = session_views->find(name))
+	if (tss_session_views())
+		if (gcstring* p = tss_session_views()->find(name))
 			return *p;
 	return "";
 	}
 
 void remove_session_view(const gcstring& name)
 	{
-	if (session_views)
-		session_views->erase(name);
-	}
-
-void new_session(void** p)
-	{
-	if (! *p)
-		*p = new HashMap<gcstring,gcstring>;
-	session_views = (HashMap<gcstring,gcstring>*) *p;
+	if (tss_session_views())
+		tss_session_views()->erase(name);
 	}

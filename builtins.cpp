@@ -159,20 +159,20 @@ PRIM(gccollect, "GC_collect()");
 Value display()
 	{
 	OstreamStr os;
-	os << proc->stack.top();
+	os << TOP();
 	return new SuString(os.str());
 	}
 PRIM(display, "Display(value)");
 
 Value frame()
 	{
-	int i = 1 + abs(proc->stack.top().integer()); // + 1 to skip this frame
-	if (proc->fp - i <= proc->frames)
+	int i = 1 + abs(TOP().integer()); // + 1 to skip this frame
+	if (tss_proc()->fp - i <= tss_proc()->frames)
 		return SuBoolean::f;
-	if (proc->fp[-i].fn)
-		return proc->fp[-i].fn;
+	if (tss_proc()->fp[-i].fn)
+		return tss_proc()->fp[-i].fn;
 	else
-		return proc->fp[-i].prim;
+		return tss_proc()->fp[-i].prim;
 	}
 PRIM(frame, "Frame(offset)");
 
@@ -180,10 +180,10 @@ Value locals()
 	{
 	static Value SYM_THIS("this");
 
-	int i = 1 + abs(proc->stack.top().integer()); // + 1 to skip this frame
-	if (proc->fp - i < proc->frames)
+	int i = 1 + abs(TOP().integer()); // + 1 to skip this frame
+	if (tss_proc()->fp - i < tss_proc()->frames)
 		return SuBoolean::f;
-	Frame& frame = proc->fp[-i];
+	Frame& frame = tss_proc()->fp[-i];
 	SuObject* ob = new SuObject();
 	ob->put(SYM_THIS, frame.self);
 	if (frame.fn)
@@ -211,7 +211,7 @@ PRIM(buffer, "Buffer(size, string='')");
 
 Value unload()
 	{
-	gcstring s = proc->stack.top().gcstr();
+	gcstring s = TOP().gcstr();
 	// TODO: check for valid name
 	globals.put(s.str(), Value());
 	return Value();
@@ -220,7 +220,7 @@ PRIM(unload, "Unload(name)");
 
 Value objectq()
 	{
-	Value x = proc->stack.top();
+	Value x = TOP();
 	return x.ob_if_ob() && ! val_cast<SuClass*>(x)
 		? SuTrue : SuFalse;
 	}
@@ -228,14 +228,14 @@ PRIM(objectq, "Object?(value)");
 
 Value classq()
 	{
-	return val_cast<SuClass*>(proc->stack.top())
+	return val_cast<SuClass*>(TOP())
 		? SuTrue : SuFalse;
 	}
 PRIM(classq, "Class?(value)");
 
 Value numberq()
 	{
-	Value x = proc->stack.top();
+	Value x = TOP();
 	return x.is_int() || val_cast<SuNumber*>(x)
 		? SuTrue : SuFalse;
 	}
@@ -243,21 +243,21 @@ PRIM(numberq, "Number?(value)");
 
 Value stringq()
 	{
-	return val_cast<SuString*>(proc->stack.top())
+	return val_cast<SuString*>(TOP())
 		? SuTrue : SuFalse;
 	}
 PRIM(stringq, "String?(value)");
 
 Value booleanq()
 	{
-	return val_cast<SuBoolean*>(proc->stack.top())
+	return val_cast<SuBoolean*>(TOP())
 		? SuTrue : SuFalse;
 	}
 PRIM(booleanq, "Boolean?(value)");
 
 Value functionq()
 	{
-	const char* type = proc->stack.top().type();
+	const char* type = TOP().type();
 	return 0 == strcmp(type, "Function") ||
 		0 == strcmp(type, "Method") ||
 		0 == strcmp(type, "Block")
@@ -267,21 +267,21 @@ PRIM(functionq, "Function?(value)");
 
 Value dateq()
 	{
-	return val_cast<SuDate*>(proc->stack.top())
+	return val_cast<SuDate*>(TOP())
 		? SuTrue : SuFalse;
 	}
 PRIM(dateq, "Date?(value)");
 
 Value recordq()
 	{
-	return val_cast<SuRecord*>(proc->stack.top())
+	return val_cast<SuRecord*>(TOP())
 		? SuTrue : SuFalse;
 	}
 PRIM(recordq, "Record?(value)");
 
 Value name()
 	{
-	if (Named* named = proc->stack.top().get_named())
+	if (Named* named = TOP().get_named())
 		return new SuString(named->name());
 	else
 		return SuString::empty_string;
@@ -343,7 +343,7 @@ Value su_random()
 		first = false;
 		srand((unsigned) time(NULL));
 		}
-	int limit = proc->stack.top().integer();
+	int limit = TOP().integer();
 	return limit == 0 ? 0 : random(limit);
 	}
 PRIM(su_random, "Random(range)");
@@ -351,7 +351,7 @@ PRIM(su_random, "Random(range)");
 #ifndef ACE_SERVER
 static void _stdcall thread(void* arg)
 	{
-	Proc p; proc = &p;
+	Proc p; tss_proc() = &p;
 
 	try
 		{
@@ -363,8 +363,9 @@ static void _stdcall thread(void* arg)
 		MessageBox(0, x.exception, "Error in Thread", MB_TASKMODAL | MB_OK);
 		}
 
-	extern Dbms* thedbms;
-	delete thedbms;
+	extern Dbms*& tss_thedbms();
+	delete tss_thedbms();
+	tss_thedbms() = 0;
 
 	Fibers::end();
 	}
@@ -719,7 +720,7 @@ public:
 Value MkRec::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	// pre: last argument is the literal record
 	{
-	Value* args = proc->stack.getsp() - nargs + 1;
+	Value* args = GETSP() - nargs + 1;
 	Value lits = args[--nargs];
 	if (nargnames)
 		--nargnames;

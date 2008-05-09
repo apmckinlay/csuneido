@@ -89,6 +89,6 @@ void sleepms(int ms);
 
 #endif
 
-extern char* fiber_id;
+extern char*& tss_fiber_id();
 
 #endif

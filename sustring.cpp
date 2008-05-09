@@ -542,11 +542,10 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 				}
 			else // block
 				{
-				Value* oldsp = proc->stack.getsp();
+				KEEPSP
 				gcstring match(parts[0].n, parts[0].s);
-				proc->stack.push(match);
+				PUSH(match);
 				Value x = docall(reparg, CALL, 1, 0, 0, -1);
-				proc->stack.setsp(oldsp);
 				gcstring replace = x ? x.gcstr() : match;
 				while (dst + replace.size() >= result_size)
 					result = (char*) GC_realloc(result, result_size *= 2);

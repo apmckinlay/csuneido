@@ -43,7 +43,7 @@ private:
 
 Value suscanner()
 	{
-	return new SuScanner(proc->stack.top().str());
+	return new SuScanner(TOP().str());
 	}
 PRIM(suscanner, "Scanner(string)");
 

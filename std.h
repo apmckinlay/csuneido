@@ -60,4 +60,13 @@ typedef unsigned long long uint64;
 #define NORETURN(fn) fn
 #endif
 
+template<class T> struct Closer
+	{
+	Closer(T t) : x(t)
+		{ }
+	~Closer()
+		{ x->close(); }
+	T x;
+	};
+
 #endif

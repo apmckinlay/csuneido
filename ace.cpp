@@ -39,8 +39,7 @@ bool is_server = true;
 bool is_client = false;
 char* cmdline = "";
 CmdLineOptions cmdlineoptions;
-char* fiber_id = "";
-char* session_id = "";
+char* session_id = ""; // TODO: used by errlog.cpp
 
 const int N_THREADS = 2; // for initial development
 
@@ -49,7 +48,7 @@ int main(int argc, char**argv)
 	GC_init();
 	try
 		{
-		proc = new Proc;
+		tss_proc() = new Proc;
 		builtins(); // internal initialization
 		if (argc == 2 && 0 == strcmp(argv[1], "-t"))
 			{

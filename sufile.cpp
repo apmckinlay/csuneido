@@ -109,20 +109,10 @@ Value BuiltinClass<SuFile>::callclass(BuiltinArgs& args)
 	f->init(filename, mode);
 	if (block == SuFalse)
 		return f;
-	try
-		{
-		Value* sp = proc->stack.getsp();
-		proc->stack.push(f);
-		Value result = block.call(block, CALL, 1, 0, 0, -1);
-		proc->stack.setsp(sp);
-		f->close();
-		return result;
-		}
-	catch(...)
-		{
-		f->close();
-		throw ;
-		}
+	Closer<SuFile*> closer(f);
+	KEEPSP
+	PUSH(f);
+	return block.call(block, CALL, 1, 0, 0, -1);
 	}
 
 void SuFile::init(char* fn, char* m)

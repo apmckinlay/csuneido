@@ -13,6 +13,28 @@
 #include "except.h"
 #include "minmax.h"
 
+struct Proc;
+class SesViews;
+
+struct Tss
+	{
+	Tss() : proc(0), session_views(0), fiber_id("")
+		{ }
+	Proc* proc;
+	SesViews* session_views;
+	char* fiber_id;
+	};
+ACE_TSS<Tss> tss;
+
+Proc*& tss_proc()
+	{ return tss->proc; }
+
+SesViews*& tss_session_views()
+	{ return tss->session_views; }
+
+char*& tss_fiber_id()
+	{ return tss->fiber_id; }
+
 class AceSocketConnect : public SocketConnect
 	{
 public:

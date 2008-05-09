@@ -61,9 +61,9 @@ Value SuClass::call(Value self, Value member, short nargs, short nargnames, usho
 		return (this->*(*p))(nargs, nargnames, argnames, each);
 	if (member == CALL)
 		member = CALL_CLASS;
-	if (proc->super)
+	if (tss_proc()->super)
 		{
-		short super = proc->super; proc->super = 0;
+		short super = tss_proc()->super; tss_proc()->super = 0;
 		return globals[super].call(self, member, nargs, nargnames, argnames, each);
 		}
 	if (Value x = get(member))
@@ -142,7 +142,7 @@ Value RootClass::call(Value self, Value member, short nargs, short nargnames, us
 	{
 	if (member == CALL || member == INSTANTIATE)
 		{ // only used for Object(...)
-		Value* args = proc->stack.getsp() - nargs + 1;
+		Value* args = GETSP() - nargs + 1;
 		SuObject* ob;
 		if (each >= 0)
 			{
@@ -195,8 +195,8 @@ Value RootClass::notfound(Value self, Value member, short nargs, short nargnames
 		{
 		// insert member before args
 		argseach(nargs, nargnames, argnames, each); // have to expand first
-		proc->stack.push(0); // make space
-		Value* sp = proc->stack.getsp();
+		PUSH(0); // make space
+		Value* sp = GETSP();
 		int i;
 		for (i = 0; i < nargs; ++i)
 			sp[-i] = sp[-i - 1];

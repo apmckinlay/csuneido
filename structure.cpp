@@ -88,7 +88,7 @@ Value Structure::call(Value self, Value member, short nargs, short nargnames, us
 		if (nargs != 1)
 			except("usage: struct(value)");
 		int n;
-		Value arg = proc->stack.top();
+		Value arg = ARG(0);
 		if (arg.ob_if_ob())
 			{
 			// convert object to structure in string

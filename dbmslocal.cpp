@@ -329,8 +329,8 @@ Value DbmsLocal::sessionid(char* s)
 	if (*s)
 		session_id = strdup(s);
 	extern bool is_server;
-	extern char* fiber_id;
-	return new SuString(is_server ? fiber_id : session_id);
+	extern char*& tss_fiber_id();
+	return new SuString(is_server ? tss_fiber_id() : session_id);
 	}
 
 bool DbmsLocal::refresh(int tran)
