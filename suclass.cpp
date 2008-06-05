@@ -51,7 +51,8 @@ Value SuClass::call(Value self, Value member, short nargs, short nargnames, usho
 
 	if (member == INSTANTIATE)
 		{
-		Value instance = factory(this);
+		SuObject* instance = new SuObject;
+		instance->myclass = this;
 		call(instance, NEW, nargs, nargnames, argnames, each);
 		return instance;
 		}
@@ -113,7 +114,6 @@ size_t SuClass::packsize() const
 
 void SuClass::pack(char* buf) const
 	{
-	verify(factory == object_factory);
 	*buf++ = PACK_CLASS;
 	verify(base > 0);
 	buf += packstr(buf, globals(base));

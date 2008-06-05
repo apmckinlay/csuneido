@@ -148,23 +148,6 @@ void* Mmfile::adr(Mmoffset offset)
 	return base[chunk] + (offset % chunk_size);
 	}
 
-bool Mmfile::contains(void* p)
-	{
-	for (int i = 0; i <= hi_chunk; ++i)
-		if (base[i] && base[i] <= p && p < base[i] + chunk_size)
-			return true;
-	return false;
-	}
-
-Mmoffset Mmfile::off(void* adr)
-	{
-	// search backwards since most activity is at end
-	for (int i = hi_chunk; i >= 0; --i)
-		if (base[i] && base[i] <= adr && adr < base[i] + chunk_size)
-			return ((Mmoffset) i * chunk_size) + ((char*) adr - base[i]);
-	except("not a valid mmfile address");
-	}
-	
 char Mmfile::type(void* p)
 	{
 	return typ(p);
@@ -196,7 +179,7 @@ MmCheck Mmfile::mmcheck(Mmoffset o)
 		return MMEOF;
 	void* p = adr(o);
 	size_t n = len(p);
-	if (n > MB_PER_CHUNK * 1024 * 1024)
+	if (n > MB_PER_CHUNK * 1024 * 1024) // shouldn't this be chunk_size ?
 		return MMERR;
 // TODO: check if off + n is in different chunk
 	void* q = (char*) p + n;
@@ -242,7 +225,7 @@ Mmfile::iterator& Mmfile::iterator::operator--()
 		void* p = mmf->adr(off);
 		size_t n = *((size_t*) p) ^ off;
 // TODO: check if off - n is in different chunk
-		if (n > MB_PER_CHUNK * 1024 * 1024 || n > off)
+		if (n > MB_PER_CHUNK * 1024 * 1024 || n > off) // shouldn't this be chunk_size ?
 			{
 			err = true;
 			off = mmf->begin().off;

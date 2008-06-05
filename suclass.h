@@ -28,38 +28,26 @@
 
 class Ostream;
 
-typedef Value (*Factory)(SuValue*);
-
 // user defined classes
 class SuClass : public SuObject
 	{
 public:
 	NAMED
 	explicit SuClass(short b) :
-		named("."), base(b), factory(object_factory)
+		named("."), base(b)
 		{ }
 	explicit SuClass(const SuClass& c) :
-		SuObject(c), named("."), base(c.base), factory(object_factory)
-		{ }
-	explicit SuClass(Factory f) : factory(f)
+		SuObject(c), named("."), base(c.base)
 		{ }
 	void out(Ostream&);
 	Value call(Value self, Value member, short nargs, short nargnames, ushort *argnames, int each);
 	Value getdata(Value);
-
-	static Value object_factory(SuValue* suclass)
-		{
-		SuObject* ob = new SuObject;
-		ob->myclass = suclass;
-		return ob;
-		}
 
 	virtual size_t packsize() const;
 	virtual void pack(char* buf) const;
 	static SuClass* unpack(const gcstring& s);
 
 	short base;
-	Factory factory;
 	};
 
 // conceptually RootClass is a kind of Class

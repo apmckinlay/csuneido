@@ -44,8 +44,6 @@ struct IndexDest
 		{ mmf->unalloc(n); }
 	void* adr(Mmoffset offset) const
 		{ return mmf->adr(offset); }
-	Mmoffset off(void* adr) const
-		{ return mmf->off(adr); }
 
 	Mmfile* mmf;
 	};

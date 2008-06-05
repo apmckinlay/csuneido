@@ -53,14 +53,12 @@ public:
 	int64 size()
 		{ return file_size; }
 	void* adr(Mmoffset offset);
-	Mmoffset off(void* adr);
 	static char type(void* p);
 	static size_t length(void* p);
 	MmCheck mmcheck(Mmoffset offset);
 	static size_t align(size_t n)
 		{ return ((n - 1) | (MM_ALIGN - 1)) + 1; }
 	void set_max_chunks_mapped(int n);
-	bool contains(void* p);
 
 	void sync();
 
