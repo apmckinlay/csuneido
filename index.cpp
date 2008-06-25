@@ -135,6 +135,8 @@ bool Index::iterator::visible()
 static bool eq(const Record& r1, const Record& r2)
 	{
 	const int n = r1.size() - 1;
+	if (n != r2.size() - 1)
+		return false;
 	for (int i = 0; i < n; ++i)
 		if (r1.getraw(i) != r2.getraw(i))
 			return false;
