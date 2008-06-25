@@ -30,7 +30,8 @@
 enum { PORT = AFTER_ACTIONS, NOSPLASH, UNATTENDED, LOCAL_LIBRARY,
 	NO_EXCEPTION_HANDLING, NO_GARBAGE_COLLECTION,
 	INSTALL_SERVICE, SERVICE,
-	CHECK_START, COMPACT_EXIT, IGNORE_VERSION };
+	CHECK_START, COMPACT_EXIT, IGNORE_VERSION,
+	MASTER, SLAVE };
 
 char* CmdLineOptions::parse(char* str)
 	{
@@ -112,6 +113,13 @@ char* CmdLineOptions::parse(char* str)
 		case IGNORE_VERSION :
 			ignore_version = true;
 			break ;
+		case SLAVE :
+			replication = REP_SLAVE;
+		case MASTER :
+			replication = REP_MASTER;
+			if (! (slaveip = get_word()))
+				slaveip = "127.0.0.1";
+			break ;
 		case HELP :
 			alert("options:\n"
 				"	-check\n"
@@ -141,6 +149,8 @@ char* CmdLineOptions::parse(char* str)
 			unreachable();
 			}
 		}
+	if (action != SERVER && replication != NONE)
+		except("-master and -slave require -server");
 	return s;
 	}
 
@@ -151,6 +161,7 @@ static struct { char* str; int num; } options[] = {
 	{ "-locallibrary", LOCAL_LIBRARY }, { "-ll", LOCAL_LIBRARY },
 	{ "-load", LOAD }, { "-l", LOAD },
 	{ "-service", SERVICE }, 
+	{ "-slave", SLAVE }, 
 	{ "-server", SERVER }, { "-s", SERVER },
 	{ "-copy", COPY },
 	{ "-compact", COMPACT }, { "-compactexit", COMPACT_EXIT }, { "-ce", COMPACT_EXIT },
@@ -169,7 +180,8 @@ static struct { char* str; int num; } options[] = {
 	{ "-is", INSTALL_SERVICE }, { "-installservice", INSTALL_SERVICE },
 	{ "-us", UNINSTALL_SERVICE }, { "-uninstallservice", UNINSTALL_SERVICE },
 	{ "-unattended", UNATTENDED }, { "-u", UNATTENDED },
-	{ "-ignoreversion", IGNORE_VERSION }, { "-iv", IGNORE_VERSION }
+	{ "-ignoreversion", IGNORE_VERSION }, { "-iv", IGNORE_VERSION },
+	{ "-master", MASTER }, { "-m", MASTER },
 	};
 const int noptions = sizeof options / sizeof options[0];
 

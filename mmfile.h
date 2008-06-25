@@ -59,6 +59,7 @@ public:
 	static size_t align(size_t n)
 		{ return ((n - 1) | (MM_ALIGN - 1)) + 1; }
 	void set_max_chunks_mapped(int n);
+	Mmoffset get_file_size();
 
 	void sync();
 
@@ -96,7 +97,6 @@ private:
 	void open(char* filename, bool create);
 	void map(int chunk);
 	void unmap(int chunk);
-	Mmoffset get_file_size();
 	void set_file_size(Mmoffset fs);
 	int lru_chunk();
 	void evict_chunk();

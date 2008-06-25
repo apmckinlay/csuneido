@@ -231,6 +231,10 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	if (run("Init()") == SuFalse)
 		exit(EXIT_FAILURE);
 
+	extern void master(char*);
+	if (cmdlineoptions.replication == REP_MASTER)
+		master(cmdlineoptions.slaveip);
+
 	if (hdlg)
 		DestroyWindow(hdlg);
 	}
@@ -268,8 +272,7 @@ DWORD WINAPI message_thread(void* p)
 void message(const char* s, const char* t)
 	{
 	St st(s, t);
-	DWORD threadId;
-	HANDLE thread = CreateThread(NULL, 0, message_thread, (void*) &st, 0, &threadId);
+	HANDLE thread = CreateThread(NULL, 0, message_thread, (void*) &st, 0, NULL);
 	WaitForSingleObject(thread, INFINITE);
 	}
 

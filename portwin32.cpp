@@ -120,7 +120,7 @@ void Mmfile::open(char* filename, bool create)
 		}
 	f = CreateFile(filename,
 		GENERIC_READ | GENERIC_WRITE,
-		0, // don't share
+		FILE_SHARE_READ, 
 		NULL, // no security attributes
 		create ? OPEN_ALWAYS : OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
 		NULL); // no template

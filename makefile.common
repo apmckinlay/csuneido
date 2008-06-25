@@ -44,6 +44,7 @@ library.cpp \
 lisp.cpp \
 literal.cpp \
 load.cpp \
+master.cpp \
 md5.cpp \
 mmfile.cpp \
 named.cpp \
