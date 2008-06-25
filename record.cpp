@@ -41,8 +41,6 @@ template <class T> struct RecRep
 		{ return i < n ? gcstring(off[i-1] - off[i], (char*) this + off[i]) : gcstring(); }
 	size_t cursize() const
 		{
-		// extra allows for more data space but NOT more fields
-		// it is used by Database::output
 		size_t base = sizeof (short) + sizeof (short) + // type & n
 			sz - off[n-1]; // data
 		size_t size = base + sizeof (char) * (n + 1); // offsets
