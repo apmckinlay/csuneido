@@ -110,7 +110,7 @@ int64 getfilesize(void* f)
 	return li.QuadPart;
 	}
 
-void Mmfile::open(char* filename, bool create)
+void Mmfile::open(char* filename, bool create, bool readonly)
 	{
 	if (! *filename)
 		{
@@ -119,10 +119,11 @@ void Mmfile::open(char* filename, bool create)
 			memmove(filename, filename + 1, strlen(filename));
 		}
 	f = CreateFile(filename,
-		GENERIC_READ | GENERIC_WRITE,
-		FILE_SHARE_READ, 
+		GENERIC_READ | (readonly ? 0 : GENERIC_WRITE),
+		FILE_SHARE_READ | (readonly ? FILE_SHARE_WRITE : 0), 
 		NULL, // no security attributes
-		create ? OPEN_ALWAYS : OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
+		create ? OPEN_ALWAYS : OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
 		NULL); // no template
 	if (f == INVALID_HANDLE_VALUE)
 		except("can't open: " << filename);
@@ -141,14 +142,14 @@ void Mmfile::map(int chunk)
 	int64 end = (int64) (chunk + 1) * chunk_size;
 	fm[chunk] = CreateFileMapping(f,
 		NULL, // no security attributes
-		PAGE_READWRITE, 
+		readonly ? PAGE_READONLY : PAGE_READWRITE, 
 		(unsigned) (end >> 32), (unsigned) (end & 0xffffffff),
 		NULL); // no name for mapping
 	if (! fm[chunk])
 		fatal("can't create file mapping for database");
 
 	int64 offset = (int64) chunk * chunk_size;
-	base[chunk] = (char*) MapViewOfFile(fm[chunk], FILE_MAP_WRITE,
+	base[chunk] = (char*) MapViewOfFile(fm[chunk], readonly ? FILE_MAP_READ : FILE_MAP_WRITE,
 		(unsigned) (offset >> 32), (unsigned) (offset & 0xffffffff), chunk_size);
 		
 	if (! base[chunk])
@@ -191,12 +192,12 @@ Mmfile::~Mmfile()
 		unmap(i);
 
 	// adjust file size
-	LARGE_INTEGER li;
-	li.QuadPart = file_size;
-	li.LowPart = SetFilePointer(f, li.LowPart, &li.HighPart, FILE_BEGIN);
-	verify(li.LowPart != INVALID_FILE_SIZE);
-	SetEndOfFile(f);
-	asserteq(file_size, getfilesize(f));
+	//~ LARGE_INTEGER li;
+	//~ li.QuadPart = file_size;
+	//~ li.LowPart = SetFilePointer(f, li.LowPart, &li.HighPart, FILE_BEGIN);
+	//~ verify(li.LowPart != INVALID_FILE_SIZE);
+	//~ SetEndOfFile(f);
+	//~ asserteq(file_size, getfilesize(f));
 	
 	CloseHandle(f);
 	}

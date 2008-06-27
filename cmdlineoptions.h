@@ -25,9 +25,7 @@
 
 enum { NONE = 0, DUMP, LOAD, SERVER, CLIENT, COMPACT,
 	CHECK, REBUILD, DBDUMP, COPY, TEST, TESTS, HELP, VERSION,
-	UNINSTALL_SERVICE, AFTER_ACTIONS };
-
-enum { REP_NONE, REP_MASTER, REP_SLAVE };
+	UNINSTALL_SERVICE, MASTER, SLAVE, AFTER_ACTIONS };
 
 class CmdLineOptions
 	{
@@ -52,8 +50,6 @@ public:
 	bool check_start;
 	bool compact_exit;
 	bool ignore_version;
-	int replication;
-	char* slaveip;
 
 private:
 	int get_option();

@@ -30,8 +30,7 @@
 enum { PORT = AFTER_ACTIONS, NOSPLASH, UNATTENDED, LOCAL_LIBRARY,
 	NO_EXCEPTION_HANDLING, NO_GARBAGE_COLLECTION,
 	INSTALL_SERVICE, SERVICE,
-	CHECK_START, COMPACT_EXIT, IGNORE_VERSION,
-	MASTER, SLAVE };
+	CHECK_START, COMPACT_EXIT, IGNORE_VERSION };
 
 char* CmdLineOptions::parse(char* str)
 	{
@@ -84,6 +83,7 @@ char* CmdLineOptions::parse(char* str)
 		case COMPACT :
 		case VERSION :
 		case UNINSTALL_SERVICE :
+		case SLAVE :
 			break ;
 		// options
 		case PORT :
@@ -113,12 +113,9 @@ char* CmdLineOptions::parse(char* str)
 		case IGNORE_VERSION :
 			ignore_version = true;
 			break ;
-		case SLAVE :
-			replication = REP_SLAVE;
 		case MASTER :
-			replication = REP_MASTER;
-			if (! (slaveip = get_word()))
-				slaveip = "127.0.0.1";
+			if (! (argstr = get_word()))
+				argstr = "127.0.0.1";
 			break ;
 		case HELP :
 			alert("options:\n"
@@ -149,8 +146,6 @@ char* CmdLineOptions::parse(char* str)
 			unreachable();
 			}
 		}
-	if (action != SERVER && replication != NONE)
-		except("-master and -slave require -server");
 	return s;
 	}
 

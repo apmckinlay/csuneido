@@ -46,7 +46,7 @@ class Mmfile
 	{
 public:
 	friend class test_mmfile;
-	explicit Mmfile(char* filename, bool create = false);
+	explicit Mmfile(char* filename, bool create = false, bool readonly = false);
 	~Mmfile();
 	Mmoffset alloc(size_t n, char type, bool zero = true);
 	void unalloc(size_t n);
@@ -60,6 +60,7 @@ public:
 		{ return ((n - 1) | (MM_ALIGN - 1)) + 1; }
 	void set_max_chunks_mapped(int n);
 	Mmoffset get_file_size();
+	void refresh();
 
 	void sync();
 
@@ -94,7 +95,7 @@ public:
 private:
 	void set_chunk_size(int n) // for tests only
 		{ chunk_size = n; }
-	void open(char* filename, bool create);
+	void open(char* filename, bool create, bool readonly);
 	void map(int chunk);
 	void unmap(int chunk);
 	void set_file_size(Mmoffset fs);
@@ -122,6 +123,7 @@ private:
 #ifdef MM_KEEPADR
 	void* unmapped[MAX_CHUNKS];
 #endif
+	bool readonly;
 	};
 
 #endif

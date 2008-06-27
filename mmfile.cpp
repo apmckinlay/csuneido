@@ -42,16 +42,17 @@ inline void Mmfile::set_file_size(Mmoffset fs)
 	*(static_cast<Mmoffset32*>(adr(FILESIZE_OFFSET))) = fs;
 	}
 
-Mmfile::Mmfile(char* filename, bool create)
+Mmfile::Mmfile(char* filename, bool create, bool ro)
 	: chunk_size(MB_PER_CHUNK * 1024 * 1024), hi_chunk(0),
-	hand(0), chunks_mapped(0), max_chunks_mapped(MM_MAX_CHUNKS_MAPPED)
+	hand(0), chunks_mapped(0), max_chunks_mapped(MM_MAX_CHUNKS_MAPPED),
+	readonly(ro)
 	{
 	verify((1 << MM_SHIFT) < MM_ALIGN);
 	std::fill(base, base + MAX_CHUNKS, (char*) 0);
 #ifdef MM_KEEPADR
 	std::fill(unmapped, unmapped + MAX_CHUNKS, (void*) 0);
 #endif
-	open(filename, create);
+	open(filename, create, readonly);
 	verify(file_size >= 0);
 	verify(file_size < (int64) MB_MAX_DB * 1024 * 1024);
 	verify((file_size % MM_ALIGN) == 0);
@@ -68,6 +69,11 @@ Mmfile::Mmfile(char* filename, bool create)
 		// in case the file wasn't truncated last time
 		file_size = min(file_size, saved_size);
 		}
+	}
+
+void Mmfile::refresh()
+	{
+	file_size = get_file_size();
 	}
 
 void Mmfile::set_max_chunks_mapped(int n)

@@ -176,6 +176,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		exit(EXIT_SUCCESS);
 		}
 	case SERVER :
+	case SLAVE :
 		is_server = true;
 		start_dbserver(cmdlineoptions.argstr);
 		start_dbhttp();
@@ -195,6 +196,10 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 			}
 		break ;
 		}
+	case MASTER :
+		extern void master(char*);
+		master(cmdlineoptions.argstr);
+		exit(EXIT_SUCCESS);
 	case COMPACT :
 		compact();
 		exit(EXIT_SUCCESS);
@@ -230,10 +235,6 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 
 	if (run("Init()") == SuFalse)
 		exit(EXIT_FAILURE);
-
-	extern void master(char*);
-	if (cmdlineoptions.replication == REP_MASTER)
-		master(cmdlineoptions.slaveip);
 
 	if (hdlg)
 		DestroyWindow(hdlg);
