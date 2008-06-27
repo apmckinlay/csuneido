@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -43,7 +43,7 @@ const int DB_VERSION = 1; // increment this for non-compatible database format c
 
 // Tbl ==============================================================
 
-Tbl::Tbl(const Record& r, const Lisp<Col>& c, const Lisp<Idx>& i) 
+Tbl::Tbl(const Record& r, const Lisp<Col>& c, const Lisp<Idx>& i)
 	: rec(r), cols(c), idxs(i), trigger(0)
 	{
 	num = rec.getlong(T_TBLNUM);
@@ -76,7 +76,7 @@ Idx::Idx(const gcstring& table, const Record& r, const gcstring& c, short* n, In
 	: index(i), nnodes(i->get_nnodes()), rec(r), colnums(n)
 	{
 	columns = c.has_prefix("lower:") ? c.substr(6) : c;
-	
+
 	iskey = (SuTrue == r.getval(I_KEY));
 
 	fksrc.table = rec.getstr(I_FKTABLE).to_heap();
@@ -149,8 +149,8 @@ private:
 
 Database::Database(char* file, bool createmode)
 	: loading(false),
-	tables(new Tables), tables_index(0), columns_index(0), indexes_index(0), 
-	fkey_index(0), views_index(0), clock(1), 
+	tables(new Tables), tables_index(0), columns_index(0), indexes_index(0),
+	fkey_index(0), views_index(0), clock(1),
 	cksum(::checksum(0,0,0)), output_type(MM_DATA)
 	{
 	bool existed = access(file, 0) == 0;
@@ -189,11 +189,11 @@ Record ckroot(const Record& r)
 void Database::open()
 	{
 	Mmoffset indexes = dbhdr()->indexes.unpack();
-	indexes_index = mkindex(ckroot(Record(input(indexes))));
-	
+	indexes_index = mkindex(ckroot(input(indexes)));
+
 	Record r = find(schema_tran, indexes_index, key(TN_INDEXES, "table,columns"));
 	verify(! nil(r) && r.off() == indexes);
-	
+
 	tables_index = mkindex(ckroot(find(schema_tran, indexes_index, key(TN_TABLES, "tablename"))));
 	tblnum_index = mkindex(ckroot(find(schema_tran, indexes_index, key(TN_TABLES, "table"))));
 	columns_index = mkindex(ckroot(find(schema_tran, indexes_index, key(TN_COLUMNS, "table,column"))));
@@ -268,7 +268,7 @@ void Database::add_index(const gcstring& table, const gcstring& columns, bool ke
 			}
 		}
 
-	Record r = record(tbl->num, (lower ? "lower:" : "") + columns, 
+	Record r = record(tbl->num, (lower ? "lower:" : "") + columns,
 		index, fktable, fkcolumns, fkmode);
 	add_any_record(schema_tran, "indexes", r);
 	tbl->idxs.append(Idx(table, r, columns, colnums, index, this));
@@ -371,7 +371,7 @@ void Database::add_any_record(int tran, Tbl* tbl, Record& r)
 		throw ;
 		}
 	create_act(tran, tbl->num, off);
-	
+
 	if (! loading)
 		{
 		Record norec;
@@ -421,7 +421,7 @@ static bool key_empty(const Record& key)
 	return true;
 	}
 
-bool Database::fkey_source_block(int tran, Tbl* fktbl, 
+bool Database::fkey_source_block(int tran, Tbl* fktbl,
 	const gcstring& fkcolumns, const Record& key)
 	{
 	if (fkcolumns == "" || key_empty(key))
@@ -498,7 +498,7 @@ void Database::update_any_record(int tran, const gcstring& table, const gcstring
 
 const bool NO_BLOCK = false;
 
-Mmoffset Database::update_record(int tran, Tbl* tbl, 
+Mmoffset Database::update_record(int tran, Tbl* tbl,
 	const Record& oldrec, Record newrec, bool block)
 	{
 	if (tran != schema_tran && ck_get_tran(tran)->type != READWRITE)
@@ -519,7 +519,7 @@ Mmoffset Database::update_record(int tran, Tbl* tbl,
 		Record newkey = project(newrec, i->colnums);
 		if (oldkey == newkey)
 			continue ;
-		if ((block && fkey_source_block(tran, get_table(i->fksrc.table), 
+		if ((block && fkey_source_block(tran, get_table(i->fksrc.table),
 			i->fksrc.columns, newkey)) ||
 			fkey_target_block(tran, *i, oldkey, newkey))
 			except("update record in " << tbl->name << " blocked by foreign key");
@@ -567,7 +567,7 @@ Mmoffset Database::update_record(int tran, Tbl* tbl,
 	create_act(tran, tbl->num, newoff);
 	tbl->totalsize += newrec.cursize() - oldrec.cursize();
 	tbl->update();
-	
+
 	tbl->user_trigger(tran, old, newrec);
 	return newoff;
 	}
@@ -699,7 +699,7 @@ void Database::remove_any_index(Tbl* tbl, const gcstring& columns)
 	verify(tbl);
 
 	// remove from tbl->idxs
-	Lisp<Idx> p = tbl->idxs; 
+	Lisp<Idx> p = tbl->idxs;
 	for (; ! nil(p); ++p)
 		if (p->columns == columns)
 			break ;
@@ -707,7 +707,7 @@ void Database::remove_any_index(Tbl* tbl, const gcstring& columns)
 		except("delete index: nonexistent index: " << columns << " in " << tbl->name);
 	tbl->idxs.erase(*p);
 
-	remove_any_record(schema_tran, "indexes", "table,columns", 
+	remove_any_record(schema_tran, "indexes", "table,columns",
 		key(tbl->num, p->rec.getstr(I_COLUMNS))); // not columns cause you need lower:
 	}
 
@@ -804,7 +804,7 @@ char* Database::fkey_target_block(int tran, const Idx& idx, const Record& key, c
 				{
 				Record r(iter.data());
 				remove_record(tran, fktbl, r);
-				iter.reset_prevsize(); 
+				iter.reset_prevsize();
 				// need to reset prevsize in case trigger updates other lines
 				// otherwise iter doesn't "see" the updated lines
 				}
@@ -838,7 +838,7 @@ char* Database::fkey_target_block(int tran, const Idx& idx, const Record& key, c
 			{
 			// can't use find() because other is index not key
 			if (! iter.eof())
-				return fktbl->name.str(); 
+				return fktbl->name.str();
 			}
 		}
 	return 0;
@@ -925,7 +925,7 @@ Lisp<gcstring> Database::get_rules(const gcstring& table)
 	for (Lisp<Col> cols = tbl->cols; ! nil(cols); ++cols)
 		if (cols->colnum < 0)
 			list.push(cols->column);
-	return list.reverse();	
+	return list.reverse();
 	}
 
 // create ===========================================================
@@ -993,7 +993,7 @@ void Database::table_record(TblNum tblnum, char* tblname, int nrows, int nextfie
 	r.addval(tblname);
 	r.addval(nextfield);
 	r.addval(nrows);
-	r.addval(100);	
+	r.addval(100);
 	r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
 	Mmoffset at = output(TN_TABLES, r);
 	Record key1;
@@ -1040,7 +1040,7 @@ Mmoffset Database::indexes_record(Index* index)
 	Record key2;
 	key2.addval(""); // fktable
 	key2.addval(""); // fkcolumns
-	key2.addmmoffset(at); 
+	key2.addmmoffset(at);
 	verify(fkey_index->insert(schema_tran, Vslot(key2)));
 	return at;
 	}
@@ -1053,7 +1053,7 @@ Record Database::record(TblNum tblnum, const gcstring& tblname, long nrows, long
 	r.addval(tblname);
 	r.addval(nextfield);
 	r.addval(nrows);
-	r.addval(totalsize);	
+	r.addval(totalsize);
 	r.alloc(24); // 3 fields * max int packsize - min int packsize
 	return r;
 	}
@@ -1134,8 +1134,8 @@ Index* Database::mkindex(const Record& r)
 		r.getlong(I_TBLNUM),
 		columns,
 		r.getmmoffset(I_ROOT),
-		r.getlong(I_TREELEVELS), 
-		r.getlong(I_NNODES), 
+		r.getlong(I_TREELEVELS),
+		r.getlong(I_NNODES),
 		r.getval(I_KEY) == SuTrue,
 		r.getval(I_KEY).gcstr() == "u",
 		lower
@@ -1338,7 +1338,7 @@ Record project(const Record& r, short* cols, Mmoffset adr)
 		// need to add record address because even unique indexes
 		// will have duplicates because of keeping old versions
 		// for outstanding transactions to see
-		x.addmmoffset(adr); 
+		x.addmmoffset(adr);
 	return x;
 	}
 
@@ -1350,7 +1350,7 @@ bool Database::rename_table(const gcstring& oldname, const gcstring& newname)
 	Tbl* tbl = ck_get_table(oldname);
 	if (is_system_table(oldname))
 		except("rename table: can't rename system table: " << oldname);
-	if (istable(newname)) 
+	if (istable(newname))
 		except("rename table: table already exists: " << newname);
 
 	update_any_record(schema_tran, "tables", "table", key(tbl->num),
@@ -1367,7 +1367,7 @@ bool Database::rename_column(const gcstring& table, const gcstring& oldname, con
 		return true;
 
 	Tbl* tbl = ck_get_table(table);
-	if (is_system_column(table, oldname)) 
+	if (is_system_column(table, oldname))
 		except("rename column: can't rename system column: " << oldname << " in " << table);
 
 
@@ -1377,8 +1377,8 @@ bool Database::rename_column(const gcstring& table, const gcstring& oldname, con
 			except("rename column: column already exists: " << newname << " in " << table);
 		else if (cols->column == oldname)
 			col = &(*cols);
-	if (! col)	
-		except("rename column: nonexistent column: " << oldname << " in " << table); 
+	if (! col)
+		except("rename column: nonexistent column: " << oldname << " in " << table);
 
 	// update columns table
 	Record rec = record(tbl->num, newname, col->colnum);
@@ -1514,11 +1514,11 @@ class test_database : public Tests
 
 		// update
 		tran = thedb->transaction(READWRITE);
-		xassert(thedb->update_record(tran, "test_database", "num", 
+		xassert(thedb->update_record(tran, "test_database", "num",
 			key(2), record("joe", "652-9876", 4)));
-		thedb->update_record(tran, "test_database", "num", 
+		thedb->update_record(tran, "test_database", "num",
 			key(3), record("axon", "249-5051", 3));
-		thedb->update_record(tran, "test_database", "num", 
+		thedb->update_record(tran, "test_database", "num",
 			key(3), record("axon", "249-5050", 3));
 		verify(thedb->commit(tran));
 		// verify
@@ -1590,13 +1590,13 @@ class test_database : public Tests
 		thedb->add_record(tran, table, r);
 		Index* index = thedb->get_index(table, "one");
 		verify(index);
-		Index::iterator iter = index->begin(tran); 
+		Index::iterator iter = index->begin(tran);
 		verify(! iter.eof());
 		Record r2(iter.data());
 		assertreceq(r, r2);
 		++iter;
-		verify(iter.eof());	
-		
+		verify(iter.eof());
+
 		verify(thedb->commit(tran));
 
 		END
@@ -1629,7 +1629,7 @@ class test_database : public Tests
 		thedb->add_column(table, "C");
 		thedb->add_column(table, "D");
 		thedb->add_index(table, "a", true);
-		
+
 		thedb->remove_column(table, "c");
 		thedb->add_column(table, "c");
 		END
