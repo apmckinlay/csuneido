@@ -40,7 +40,6 @@ void master(char* slaveip)
 
 void Master::run()
 	{
-//	mmf.set_max_chunks_mapped(16);
 	prevsize = mmf.get_file_size();
 	poll();
 	}
@@ -134,7 +133,16 @@ void Master::print(Mmoffset off)
 	
 void Master::print_record(Record& r)
 	{
-	for (int f = 0; f < r.size(); ++f)
-		out << " " << r.getval(f);
+	int f;
+	try
+		{
+		out << " #" << r.size();
+		for (f = 0; f < r.size(); ++f)
+			out << " " << r.getval(f);
+		}
+	catch (const Except& e)
+		{
+		out << " " << f << " " << e;
+		}
 	out << endl;
 	}
