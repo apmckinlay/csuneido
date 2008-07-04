@@ -988,13 +988,7 @@ void Database::create()
 
 void Database::table_record(TblNum tblnum, char* tblname, int nrows, int nextfield)
 	{
-	Record r;
-	r.addval(tblnum);
-	r.addval(tblname);
-	r.addval(nextfield);
-	r.addval(nrows);
-	r.addval(100);
-	r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
+	Record r = record(tblnum, tblname, nrows, nextfield, 100);
 	Mmoffset at = output(TN_TABLES, r);
 	Record key1;
 	key1.addval(tblnum);
@@ -1022,15 +1016,7 @@ void Database::columns_record(TblNum tblnum, char* column, int field)
 
 Mmoffset Database::indexes_record(Index* index)
 	{
-	Record r;
-	r.addval(index->tblnum);
-	r.addval(index->idxname);
-	r.addval(index->iskey ? SuTrue : SuFalse);
-	r.addval(""); // fktable
-	r.addval(""); // fkcolumns
-	r.addval(BLOCK); // fkmode
-	index->getinfo(r);
-	r.alloc(24); // 24 = 3 fields * max int packsize - min int packsize
+	Record r = record(index->tblnum, index->idxname, index, "", "", BLOCK);
 	Mmoffset at = output(TN_INDEXES, r);
 	Record key1;
 	key1.addval(index->tblnum);
@@ -1054,7 +1040,7 @@ Record Database::record(TblNum tblnum, const gcstring& tblname, long nrows, long
 	r.addval(nextfield);
 	r.addval(nrows);
 	r.addval(totalsize);
-	r.alloc(24); // 3 fields * max int packsize - min int packsize
+	*r.alloc(24) = 0; // 3 fields * max int packsize - min int packsize
 	return r;
 	}
 
@@ -1083,7 +1069,7 @@ Record Database::record(TblNum tblnum, const gcstring& columns, Index* index,
 	r.addval(fkcolumns);
 	r.addval(fkmode);
 	index->getinfo(r);
-	r.alloc(24); // 3 updatable int fields * max int packsize - min int packsize
+	*r.alloc(24) = 0; // 3 updatable int fields * max int packsize - min int packsize
 	return r;
 	}
 
