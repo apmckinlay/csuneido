@@ -40,8 +40,9 @@ void Extend::init()
 
 	Fields dups = intersect(srccols, flds);
 	if (! nil(dups))
-		except("extend: column(s) already exist: " << flds);
+		except("extend: column(s) already exist: " << dups);
 
+	eflds = Fields();
 	for (Lisp<Expr*> e = exprs; ! nil(e); ++e)
 		eflds = set_union(eflds, (*e)->fields());
 
