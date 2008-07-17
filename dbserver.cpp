@@ -180,7 +180,7 @@ void DbServerImp::timer_proc()
 	{
 	++dbserver_clock;
 	for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
-		if (dbserver_clock - dbservers[i]->last_activity > 48) // 48 * 10min = 8 hours
+		if (dbserver_clock - dbservers[i]->last_activity > 24) // 24 * 10min = 4 hours
 			dbservers[i]->close();
 	}
 
