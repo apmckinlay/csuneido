@@ -31,6 +31,7 @@
 #include "fibers.h"
 #include "dbms.h"
 #include "win.h"
+#include "errlog.h"
 
 // SuSocketClient ===================================================
 
@@ -206,26 +207,53 @@ public:
 
 static void _stdcall suserver(void* arg)
 	{
-	Proc p; tss_proc() = &p;
-
-	SocketConnect* sc = (SocketConnect*) arg;
+	SocketConnect* sc = 0;
 	try
 		{
+		Proc p; tss_proc() = &p;
+
+		sc = (SocketConnect*) arg;
 		SuServerInstance* ob = new SuServerInstance(sc);
 		ob->myclass = (SuValue*) sc->getarg();
 		ob->call(ob, NEW, 0, 0, 0, -1);
 		static Value RUN("Run");
 		ob->call(ob, RUN, 0, 0, 0, -1);
 		}
+	catch(const Except& x)
+		{
+		errlog("exception in SocketServer: " , x.exception);
+		}
+	catch (const std::exception& e)
+		{
+		errlog("exception in SocketServer: ", e.what());
+		}
 	catch (...)
-		{ }
-	sc->close();
-	
-	extern Dbms*& tss_thedbms();
-	delete tss_thedbms();
-	tss_thedbms() = 0;
-	
-	Fibers::end();
+		{
+		errlog("unknown exception in SocketServer");
+		}
+	try
+		{
+		if (sc)
+			sc->close();
+		
+		extern Dbms*& tss_thedbms();
+		delete tss_thedbms();
+		tss_thedbms() = 0;
+		
+		Fibers::end();
+		}
+	catch(const Except& x)
+		{
+		errlog("exception closing SocketServer connection: " , x.exception);
+		}
+	catch (const std::exception& e)
+		{
+		errlog("exception closing SocketServer connection: ", e.what());
+		}
+	catch (...)
+		{
+		errlog("unknown exception closing SocketServer connection");
+		}
 	}
 
 void SuServerInstance::out(Ostream& os)
@@ -257,7 +285,7 @@ Value SuServerInstance::call(Value self, Value member, short nargs,
 		if (nargs != 0)
 			except("usage: socketServer.Readline()");
 		char buf[2000];
-		if (! sc->readline(buf, 2000))
+		if (! sc->readline(buf, sizeof buf))
 			except("socket server: lost connection");
 		for (int n = strlen(buf) - 1; n >= 0 && buf[n] == '\r' || buf[n] == '\n'; --n)
 			buf[n] = 0;

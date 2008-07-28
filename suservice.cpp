@@ -288,9 +288,14 @@ static ExePath* exe_path()
 	return &exe_path;
 	}
 
+#include "errlog.h"
+
 static void StopService()
 	{
 	PostThreadMessage(pi.dwThreadId, WM_QUIT, 0, 0);
 	if (WAIT_TIMEOUT == WaitForSingleObject(pi.hProcess, 5000))
+		{
 		TerminateProcess(pi.hProcess, 0);
+		errlog("timeout (5 sec) waiting for app to quit");
+		}
 	}
