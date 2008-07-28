@@ -435,6 +435,7 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 	{
 	if (first)
 		{
+		prior_needs = needs;
 		select_needs = expr->fields();
 		tbl = dynamic_cast<Table*>(source);
 		}
@@ -701,26 +702,32 @@ double Select::primarycost(const Fields& primary)
 	{
 	double index_read_cost = ifracs[primary] * tbl->indexsize(primary);
 	
-	double data_frac = subset(primary, prior_needs) && subset(primary, select_needs)
-		? 0 : datafrac(Indexes(primary));
+	double data_frac = subset(primary, select_needs)
+		? subset(primary, prior_needs) ? 0 : .5 * datafrac(Indexes(primary))
+		: datafrac(Indexes(primary));
 	
 	double data_read_cost = data_frac * tbl->totalsize();
 	
+	LOG("primarycost(" << primary << ") index_read_cost " << index_read_cost << 
+		", data_frac " << data_frac << ", data_read_cost " << data_read_cost);
 	return index_read_cost + data_read_cost;
 	}
 
 double Select::choose_filter(double primary_cost)
 	{
-	const double primary_index_cost = ifracs[primary] * tbl->indexsize(primary);
-
-	double best_cost = primary_cost;
 	Indexes available = ::erase(possible, primary);
+	if (nil(available))
+		return primary_cost;
+	const double primary_index_cost = ifracs[primary] * tbl->indexsize(primary);
+	double best_cost = primary_cost;
 	filter = Indexes();
-	while (! nil(available))
+	while (true)
 		{
 		Fields best_filter;
 		for (Indexes idxs = available; ! nil(idxs); ++idxs)
 			{
+			if (member(filter, *idxs))
+				continue ;
 			double cost = costwith(cons(*idxs, filter), primary_index_cost);
 			if (cost < best_cost)
 				{
@@ -743,12 +750,10 @@ static bool includes(const Indexes& indexes, Fields fields);
 double Select::costwith(const Indexes& filter, double primary_index_cost)
 	{
 	LOG("cost with: " << primary << " + " << filter);
-	double data_frac;
 	Indexes all(cons(primary, filter));
-	if (includes(Indexes(primary), prior_needs) && includes(all, select_needs))
-		data_frac = 0;
-	else
-		data_frac = datafrac(all);
+	double data_frac = includes(all, select_needs)
+		? subset(primary, prior_needs) ? 0 : .5 * datafrac(all)
+		: datafrac(all);
 	
 	// approximate filter cost independent of order of filters
 	double filter_cost = 0;
