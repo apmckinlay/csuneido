@@ -147,7 +147,8 @@ void DbCopy::create_table(const gcstring& table)
 void DbCopy::copy_records(const gcstring& table)
 	{
 	Index* idx = thedb.first_index(table);
-	verify(idx);
+	if (! idx)
+		except("table has no indexes: " << table);
 	int i = 0;
 	Tbl* newtbl = newdb.ck_get_table(table);
 	Lisp<gcstring> fields = thedb.get_fields(table);
