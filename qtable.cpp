@@ -36,7 +36,7 @@ Query* Query::make_table(char* s)
 	}
 
 Table::Table(char* s) : table(s), first(true), 
-	rewound(true), tran(INT_MAX), trigger(0), tbl(theDB()->get_table(table))
+	rewound(true), tran(INT_MAX), tbl(theDB()->get_table(table))
 	{
 	if (! theDB()->istable(table))
 		except("nonexistent table: " << table);

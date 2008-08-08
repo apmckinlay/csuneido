@@ -74,15 +74,12 @@ protected:
 		{ }
 	void iterate_setup(Dir dir);
 
-	int choice;
 	bool first;
 	bool rewound;
 	Keyrange sel;
 	Header hdr;
 	Index* ix;
 	int tran;
-	SuValue* trigger;
-	Lisp<int> flds;
 	bool singleton; // i.e. key()
 	Fields idx;
 	Tbl* tbl;
