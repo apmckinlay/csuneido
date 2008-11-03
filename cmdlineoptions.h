@@ -50,6 +50,7 @@ public:
 	bool check_start;
 	bool compact_exit;
 	bool ignore_version;
+	bool ignore_check;
 
 private:
 	int get_option();

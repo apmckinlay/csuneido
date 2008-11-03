@@ -48,6 +48,8 @@ static bool alerts = false;
 
 bool check_shutdown(Mmfile* mmf)
 	{
+	if (cmdlineoptions.ignore_check)
+		return true;
 	void* p = *--mmf->end();
 	return (mmf->type(p) == MM_SESSION && ((Session*) p)->mode == Session::SHUTDOWN);
 	}
