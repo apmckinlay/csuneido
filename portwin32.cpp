@@ -191,13 +191,15 @@ Mmfile::~Mmfile()
 	for (int i = 0; i <= hi_chunk; ++i)
 		unmap(i);
 
-	// adjust file size
-	//~ LARGE_INTEGER li;
-	//~ li.QuadPart = file_size;
-	//~ li.LowPart = SetFilePointer(f, li.LowPart, &li.HighPart, FILE_BEGIN);
-	//~ verify(li.LowPart != INVALID_FILE_SIZE);
-	//~ SetEndOfFile(f);
-	//~ asserteq(file_size, getfilesize(f));
+	if (! readonly)
+		{
+		// adjust file size
+		LARGE_INTEGER li;
+		li.QuadPart = file_size;
+		li.LowPart = SetFilePointer(f, li.LowPart, &li.HighPart, FILE_BEGIN);
+		SetEndOfFile(f);
+		asserteq(file_size, getfilesize(f));
+		}
 	
 	CloseHandle(f);
 	}
