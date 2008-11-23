@@ -148,6 +148,9 @@ private:
 	Value Copy(short nargs, short nargnames, ushort* argnames, int each);
 	Value Partition(short nargs, short nargnames, ushort* argnames, int each);
 	Value Sort(short nargs, short nargnames, ushort* argnames, int each);
+	Value LowerBound(short nargs, short nargnames, ushort* argnames, int each);
+	Value UpperBound(short nargs, short nargnames, ushort* argnames, int each);
+	Value EqualRange(short nargs, short nargnames, ushort* argnames, int each);
 	Value Find(short nargs, short nargnames, ushort* argnames, int each);
 	Value Erase(short nargs, short nargnames, ushort* argnames, int each);
 	Value Delete(short nargs, short nargnames, ushort* argnames, int each);

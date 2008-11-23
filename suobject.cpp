@@ -157,6 +157,9 @@ void SuObject::setup()
 	METHOD(Values);
 	METHOD(Assocs);
 //	METHOD(Get); name conflicts with existing code!
+	METHOD(LowerBound);
+	METHOD(UpperBound);
+	METHOD(EqualRange);
 	}
 
 SuObject::SuObject(const SuObject& ob) : myclass(ob.myclass), defval(ob.defval), 
@@ -709,6 +712,41 @@ Value SuObject::Sort(short nargs, short nargnames, ushort* argnames, int each)
 void SuObject::sort()
 	{
 	std::stable_sort(vec.begin(), vec.end());
+	}
+
+Value SuObject::LowerBound(short nargs, short nargnames, ushort* argnames, int each) 
+	{
+	if (nargs == 1)
+		return std::lower_bound(vec.begin(), vec.end(), ARG(0)) - vec.begin();
+	else if (nargs == 2)
+		return std::lower_bound(vec.begin(), vec.end(), ARG(0), Lt(ARG(1))) - vec.begin();
+	else
+		except("usage: object.LowerBound(value) or object.LowerBound(value, less_function)");
+	}
+
+Value SuObject::UpperBound(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs == 1)
+		return std::upper_bound(vec.begin(), vec.end(), ARG(0)) - vec.begin();
+	else if (nargs == 2)
+		return std::upper_bound(vec.begin(), vec.end(), ARG(0), Lt(ARG(1))) - vec.begin();
+	else
+		except("usage: object.UpperBound(value) or object.UpperBound(value, less_function)");
+	}
+
+Value SuObject::EqualRange(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	std::pair<Vector::iterator,Vector::iterator> pair;
+	if (nargs == 1)
+		pair = std::equal_range(vec.begin(), vec.end(), ARG(0));
+	else if (nargs == 2)
+		pair = std::equal_range(vec.begin(), vec.end(), ARG(0), Lt(ARG(1)));
+	else
+		except("usage: object.EqualRange(value) or object.EqualRange(value, less_function)");
+	SuObject* ob = new SuObject();
+	ob->add(pair.first - vec.begin());
+	ob->add(pair.second - vec.begin());
+	return ob;
 	}
 
 Value SuObject::Find(short nargs, short nargnames, ushort* argnames, int each)
