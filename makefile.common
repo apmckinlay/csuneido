@@ -147,5 +147,5 @@ SOURCES := $(PORTSOURCES) $(WINSOURCES)
 
 #$(call make-depend,source-file,object-file,depend-file,cc)
 define make-depend
-	@\mingw\bin\$4 -MM -MF $3 -MP -MT $2 $1 >nul
+	@$4 -MM -MF $3 -MP -MT $2 $1 >nul
 endef
