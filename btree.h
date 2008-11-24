@@ -33,7 +33,7 @@ const Mmoffset NIL(0);
 
 const int NODESIZE = 4096 - MM_OVERHEAD;
 
-enum Insert { OK, DUP, FULL };	// return values for insert
+enum Insert { OK, DUP, WONT_FIT };	// return values for insert
 
 template <class LeafSlot, class TreeSlot, class LeafSlots, class TreeSlots, class Dest>
 class Btree
@@ -58,7 +58,7 @@ private:
 			if (slot < slots.end() && *slot == x)
 				return DUP;
 			else if (! slots.insert(slot, x))
-				return FULL;
+				return WONT_FIT;
 			return OK;
 			}
 		bool erase(const Key& key)
@@ -79,11 +79,21 @@ private:
 				percent = 25;
 			Mmoffset leftoff = dest->alloc(NODESIZE);
 			LeafNode* left = new(dest->adr(leftoff)) LeafNode;
+			
 			int n = slots.size();
 			int nright = (n * percent) / 100;
 			// move first half of right keys to left
 			left->slots.append(slots.begin(), slots.end() - nright);
 			slots.erase(slots.begin(), slots.end() - nright);
+			
+			// bool new_one_added = false;
+			//~ int sz = left->slots.remaining();  // empty size
+			//~ while (((sz - slots.remaining()) * 100) / (sz - left->slots.remaining()) > percent)
+				//~ {
+				//~ left->slots.push_back(slots.front());
+				//~ slots.erase(slots.begin());
+				//~ }
+			
 			// maintain linked list of leaves
 			left->set_prev(prev());
 			left->set_next(off);
@@ -333,8 +343,10 @@ public:
 
 		// insert the key & data into the leaf
 		Insert status = leaf->insert(x);
-		if (status != FULL)
+		if (status != WONT_FIT)
 			return status == OK;
+		else if (leaf->empty())
+			except("index entry too large to insert");
 		// split
 		++modified;
 		Mmoffset leftoff = leaf->split(dest, x, off);
