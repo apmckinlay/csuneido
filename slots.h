@@ -125,9 +125,9 @@ public:
 	Vslot operator[](int i)
 		{ verify(0 <= i && i < sz); return Vslot((char*) t + t[i]); }
 	Vslot front()
-		{ return Vslot((char*) t + t[0]); }
+		{ verify(sz > 0); return Vslot((char*) t + t[0]); }
 	Vslot back()
-		{ verify(sz >= 1); return Vslot((char*) t + t[sz - 1]); }
+		{ verify(sz > 0); return Vslot((char*) t + t[sz - 1]); }
 	void push_back(const Vslot& x)
 		{
 		int n = x.key.cursize();
@@ -137,7 +137,7 @@ public:
 		t[sz++] = prev;
 		}
 	void pop_back()
-		{ erase(end() - 1); }
+		{ verify(sz > 0); erase(end() - 1); }
 	bool insert(const iterator& position, const Vslot& x)
 		{
 		// prepend to heap
@@ -296,9 +296,9 @@ public:
 	VFslot operator[](int i)
 		{ verify(0 <= i && i < sz); return VFslot((char*) t + t[i].offset, t[i].adr.unpack()); }
 	VFslot front()
-		{ return VFslot((char*) t + t[0].offset, t[0].adr.unpack()); }
+		{ verify(sz > 0); return VFslot((char*) t + t[0].offset, t[0].adr.unpack()); }
 	VFslot back()
-		{ verify(sz >= 1); return VFslot((char*) t + t[sz - 1].offset, t[sz - 1].adr.unpack()); }
+		{ verify(sz > 0); return VFslot((char*) t + t[sz - 1].offset, t[sz - 1].adr.unpack()); }
 	void push_back(const VFslot& x)
 		{
 		int n = x.key.cursize();
@@ -310,7 +310,7 @@ public:
 		++sz;
 		}
 	void pop_back()
-		{ erase(end() - 1); }
+		{ verify(sz > 0); erase(end() - 1); }
 	bool insert(const iterator& position, const VFslot& x)
 		{
 		// prepend to heap
@@ -509,9 +509,9 @@ public:
 	VVslot operator[](int i)
 		{ verify(0 <= i && i < sz); iterator iter(t, i); return *iter; }
 	VVslot front() 
-		{ iterator i(begin()); return *i; }
+		{ verify(sz > 0); iterator i(begin()); return *i; }
 	VVslot back() 
-		{ iterator i(end()); return *--i; }
+		{ verify(sz > 0); iterator i(end()); return *--i; }
 	void push_back(const VVslot& x)
 		{
 		int kn = roundup(x.key.cursize());
@@ -523,7 +523,7 @@ public:
 		t[sz++] = prev;
 		}
 	void pop_back()
-		{ iterator i(end()); erase(i - 1); }
+		{ verify(sz > 0); iterator i(end()); erase(i - 1); }
 	bool insert(const iterator& position, const VVslot& x)
 		{
 		// prepend to heap
