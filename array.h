@@ -78,6 +78,8 @@ public:
 	void append(iterator first, iterator last)
 		{ insert(end(), first, last); }
 	T* dup();
+	int remaining()
+		{ return cap - sz; }
 protected:
 	T t[cap];
 	int sz;       // current used size
