@@ -80,19 +80,19 @@ private:
 			Mmoffset leftoff = dest->alloc(NODESIZE);
 			LeafNode* left = new(dest->adr(leftoff)) LeafNode;
 			
-			int n = slots.size();
-			int nright = (n * percent) / 100;
-			// move first half of right keys to left
-			left->slots.append(slots.begin(), slots.end() - nright);
-			slots.erase(slots.begin(), slots.end() - nright);
+			//~ int n = slots.size();
+			//~ int nright = (n * percent) / 100;
+			//~ // move first half of right keys to left
+			//~ left->slots.append(slots.begin(), slots.end() - nright);
+			//~ slots.erase(slots.begin(), slots.end() - nright);
 			
 			// bool new_one_added = false;
-			//~ int sz = left->slots.remaining();  // empty size
-			//~ while (((sz - slots.remaining()) * 100) / (sz - left->slots.remaining()) > percent)
-				//~ {
-				//~ left->slots.push_back(slots.front());
-				//~ slots.erase(slots.begin());
-				//~ }
+			int rem = (left->slots.remaining() * percent) / 100;  
+			while (left->slots.remaining() > rem)
+				{
+				left->slots.push_back(slots.front());
+				slots.erase(slots.begin());
+				}
 			
 			// maintain linked list of leaves
 			left->set_prev(prev());
