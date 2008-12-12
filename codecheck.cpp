@@ -108,7 +108,7 @@ void CodeCheck::process(int pos, int var, bool init)
 		if (local.init)
 			local.used = true;
 		else
-			results->add(pos); // use without init
+			results->add(pos); // use without init - ERROR
 		}
 	}
 
@@ -131,7 +131,7 @@ void CodeCheck::end_func()
 	Locals& top = stack.top();
 	for (int i = 0; i < top.size(); ++i)
 		if (top[i].init && ! top[i].used)
-			results->add(top[i].pos);
+			results->add(-top[i].pos); // init but not used - WARNING
 	stack.pop();
 	}
 
@@ -140,5 +140,5 @@ void CodeCheck::end_func()
 void CodeCheck::global(int pos, int gnum)
 	{
 	if (*globals(gnum) == '_'  || ! globals.find(gnum))
-		results->add(pos);
+		results->add(pos); // _Name without Name - ERROR
 	}
