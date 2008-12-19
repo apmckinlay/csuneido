@@ -637,10 +637,14 @@ bool RxMatch::cclass()
 			p += 2;
 			break ;
 		case RANGE :
-			if ((unsigned) p[1] <= (unsigned) c && (unsigned) c <= (unsigned) p[2])
+			{
+			unsigned p1 = (ignore_case ? tolower(p[1]) : p[1]);
+			unsigned p2 = (ignore_case ? tolower(p[2]) : p[2]);
+			if (p1 <= (unsigned) c && (unsigned) c <= p2)
 				in = true;
 			p += 3;
 			break ;
+			}
 		case DIGIT :
 			if (isdigit(c))
 				in = true;
@@ -897,7 +901,11 @@ static Rxtest rxtests[] =
 	{ "abc", "(?q)a.c", false },
 	{ "a.cd", "(?q)a.c(?-q).", true },
 	{ "abcd", "(?q)a.c(?-q).", false },
-	{ "abc", "(?q)(", false }
+	{ "abc", "(?q)(", false },
+	{ "ABC", "(?i)[A-Z]", true },
+	{ "ABC", "(?i)[a-z]", true },
+	{ "abc", "(?i)[A-Z]", true },
+	{ "abc", "(?i)[a-z]", true }
 	};
 
 class test_regexp : public Tests
