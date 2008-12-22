@@ -64,7 +64,7 @@ Value su_ScintillaStyle()
 	LOG("style " << start << " -> " << end);
 
 	int lengthDoc = SendMessage(hwnd, SCI_GETLENGTH, 0, 0);
-	if (end == -1)
+	if (end == 0 || end > lengthDoc)
 		end = lengthDoc;
 
 	// backup to start of previous line
@@ -153,7 +153,7 @@ Value su_ScintillaStyle()
 	SendMessage(hwnd, SCI_SETSTYLINGEX, size, (long) styles);
 	return Value();
 	}
-PRIM(su_ScintillaStyle, "ScintillaStyle(hwnd, start, end)");
+PRIM(su_ScintillaStyle, "ScintillaStyle(hwnd, start, end = 0)");
 
 static int tokenStyle(int token, int keyword)
 	{
