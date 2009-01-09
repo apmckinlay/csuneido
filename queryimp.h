@@ -46,6 +46,8 @@ public:
 		}
 	void set_transaction(int tran)
 		{ source->set_transaction(tran); }
+	bool tempindexed()
+		{ return willneed_tempindex || source->tempindexed(); }
 
 	// estimated result sizes
 	double nrecords()
@@ -60,7 +62,6 @@ public:
 	void best_prefixed(Indexes indexes, const Fields& by, 
 		const Fields& needs, bool is_cursor,
 		Fields& best_index, double& best_cost);
-
 
 	void close()
 		{ source->close(); }

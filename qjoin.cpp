@@ -29,7 +29,7 @@ Query* Query::make_join(Query* s1, Query* s2, Fields by)
 	}
 
 Join::Join(Query* s1, Query* s2, Fields by)
-	: Query2(s1, s2),  type(NONE) ,first(true), cols1(0), cols2(0)
+	: Query2(s1, s2),  type(NONE), nrecs(-1), first(true), cols1(0), cols2(0)
 	{
 	joincols = intersect(source->columns(), source2->columns());
 	if (nil(joincols))
@@ -116,14 +116,8 @@ Indexes Join::indexes()
 
 double Join::nrecords()
 	{
-	if (type == ONE_ONE)
-		return min(source->nrecords(), source2->nrecords()) / 2;
-	else if (type == N_ONE)
-		return source->nrecords() / 2;
-	else if (type == ONE_N)
-		return source2->nrecords() / 2;
-	else // n:n
-		return (source->nrecords() * source2->nrecords()) / 2;
+	verify(nrecs >= 0);
+	return nrecs;
 	}
 
 int Join::recordsize()
@@ -170,30 +164,29 @@ double Join::opt(Query* src1, Query* src2, Type typ,
 
 	// always have to read all of source 1
 	double cost1 = src1->optimize(index, needs1, joincols, is_cursor, freeze);
-
+	if (cost1 >= IMPOSSIBLE)
+		return IMPOSSIBLE;
 	double nrecs1 = src1->nrecords();
-	double nrecs2 = src2->nrecords();
 
 	// for each of source 1, select on source2
 	cost1 += nrecs1 * SELECT_COST;
 
 	// cost of reading all of source 2
 	double cost2 = src2->optimize(joincols, needs2, Fields(), is_cursor, freeze);
-
-	if (src2->willneed_tempindex)
-		return cost1 + cost2;
-
-	double nrecs;
+	if (cost2 >= IMPOSSIBLE)
+		return IMPOSSIBLE;
+	double nrecs2 = src2->nrecords();
+	
 	switch (typ)
 		{
 	case ONE_ONE :
 		nrecs = min(nrecs1, nrecs2);
 		break ;
 	case N_ONE :
-		nrecs = nrecs1;
+		nrecs = nrecs2 <= 0 ? 0 : nrecs1;
 		break ;
 	case ONE_N :
-		nrecs = nrecs2;
+		nrecs = nrecs1 <= 0 ? 0 : nrecs2;
 		break ;
 	case N_N :
 		nrecs = nrecs1 * nrecs2;
@@ -201,9 +194,13 @@ double Join::opt(Query* src1, Query* src2, Type typ,
 	default :
 		unreachable();
 		}
-	// guestimate 0...nrecs => nrecs / 2
-	cost2 *= nrecs <= 0 || nrecs2 <= 0 ? 0 : (nrecs / 2) / nrecs2;
-
+	nrecs /= 2; // convert from max to guess of expected
+	
+	if (nrecs <= 0)
+		cost2 = 0;
+	else if (! src2->tempindexed())
+		cost2 =  nrecs * (cost2 / nrecs2);
+	
 	return cost1 + cost2;
 	}
 
@@ -285,6 +282,7 @@ Indexes LeftJoin::keys()
 
 double LeftJoin::nrecords()
 	{
+	verify(nrecs >= 0);
 	return source->nrecords();
 	}
 

@@ -61,6 +61,7 @@ protected:
 	virtual bool should_output(const Row& row);
 
 	Type type;
+	double nrecs;
 private:
 	void getcols();
 	double opt(Query* src1, Query* src2, Type typ,

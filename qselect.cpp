@@ -151,7 +151,7 @@ public:
 	Lisp<Fixed> fixed() const;
 	// estimated result sizes
 	double nrecords()
-		{ return nrecs; }
+		{ verify(nrecs >= 0); return nrecs; }
 	// iteration
 	Header header()
 		{ return source->header(); }
@@ -189,7 +189,7 @@ protected: // not private so tests can subclass and override
 	bool conflicting;
 	Table* tbl;
 	Indexes theindexes; // const
-	int nrecs;
+	double nrecs;
 	HashMap<Field,double> ffracs;
 	Ifracs ifracs;
 	Fields prior_needs;
@@ -241,7 +241,7 @@ Query* Query::make_select(Query* s, Expr* e)
 	}
 
 Select::Select(Query* s, Expr* e) :
-	Query1(s), first(true), rewound(true), newrange(true), conflicting(false), 
+	Query1(s), first(true), rewound(true), newrange(true), conflicting(false), nrecs(-1), 
 	f(0), tran(-1), n_in(0), n_out(0), fixdone(false)
 	{
 	e = e->fold();
@@ -444,8 +444,10 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 		{
 		first = freeze ? true : false;
 		required_index = source_index = index;
-		return source->optimize(index, set_union(needs, select_needs), 
+		double cost = source->optimize(index, set_union(needs, select_needs), 
 			set_union(firstneeds, select_needs), is_cursor, freeze);
+		nrecs = source->nrecords();
+		return cost;
 		}
 
 	LOG("Select::optimize " << tbl->table << (freeze ? " FREEZE" : "") << 
@@ -492,12 +494,14 @@ void Select::optimize_setup()
 
 	Lisp<Cmp> cmps = extract_cmps(); // WARNING: modifies expr
 	cmps_to_isels(cmps);
+	if (conflicting)
+		return ;
 	identify_possible();
 	calc_field_fracs();
 	calc_index_fracs();
 	
 	// TODO: should be frac of complete select, not just indexes
-	nrecs = (int) (datafrac(theindexes) * tbl->nrecords() + .5); // .5 to round
+	nrecs = datafrac(theindexes) * tbl->nrecords();
 	}
 
 Lisp<Fixed> Select::fixed() const

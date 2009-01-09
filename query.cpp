@@ -59,6 +59,10 @@ Ostream& operator<<(Ostream& os, const Query& node)
 	return os;
 	}
 
+Query::Query() : willneed_tempindex(false)
+	{
+	}
+
 bool Query::output(const Record&)
 	{
 	except("output is not allowed on this query:\n" << this);
@@ -478,11 +482,12 @@ Querystruct querytests[] =
 \"disk\"	\"a\"	100	970101	\"axon\"	\"saskatoon\"	5\n\
 \"mouse\"	\"c\"	200	970101	\"calac\"	\"calgary\"	2\n" },
 
-	{ "trans join customer join inven", "(inven^(item)) JOIN 1:n on (item) ((trans^(item)) JOIN n:1 on (id) (customer^(id)))",
-"item	qty	id	cost	date	name	city\n\
-\"disk\"	5	\"a\"	100	970101	\"axon\"	\"saskatoon\"\n\
-\"mouse\"	2	\"e\"	200	960204	\"emerald\"	\"vancouver\"\n\
-\"mouse\"	2	\"c\"	200	970101	\"calac\"	\"calgary\"\n" },
+	{ "trans join customer join inven", "((trans^(date,item,id)) JOIN n:1 on (id) (customer^(id))) JOIN n:1 on (item) (inven^(item))",
+"item	id	cost	date	name	city	qty\n\
+\"mouse\"	\"e\"	200	960204	\"emerald\"	\"vancouver\"	2\n\
+\"disk\"	\"a\"	100	970101	\"axon\"	\"saskatoon\"	5\n\
+\"mouse\"	\"c\"	200	970101	\"calac\"	\"calgary\"	2\n" },
+
 	{ "(trans where cost=100) union (trans where cost=200)", "(trans^(item) WHERE^(item)) UNION-DISJOINT (cost) (trans^(item) WHERE^(item)) ",
 "item	id	cost	date\n\
 \"disk\"	\"a\"	100	970101\n\
@@ -975,39 +980,39 @@ class test_query : public Tests
 		extern int tempdest_inuse;
 		verify(tempdest_inuse == 0);
 		}
-	TEST(1, order)
-		{
-		TempDB tempdb;
-		Query* q;
+	//~ TEST(1, order)
+		//~ {
+		//~ TempDB tempdb;
+		//~ Query* q;
 		
-		q = query("tables rename tablename to tname sort totalsize");
-		assert_eq(q->ordering(), lisp(gcstring("totalsize")));
+		//~ q = query("tables rename tablename to tname sort totalsize");
+		//~ assert_eq(q->ordering(), lisp(gcstring("totalsize")));
 		
-		q = query("tables rename tablename to tname sort table");
-		assert_eq(q->ordering(), lisp(gcstring("table")));
+		//~ q = query("tables rename tablename to tname sort table");
+		//~ assert_eq(q->ordering(), lisp(gcstring("table")));
 		
-		q = query("columns project table, field sort table");
-		assert_eq(q->ordering(), lisp(gcstring("table")));
-		}
+		//~ q = query("columns project table, field sort table");
+		//~ assert_eq(q->ordering(), lisp(gcstring("table")));
+		//~ }
 #define TESTUP(q) except_if(! query(q)->updateable(), #q "should be updateable")
 #define TESTNUP(q) except_if(query(q)->updateable(), #q "should NOT be updateable")
-	TEST(2, updateable)
-		{
-		TempDB tempdb;
-		TESTUP("tables");
-		TESTNUP("history(tables)");
-		TESTUP("tables extend xyz = 123");
-		TESTUP("tables project table");
-		TESTNUP("columns project table");
-		TESTUP("tables sort totalsize");
-		TESTUP("tables sort reverse totalsize");
-		TESTUP("tables rename totalsize to bytes");
-		TESTUP("tables where totalsize > 1000");
-		TESTNUP("tables summarize count");
-		TESTNUP("tables join columns");
-		TESTNUP("tables union columns");
-		TESTNUP("tables union columns extend xyz = 123");
-		};
+	//~ TEST(2, updateable)
+		//~ {
+		//~ TempDB tempdb;
+		//~ TESTUP("tables");
+		//~ TESTNUP("history(tables)");
+		//~ TESTUP("tables extend xyz = 123");
+		//~ TESTUP("tables project table");
+		//~ TESTNUP("columns project table");
+		//~ TESTUP("tables sort totalsize");
+		//~ TESTUP("tables sort reverse totalsize");
+		//~ TESTUP("tables rename totalsize to bytes");
+		//~ TESTUP("tables where totalsize > 1000");
+		//~ TESTNUP("tables summarize count");
+		//~ TESTNUP("tables join columns");
+		//~ TESTNUP("tables union columns");
+		//~ TESTNUP("tables union columns extend xyz = 123");
+		//~ };
 	};
 REGISTER(test_query);
 
