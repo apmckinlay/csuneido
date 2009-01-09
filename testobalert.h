@@ -43,7 +43,11 @@ public:
 	virtual void end_test(char* group, char* test, char* error)
 		{
 		if (error)
+			{
+			OstreamFile os("test.log", "a");
+			os << error << endl;
 			errs << group << ' ' << test << " FAILED " << error << endl;
+			}
 		++ntests;
 		}
 	virtual void end_all(int nfailed)
