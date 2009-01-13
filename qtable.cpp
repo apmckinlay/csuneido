@@ -109,7 +109,7 @@ int Table::indexsize(const Fields& index)
 	{
 	Index* idx = theDB()->get_index(table, fields_to_commas(index));
 	verify(idx);
-	return idx->get_nnodes() * NODESIZE;
+	return idx->get_nnodes() * NODESIZE + index.size();
 	}
 
 int Table::totalsize()
