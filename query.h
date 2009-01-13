@@ -174,7 +174,6 @@ public:
 
 private:
 	Fields tempindex;
-protected:
 	bool willneed_tempindex;
 	};
 

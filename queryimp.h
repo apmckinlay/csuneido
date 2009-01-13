@@ -47,7 +47,7 @@ public:
 	void set_transaction(int tran)
 		{ source->set_transaction(tran); }
 	bool tempindexed()
-		{ return willneed_tempindex || source->tempindexed(); }
+		{ return Query::tempindexed() || source->tempindexed(); }
 
 	// estimated result sizes
 	double nrecords()
