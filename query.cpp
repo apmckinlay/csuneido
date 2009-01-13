@@ -980,39 +980,39 @@ class test_query : public Tests
 		extern int tempdest_inuse;
 		verify(tempdest_inuse == 0);
 		}
-	//~ TEST(1, order)
-		//~ {
-		//~ TempDB tempdb;
-		//~ Query* q;
+	TEST(1, order)
+		{
+		TempDB tempdb;
+		Query* q;
 		
-		//~ q = query("tables rename tablename to tname sort totalsize");
-		//~ assert_eq(q->ordering(), lisp(gcstring("totalsize")));
+		q = query("tables rename tablename to tname sort totalsize");
+		assert_eq(q->ordering(), lisp(gcstring("totalsize")));
 		
-		//~ q = query("tables rename tablename to tname sort table");
-		//~ assert_eq(q->ordering(), lisp(gcstring("table")));
+		q = query("tables rename tablename to tname sort table");
+		assert_eq(q->ordering(), lisp(gcstring("table")));
 		
-		//~ q = query("columns project table, field sort table");
-		//~ assert_eq(q->ordering(), lisp(gcstring("table")));
-		//~ }
+		q = query("columns project table, field sort table");
+		assert_eq(q->ordering(), lisp(gcstring("table")));
+		}
 #define TESTUP(q) except_if(! query(q)->updateable(), #q "should be updateable")
 #define TESTNUP(q) except_if(query(q)->updateable(), #q "should NOT be updateable")
-	//~ TEST(2, updateable)
-		//~ {
-		//~ TempDB tempdb;
-		//~ TESTUP("tables");
-		//~ TESTNUP("history(tables)");
-		//~ TESTUP("tables extend xyz = 123");
-		//~ TESTUP("tables project table");
-		//~ TESTNUP("columns project table");
-		//~ TESTUP("tables sort totalsize");
-		//~ TESTUP("tables sort reverse totalsize");
-		//~ TESTUP("tables rename totalsize to bytes");
-		//~ TESTUP("tables where totalsize > 1000");
-		//~ TESTNUP("tables summarize count");
-		//~ TESTNUP("tables join columns");
-		//~ TESTNUP("tables union columns");
-		//~ TESTNUP("tables union columns extend xyz = 123");
-		//~ };
+	TEST(2, updateable)
+		{
+		TempDB tempdb;
+		TESTUP("tables");
+		TESTNUP("history(tables)");
+		TESTUP("tables extend xyz = 123");
+		TESTUP("tables project table");
+		TESTNUP("columns project table");
+		TESTUP("tables sort totalsize");
+		TESTUP("tables sort reverse totalsize");
+		TESTUP("tables rename totalsize to bytes");
+		TESTUP("tables where totalsize > 1000");
+		TESTNUP("tables summarize count");
+		TESTNUP("tables join columns");
+		TESTNUP("tables union columns");
+		TESTNUP("tables union columns extend xyz = 123");
+		};
 	};
 REGISTER(test_query);
 
