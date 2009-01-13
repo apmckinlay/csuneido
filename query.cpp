@@ -102,11 +102,16 @@ Fields Query::key_index(const Fields& needs)
 // tempindex ?
 double Query::optimize(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze)
 	{
-	TRACE(QUERYOPT, "Query::optimize index: " << index << (is_cursor ? " is_cursor" : "") << (freeze ? " FREEZE" : "") <<
-		"\n\tneeds: " << needs <<
-		"\n\tfirstneeds: " << firstneeds);
+	TRACE(QUERYOPT, "Query::optimize START " << this << endl <<
+		"\tindex: " << index << (is_cursor ? " is_cursor" : "") <<
+		" needs: " << needs << " firstneeds: " << firstneeds << (freeze ? " FREEZE" : ""));
 	if (is_cursor || nil(index))
-		return optimize1(index, needs, firstneeds, is_cursor, freeze);
+		{
+		double cost = optimize1(index, needs, firstneeds, is_cursor, freeze);
+		TRACE(QUERYOPT, "Query::optimize END " << this << endl <<
+			"\tcost " << cost << endl);
+		return cost;
+		}
 	if (! subset(columns(), index))
 		return IMPOSSIBLE;
 
@@ -123,9 +128,10 @@ double Query::optimize(const Fields& index, const Fields& needs, const Fields& f
 		+ 4000;									// minimum fixed cost
 	verify(cost2 >= 0);
 	
-	TRACE(QUERYOPT, "with " << index << " cost " << cost1);
-	TRACE(QUERYOPT, "with TEMPINDEX cost " << cost2 << 
-		" nrecords " << nrecords() << " keysize " << keysize);
+	TRACE(QUERYOPT, "Query::optimize END " << this << endl <<
+		"\twith " << index << " cost " << cost1 << endl <<
+		"\twith TEMPINDEX cost " << cost2 << 
+			" nrecords " << nrecords() << " keysize " << keysize << endl);
 
 	double cost = min(cost1, cost2);
 	willneed_tempindex = (cost2 < cost1);
