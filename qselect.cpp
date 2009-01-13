@@ -179,11 +179,12 @@ public:
 	Indexes filter;
 protected: // not private so tests can subclass and override
 	Select() : Query1(NULL), // for tests
-		first(true), rewound(true), newrange(true), conflicting(false), 
+		optFirst(true), getFirst(true), rewound(true), newrange(true), conflicting(false), 
 		f(0), tran(-1), n_in(0), n_out(0), fixdone(false)
 		{ }
 	And* expr;
-	bool first; // used and then reset by optimize, then used again by next
+	bool optFirst;
+	bool getFirst;
 	bool rewound;
 	bool newrange;
 	bool conflicting;
@@ -241,7 +242,7 @@ Query* Query::make_select(Query* s, Expr* e)
 	}
 
 Select::Select(Query* s, Expr* e) :
-	Query1(s), first(true), rewound(true), newrange(true), conflicting(false), nrecs(-1), 
+	Query1(s), optFirst(true), getFirst(true), rewound(true), newrange(true), conflicting(false), nrecs(-1), 
 	f(0), tran(-1), n_in(0), n_out(0), fixdone(false)
 	{
 	e = e->fold();
@@ -433,7 +434,7 @@ Expr* Select::project(Query* q)
 double Select::optimize2(const Fields& index, const Fields& needs, 
 	const Fields& firstneeds, bool is_cursor, bool freeze)
 	{
-	if (first)
+	if (optFirst)
 		{
 		prior_needs = needs;
 		select_needs = expr->fields();
@@ -442,7 +443,7 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 	if (! tbl || // source isnt a Table
 		nil(*tbl->indexes())) // empty key() singleton - index irrelevant
 		{
-		first = freeze ? true : false;
+		optFirst = false;
 		required_index = source_index = index;
 		double cost = source->optimize(index, set_union(needs, select_needs), 
 			set_union(firstneeds, select_needs), is_cursor, freeze);
@@ -453,9 +454,9 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 	LOG("Select::optimize " << tbl->table << (freeze ? " FREEZE" : "") << 
 		" index " << index << ", needs " << needs);
 	LOG("exprs " << expr);
-	if (first)
+	if (optFirst)
 		{
-		first = false;
+		optFirst = false;
 		optimize_setup();
 		}
 
@@ -479,7 +480,6 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 	source_index = primary;
 	tbl->select_index(source_index);
 	
-	first = true; // for iteration
 	return cost;
 	}
 
@@ -909,9 +909,11 @@ static Keyrange intersect(const Keyrange& r1, const Keyrange& r2);
 // TODO: use more efficient type for ranges
 Row Select::get(Dir dir)
 	{
-	if (first)
+	if (conflicting)
+		return Eof;
+	if (getFirst)
 		{
-		first = false;
+		getFirst = false;
 		iterate_setup();
 		}
 	if (rewound)
