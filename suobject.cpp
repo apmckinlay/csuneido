@@ -697,7 +697,7 @@ Value SuObject::Sort(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (readonly)
 		except("can't sort readonly objects");
-	if (nargs == 0)
+	if (nargs == 0 || (nargs == 1 && ARG(0) == SuFalse))
 		sort();
 	else if (nargs == 1)
 		{
@@ -705,7 +705,7 @@ Value SuObject::Sort(short nargs, short nargnames, ushort* argnames, int each)
 		std::stable_sort(vec.begin(), vec.end(), Lt(fn));
 		}
 	else
-		except("usage: object.Sort() or object.Sort(less_function)");
+		except("usage: object.Sort(less_function = false)");
 	return this;
 	}
 
