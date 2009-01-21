@@ -173,7 +173,7 @@ private:
 
 	void ckopen();
 	virtual void finalize();
-	void write(BuiltinArgs& args);
+	void write(BuiltinArgs&);
 	RunPiped* rp;
 	gcstring cmd;
 	};
