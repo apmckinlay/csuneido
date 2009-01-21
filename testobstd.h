@@ -31,18 +31,18 @@ class TestObserverStd : public TestObserver
 public:
 	TestObserverStd() : ntests(0)
 		{ }
-	virtual void start_group(char* group)
+	virtual void start_group(const char* group)
 		{ cout << group << endl; }
-	virtual void start_test(char* group, char* test)
+	virtual void start_test(const char* group, const char* test)
 		{ cout << "    " << test << " "; cout.flush(); }
-	virtual void end_test(char* group, char* test, char* error)
+	virtual void end_test(const char* group, const char* test, char* error)
 		{
 		if (error)
 			cout << "FAILED " << error;
 		cout << endl;
 		++ntests;
 		}
-	virtual void end_group(char* group, int nfailed)
+	virtual void end_group(const char* group, int nfailed)
 		{ }
 	virtual void end_all(int nfailed)
 		{

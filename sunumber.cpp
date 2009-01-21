@@ -551,16 +551,22 @@ SuNumber* div(const SuNumber* x, const SuNumber* yy)
 	if (x->is_zero())
 		return &SuNumber::zero;
 	if (x->is_infinity())
+		{
 		if (yy->is_infinity())
+			{
 			if (x->sign == yy->sign)
 				return &SuNumber::one;
 			else
 				return &SuNumber::minus_one;
+			}
 		else
+			{
 			if (x->sign == yy->sign)
 				return &SuNumber::infinity;
 			else
 				return &SuNumber::minus_infinity;
+			}
+		}
 	if (yy->is_zero())
 		return x->sign == PLUS ? &SuNumber::infinity : &SuNumber::minus_infinity;
 	if (yy->is_infinity()) // && ! x->is_infinity()

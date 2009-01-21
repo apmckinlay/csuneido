@@ -28,20 +28,20 @@ class TestObserver
 public:
 	virtual ~TestObserver()
 		{ }
-	virtual void start_group(char* group)
+	virtual void start_group(const char* group)
 		{ }
-	virtual void start_test(char* group, char* test)
+	virtual void start_test(const char* group, const char* test)
 		{ }
-	virtual void end_test(char* group, char* test, char* error)
+	virtual void end_test(const char* group, const char* test, char* error)
 		{ }
-	virtual void end_group(char* group, int nfailed)
+	virtual void end_group(const char* group, int nfailed)
 		{ }
 	virtual void end_all(int nfailed)
 		{ }
 	};
 
 #define BASE(i) \
-	virtual char* testname##i() { return 0; } \
+	virtual const char* testname##i() { return 0; } \
 	virtual void test##i() { }
 
 class Tests
@@ -52,26 +52,26 @@ public:
 	int runtests(TestObserver&);
 	BASE(0) BASE(1) BASE(2) BASE(3) BASE(4) BASE(5)
 	BASE(6) BASE(7) BASE(8) BASE(9) BASE(10)
-	char* group;
+	const char* group;
 	};
 
 #define TEST(i,name) \
-	char* testname##i() { return #name; } \
+	const char* testname##i() { return #name; } \
 	void test##i()
 
 #define TESTS(i,name) \
-	char* testname##i() { return #name; } \
+	const char* testname##i() { return #name; } \
 	void test##i() { name t; t.group = #name; t.run(); }
 
 class TestRegister
 	{
 public:
-	TestRegister(char* n, Tests* (*f)());
-	static int runtest(char* name, TestObserver&);
+	TestRegister(const char* n, Tests* (*f)());
+	static int runtest(const char* name, TestObserver&);
 	static int runall(TestObserver&);
 private:
-	static TestRegister* findtest(char* name);
-	char* name;
+	static TestRegister* findtest(const char* name);
+	const char* name;
 	Tests* (*makefn)();
 	};
 

@@ -903,10 +903,12 @@ void FunctionCompiler::block()
 	patch(a);
 	
 	if (it_param)
+		{
 		if (it_used)
 			code[nparams_loc] = 1;
 		else
 			scanner.visitor->local(scanner.prev, first, false); // mark as used to prevent code warning
+		}
 	}
 	// hide block parameter locals from rest of code
 	// TODO: cleaner way to hide e.g. parallel bool vector to mark as hidden

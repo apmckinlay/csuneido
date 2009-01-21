@@ -49,8 +49,8 @@ int Tests::runtests(TestObserver& to)
 const int MAXTESTS = 100;
 static TestRegister* tests[MAXTESTS];
 static int ntests = 0;
-static char* duplicate = 0;
-TestRegister::TestRegister(char* n, Tests* (*f)()) : name(n), makefn(f)
+static const char* duplicate = 0;
+TestRegister::TestRegister(const char* n, Tests* (*f)()) : name(n), makefn(f)
 	{
 	verify(ntests + 1 < MAXTESTS);
 	if (findtest(name))
@@ -87,7 +87,7 @@ int TestRegister::runall(TestObserver& to)
 	return nfailed;
 	}
 
-int TestRegister::runtest(char* name, TestObserver& to)
+int TestRegister::runtest(const char* name, TestObserver& to)
 	{
 //	showdups(results);
 	if (TestRegister* tr = findtest(name))
@@ -101,7 +101,7 @@ int TestRegister::runtest(char* name, TestObserver& to)
 	return -1;
 	}
 
-TestRegister* TestRegister::findtest(char* name)
+TestRegister* TestRegister::findtest(const char* name)
 	{
 	for (int i = 0; i < ntests; ++i)
 		if (0 == strcmp(name, tests[i]->name))

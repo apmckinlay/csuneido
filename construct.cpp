@@ -44,10 +44,12 @@ Value Construct::call(Value self, Value member, short nargs, short nargnames, us
 	Value c = ARG(0);
 	SuObject* ob = c.ob_if_ob();
 	if (ob)
+		{
 		if (val_cast<SuClass*>(c))
 			ob = 0;
 		else if (! (c = ob->get(0)))
 			except("Construct: object requires member 0");
+		}
 	if (const char* s = c.str_if_str())
 		{
 		if (! has_suffix(s, suffix))

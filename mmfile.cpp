@@ -25,13 +25,14 @@
 #include "except.h"
 #include "fatal.h"
 #include "minmax.h"
+#include <memory.h>
 #include <algorithm>
 
 const char magic[] = { 'S', 'n', 'd', 'o' };
 const int FILESIZE_OFFSET = 4;
 const int MM_FILEHDR = 8; // should be multiple of align
 
-inline Mmoffset Mmfile::get_file_size()
+Mmoffset Mmfile::get_file_size()
 	{
 	return static_cast<Mmoffset32*>(adr(FILESIZE_OFFSET))->unpack();
 	}
@@ -305,6 +306,7 @@ int Mmfile::lru_chunk()
 
 #include "testing.h"
 #include <stdio.h> // for remove
+#include <string.h>
 
 void add(Mmfile& m, char* s)
 	{ strcpy(static_cast<char*>(m.adr(m.alloc(strlen(s) + 1, 1))), s); }

@@ -21,7 +21,7 @@ private:
 	void newstuff();
 	void handle_commit(void* p);
 	void print(Mmoffset off);
-	void Master::print_record(Record& r);
+	void print_record(Record& r);
 
 	char* slaveip;
 	Mmfile mmf;
@@ -133,11 +133,11 @@ void Master::print(Mmoffset off)
 	
 void Master::print_record(Record& r)
 	{
-	int f;
+	int f = 0;
 	try
 		{
 		out << " #" << r.size();
-		for (f = 0; f < r.size(); ++f)
+		for (; f < r.size(); ++f)
 			out << " " << r.getval(f);
 		}
 	catch (const Except& e)

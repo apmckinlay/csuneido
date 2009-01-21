@@ -35,12 +35,12 @@ public:
 		{
 		OstreamFile os("test.log", "w"); // truncate
 		}
-	virtual void start_test(char* group, char* test)
+	virtual void start_test(const char* group, const char* test)
 		{
 		OstreamFile os("test.log", "a");
 		os << group << ' ' << test << endl;
 		}
-	virtual void end_test(char* group, char* test, char* error)
+	virtual void end_test(const char* group, const char* test, char* error)
 		{
 		if (error)
 			{

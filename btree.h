@@ -229,8 +229,8 @@ public:
 			}
 		bool operator==(const iterator& j) const
 			{
-			return off == NIL && j.off == NIL ||
-				off == j.off && cur == j.cur;
+			return (off == NIL && j.off == NIL) ||
+				(off == j.off && cur == j.cur);
 			}
 		bool operator!=(const iterator& j) const
 			{

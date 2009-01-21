@@ -30,6 +30,11 @@
 #include <richedit.h>
 #include <richole.h>
 
+#ifdef __MINGW32__
+//const CLSID IID_IRichEditOle = { 0x00020D00, 0x00, 0x00, { 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 } };
+const CLSID IID_IRichEditOleCallback = { 0x00020D03, 0x00, 0x00, { 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 } };
+#endif
+
 typedef struct
 	{
 	IRichEditOleCallbackVtbl* lpVtbl;
@@ -103,7 +108,7 @@ STDMETHODIMP_(ULONG) ITPCALL_Release(LPUNKNOWN punk)
 	if (--pitpcall->cRef == 0)
 		{
 		pitpcall->pstg->lpVtbl->Release(pitpcall->pstg);
-		GlobalFreePtr(pitpcall);
+		(void) GlobalFreePtr(pitpcall);
 		}
 
 	return pitpcall->cRef;

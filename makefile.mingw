@@ -12,7 +12,7 @@ endif
 
 CC=gcc
 CXX=g++
-FLAGS += -Wall -Wno-sign-compare -Wfloat-equal -Werror -DCOMPILER=MinGW 
+FLAGS += -DCOMPILER=MinGW -Werror -Wall -Wno-sign-compare -Wfloat-equal  -Wno-write-strings -Wno-char-subscripts
 
 .SUFFIXES:
 
@@ -37,8 +37,8 @@ $(OUTPUT)/suneido.exe : $(OBJECTS) gc_$(OUTPUT).a $(OUTPUT)/res.o
 		-lws2_32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -luuid -liphlpapi \
 		-mwindows -mconsole
 		
-RC="C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Bin\rc"
-CVTRES="C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Bin\win64\cvtres"
+RC="C:\Program Files\Microsoft SDKs\Windows\v6.0A\bin\rc"
+CVTRES="C:\Program Files\Microsoft Visual Studio 9.0\VC\bin\cvtres"
 	
 $(OUTPUT)/res.o : suneido.rc resource.h res/suneido.exe.manifest
 	$(RC) /l 0x409 /fo"$(OUTPUT)/suneido.res" /i "/MinGW/include" /d "NDEBUG" suneido.rc

@@ -80,7 +80,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		char buf[2000];
 		if (! sc->readline(buf, 2000))
 			except("socket client: lost connection or timeout");
-		for (int n = strlen(buf) - 1; n >= 0 && buf[n] == '\r' || buf[n] == '\n'; --n)
+		for (int n = strlen(buf) - 1; (n >= 0 && buf[n] == '\r') || buf[n] == '\n'; --n)
 			buf[n] = 0;
 		return new SuString(buf);
 		}
@@ -287,7 +287,7 @@ Value SuServerInstance::call(Value self, Value member, short nargs,
 		char buf[2000];
 		if (! sc->readline(buf, sizeof buf))
 			except("socket server: lost connection");
-		for (int n = strlen(buf) - 1; n >= 0 && buf[n] == '\r' || buf[n] == '\n'; --n)
+		for (int n = strlen(buf) - 1; (n >= 0 && buf[n] == '\r') || buf[n] == '\n'; --n)
 			buf[n] = 0;
 		return new SuString(buf);
 		}

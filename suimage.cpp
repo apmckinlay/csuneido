@@ -76,6 +76,7 @@ Value su_image()
 	return &suImageClass;
 	}
 
+template<>
 void BuiltinClass<SuImage>::out(Ostream& os)
 	{ 
 	os << "Image /* builtin class */";
@@ -83,6 +84,7 @@ void BuiltinClass<SuImage>::out(Ostream& os)
 
 const int HIMETRIC_INCH = 2540;
 
+template<>
 Value BuiltinClass<SuImage>::instantiate(BuiltinArgs& args)
 	{
 	args.usage("usage: Image(image)");

@@ -246,7 +246,7 @@ Value SuObject::getdefault(Value member, Value def)
 	Value x;
 	if ((x = get(member)))
 		return x;
-	if (x = myclass.getdata(member))
+	if ((x = myclass.getdata(member)))
 		{
 		if (SuFunction* sufn = val_cast<SuFunction*>(x))
 			return new SuMethod(this, member, sufn);
@@ -813,7 +813,7 @@ Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	argseach(nargs, nargnames, argnames, each);
 	static ushort at = ::symnum("at");
-	if (nargnames > 1 || nargnames == 1 && argnames[0] != at)
+	if (nargnames > 1 || (nargnames == 1 && argnames[0] != at))
 		except("usage: object.Add(value, ... [ at: position ])");
 	if (readonly)
 		except("can't Add to readonly objects");

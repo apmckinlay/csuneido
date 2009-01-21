@@ -59,12 +59,15 @@ void TypeBool::out(Ostream& os)
 
 //===================================================================
 
+template<>
 void TypeInt<char>::out(Ostream& os)
 	{ os << "char"; }
 
+template<>
 void TypeInt<short>::out(Ostream& os)
 	{ os << "short"; }
 
+template<>
 void TypeInt<long>::out(Ostream& os)
 	{ os << "long"; }
 
@@ -158,9 +161,11 @@ Value TypeDouble::result(long, long)
 
 //===================================================================
 
+template<>
 void TypeWinRes<SuHandle>::out(Ostream& os)
 	{ os << "handle"; }
 
+template<>
 void TypeWinRes<SuGdiObj>::out(Ostream& os)
 	{ os << "gdiobj"; }
 

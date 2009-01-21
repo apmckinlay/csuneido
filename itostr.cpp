@@ -70,6 +70,7 @@ char* i64tostr(int64 x, char* buf, int radix)
 	}
 
 #include "testing.h"
+#include <string.h>
 	
 class test_itostr : public Tests
 	{
