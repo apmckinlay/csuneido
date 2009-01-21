@@ -153,6 +153,7 @@ public:
 			Method<SuRunPiped>("Read", &SuRunPiped::Read),
 			Method<SuRunPiped>("Readline", &SuRunPiped::Readline),
 			Method<SuRunPiped>("Write", &SuRunPiped::Write),
+			Method<SuRunPiped>("Writeline", &SuRunPiped::Writeline),
 			Method<SuRunPiped>("CloseWrite", &SuRunPiped::CloseWrite),
 			Method<SuRunPiped>("Close", &SuRunPiped::Close),
 			Method<SuRunPiped>("", 0)
@@ -166,11 +167,13 @@ private:
 	Value Read(BuiltinArgs&);
 	Value Readline(BuiltinArgs&);
 	Value Write(BuiltinArgs&);
+	Value Writeline(BuiltinArgs&);
 	Value CloseWrite(BuiltinArgs&);
 	Value Close(BuiltinArgs&);
 
 	void ckopen();
 	virtual void finalize();
+	void write(BuiltinArgs& args);
 	RunPiped* rp;
 	gcstring cmd;
 	};
@@ -181,11 +184,13 @@ Value su_runpiped()
 	return &suRunPipedClass;
 	}
 
+template<>
 void BuiltinClass<SuRunPiped>::out(Ostream& os)
 	{ 
 	os << "RunPiped /* builtin class */";
 	}
 
+template<>
 Value BuiltinClass<SuRunPiped>::instantiate(BuiltinArgs& args)
 	{
 	args.usage("usage: RunPiped(command)");
@@ -257,12 +262,25 @@ Value SuRunPiped::Readline(BuiltinArgs& args)
 Value SuRunPiped::Write(BuiltinArgs& args)
 	{
 	args.usage("usage: runpiped.Write(s)");
+	write(args);
+	return Value();
+	}
+
+Value SuRunPiped::Writeline(BuiltinArgs& args)
+	{
+	args.usage("usage: runpiped.Writeline(s)");
+	write(args);
+	rp->write("\r\n", 2);
+	return Value();
+	}
+
+void SuRunPiped::write(BuiltinArgs& args)
+	{
 	gcstring s = args.getgcstr("s");
 	args.end();
 	
 	ckopen();
 	rp->write(s.buf(), s.size());
-	return Value();
 	}
 
 Value SuRunPiped::CloseWrite(BuiltinArgs& args)
