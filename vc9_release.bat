@@ -2,7 +2,5 @@
 @if not exist gc6.5\vc9_release mkdir gc6.5\vc9_release
 call "C:\Program Files\Microsoft Visual Studio 9.0\VC\vcvarsall.bat" x86
 @echo on
-call "c:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\setenv" /XP32 /RETAIL
-@echo on
 doskey make=\mingw\bin\mingw32-make -f makefile.vc9 $*
 @title vc9 release
