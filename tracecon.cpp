@@ -22,11 +22,38 @@
 
 #include "trace.h"
 #include "ostreamcon.h"
+#include "ostreamfile.h"
 
 int trace_level = 0;
 
+class OstreamTrace : public Ostream
+	{
+public:
+	OstreamTrace() : log("trace.log", "w")
+		{ }
+	Ostream& write(const void* buf, int n)
+		{
+		con.write(buf, n);
+		log.write(buf, n);
+		return *this;
+		}
+	void flush()
+		{
+		con.flush();
+		log.flush();
+		}
+	operator void*()
+		{
+		return log;
+		}
+private:
+	OstreamCon con;
+	OstreamFile log;
+	};
+
+
 Ostream& tout()
 	{
-	static OstreamCon t;
+	static OstreamTrace t;
 	return t;
 	}
