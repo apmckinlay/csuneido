@@ -32,7 +32,7 @@
 
 #ifdef __MINGW32__
 //const CLSID IID_IRichEditOle = { 0x00020D00, 0x00, 0x00, { 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 } };
-const CLSID IID_IRichEditOleCallback = { 0x00020D03, 0x00, 0x00, { 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 } };
+const CLSID MyIID_IRichEditOleCallback = { 0x00020D03, 0x00, 0x00, { 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 } };
 #endif
 
 typedef struct
@@ -90,7 +90,7 @@ STDMETHODIMP ITPCALL_QueryInterface(LPUNKNOWN punk, REFIID riid,
 	{
 	if(IsEqualIID(riid, &IID_IUnknown))
 		{ ITPCALL_AddRef(*ppvObj = punk); return S_OK; }
-	else if(IsEqualIID(riid, &IID_IRichEditOleCallback))
+	else if(IsEqualIID(riid, &MyIID_IRichEditOleCallback))
 		{ ITPCALL_AddRef(*ppvObj = punk); return S_OK; }
 	else
 		{ *ppvObj = NULL; return E_NOINTERFACE; }
