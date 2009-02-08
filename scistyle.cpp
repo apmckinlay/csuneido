@@ -86,7 +86,6 @@ Value su_ScintillaStyle()
 	// backup to outside string or comment
 	while (start > 0)
 		{
-
 		int style = SendMessage(hwnd, SCI_GETSTYLEAT, start, 0);
 		if (style != STYLE_COMMENT && style != STYLE_STRING)
 			break ;
