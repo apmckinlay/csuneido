@@ -24,7 +24,7 @@
 #include "scintilla.h"
 #include "interp.h"
 #include "suvalue.h"
-#include "scanner.h"
+#include "qscanner.h"
 #include "minmax.h"
 #include <malloc.h> // for alloca
 #include "prim.h"
@@ -53,14 +53,15 @@ enum
 	STYLE_WHITESPACE = 6
 	};
 
-static int tokenStyle(int token, int keyword);
+static int tokenStyle(int token, int keyword, bool query);
 
 Value su_ScintillaStyle()
 	{
-	const int nargs = 3;
+	const int nargs = 4;
 	HWND hwnd = (HWND) ARG(0).integer();
 	int start = ARG(1).integer();
 	int end = ARG(2).integer();
+	bool query = ARG(3) == SuTrue;
 	LOG("style " << start << " -> " << end);
 
 	int lengthDoc = SendMessage(hwnd, SCI_GETLENGTH, 0, 0);
@@ -107,14 +108,14 @@ Value su_ScintillaStyle()
 
 	char* styles = (char*) alloca(size);
 
-	Scanner scan(tr.lpstrText);
+	Scanner& scan = query ? *new QueryScanner(tr.lpstrText) : *new Scanner(tr.lpstrText);
 	SendMessage(hwnd, SCI_STARTSTYLING, start, 0x1f);
 	int token;
 	while (-1 != (token = scan.nextall()))
 		{
 		int last = min(scan.si, size);
 		int len = last - scan.prev;
-		int style = tokenStyle(token, scan.keyword);
+		int style = tokenStyle(token, scan.keyword, query);
 		verify(scan.prev + len <= size);
 		if (len > 0)
 			memset(styles + scan.prev, style, len);
@@ -152,11 +153,11 @@ Value su_ScintillaStyle()
 	SendMessage(hwnd, SCI_SETSTYLINGEX, size, (long) styles);
 	return Value();
 	}
-PRIM(su_ScintillaStyle, "ScintillaStyle(hwnd, start, end = 0)");
+PRIM(su_ScintillaStyle, "ScintillaStyle(hwnd, start, end = 0, query = false)");
 
-static int tokenStyle(int token, int keyword)
+static int tokenStyle(int token, int keyword, bool query)
 	{
-	if (keyword > 0 && keyword != K_LIST && keyword != K_VALUE)
+	if (keyword > 0 && (query || (keyword != K_LIST && keyword != K_VALUE)))
 		return STYLE_KEYWORD;
 	switch (token)
 		{
