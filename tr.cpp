@@ -108,5 +108,5 @@ static int xindex(char* from, char c, bool allbut, int lastto)
 		i = p - from;
 	else
 		i = -1;
-	return (i);
+	return i;
 	}
