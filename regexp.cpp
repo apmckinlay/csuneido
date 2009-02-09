@@ -738,7 +738,7 @@ bool RxMatch::cclass()
 int rx_replen(const char* rep, Rxpart* subs)
 	{
 	if (rep[0] == '\\' && rep[1] == '=')
-		return strlen(rep + 2);
+		return strlen(rep) - 2;
 
 	int len = 0;
 	for (; *rep; ++rep)

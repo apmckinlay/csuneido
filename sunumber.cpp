@@ -386,8 +386,9 @@ SuNumber* usub(const SuNumber* x, const SuNumber* y, SuNumber* z)
 		zd[0] += 10000;
 		// complement z
 		short i;
-		for (i = 3; zd[i] == 0; --i)
-			verify(i >= 0);
+		for (i = 3; i >= 0 && zd[i] == 0; --i)
+			;
+		verify(i >= 0);
 		--zd[i];
 		for (; i >= 0; --i)
 			zd[i] = 9999 - zd[i];

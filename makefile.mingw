@@ -12,7 +12,7 @@ endif
 
 CC=gcc
 CXX=g++
-FLAGS += -DCOMPILER=MinGW -Werror -Wall -Wno-sign-compare -Wfloat-equal  -Wno-write-strings -Wno-char-subscripts
+FLAGS += -DCOMPILER=MinGW -fno-strict-overflow -Werror -Wall -Wno-sign-compare -Wfloat-equal  -Wno-write-strings -Wno-char-subscripts
 
 .SUFFIXES:
 
