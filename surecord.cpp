@@ -217,8 +217,10 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 	static Value Set_default("Set_default");
 	static Value GetDeps("GetDeps");
 	static Value SetDeps("SetDeps");
+	static Value Add("Add");
 
-	argseach(nargs, nargnames, argnames, each);
+	if (member != Add) // Add optimizes each
+		argseach(nargs, nargnames, argnames, each);
 	if (member == Clear)
 		{
 		SuRecord empty;

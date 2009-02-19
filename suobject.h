@@ -151,6 +151,8 @@ private:
 	Value LowerBound(short nargs, short nargnames, ushort* argnames, int each);
 	Value UpperBound(short nargs, short nargnames, ushort* argnames, int each);
 	Value EqualRange(short nargs, short nargnames, ushort* argnames, int each);
+	Value Unique(short nargs, short nargnames, ushort* argnames, int each);
+	Value Slice(short nargs, short nargnames, ushort* argnames, int each);
 	Value Find(short nargs, short nargnames, ushort* argnames, int each);
 	Value Erase(short nargs, short nargnames, ushort* argnames, int each);
 	Value Delete(short nargs, short nargnames, ushort* argnames, int each);

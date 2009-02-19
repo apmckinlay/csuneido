@@ -160,6 +160,8 @@ void SuObject::setup()
 	METHOD(LowerBound);
 	METHOD(UpperBound);
 	METHOD(EqualRange);
+	methods["Unique!"] = &SuObject::Unique;
+	METHOD(Slice);
 	}
 
 SuObject::SuObject(const SuObject& ob) : myclass(ob.myclass), defval(ob.defval), 
@@ -749,6 +751,35 @@ Value SuObject::EqualRange(short nargs, short nargnames, ushort* argnames, int e
 	return ob;
 	}
 
+Value SuObject::Unique(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	// TODO allow passing equality function
+	std::vector<Value>::iterator end = std::unique(vec.begin(), vec.end());
+	vec.erase(end, vec.end());
+	return this;
+	}
+
+Value SuObject::Slice(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	argseach(nargs, nargnames, argnames, each);
+	int i = nargs < 1 ? 0 : ARG(0).integer();
+	int n = nargs < 2 ? vecsize() : ARG(1).integer();
+	if (i < 0)
+		i += vecsize();
+	int j = n < 0 ? vecsize() + n : i + n;
+	if (i < 0)
+		i = 0;
+	if (j > vecsize())
+		j = vecsize();
+	SuObject* ob = new SuObject();
+	if (i < j)
+		{
+		vec.reserve(j - i);
+		std::copy(vec.begin() + i, vec.begin() + j, std::back_inserter(ob->vec));
+		}
+	return ob;
+	}
+
 Value SuObject::Find(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 1)
@@ -811,6 +842,20 @@ Value SuObject::Erase(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
 	{
+	// optimize Add(@ob) where this and ob have only vector
+	if (each >= 0 && mapsize() == 0)
+		{
+		verify(nargs == 1);
+		verify(nargnames == 0);
+		SuObject* ob = POP().object();
+		if (ob->mapsize() == 0)
+			{
+			if (each < ob->vecsize())
+				std::copy(ob->vec.begin() + each, ob->vec.end(), std::back_inserter(vec));
+			return this;
+			}
+		}
+	
 	argseach(nargs, nargnames, argnames, each);
 	static ushort at = ::symnum("at");
 	if (nargnames > 1 || (nargnames == 1 && argnames[0] != at))
