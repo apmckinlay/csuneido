@@ -44,7 +44,7 @@ public:
 		{ }
 	void push(Value x)
 		{
-		if (sp >= STACKSIZE)
+		if (sp >= STACKSIZE - 10)
 			except("value stack overflow");
 		stack[++sp] = x;
 //		labels[sp] = 0;
