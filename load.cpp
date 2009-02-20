@@ -45,6 +45,7 @@ static int loadbuf_size = 0;
 static int load1(Istream& fin, gcstring tblspec);
 static int load_data(Istream& fin, const gcstring& table);
 static void load_data_record(Istream& fin, const gcstring& table, int tran, int n);
+static bool alerts = false;
 
 struct Loading
 	{
@@ -118,6 +119,7 @@ void load(const gcstring& table)
 				except("bad file format");
 			}
 		}
+	verify(! alerts);
 	}
 
 static int load1(Istream& fin, gcstring tblspec)
@@ -192,6 +194,7 @@ static void load_data_record(Istream& fin, const gcstring& table, int tran, int 
 		{
 		errlog("load: ignoring: ", table.str(), x.exception);
 		alert("ignoring: " << table << ": " << x.exception);
+		alerts = true;
 		}
 	}
 
