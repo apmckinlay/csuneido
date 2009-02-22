@@ -838,6 +838,12 @@ void builtins()
 	extern Value su_runpiped();
 	builtin("RunPiped", su_runpiped());
 #endif
+	extern Value su_Query1();
+	builtin("Query1", su_Query1());
+	extern Value su_QueryFirst();
+	builtin("QueryFirst", su_QueryFirst());
+	extern Value su_QueryLast();
+	builtin("QueryLast", su_QueryLast());
 
 	for (int i = 0; i < nprims; ++i)
 		{

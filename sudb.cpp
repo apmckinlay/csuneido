@@ -32,6 +32,8 @@
 #include "symbols.h"
 #include "globals.h"
 #include "query.h" // for is_request
+#include "ostreamstr.h"
+#include "func.h"
 
 Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	{
@@ -106,35 +108,84 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
 	}
 
-static Value queryone(Dir dir, bool one)
+// TODO handle block not being named - just look for callable
+static char* query_args(char* which,
+	short& nargs, short& nargnames, ushort*& argnames, int& each)
 	{
-	const int nargs = 1;
+	static int BLOCK = symnum("block");
+
+	argseach(nargs, nargnames, argnames, each);
+	if (nargs < 1 || nargnames != nargs - 1)
+		except("usage: " << which << "(query, field: value ...)");
 	char* query = ARG(0).str();
-	TRACE(QUERY, (one ? "ONE" : dir == NEXT ? "FIRST" : "LAST") << ' ' << query);
+	if (nargnames == 0 || nargnames == 1 && argnames[0] == BLOCK)
+		return query;
+	
+	OstreamStr os;
+	os << query;
+	for (int i = 0; i < nargnames; ++i)
+		if (argnames[i] != BLOCK)
+			os << " where " << symstr(argnames[i]) << " = " << ARG(i + 1);
+	return os.str();
+	}
+
+static char* traceTran(SuTransaction* tran)
+	{
+	if (! tran)
+		return "";
+	OstreamStr os;
+	os << 'T' << tran->tran << ' ';
+	return os.str();
+	}
+
+static Value queryone(short nargs, short nargnames, ushort* argnames, int each,
+	char* which, Dir dir, bool one, SuTransaction* tran = 0)
+	{
+	char* query = query_args(which, nargs, nargnames, argnames, each);
+	TRACE(QUERY, traceTran(tran) <<
+		(one ? "ONE" : dir == NEXT ? "FIRST" : "LAST") << ' ' << query);
 	Header hdr;
-	Row row = dbms()->get(dir, query, one, hdr);
-	return row == Row::Eof ? SuFalse : new SuRecord(row, hdr);
+	Row row = dbms()->get(dir, query, one, hdr, tran ? tran->tran : 0);
+	return row == Row::Eof ? SuFalse : new SuRecord(row, hdr, tran);
 	}
 
-#include "prim.h"
-
-Value su_queryfirst()
+class QueryOne : public SuValue
 	{
-	return queryone(NEXT, false);
-	}
-PRIM(su_queryfirst, "QueryFirst(query)");
-
-Value su_querylast()
-	{
-	return queryone(PREV, false);
-	}
-PRIM(su_querylast, "QueryLast(query)");
-
-Value su_query1()
-	{
-	return queryone(NEXT, true);
-	}
-PRIM(su_query1, "Query1(query)");
+public:
+	NAMED
+	QueryOne(char* w, Dir d, bool o) : which(w), dir(d), one(o)
+		{
+		named.num = globals("Query1");
+		}
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each)
+		{
+		static Value Params("Params");
+		
+		if (member == CALL)
+			return queryone(nargs, nargnames, argnames, each, which, dir, one);
+		else if (member == Params)
+			return params();
+		else
+			unknown_method(which, member);
+		}
+	Value params()
+		{ return new SuString("(query [, field: value ...])"); }
+	virtual const char* type() const
+		{ return "Builtin"; }
+	void out(Ostream& os)
+		{ os << which << " /* function */"; }
+private:
+	char* which;
+	Dir dir;
+	bool one;
+	};
+Value su_Query1()
+	{ return new QueryOne("Query1", NEXT, true); }
+Value su_QueryFirst()
+	{ return new QueryOne("QueryFirst", NEXT, false); }
+Value su_QueryLast()
+	{ return new QueryOne("QueryLast", PREV, false); }
 
 Value su_transactions()
 	{
@@ -196,6 +247,16 @@ SuTransaction::SuTransaction(TranType type) : done(false), conflict("")
 SuTransaction::SuTransaction(int t) : tran(t), done(false)
 	{ verify(t > 0); }
 
+Value findBlock(int nargs, int nargnames, ushort* argnames)
+	{
+	static int BLOCK = symnum("block");
+
+	for (int i = 0; i < nargnames; ++i)
+		if (argnames[i] == BLOCK)
+			return ARG(i + (nargs - nargnames));
+	return Value();
+	}
+
 Value SuTransaction::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Query("Query");
@@ -211,51 +272,29 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 
 	if (member == Query)
 		{
-		if (nargs != 1 && nargs != 2)
-			except("usage: transaction.Query(string [, block])");
-		TRACE(QUERY, 'T' << tran << ' ' << ARG(0).str());
-		Value q = query(ARG(0).str());
-		if (nargs == 1)
+		char* qstr = query_args("transaction.Query", nargs, nargnames, argnames, each);
+		TRACE(QUERY, 'T' << tran << ' ' << qstr);
+		Value q = query(qstr);
+		Value block = findBlock(nargs, nargnames, argnames);
+		if (! block)
 			return q;
 		if (! dynamic_cast<SuQuery*>(q.ptr()))
 			except("transaction.Query: block not allowed on request");
 		// else do block with query
-		Value block = ARG(1);
 		Closer<SuQuery*> closer(val_cast<SuQuery*>(q));
 		KEEPSP
 		PUSH(q);
 		return block.call(block, CALL, 1, 0, 0, -1);
 		}
 	else if (member == QueryFirst)
-		{
-		if (nargs != 1)
-			except("usage: transaction.QueryFirst(query)");
-		char* query = ARG(0).str();
-		TRACE(QUERY, 'T' << tran << ' ' << "FIRST " << query);
-		Header hdr;
-		Row row = dbms()->get(NEXT, query, false, hdr, tran);
-		return row == Row::Eof ? SuFalse : new SuRecord(row, hdr, this);
-		}
+		return queryone(nargs, nargnames, argnames, each,
+			"transaction.QueryFirst", NEXT, false, this);
 	else if (member == QueryLast)
-		{
-		if (nargs != 1)
-			except("usage: transaction.QueryLast(query)");
-		char* query = ARG(0).str();
-		TRACE(QUERY, 'T' << tran << ' ' << "LAST " << query);
-		Header hdr;
-		Row row = dbms()->get(PREV, query, false, hdr, tran);
-		return row == Row::Eof ? SuFalse : new SuRecord(row, hdr, this);
-		}
+		return queryone(nargs, nargnames, argnames, each,
+			"transaction.QueryLast", PREV, false, this);
 	else if (member == Query1)
-		{
-		if (nargs != 1)
-			except("usage: transaction.Query1(query)");
-		char* query = ARG(0).str();
-		TRACE(QUERY, 'T' << tran << ' ' << "ONE " << query);
-		Header hdr;
-		Row row = dbms()->get(NEXT, query, true, hdr, tran);
-		return row == Row::Eof ? SuFalse : new SuRecord(row, hdr, this);
-		}
+		return queryone(nargs, nargnames, argnames, each,
+			"transaction.Query1", NEXT, true, this);
 	else if (member == UpdateQ)
 		{
 		if (nargs != 0)
