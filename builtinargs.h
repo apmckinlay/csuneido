@@ -29,9 +29,9 @@
 class BuiltinArgs
 	{
 public:
-	BuiltinArgs(short n, short nn, ushort *an, int each);
-	void usage(char* m)
-		{ msg = m; }
+	BuiltinArgs(short& n, short& nn, ushort*& an, int& each);
+	BuiltinArgs& usage(char* s1, char* s2 = "", char* s3 = "")
+		{ msg1 = s1; msg2 = s2; msg3 = s3; return *this; }
 	Value getValue(char* name);
 	Value getValue(char* name, Value defval)
 		{
@@ -63,6 +63,10 @@ public:
 		Value val = getval(name);
 		return val ? val.gcstr() : defval;
 		}
+	bool hasNamed()
+		{ return nargnames > 0; }
+	Value getNext();
+	ushort curName();
 	void end();
 private:
 	Value getval(char* name);
@@ -72,7 +76,9 @@ private:
 	short nargnames;
 	ushort* argnames;
 	int unnamed;
-	char* msg;
+	char* msg1;
+	char* msg2;
+	char* msg3;
 	int i;
 	bool def;
 	};

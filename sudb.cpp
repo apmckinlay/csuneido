@@ -34,6 +34,7 @@
 #include "query.h" // for is_request
 #include "ostreamstr.h"
 #include "func.h"
+#include "builtinargs.h"
 
 Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	{
@@ -108,24 +109,21 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
 	}
 
-// TODO handle block not being named - just look for callable
-static char* query_args(char* which,
-	short& nargs, short& nargnames, ushort*& argnames, int& each)
+static char* query_args(char* query, BuiltinArgs& args)
 	{
-	static int BLOCK = symnum("block");
-
-	argseach(nargs, nargnames, argnames, each);
-	if (nargs < 1 || nargnames != nargs - 1)
-		except("usage: " << which << "(query, field: value ...)");
-	char* query = ARG(0).str();
-	if (nargnames == 0 || nargnames == 1 && argnames[0] == BLOCK)
+	args.end(); // shouldn't be any more un-named args
+	if (! args.hasNamed())
 		return query;
-	
 	OstreamStr os;
 	os << query;
-	for (int i = 0; i < nargnames; ++i)
-		if (argnames[i] != BLOCK)
-			os << " where " << symstr(argnames[i]) << " = " << ARG(i + 1);
+	static int BLOCK = symnum("block");
+	while (Value value = args.getNext())
+		{
+		ushort name = args.curName();
+		if (name == BLOCK && dynamic_cast<Func*>(value.ptr()))
+			continue ;
+		os << " where " << symstr(name) << " = " << value;
+		}
 	return os.str();
 	}
 
@@ -138,10 +136,13 @@ static char* traceTran(SuTransaction* tran)
 	return os.str();
 	}
 
-static Value queryone(short nargs, short nargnames, ushort* argnames, int each,
-	char* which, Dir dir, bool one, SuTransaction* tran = 0)
+#define QUERYONE_PARAMS "(query [, field: value ...])"
+
+static Value queryone(char* which, Dir dir, bool one, SuTransaction* tran, BuiltinArgs& args)
 	{
-	char* query = query_args(which, nargs, nargnames, argnames, each);
+	args.usage("usage: ", which, QUERYONE_PARAMS);
+	char* query = args.getstr("query");
+	query = query_args(query, args);
 	TRACE(QUERY, traceTran(tran) <<
 		(one ? "ONE" : dir == NEXT ? "FIRST" : "LAST") << ' ' << query);
 	Header hdr;
@@ -162,15 +163,17 @@ public:
 		{
 		static Value Params("Params");
 		
+		BuiltinArgs args(nargs, nargnames, argnames, each);
 		if (member == CALL)
-			return queryone(nargs, nargnames, argnames, each, which, dir, one);
+			return queryone(which, dir, one, NULL, args);
 		else if (member == Params)
-			return params();
+			{
+			args.usage("usage: ", which, ".Params()").end();
+			return new SuString(QUERYONE_PARAMS); 
+			}
 		else
 			unknown_method(which, member);
 		}
-	Value params()
-		{ return new SuString("(query [, field: value ...])"); }
 	virtual const char* type() const
 		{ return "Builtin"; }
 	void out(Ostream& os)
@@ -247,16 +250,6 @@ SuTransaction::SuTransaction(TranType type) : done(false), conflict("")
 SuTransaction::SuTransaction(int t) : tran(t), done(false)
 	{ verify(t > 0); }
 
-Value findBlock(int nargs, int nargnames, ushort* argnames)
-	{
-	static int BLOCK = symnum("block");
-
-	for (int i = 0; i < nargnames; ++i)
-		if (argnames[i] == BLOCK)
-			return ARG(i + (nargs - nargnames));
-	return Value();
-	}
-
 Value SuTransaction::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Query("Query");
@@ -270,12 +263,17 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 	static Value Refresh("Refresh");
 	static Value Conflict("Conflict");
 
+	BuiltinArgs args(nargs, nargnames, argnames, each);
 	if (member == Query)
 		{
-		char* qstr = query_args("transaction.Query", nargs, nargnames, argnames, each);
+		args.usage("usage: transaction.Query(value [, block][, field: value...])");
+		char* qstr = args.getstr("query");
+		Value block = args.getValue("block", Value());
+		if (! dynamic_cast<Func*>(block.ptr()))
+			block = Value();
+		qstr = query_args(qstr, args);
 		TRACE(QUERY, 'T' << tran << ' ' << qstr);
 		Value q = query(qstr);
-		Value block = findBlock(nargs, nargnames, argnames);
 		if (! block)
 			return q;
 		if (! dynamic_cast<SuQuery*>(q.ptr()))
@@ -287,14 +285,11 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 		return block.call(block, CALL, 1, 0, 0, -1);
 		}
 	else if (member == QueryFirst)
-		return queryone(nargs, nargnames, argnames, each,
-			"transaction.QueryFirst", NEXT, false, this);
+		return queryone("transaction.QueryFirst", NEXT, false, this, args);
 	else if (member == QueryLast)
-		return queryone(nargs, nargnames, argnames, each,
-			"transaction.QueryLast", PREV, false, this);
+		return queryone("transaction.QueryLast", PREV, false, this, args);
 	else if (member == Query1)
-		return queryone(nargs, nargnames, argnames, each,
-			"transaction.Query1", NEXT, true, this);
+		return queryone("transaction.Query1", NEXT, true, this, args);
 	else if (member == UpdateQ)
 		{
 		if (nargs != 0)

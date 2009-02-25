@@ -20,16 +20,36 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+/*
+This is the current preferred method of argument handling 
+for built-in functions/methods that require more than PRIM
+Used by BuiltinClass
+- does argseach
+- handles getting arguments from named or unnamed
+- handles default argument values
+- must get arguments in order
+- can handle variable args with getNext and curName
+e.g.
+	BuiltinArgs(nargs, nargnames, argnames, each);
+	args.usage("usage: ...");
+	char* first = args.getstr("first");
+	Value second = args.getValue("second", SuFalse);
+	args.end();
+*/	
+
 #include "builtinargs.h"
 #include "func.h"
 #include "interp.h"
 #include "except.h"
 
-BuiltinArgs::BuiltinArgs(short n, short nn, ushort *an, int each)
-	: nargs(n), nargnames(nn), argnames(an),
-	unnamed(nargs - nargnames), i(0), def(false)
+BuiltinArgs::BuiltinArgs(short& nargs_, short& nargnames_, ushort*& argnames_, int& each)
+	: i(0), def(false)
 	{
-	argseach(nargs, nargnames, argnames, each);
+	argseach(nargs_, nargnames_, argnames_, each);
+	nargs = nargs_;
+	nargnames = nargnames_;
+	argnames = argnames_;
+	unnamed = nargs - nargnames;
 	}
 
 Value BuiltinArgs::getval(char* name)
@@ -55,7 +75,7 @@ Value BuiltinArgs::getValue(char* name)
 	{
 	Value val = getval(name);
 	if (! val)
-		except(msg);
+		except(msg1 << msg2 << msg3);
 	return val;
 	}
 
@@ -67,5 +87,16 @@ void BuiltinArgs::ckndef()
 void BuiltinArgs::end()
 	{
 	if (i < unnamed)
-		except(msg);
+		except(msg1 << msg2 << msg3);
+	}
+
+Value BuiltinArgs::getNext()
+	{
+	return i < nargs ? ARG(i++) : Value();
+	}
+
+ushort BuiltinArgs::curName()
+	{
+	int cur = i - 1;
+	return cur < unnamed ? 0 :  argnames[cur - unnamed];
 	}
