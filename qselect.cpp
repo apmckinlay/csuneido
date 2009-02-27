@@ -495,7 +495,10 @@ void Select::optimize_setup()
 	Lisp<Cmp> cmps = extract_cmps(); // WARNING: modifies expr
 	cmps_to_isels(cmps);
 	if (conflicting)
+		{
+		nrecs = 0;
 		return ;
+		}
 	identify_possible();
 	calc_field_fracs();
 	calc_index_fracs();
@@ -534,6 +537,10 @@ Lisp<Cmp> Select::extract_cmps()
 	Fields fields = theDB()->get_fields(tbl->table);
 	for (Lisp<Expr*> exprs(expr->exprs); ! nil(exprs); ++exprs)
 		{
+		if (Constant* c = dynamic_cast<Constant*>(*exprs))
+			if (c->value == SuFalse)
+				conflicting = true;
+
 		if ((*exprs)->term(fields))
 			{
 			if (In* in = dynamic_cast<In*>(*exprs))
