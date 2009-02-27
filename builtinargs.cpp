@@ -35,7 +35,12 @@ e.g.
 	char* first = args.getstr("first");
 	Value second = args.getValue("second", SuFalse);
 	args.end();
-*/	
+*/
+
+// TODO don't do argseach
+// if each then read args object instead of stack
+// maybe have a builtinArgs function that returns one of two kinds of BuiltinArgs
+// either current stack one, or new args object one
 
 #include "builtinargs.h"
 #include "func.h"
