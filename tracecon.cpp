@@ -29,26 +29,37 @@ int trace_level = 0;
 class OstreamTrace : public Ostream
 	{
 public:
-	OstreamTrace() : log("trace.log", "w")
+	OstreamTrace()
 		{ }
 	Ostream& write(const void* buf, int n)
 		{
-		con.write(buf, n);
-		log.write(buf, n);
+		if (trace_level & TRACE_CONSOLE)
+			con().write(buf, n);
+		if (trace_level & TRACE_LOGFILE)
+			log().write(buf, n);
 		return *this;
 		}
 	void flush()
 		{
-		con.flush();
-		log.flush();
+		if (trace_level & TRACE_CONSOLE)
+			con().flush();
+		if (trace_level & TRACE_LOGFILE)
+			log().flush();
 		}
 	operator void*()
 		{
+		return this;
+		}
+	Ostream& con()
+		{
+		static OstreamCon con;
+		return con;
+		}
+	Ostream& log()
+		{
+		static OstreamFile log("trace.log", "w");
 		return log;
 		}
-private:
-	OstreamCon con;
-	OstreamFile log;
 	};
 
 

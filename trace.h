@@ -39,7 +39,10 @@ enum
 	TRACE_TABLE =		1 << 9,
 	TRACE_SELECT =		1 << 10,
 	TRACE_TEMPINDEX =	1 << 11,
-	TRACE_QUERYOPT =	1 << 12
+	TRACE_QUERYOPT =	1 << 12,
+	
+	TRACE_CONSOLE =	1 << 13,
+	TRACE_LOGFILE =	1 << 14
 	};
 
 #define TRACE_CLEAR() trace_level &= ~15
