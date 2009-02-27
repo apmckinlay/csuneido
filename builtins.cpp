@@ -129,17 +129,39 @@ PRIM(stackoverflow, "StackOverflow()");
 #ifndef ACE_SERVER
 Value trace()
 	{
-	const int nargs = 1;
-	if (! ARG(0).int_if_num(&trace_level))
+	const int nargs = 2;
+	int prev_trace_level = trace_level;
+	if (ARG(0).int_if_num(&trace_level))
+		{
+		if (0 == (trace_level & (TRACE_CONSOLE | TRACE_LOGFILE)))
+			trace_level |= TRACE_CONSOLE | TRACE_LOGFILE;
+		}
+	else
 		{
 		if (val_cast<SuString*>(ARG(0)))
 			tout() << ARG(0).gcstr() << endl;
 		else
 			tout() << ARG(0) << endl;
 		}
+	Value block = ARG(1);
+	if (block != SuFalse)
+		{
+		try
+			{
+			KEEPSP
+			Value result = block.call(block, CALL, 0, 0, 0, -1);
+			trace_level = prev_trace_level;
+			return result;
+			}
+		catch (const Except&)
+			{
+			trace_level = prev_trace_level;
+			throw ;
+			}
+		}
 	return Value();
 	}
-PRIM(trace, "Trace(value)");
+PRIM(trace, "Trace(value, block = false)");
 #endif
 
 Value gcdump()

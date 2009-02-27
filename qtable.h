@@ -67,7 +67,7 @@ public:
 	void set_index(const Fields& index);
 	Index::iterator iter;
 
-	void close()
+	void close(Query* q)
 		{ }
 protected:
 	Table()

@@ -43,7 +43,7 @@ struct TempIndex1 : public Query1
 	Row get(Dir dir);
 	bool output(const Record& r)
 		{ return source->output(r); }
-	void close();
+	void close(Query* q);
 private:
 	void iterate_setup(Dir dir);
 
@@ -75,7 +75,7 @@ struct TempIndexN : public Query1
 	Row get(Dir dir);
 	bool output(const Record& r)
 		{ return source->output(r); }
-	void close();
+	void close(Query* q);
 private:
 	void iterate_setup(Dir dir);
 

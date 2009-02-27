@@ -46,7 +46,7 @@ public:
 	void rewind();
 	Row get(Dir dir);
 	void set_transaction(int t);
-	void close()
+	void close(Query* q)
 		{ }
 private:
 	Mmoffset next();

@@ -165,13 +165,13 @@ public:
 	bool output(const Record& r)
 		{ return source->output(r); }
 
-	void close()
+	void close(Query* q)
 		{
 		if (n_in > 100 && n_in > 100 * n_out)
-			TRACE(SLOWQUERY, n_in << "->" << n_out << "  " << this);
+			TRACE(SLOWQUERY, n_in << "->" << n_out << "  " << this << endl << "IN: " << q);
 		if (f)
 			f->free();
-		Query1::close();
+		Query1::close(q);
 		}
 
 	Indexes possible;

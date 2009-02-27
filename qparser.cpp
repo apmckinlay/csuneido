@@ -525,7 +525,7 @@ int QueryParser::request(int tran)
 					}
 				theDB()->add_record(tran, table, r);
 				}
-			q->close();
+			q->close(q);
 			return n;
 			}
 		break ; 

@@ -151,7 +151,7 @@ public:
 		{ return false; }
 	virtual bool output(const Record&);
 
-	virtual void close() = 0;
+	virtual void close(Query*) = 0;
 
 //protected:
 	virtual void out(Ostream&) const = 0;

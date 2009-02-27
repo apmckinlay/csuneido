@@ -63,8 +63,8 @@ public:
 		const Fields& needs, bool is_cursor,
 		Fields& best_index, double& best_cost);
 
-	void close()
-		{ source->close(); }
+	void close(Query* q)
+		{ source->close(q); }
 
 	Query* source;
 	};
@@ -98,10 +98,10 @@ public:
 	Lisp<Fixed> fixed() const
 		{ return Lisp<Fixed>(); }
 
-	void close()
+	void close(Query* q)
 		{
-		source->close();
-		source2->close();
+		source->close(q);
+		source2->close(q);
 		}
 
 	Query* source2;

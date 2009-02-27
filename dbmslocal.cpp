@@ -100,7 +100,7 @@ void DbmsQueryLocal::rewind()
 
 void DbmsQueryLocal::close()
 	{
-	q->close();
+	q->close(q);
 	}
 
 char* DbmsQueryLocal::explain()

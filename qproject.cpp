@@ -415,11 +415,11 @@ void Project::ckmodify(char* action)
 		except("project: can't " << action << ": key required");
 	}
 
-void Project::close()
+void Project::close(Query* q)
 	{
 	if (idx)
 		idx->free();
-	Query1::close();
+	Query1::close(q);
 	}
 
 #include "testing.h"
@@ -441,7 +441,7 @@ class test_project : public Tests
 		int n = 0;
 		while (Query::Eof != q->get(dir))
 			++n;
-		q->close();
+		q->close(q);
 		verify(thedb->commit(tran));
 		extern int tempdest_inuse;
 		verify(tempdest_inuse == 0);
@@ -469,7 +469,7 @@ class test_project : public Tests
 			verify(row1 == q->get(dir2));
 			verify(row2 == q->get(dir1));
 			}
-		q->close();
+		q->close(q);
 		verify(thedb->commit(tran));
 		extern int tempdest_inuse;
 		verify(tempdest_inuse == 0);

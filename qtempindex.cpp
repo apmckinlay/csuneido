@@ -156,11 +156,11 @@ Row TempIndex1::get(Dir dir)
 	return row;
 	}
 
-void TempIndex1::close()
+void TempIndex1::close(Query* q)
 	{ 
 	if (index) 
 		index->free();
-	Query1::close();
+	Query1::close(q);
 	}
 
 // TempIndexN ---------------------------------------------------------
@@ -273,9 +273,9 @@ Row TempIndexN::get(Dir dir)
 	return row;
 	}
 
-void TempIndexN::close()
+void TempIndexN::close(Query* q)
 	{ 
 	if (index)
 		index->free();
-	Query1::close();
+	Query1::close(q);
 	}

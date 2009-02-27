@@ -861,7 +861,7 @@ class test_query : public Tests
 				out << row.getval(hdr, *f) << (nil(cdr(f)) ? "" : "\t");
 			out << endl;
 			}
-		q->close();
+		q->close(q);
 		if (0 != strcmp(querytests[i].result, out.str()))
 			errs << i << ": " << s << 
 				"\n\tgot: '" << out.str() << "'" <<
@@ -885,7 +885,7 @@ class test_query : public Tests
 				out << rows[j].getval(hdr, *f) << (nil(cdr(f)) ? "" : "\t");
 			out << endl;
 			}
-		q->close();
+		q->close(q);
 		if (0 != strcmp(querytests[i].result, out.str()))
 			errs << i << ": " << s << 
 				"\n\tgot: '" << out.str() << "'" <<
@@ -937,7 +937,7 @@ class test_query : public Tests
 				out << row.getval(hdr, *f) << (nil(cdr(f)) ? "" : "\t");
 			out << endl;
 			}
-		q->close();
+		q->close(q);
 		if (0 != strcmp(querytests2[i].result, out.str()))
 			errs << i << ": next: " << s << 
 				"\n\tgot: '" << out.str() << "'" <<
@@ -969,7 +969,7 @@ class test_query : public Tests
 		std::vector<Row> rows;
 		while (Query::Eof != (row = q->get(PREV)))
 			rows.push_back(row);
-		q->close();
+		q->close(q);
 		for (int j = rows.size() - 1; j >= 0; --j)
 			{
 			for (Fields f = hdr.columns(); ! nil(f); ++f)
