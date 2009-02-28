@@ -62,7 +62,7 @@ Value su_ScintillaStyle()
 	int start = ARG(1).integer();
 	int end = ARG(2).integer();
 	bool query = ARG(3) == SuTrue;
-	LOG("style " << start << " -> " << end);
+	LOG("style " << start << " -> " << end << " query " << (query ? "true" : "false"));
 
 	int lengthDoc = SendMessage(hwnd, SCI_GETLENGTH, 0, 0);
 	if (end == 0 || end > lengthDoc)
@@ -108,17 +108,18 @@ Value su_ScintillaStyle()
 
 	char* styles = (char*) alloca(size);
 
-	Scanner& scan = query ? *new QueryScanner(tr.lpstrText) : *new Scanner(tr.lpstrText);
+	Scanner* scan = query ? new QueryScanner(tr.lpstrText) : new Scanner(tr.lpstrText);
 	SendMessage(hwnd, SCI_STARTSTYLING, start, 0x1f);
 	int token;
-	while (-1 != (token = scan.nextall()))
+	while (-1 != (token = scan->nextall()))
 		{
-		int last = min(scan.si, size);
-		int len = last - scan.prev;
-		int style = tokenStyle(token, scan.keyword, query);
-		verify(scan.prev + len <= size);
+		int last = min(scan->si, size);
+		int len = last - scan->prev;
+		int style = tokenStyle(token, scan->keyword, query);
+		LOG("len " << len << " token " << token << " keyword " << scan->keyword << " => style " << style);
+		verify(scan->prev + len <= size);
 		if (len > 0)
-			memset(styles + scan.prev, style, len);
+			memset(styles + scan->prev, style, len);
 
 		if (token == '{')
 			++level;
@@ -127,7 +128,7 @@ Value su_ScintillaStyle()
 		else if (token == T_NEWLINE)
 			{
 			int i = line;
-			line = SendMessage(hwnd, SCI_LINEFROMPOSITION, start + scan.si, 0);
+			line = SendMessage(hwnd, SCI_LINEFROMPOSITION, start + scan->si, 0);
 			int flags = level > prev_level ? SC_FOLDLEVELHEADERFLAG : 0;
 			for (; i < line; ++i)
 				{
@@ -138,11 +139,11 @@ Value su_ScintillaStyle()
 				}
 			}
 
-		if (scan.si > size)
+		if (scan->si > size)
 			break ;
 		}
 	int i = line;
-	line = SendMessage(hwnd, SCI_LINEFROMPOSITION, start + scan.si, 0);
+	line = SendMessage(hwnd, SCI_LINEFROMPOSITION, start + scan->si, 0);
 	for (; i <= line; ++i)
 		{
 		LOG("final setfoldlevel " << i << " = " << prev_level - SC_FOLDLEVELBASE);
