@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -25,15 +25,8 @@
 #include "qsort.h"
 #include "database.h"
 #include "commalist.h"
-
-#define LOGGING
-
-#ifdef LOGGING
 #include "trace.h"
-#define LOG(stuff) TRACE(TEMPINDEX, stuff )
-#else
-#define LOG(stuff)
-#endif
+#include "ostreamstr.h"
 
 Row Query::Eof;
 
@@ -44,12 +37,19 @@ Query* query(char* s, bool is_cursor)
 	return query_setup(parse_query(s), is_cursor);
 	}
 
+void trace_tempindex(Query* q)
+	{
+	if ((trace_level & TRACE_TEMPINDEX) && q->tempindexed())
+		TRACE(TEMPINDEX, q);
+	}
+
 Query* query_setup(Query* q, bool is_cursor)
 	{
 	q = q->transform();
 	if (q->optimize(Fields(), q->columns(), Fields(), is_cursor, true) >= IMPOSSIBLE)
 		except("invalid query");
 	q = q->addindex();
+	trace_tempindex(q);
 	return q;
 	}
 
@@ -121,16 +121,16 @@ double Query::optimize(const Fields& index, const Fields& needs, const Fields& f
 	// tempindex
 	double cost2 = IMPOSSIBLE;
 	int keysize = size(index) * columnsize() * 2; // *2 for index overhead
-	cost2 = optimize1(none, needs, 
+	cost2 = optimize1(none, needs,
 		nil(firstneeds) ? firstneeds : set_union(firstneeds, index), is_cursor, false)
 		+ nrecords() * keysize * WRITE_FACTOR	// write index
 		+ nrecords() * keysize					// read index
 		+ 4000;									// minimum fixed cost
 	verify(cost2 >= 0);
-	
+
 	TRACE(QUERYOPT, "Query::optimize END " << this << endl <<
 		"\twith " << index << " cost " << cost1 << endl <<
-		"\twith TEMPINDEX cost " << cost2 << 
+		"\twith TEMPINDEX cost " << cost2 <<
 			" nrecords " << nrecords() << " keysize " << keysize << endl);
 
 	double cost = min(cost1, cost2);
@@ -200,7 +200,7 @@ bool prefixed(Fields index, Fields order, const Lisp<Fixed>& fixed)
 	return nil(order);
 	}
 
-void Query1::best_prefixed(Indexes idxs, const Fields& by, 
+void Query1::best_prefixed(Indexes idxs, const Fields& by,
 	const Fields& needs, bool is_cursor,
 	Fields& best_index, double& best_cost)
 	{
@@ -246,7 +246,7 @@ Querystruct querytests[] =
 \"disk\"	5\n\
 \"mouse\"	2\n\
 \"pencil\"	7\n" },
-	
+
 		{"trans", "trans^(item)", // 2
 "item	id	cost	date\n\
 \"disk\"	\"a\"	100	970101\n\
@@ -273,7 +273,7 @@ Querystruct querytests[] =
 970102	\"mouse\"	\"c\"	200\n\
 970103	\"pencil\"	\"e\"	300\n" },
 
-		{ "hist where item =~ 'e' where item =~ 'e' where item =~ 'e'", 
+		{ "hist where item =~ 'e' where item =~ 'e' where item =~ 'e'",
 		"hist^(date,item,id) WHERE^(date,item,id) ((item =~ \"e\") and (item =~ \"e\") and (item =~ \"e\"))", // 6
 "date	item	id	cost\n\
 970102	\"mouse\"	\"c\"	200\n\
@@ -327,13 +327,13 @@ Querystruct querytests[] =
 \"saskatoon\"\n\
 \"calgary\"\n\
 \"vancouver\"\n"},
-	
+
 		{ "customer project id,city project city", "customer^(id) PROJECT-LOOKUP (city)",
 "city\n\
 \"saskatoon\"\n\
 \"calgary\"\n\
 \"vancouver\"\n"},
-	
+
 		{ "customer rename city to location", "customer^(id) RENAME city to location",
 "id	name	location\n\
 \"a\"	\"axon\"	\"saskatoon\"\n\
@@ -571,13 +571,13 @@ Querystruct querytests[] =
 \"mouse\"	2	222\n\
 \"pencil\"	7	7\n" },
 
-	{ "trans summarize item, total cost", "trans^(item) SUMMARIZE ^(item) (item) total_cost = total cost",
+	{ "trans summarize item, total cost", "trans^(item) SUMMARIZE-SEQ ^(item) (item) total_cost = total cost",
 "item	total_cost\n\
 \"disk\"	100\n\
 \"eraser\"	150\n\
 \"mouse\"	400\n" },
 
-	{ "trans summarize item, x = total cost", "trans^(item) SUMMARIZE ^(item) (item) x = total cost",
+	{ "trans summarize item, x = total cost", "trans^(item) SUMMARIZE-SEQ ^(item) (item) x = total cost",
 "item	x\n\
 \"disk\"	100\n\
 \"eraser\"	150\n\
@@ -626,13 +626,13 @@ Querystruct querytests[] =
 \"e\"	\"emerald\"	\"vancouver\"	970103	\"pencil\"	300\n" },
 
 	// test moving where's past rename's
-	{ "trans where cost = 200 rename cost to x where id is 'c'", 
+	{ "trans where cost = 200 rename cost to x where id is 'c'",
 		"trans^(date,item,id) WHERE^(date,item,id) RENAME cost to x",
 "item	id	x	date\n\
 \"mouse\"	\"c\"	200	970101\n" },
 
 	// test moving where's past extend's
-	{ "trans where cost = 200 extend x = 1 where id is 'c'", 
+	{ "trans where cost = 200 extend x = 1 where id is 'c'",
 		"trans^(date,item,id) WHERE^(date,item,id) EXTEND x = 1",
 "item	id	cost	date	x\n\
 \"mouse\"	\"c\"	200	970101	1\n" },
@@ -681,7 +681,7 @@ Querystruct querytests2[] =
 		"((co^(tnum) WHERE^(tnum)) JOIN 1:1 on (tnum) (task^(tnum))) JOIN n:1 on (cnum) (cus^(cnum))",
 "tnum	signed	cnum	abbrev	name\n\
 104	990103	1	\"a\"	\"axon\"\n" },
-	
+
 	// 4
 	{ "(((task join co) where signed = 990103) join cus)",
 		"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum)) WHERE (signed == 990103)) JOIN n:1 on (cnum) (cus^(cnum))",
@@ -734,7 +734,7 @@ class test_query : public Tests
 		{
 		except_if(! database_request(tran, s), "FAILED: " << s);
 		}
-		
+
 	TEST(0, query)
 		{
 		TempDB tempdb;
@@ -749,7 +749,7 @@ class test_query : public Tests
 		req("insert{id: \"c\", name: \"calac\", city: \"calgary\"} into customer");
 		req("insert{id: \"e\", name: \"emerald\", city: \"vancouver\"} into customer");
 		req("insert{id: \"i\", name: \"intercon\", city: \"saskatoon\"} into customer");
-		
+
 		// create hist file
 		adm("create hist (date, item, id, cost) index(date) key(date,item,id)");
 		req("insert{date: 970101, item: \"disk\", id: \"a\", cost: 100} into hist");
@@ -814,7 +814,7 @@ class test_query : public Tests
 		req("insert { date: #20010102 } into dates");
 		req("insert { date: #20010301 } into dates");
 		req("insert { date: #20010401 } into dates");
-		
+
 		verify(theDB()->commit(tran));
 
 		int i = 0;
@@ -844,7 +844,7 @@ class test_query : public Tests
 		OstreamStr exp;
 		exp << *q;
 		if (0 != strcmp(querytests[i].explain, exp.str()))
-			errs << i << ": " << s << 
+			errs << i << ": " << s <<
 				"\n\tgot: '" << exp.str() << "'" <<
 				"\n\tnot: '" << querytests[i].explain << "'" << endl;
 		Header hdr = q->header();
@@ -863,7 +863,7 @@ class test_query : public Tests
 			}
 		q->close(q);
 		if (0 != strcmp(querytests[i].result, out.str()))
-			errs << i << ": " << s << 
+			errs << i << ": " << s <<
 				"\n\tgot: '" << out.str() << "'" <<
 				"\n\tnot: '" << querytests[i].result << "'" << endl;
 		}
@@ -887,7 +887,7 @@ class test_query : public Tests
 			}
 		q->close(q);
 		if (0 != strcmp(querytests[i].result, out.str()))
-			errs << i << ": " << s << 
+			errs << i << ": " << s <<
 				"\n\tgot: '" << out.str() << "'" <<
 				"\n\tnot: '" << querytests[i].result << "'" << endl;
 		}
@@ -921,7 +921,7 @@ class test_query : public Tests
 		OstreamStr exp;
 		exp << *q;
 		if (0 != strcmp(querytests2[i].explain, exp.str()))
-			errs << i << ": " << s << 
+			errs << i << ": " << s <<
 				"\n\tgot: '" << exp.str() << "'" <<
 				"\n\tnot: '" << querytests2[i].explain << "'" << endl;
 		Header hdr = q->header();
@@ -939,7 +939,7 @@ class test_query : public Tests
 			}
 		q->close(q);
 		if (0 != strcmp(querytests2[i].result, out.str()))
-			errs << i << ": next: " << s << 
+			errs << i << ": next: " << s <<
 				"\n\tgot: '" << out.str() << "'" <<
 				"\n\tnot: '" << querytests2[i].result << "'" << endl;
 		}
@@ -977,7 +977,7 @@ class test_query : public Tests
 			out << endl;
 			}
 		if (0 != strcmp(querytests2[i].result, out.str()))
-			errs << i << ": prev: " << s << 
+			errs << i << ": prev: " << s <<
 				"\n\tgot: '" << out.str() << "'" <<
 				"\n\tnot: '" << querytests2[i].result << "'" << endl;
 		}
@@ -990,13 +990,13 @@ class test_query : public Tests
 		{
 		TempDB tempdb;
 		Query* q;
-		
+
 		q = query("tables rename tablename to tname sort totalsize");
 		assert_eq(q->ordering(), lisp(gcstring("totalsize")));
-		
+
 		q = query("tables rename tablename to tname sort table");
 		assert_eq(q->ordering(), lisp(gcstring("table")));
-		
+
 		q = query("columns project table, field sort table");
 		assert_eq(q->ordering(), lisp(gcstring("table")));
 		}
@@ -1054,7 +1054,7 @@ class test_prefixed : public Tests
 		Fields by_abc = lisp(gcstring("a"), gcstring("b"), gcstring("c"));
 		Lisp<Fixed> fixed_c = lisp(Fixed("c", 1));
 		verify(prefixed(index_ab, by_abc, fixed_c));
-		
+
 		Fields index_abce = lisp(gcstring("a"), gcstring("b"), gcstring("c"), gcstring("e"));
 		Fields by_acde = lisp(gcstring("a"), gcstring("c"), gcstring("d"), gcstring("e"));
 		Lisp<Fixed> fixed_bd = lisp(Fixed("b", 1), Fixed("d", 2));

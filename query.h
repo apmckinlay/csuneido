@@ -4,18 +4,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -63,7 +63,8 @@ private:
 		};
 	Lisp<CacheEntry> entries;
 public:
-	void add(const Fields& index, const Fields& needs, const Fields& firstneeds, double cost)
+	void add(const Fields& index, const Fields& needs, const Fields& firstneeds,
+		double cost)
 		{
 		verify(cost >= 0);
 		entries.push(CacheEntry(index, needs, firstneeds, cost));
@@ -101,9 +102,11 @@ public:
 	// factory methods - used by QueryParser
 	static Query* make_sort(Query* source, bool r, const Fields& s);
 	static Query* make_rename(Query* source, const Fields& f, const Fields& t);
-	static Query* make_extend(Query* source, const Fields& f, Lisp<Expr*> e, const Fields& r);
+	static Query* make_extend(Query* source,
+		const Fields& f, Lisp<Expr*> e, const Fields& r);
 	static Query* make_project(Query* source, const Fields& f, bool allbut);
-	static Query* make_summarize(Query* source, const Fields& p, const Fields& c, const Fields& f, const Fields& o);
+	static Query* make_summarize(Query* source,
+		const Fields& p, const Fields& c, const Fields& f, const Fields& o);
 	static Query* make_join(Query* s1, Query* s2, Fields by);
 	static Query* make_leftjoin(Query* s1, Query* s2, Fields by);
 	static Query* make_product(Query* s1, Query* s2);
@@ -136,7 +139,8 @@ public:
 	virtual Indexes indexes() = 0;
 	virtual Fields ordering()
 		{ return Fields(); } // overridden by QSort
-	virtual void select(const Fields& index, const Record& from, const Record& to) = 0;
+	virtual void select(const Fields& index,
+		const Record& from, const Record& to) = 0;
 	void select(const Fields& index, const Record& key);
 	virtual void rewind() = 0;
 	virtual Row get(Dir)
@@ -159,9 +163,12 @@ public:
 	virtual Indexes keys() = 0;
 	virtual Query* transform()
 		{ return this; }
-	double optimize(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze);
-	double optimize1(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze);
-	virtual double optimize2(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze) = 0;
+	double optimize(const Fields& index, const Fields& needs,
+		const Fields& firstneeds, bool is_cursor, bool freeze);
+	double optimize1(const Fields& index, const Fields& needs,
+		const Fields& firstneeds, bool is_cursor, bool freeze);
+	virtual double optimize2(const Fields& index, const Fields& needs,
+		const Fields& firstneeds, bool is_cursor, bool freeze) = 0;
 	Fields key_index(const Fields& needs);
 	// estimated result sizes
 	virtual double nrecords() = 0;
@@ -183,6 +190,7 @@ Query* query(char* s, bool is_cursor = false);
 Query* parse_query(char* s);
 Expr* parse_expr(char* s);
 Query* query_setup(Query* q, bool is_cursor = false);
+void trace_tempindex(Query* q);
 
 Ostream& operator<<(Ostream& os, const Query& query);
 inline Ostream& operator<<(Ostream& os, Query* query)

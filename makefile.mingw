@@ -12,8 +12,8 @@ endif
 
 CC=gcc
 CXX=g++
-FLAGS += -DCOMPILER=MinGW -Werror -Wall -Wno-sign-compare -Wfloat-equal  -Wno-write-strings -Wno-char-subscripts
-#FLAGS += -DCOMPILER=MinGW -fno-strict-overflow -Werror -Wall -Wno-sign-compare -Wfloat-equal  -Wno-write-strings -Wno-char-subscripts
+#FLAGS += -DCOMPILER=MinGW -Werror -Wall -Wno-sign-compare -Wfloat-equal  -Wno-write-strings -Wno-char-subscripts
+FLAGS += -DCOMPILER=MinGW -fno-strict-overflow -Werror -Wall -Wno-sign-compare -Wfloat-equal  -Wno-write-strings -Wno-char-subscripts
 
 .SUFFIXES:
 
@@ -30,6 +30,8 @@ $(OUTPUT)/%.o : %.cpp
 SOURCES := $(subst sunapp.cpp ,,$(SOURCES))
 OBJECTS = $(patsubst %.c,$(OUTPUT)/%.o,$(subst .cpp,.c,$(SOURCES))) 
 DEPENDS = $(subst .o,.d,$(OBJECTS))
+
+all : $(OUTPUT)/suneido.exe
 
 $(OUTPUT)/suneido.exe : $(OBJECTS) gc_$(OUTPUT).a $(OUTPUT)/res.o
 	@$(CXX) $(FLAGS) -c -o $(OUTPUT)/build.o build.cpp

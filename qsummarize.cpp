@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -25,14 +25,72 @@
 #include "sunumber.h"
 #include "sustring.h"
 #include "suobject.h" // for List
+#include <map>
+using namespace std;
 
-Query* Query::make_summarize(Query* source, const Fields& p, const Fields& c, const Fields& f, const Fields& o)
+class Strategy
+	{
+public:
+	Strategy(Summarize* s) : q(s), source(s->source)
+		{ }
+	virtual Row get(Dir dir, bool rewound) = 0;
+	virtual void select(const Fields& index,
+			const Record& from, const Record& to) = 0;
+	virtual ~Strategy()
+		{ }
+	friend class Summarize;
+protected:
+	Lisp<class Summary*> funcSums();
+	void initSums(Lisp<class Summary*> sums);
+	Row makeRow(Record byRec, Lisp<class Summary*> sums);
+
+	Summarize* q;
+	Query* source;
+	Dir curdir;
+	Keyrange sel;
+	};
+
+class SeqStrategy : public Strategy
+	{
+public:
+	SeqStrategy(Summarize* source);
+	Row get(Dir dir, bool rewound);
+	void select(const Fields& index, const Record& from, const Record& to);
+private:
+	bool equal();
+
+	Lisp<class Summary*> sums;
+	Row nextrow;
+	Row currow;
+	};
+
+class MapStrategy : public Strategy
+	{
+public:
+	MapStrategy(Summarize* source);
+	Row get(Dir dir, bool rewound);
+	void select(const Fields& index, const Record& from, const Record& to);
+private:
+	void process();
+
+	typedef map<Record, Lisp<class Summary*> > Map;
+	Map results;
+	Map::iterator begin, end, iter;
+	bool first;
+	};
+
+const Fields none;
+
+Query* Query::make_summarize(Query* source, const Fields& p, const Fields& c,
+	const Fields& f, const Fields& o)
 	{
 	return new Summarize(source, p, c, f, o);
 	}
 
-Summarize::Summarize(Query* source, const Fields& p, const Fields& c, const Fields& f, const Fields& o)
-	: Query1(source), by(p), cols(c), funcs(f), on(o), strategy(NONE), first(true), rewound(true)
+Summarize::Summarize(Query* source, const Fields& p, const Fields& c,
+	const Fields& f, const Fields& o)
+	: Query1(source), by(p), cols(c), funcs(f), on(o), strategy(NONE),
+		first(true), rewound(true)
 	{
 	if (! subset(source->columns(), by))
 		except("summarize: nonexistent columns: " <<
@@ -54,7 +112,7 @@ bool Summarize::by_contains_key()
 
 void Summarize::out(Ostream& os) const
 	{
-	const char* s[] = { "", "-COPY", "-SEQ" };
+	const char* s[] = { "", "-COPY", "-SEQ", "-MAP" };
 	os << *source << " SUMMARIZE" << s[strategy];
 	if (! nil(via))
 		os << " ^" << via;
@@ -92,9 +150,11 @@ Indexes Summarize::keys()
 	return nil(keys) ? Indexes(by) : keys;
 	}
 
-double Summarize::optimize2(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze)
+double Summarize::optimize2(const Fields& index, const Fields& needs,
+	const Fields& firstneeds, bool is_cursor, bool freeze)
 	{
-	const Fields srcneeds = set_union(erase(on, gcstring("")), difference(needs, cols));
+	const Fields srcneeds = set_union(erase(on, gcstring("")),
+		difference(needs, cols));
 
 	if (strategy == COPY)
 		return source->optimize(index, srcneeds, by, is_cursor, freeze);
@@ -112,13 +172,16 @@ double Summarize::optimize2(const Fields& index, const Fields& needs, const Fiel
 	Fields best_index;
 	double best_cost = IMPOSSIBLE;
 	best_prefixed(indexes, by, srcneeds, is_cursor, best_index, best_cost);
-	if (nil(best_index) && nil(index))
+	if (nil(best_index) && prefix(by, index))
 		{
-		best_index = by;
-		best_cost = source->optimize(by, srcneeds, Fields(), is_cursor, false);
+		// accumulate results in memory
+		// doesn't require any order, can only supply in order of "by"
+		strategy = MAP;
+		return source->optimize(none, srcneeds, by, is_cursor, freeze);
 		}
 	if (nil(best_index))
 		return IMPOSSIBLE;
+	strategy = SEQUENTIAL;
 	if (! freeze)
 		return best_cost;
 	via = best_index;
@@ -130,7 +193,10 @@ double Summarize::optimize2(const Fields& index, const Fields& needs, const Fiel
 class Summary
 	{
 public:
-	virtual void init() = 0;
+	Summary()
+		{ init(); }
+	virtual void init()
+		{ }
 	virtual void add(Value x) = 0;
 	virtual Value result() = 0;
 	};
@@ -141,7 +207,7 @@ public:
 	void init()
 		{ total = 0; }
 	void add(Value x)
-		{ 
+		{
 		try
 			{ total = total + x; }
 		catch (...)
@@ -241,7 +307,7 @@ Summary* summary(const gcstring& type)
 		return new Min;
 	else if (type == "list")
 		return new List;
-	error("unknown summary type");		
+	error("unknown summary type");
 	return 0;
 	}
 
@@ -255,32 +321,74 @@ Header Summarize::header()
 	return Header(lisp(Fields(), flds), flds);
 	}
 
-void Summarize::iterate_setup()
-	{
-	first = false;
-	for (Fields f = funcs; ! nil(f); ++f)
-		sums.push(summary(*f));
-	sums.reverse();
-	hdr = source->header();
-	}
-
-bool Summarize::equal()
-	{
-	if (nextrow == Eof)
-		return false;
-	for (Fields f = by; ! nil(f); ++f)
-		if (currow.getval(hdr, *f) != nextrow.getval(hdr, *f))
-			return false;
-	return true;
-	}
-
 Row Summarize::get(Dir dir)
 	{
 	if (first)
 		iterate_setup();
+	bool wasRewound = rewound;
+	rewound = false;
+	return strategyImp->get(dir, wasRewound);
+	}
+
+void Summarize::iterate_setup()
+	{
+	first = false;
+	hdr = source->header();
+	if (strategy == MAP)
+		strategyImp = new MapStrategy(this);
+	else
+		strategyImp = new SeqStrategy(this);
+	}
+
+void Summarize::select(const Fields& index, const Record& from, const Record& to)
+	{
+	strategyImp->select(index, from, to);
+	strategyImp->sel.org = from;
+	strategyImp->sel.end = to;
+	rewound = true;
+	}
+
+void Summarize::rewind()
+	{
+	source->rewind();
+	rewound = true;
+	}
+
+//===================================================================
+
+Lisp<class Summary*> Strategy::funcSums()
+	{
+	Lisp<class Summary*> sums;
+	for (Fields f = q->funcs; ! nil(f); ++f)
+		sums.push(summary(*f));
+	return sums.reverse();
+	}
+
+void Strategy::initSums(Lisp<class Summary*> sums)
+	{
+	for (Lisp<Summary*> s = sums; ! nil(s); ++s)
+		(*s)->init();
+	}
+
+Row Strategy::makeRow(Record r, Lisp<class Summary*> sums)
+	{
+	for (Lisp<class Summary*> s = sums; ! nil(s); ++s)
+		r.addval((*s)->result());
+	static Record emptyrec;
+	return Row(lisp(emptyrec, r));
+	}
+
+#define Eof Query::Eof
+
+SeqStrategy::SeqStrategy(Summarize* summarize) : Strategy(summarize)
+ 	{
+	sums = funcSums();
+	}
+
+Row SeqStrategy::get(Dir dir, bool rewound)
+	{
 	if (rewound)
 		{
-		rewound = false;
 		curdir = dir;
 		currow = Row();
 		nextrow = source->get(dir);
@@ -298,47 +406,111 @@ Row Summarize::get(Dir dir)
 			while (nextrow != Eof && equal());
 		curdir = dir;
 		}
-	
+
 	if (nextrow == Eof)
 		return Eof;
 
 	currow = nextrow;
-	Lisp<Summary*> s;
-	for (s = sums; ! nil(s); ++s)
-		(*s)->init();
+	initSums(sums);
 	do
 		{
 		if (nextrow == Eof)
 			break ;
 		Lisp<Summary*> s = sums;
-		for (Fields o = on; ! nil(o); ++o, ++s)
-			(*s)->add(nextrow.getval(hdr, *o));
+		for (Fields o = q->on; ! nil(o); ++o, ++s)
+			(*s)->add(nextrow.getval(q->hdr, *o));
 		nextrow = source->get(dir);
 		}
 		while (equal());
 	// output after reading a group
 
-	// build a result record
-	Record r;
-	for (Fields f = by; ! nil(f); ++f)
-		r.addval(currow.getval(hdr, *f));
-	for (s = sums; ! nil(s); ++s)
-		r.addval((*s)->result());
-
-	static Record emptyrec;
-	return Row(lisp(emptyrec, r));
+	Record byRec = row_to_key(q->hdr, currow, q->by);
+	return makeRow(byRec, sums);
 	}
 
-void Summarize::select(const Fields& index, const Record& from, const Record& to)
+bool SeqStrategy::equal()
+	{
+	if (nextrow == Eof)
+		return false;
+	for (Fields f = q->by; ! nil(f); ++f)
+		if (currow.getval(q->hdr, *f) != nextrow.getval(q->hdr, *f))
+			return false;
+	return true;
+	}
+
+void SeqStrategy::select(const Fields& index, const Record& from, const Record& to)
 	{
 	source->select(index, from, to);
-	sel.org = from;
-	sel.end = to;
-	rewound = true;
 	}
 
-void Summarize::rewind()
+//===================================================================
+
+MapStrategy::MapStrategy(Summarize* summarize) : Strategy(summarize), first(true)
 	{
-	source->rewind();
-	rewound = true;
+	}
+
+Row MapStrategy::get(Dir dir, bool rewound)
+	{
+	if (first)
+		{
+		process();
+		first = false;
+		}
+	if (rewound)
+		{
+		begin = results.lower_bound(sel.org);
+		end = results.upper_bound(sel.end);
+		iter = dir == NEXT ? begin : end;
+		curdir = dir;
+		}
+
+	if (dir != curdir)
+		{
+		if (dir == PREV)
+			--iter;
+		else
+			++iter;
+		curdir = dir;
+		}
+
+	if (iter == (dir == NEXT ? end : begin))
+		return Eof;
+	if (dir == PREV)
+		--iter;
+	Row row = makeRow(iter->first.dup(), iter->second);
+	if (dir == NEXT)
+		++iter;
+	return row;
+	}
+
+void MapStrategy::process()
+	{
+	results.clear();
+	Row row;
+	while (Eof != (row = source->get(NEXT)))
+		{
+		Record byRec = row_to_key(q->hdr, row, q->by);
+		Map::iterator iter = results.find(byRec);
+		Lisp<Summary*> sums;
+		if (iter == results.end())
+			{
+			sums = funcSums();
+			initSums(sums);
+			results[byRec] = sums;
+			}
+		else
+			sums = iter->second;
+
+		Lisp<Summary*> s = sums;
+		for (Fields o = q->on; ! nil(o); ++o, ++s)
+			(*s)->add(row.getval(q->hdr, *o));
+		}
+	}
+
+void MapStrategy::select(const Fields& index, const Record& from, const Record& to)
+	{
+	verify(prefix(q->by, index));
+	sel.org = from;
+	sel.end = to;
+
 	}
