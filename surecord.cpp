@@ -129,7 +129,7 @@ void SuRecord::dependencies(ushort mem, gcstring s)
 		int i = s.find(',');
 		gcstring t = s.substr(0, i);
 		ushort m = ::symnum(t.str());
-		dependents[m].push(mem);
+		dependents[m].push(mem); // TODO: don't allow duplicates
 		if (i == -1)
 			break ;
 		s = s.substr(i + 1);
@@ -429,6 +429,7 @@ void SuRecord::invalidate_dependents(ushort mem)
 
 void SuRecord::invalidate(ushort mem)
 	{
+	// TODO maybe clear dependencies? (would give a way to safely clear dependencies)
 	log("invalidate " << symstr(mem));
 	bool was_valid = ! invalid.find(mem);
 	if (! member(invalidated, mem))
