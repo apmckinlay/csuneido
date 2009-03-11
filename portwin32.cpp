@@ -131,6 +131,9 @@ void Mmfile::open(char* filename, bool create, bool readonly)
 	file_size = getfilesize(f);
 	}
 
+//~ #include "ostreamfile.h"
+//~ OstreamFile mlog("mmfile.log", "w");
+
 void Mmfile::map(int chunk)
 	{
 #ifdef MM_KEEPADR
@@ -151,6 +154,7 @@ void Mmfile::map(int chunk)
 	int64 offset = (int64) chunk * chunk_size;
 	base[chunk] = (char*) MapViewOfFile(fm[chunk], readonly ? FILE_MAP_READ : FILE_MAP_WRITE,
 		(unsigned) (offset >> 32), (unsigned) (offset & 0xffffffff), chunk_size);
+//~ mlog << "+ " << chunk << " = " << (void*) base[chunk] << endl;
 		
 	if (! base[chunk])
 		{
@@ -171,6 +175,7 @@ void Mmfile::unmap(int chunk)
 	{
 	if (! base[chunk])
 		return ;
+//~ mlog << "- " << chunk << " = " << (void*) base[chunk] << endl;
 	UnmapViewOfFile(base[chunk]);
 	CloseHandle(fm[chunk]);
 #ifdef MM_KEEPADR
