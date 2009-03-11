@@ -136,6 +136,8 @@ static int load1(Istream& fin, gcstring tblspec)
 	return load_data(fin, table);
 	}
 
+const int recsPerTran = 50;
+
 static int load_data(Istream& fin, const gcstring& table)
 	{
 	int nrecs = 0;
@@ -149,7 +151,7 @@ static int load_data(Istream& fin, const gcstring& table)
 		if (n == 0)
 			break ;
 		load_data_record(fin, table, tran, n);
-		if (nrecs % 100 == 99)
+		if (nrecs % recsPerTran == recsPerTran - 1)
 			{
 			verify(theDB()->commit(tran));
 			tran = theDB()->transaction(READWRITE);
