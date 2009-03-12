@@ -115,9 +115,8 @@ private:
 	char* base[MAX_CHUNKS];
 	int hi_chunk;
 	int last_alloc;
-	// for clock lru
-	int hand;
-	bool recently_used[MAX_CHUNKS];
+	long last_used[MAX_CHUNKS];
+	long use_t;
 	int chunks_mapped;
 	int max_chunks_mapped;
 #ifdef MM_KEEPADR

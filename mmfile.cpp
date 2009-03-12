@@ -27,6 +27,7 @@
 #include "minmax.h"
 #include <memory.h>
 #include <algorithm>
+#include <limits.h>
 
 const char magic[] = { 'S', 'n', 'd', 'o' };
 const int FILESIZE_OFFSET = 4;
@@ -45,11 +46,12 @@ inline void Mmfile::set_file_size(Mmoffset fs)
 
 Mmfile::Mmfile(char* filename, bool create, bool ro)
 	: chunk_size(MB_PER_CHUNK * 1024 * 1024), hi_chunk(0),
-	hand(0), chunks_mapped(0), max_chunks_mapped(MM_MAX_CHUNKS_MAPPED),
+	use_t(0), chunks_mapped(0), max_chunks_mapped(MM_MAX_CHUNKS_MAPPED),
 	readonly(ro)
 	{
 	verify((1 << MM_SHIFT) < MM_ALIGN);
 	std::fill(base, base + MAX_CHUNKS, (char*) 0);
+	std::fill(last_used, last_used + MAX_CHUNKS, LONG_MAX);
 #ifdef MM_KEEPADR
 	std::fill(unmapped, unmapped + MAX_CHUNKS, (void*) 0);
 #endif
@@ -151,7 +153,7 @@ void* Mmfile::adr(Mmoffset offset)
 		if (chunk > hi_chunk)
 			hi_chunk = chunk;
 		}
-	recently_used[chunk] = true;
+	last_used[chunk] = ++use_t;
 	return base[chunk] + (offset % chunk_size);
 	}
 
@@ -279,29 +281,21 @@ void Mmfile::evict_chunk()
 #ifndef NDEBUG
 	int n = 0;
 	for (int i = 0; i < MAX_CHUNKS; ++i)
-	if (base[i])
-		++n;
+		if (base[i])
+			++n;
 	asserteq(n, chunks_mapped);
 #endif
-	unmap(lru_chunk());
+	int chunk = lru_chunk();
+	verify(base[chunk]);
+	unmap(chunk);
+	last_used[chunk] = LONG_MAX;
 	--chunks_mapped;
 	}
 
 int Mmfile::lru_chunk()
 	{
-	verify(chunks_mapped > 0);
-	// the *2 is to allow for two passes
-	// first to clear recently_used, second to find it
-	for (int i = 0; i < 2 * MAX_CHUNKS; ++i)
-		{
-		hand = (hand + 1) % MAX_CHUNKS;
-		if (! base[hand])
-			continue ;
-		if (! recently_used[hand])
-			return hand;
-		recently_used[hand] = false;
-		}
-	unreachable();
+	long* p = std::min_element(last_used, last_used + MAX_CHUNKS);
+	return p - last_used;
 	}
 
 #include "testing.h"
@@ -369,22 +363,6 @@ class test_mmfile : public Tests
 			++n;
 		asserteq(n, 2);
 
-		} verify(0 == remove("testmm"));
-		}
-	TEST(3, lru)
-		{
-		remove("testmm");
-		{ Mmfile m("testmm", true);
-		m.unmap(0);
-		m.base[111] = (char*) 1;
-		m.recently_used[111] = true;
-		m.base[222] = (char*) 1;
-		m.recently_used[222] = false;
-		asserteq(m.lru_chunk(), 222);
-		m.base[222] = 0;
-		asserteq(m.lru_chunk(), 111);
-		m.recently_used[111] = true;
-		asserteq(m.lru_chunk(), 111);
 		} verify(0 == remove("testmm"));
 		}
 	TEST(4, unmap)
