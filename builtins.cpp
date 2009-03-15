@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -185,6 +185,23 @@ Value display()
 	return new SuString(os.str());
 	}
 PRIM(display, "Display(value)");
+
+struct Synch
+	{
+	Synch()
+		{ tss_proc()->allow_yield = false; }
+	~Synch()
+		{ tss_proc()->allow_yield = true; }
+	};
+
+Value synchronized()
+	{
+	const int nargs = 0;
+	KEEPSP
+	Synch synch;
+	return ARG(0).call(ARG(0), CALL, 0, 0, 0, -1);
+	}
+PRIM(synchronized, "Synchronized(block)");
 
 Value frame()
 	{
@@ -471,7 +488,7 @@ PRIM(su_system, "System(command)");
 Value su_spawn()
 	{
 	const int nargs = 3;
-	return spawnlp(ARG(0).integer(), 
+	return spawnlp(ARG(0).integer(),
 		ARG(1).str(), ARG(1).str(), ARG(2).str(), NULL);
 	}
 PRIM(su_spawn, "Spawn(mode, command, args)");
