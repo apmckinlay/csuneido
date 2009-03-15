@@ -4,18 +4,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -54,8 +54,8 @@ public:
 	void label(short n)
 		{ labels[sp] = n; }
 */	Value& top()
-		{ 
-		return stack[sp]; 
+		{
+		return stack[sp];
 		}
 	Value pop()
 		{
@@ -65,9 +65,9 @@ public:
 	Value* getsp()
 		{ return stack + sp; }
 	void setsp(Value* newsp)
-		{ 
-		verify(stack <= newsp && newsp < stack + STACKSIZE); 
-		sp = newsp - stack; 
+		{
+		verify(stack <= newsp && newsp < stack + STACKSIZE);
+		sp = newsp - stack;
 		}
 	void clear_unused()
 		{ memset(stack + sp + 1, 0, STACKSIZE - sp + 1); }
@@ -140,7 +140,7 @@ public:
 // a process (Fibers)
 struct Proc
 	{
-	Proc() : fp(frames), super(0), in_handler(false), except_fp(0)
+	Proc() : fp(frames), super(0), in_handler(false), except_fp(0), allow_yield(true)
 		{ }
 	void clear_unused();
 
@@ -152,6 +152,7 @@ struct Proc
 	bool in_handler;
 	Frame* except_fp;
 	Value block_return_value;
+	bool allow_yield; // normally true, set to false by Synchronized
 	};
 
 extern Proc*& tss_proc(); // current Proc
@@ -160,7 +161,7 @@ extern Proc*& tss_proc(); // current Proc
 struct Framer
 	{
 	Framer(SuFunction* fn, Value self)
-		{ 
+		{
 		new(nextfp()) Frame(fn, self);
 		}
 	Framer(BuiltinFunc* prim, Value self)
@@ -175,7 +176,7 @@ struct Framer
 		{
 		if (tss_proc()->fp >= tss_proc()->frames + Proc::MAXFRAMES - 1)
 			except("function call overflow");
-		tss_proc()->except_fp = 0; 
+		tss_proc()->except_fp = 0;
 		return ++tss_proc()->fp;
 		}
 	~Framer()

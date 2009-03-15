@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -145,8 +145,8 @@ Frame::Frame(SuFunction* f, Value s) :
 	}
 
 // used by SuBlock::call
-Frame::Frame(Frame* fp, int pc, int first, int nargs, Value s) : 
-	prim(0), fn(fp->fn), self(s), ip(fn->code + pc), 
+Frame::Frame(Frame* fp, int pc, int first, int nargs, Value s) :
+	prim(0), fn(fp->fn), self(s), ip(fn->code + pc),
 	local(fp->local), rule(fp->rule), catcher(0), blockframe(fp)
 	{
 	for (int i = nargs - 1; i >= 0; --i)
@@ -179,7 +179,8 @@ Value Frame::run()
 				}
 			extern void ckinterrupt();
 			ckinterrupt();
-			Fibers::yieldif();
+			if (tss_proc()->allow_yield)
+				Fibers::yieldif();
 			break;
 		case I_POP :
 			POP();
@@ -635,7 +636,7 @@ Value Frame::run()
 			TOP() = rx_match(sx.buf(), sx.size(), rx_compile(sy))
 				? SuTrue : SuFalse;
 			break ;
-			}		
+			}
 		case I_MATCHNOT :
 			{
 			gcstring sy = POP().gcstr();
@@ -643,7 +644,7 @@ Value Frame::run()
 			TOP() = rx_match(sx.buf(), sx.size(), rx_compile(sy))
 				? SuFalse : SuTrue;
 			break ;
-			}		
+			}
 		case I_BITAND :
 			arg = POP();
 			TOP() = (ulong) TOP().integer() & (ulong) arg.integer();
