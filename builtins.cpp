@@ -196,7 +196,7 @@ struct Synch
 
 Value synchronized()
 	{
-	const int nargs = 0;
+	const int nargs = 1;
 	KEEPSP
 	Synch synch;
 	return ARG(0).call(ARG(0), CALL, 0, 0, 0, -1);
