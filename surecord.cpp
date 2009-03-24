@@ -213,6 +213,7 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 	static Value Update("Update");
 	static Value Delete("Delete");
 	static Value Observer("Observer");
+	static Value RemoveObserver("RemoveObserver");
 	static Value PreSet("PreSet");
 	static Value Set_default("Set_default");
 	static Value GetDeps("GetDeps");
@@ -314,6 +315,13 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 			except("usage: record.Observer(observer)");
 		persist_if_block(ARG(0));
 		observer.append(ARG(0));
+		return Value();
+		}
+	else if (member == RemoveObserver)
+		{
+		if (nargs != 1)
+			except("usage: record.RemoveObserver(observer)");
+		observer.erase(ARG(0));
 		return Value();
 		}
 	else if (member == PreSet)
