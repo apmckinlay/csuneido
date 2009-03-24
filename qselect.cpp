@@ -447,7 +447,8 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 		required_index = source_index = index;
 		double cost = source->optimize(index, set_union(needs, select_needs), 
 			set_union(firstneeds, select_needs), is_cursor, freeze);
-		nrecs = source->nrecords();
+		if (cost < IMPOSSIBLE)
+			nrecs = source->nrecords();
 		return cost;
 		}
 
