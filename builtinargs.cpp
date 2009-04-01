@@ -71,6 +71,8 @@ Value BuiltinArgs::getval(char* name)
 				break ;
 		if (j >= nargnames)
 			return Value();
+		else
+			taken.push(sym);
 		arg = unnamed + j;
 		}
 	return ARG(arg);
@@ -97,6 +99,8 @@ void BuiltinArgs::end()
 
 Value BuiltinArgs::getNext()
 	{
+	while (i < nargs && i > unnamed && taken.member(argnames[i - unnamed]))
+		++i;
 	return i < nargs ? ARG(i++) : Value();
 	}
 

@@ -25,6 +25,7 @@
 
 #include "value.h"
 #include "gcstring.h"
+#include "lisp.h"
 
 class BuiltinArgs
 	{
@@ -71,6 +72,7 @@ public:
 private:
 	Value getval(char* name);
 	void ckndef();
+	Lisp<int> taken;
 
 	short nargs;
 	short nargnames;
