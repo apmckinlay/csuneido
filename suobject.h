@@ -163,7 +163,7 @@ private:
 	Value IsReadonly(short nargs, short nargnames, ushort* argnames, int each);
 	Value Values(short nargs, short nargnames, ushort* argnames, int each);
 	Value Assocs(short nargs, short nargnames, ushort* argnames, int each);
-	Value Get(short nargs, short nargnames, ushort* argnames, int each);
+	Value GetDefault(short nargs, short nargnames, ushort* argnames, int each);
 
 	Vector vec;
 	Map map;

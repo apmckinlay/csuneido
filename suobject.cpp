@@ -156,7 +156,7 @@ void SuObject::setup()
 	METHOD(Set_readonly);
 	METHOD(Values);
 	METHOD(Assocs);
-//	METHOD(Get); name conflicts with existing code!
+	METHOD(GetDefault);
 	METHOD(LowerBound);
 	METHOD(UpperBound);
 	METHOD(EqualRange);
@@ -230,16 +230,6 @@ void SuObject::put(Value m, Value x)
 
 Value SuObject::getdata(Value member)
 	{
-/*	if (myclass isnt rootclass)
-	if (const char* s = member.str_if_str())
-		{
-		if (islower(*s))
-			{
-			char* t = STRDUPA(s);
-			*t = toupper(*t);
-			member = Value(t);
-			}
-		}*/
 	return getdefault(member, defval);
 	}
 
@@ -961,11 +951,18 @@ Value SuObject::Assocs(short nargs, short nargnames, ushort* argnames, int each)
 	return new SuSeq(new SuObjectIter(this, ITER_ASSOCS, listq, namedq));
 	}
 
-Value SuObject::Get(short nargs, short nargnames, ushort* argnames, int each)
+Value SuObject::GetDefault(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 1 && nargs != 2)
-		except("usage: object.Get(member [, default])");
-	return getdefault(ARG(0), nargs == 2 ? ARG(1) : defval);
+	if (nargs != 2)
+		except("usage: object.GetDefault(member, default)");
+	Value def = ARG(1);
+	Value x = getdefault(ARG(0), Value());
+	if (x)
+		return x;
+	if (0 != strcmp(def.type(), "Block"))
+		return def;
+	KEEPSP
+	return def.call(def, CALL, 0, 0, 0, -1);
 	}
 
 // ==================================================================
