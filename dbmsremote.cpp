@@ -55,7 +55,6 @@ OstreamFile& dbmslog()
 #endif
 
 #define DO(fn) try { fn; } catch (const Except& x) { fatal("lost connection", x.exception); exit(0); }
-#define DOCK(fn) DO(if (! fn) except("socket read timeout"))
 
 class CheckedSocketConnect
 	{
@@ -71,9 +70,9 @@ public:
 	void writebuf(char* buf, int len)
 		{ DO(sc->writebuf(buf, len)); }
 	void read(char* buf, int len)
-		{ DOCK(sc->read(buf, len)); }
+		{ DO(if (len != sc->read(buf, len)) except("socket read timeout")); }
 	void readline(char* buf, int len)
-		{ DOCK(sc->readline(buf, len)); }
+		{ DO(if (! sc->readline(buf, len)) except("socket read timeout")); }
 	char* ck_readline(char* buf, int len)
 		{
 		readline(buf, len);

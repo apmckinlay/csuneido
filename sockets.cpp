@@ -208,7 +208,7 @@ public:
 	void event(int msg);
 	void write(char* s, int n);
 	void writebuf(char* s, int n);
-	bool read(char* dst, int n);
+	int read(char* dst, int n);
 	bool tryread(char* dst, int n);
 	bool readline(char* dst, int n);
 	bool tryreadline(char* dst, int n);
@@ -319,12 +319,12 @@ void SocketConnectAsynch::event(int msg)
 		}
 	}
 
-bool SocketConnectAsynch::read(char* dst, int n)
+int SocketConnectAsynch::read(char* dst, int n)
 	{
 	if (tryread(dst, n))
-		return true;
+		return n;
 	if (mode == CLOSED)
-		return false;
+		return 0;
 
 	mode = SIZE;
 	blocked_len = n;
@@ -418,7 +418,7 @@ public:
 		}
 	void writebuf(char* buf, int n);
 	void write(char* buf, int n);
-	bool read(char* dst, int n);
+	int read(char* dst, int n);
 	bool readline(char* dst, int n);
 	void close();
 	char* getadr()
@@ -473,7 +473,7 @@ void SocketConnectSynch::write(char* buf, int n)
 		except("SocketClient write failed (" << WSAGetLastError() << ")");
 	}
 
-bool SocketConnectSynch::read(char* dst, int dstsize)
+int SocketConnectSynch::read(char* dst, int dstsize)
 	{
 	int nread = min(dstsize, rdbuf.size());
 	if (nread)
@@ -486,21 +486,21 @@ bool SocketConnectSynch::read(char* dst, int dstsize)
 	while (nread < dstsize)
 		{
 		if (0 == select(1, &fds, NULL, NULL, &tv))
-			return false; // timeout
+			break ; // timeout
 
 		int n = recv(sock, dst + nread, dstsize - nread, 0);
 		if (n == 0)
-			return false; // connection closed
+			break ; // connection closed
 		if (n < 0)
 			except("SocketClient read failed (" << WSAGetLastError() << ")");
 		nread += n;
 		}
-	return true;
+	return nread;
 	}
 
 bool SocketConnectSynch::readline(char* dst, int n)
 	{
-	verify(n > 0);
+	verify(n > 1);
 	*dst = 0;
 	--n; // allow for nul
 	char* eol;
@@ -508,27 +508,26 @@ bool SocketConnectSynch::readline(char* dst, int n)
 	while (! (eol = (char*) memchr(rdbuf.buffer(), '\n', rdbuf.size())))
 		{
 		if (0 == select(1, &fds, NULL, NULL, &tv))
-			return false; // timeout
+			break ; // timeout
 
 		const int READSIZE = 1024;
 		int n = recv(sock, rdbuf.reserve(READSIZE), READSIZE, 0);
 		if (n == 0)
-			return false; // connection closed
+			break ; // connection closed
 		if (n < 0)
 			except("SocketClient read failed (" << WSAGetLastError() << ")");
 		verify(n <= READSIZE);
 		rdbuf.added(n);
 		}
 	char* buf = rdbuf.buffer();
-	int len = eol - buf + 1;
+	int len = eol ? eol - buf + 1 : rdbuf.size();
 	if (len < n)
 		n = len;
 	memcpy(dst, buf, n);
 	dst[n] = 0;
-	verify(len > n || dst[n - 1] == '\n');
 	rdbuf.remove(len);
 	LOG("\t=> " << dst << "EOR");
-	return true;
+	return eol != 0;
 	}
 
 void SocketConnectSynch::close()
