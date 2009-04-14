@@ -75,6 +75,8 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		args.usage("usage: socketClient.Read(size)");
 		int n = args.getint("size");
 		args.end();
+		if (n == 0)
+			return "";
 		ckopen("Read");
 		SuString* s = new SuString(n);
 		int nr = sc->read(s->buf(), n);
