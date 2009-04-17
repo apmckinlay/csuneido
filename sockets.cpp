@@ -332,7 +332,7 @@ int SocketConnectAsynch::read(char* dst, int n)
 	blocked_readok = false;
 	blocked = Fibers::current();
 	Fibers::block();
-	return blocked_readok;
+	return blocked_readok ? n : 0;
 	}
 
 bool SocketConnectAsynch::tryread(char* dst, int n)
