@@ -54,7 +54,7 @@ OstreamFile& dbmslog()
 //#define LOG(stuff) CIRCLOG(stuff)
 #endif
 
-#define DO(fn) try { fn; } catch (const Except& x) { fatal("lost connection", x.exception); exit(0); }
+#define DO(fn) try { fn; } catch (const Except& x) { fatal("lost connection:", x.exception); exit(0); }
 
 class CheckedSocketConnect
 	{
@@ -70,9 +70,9 @@ public:
 	void writebuf(char* buf, int len)
 		{ DO(sc->writebuf(buf, len)); }
 	void read(char* buf, int len)
-		{ DO(if (len != sc->read(buf, len)) except("socket read timeout")); }
+		{ DO(if (len != sc->read(buf, len)) except("socket read timeout in dbmsremote")); }
 	void readline(char* buf, int len)
-		{ DO(if (! sc->readline(buf, len)) except("socket read timeout")); }
+		{ DO(if (! sc->readline(buf, len)) except("socket readline timeout in dbmsremote")); }
 	char* ck_readline(char* buf, int len)
 		{
 		readline(buf, len);
