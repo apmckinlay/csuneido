@@ -21,30 +21,22 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "except.h"
+#include "exceptimp.h"
 #include "interp.h"
 #include "ostreamstr.h"
-#include "gcstring.h"
 
-Except::Except(char* x) : exception(x)
-	{
-	if (tss_proc())
-		{
-		fp = tss_proc()->fp;
-		sp = GETSP();
-		// prevent clear_unused from wiping exception info
-		if (fp > tss_proc()->except_fp)
-			tss_proc()->except_fp = fp;
-		}
-	else
-		{
-		fp = 0;
-		sp = 0;
-		}
-	}
+SuObject* copyCallStack();
 
-Ostream& operator<<(Ostream& os, const Except& x)
+Except::Except(gcstring x) 
+	: SuString(x.trim()), fp_(tss_proc() ? tss_proc()->fp : 0), calls_(copyCallStack())
+	{ }
+
+Except::Except(Except* e, gcstring s) : SuString(s), fp_(e->fp_), calls_(e->calls_)
+	{  }
+
+Ostream& operator<<(Ostream& os, const Except* x)
 	{
-	return os << x.exception;
+	return os << x->str();
 	}
 
 static OstreamStr os(200);
@@ -56,7 +48,7 @@ Ostream& osexcept()
 
 void except_()
 	{
-	Except x(gcstring(os.str()).trim().str());
+	Except* x = new Except(os.str());
 	os.clear();
 	throw x;
 	}
@@ -64,7 +56,73 @@ void except_()
 // to allow setting breakpoints
 void except_err_()
 	{
-	Except x(gcstring(os.str()).trim().str());
+	Except* x = new Except(os.str());
 	os.clear();
 	throw x;
+	}
+
+#include "suobject.h"
+#include "sufunction.h"
+
+#define TRY(stuff) do try { stuff; } catch (...) { } while (false)
+
+SuObject* copyCallStack()
+	{
+	static Value qqq = new SuString("???");
+	SuObject* calls = new SuObject;
+	if (! tss_proc() || ! tss_proc()->fp)
+		return calls;
+	for (Frame* f = tss_proc()->fp; f > tss_proc()->frames; --f)
+		{
+		SuObject* call = new SuObject;
+		SuObject* vars = new SuObject;
+		if (f->fn)
+			{
+			call->put("fn", f->fn);
+			int i = 0, n = 0;
+			TRY(i = f->fn->source(f->ip - f->fn->code - 1, &n));
+			call->put("src_i", i);
+			call->put("src_n", n);
+			for (i = 0; i < f->fn->nlocals; ++i)
+				if (f->local[i])
+					{
+					Value value = qqq;
+					TRY(value = f->local[i]);
+					TRY(vars->put(symbol(f->fn->locals[i]), value));
+					}
+			if (f->self)
+				vars->put("this", f->self);
+			}
+
+		else if (f->prim)
+			{
+			TRY(call->put("fn", f->prim));
+			}
+
+		call->put("locals", vars);
+		calls->add(call);
+		}
+	return calls;
+	}
+
+Value Except::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+	{
+	static Value As("As");
+	static Value Callstack("Callstack");
+	if (member == As)
+		{
+		argseach(nargs, nargnames, argnames, each);
+		if (nargs != 1)
+			except("usage: exception.As(string)");
+		return new Except(this, ARG(0).gcstr());
+		}
+	if (member == Callstack)
+		{
+		argseach(nargs, nargnames, argnames, each);
+		if (nargs != 0)
+			except("usage: exception.Callstack()");
+		return calls();
+		}
+	else
+		return SuString::call(self, member, nargs, nargnames, argnames, each);
 	}

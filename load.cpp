@@ -39,6 +39,7 @@
 #include "pack.h" // for fix
 #include "alert.h"
 #include "errlog.h"
+#include "exceptimp.h"
 
 static char* loadbuf = 0;
 static int loadbuf_size = 0;
@@ -192,10 +193,10 @@ static void load_data_record(Istream& fin, const gcstring& table, int tran, int 
 		else
 			theDB()->add_record(tran, table, rec);
 		}
-	catch (const Except& x)
+	catch (const Except* e)
 		{
-		errlog("load: ignoring: ", table.str(), x.exception);
-		alert("ignoring: " << table << ": " << x.exception);
+		errlog("load: ignoring: ", table.str(), e->str());
+		alert("ignoring: " << table << ": " << e);
 		alerts = true;
 		}
 	}

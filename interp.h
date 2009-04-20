@@ -140,7 +140,7 @@ public:
 // a process (Fibers)
 struct Proc
 	{
-	Proc() : fp(frames), super(0), in_handler(false), except_fp(0), allow_yield(true)
+	Proc() : fp(frames), super(0), in_handler(false), allow_yield(true)
 		{ }
 	void clear_unused();
 
@@ -150,7 +150,6 @@ struct Proc
 	Frame *fp;					// points to current frame
 	short super;
 	bool in_handler;
-	Frame* except_fp;
 	Value block_return_value;
 	bool allow_yield; // normally true, set to false by Synchronized
 	};
@@ -176,7 +175,6 @@ struct Framer
 		{
 		if (tss_proc()->fp >= tss_proc()->frames + Proc::MAXFRAMES - 1)
 			except("function call overflow");
-		tss_proc()->except_fp = 0;
 		return ++tss_proc()->fp;
 		}
 	~Framer()

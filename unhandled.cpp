@@ -73,11 +73,11 @@ inline void log_and_exit(const char* error, const char* extra = "")
 		abort();
 	exiting = true;
 
-	// if client, write temporarily to c:/suneido.err
+	// if client, write temporarily to suneido.err
 	// to be picked up when client restarts
 	extern bool is_client;
 	h_file = CreateFile(
-		is_client ? "c:/suneido.err" : "error.log",
+		is_client ? err_filename() : "error.log",
 		GENERIC_WRITE, 0, 0, OPEN_ALWAYS, 0, 0);
 	if (h_file != INVALID_HANDLE_VALUE)
 		{
@@ -118,4 +118,17 @@ void fatal_log(const char* error, const char* extra)
 void unhandled()
 	{
 	SetUnhandledExceptionFilter(filter);
+	}
+
+#define ERR_BASENAME "suneido.err"
+
+char* err_filename()
+	{
+	static char buf[512];
+	
+	int n = GetTempPath(sizeof buf, buf);
+	if (n == 0 || n > sizeof buf - (strlen(ERR_BASENAME) + 1))
+		return 0;
+	strcat(buf, ERR_BASENAME);
+	return buf;
 	}

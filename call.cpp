@@ -25,6 +25,7 @@
 #include "globals.h"
 #include "sustring.h"
 #include "ostreamstr.h"
+#include "exceptimp.h"
 
 // used by QueryParser for extend macros
 // used by Query expressions FunCall
@@ -53,10 +54,10 @@ char* trycall(const char* fn, char* arg, int* plen)
 			*plen = gcstr.size();
 		str = gcstr.str();
 		}
-	catch (const Except& x)
+	catch (const Except* e)
 		{
 		OstreamStr oss;
-		oss << fn << "(" << arg << ") => " << x.exception;
+		oss << fn << "(" << arg << ") => " << e;
 		str = oss.str();
 		if (plen)
 			*plen = oss.size();

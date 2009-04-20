@@ -55,6 +55,7 @@
 #include "win.h"
 #include "msgloop.h"
 #endif
+#include "exceptimp.h"
 
 Value run(const char* s)
 	{
@@ -68,10 +69,10 @@ char* eval(const char* s)
 		{
 		str = run(s).str();
 		}
-	catch (const Except& x)
+	catch (const Except* e)
 		{
 		OstreamStr oss;
-		oss << "eval(" << s << ") => " << x.exception;
+		oss << "eval(" << s << ") => " << e;
 		str = oss.str();
 		}
 	return str;
@@ -153,7 +154,7 @@ Value trace()
 			trace_level = prev_trace_level;
 			return result;
 			}
-		catch (const Except&)
+		catch (const Except*)
 			{
 			trace_level = prev_trace_level;
 			throw ;
@@ -397,9 +398,9 @@ static void _stdcall thread(void* arg)
 		Value fn = (SuValue*) arg;
 		fn.call(fn, CALL, 0, 0, 0, -1);
 		}
-	catch (const Except& x)
+	catch (const Except* e)
 		{
-		MessageBox(0, x.exception, "Error in Thread", MB_TASKMODAL | MB_OK);
+		MessageBox(0, e->str(), "Error in Thread", MB_TASKMODAL | MB_OK);
 		}
 
 	extern Dbms*& tss_thedbms();

@@ -35,7 +35,7 @@ public:
 		{ cout << group << endl; }
 	virtual void start_test(const char* group, const char* test)
 		{ cout << "    " << test << " "; cout.flush(); }
-	virtual void end_test(const char* group, const char* test, char* error)
+	virtual void end_test(const char* group, const char* test, const char* error)
 		{
 		if (error)
 			cout << "FAILED " << error;

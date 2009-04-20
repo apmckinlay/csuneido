@@ -32,7 +32,7 @@ public:
 		{ }
 	virtual void start_test(const char* group, const char* test)
 		{ }
-	virtual void end_test(const char* group, const char* test, char* error)
+	virtual void end_test(const char* group, const char* test, const char* error)
 		{ }
 	virtual void end_group(const char* group, int nfailed)
 		{ }

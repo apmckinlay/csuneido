@@ -54,6 +54,7 @@
 #include "splash.h"
 #include "msgloop.h"
 #include "port.h" // for fork_rebuild for start_check
+#include "exceptimp.h"
 
 #include "suservice.h"
 
@@ -91,9 +92,9 @@ static void init(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		{
 		init2(hInstance, lpszCmdLine);
 		}
-	catch (const Except& x)
+	catch (const Except* e)
 		{
-		fatal(x.exception);
+		fatal(e->str());
 		}
 	catch (const std::exception& e)
 		{
@@ -185,14 +186,15 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		{
 		is_client = true;
 		set_dbms_server_ip(cmdlineoptions.argstr);
-		FILE* f = fopen("c:/suneido.err", "r");
+		char* filename = err_filename();
+		FILE* f = fopen(filename, "r");
 		if (f)
 			{
 			char buf[1024] = "PREVIOUS: ";
 			while (fgets(buf + 10, sizeof buf - 10, f))
 				dbms()->log(buf);
 			fclose(f);
-			remove("c:/suneido.err");
+			remove(filename);
 			}
 		break ;
 		}
@@ -232,7 +234,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	if (cmdlineoptions.check_start)
 		if (0 != fork_rebuild())
 			fatal("Database corrupt, unable to start");
-
+		
 	if (run("Init()") == SuFalse)
 		exit(EXIT_FAILURE);
 
@@ -281,7 +283,7 @@ void handler(const Except& x)
 	{
 	if (tss_proc()->in_handler)
 		{
-		message("Error in Error Handler", x.exception);
+		message("Error in Error Handler", x.str());
 		return ;
 		}
 	tss_proc()->in_handler = true;
@@ -294,47 +296,11 @@ void handler(const Except& x)
 	
 	try
 		{
-		SuObject* calls;
-		if (Frame* f = x.fp)
-			{
-			calls = new SuObject;
-			if (f->fn && f->fn->named.num == globals("Assert"))
-				--f;
-			for (; f > tss_proc()->frames; --f)
-				{
-				SuObject* call = new SuObject;
-				SuObject* vars = new SuObject;
-				if (f->fn)
-					{
-					call->put("fn", f->fn);
-					int n;
-					int i = f->fn->source(f->ip - f->fn->code - 1, &n);
-					call->put("src_i", i);
-					call->put("src_n", n);
-					for (i = 0; i < f->fn->nlocals; ++i)
-						if (f->local[i])
-							vars->put(symbol(f->fn->locals[i]), f->local[i]);
-					if (f->self)
-						vars->put("this", f->self);
-					}
-
-				else
-					{
-					call->put("fn", f->prim);
-					}
-
-				call->put("locals", vars);
-				calls->add(call);
-				}
-			}
-		else
-			calls = new SuObject;
-
-		call("Handler", Lisp<Value>(new SuString(x.exception), (long) hwnd, calls));
+		call("Handler", Lisp<Value>((SuValue*) &x, (long) hwnd, x.calls()));
 		}
-	catch (const Except& x)
+	catch (const Except* e)
 		{
-		message("Error in Debug", x.exception);
+		message("Error in Debug", e->str());
 		}
 	tss_proc()->in_handler = false;
 	}

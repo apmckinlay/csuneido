@@ -24,5 +24,6 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void unhandled();
+char* err_filename();
 
 #endif

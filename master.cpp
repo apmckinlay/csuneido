@@ -7,6 +7,7 @@
 #include "value.h"
 #include "win.h" // for sleep
 #include "fatal.h"
+#include "exceptimp.h"
 
 class Master
 	{
@@ -96,9 +97,9 @@ void Master::newstuff()
 				prevsize = iter.offset() + iter.size() + MM_TRAILER;
 				}
 			}
-		catch (const Except& x)
+		catch (const Except* e)
 			{
-			out << x << endl;
+			out << e << endl;
 			Sleep(1);
 			return ; // retry
 			}
@@ -140,7 +141,7 @@ void Master::print_record(Record& r)
 		for (; f < r.size(); ++f)
 			out << " " << r.getval(f);
 		}
-	catch (const Except& e)
+	catch (const Except* e)
 		{
 		out << " " << f << " " << e;
 		}

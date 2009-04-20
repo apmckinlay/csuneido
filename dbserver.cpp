@@ -41,6 +41,7 @@
 #include "sesviews.h"
 #include <vector>
 #include "errlog.h"
+#include "exceptimp.h"
 
 //#define LOGGING
 #ifdef LOGGING
@@ -303,10 +304,10 @@ void DbServerImp::request(char* buf)
 					write(s);
 					}
 				}
-			catch(const Except& x)
+			catch (const Except* e)
 				{
 				os.clear();
-				char* t = x.exception;
+				char* t = strdup(e->str());
 				for (char* s = t; *s; ++s)
 					if (*s == '\r')
 						*s = '\\';

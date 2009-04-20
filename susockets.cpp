@@ -34,6 +34,7 @@
 #include "win.h"
 #include "errlog.h"
 #include "builtinargs.h"
+#include "exceptimp.h"
 
 // SuSocketClient ===================================================
 
@@ -261,9 +262,9 @@ static void _stdcall suserver(void* arg)
 		static Value RUN("Run");
 		ob->call(ob, RUN, 0, 0, 0, -1);
 		}
-	catch(const Except& x)
+	catch (const Except* e)
 		{
-		errlog("exception in SocketServer: " , x.exception);
+		errlog("exception in SocketServer: " , e->str());
 		}
 	catch (const std::exception& e)
 		{
@@ -284,9 +285,9 @@ static void _stdcall suserver(void* arg)
 		
 		Fibers::end();
 		}
-	catch(const Except& x)
+	catch (const Except* e)
 		{
-		errlog("exception closing SocketServer connection: " , x.exception);
+		errlog("exception closing SocketServer connection: " , e->str());
 		}
 	catch (const std::exception& e)
 		{

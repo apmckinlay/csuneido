@@ -27,6 +27,7 @@
 #include "sunumber.h"
 #include "sustring.h"
 #include "except.h"
+#include "exceptimp.h"
 #include "regexp.h"
 #include "fibers.h"
 #include "sublock.h"
@@ -37,7 +38,7 @@
 #include "suclass.h"
 #include "sumethod.h"
 
-static bool catch_match(char*, char*);
+static bool catch_match(const char*, const char*);
 
 int callnest = 0;
 
@@ -413,7 +414,10 @@ Value Frame::run()
 			arg = POP();
 			if (arg == block_return)
 				tss_proc()->block_return_value = POP();
-			throw Except(arg.str());
+			if (Except* e = val_cast<Except*>(arg))
+				throw e;
+			else
+				throw new Except(arg.gcstr());
 			break ;
 			}
 		case I_ADDEQ | (SUB << 4) : case I_ADDEQ | (SUB_SELF << 4) :
@@ -669,25 +673,25 @@ Value Frame::run()
 			error("invalid op code " << hex << (short) op);
 			}
 		}
-	catch (const Except& x)
+	catch (const Except* e)
 		{
-		if (0 == strcmp(x.exception, "block return") )
+		if (0 == strcmp(e->str(), "block return") )
 			{
-			if (blockframe || x.fp->fn != fn)
+			if (blockframe || e->fp()->fn != fn)
 				throw ;
 			PUSH(tss_proc()->block_return_value);
 			tss_proc()->block_return_value = Value();
 			goto done;
 			}
 		else if (catcher &&
-			catch_match(fn->literals[catcher_x].str(), x.exception))
+			catch_match(fn->literals[catcher_x].str(), e->str()))
 			{
 			// catch
 			verify(GETSP() >= catcher_sp);
 			SETSP(catcher_sp);
 			ip = catcher;
 			catcher = 0;
-			PUSH(new SuString(x.exception));
+			PUSH((SuValue*) e);
 			each = -1;
 			}
 		else
@@ -698,12 +702,12 @@ done:
 	return POP();
 	}
 
-static bool catch_match(char* s, char* exception)
+static bool catch_match(const char* s, const char* exception)
 	{
 	char* q;
 	do
 		{
-		char* start = s;
+		const char* start = s;
 		int len = strlen(s);
 		if (NULL != (q = (char*) memchr(s, '|', len)))
 			{
@@ -714,7 +718,7 @@ static bool catch_match(char* s, char* exception)
 			{
 			--len;
 			++start;
-			for (char* e = exception; *e; ++e)
+			for (const char* e = exception; *e; ++e)
 				if (0 == memcmp(e, start, len))
 					return true;
 			}
@@ -822,7 +826,7 @@ void clear_unused()
 void Proc::clear_unused()
 	{
 	// clear unused frames
-	Frame* f = (except_fp ? except_fp : fp) + 1;
+	Frame* f = fp + 1;
 	int n = (char*) (frames + MAXFRAMES) - (char*) f;
 	memset(f, 0, n);
 	// clear unused stack

@@ -39,6 +39,7 @@
 #include "dbms.h"
 #include "sesviews.h"
 #include "assert.h"
+#include "exceptimp.h"
 
 struct Arg
 	{
@@ -175,8 +176,8 @@ bool database_admin(char* s)
 	QueryParser parser(s);
 	try
 		{ return parser.admin(); }
-	catch (const Except& x)
-		{ except("query: " << x.exception); }
+	catch (const Except* e)
+		{ except("query: " << e); }
 	}
 
 int database_request(int tran, char* s)
@@ -184,8 +185,8 @@ int database_request(int tran, char* s)
 	QueryParser parser(s);
 	try
 		{ return parser.request(tran); }
-	catch (const Except& x)
-		{ except("query: " << x.exception); }
+	catch (const Except* e)
+		{ except("query: " << e); }
 	}
 
 Query* parse_query(char* s)
@@ -198,8 +199,8 @@ Query* parse_query(char* s)
 			parser.syntax_error();
 		return q;
 		}
-	catch (const Except& x)
-		{ except("query: " << x.exception); }
+	catch (const Except* e)
+		{ except("query: " << e); }
 	}
 
 Expr* parse_expr(char* s)
@@ -272,11 +273,11 @@ bool QueryParser::admin()
 					i->fktable, fields_to_commas(i->fkcols), i->fkmode, 
 					i->unique, i->lower);
 			}
-		catch (const Except& x)
+		catch (const Except* e)
 			{
 			if (theDB()->istable(table))
 				theDB()->remove_table(table);
-			except("create: " << x);
+			except("create: " << e);
 			}
 		return true;
 		}
@@ -317,11 +318,11 @@ bool QueryParser::admin()
 					theDB()->add_index(table, fields_to_commas(i->columns), i->key,
 						i->fktable, fields_to_commas(i->fkcols), i->fkmode, i->unique);
 			}
-		catch (const Except& x)
+		catch (const Except* e)
 			{
 			if (table_created)
 				theDB()->remove_table(table);
-			except("ensure: " << x);
+			except("ensure: " << e);
 			}
 
 		return true;
@@ -376,8 +377,8 @@ bool QueryParser::admin()
 				else // drop
 					theDB()->remove_index(table, fields_to_commas(i->columns));
 			}
-		catch (const Except& x)
-			{ except("alter: " << x); }
+		catch (const Except* e)
+			{ except("alter: " << e); }
 		return true;
 		}
 	case K_RENAME :

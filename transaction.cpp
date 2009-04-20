@@ -25,6 +25,7 @@
 #include <limits.h>
 #include "lisp.h"
 #include "except.h"
+#include "exceptimp.h"
 #include "recover.h"
 #include "except.h"
 #include "errlog.h"
@@ -460,7 +461,7 @@ bool Database::finalize()
 						}
 					}
 				}
-			catch (const Except& )
+			catch (const Except*)
 				{ ok = false; }
 			}
 		final.erase(final.begin());

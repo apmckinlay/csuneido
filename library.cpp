@@ -26,6 +26,7 @@
 #include "globals.h"
 #include "named.h"
 #include "except.h"
+#include "exceptimp.h"
 #include "sudb.h"
 #include "dbms.h"
 #include "suboolean.h"
@@ -98,9 +99,9 @@ void libload(ushort gnum)
 			if (trace_level & TRACE_LIBLOAD)
 				tout() << "loaded " << gname << " from " << lib << endl;
 			}
-		catch (const Except& e)
+		catch (const Except* e)
 			{
-			except("error loading " << gname << " from " << lib << ": " << e.exception);
+			except("error loading " << gname << " from " << lib << ": " << e);
 			}
 		}
 	}

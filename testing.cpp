@@ -23,16 +23,17 @@
 #include "testing.h"
 #include <string.h>
 #include "except.h"
+#include "exceptimp.h"
 
 #define RUN(i) \
 	if (testname##i()) \
 		{ \
-		char* error = 0; \
+		const char* error = 0; \
 		to.start_test(group, testname##i()); \
 		try \
 			{ test##i(); } \
-		catch (const Except& x) \
-			{ ++nfailed; error = x.exception; } \
+		catch (const Except* e) \
+			{ ++nfailed; error = e->str(); } \
 		to.end_test(group, testname##i(), error); \
 		}
 

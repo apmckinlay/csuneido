@@ -40,7 +40,7 @@ public:
 		OstreamFile os("test.log", "a");
 		os << group << ' ' << test << endl;
 		}
-	virtual void end_test(const char* group, const char* test, char* error)
+	virtual void end_test(const char* group, const char* test, const char* error)
 		{
 		if (error)
 			{

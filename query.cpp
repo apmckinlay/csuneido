@@ -27,6 +27,7 @@
 #include "commalist.h"
 #include "trace.h"
 #include "ostreamstr.h"
+#include "exceptimp.h"
 
 Row Query::Eof;
 
@@ -826,9 +827,9 @@ class test_query : public Tests
 			for (i = 0; i < sizeof querytests2 / sizeof (Querystruct); ++i)
 				process2(i);
 			}
-		catch (const Except& x)
+		catch (const Except* e)
 			{
-			errs << i << ": " << x << endl;
+			errs << i << ": " << e << endl;
 			}
 		if (*errs.str())
 			except(errs.str());

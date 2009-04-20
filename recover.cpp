@@ -37,6 +37,7 @@
 #include "value.h"
 #include "cmdlineoptions.h"
 #include "ostreamstr.h"
+#include "exceptimp.h"
 
 #ifdef _MSC_VER
 typedef std::_Bvector BitVector;
@@ -453,10 +454,10 @@ bool DbRecoverImp::rebuild_copy(char* newfile, bool (*progress)(int))
 							Tbl* tbl = db.ck_get_table(table);
 							db.add_index_entries(schema_tran, tbl, r);
 							}
-						catch (const Except& x)
+						catch (const Except* e)
 							{
 							alerts = true;
-							alert("ignoring: " << table << ": " << x.exception); 
+							alert("ignoring: " << table << ": " << e); 
 							}
 						}
 					}
@@ -496,10 +497,10 @@ static bool schema(Database& db, HashMap<TblNum,gcstring>& tblnames, Mmoffset o)
 			{
 			db.add_index_entries(schema_tran, db.get_table(TN_TABLES), r);
 			}
-		catch (const Except& x)
+		catch (const Except* e)
 			{
 			alerts = true;
-			alert("ignoring: " << table << ": " << x.exception);
+			alert("ignoring: " << table << ": " << e);
 			}
 		// reset sizes
 		r.reuse(T_NROWS);

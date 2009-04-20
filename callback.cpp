@@ -26,6 +26,7 @@
 #include "std.h"
 #include "interp.h"
 #include "except.h"
+#include "exceptimp.h"
 #include "hashmap.h"
 #include "sublock.h"
 #include "suobject.h"
@@ -194,17 +195,17 @@ long Callback::callback(Value fn, char* src)
 		catch (const std::exception& e)
 			{ except(e.what()); }
 #ifndef _MSC_VER
-		catch (const Except&)
+		catch (const Except*)
 			{ throw ; }
 		// with Visual C++, this catches page faults ???
 		catch (...)
 			{ except("unknown exception"); }
 #endif
 		}
-	catch (const Except& x)
+	catch (const Except* e)
 		{
-		extern void handler(const Except& x);
-		handler(x);
+		extern void handler(const Except& e);
+		handler(*e);
 		return 0;
 		}
 	}

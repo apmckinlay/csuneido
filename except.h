@@ -53,17 +53,8 @@ Ostream& osexcept();
 #define unreachable()	error("should not reach here!") 
 #define unimplemented()	error("not implemented yet") 
 
-class Frame;
-class Value;
+class Except;
 
-struct Except
-	{
-	explicit Except(char* s);
-	char* exception;
-	Frame* fp;
-	Value* sp;
-	};
-
-Ostream& operator<<(Ostream& os, const Except& x);
+Ostream& operator<<(Ostream& os, const Except* x);
 
 #endif

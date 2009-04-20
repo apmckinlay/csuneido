@@ -38,6 +38,7 @@
 #include "sustring.h"
 #include "gc.h"
 #include "cmdlineoptions.h" // for ignore_version
+#include "exceptimp.h"
 
 //#define LOGGING
 #ifdef LOGGING
@@ -54,7 +55,7 @@ OstreamFile& dbmslog()
 //#define LOG(stuff) CIRCLOG(stuff)
 #endif
 
-#define DO(fn) try { fn; } catch (const Except& x) { fatal("lost connection:", x.exception); exit(0); }
+#define DO(fn) try { fn; } catch (const Except* e) { fatal("lost connection:", e->str()); exit(0); }
 
 class CheckedSocketConnect
 	{

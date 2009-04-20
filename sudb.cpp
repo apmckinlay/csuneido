@@ -27,6 +27,7 @@
 #include "interp.h"
 #include "dbms.h"
 #include "except.h"
+#include "exceptimp.h"
 #include "suboolean.h"
 #include "pack.h"
 #include "symbols.h"
@@ -226,11 +227,11 @@ Value TransactionClass::call(Value self, Value member, short nargs, short nargna
 					except("Transaction: block commit failed: " << t->get_conflict());
 			return result;
 			}
-		catch (const Except& x)
+		catch (const Except* e)
 			{
 			if (! t->isdone())
 				{
-				if (0 != strcmp(x.exception, "block return"))
+				if (0 != strcmp(e->str(), "block return"))
 					t->rollback();
 				else if (! t->commit())
 					except("Transaction: block commit failed: " << t->get_conflict());
