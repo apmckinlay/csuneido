@@ -492,7 +492,7 @@ Value su_spawn()
 	return spawnlp(ARG(0).integer(),
 		ARG(1).str(), ARG(1).str(), ARG(2).str(), NULL);
 	}
-PRIM(su_spawn, "Spawn(mode, command, args)");
+PRIM(su_spawn, "Spawn(mode, command, args='')");
 
 #include "md5.h"
 
