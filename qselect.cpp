@@ -563,16 +563,16 @@ Lisp<Cmp> Select::extract_cmps()
 					}
 				}
 			}
-		/* this isn't valid till they're actually used in 
+
 		if (BinOp* binop = dynamic_cast<BinOp*>(*exprs))
 			{
-			verify(binop->op == I_MATCH || binop->op == I_MATCHNOT || binop->op == I_ISNT);
-			if (binop->left->isfield(fields) && dynamic_cast<Constant*>(binop->right))
+			if ((binop->op == I_MATCH || binop->op == I_MATCHNOT || binop->op == I_ISNT) &&
+				binop->left->isfield(fields) && dynamic_cast<Constant*>(binop->right))
 				{
 				gcstring field = dynamic_cast<Identifier*>(binop->left)->ident;
 				ffracs[field] = .5;
 				}
-			} */
+			}
 		newexprs.push(*exprs);
 		}
 	expr = new And(newexprs);
@@ -714,9 +714,8 @@ double Select::primarycost(const Fields& primary)
 	{
 	double index_read_cost = ifracs[primary] * tbl->indexsize(primary);
 	
-	double data_frac = subset(primary, select_needs)
-		? subset(primary, prior_needs) ? 0 : .5 * datafrac(Indexes(primary))
-		: datafrac(Indexes(primary));
+	double data_frac = subset(primary, select_needs) && subset(primary, prior_needs) 
+		? 0 : datafrac(Indexes(primary));
 	
 	double data_read_cost = data_frac * tbl->totalsize();
 	
@@ -738,7 +737,7 @@ double Select::choose_filter(double primary_cost)
 		Fields best_filter;
 		for (Indexes idxs = available; ! nil(idxs); ++idxs)
 			{
-			if (member(filter, *idxs))
+			if (member(filter, *idxs) || ifracs[*idxs] > .5)
 				continue ;
 			double cost = costwith(cons(*idxs, filter), primary_index_cost);
 			if (cost < best_cost)
@@ -763,9 +762,8 @@ double Select::costwith(const Indexes& filter, double primary_index_cost)
 	{
 	LOG("cost with: " << primary << " + " << filter);
 	Indexes all(cons(primary, filter));
-	double data_frac = includes(all, select_needs)
-		? subset(primary, prior_needs) ? 0 : .5 * datafrac(all)
-		: datafrac(all);
+	double data_frac = includes(all, select_needs) && subset(primary, prior_needs) 
+		? 0 : datafrac(all);
 	
 	// approximate filter cost independent of order of filters
 	double filter_cost = 0;
