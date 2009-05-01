@@ -172,10 +172,31 @@ double Join::opt(Query* src1, Query* src2, Type typ,
 	cost1 += nrecs1 * SELECT_COST;
 
 	// cost of reading all of source 2
-	double cost2 = src2->optimize(joincols, needs2, Fields(), is_cursor, freeze);
+	double cost2 = src2->optimize(joincols, needs2, Fields(), is_cursor, false);
 	if (cost2 >= IMPOSSIBLE)
 		return IMPOSSIBLE;
 	double nrecs2 = src2->nrecords();
+
+	bool is_cursor2 = is_cursor;
+	if (type == N_ONE && nrecs1 >= 0 && nrecs2 > 0)
+		{
+		double p = nrecs1 / nrecs2;
+		if (! is_cursor && p < .2)
+			{
+			// "1" side can be no bigger than "n" side
+			// if "1" side is a lot bigger, then pass is_cursor = true to avoid temp or filter indexes
+			double cost2b = src2->optimize(joincols, needs2, Fields(), true, false);
+			if (cost2b < IMPOSSIBLE)
+				{
+				is_cursor2 = true;
+				cost2 = cost2b;
+				// reduce cost of "1" side proportionally
+				cost2 *= p;
+				}
+			}
+		}
+	if (freeze)
+		cost2 = src2->optimize(joincols, needs2, Fields(), is_cursor2, true);
 	
 	switch (typ)
 		{
