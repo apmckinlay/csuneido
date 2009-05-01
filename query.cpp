@@ -122,16 +122,18 @@ double Query::optimize(const Fields& index, const Fields& needs, const Fields& f
 	// tempindex
 	double cost2 = IMPOSSIBLE;
 	int keysize = size(index) * columnsize() * 2; // *2 for index overhead
-	cost2 = optimize1(none, needs,
-		nil(firstneeds) ? firstneeds : set_union(firstneeds, index), is_cursor, false)
-		+ nrecords() * keysize * WRITE_FACTOR	// write index
+	double no_index_cost = optimize1(none, needs,
+		nil(firstneeds) ? firstneeds : set_union(firstneeds, index), is_cursor, false);
+	double tempindex_cost =
+		nrecords() * keysize * WRITE_FACTOR	// write index
 		+ nrecords() * keysize					// read index
 		+ 4000;									// minimum fixed cost
+	cost2 = no_index_cost + tempindex_cost;
 	verify(cost2 >= 0);
 
 	TRACE(QUERYOPT, "Query::optimize END " << this << endl <<
 		"\twith " << index << " cost " << cost1 << endl <<
-		"\twith TEMPINDEX cost " << cost2 <<
+		"\twith TEMPINDEX cost " << cost2 << "(" << no_index_cost << " + " << tempindex_cost << ")s " <<
 			" nrecords " << nrecords() << " keysize " << keysize << endl);
 
 	double cost = min(cost1, cost2);
