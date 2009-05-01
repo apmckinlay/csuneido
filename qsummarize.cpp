@@ -378,6 +378,8 @@ Row Strategy::makeRow(Record r, Lisp<class Summary*> sums)
 	return Row(lisp(emptyrec, r));
 	}
 
+//===================================================================
+
 #define Eof Query::Eof
 
 SeqStrategy::SeqStrategy(Summarize* summarize) : Strategy(summarize)
@@ -440,7 +442,11 @@ bool SeqStrategy::equal()
 
 void SeqStrategy::select(const Fields& index, const Record& from, const Record& to)
 	{
-	source->select(index, from, to);
+	// because of fixed, this index may not be the same as the source index (via)
+	if (prefix(q->via, index) || (from == keymin && to == keymax))
+		source->select(q->via, from, to);
+	else
+		except("Summarize SeqStrategy by " << q->via << " doesn't handle select(" << index << " from " << from << " to " << to << ")");
 	}
 
 //===================================================================
@@ -512,5 +518,4 @@ void MapStrategy::select(const Fields& index, const Record& from, const Record& 
 	verify(prefix(q->by, index));
 	sel.org = from;
 	sel.end = to;
-
 	}
