@@ -532,12 +532,6 @@ bool SocketConnectSynch::readline(char* dst, int n)
 
 void SocketConnectSynch::close()
 	{
-	// as recommended by Winsock FAQ
-	const int LEN = 1024;
-	char buf[LEN];
 	shutdown(sock, SD_SEND);
-// TODO: need timeout on recv
-	for (int n = 0; 0 < recv(sock, buf, LEN, 0); ++n)
-		verify(n < 100);
 	closesocket(sock);
 	}
