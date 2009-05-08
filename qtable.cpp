@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -35,7 +35,7 @@ Query* Query::make_table(char* s)
 	return new Table(s);
 	}
 
-Table::Table(char* s) : table(s), first(true), 
+Table::Table(char* s) : table(s), first(true),
 	rewound(true), tran(INT_MAX), tbl(theDB()->get_table(table))
 	{
 	if (! theDB()->istable(table))
@@ -261,10 +261,12 @@ int tcn = 0;
 
 const Fields none;
 
-double Table::optimize2(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze)
+double Table::optimize2(const Fields& index, const Fields& needs,
+	const Fields& firstneeds, bool is_cursor, bool freeze)
 	{
 	if (! subset(columns(), needs))
-		except("Table::optimize columns does not contain: " << difference(needs, columns()));
+		except("Table::optimize columns does not contain: " <<
+			difference(needs, columns()));
 	if (! subset(columns(), index))
 		return IMPOSSIBLE;
 	++tcn;
@@ -291,7 +293,8 @@ double Table::optimize2(const Fields& index, const Fields& needs, const Fields& 
 	if (! nil(needs) && ! nil(idx3 = match(idxs, index, none)))
 		cost3 = nrecords() * recordsize() + // cost of reading data
 			nrecords() * keysize(idx3); // cost of reading index
-	TRACE(TABLE, "optimize " << table << " index " << index << (is_cursor ? " is_cursor" : "") << (freeze ? " FREEZE" : "") <<
+	TRACE(TABLE, "optimize " << table << " index " << index <<
+		(is_cursor ? " is_cursor" : "") << (freeze ? " FREEZE" : "") <<
 		"\n\tneeds: " << needs <<
 		"\n\tfirstneeds: " << firstneeds);
 	TRACE(TABLE, "\tidx1 " << idx1 << " cost1 " << cost1);
@@ -318,10 +321,11 @@ void Table::select_index(const Fields& index)
 Header Table::header()
 	{
 	// can't use index key as data if it's lower
-	Index* i = nil(idx) || singleton ? NULL : theDB()->get_index(table, fields_to_commas(idx));
+	Index* i = nil(idx) || singleton ? NULL
+		: theDB()->get_index(table, fields_to_commas(idx));
 	bool lower = i && i->is_lower();
-	return Header(lisp(singleton || lower ? Fields() : idx, theDB()->get_fields(table)), 
-		theDB()->get_columns(table));
+	return Header(lisp(singleton || lower ? Fields() : idx, 
+		theDB()->get_fields(table)), theDB()->get_columns(table));
 	}
 
 void Table::set_index(const Fields& index)
@@ -336,7 +340,8 @@ void Table::set_index(const Fields& index)
 
 void Table::select(const Fields& index, const Record& from, const Record& to)
 	{
-	verify(prefix(idx, index));
+	if (! prefix(idx, index))
+		except_err(this << " invalid select: " << index << " " << from << " to " << to);
 	sel.org = from;
 	sel.end = to;
 	rewind();
@@ -439,7 +444,7 @@ class test_qtable : public Tests
 		{
 		except_if(! database_request(tran, s), "FAILED: " << s);
 		}
-		
+
 	TEST(0, main)
 		{
 		TempDB tempdb;

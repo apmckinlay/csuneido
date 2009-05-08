@@ -53,26 +53,29 @@ class QueryCache
 private:
 	struct CacheEntry
 		{
-		CacheEntry(const Fields& i, const Fields& n, const Fields& n1, double c)
-			: index(i), needs(n), firstneeds(n1), cost(c)
+		CacheEntry(const Fields& i, const Fields& n, const Fields& n1, bool ic, double c)
+			: index(i), needs(n), firstneeds(n1), is_cursor(ic), cost(c)
 			{ }
 		Fields index;
 		Fields needs;
 		Fields firstneeds;
+		bool is_cursor;
 		double cost;
 		};
 	Lisp<CacheEntry> entries;
 public:
 	void add(const Fields& index, const Fields& needs, const Fields& firstneeds,
-		double cost)
+		bool is_cursor, double cost)
 		{
 		verify(cost >= 0);
-		entries.push(CacheEntry(index, needs, firstneeds, cost));
+		entries.push(CacheEntry(index, needs, firstneeds, is_cursor, cost));
 		}
-	double get(const Fields& index, const Fields& needs, const Fields& firstneeds)
+	double get(const Fields& index, const Fields& needs, const Fields& firstneeds,
+		bool is_cursor)
 		{
 		for (Lisp<CacheEntry> i = entries; ! nil(i); ++i)
-			if (i->index == index && i->needs == needs && i->firstneeds == firstneeds)
+			if (i->index == index && i->needs == needs && i->firstneeds == firstneeds &&
+				i->is_cursor == is_cursor)
 				return i->cost;
 		return -1;
 		}

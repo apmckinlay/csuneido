@@ -892,7 +892,8 @@ void Select::convert_select(const Fields& index, const Record& from, const Recor
 			++ri;
 			}
 		else
-			unreachable(); 
+			except_err(this << endl << " invalid select " << index << " " << 
+				from << " to " << to); 
 		}
 	if (from.getraw(from.size() - 1) == fieldmax)
 		newfrom.addraw(fieldmax);

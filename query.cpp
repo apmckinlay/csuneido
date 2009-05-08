@@ -157,14 +157,14 @@ double Query::optimize(const Fields& index, const Fields& needs, const Fields& f
 double Query::optimize1(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze)
 	{
 	double cost;
-	if (! freeze && 0 <= (cost = cache.get(index, needs, firstneeds)))
+	if (! freeze && 0 <= (cost = cache.get(index, needs, firstneeds, is_cursor)))
 		return cost;
 
 	cost = optimize2(index, needs, firstneeds, is_cursor, freeze);
 	verify(cost >= 0);
 
 	if (! freeze)
-		cache.add(index, needs, firstneeds, cost);
+		cache.add(index, needs, firstneeds, is_cursor, cost);
 	return cost;
 	}
 

@@ -157,7 +157,11 @@ double Summarize::optimize2(const Fields& index, const Fields& needs,
 		difference(needs, cols));
 
 	if (strategy == COPY)
+		{
+		if (freeze)
+			via = index;
 		return source->optimize(index, srcneeds, by, is_cursor, freeze);
+		}
 
 	Indexes indexes;
 	if (nil(index))
@@ -446,7 +450,8 @@ void SeqStrategy::select(const Fields& index, const Record& from, const Record& 
 	if (prefix(q->via, index) || (from == keymin && to == keymax))
 		source->select(q->via, from, to);
 	else
-		except("Summarize SeqStrategy by " << q->via << " doesn't handle select(" << index << " from " << from << " to " << to << ")");
+		except_err("Summarize SeqStrategy by " << q->via <<
+			" doesn't handle select(" << index << " from " << from << " to " << to << ")");
 	}
 
 //===================================================================

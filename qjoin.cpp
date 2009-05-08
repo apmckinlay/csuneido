@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -190,14 +190,12 @@ double Join::opt(Query* src1, Query* src2, Type typ,
 				{
 				is_cursor2 = true;
 				cost2 = cost2b;
-				// reduce cost of "1" side proportionally
-				cost2 *= p;
 				}
 			}
 		}
 	if (freeze)
-		cost2 = src2->optimize(joincols, needs2, Fields(), is_cursor2, true);
-	
+		src2->optimize(joincols, needs2, Fields(), is_cursor2, true);
+
 	switch (typ)
 		{
 	case ONE_ONE :
@@ -216,12 +214,12 @@ double Join::opt(Query* src1, Query* src2, Type typ,
 		unreachable();
 		}
 	nrecs /= 2; // convert from max to guess of expected
-	
+
 	if (nrecs <= 0)
 		cost2 = 0;
-	else if (! src2->tempindexed())
+	else if (is_cursor2 || ! src2->tempindexed())
 		cost2 =  nrecs * (cost2 / nrecs2);
-	
+
 	return cost1 + cost2;
 	}
 
