@@ -866,7 +866,7 @@ Value SuString::Alphaq(short nargs, short nargnames, ushort* argnames, int each)
 Value SuString::Numericq(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
-		except("usage: string.Numericq?()");
+		except("usage: string.Numeric?()");
 	if (size() <= 0)
 		return SuFalse;
 	for (char* s = begin(); s != end(); ++s)
