@@ -50,9 +50,11 @@ OstreamFile& dbmslog()
 	}
 #define LOG(stuff) dbmslog() << stuff << endl
 #else
-#define LOG(stuff)
+//#define LOG(stuff)
 //#include "circlog.h"
 //#define LOG(stuff) CIRCLOG(stuff)
+#include "trace.h"
+#define LOG(stuff) TRACE(CLIENTSERVER, stuff)
 #endif
 
 #define DO(fn) try { fn; } catch (const Except* e) { fatal("lost connection:", e->str()); exit(0); }

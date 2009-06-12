@@ -49,9 +49,10 @@
 extern OstreamFile& dbmslog(); // in dbmsremote
 #define LOG(stuff) dbmslog() << stuff << endl
 #else
-#define LOG(stuff)
+//#define LOG(stuff)
 //#include "circlog.h"
 //#define LOG(stuff) CIRCLOG((void*) this << " " << session_id << " " << stuff)
+#define LOG(stuff) TRACE(CLIENTSERVER, stuff)
 #endif
 
 SuObject& dbserver_connections()
