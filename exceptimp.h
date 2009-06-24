@@ -32,13 +32,13 @@ class Except : public SuString
 	{
 public:
 	explicit Except(gcstring s);
+	Except(const Except* e, gcstring s);
 	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
 	SuObject* calls() const
 		{ return calls_; }
 	Frame* fp() const
 		{ return fp_; }
 private:
-	Except(Except* e, gcstring s);
 
 	Frame* fp_;
 	SuObject* calls_;

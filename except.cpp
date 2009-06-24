@@ -24,14 +24,29 @@
 #include "exceptimp.h"
 #include "interp.h"
 #include "ostreamstr.h"
+#include "trace.h"
+#include "suobject.h"
+#include "sufunction.h"
 
 SuObject* copyCallStack();
 
 Except::Except(gcstring x) 
-	: SuString(x.trim()), fp_(tss_proc() ? tss_proc()->fp : 0), calls_(copyCallStack())
-	{ }
+	: SuString(x.trim()), fp_(tss_proc() ? tss_proc()->fp : 0)
+	{
+	if (x.has_prefix("block") &&
+		(x == "block:continue" || x == "block:break" || x == "block return"))
+		{
+		static SuObject* empty = new SuObject;
+		calls_ =  empty;
+		}
+	else
+		{
+		TRACE(EXCEPTIONS, "throwing: " << x);
+		calls_ = copyCallStack();
+		}
+	}
 
-Except::Except(Except* e, gcstring s) : SuString(s), fp_(e->fp_), calls_(e->calls_)
+Except::Except(const Except* e, gcstring s) : SuString(s), fp_(e->fp_), calls_(e->calls_)
 	{  }
 
 Ostream& operator<<(Ostream& os, const Except* x)
@@ -60,9 +75,6 @@ void except_err_()
 	os.clear();
 	throw x;
 	}
-
-#include "suobject.h"
-#include "sufunction.h"
 
 #define TRY(stuff) do try { stuff; } catch (...) { } while (false)
 
