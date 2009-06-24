@@ -471,8 +471,8 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 	if (nil(primary))
 		return IMPOSSIBLE;
 	
-	if (! is_cursor)
-		cost = choose_filter(cost);
+	//~ if (! is_cursor)
+		//~ cost = choose_filter(cost);
 
 	if (! freeze)
 		return cost;
