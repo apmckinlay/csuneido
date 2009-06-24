@@ -383,12 +383,24 @@ bool SocketConnectAsynch::tryreadline(char* dst, int n)
 
 // asynch client ====================================================
 
+struct SocketCloser
+	{
+	SocketCloser(int sock) : socket(sock)
+		{ }
+	void disable()
+		{ socket = 0; }
+	~SocketCloser()
+		{ if (socket) closesocket(socket); }
+	int socket;
+	};
+
 SocketConnect* socketClientAsynch(char* addr, int port)
 	{
 	WSADATA wsadata;
 	verify(0 == WSAStartup(MAKEWORD(2,0), &wsadata));
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	verify(sock > 0);
+	SocketCloser closer(sock);
 
 	SOCKADDR_IN saddr;
 	memset(&saddr, 0, sizeof saddr);
@@ -403,6 +415,7 @@ SocketConnect* socketClientAsynch(char* addr, int port)
 		}
 	if (0 != connect(sock, (LPSOCKADDR) &saddr, sizeof saddr))
 		except("can't connect to " << addr << " port " << port);
+	closer.disable();
 	return socketConnect("", sock, 0, "");
 	}
 
@@ -434,6 +447,7 @@ SocketConnect* socketClientSynch(char* addr, int port, int timeout)
 	verify(0 == WSAStartup(MAKEWORD(2,0), &wsadata));
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	verify(sock > 0);
+	SocketCloser closer(sock);
 
 	SOCKADDR_IN saddr;
 	memset(&saddr, 0, sizeof saddr);
@@ -448,7 +462,7 @@ SocketConnect* socketClientSynch(char* addr, int port, int timeout)
 		}
 	if (0 != connect(sock, (LPSOCKADDR) &saddr, sizeof saddr))
 		except("can't connect to " << addr << " port " << port);
-	
+	closer.disable();
 	return new SocketConnectSynch(sock, timeout);
 	}
 
