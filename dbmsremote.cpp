@@ -81,7 +81,7 @@ public:
 		readline(buf, len);
 		LOG("c< " << buf);
 		if (has_prefix(buf, "ERR "))
-			except(buf + 4);
+			except((buf + 4) << " (from server)");
 		return buf;
 		}
 	enum { BUFSIZE = 500 }; // large enough for exceptions
