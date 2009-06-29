@@ -177,7 +177,12 @@ bool database_admin(char* s)
 	try
 		{ return parser.admin(); }
 	catch (const Except* e)
-		{ throw new Except(e, "query: " + e->gcstr()); }
+		{
+		if (e->gcstr() == "block return")
+			throw;
+		else
+			throw new Except(e, "query: " + e->gcstr());
+		}
 	}
 
 int database_request(int tran, char* s)
@@ -186,7 +191,12 @@ int database_request(int tran, char* s)
 	try
 		{ return parser.request(tran); }
 	catch (const Except* e)
-		{ throw new Except(e, "query: " + e->gcstr()); }
+		{
+		if (e->gcstr() == "block return")
+			throw;
+		else
+			throw new Except(e, "query: " + e->gcstr());
+		}
 	}
 
 Query* parse_query(char* s)
@@ -200,7 +210,12 @@ Query* parse_query(char* s)
 		return q;
 		}
 	catch (const Except* e)
-		{ throw new Except(e, "query: " + e->gcstr()); }
+		{
+		if (e->gcstr() == "block return")
+			throw;
+		else
+			throw new Except(e, "query: " + e->gcstr());
+		}
 	}
 
 Expr* parse_expr(char* s)
@@ -277,7 +292,10 @@ bool QueryParser::admin()
 			{
 			if (theDB()->istable(table))
 				theDB()->remove_table(table);
-			throw new Except(e, "create: " + e->gcstr());
+			if (e->gcstr() == "block return")
+				throw;
+			else
+				throw new Except(e, "create: " + e->gcstr());
 			}
 		return true;
 		}
@@ -322,7 +340,10 @@ bool QueryParser::admin()
 			{
 			if (table_created)
 				theDB()->remove_table(table);
-			throw new Except(e, "ensure: " + e->gcstr());
+			if (e->gcstr() == "block return")
+				throw;
+			else
+				throw new Except(e, "ensure: " + e->gcstr());
 			}
 
 		return true;
@@ -378,7 +399,12 @@ bool QueryParser::admin()
 					theDB()->remove_index(table, fields_to_commas(i->columns));
 			}
 		catch (const Except* e)
-			{ throw new Except(e, "alter: " + e->gcstr()); }
+			{
+			if (e->gcstr() == "block return")
+				throw;
+			else
+				throw new Except(e, "alter: " + e->gcstr());
+			}
 		return true;
 		}
 	case K_RENAME :
