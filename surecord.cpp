@@ -27,7 +27,7 @@
 #include "globals.h"
 #include "symbols.h"
 #include "func.h" // for argseach
-#include "except.h"
+#include "exceptimp.h"
 #include "ostreamstr.h"
 #include "suboolean.h"
 #include "dbms.h"
@@ -541,9 +541,18 @@ Value SuRecord::call_rule(ushort i)
 	tss_proc()->fp->rule.mem = i;
 
 	KEEPSP
-	Value x = fn.call(this, CALL, 0, 0, 0, -1);
+	Value x;
+	try
+		{
+		x = fn.call(this, CALL, 0, 0, 0, -1);
+		}
+	catch (const Except* e)
+		{
+		tss_proc()->fp->rule = old_rule; 
+		throw new Except(e, e->gcstr() + " (Rule_" + symstr(i) + ")");
+		}
 
-	tss_proc()->fp->rule = old_rule; // BUG not restored if exception?
+	tss_proc()->fp->rule = old_rule; 
 	
 	if (x)
 		put(symbol(i), x);

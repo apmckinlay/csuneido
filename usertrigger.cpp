@@ -28,6 +28,7 @@
 #include "sudb.h"
 #include "catstr.h"
 #include "suboolean.h"
+#include "exceptimp.h"
 
 static Lisp<int> disabled_triggers;
 
@@ -58,7 +59,14 @@ void Tbl::user_trigger(int tran, const Record& oldrec, const Record& newrec)
 		PUSH(SuFalse);
 	else
 		PUSH(new SuRecord(newrec, flds, t));
-	fn.call(fn, CALL, 3, 0, 0, -1);
+	try
+		{
+		fn.call(fn, CALL, 3, 0, 0, -1);
+		}
+	catch (const Except* e)
+		{
+		throw new Except(e, e->gcstr() + " (" + globals(trigger) + ")");
+		}
 	}
 
 struct DisabledTriggers
