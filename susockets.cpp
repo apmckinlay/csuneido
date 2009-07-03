@@ -318,8 +318,10 @@ Value SuServerInstance::call(Value self, Value member, short nargs,
 		if (nargs != 1)
 			except("usage: socketServer.Read(size)");
 		int n = ARG(0).integer();
+		if (n == 0)
+			return "";
 		SuString* s = new SuString(n);
-		if (! sc->read(s->buf(), n))
+		if (0 == sc->read(s->buf(), n))
 			except("socket server: lost connection");
 		return s;
 		}
