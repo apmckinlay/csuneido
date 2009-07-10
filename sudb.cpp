@@ -231,7 +231,7 @@ Value TransactionClass::call(Value self, Value member, short nargs, short nargna
 			{
 			if (! t->isdone())
 				{
-				if (0 != strcmp(e->str(), "block return"))
+				if (!e->isBlockReturn())
 					t->rollback();
 				else if (! t->commit())
 					except("Transaction: block commit failed: " << t->get_conflict());

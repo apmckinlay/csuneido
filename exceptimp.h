@@ -38,10 +38,12 @@ public:
 		{ return calls_; }
 	Frame* fp() const
 		{ return fp_; }
+	bool isBlockReturn() const
+		{ return block_return; }
 private:
-
 	Frame* fp_;
 	SuObject* calls_;
+	bool block_return;
 	};
 
 #endif

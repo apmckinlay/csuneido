@@ -178,7 +178,7 @@ bool database_admin(char* s)
 		{ return parser.admin(); }
 	catch (const Except* e)
 		{
-		if (e->gcstr() == "block return")
+		if (e->isBlockReturn())
 			throw;
 		else
 			throw new Except(e, "query: " + e->gcstr());
@@ -192,7 +192,7 @@ int database_request(int tran, char* s)
 		{ return parser.request(tran); }
 	catch (const Except* e)
 		{
-		if (e->gcstr() == "block return")
+		if (e->isBlockReturn())
 			throw;
 		else
 			throw new Except(e, "query: " + e->gcstr());
@@ -211,7 +211,7 @@ Query* parse_query(char* s)
 		}
 	catch (const Except* e)
 		{
-		if (e->gcstr() == "block return")
+		if (e->isBlockReturn())
 			throw;
 		else
 			throw new Except(e, "query: " + e->gcstr());
@@ -292,7 +292,7 @@ bool QueryParser::admin()
 			{
 			if (theDB()->istable(table))
 				theDB()->remove_table(table);
-			if (e->gcstr() == "block return")
+			if (e->isBlockReturn())
 				throw;
 			else
 				throw new Except(e, "create: " + e->gcstr());
@@ -340,7 +340,7 @@ bool QueryParser::admin()
 			{
 			if (table_created)
 				theDB()->remove_table(table);
-			if (e->gcstr() == "block return")
+			if (e->isBlockReturn())
 				throw;
 			else
 				throw new Except(e, "ensure: " + e->gcstr());
@@ -400,7 +400,7 @@ bool QueryParser::admin()
 			}
 		catch (const Except* e)
 			{
-			if (e->gcstr() == "block return")
+			if (e->isBlockReturn())
 				throw;
 			else
 				throw new Except(e, "alter: " + e->gcstr());

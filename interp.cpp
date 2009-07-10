@@ -675,7 +675,7 @@ Value Frame::run()
 		}
 	catch (const Except* e)
 		{
-		if (0 == strcmp(e->str(), "block return") )
+		if (e->isBlockReturn())
 			{
 			if (blockframe || e->fp()->fn != fn)
 				throw ;
