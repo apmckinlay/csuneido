@@ -36,17 +36,30 @@ void Tbl::user_trigger(int tran, const Record& oldrec, const Record& newrec)
 	{
 	if (tran == schema_tran)
 		return ;
+	if (trigger == -1)
+		return ;
+	Value fn;
 	if (! trigger)
 		{
 		trigger = globals(CATSTRA("Trigger_", name.str()));
+		fn = globals.find(trigger);
+		if (! fn)
+			{
+			globals.pop(trigger); // remove it if we just added it
+			trigger = -1;
+			return ;
+			}
 		for (Fields f = get_fields(); ! nil(f); ++f)
 			flds.push(*f == "-" ? -1 : symnum(f->str()));
 		flds.reverse();
 		}
+	else
+		{
+		fn = globals.find(trigger);
+		if (! fn)
+			return ;
+		}
 	if (member(disabled_triggers, trigger))
-		return ;
-	Value fn = globals.find(trigger);
-	if (! fn)
 		return ;
 	KEEPSP
 	SuTransaction* t = new SuTransaction(tran);
