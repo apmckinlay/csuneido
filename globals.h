@@ -45,6 +45,7 @@ struct Globals
 		{ put(operator()(s), x); }
 	void put(ushort j, Value x);
 	void clear();
+	void pop(ushort i);
 	};
 
 extern Globals globals;

@@ -26,6 +26,7 @@
 #include "hashmap.h"
 #include <vector>
 #include "permheap.h"
+#include "trace.h"
 
 Globals globals;
 
@@ -69,6 +70,7 @@ ushort Globals::operator()(const char* s)
 	{
 	if (int* pi = tbl.find(s))
 		return *pi;
+	TRACE(GLOBALS, "+ " << s);
 	char* str = strcpy((char*) ph.alloc(strlen(s) + 1), s);
 	ushort num = (ushort) names.size();
 	names.push_back(str);
@@ -110,6 +112,19 @@ ushort Globals::copy(char* s)	// called by Compiler::suclass for class : _Base
 	names.push_back(strcpy((char*) ph.alloc(strlen(s) + 1), s));
 	data.push_back(x);
 	return (ushort) data.size() - 1;
+	}
+
+// remove a global name if it was the last one added
+void Globals::pop(ushort i)
+	{
+	if (i != names.size() - 1)
+		return ; // not the last one
+	char* s = names.back();
+	TRACE(GLOBALS, "- " << s);
+	names.pop_back();
+	data.pop_back();
+	tbl.erase(s);
+	ph.free(s);
 	}
 
 #include "testing.h"
