@@ -45,7 +45,8 @@ enum
 	TRACE_LOGFILE =	1 << 14,
 	
 	TRACE_CLIENTSERVER = 1 << 15,
-	TRACE_EXCEPTIONS = 1 << 16
+	TRACE_EXCEPTIONS =	1 << 16,
+	TRACE_GLOBALS =	1 << 17
 	};
 
 #define TRACE_CLEAR() trace_level &= ~15
