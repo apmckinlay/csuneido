@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -159,18 +159,18 @@ public:
 		{
 		named.num = globals("Query1");
 		}
-	Value call(Value self, Value member, 
+	Value call(Value self, Value member,
 		short nargs, short nargnames, ushort* argnames, int each)
 		{
 		static Value Params("Params");
-		
+
 		BuiltinArgs args(nargs, nargnames, argnames, each);
 		if (member == CALL)
 			return queryone(which, dir, one, NULL, args);
 		else if (member == Params)
 			{
 			args.usage("usage: ", which, ".Params()").end();
-			return new SuString(QUERYONE_PARAMS); 
+			return new SuString(QUERYONE_PARAMS);
 			}
 		else
 			unknown_method(which, member);
@@ -231,7 +231,8 @@ Value TransactionClass::call(Value self, Value member, short nargs, short nargna
 			{
 			if (! t->isdone())
 				{
-				if (!e->isBlockReturn())
+				// what about block:break/continue ?
+				if (! e->isBlockReturn())
 					t->rollback();
 				else if (! t->commit())
 					except("Transaction: block commit failed: " << t->get_conflict());
@@ -244,7 +245,7 @@ Value TransactionClass::call(Value self, Value member, short nargs, short nargna
 	}
 
 SuTransaction::SuTransaction(TranType type) : done(false), conflict("")
-	{ 
+	{
 	tran = dbms()->transaction((Dbms::TranType) type);
 	}
 
@@ -415,7 +416,7 @@ struct SetTran
 	SuCursor* cursor;
 	};
 
-Value SuCursor::call(Value self, Value member, short nargs, 
+Value SuCursor::call(Value self, Value member, short nargs,
 	short nargnames, ushort* argnames, int each)
 	{
 	static Value Next("Next");
@@ -441,7 +442,7 @@ Value SuCursor::call(Value self, Value member, short nargs,
 		if (nargs != 2)
 			except("usage: cursor.Output(transaction, object)");
 		SetTran settran(this, ARG(0));
-		return output(ARG(1).object()); 
+		return output(ARG(1).object());
 		}
 	else
 		return SuQuery::call(self, member, nargs, nargnames, argnames, each);
