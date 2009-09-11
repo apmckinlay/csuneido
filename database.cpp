@@ -478,8 +478,6 @@ void Database::create_indexes(Tbl* tbl, Mmoffset first, Mmoffset last)
 void Database::update_record(int tran, const gcstring& table, const gcstring& index,
 	const Record& key, Record newrec)
 	{
-	if (is_system_table(table))
-		except("can't update records in system table: " << table);
 	update_any_record(tran, table, index, key, newrec);
 	}
 
@@ -501,8 +499,13 @@ const bool NO_BLOCK = false;
 Mmoffset Database::update_record(int tran, Tbl* tbl,
 	const Record& oldrec, Record newrec, bool block)
 	{
-	if (tran != schema_tran && ck_get_tran(tran)->type != READWRITE)
-		except("can't update from read-only transaction in " << tbl->name);
+	if (tran != schema_tran)
+		{
+		if (ck_get_tran(tran)->type != READWRITE)
+			except("can't update from read-only transaction in " << tbl->name);
+		if (is_system_table(tbl->name))
+			except("can't update records in system table: " << tbl->name);
+		}
 
 	if (tbl->num > TN_VIEWS && newrec.size() > tbl->nextfield)
 		except("update: record has more fields (" << newrec.size() << ") than " << tbl->name << " should (" << tbl->nextfield << ")");
@@ -713,8 +716,6 @@ void Database::remove_any_index(Tbl* tbl, const gcstring& columns)
 
 void Database::remove_record(int tran, const gcstring& table, const gcstring& index, const Record& key)
 	{
-	if (is_system_table(table))
-		except("delete record: can't delete records from system table: " << table);
 	remove_any_record(tran, table, index, key);
 	}
 
@@ -740,8 +741,13 @@ void Database::remove_any_record(int tran, const gcstring& table, const gcstring
 
 void Database::remove_record(int tran, Tbl* tbl, const Record& r)
 	{
-	if (tran != schema_tran && ck_get_tran(tran)->type != READWRITE)
-		except("can't delete from read-only transaction in " << tbl->name);
+	if (tran != schema_tran)
+		{
+		if (ck_get_tran(tran)->type != READWRITE)
+			except("can't delete from read-only transaction in " << tbl->name);
+		if (is_system_table(tbl->name))
+			except("delete record: can't delete records from system table: " << tbl->name);
+		}
 	verify(tbl);
 	verify(! nil(r));
 
