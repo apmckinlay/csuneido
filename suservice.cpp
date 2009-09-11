@@ -41,6 +41,7 @@
 #include "win.h"
 #include "except.h"
 #include "ostreamstr.h"
+#include "alert.h"
 
 extern int su_port;
 
@@ -160,9 +161,7 @@ void InstallService(char* args)
 		return ;
 		}
 
-	OstreamStr msg(200);
-	msg << "Suneido Service successfully installed\n\n" << cmd.str();
-	MessageBox(NULL, msg.str(), exe_path()->name, 0);     
+	alert("Suneido Service successfully installed\n\n" << cmd.str());
 	}
 
 void UnInstallService()
@@ -208,7 +207,7 @@ void UnInstallService()
 		PrintError("UnIstallService", "DeleteService Failed");
 		return ;
 		}
-	MessageBox(NULL, "Service successfully removed.\n", exe_path()->name, 0);
+	alert("Service successfully removed.\n" << exe_path()->name);
 	}
 
 static void PrintError(char * lpszFunction, char * msg) 
@@ -225,10 +224,9 @@ static void PrintError(char * lpszFunction, char * msg)
 		(char *) &lpMsgBuf,
 		0, NULL );
 	
-	OstreamStr buf(200);
-	buf << "Error in function:" << lpszFunction << " Step: " << msg << 
-		".\nFailed with error " << dw << ":\n" << lpMsgBuf; 
-	MessageBox(NULL, buf.str(), exe_path()->name, 0);
+	alert("Error in function:" << lpszFunction << " Step: " << msg << 
+		".\nFailed with error " << dw << ":\n" << lpMsgBuf << "\n" << 
+		exe_path()->name);
 	}
 
 static void UpdateSCMStatus (DWORD dwCurrentState, DWORD dwWaitHint)
