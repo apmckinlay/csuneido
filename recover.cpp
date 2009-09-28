@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -202,7 +202,7 @@ void DbRecoverImp::docheck(bool (*progress)(int))
 		else if (iter.type() == MM_COMMIT)
 			{
 			Commit* commit = (Commit*) *iter;
-			cksum = checksum(cksum, (char*) commit + sizeof (long), 
+			cksum = checksum(cksum, (char*) commit + sizeof (long),
 				iter.size() - sizeof (long));
 			if (commit->cksum != cksum)
 				break ;
@@ -308,7 +308,7 @@ DbrStatus DbRecoverImp::check_indexes(bool (*progress)(int))
 	}
 
 char* DbRecoverImp::last_good_commit()
-	{ 
+	{
 	char* s = ctime(&last_good);
 	if (! s)
 		return "";
@@ -413,7 +413,7 @@ bool DbRecoverImp::rebuild_copy(char* newfile, bool (*progress)(int))
 					}
 				// end of handling renamed tables
 
-				if (tblnum <= TN_VIEWS && ! deleted && 
+				if (tblnum <= TN_VIEWS && ! deleted &&
 					! schema(db, tblnames, o))
 					{
 					// if schema fails, remove from new database
@@ -454,17 +454,17 @@ bool DbRecoverImp::rebuild_copy(char* newfile, bool (*progress)(int))
 							Tbl* tbl = db.ck_get_table(table);
 							db.add_index_entries(schema_tran, tbl, r);
 							}
-						catch (const Except* e)
+						catch (const Except& e)
 							{
 							alerts = true;
-							alert("ignoring: " << table << ": " << e); 
+							alert("ignoring: " << table << ": " << e);
 							}
 						}
 					}
 				Mmoffset32* deletes = commit->deletes();
 				for (i = 0; i < commit->ndeletes; ++i)
 					deletes[i] = tr[deletes[i].unpack() - sizeof (long)] + sizeof (long);
-				commit->cksum = checksum(cksum, (char*) commit + sizeof (long), 
+				commit->cksum = checksum(cksum, (char*) commit + sizeof (long),
 					iter.size() - sizeof (long));
 				cksum = checksum(0, 0, 0);
 				}
@@ -497,7 +497,7 @@ static bool schema(Database& db, HashMap<TblNum,gcstring>& tblnames, Mmoffset o)
 			{
 			db.add_index_entries(schema_tran, db.get_table(TN_TABLES), r);
 			}
-		catch (const Except* e)
+		catch (const Except& e)
 			{
 			alerts = true;
 			alert("ignoring: " << table << ": " << e);
@@ -654,10 +654,10 @@ void dbdump1(Ostream& log, Mmfile& mmf, Mmfile::iterator& iter, ulong& cksum, Bi
 		for (p = commit->deletes(), end = p + commit->ndeletes; p < end; ++p)
 			log << "\tdelete " << p->unpack() - 4 << endl;
 		}*/
-		cksum = checksum(cksum, (char*) commit + sizeof (long), 
+		cksum = checksum(cksum, (char*) commit + sizeof (long),
 			iter.size() - sizeof (long));
 		if (commit->cksum != cksum)
-			log << "	ERROR commit had " << commit->cksum << 
+			log << "	ERROR commit had " << commit->cksum <<
 				" recover got " << cksum << endl;
 		cksum = checksum(0, 0, 0);
 		break ;
@@ -665,7 +665,7 @@ void dbdump1(Ostream& log, Mmfile& mmf, Mmfile::iterator& iter, ulong& cksum, Bi
 	case MM_SESSION :
 		{
 		Session* session = (Session*) *iter;
-		log << "session " << 
+		log << "session " <<
 			(session->mode == Session::STARTUP ? "startup" : "shutdown") <<
 			" " << ctime(&session->t);
 		cksum = checksum(0, 0, 0);
@@ -719,7 +719,7 @@ class test_recover : public Tests
 		tempdb.close();
 		rebuild();
 		tempdb.open();
-		
+
 		verify(thedb->get_table(table2));
 		verify(! thedb->get_table(table));
 		}
@@ -793,7 +793,7 @@ class test_recover : public Tests
 		{
 		thedb->remove_table(table);
 		}
-	
+
 	TEST(9, translate)
 		{
 		Translate tr(10);

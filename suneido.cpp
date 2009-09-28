@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -92,9 +92,9 @@ static void init(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		{
 		init2(hInstance, lpszCmdLine);
 		}
-	catch (const Except* e)
+	catch (const Except& e)
 		{
-		fatal(e->str());
+		fatal(e.str());
 		}
 	catch (const std::exception& e)
 		{
@@ -123,7 +123,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 
 	if (! cmdlineoptions.no_exception_handling)
 		unhandled();
-	
+
 	if (cmdlineoptions.install)
 		{
 		// default to server
@@ -223,18 +223,18 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	default :
 		unreachable();
 		}
-	
+
 #ifndef __GNUC__
 	sunapp_register_classes();
 #endif
 	HWND hdlg = 0;
 	if (cmdlineoptions.splash)
 		hdlg = splash(hInstance);
-	
+
 	if (cmdlineoptions.check_start)
 		if (0 != fork_rebuild())
 			fatal("Database corrupt, unable to start");
-		
+
 	if (run("Init()") == SuFalse)
 		exit(EXIT_FAILURE);
 
@@ -246,7 +246,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 void ckinterrupt()
 	{
 	MSG msg;
-	
+
 	if (HIWORD(GetQueueStatus(QS_HOTKEY)))
 		{
 		bool hotkey = false;
@@ -293,14 +293,14 @@ void handler(const Except& x)
 	HWND hwnd = 0; //msg.hwnd;
 //	while (HWND parent = GetParent(hwnd))
 //		hwnd = parent;
-	
+
 	try
 		{
 		call("Handler", Lisp<Value>((SuValue*) &x, (long) hwnd, x.calls()));
 		}
-	catch (const Except* e)
+	catch (const Except& e)
 		{
-		message("Error in Debug", e->str());
+		message("Error in Debug", e.str());
 		}
 	tss_proc()->in_handler = false;
 	}

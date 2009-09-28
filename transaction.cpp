@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -43,7 +43,7 @@ const TranTime PAST = INT_MIN;
 
 inline TranDelete::TranDelete(TranTime t) : tran(t), time(t + UNCOMMITTED)
 	{ }
-		
+
 Transaction::Transaction() : session_id(""), conflict(NULL)
 	{ }
 
@@ -356,7 +356,7 @@ bool Database::validate_reads(Transaction* t)
 	return true;
 	}
 
-char* Database::read_conflict(const Transaction* t, int tblnum, const Record& from, 
+char* Database::read_conflict(const Transaction* t, int tblnum, const Record& from,
 	const Record& to, const Record& key, ActType type)
 	{
 	OstreamStr os;
@@ -438,7 +438,7 @@ bool lt_asof(const pair<int,Transaction>& x, const pair<int,Transaction>& y)
 bool Database::finalize()
 	{
 	bool ok = true;
-	map<int,Transaction>::const_iterator oldest_t = 
+	map<int,Transaction>::const_iterator oldest_t =
 		min_element(trans.begin(), trans.end(), lt_asof);
 	TranTime oldest = (oldest_t == trans.end() ? FUTURE : oldest_t->second.asof);
 	while (! final.empty() && final.begin()->asof < oldest)
@@ -453,7 +453,7 @@ bool Database::finalize()
 				else // DELETE_ACT
 					{
 					verify(deleted.erase(act->off));
-					if (act->time > table_create_time(act->tblnum) && 
+					if (act->time > table_create_time(act->tblnum) &&
 						get_table(act->tblnum))
 						{
 						Record r(input(act->off));
@@ -461,7 +461,7 @@ bool Database::finalize()
 						}
 					}
 				}
-			catch (const Except*)
+			catch (const Except&)
 				{ ok = false; }
 			}
 		final.erase(final.begin());
@@ -487,7 +487,7 @@ bool Database::visible(int tran, Mmoffset address)
 	{
 	if (tran == schema_tran)
 		return true;
-	
+
 	TranTime asof = ck_get_tran(tran)->asof;
 
 	TranTime ct = create_time(address);
@@ -610,7 +610,7 @@ class test_transaction : public Tests
 	TEST(3, visibility)
 		{
 		SETUP
-		
+
 		int t1 = thedb->transaction(READWRITE);
 		thedb->update_record(t1, "test", "name", key("fred"), record("joe"));
 
@@ -627,7 +627,7 @@ class test_transaction : public Tests
 		int t4 = thedb->transaction(READWRITE);
 		thedb->remove_record(t4, "test", "name", key("joe"));
 		verify(thedb->commit(t4));
-		
+
 		r = thedb->get_index("test", "name")->begin(t3)->key;
 		verify(r.getstr(0) == "joe"); // new value
 		verify(thedb->commit(t3));
@@ -659,7 +659,7 @@ class test_transaction : public Tests
 		assert_eq(trd.org, key("a"));
 		verify(trd.end.hasprefix(key("fred")));
 		thedb->commit(t); }
-		
+
 		{ int t = thedb->transaction(READWRITE);
 		Index::iterator iter = thedb->get_index("test", "name")->iter(t, key("a"), key("z"));
 		--iter;
@@ -669,7 +669,7 @@ class test_transaction : public Tests
 		assert_eq(trd.end, key("z"));
 		verify(trd.org.hasprefix(key("fred")));
 		thedb->commit(t); }
-		
+
 		END
 		}
 	TEST(5, conflicts)

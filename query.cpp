@@ -829,7 +829,7 @@ class test_query : public Tests
 			for (i = 0; i < sizeof querytests2 / sizeof (Querystruct); ++i)
 				process2(i);
 			}
-		catch (const Except* e)
+		catch (const Except& e)
 			{
 			errs << i << ": " << e << endl;
 			}

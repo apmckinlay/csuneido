@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -43,7 +43,7 @@ class SuSocketClient : public SuFinalize
 public:
 	SuSocketClient(SocketConnect* s);
 	void out(Ostream& os);
-	Value call(Value self, Value member, short nargs, short nargnames, 
+	Value call(Value self, Value member, short nargs, short nargnames,
 		ushort* argnames, int each);
 	void close();
 private:
@@ -61,7 +61,7 @@ void SuSocketClient::out(Ostream& os)
 	os << "SocketClient /*builtin*/";
 	}
 
-Value SuSocketClient::call(Value self, Value member, short nargs, 
+Value SuSocketClient::call(Value self, Value member, short nargs,
 	short nargnames, ushort* argnames, int each)
 	{
 	static Value Read("Read");
@@ -177,7 +177,7 @@ class SuSocketServer : public RootClass
 	{
 public:
 	void out(Ostream& os);
-	Value call(Value self, Value member, short nargs, short nargnames, 
+	Value call(Value self, Value member, short nargs, short nargnames,
 		ushort* argnames, int each);
 	};
 
@@ -188,7 +188,7 @@ void SuSocketServer::out(Ostream& os)
 
 static void _stdcall suserver(void* sc);
 
-Value SuSocketServer::call(Value self, Value member, short nargs, 
+Value SuSocketServer::call(Value self, Value member, short nargs,
 	short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL_CLASS)
@@ -243,7 +243,7 @@ public:
 	SuServerInstance(SocketConnect* s) : sc(s)
 		{ }
 	void out(Ostream& os);
-	Value call(Value self, Value member, short nargs, short nargnames, 
+	Value call(Value self, Value member, short nargs, short nargnames,
 		ushort* argnames, int each);
 	SocketConnect* sc;
 	};
@@ -262,9 +262,9 @@ static void _stdcall suserver(void* arg)
 		static Value RUN("Run");
 		ob->call(ob, RUN, 0, 0, 0, -1);
 		}
-	catch (const Except* e)
+	catch (const Except& e)
 		{
-		errlog("exception in SocketServer: " , e->str());
+		errlog("exception in SocketServer: " , e.str());
 		}
 	catch (const std::exception& e)
 		{
@@ -278,16 +278,16 @@ static void _stdcall suserver(void* arg)
 		{
 		if (sc)
 			sc->close();
-		
+
 		extern Dbms*& tss_thedbms();
 		delete tss_thedbms();
 		tss_thedbms() = 0;
-		
+
 		Fibers::end();
 		}
-	catch (const Except* e)
+	catch (const Except& e)
 		{
-		errlog("exception closing SocketServer connection: " , e->str());
+		errlog("exception closing SocketServer connection: " , e.str());
 		}
 	catch (const std::exception& e)
 		{
@@ -304,7 +304,7 @@ void SuServerInstance::out(Ostream& os)
 	os << "SocketServerConnection";
 	}
 
-Value SuServerInstance::call(Value self, Value member, short nargs, 
+Value SuServerInstance::call(Value self, Value member, short nargs,
 	short nargnames, ushort* argnames, int each)
 	{
 	static Value Read("Read");

@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -30,7 +30,7 @@
 
 SuObject* copyCallStack();
 
-Except::Except(gcstring x) 
+Except::Except(gcstring x)
 	: SuString(x.trim()), fp_(tss_proc() ? tss_proc()->fp : 0), block_return(x == "block return")
 	{
 	if (x.has_prefix("block") &&
@@ -46,13 +46,13 @@ Except::Except(gcstring x)
 		}
 	}
 
-Except::Except(const Except* e, gcstring s) 
-	: SuString(s), fp_(e->fp_), calls_(e->calls_), block_return(e->block_return)
+Except::Except(const Except& e, gcstring s)
+	: SuString(s), fp_(e.fp_), calls_(e.calls_), block_return(e.block_return)
 	{  }
 
-Ostream& operator<<(Ostream& os, const Except* x)
+Ostream& operator<<(Ostream& os, const Except& e)
 	{
-	return os << x->str();
+	return os << e.str();
 	}
 
 static OstreamStr os(200);
@@ -64,17 +64,17 @@ Ostream& osexcept()
 
 void except_()
 	{
-	Except* x = new Except(os.str());
+	Except e(os.str());
 	os.clear();
-	throw x;
+	throw e;
 	}
 
 // to allow setting breakpoints
 void except_err_()
 	{
-	Except* x = new Except(os.str());
+	Except e(os.str());
 	os.clear();
-	throw x;
+	throw e;
 	}
 
 #define TRY(stuff) do try { stuff; } catch (...) { } while (false)
@@ -127,7 +127,7 @@ Value Except::call(Value self, Value member, short nargs, short nargnames, ushor
 		argseach(nargs, nargnames, argnames, each);
 		if (nargs != 1)
 			except("usage: exception.As(string)");
-		return new Except(this, ARG(0).gcstr());
+		return new Except(*this, ARG(0).gcstr());
 		}
 	if (member == Callstack)
 		{

@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -46,7 +46,7 @@ OstreamFile osf("surecord.log");
 #define log(args)
 #endif
 
-SuRecord::SuRecord() 
+SuRecord::SuRecord()
 	: trans(0), recadr(0), status(NEW)
 	{
 	log("create");
@@ -154,7 +154,7 @@ Record SuRecord::to_record(const Header& hdr)
 	// - invert stored dependencies
 	typedef HashMap<ushort, Lisp<ushort> > Deps;
 	Deps deps;
-	for (HashMap<ushort,Lisp<ushort> >::iterator it = dependents.begin(); 
+	for (HashMap<ushort,Lisp<ushort> >::iterator it = dependents.begin();
 		it != dependents.end(); ++it)
 		{
 		for (Lisp<ushort> m = it->val; ! nil(m); ++m)
@@ -343,7 +343,7 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 			except("usage: record.GetDeps(field)");
 		int mem = ARG(0).symnum();
 		gcstring deps;
-		for (HashMap<ushort,Lisp<ushort> >::iterator it = dependents.begin(); 
+		for (HashMap<ushort,Lisp<ushort> >::iterator it = dependents.begin();
 			it != dependents.end(); ++it)
 			{
 			for (Lisp<ushort> m = it->val; ! nil(m); ++m)
@@ -546,14 +546,14 @@ Value SuRecord::call_rule(ushort i)
 		{
 		x = fn.call(this, CALL, 0, 0, 0, -1);
 		}
-	catch (const Except* e)
+	catch (const Except& e)
 		{
-		tss_proc()->fp->rule = old_rule; 
-		throw new Except(e, e->gcstr() + " (Rule_" + symstr(i) + ")");
+		tss_proc()->fp->rule = old_rule;
+		throw Except(e, e.gcstr() + " (Rule_" + symstr(i) + ")");
 		}
 
-	tss_proc()->fp->rule = old_rule; 
-	
+	tss_proc()->fp->rule = old_rule;
+
 	if (x)
 		put(symbol(i), x);
 	return x;

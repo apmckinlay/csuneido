@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -141,7 +141,7 @@ private:
 	char* session_id;
 	static Dbms* dbms;
 	int last_activity;
-	
+
 	Proc proc;
 	SesViews session_views;
 	};
@@ -194,7 +194,7 @@ void start_dbserver(char* name)
 	}
 #endif
 
-DbServerImp::DbServerImp(SocketConnect* s) 
+DbServerImp::DbServerImp(SocketConnect* s)
 	: sc(s), textmode(true), data(DbServerData::create())
 	{
 	if (! dbms)
@@ -229,7 +229,7 @@ void DbServerImp::run()
 inline bool match(char* s, char* pre)
 	{
 	const int npre = strlen(pre);
-	return 0 == memicmp(s, pre, npre) && 
+	return 0 == memicmp(s, pre, npre) &&
 		(s[npre] == ' ' || s[npre] == 0);
 	}
 
@@ -262,7 +262,7 @@ void DbServerImp::request(char* buf)
 		CMD(libraries),
 		CMD(explain),
 		CMD(rewind),
-		CMD(erase), 
+		CMD(erase),
 		CMD(commit),
 		CMD(abort),
 		CMD(timestamp),
@@ -287,7 +287,7 @@ void DbServerImp::request(char* buf)
 
 	LOG("s< " << buf);
 	last_activity = dbserver_clock;
-	os.clear(); 
+	os.clear();
 	int n = strlen(buf);
 	while (n > 0 && isspace(buf[n - 1]))
 		buf[--n] = 0;
@@ -305,15 +305,15 @@ void DbServerImp::request(char* buf)
 					write(s);
 					}
 				}
-			catch (const Except* e)
+			catch (const Except& e)
 				{
 				os.clear();
-				char* t = strdup(e->str());
+				char* t = strdup(e.str());
 				for (char* s = t; *s; ++s)
 					if (*s == '\r')
 						*s = '\\';
 					else if (*s == '\n')
-						*s = 'n';				
+						*s = 'n';
 				os << "ERR " << t << "\r\n";
 				LOG("s> " << os.str());
 				write(os.str());
@@ -567,7 +567,7 @@ DbmsQuery* DbServerImp::q_or_tc(char*& s)
 	else if (ERR != (t = getnum('T', s)) && ERR != (n = getnum('C', s)))
 		{
 		q = data->get_cursor(n);
-		if (q) 
+		if (q)
 			q->set_transaction(t);
 		}
 	if (! q)
@@ -604,11 +604,11 @@ char* DbServerImp::row_result(const Row& row, const Header& hdr, bool sendhdr)
 	if (textmode)
 		{
 		os << '(';
-		bool first = true; 
+		bool first = true;
 		for (Fields f = hdr.fields(); ! nil(f); ++f)
 			{
 			if (! first)
-				os << ", "; 
+				os << ", ";
 			first = false;
 			os << *f << ": " << row.getval(hdr, *f);
 			}

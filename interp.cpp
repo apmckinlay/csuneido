@@ -415,9 +415,9 @@ Value Frame::run()
 			if (arg == block_return)
 				tss_proc()->block_return_value = POP();
 			if (Except* e = val_cast<Except*>(arg))
-				throw e;
+				throw *e;
 			else
-				throw new Except(arg.gcstr());
+				throw Except(arg.gcstr());
 			break ;
 			}
 		case I_ADDEQ | (SUB << 4) : case I_ADDEQ | (SUB_SELF << 4) :
@@ -673,25 +673,25 @@ Value Frame::run()
 			error("invalid op code " << hex << (short) op);
 			}
 		}
-	catch (const Except* e)
+	catch (const Except& e)
 		{
-		if (e->isBlockReturn())
+		if (e.isBlockReturn())
 			{
-			if (blockframe || e->fp()->fn != fn)
+			if (blockframe || e.fp()->fn != fn)
 				throw ;
 			PUSH(tss_proc()->block_return_value);
 			tss_proc()->block_return_value = Value();
 			goto done;
 			}
 		else if (catcher &&
-			catch_match(fn->literals[catcher_x].str(), e->str()))
+			catch_match(fn->literals[catcher_x].str(), e.str()))
 			{
 			// catch
 			verify(GETSP() >= catcher_sp);
 			SETSP(catcher_sp);
 			ip = catcher;
 			catcher = 0;
-			PUSH((SuValue*) e);
+			PUSH(new Except(e));
 			each = -1;
 			}
 		else

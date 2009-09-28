@@ -69,7 +69,7 @@ char* eval(const char* s)
 		{
 		str = run(s).str();
 		}
-	catch (const Except* e)
+	catch (const Except& e)
 		{
 		OstreamStr oss;
 		oss << "eval(" << s << ") => " << e;
@@ -154,7 +154,7 @@ Value trace()
 			trace_level = prev_trace_level;
 			return result;
 			}
-		catch (const Except*)
+		catch (const Except&)
 			{
 			trace_level = prev_trace_level;
 			throw ;
@@ -398,9 +398,9 @@ static void _stdcall thread(void* arg)
 		Value fn = (SuValue*) arg;
 		fn.call(fn, CALL, 0, 0, 0, -1);
 		}
-	catch (const Except* e)
+	catch (const Except& e)
 		{
-		MessageBox(0, e->str(), "Error in Thread", MB_TASKMODAL | MB_OK);
+		MessageBox(0, e.str(), "Error in Thread", MB_TASKMODAL | MB_OK);
 		}
 
 	extern Dbms*& tss_thedbms();

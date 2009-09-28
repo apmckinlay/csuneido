@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -176,12 +176,12 @@ bool database_admin(char* s)
 	QueryParser parser(s);
 	try
 		{ return parser.admin(); }
-	catch (const Except* e)
+	catch (const Except& e)
 		{
-		if (e->isBlockReturn())
+		if (e.isBlockReturn())
 			throw;
 		else
-			throw new Except(e, "query: " + e->gcstr());
+			throw Except(e, "query: " + e.gcstr());
 		}
 	}
 
@@ -190,12 +190,12 @@ int database_request(int tran, char* s)
 	QueryParser parser(s);
 	try
 		{ return parser.request(tran); }
-	catch (const Except* e)
+	catch (const Except& e)
 		{
-		if (e->isBlockReturn())
+		if (e.isBlockReturn())
 			throw;
 		else
-			throw new Except(e, "query: " + e->gcstr());
+			throw Except(e, "query: " + e.gcstr());
 		}
 	}
 
@@ -209,12 +209,12 @@ Query* parse_query(char* s)
 			parser.syntax_error();
 		return q;
 		}
-	catch (const Except* e)
+	catch (const Except& e)
 		{
-		if (e->isBlockReturn())
+		if (e.isBlockReturn())
 			throw;
 		else
-			throw new Except(e, "query: " + e->gcstr());
+			throw Except(e, "query: " + e.gcstr());
 		}
 	}
 
@@ -250,7 +250,7 @@ void QueryParser::back()
 
 void QueryParser::syntax_error()
 	{
-	except("syntax error\n" << 
+	except("syntax error\n" <<
 			gcstring(scanner.source, scanner.prev) << " @ " <<
 			scanner.source + scanner.prev);
 	}
@@ -285,17 +285,17 @@ bool QueryParser::admin()
 				theDB()->add_column(table, *c);
 			for (Lisp<IndexSpec> i = ts.indexes; ! nil(i); ++i)
 				theDB()->add_index(table, fields_to_commas(i->columns), i->key,
-					i->fktable, fields_to_commas(i->fkcols), i->fkmode, 
+					i->fktable, fields_to_commas(i->fkcols), i->fkmode,
 					i->unique, i->lower);
 			}
-		catch (const Except* e)
+		catch (const Except& e)
 			{
 			if (theDB()->istable(table))
 				theDB()->remove_table(table);
-			if (e->isBlockReturn())
+			if (e.isBlockReturn())
 				throw;
 			else
-				throw new Except(e, "create: " + e->gcstr());
+				throw Except(e, "create: " + e.gcstr());
 			}
 		return true;
 		}
@@ -324,7 +324,7 @@ bool QueryParser::admin()
 			for (Lisp<gcstring> c = ts.columns; ! nil(c); ++c)
 				{
 				gcstring col(c->str());
-				*col.buf() = tolower(*col.buf());				
+				*col.buf() = tolower(*col.buf());
 				if (! cols.member(col))
 					theDB()->add_column(table, *c);
 				}
@@ -336,19 +336,19 @@ bool QueryParser::admin()
 					theDB()->add_index(table, fields_to_commas(i->columns), i->key,
 						i->fktable, fields_to_commas(i->fkcols), i->fkmode, i->unique);
 			}
-		catch (const Except* e)
+		catch (const Except& e)
 			{
 			if (table_created)
 				theDB()->remove_table(table);
-			if (e->isBlockReturn())
+			if (e.isBlockReturn())
 				throw;
 			else
-				throw new Except(e, "ensure: " + e->gcstr());
+				throw Except(e, "ensure: " + e.gcstr());
 			}
 
 		return true;
 		}
-	case K_ALTER : 
+	case K_ALTER :
 		{
 		try
 			{
@@ -377,7 +377,7 @@ bool QueryParser::admin()
 				return ok;
 				}
 			int mode = scanner.keyword;
-			if (scanner.keyword != K_CREATE && 
+			if (scanner.keyword != K_CREATE &&
 				scanner.keyword != K_DELETE && scanner.keyword != K_DROP)
 				syntax_error();
 			match();
@@ -398,12 +398,12 @@ bool QueryParser::admin()
 				else // drop
 					theDB()->remove_index(table, fields_to_commas(i->columns));
 			}
-		catch (const Except* e)
+		catch (const Except& e)
 			{
-			if (e->isBlockReturn())
+			if (e.isBlockReturn())
 				throw;
 			else
-				throw new Except(e, "alter: " + e->gcstr());
+				throw Except(e, "alter: " + e.gcstr());
 			}
 		return true;
 		}
@@ -419,7 +419,7 @@ bool QueryParser::admin()
 			syntax_error();
 		return theDB()->rename_table(oldtblname, newtblname);
 		}
-	case K_VIEW : 
+	case K_VIEW :
 		{
 		match();
 		gcstring table = scanner.value;
@@ -433,7 +433,7 @@ bool QueryParser::admin()
 		theDB()->add_view(table, def);
 		return  true;
 		}
-	case K_SVIEW : 
+	case K_SVIEW :
 		{
 		match();
 		gcstring table = scanner.value;
@@ -447,7 +447,7 @@ bool QueryParser::admin()
 		set_session_view(table, def);
 		return  true;
 		}
-	case K_DROP : 
+	case K_DROP :
 		{
 		match();
 		gcstring table = scanner.value;
@@ -455,7 +455,7 @@ bool QueryParser::admin()
 
 		if (token != Eof)
 			syntax_error();
-		
+
 		if (get_session_view(table) != "")
 			remove_session_view(table);
 		else if (theDB()->get_view(table) != "")
@@ -476,7 +476,7 @@ int QueryParser::request(int tran)
 	// TODO: don't do anything till you parse the whole request (& get Eof)
 	switch (scanner.keyword)
 		{
-	case K_UPDATE : 
+	case K_UPDATE :
 		{
 		match();
 		Query* q = query();
@@ -497,7 +497,7 @@ int QueryParser::request(int tran)
 
 		return update_request(tran, q, cols.reverse(), exprs.reverse());
 		}
-	case K_DELETE : 
+	case K_DELETE :
 		{
 		match();
 		Query* q = query();
@@ -505,7 +505,7 @@ int QueryParser::request(int tran)
 			syntax_error();
 		return delete_request(tran, q);
 		}
-	case K_INSERT : 
+	case K_INSERT :
 		{
 		match();
 		if (token == '{')
@@ -555,7 +555,7 @@ int QueryParser::request(int tran)
 			q->close(q);
 			return n;
 			}
-		break ; 
+		break ;
 		}
 	default :
 		except("expecting: insert, update, or delete");
@@ -575,7 +575,7 @@ TableSpec QueryParser::table_spec()
 			{
 			ts.columns.push(token == I_SUB ? "-" : scanner.value);
 			if (token == I_SUB)
-				match(I_SUB); 
+				match(I_SUB);
 			else
 				match(T_IDENTIFIER);
 			if (token == ',')
@@ -822,7 +822,7 @@ Query* QueryParser::query()
 			match();
 			q = Query::make_select(q, expr());
 			break ;
-		case K_SORT : 
+		case K_SORT :
 			{
 			match();
 			bool reverse = false;
@@ -843,7 +843,7 @@ Query* QueryParser::query()
 			q = Query::make_sort(q, reverse, segs.reverse());
 			if (token != Eof)
 				syntax_error(); // sort must be last operation
-			break ; 
+			break ;
 			}
 		case K_PROJECT:
 		case K_REMOVE :
@@ -858,9 +858,9 @@ Query* QueryParser::query()
 				}
 				while (token == ',');
 			q = Query::make_project(q, flds.reverse(), allbut);
-			break ; 
+			break ;
 			}
-		case K_SUMMARIZE: 
+		case K_SUMMARIZE:
 			{
 			Fields sumproj;
 			Fields sumfuncs;
@@ -914,7 +914,7 @@ Query* QueryParser::query()
 			if (nil(sumcols))
 				syntax_error();
 			q = Query::make_summarize(q, sumproj.reverse(), sumcols.reverse(), sumfuncs.reverse(), sumon.reverse());
-			break ;	
+			break ;
 			}
 		case K_JOIN :
 			{
@@ -961,9 +961,9 @@ Query* QueryParser::query()
 				}
 				while (token == ',');
 			q = Query::make_rename(q, from.reverse(), to.reverse());
-			break ; 
+			break ;
 			}
-		case K_EXTEND : 
+		case K_EXTEND :
 			{
 			Fields eflds;
 			Lisp<Expr*> exprs;
@@ -985,7 +985,7 @@ Query* QueryParser::query()
 				}
 				while (token == ',');
 			q = Query::make_extend(q, eflds.reverse(), exprs.reverse(), rules);
-			break ; 
+			break ;
 			}
 		default :
 			return q;
@@ -1014,7 +1014,7 @@ bool QueryParser::isfunc()
 		scanner.keyword == K_MAX ||
 		scanner.keyword == K_TOTAL ||
 		scanner.keyword == K_AVERAGE ||
-		scanner.keyword == K_LIST;		
+		scanner.keyword == K_LIST;
 	}
 
 Query* QueryParser::source()
@@ -1055,7 +1055,7 @@ Query* QueryParser::source()
 		match(')');
 		}
 	else
-		syntax_error(); 
+		syntax_error();
 	return q;
 	}
 
@@ -1275,7 +1275,7 @@ Expr* QueryParser::term()
 	case '[' :
 		t = Query::make_constant(constant());
 		break ;
-	case T_IDENTIFIER : 
+	case T_IDENTIFIER :
 		{
 		if (scanner.keyword == K_TRUE || scanner.keyword == K_FALSE)
 			t = Query::make_constant(constant());
@@ -1299,7 +1299,7 @@ Expr* QueryParser::term()
 				t = Query::make_call(id, exprs.reverse());
 				}
 			}
-		break ; 
+		break ;
 		}
 	case '(' :
 		match('(');
@@ -1307,7 +1307,7 @@ Expr* QueryParser::term()
 		match(')');
 		break ;
 	default :
-		syntax_error(); 
+		syntax_error();
 		}
 	return t;
 	}
@@ -1429,7 +1429,7 @@ class test_qparser : public  Tests
 		req("insert{id: \"c\", name: \"calac\", city: \"calgary\"} into customer");
 		req("insert{id: \"e\", name: \"emerald\", city: \"vancouver\"} into customer");
 		req("insert{id: \"i\", name: \"intercon\", city: \"saskatoon\"} into customer");
-		
+
 		//create trans file
 		database_admin("drop trans");
 		adm("create trans (date:int,item:string,id:string,cost:number) index(item) key(date,item,id)");
@@ -1452,18 +1452,18 @@ class test_qparser : public  Tests
 		req("insert{item: \"disk\", qty: 5} into inven");
 		req("insert{item: \"mouse\", qty:2} into inven");
 		req("insert{item: \"pencil\", qty: 7} into inven");
-		
+
 		//create alias file
 		database_admin("drop alias");
 		adm("create alias(id, name2) key(id)");
 		req("insert{id: \"a\", name2: \"abc\"} into alias");
 		req("insert{id: \"c\", name2: \"trical\"} into alias");
-		
+
 		verify(theDB()->commit(tran));
 
 		for (int i = 0; i < sizeof qptests / sizeof (Qptest); ++i)
 			testone(i, qptests[i].query, qptests[i].result);
-		
+
 		adm("drop hist");
 		adm("drop customer");
 		adm("drop trans");

@@ -12,7 +12,7 @@
 class Master
 	{
 public:
-	Master(char* ip) : 
+	Master(char* ip) :
 		slaveip(ip), mmf("suneido.db", false, true), cksum(checksum(0, 0, 0)),tries(0)
 ,out(slaveip)
 		{ }
@@ -44,7 +44,7 @@ void Master::run()
 	prevsize = mmf.get_file_size();
 	poll();
 	}
-	
+
 void Master::poll()
 	{
 	while (true)
@@ -66,11 +66,11 @@ void Master::newstuff()
 	for (Mmfile::iterator iter(prevsize + MM_HEADER, &mmf); iter != end; ++iter)
 		try
 			{
-			out << "offset " << iter.offset() << 
-				" type " << (int) iter.type() << 
+			out << "offset " << iter.offset() <<
+				" type " << (int) iter.type() <<
 				" size " << iter.size() <<
 				endl;
-			
+
 			if (iter.type() == MM_DATA)
 				{
 				int tblnum = *(int*) *iter;
@@ -84,7 +84,7 @@ void Master::newstuff()
 			else if (iter.type() == MM_COMMIT)
 				{
 				Commit* commit = (Commit*) *iter;
-				cksum = checksum(cksum, (char*) commit + sizeof (long), 
+				cksum = checksum(cksum, (char*) commit + sizeof (long),
 					iter.size() - sizeof (long));
 				if (commit->cksum != cksum)
 					{
@@ -97,7 +97,7 @@ void Master::newstuff()
 				prevsize = iter.offset() + iter.size() + MM_TRAILER;
 				}
 			}
-		catch (const Except* e)
+		catch (const Except& e)
 			{
 			out << e << endl;
 			Sleep(1);
@@ -131,7 +131,7 @@ void Master::print(Mmoffset off)
 	out << "table " << tn << " =";
 	print_record(r);
 	}
-	
+
 void Master::print_record(Record& r)
 	{
 	int f = 0;
@@ -141,7 +141,7 @@ void Master::print_record(Record& r)
 		for (; f < r.size(); ++f)
 			out << " " << r.getval(f);
 		}
-	catch (const Except* e)
+	catch (const Except& e)
 		{
 		out << " " << f << " " << e;
 		}

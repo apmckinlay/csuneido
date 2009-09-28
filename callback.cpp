@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -188,24 +188,24 @@ long Callback::callback(Value fn, char* src)
 				Value x = items[i].type().get(src, Value());
 				PUSH(x ? (Value) x : (Value) &SuNumber::zero);
 				}
-	
+
 			// call function
 			return docall(fn, CALL, nitems).integer();
 			}
 		catch (const std::exception& e)
 			{ except(e.what()); }
 #ifndef _MSC_VER
-		catch (const Except*)
+		catch (const Except&)
 			{ throw ; }
 		// with Visual C++, this catches page faults ???
 		catch (...)
 			{ except("unknown exception"); }
 #endif
 		}
-	catch (const Except* e)
+	catch (const Except& e)
 		{
 		extern void handler(const Except& e);
-		handler(*e);
+		handler(e);
 		return 0;
 		}
 	}

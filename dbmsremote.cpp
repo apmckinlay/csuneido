@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -57,7 +57,7 @@ OstreamFile& dbmslog()
 #define LOG(stuff) TRACE(CLIENTSERVER, stuff)
 #endif
 
-#define DO(fn) try { fn; } catch (const Except* e) { fatal("lost connection:", e->str()); exit(0); }
+#define DO(fn) try { fn; } catch (const Except& e) { fatal("lost connection:", e.str()); exit(0); }
 
 class CheckedSocketConnect
 	{
@@ -397,7 +397,7 @@ DbmsRemote::DbmsRemote(SocketConnect* s) : sc(s)
 	char buf[80];
 	sc.readline(buf, sizeof buf);
 	os << "Suneido Database Server (" << build_date << ")\r\n";
-	if (! cmdlineoptions.ignore_version && 
+	if (! cmdlineoptions.ignore_version &&
 		0 != strcmp(buf, os.str()))
 		except("connect failed\nexpected: " << os.str() << "\ngot: " << buf);
 	sc.write("BINARY\r\n");
@@ -593,7 +593,7 @@ bool DbmsRemote::record_ok(int tran, Mmoffset recadr)
 
 Row DbmsRemote::get(Dir dir, char* query, bool one, Header& hdr, int tran)
 	{
-	WRITEBUF("GET1 " << (dir == PREV ? "- " : (one ? "1 " : "+ ")) 
+	WRITEBUF("GET1 " << (dir == PREV ? "- " : (one ? "1 " : "+ "))
 		<< " T" << tran << " Q" << strlen(query));
 	LOG("c> " << query);
 	sc.write(query);

@@ -227,12 +227,12 @@ Value TransactionClass::call(Value self, Value member, short nargs, short nargna
 					except("Transaction: block commit failed: " << t->get_conflict());
 			return result;
 			}
-		catch (const Except* e)
+		catch (const Except& e)
 			{
 			if (! t->isdone())
 				{
 				// what about block:break/continue ?
-				if (! e->isBlockReturn())
+				if (! e.isBlockReturn())
 					t->rollback();
 				else if (! t->commit())
 					except("Transaction: block commit failed: " << t->get_conflict());
