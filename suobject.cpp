@@ -62,12 +62,30 @@ private:
 	bool include_vec, include_map;
 	};
 
-SuObject::SuObject() : myclass(root_class), readonly(false), has_getter(true), has_setter(true)
+class ModificationCheck
+	{
+public:
+	ModificationCheck(SuObject* ob) : object(ob), vecsize(ob->vecsize()), mapsize(ob->mapsize())
+		{ }
+	~ModificationCheck()
+		{
+		if (vecsize != object->vecsize() || mapsize != object->mapsize())
+			++object->version;
+		}
+private:
+	SuObject* object;
+	int vecsize;
+	int mapsize;
+	};
+
+SuObject::SuObject() 
+	: myclass(root_class), readonly(false), has_getter(true), has_setter(true), version(0)
 	{
 	init();
 	}
 
-SuObject::SuObject(bool ro) : myclass(root_class), readonly(ro), has_getter(true), has_setter(true)
+SuObject::SuObject(bool ro) 
+	: myclass(root_class), readonly(ro), has_getter(true), has_setter(true), version(0)
 	{
 	init();
 	}
@@ -165,7 +183,7 @@ void SuObject::setup()
 	}
 
 SuObject::SuObject(const SuObject& ob) : myclass(ob.myclass), defval(ob.defval), 
-	vec(ob.vec), readonly(false), has_getter(true), has_setter(true)
+	vec(ob.vec), readonly(false), has_getter(true), has_setter(true), version(0)
 	{ 
 	for (Map::const_iterator it = ob.map.begin(), end = ob.map.end(); it != end; ++it)
 		map[it->key] = it->val;
@@ -174,14 +192,15 @@ SuObject::SuObject(const SuObject& ob) : myclass(ob.myclass), defval(ob.defval),
 SuObject::SuObject(SuObject* ob, size_t offset) 
 	: myclass(ob->myclass), defval(ob->defval), 
 	vec(ob->vec.begin() + min(offset, ob->vec.size()), ob->vec.end()),
-	readonly(false), has_getter(true), has_setter(true)
+	readonly(false), has_getter(true), has_setter(true), version(0)
 	{
 	for (Map::iterator it = ob->map.begin(), end = ob->map.end(); it != end; ++it)
 		map[it->key] = it->val;
 	}
 
 void SuObject::add(Value x)
-	{ 
+	{
+	ModificationCheck mc(this);
 	persist_if_block(x);
 	vec.push_back(x); 
 	// check for migration from map to vec
@@ -218,6 +237,7 @@ void SuObject::put(Value m, Value x)
 	{
 	if (! x)
 		return ;
+	ModificationCheck mc(this);
 	persist_if_block(x);
 	int i;
 	if (! m.int_if_num(&i) || m != Value(i) || i < 0 || vec.size() < i)
@@ -396,6 +416,7 @@ void SuObject::pack(char* buf) const
 
 bool SuObject::erase(Value m)
 	{
+	ModificationCheck mc(this);
 	int i;
 	if (m.int_if_num(&i) && 0 <= i && i < vec.size())
 		{
@@ -411,6 +432,7 @@ bool SuObject::erase(Value m)
 // this erase does NOT shift numeric subscripts
 bool SuObject::erase2(Value m)
 	{
+	ModificationCheck mc(this);
 	int i;
 	if (m.int_if_num(&i) && 0 <= i && i < vec.size())
 		{
@@ -689,6 +711,7 @@ Value SuObject::Sort(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (readonly)
 		except("can't sort readonly objects");
+	ModificationCheck mc(this);
 	if (nargs == 0 || (nargs == 1 && ARG(0) == SuFalse))
 		sort();
 	else if (nargs == 1)
@@ -807,6 +830,7 @@ Value SuObject::Delete(short nargs, short nargnames, ushort* argnames, int each)
 		except("usage: object.Delete(member) or Delete(all:)");
 	if (readonly)
 		except("can't Delete from readonly objects");
+	ModificationCheck mc(this);
 	if (nargnames)
 		{ // all:
 		std::fill(vec.begin(), vec.end(), Value());
@@ -832,6 +856,9 @@ Value SuObject::Erase(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
 	{
+	if (readonly)
+		except("can't Add to readonly objects");
+	ModificationCheck mc(this);
 	// optimize Add(@ob) where this and ob have only vector
 	if (each >= 0 && mapsize() == 0)
 		{
@@ -850,8 +877,6 @@ Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
 	static ushort at = ::symnum("at");
 	if (nargnames > 1 || (nargnames == 1 && argnames[0] != at))
 		except("usage: object.Add(value, ... [ at: position ])");
-	if (readonly)
-		except("can't Add to readonly objects");
 	int i = INT_MAX;
 	if (nargnames)
 		ARG(nargs - 1).int_if_num(&i);
@@ -887,6 +912,7 @@ Value SuObject::Reverse(short nargs, short nargnames, ushort* argnames, int each
 		except("usage: object.Reverse()");
 	if (readonly)
 		except("can't Reverse readonly objects");
+	ModificationCheck mc(this);
 	std::reverse(vec.begin(), vec.end());
 	return this;
 	}
@@ -1063,6 +1089,8 @@ SuObject* SuObject::slice(size_t offset)
 
 SuObject::iterator& SuObject::iterator::operator++()
 	{
+	if (object_version != version)
+		except_err("object modified during iteration");
 	if (vi < vec.size())
 		++vi;
 	else if (mi != mend)
@@ -1150,6 +1178,7 @@ bool SuObject::operator==(const SuObject& ob) const
 
 void SuObject::set_members(SuObject* ob)
 	{
+	ModificationCheck mc(this);
 	vec = ob->vec;
 	map = Map();
 	for (Map::iterator it = ob->map.begin(), end = ob->map.end(); it != end; ++it)

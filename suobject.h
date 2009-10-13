@@ -99,9 +99,9 @@ public:
 	class iterator
 		{
 	public:
-		iterator(const Vector& v, const Map& m, bool iv, bool im) 
+		iterator(const Vector& v, const Map& m, bool iv, bool im, int& ver) 
 			: vec(v), vi(iv ? 0 : v.size()), map(m), mi(im ? m.begin() : m.end()), mend(m.end()),
-			include_vec(iv), include_map(im)
+			include_vec(iv), include_map(im), object_version(ver), version(ver)
 			{ }
 		bool operator==(const iterator& iter) const;
 		iterator& operator++();
@@ -114,11 +114,13 @@ public:
 		Map::const_iterator mi;
 		Map::const_iterator mend;
 		bool include_vec, include_map;
+		int& object_version;
+		int version;
 		};
 	iterator begin(bool include_vec = true, bool include_map = true)
-		{ return iterator(vec, map, include_vec, include_map); }
+		{ return iterator(vec, map, include_vec, include_map, version); }
 	iterator end()
-		{ return iterator(vec, map, false, false); }
+		{ return iterator(vec, map, false, false, version); }
 	Value find(Value value);
 	void remove(Value value);
 	void remove1(Value value);
@@ -172,6 +174,9 @@ private:
 	// but due to alignment they won't actually take any more space
 	bool has_getter;
 	bool has_setter;
+	int version; // incremented when member is added or removed
+	// used to detect modification during iteration
+	friend class ModificationCheck;
 	};
 
 #endif
