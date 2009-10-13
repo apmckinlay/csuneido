@@ -43,6 +43,7 @@ public:
 	SuObject* object() const;
 private:
 	void build() const;
+	SuObject* copy() const;
 
 	mutable Value iter;
 	mutable SuObject* ob;

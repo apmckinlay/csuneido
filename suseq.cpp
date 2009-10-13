@@ -35,12 +35,12 @@ void SuSeq::out(Ostream& os)
 Value SuSeq::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value ITER("Iter");
-	static Value COPY("Copy");
-	static Value REWIND("Rewind");
 	static Value NEXT("Next");
+	static Value COPY("Copy");
 
 	if (member == ITER)
 		{
+		static Value REWIND("Rewind");
 		Value newiter = iter.call(iter, COPY, 0, 0, 0, 0);
 		newiter.call(iter, REWIND, 0, 0, 0, 0);
 		return newiter;
@@ -48,6 +48,10 @@ Value SuSeq::call(Value self, Value member, short nargs, short nargnames, ushort
 	else if (member == NEXT)
 		{
 		return iter.call(iter, NEXT, 0, 0, 0, 0);
+		}
+	else if (member == COPY && ! ob)
+		{
+		return ob ? new SuObject(ob) : copy();
 		}
 	else
 		{
@@ -58,17 +62,22 @@ Value SuSeq::call(Value self, Value member, short nargs, short nargnames, ushort
 
 void SuSeq::build() const
 	{
+	if (ob)
+		return ;
+	ob = copy();
+	}
+
+SuObject* SuSeq::copy() const
+	{
 	static Value REWIND("Rewind");
 	static Value NEXT("Next");
 
-	if (ob)
-		return ;
-	// copy from iterator to object
-	ob = new SuObject;
+	SuObject* copy = new SuObject;
 	iter.call(iter, REWIND, 0, 0, 0, 0);
 	Value x;
 	while (iter != (x = iter.call(iter, NEXT, 0, 0, 0, 0)))
-		ob->add(x);
+		copy->add(x);
+	return copy;
 	}
 
 void SuSeq::putdata(Value i, Value x)
