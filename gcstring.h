@@ -89,13 +89,14 @@ public:
 
 	int find(char c, size_t pos = 0) const;
 	int find(const gcstring& x, size_t pos = 0) const;
+	int findlast(const gcstring& x, size_t pos = 0) const;
 	int find(const char* s, size_t pos = 0) const
 		{ return find(gcstring(strlen(s), s), pos); }
 
 	gcstring substr(size_t i, int len = -1) const;
 	gcstring trim() const;
 
-	bool has_prefix(const gcstring& s) const;
+	bool has_prefix(const gcstring& s, size_t pos = 0) const;
 	bool has_suffix(const gcstring& s) const;
 	
 	gcstring to_heap();

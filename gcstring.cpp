@@ -156,9 +156,9 @@ gcstring gcstring::trim() const
 
 int gcstring::find(char c, size_t pos) const
 	{
-	ckflat();
-	if (pos > n)
+	if (pos >= size())
 		return -1;
+	ckflat();
 	char* q = (char*) memchr(p + pos, c, n - pos);
 	return q ? q - p : -1;
 	}
@@ -167,13 +167,41 @@ int gcstring::find(const gcstring& x, size_t pos) const
 	{
 	ckflat();
 	x.ckflat();
-	if (pos > n)
-		return -1;
 	int lim = n - x.n;
-	for (int i = pos; i <= lim; ++i)
+	for (int i = max(pos, 0u); i <= lim; ++i)
 		if (0 == memcmp(p + i, x.p, x.n))
 			return i;
 	return -1;
+	}
+
+int gcstring::findlast(const gcstring& x, size_t pos) const
+	{
+	if (x.size() > size())
+		return -1;
+	ckflat();
+	x.ckflat();
+	for (int i = min(pos, (size_t) n - x.n); i >= 0; --i)
+		if (0 == memcmp(p + i, x.p, x.n))
+			return i;
+	return -1;
+	}
+
+bool gcstring::has_prefix(const gcstring& x, size_t pos) const
+	{
+	if (pos + x.size() > size())
+		return false;
+	ckflat();
+	x.ckflat();
+	return 0 == memcmp(p + pos, x.p, x.n);
+	}
+
+bool gcstring::has_suffix(const gcstring& x) const
+	{
+	if (x.size() > size())
+		return false;
+	ckflat();
+	x.ckflat();
+	return 0 == memcmp(p + n - x.n, x.p, x.n);
 	}
 
 bool has_prefix(const char* s, const char* pre)
@@ -187,16 +215,6 @@ bool has_suffix(const char* s, const char* suf)
 	size_t n_suf = strlen(suf);
 	return n_s >= n_suf &&
 		0 == memcmp(s + n_s - n_suf, suf, n_suf);
-	}
-
-bool gcstring::has_prefix(const gcstring& s) const
-	{
-	return ::has_prefix(str(), s.str());
-	}
-
-bool gcstring::has_suffix(const gcstring& s) const
-	{
-	return ::has_suffix(str(), s.str());
 	}
 
 void gcstring::flatten() const

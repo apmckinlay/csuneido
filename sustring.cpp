@@ -21,6 +21,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "sustring.h"
+#include "builtinargs.h"
 #include "pack.h"
 #include "interp.h"
 #include "globals.h"
@@ -232,40 +233,46 @@ Value SuString::call(Value self, Value member, short nargs, short nargnames, ush
 	static bool first = true;
 	if (first)
 		{
-		METHOD(Substr);
-		METHOD(Size);
+		first = false;
 		METHOD(Asc);
+		methods["Alpha?"] = &SuString::Alphaq;
+		methods["AlphaNum?"] = &SuString::AlphaNumq;
+		METHOD(Compile);
+		METHOD(Contains);
+		METHOD(Detab);
+		METHOD(EndsWith);
+		METHOD(Entab);
 		METHOD(Eval);
 		METHOD(Eval2);
-		METHOD(Compile);
-		METHOD(Tr);
+		METHOD(Extract);
 		METHOD(Find);
 		METHOD(FindLast);
 		METHOD(Find1of);
 		METHOD(FindLast1of);
 		METHOD(Findnot1of);
 		METHOD(FindLastnot1of);
-		METHOD(Match);
-		METHOD(Extract);
-		METHOD(Replace);
-		METHOD(Split);
-		METHOD(Entab);
-		METHOD(Detab);
-		METHOD(Repeat);
-		METHOD(ServerEval);
-		METHOD(Unescape);
-		methods["Number?"] = &SuString::Numberq;
+		methods["Has?"] = &SuString::Contains;
 		METHOD(Iter);
-		METHOD(Mbstowcs);
-		METHOD(Wcstombs);
-		METHOD(Upper);
 		METHOD(Lower);
-		methods["Upper?"] = &SuString::Upperq;
 		methods["Lower?"] = &SuString::Lowerq;
-		methods["Alpha?"] = &SuString::Alphaq;
+		METHOD(Match);
+		METHOD(Mbstowcs);
+		methods["Number?"] = &SuString::Numberq;
 		methods["Numeric?"] = &SuString::Numericq;
-		methods["AlphaNum?"] = &SuString::AlphaNumq;
-		first = false;
+		methods["Prefix?"] = &SuString::StartsWith;
+		METHOD(Repeat);
+		METHOD(Replace);
+		METHOD(ServerEval);
+		METHOD(Size);
+		METHOD(Split);
+		METHOD(StartsWith);
+		METHOD(Substr);
+		methods["Suffix?"] = &SuString::EndsWith;
+		METHOD(Tr);
+		METHOD(Unescape);
+		METHOD(Upper);
+		methods["Upper?"] = &SuString::Upperq;
+		METHOD(Wcstombs);
 		}
 	if (pmfn* p = methods.find(member))
 		return (this->*(*p))(nargs, nargnames, argnames, each);
@@ -380,34 +387,42 @@ Value SuString::Tr(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuString::Find(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 1)
-		except("usage: string.Find(string)");
-	int i = gcstr().find(ARG(0).gcstr());
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.Find(string, pos = 0)");
+	gcstring str = args.getgcstr("string");
+	int pos = args.getint("pos", 0);
+	args.end();
+	
+	int i = s.find(str, pos);
 	return i == -1 ? size() : i;
 	}
 
 Value SuString::FindLast(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 1)
-		except("usage: string.FindLast(string)");
-	char* buf = s.buf();
-	char* str = ARG(0).str();
-	int nstr = strlen(str);
-	for (int i = size() - nstr; i >= 0; --i)
-		if (0 == memcmp(buf + i, str, nstr))
-				return i;
-	return SuFalse;
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.FindLast(string, pos = size())");
+	char* str = args.getstr("string");
+	int pos = args.getint("pos", size());
+	args.end();
+	
+	int i = s.findlast(str, pos);
+	return i == -1 ? SuFalse : i;
 	}
 
 Value SuString::Find1of(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 1)
-		except("usage: string.Find1of(string)");
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.Find1of(string, pos = 0)");
+	gcstring set = args.getgcstr("string");
+	int pos = args.getint("pos", 0);
+	args.end();
+
 	char* buf = s.buf();
 	int nbuf = size();
-	char* set = ARG(0).str();
-	for (int i = 0; i < nbuf; ++i)
-		for (char* s = set; *s; ++s)
+	char* setbuf = set.buf();
+	char* setlim = setbuf + set.size();
+	for (int i = max(pos, 0); i < nbuf; ++i)
+		for (char* s = setbuf; s < setlim; ++s)
 			if (buf[i] == *s)
 				return i;
 	return size();
@@ -415,12 +430,17 @@ Value SuString::Find1of(short nargs, short nargnames, ushort* argnames, int each
 
 Value SuString::FindLast1of(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 1)
-		except("usage: string.FindLast1of(string)");
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.FindLast1of(string, pos = size() - 1)");
+	gcstring set = args.getgcstr("string");
+	int pos = args.getint("pos", size() - 1);
+	args.end();
+	
 	char* buf = s.buf();
-	char* set = ARG(0).str();
-	for (int i = size() - 1; i >= 0; --i)
-		for (char* s = set; *s; ++s)
+	char* setbuf = set.buf();
+	char* setlim = setbuf + set.size();
+	for (int i = min(pos, size() - 1); i >= 0; --i)
+		for (char* s = setbuf; s < setlim; ++s)
 			if (buf[i] == *s)
 				return i;
 	return SuFalse;
@@ -428,14 +448,19 @@ Value SuString::FindLast1of(short nargs, short nargnames, ushort* argnames, int 
 
 Value SuString::Findnot1of(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 1)
-		except("usage: string.Findnot1of(string)");
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.Findnot1of(string, pos = 0)");
+	gcstring set = args.getgcstr("string");
+	int pos = args.getint("pos", 0);
+	args.end();
+
 	char* buf = s.buf();
 	int nbuf = size();
-	char* set = ARG(0).str();
-	for (int i = 0; i < nbuf; ++i)
-		for (char* s = set; ; ++s)
-			if (! *s)
+	char* setbuf = set.buf();
+	char* setlim = setbuf + set.size();
+	for (int i = max(pos, 0); i < nbuf; ++i)
+		for (char* s = setbuf; ; ++s)
+			if (s >= setlim)
 				return i;
 			else if (buf[i] == *s)
 				break ;
@@ -444,13 +469,18 @@ Value SuString::Findnot1of(short nargs, short nargnames, ushort* argnames, int e
 
 Value SuString::FindLastnot1of(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 1)
-		except("usage: string.FindLastnot1of(string)");
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.FindLastnot1of(string, pos = size() - 1)");
+	gcstring set = args.getgcstr("string");
+	int pos = args.getint("pos", size() - 1);
+	args.end();
+	
 	char* buf = s.buf();
-	char* set = ARG(0).str();
-	for (int i = size() - 1; i >= 0; --i)
-		for (char* s = set; ; ++s)
-			if (! *s)
+	char* setbuf = set.buf();
+	char* setlim = setbuf + set.size();
+	for (int i = min(pos, size() - 1); i >= 0; --i)
+		for (char* s = setbuf; ; ++s)
+			if (s >= setlim)
 				return i;
 			else if (buf[i] == *s)
 				break ;
@@ -885,6 +915,35 @@ Value SuString::AlphaNumq(short nargs, short nargnames, ushort* argnames, int ea
 		if (! isalnum((unsigned int) *s))
 			return SuFalse;
 	return SuTrue;
+	}
+
+Value SuString::Contains(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.Has?(string, pos = 0)");
+	gcstring str = args.getgcstr("string");
+	int pos = args.getint("pos", 0);
+	args.end();
+	return s.find(str, pos) == -1 ? SuFalse : SuTrue;
+	}
+
+Value SuString::StartsWith(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.Prefix?(string, pos = 0)");
+	gcstring str = args.getgcstr("string");
+	int pos = args.getint("pos", 0);
+	args.end();
+	return s.has_prefix(str, pos) ? SuTrue : SuFalse;
+	}
+
+Value SuString::EndsWith(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.Suffix?(string)");
+	gcstring str = args.getgcstr("string");
+	args.end();
+	return s.has_suffix(str) ? SuTrue : SuFalse;
 	}
 
 // tests ============================================================
