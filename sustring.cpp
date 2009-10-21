@@ -920,11 +920,10 @@ Value SuString::AlphaNumq(short nargs, short nargnames, ushort* argnames, int ea
 Value SuString::Contains(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.Has?(string, pos = 0)");
+	args.usage("usage: string.Has?(string)");
 	gcstring str = args.getgcstr("string");
-	int pos = args.getint("pos", 0);
 	args.end();
-	return s.find(str, pos) == -1 ? SuFalse : SuTrue;
+	return s.find(str) == -1 ? SuFalse : SuTrue;
 	}
 
 Value SuString::StartsWith(short nargs, short nargnames, ushort* argnames, int each)
