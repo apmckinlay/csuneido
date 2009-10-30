@@ -723,6 +723,7 @@ Querystruct querytests2[] =
 	};
 
 #include "tempdb.h"
+#include "sudate.h"
 #include <vector>
 
 class test_query : public Tests
@@ -1022,6 +1023,42 @@ class test_query : public Tests
 		TESTNUP("tables union columns");
 		TESTNUP("tables union columns extend xyz = 123");
 		};
+	TEST(3, history)
+		{
+		TempDB tempdb;
+		adm("create cus(cnum, abbrev, name) key(cnum) key(abbrev)");
+		
+		tran = theDB()->transaction(READONLY);
+		Query* q = query("history(cus)");
+		q->set_transaction(tran);
+		assert_eq(q->get(NEXT), Query::Eof);
+		q->close(q);
+		verify(theDB()->commit(tran));		
+		
+		tran = theDB()->transaction(READWRITE);
+		req("insert { cnum: 1, abbrev: 'a', name: 'axon' } into cus");
+		verify(theDB()->commit(tran));		
+		
+		tran = theDB()->transaction(READONLY);
+		q = query("history(cus)");
+		q->set_transaction(tran);
+		Row row = q->get(NEXT);
+		verify(row != Query::Eof);
+		Header hdr = q->header();
+		q->close(q);
+		verify(theDB()->commit(tran));		
+		OstreamStr os;
+		os << "cnum: " << row.getval(hdr, "cnum") <<
+			" abbrev: " << row.getval(hdr, "abbrev") <<
+			" name: " << row.getval(hdr, "name") <<
+			" _action: " << row.getval(hdr, "_action");
+		assert_eq(os.str(), gcstring("cnum: 1 abbrev: \"a\" name: \"axon\" _action: \"create\""));
+		SuDate now;
+		SuDate* date = force<SuDate*>(row.getval(hdr, "_date"));
+		int diff = SuDate::minus_ms(&now, date);
+		if (diff < 0 || 1000 < diff)
+			except_err("diff " << diff);
+		}
 	};
 REGISTER(test_query);
 
