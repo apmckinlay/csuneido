@@ -60,6 +60,7 @@ void gcstring::init(const char* p2, size_t n2)
 	// note: always nul terminated
 	p = new(noptrs) char[n2 + 1];
 	n = n2;
+	verify(n >= 0);
 	memcpy((void*) p, (void*) p2, n2);
 	p[n2] = 0;
 	}
@@ -220,6 +221,7 @@ bool has_suffix(const char* s, const char* suf)
 void gcstring::flatten() const
 	{
 	verify(n < 0);
+	verify(cc->left.size() + cc->right.size() == -n);
 	char* s = new(noptrs) char[-n + 1];
 	copy(s, this);
 	n = -n;

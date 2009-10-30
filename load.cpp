@@ -164,30 +164,32 @@ static int load_data(Istream& fin, const gcstring& table)
 
 static void load_data_record(Istream& fin, const gcstring& table, int tran, int n)
 	{
-	if (n > loadbuf_size)
-		{
-		loadbuf_size = max(n, 2 * loadbuf_size);
-		mem_release(loadbuf);
-		loadbuf = (char*) mem_committed(loadbuf_size);
-		verify(loadbuf);
-		}
-	fin.read(loadbuf, n);
-	Record rec(loadbuf);
-	if (fix && table != "views")
-		{
-		Record newrec(rec.cursize());
-		// start at 1 to skip old _deleted field
-		for (int i = 1, n = rec.size(); i < n; ++i)
-			{
-			gcstring s = rec.getraw(i);
-			if (s[0] == PACK_MINUS)
-				s.buf()[1] = ~s[1];
-			newrec.addraw(s);
-			}
-		rec = newrec;
-		}
 	try
 		{
+		if (n > loadbuf_size)
+			{
+			loadbuf_size = max(n, 2 * loadbuf_size);
+			mem_release(loadbuf);
+			loadbuf = (char*) mem_committed(loadbuf_size);
+			verify(loadbuf);
+			}
+		fin.read(loadbuf, n);
+		Record rec(loadbuf);
+		if (rec.cursize() != n)
+			except_err(table << ": rec size " << rec.cursize() << " not what was read " << n);
+		if (fix && table != "views")
+			{
+			Record newrec(rec.cursize());
+			// start at 1 to skip old _deleted field
+			for (int i = 1, n = rec.size(); i < n; ++i)
+				{
+				gcstring s = rec.getraw(i);
+				if (s[0] == PACK_MINUS)
+					s.buf()[1] = ~s[1];
+				newrec.addraw(s);
+				}
+			rec = newrec;
+			}
 		if (table == "views")
 			theDB()->add_any_record(tran, table, rec);
 		else
@@ -195,8 +197,8 @@ static void load_data_record(Istream& fin, const gcstring& table, int tran, int 
 		}
 	catch (const Except& e)
 		{
-		errlog("load: ignoring: ", table.str(), e.str());
-		alert("ignoring: " << table << ": " << e);
+		errlog("load: skipping corrupted record in: ", table.str(), e.str());
+		alert("skipping corrupted record in: " << table << ": " << e);
 		alerts = true;
 		}
 	}

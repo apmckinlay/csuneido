@@ -38,7 +38,11 @@ template <class T> struct RecRep
 	T sz; // total length of RecRep (also referenced as off[-1])
 	T off[1]; // actual array size varies
 	gcstring get(int i) const // NOTE: no alloc - gcstring points to rep
-		{ return i < n ? gcstring(off[i-1] - off[i], (char*) this + off[i]) : gcstring(); }
+		{
+		size_t size = off[i-1] - off[i];
+		verify(size <= sz - off[i]);
+		return i < n ? gcstring(size, (char*) this + off[i]) : gcstring(); 
+		}
 	size_t cursize() const
 		{
 		size_t base = sizeof (short) + sizeof (short) + // type & n
