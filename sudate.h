@@ -63,6 +63,7 @@ public:
 	SuDate& increment();
 	static SuDate* timestamp();
 	static Value parse(char* s, char* order = "yMd");
+	static int minus_ms(SuDate* d1, SuDate* d2);
 private:
 	static Value instantiate(short nargs, short nargnames, ushort* argnames, int each);
 	Value FormatEn(short nargs, short nargnames, ushort* argnames, int each);
