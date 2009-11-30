@@ -75,6 +75,7 @@ private:
 	void ck_modify(char* op);
 
 	void init(const Row& r);
+	void addfield(char* field, gcstring value);
 	void dependencies(ushort mem, gcstring s);
 	void call_observer(ushort member);
 	void call_observers(ushort member);

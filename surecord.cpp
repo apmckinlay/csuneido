@@ -61,11 +61,6 @@ SuRecord::SuRecord(const SuRecord& rec)
 	log("create");
 	}
 
-static ushort basename(char* field)
-	{
-	return ::symnum(PREFIXA(field, strlen(field) - 5));
-	}
-
 SuRecord::SuRecord(const Row& r, const Header& h, int t)
 	: hdr(h), trans(t <= 0 ? 0 : new SuTransaction(t)), recadr(r.recadr), status(OLD)
 	{
@@ -84,18 +79,11 @@ void SuRecord::init(const Row& dbrow)
 	log("create");
 	Row row(dbrow);
 	row.to_heap();
-	// TODO: cache symbol's
 	for (Row::iterator iter = row.begin(hdr); iter != row.end(); ++iter)
 		{
 		std::pair<gcstring,gcstring> p = *iter;
-		if (p.first == "-" || p.second.size() == 0)
-			continue ;
-		char* field = p.first.str();
-		Value x = ::unpack(p.second);
-		if (has_suffix(field, "_deps"))
-			dependencies(basename(field), x.gcstr());
-		else
-			put(field, x);
+		if (p.first != "-")
+			addfield(p.first.str(), p.second);
 		}
 	}
 
@@ -106,20 +94,24 @@ SuRecord::SuRecord(const Record& dbrec, const Lisp<int>& fldsyms, SuTransaction*
 	Record rec = dbrec.to_heap();
 	int i = 0;
 	for (Lisp<int> f = fldsyms; ! nil(f); ++f, ++i)
-		{
-		if (*f == -1)
-			continue ;
-		Value x = ::unpack(rec.getraw(i));
-		// dependencies
-		char* field = symstr(*f);
-		if (has_suffix(field, "_deps"))
-			{
-			char* base = PREFIXA(field, strlen(field) - 5);
-			dependencies(::symnum(base), x.gcstr());
-			}
-		else
-			put(symbol(*f), x);
-		}
+		if (*f != -1)
+			addfield(symstr(*f), rec.getraw(i));
+	}
+
+static ushort basename(char* field)
+	{
+	return ::symnum(PREFIXA(field, strlen(field) - 5));
+	}
+
+void SuRecord::addfield(char* field, gcstring value)
+	{
+	if (value == "")
+		return;
+	Value x = ::unpack(value);
+	if (has_suffix(field, "_deps"))
+		dependencies(basename(field), x.gcstr());
+	else
+		put(field, x);
 	}
 
 void SuRecord::dependencies(ushort mem, gcstring s)
@@ -548,6 +540,7 @@ Value SuRecord::call_rule(ushort i)
 		}
 	catch (const Except& e)
 		{
+		// TODO handle block return ?
 		tss_proc()->fp->rule = old_rule;
 		throw Except(e, e.gcstr() + " (Rule_" + symstr(i) + ")");
 		}
