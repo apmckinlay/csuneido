@@ -617,6 +617,9 @@ static SuString* format(int date, int time, char* fmt)
 			if (n > 1)
 				dst.push_back('M');
 			break ;
+		case '\\' :
+			dst.push_back(*++f);
+			break ;
 		default :
 			while (--n >= 0)
 				dst.push_back(*f);
