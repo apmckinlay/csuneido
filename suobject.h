@@ -91,6 +91,8 @@ public:
 
 	void set_readonly()
 		{ readonly = true; }
+	bool get_readonly()
+		{ return readonly; }
 
 	Value myclass;
 	Value defval; // default value

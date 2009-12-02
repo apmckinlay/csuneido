@@ -96,4 +96,12 @@ private:
 	Lisp<Observe> active_observers;
 	};
 
+class SuRecordClass : public SuValue
+	{
+public:
+	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	void out(Ostream& os)
+		{ os << "Record /* builtin */"; }
+	};
+
 #endif

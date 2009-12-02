@@ -21,6 +21,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "surecord.h"
+#include "suclass.h"
 #include "sudb.h"
 #include "sustring.h"
 #include "interp.h"
@@ -243,25 +244,6 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 			call_observers(m);
 			}
 		return Value();
-		}
-	else if (member == INSTANTIATE || member == CALL)
-		{
-		static Value gRecord = globals["Record"];
-		if (self.ptr() != gRecord.ptr())
-			except("method not found: Call");
-		SuRecord* ob = new SuRecord;
-		// convert args to members
-		Value* args = GETSP() - nargs + 1;
-		short unamed = nargs - nargnames;
-		// un-named
-		int i;
-		for (i = 0; i < unamed; ++i)
-			ob->put(i, args[i]);
-		// named
-		verify(i >= nargs || argnames);
-		for (int j = 0; i < nargs; ++i, ++j)
-			ob->put(symbol(argnames[j]), args[i]);
-		return ob;
 		}
 	else if (member == Update)
 		{
@@ -547,7 +529,7 @@ Value SuRecord::call_rule(ushort i)
 
 	tss_proc()->fp->rule = old_rule;
 
-	if (x)
+	if (x && ! get_readonly())
 		put(symbol(i), x);
 	return x;
 	}
@@ -565,3 +547,25 @@ void SuRecord::pack(char* buf) const
 	return r;
 	}
 
+Value SuRecordClass::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (member == CALL || member == INSTANTIATE)
+		{
+		SuRecord* ob = new SuRecord;
+		// convert args to members
+		Value* args = GETSP() - nargs + 1;
+		short unamed = nargs - nargnames;
+		// un-named
+		int i;
+		for (i = 0; i < unamed; ++i)
+			ob->put(i, args[i]);
+		// named
+		verify(i >= nargs || argnames);
+		for (int j = 0; i < nargs; ++i, ++j)
+			ob->put(symbol(argnames[j]), args[i]);
+		return ob;
+		}
+	else
+		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
+	}

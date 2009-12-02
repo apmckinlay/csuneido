@@ -37,8 +37,6 @@ public:
 	void* operator new(size_t n, void* p)
 		{ return p; }
 
-	static Value suclass(); // singleton as class
-
 	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
 
 	void out(Ostream& out);
@@ -64,8 +62,8 @@ public:
 	static SuDate* timestamp();
 	static Value parse(char* s, char* order = "yMd");
 	static int minus_ms(SuDate* d1, SuDate* d2);
-private:
 	static Value instantiate(short nargs, short nargnames, ushort* argnames, int each);
+private:
 	Value FormatEn(short nargs, short nargnames, ushort* argnames, int each);
 	Value Plus(short nargs, short nargnames, ushort* argnames, int each);
 	Value MinusDays(short nargs, short nargnames, ushort* argnames, int each);
@@ -81,6 +79,13 @@ private:
 
 	int date;
 	int time;
+	};
+
+class SuDateClass : public SuValue
+	{
+public:
+	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	void out(Ostream& os);
 	};
 
 #endif

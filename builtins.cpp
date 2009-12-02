@@ -867,8 +867,8 @@ void builtins()
 	builtin("Database", new DatabaseClass);
 	builtin("Transaction", new TransactionClass);
 	builtin("Cursor", new CursorClass);
-	builtin("Record", new SuRecord);
-	builtin("Date", SuDate::suclass());
+	builtin("Record", new SuRecordClass);
+	builtin("Date", new SuDateClass);
 	extern Value su_file();
 	builtin("File", su_file());
 #ifndef ACE_SERVER
