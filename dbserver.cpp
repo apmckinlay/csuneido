@@ -153,6 +153,7 @@ const bool SEND_FIELDS = true;
 Dbms* DbServerImp::dbms = 0;
 
 int su_port = 3147;
+int dbserver_timeout = 240; // minutes = 4 hours
 
 static int dbserver_clock;
 
@@ -180,9 +181,9 @@ static void _stdcall dbserver(void* sc)
 
 void DbServerImp::timer_proc()
 	{
-	++dbserver_clock;
+	dbserver_clock += 10;
 	for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
-		if (dbserver_clock - dbservers[i]->last_activity > 24) // 24 * 10min = 4 hours
+		if (dbserver_clock - dbservers[i]->last_activity > dbserver_timeout)
 			dbservers[i]->close();
 	}
 

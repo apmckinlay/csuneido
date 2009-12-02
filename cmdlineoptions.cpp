@@ -30,7 +30,8 @@
 enum { PORT = AFTER_ACTIONS, NOSPLASH, UNATTENDED, LOCAL_LIBRARY,
 	NO_EXCEPTION_HANDLING, NO_GARBAGE_COLLECTION,
 	INSTALL_SERVICE, SERVICE,
-	CHECK_START, COMPACT_EXIT, IGNORE_VERSION, IGNORE_CHECK };
+	CHECK_START, COMPACT_EXIT, IGNORE_VERSION, IGNORE_CHECK,
+	TIMEOUT };
 
 char* CmdLineOptions::parse(char* str)
 	{
@@ -120,6 +121,14 @@ char* CmdLineOptions::parse(char* str)
 			if (! (argstr = get_word()))
 				argstr = "127.0.0.1";
 			break ;
+		case TIMEOUT :
+			{
+			extern int dbserver_timeout;
+			int minutes = strtol(s, &s, 10);
+			if (minutes > 0)
+				dbserver_timeout = minutes;
+			break ;
+			}
 		case HELP :
 			alert("options:\n"
 				"	-check\n"
@@ -143,6 +152,7 @@ char* CmdLineOptions::parse(char* str)
 				"	-g[arbage]c[ollection]\n"
 				"	-i[nstall]s[ervice] [options]\n"
 				"	-u[ninstall]s[ervice]\n"
+				"	-t[ime]o[ut] minutes\n"
 				);
 			exit(EXIT_SUCCESS);
 		default :
@@ -168,6 +178,7 @@ static struct { char* str; int num; } options[] = {
 	{ "-eh", NO_EXCEPTION_HANDLING }, { "-exceptionhandling", NO_EXCEPTION_HANDLING },
 	{ "-gc", NO_GARBAGE_COLLECTION }, { "-garbagecollection", NO_GARBAGE_COLLECTION },
 	{ "-rebuild", REBUILD }, { "-r", REBUILD },
+	{ "-timeout", TIMEOUT }, { "-to", TIMEOUT },
 	{ "-tests", TESTS }, 
 	{ "-test", TEST },
 	{ "-t", TESTS },
