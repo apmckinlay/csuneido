@@ -25,6 +25,7 @@
 // interface loosely based on Java Date, Calendar, & SimpleDateFormat
 
 #include "sudate.h"
+#include "suclass.h"
 #include "date.h"
 #include "interp.h"
 #include "globals.h"
@@ -83,8 +84,6 @@ bool SuDate::operator<(const SuDate& d) const
 
 void SuDate::out(Ostream& out)
 	{
-	if (this == suclass().ptr())
-		{ out << "Date /* builtin */"; return ; }
 	DateTime dt(date, time);
 	out.fill('0');
 	out << '#'
@@ -104,11 +103,6 @@ void SuDate::out(Ostream& out)
 			}
 		}
 	out.fill(' ');
-	}
-Value SuDate::suclass()
-	{
-	static SuDate* Date = new SuDate;
-	return Date;
 	}
 
 #define METHOD(fn) methods[#fn] = &SuDate::fn
@@ -136,9 +130,7 @@ Value SuDate::call(Value self, Value member, short nargs, short nargnames, ushor
 		first = false;
 		}
 	argseach(nargs, nargnames, argnames, each);
-	if (member == INSTANTIATE || (member == CALL && self == suclass()))
-		return instantiate(nargs, nargnames, argnames, each);
-	else if (pmfn* p = methods.find(member))
+	if (pmfn* p = methods.find(member))
 		return (this->*(*p))(nargs, nargnames, argnames, each);
 	else
 		{
@@ -794,22 +786,26 @@ Value SuDate::WeekDay(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (*s == '#')
 		++s;
-	if (strlen(s) < 8 || strlen(s) > 18)
+	char* t = strchr(s, '.');
+	int sn = strlen(s);
+	int tn = 0;
+	if (t != NULL)
+		{
+		sn = t - s;
+		tn  = strlen(++t);
+		}
+	if (sn != 8 || (tn != 0 && tn != 4 && tn != 6 && tn != 9))
 		return Value();
-	const char* end = s + strlen(s);
+	
 	int year = get4digit(s); 
-	s += 4;
-	int month = get2digit(s);
-	s += 2;
-	int day = get2digit(s);
-	s += 3; // skip period as well
-	int hour = (end - s >= 2 ? get2digit(s) : 0);
-	s += 2;
-	int minute = (end - s >= 2 ? get2digit(s) : 0);
-	s += 2;
-	int second = (end - s >= 2 ? get2digit(s) : 0);
-	s += 2;
-	int millisecond = (end - s >= 3 ? get3digit(s) : 0);
+	int month = get2digit(s + 4);
+	int day = get2digit(s + 6);
+	
+	int hour = (tn >= 2 ? get2digit(t) : 0);
+	int minute = (tn >= 4 ? get2digit(t + 2) : 0);
+	int second = (tn >= 6 ? get2digit(t + 4) : 0);
+	int millisecond = (tn >= 9 ? get3digit(t + 6) : 0);
+	
 	DateTime dt(year, month, day, hour, minute, second, millisecond);
 	if (! dt.valid())
 		return Value();
@@ -876,6 +872,38 @@ SuDate& SuDate::increment()
 	return ts;
 	}
 
+Value SuDateClass::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
+	{
+	static Value Begin("Begin");
+	static Value End("End");
+
+	argseach(nargs, nargnames, argnames, each);
+	if (member == INSTANTIATE || member == CALL )
+		return SuDate::instantiate(nargs, nargnames, argnames, each);
+	else if (member == Begin)
+		{
+		static Value begin = SuDate::literal("#17000101");
+		if (nargs != 0)
+			except("usage: Date.Begin()");
+		return begin;
+		}
+	else if (member == End)
+		{
+		static Value end = SuDate::literal("#30000101");
+		if (nargs != 0)
+			except("usage: Date.End()");
+		return end;
+		}
+	else
+		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
+	}
+
+void SuDateClass::out(Ostream& os)
+	{ 
+	os << "Date /* builtin */";
+	}
+	
 #include "testing.h"
 
 class test_sudate : public Tests
@@ -906,6 +934,17 @@ class test_sudate : public Tests
 		os.clear();
 		os << ds;
 		asserteq(s, os.str());
+		}
+	TEST(2, literal)
+		{
+		char* s = "#19990101";
+		Value x = SuDate::literal(s);
+		OstreamStr os;
+		os << x;
+		asserteq(gcstring(s), gcstring(os.str()));
+		
+		verify(! SuDate::literal("#200901011"));
+		verify(! SuDate::literal("#20090101.1"));
 		}
 	};
 REGISTER(test_sudate);
