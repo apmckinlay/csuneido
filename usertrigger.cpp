@@ -64,14 +64,8 @@ void Tbl::user_trigger(int tran, const Record& oldrec, const Record& newrec)
 	KEEPSP
 	SuTransaction* t = new SuTransaction(tran);
 	PUSH(t);
-	if (nil(oldrec))
-		PUSH(SuFalse);
-	else
-		PUSH(new SuRecord(oldrec, flds, t));
-	if (nil(newrec))
-		PUSH(SuFalse);
-	else
-		PUSH(new SuRecord(newrec, flds, t));
+	PUSH(nil(oldrec) ? SuFalse : new SuRecord(oldrec, flds, t));
+	PUSH(nil(newrec) ? SuFalse : new SuRecord(newrec, flds, t));
 	try
 		{
 		fn.call(fn, CALL, 3, 0, 0, -1);
