@@ -508,7 +508,8 @@ Mmoffset Database::update_record(int tran, Tbl* tbl,
 		}
 
 	if (tbl->num > TN_VIEWS && newrec.size() > tbl->nextfield)
-		except("update: record has more fields (" << newrec.size() << ") than " << tbl->name << " should (" << tbl->nextfield << ")");
+		except("update: record has more fields (" << newrec.size() << ") than "
+			<< tbl->name << " should (" << tbl->nextfield << ")");
 
 	Mmoffset oldoff = oldrec.off();
 
