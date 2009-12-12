@@ -180,7 +180,7 @@ Value Frame::run()
 				}
 			extern void ckinterrupt();
 			ckinterrupt();
-			if (tss_proc()->allow_yield)
+			if (! tss_proc()->synchronized)
 				Fibers::yieldif();
 			break;
 		case I_POP :
@@ -411,6 +411,7 @@ Value Frame::run()
 		case I_THROW :
 			{
 			static Value block_return("block return");
+verify(block_return.gcstr() == "block return");
 			arg = POP();
 			if (arg == block_return)
 				tss_proc()->block_return_value = POP();

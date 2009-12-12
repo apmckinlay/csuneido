@@ -190,9 +190,9 @@ PRIM(display, "Display(value)");
 struct Synch
 	{
 	Synch()
-		{ tss_proc()->allow_yield = false; }
+		{ ++tss_proc()->synchronized; }
 	~Synch()
-		{ tss_proc()->allow_yield = true; }
+		{ --tss_proc()->synchronized; }
 	};
 
 Value synchronized()

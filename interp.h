@@ -140,7 +140,7 @@ public:
 // a process (Fibers)
 struct Proc
 	{
-	Proc() : fp(frames), super(0), in_handler(false), allow_yield(true)
+	Proc() : fp(frames), super(0), in_handler(false), synchronized(0)
 		{ }
 	void clear_unused();
 
@@ -151,7 +151,7 @@ struct Proc
 	short super;
 	bool in_handler;
 	Value block_return_value;
-	bool allow_yield; // normally true, set to false by Synchronized
+	int synchronized; // normally 0 (meaning allow yield), incremented by Synchronized
 	};
 
 extern Proc*& tss_proc(); // current Proc
