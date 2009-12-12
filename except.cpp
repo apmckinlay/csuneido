@@ -38,6 +38,8 @@ Except::Except(gcstring x)
 		{
 		static SuObject* empty = new SuObject;
 		calls_ =  empty;
+		if (block_return)
+			verify(fp_);
 		}
 	else
 		{

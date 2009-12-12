@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -123,7 +123,7 @@ public:
 	FunctionCompiler(Scanner& scanner, int token, int stmtnest,
 		short b, bool nf, char* gn = "")
 		: Compiler(scanner, token, stmtnest),
-		fn(0), last_adr(-1), nparams(0), ndefaults(0), 
+		fn(0), last_adr(-1), nparams(0), ndefaults(0),
 		rest(false), newfn(nf), base(b), gname(gn), inblock(false),
 		expecting_compound(false)
 		{
@@ -269,11 +269,11 @@ Value Compiler::constant(char* gname)
 		case K_CALLBACK :
 			return callback();
 		case K_TRUE :
-			match(); 
-			return SuBoolean::t; 
+			match();
+			return SuBoolean::t;
 		case K_FALSE :
-			match(); 
-			return SuBoolean::f; 
+			match();
+			return SuBoolean::f;
 		default :
 			if (*scanner.peek() == '{')
 				return suclass(gname);
@@ -684,7 +684,7 @@ void Compiler::match1()
 	if (token == '}' || token == ')' || token == ']')
 		--stmtnest;
 	token = scanner.next();
-	}	
+	}
 
 void Compiler::ckmatch(int t)
 	{
@@ -735,7 +735,7 @@ Params* Compiler::params()
 		if (token == ',')
 			match();
 		}
-	return new Params(scanner.source, pnames.size(), defaults.size(), rest, 
+	return new Params(scanner.source, pnames.size(), defaults.size(), rest,
 		pnames.empty() ? 0 : &pnames[0], defaults.empty() ? 0 : &defaults[0]);
 	}
 
@@ -876,7 +876,7 @@ void FunctionCompiler::block()
 		if (token != I_BITOR) // i.e. |
 			syntax_error();
 		}
-	
+
 	static int it = symnum("it");
 	bool it_param = false;
 	if (nparams == 0)
@@ -887,21 +887,21 @@ void FunctionCompiler::block()
 		scanner.visitor->local(scanner.prev, locals.size() - 1, true);
 		}
 	int last = locals.size();
-	
+
 	int a = emit(I_BLOCK, 0, -1);
 	code.push_back(first);
 	int nparams_loc = code.size();
 	code.push_back(nparams); // number of params
 	bool prev_inblock = inblock;
 	inblock = true; // for break & continue
-	
+
 	{ Save save_it_used(it_used);
 	it_used = false;
 	body();
-	
+
 	inblock = prev_inblock;
 	patch(a);
-	
+
 	if (it_param)
 		{
 		if (it_used)
@@ -1049,7 +1049,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 		match(T_IDENTIFIER);
 		match(K_IN);
 		OPT_PAREN_EXPR2
-		emit(I_CALL, MEM, (value 
+		emit(I_CALL, MEM, (value
 			? (list ? ITERLISTVALUES : ITERVALUES)
 			: (list ? ITERLIST : ITERKEYS)));
 		a = code.size();
@@ -1201,6 +1201,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 				stmtexpr();
 				}
 			static Value ret("block return");
+verify(ret.gcstr() == "block return");
 			emit(I_PUSH, LITERAL, literal(ret));
 			emit(I_THROW);
 			}
@@ -1245,7 +1246,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 				}
 			match(':');
 			patch(b);
-			while (scanner.keyword != K_CASE && 
+			while (scanner.keyword != K_CASE &&
 				scanner.keyword != K_DEFAULT && token != '}')
 				statement(cont, pbrk);
 			a = emit(I_JUMP, UNCOND, a);
@@ -1545,7 +1546,7 @@ void FunctionCompiler::expr0(bool newtype)
 		option = LITERAL;
 		lvalue = value = false;
 		break ;
-	case '{' : // block 
+	case '{' : // block
 		block();
 		option = LITERAL;
 		lvalue = value = false;
@@ -1583,7 +1584,7 @@ void FunctionCompiler::expr0(bool newtype)
 				}
 			break ;
 		default :
-			if (isupper(scanner.value[*scanner.value == '_' ? 1 : 0]) && 
+			if (isupper(scanner.value[*scanner.value == '_' ? 1 : 0]) &&
 				'{' == (expecting_compound ? scanner.peeknl() : *scanner.peek()))
 				{ // Name { => class
 				emit_literal();
@@ -1602,7 +1603,7 @@ void FunctionCompiler::expr0(bool newtype)
 					scanner.visitor->global(scanner.prev, id);
 					if (id == TrueNum || id == FalseNum)
 						{
-						emit(I_PUSH, LITERAL, 
+						emit(I_PUSH, LITERAL,
 							literal(id == TrueNum ? SuTrue : SuFalse));
 						lvalue = value = false;
 						}
@@ -1625,7 +1626,7 @@ void FunctionCompiler::expr0(bool newtype)
 						break ;
 					case K_TRUE :
 					case K_FALSE :
-						emit(I_PUSH, LITERAL, 
+						emit(I_PUSH, LITERAL,
 							literal(scanner.keyword == K_TRUE ? SuTrue : SuFalse));
 						lvalue = value = false;
 						break ;
@@ -1767,7 +1768,7 @@ void FunctionCompiler::args(short& nargs, vector<ushort>& argnames, char* delims
 		if (token == I_ADD)
 			{
 			match();
-			each = strtoul(scanner.value, NULL, 0);			
+			each = strtoul(scanner.value, NULL, 0);
 			match(T_NUMBER);
 			}
 		expr();
@@ -1906,12 +1907,12 @@ short FunctionCompiler::literal(Value x)
 short FunctionCompiler::local(bool init)
 	{
 	ushort num = symnum(scanner.value);
-	
+
 	// for blocks
 	static ushort it_num = symnum("it");
 	if (num == it_num)
 		it_used = true;
-	
+
 	for (int i = locals.size() - 1; i >= 0; --i)
 		if (locals[i] == num)
 			{
@@ -2008,9 +2009,9 @@ short FunctionCompiler::emit(short op, short option, short target,
 		else if (x.is_int())
 			{ op = I_PUSH_INT; target = x.integer(); }
 		if (op != I_PUSH && lit == literals.size() - 1)
-			{ 
-			literals.pop_back(); 
-			prevlits.back().il = -99; 
+			{
+			literals.pop_back();
+			prevlits.back().il = -99;
 			}
 		}
 	else
@@ -2084,7 +2085,7 @@ short FunctionCompiler::emit(short op, short option, short target,
 				code.push_back(target >> 8);
 			}
 		}
-	
+
 	else if (op == I_EACH)
 		code.push_back(target);
 
@@ -2141,7 +2142,7 @@ struct Cmpltest
 	char* result;
 	};
 
-static Cmpltest cmpltests[] = 
+static Cmpltest cmpltests[] =
 	{
 	{ "123;", "123; }\n\
 					  0  nop \n\
@@ -2240,18 +2241,18 @@ static Cmpltest cmpltests[] =
 					  2  push mem b\n\
 					  5  return \n\
 					  6\n" },
-					  
+
 	{ ".b;", ".b; }\n\
 					  0  nop \n\
 					  1  push mem this b\n\
 					  4  return \n\
 					  5\n" },
-					  
+
 	{ "X;", "X; }\n\
 					  0  nop \n\
 					  1  push global X\n\
 					  4  return \n\
-					  5\n" }, 
+					  5\n" },
 
 	{ "True;", "True; }\n\
 					  0  nop \n\
@@ -2850,7 +2851,7 @@ a().b = c; }\n\
 					 22  return \n\
 					 23\n" },
 
-	
+
 	{ "a(); a(b); a(b()); a(b, c, d); a(b(), c());", \
 	  "a(); \n\
 					  0  nop \n\
@@ -3573,14 +3574,14 @@ class test_compile_params : public Tests
 	TEST(0, main)
 		{
 		Params* p;
-		
+
 		p = compile_params("");
 		asserteq(p->nrequired, 0);
 		asserteq(p->ndefaults, 0);
 		asserteq(p->rest, 0);
 		verify(p->names == 0);
 		verify(p->defaults == 0);
-		
+
 		p = compile_params("a,b,c");
 		asserteq(p->nrequired, 3);
 		asserteq(p->ndefaults, 0);
@@ -3589,7 +3590,7 @@ class test_compile_params : public Tests
 		asserteq(p->names[1], symnum("b"));
 		asserteq(p->names[2], symnum("c"));
 		verify(p->defaults == 0);
-		
+
 		p = compile_params("a,b,c=12,d='D',@e");
 		asserteq(p->nrequired, 2);
 		asserteq(p->ndefaults, 2);

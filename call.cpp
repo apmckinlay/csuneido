@@ -56,6 +56,7 @@ char* trycall(const char* fn, char* arg, int* plen)
 		}
 	catch (const Except& e)
 		{
+		// TODO catch block return ?
 		OstreamStr oss;
 		oss << fn << "(" << arg << ") => " << e;
 		str = oss.str();
