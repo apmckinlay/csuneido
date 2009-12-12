@@ -41,6 +41,7 @@ public:
 	void write(char* buf)
 		{ write(buf, strlen(buf)); }
 	int read(char* buf, int len);
+	void flush();
 	void closewrite();
 	~RunPiped();
 private:
@@ -117,6 +118,11 @@ int RunPiped::read(char* buf, int len)
 	return dwRead;
 	}
 
+void RunPiped::flush()
+	{
+	FlushFileBuffers(hChildStdinWr);
+	}
+
 void RunPiped::closewrite()
 	{
 	CloseHandle(hChildStdinWr);
@@ -154,6 +160,7 @@ public:
 			Method<SuRunPiped>("Readline", &SuRunPiped::Readline),
 			Method<SuRunPiped>("Write", &SuRunPiped::Write),
 			Method<SuRunPiped>("Writeline", &SuRunPiped::Writeline),
+			Method<SuRunPiped>("Flush", &SuRunPiped::Flush),
 			Method<SuRunPiped>("CloseWrite", &SuRunPiped::CloseWrite),
 			Method<SuRunPiped>("Close", &SuRunPiped::Close),
 			Method<SuRunPiped>("", 0)
@@ -168,6 +175,7 @@ private:
 	Value Readline(BuiltinArgs&);
 	Value Write(BuiltinArgs&);
 	Value Writeline(BuiltinArgs&);
+	Value Flush(BuiltinArgs&);
 	Value CloseWrite(BuiltinArgs&);
 	Value Close(BuiltinArgs&);
 
@@ -271,6 +279,14 @@ Value SuRunPiped::Writeline(BuiltinArgs& args)
 	args.usage("usage: runpiped.Writeline(s)");
 	write(args);
 	rp->write("\r\n", 2);
+	return Value();
+	}
+
+Value SuRunPiped::Flush(BuiltinArgs& args)
+	{
+	args.usage("usage: runpiped.Flush()");
+	args.end();
+	rp->flush();
 	return Value();
 	}
 
