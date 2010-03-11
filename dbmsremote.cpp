@@ -497,6 +497,7 @@ Lisp<gcstring> DbmsRemote::libget(char* name)
 Lisp<gcstring> DbmsRemote::libraries()
 	{
 	sc.write("LIBRARIES\r\n");
+	LOG("c> " << "LIBRARIES");
 	char buf[1000];
 	sc.ck_readline(buf, sizeof buf);
 	if (buf[0] != '(' || buf[strlen(buf) - 3] != ')')
@@ -514,6 +515,7 @@ Lisp<gcstring> DbmsRemote::libraries()
 Lisp<int> DbmsRemote::tranlist()
 	{
 	sc.write("TRANLIST\r\n");
+	LOG("c> " << "TRANLIST");
 	char buf[1000];
 	sc.ck_readline(buf, sizeof buf);
 	if (buf[0] != '(' || buf[strlen(buf) - 3] != ')')
@@ -532,6 +534,7 @@ Lisp<int> DbmsRemote::tranlist()
 Value DbmsRemote::timestamp()
 	{
 	sc.write("TIMESTAMP\r\n");
+	LOG("c> " << "TIMESTAMP");
 	char buf[80];
 	sc.ck_readline(buf, sizeof buf);
 	stripnl(buf);
@@ -562,12 +565,14 @@ Value DbmsRemote::run(char* s)
 int64 DbmsRemote::size()
 	{
 	sc.write("SIZE\r\n");
+	LOG("c> " << "SIZE");
 	return int_to_mmoffset(sc.readint('S'));
 	}
 
 Value DbmsRemote::connections()
 	{
 	sc.write("CONNECTIONS\r\n");
+	LOG("c> " << "CONNECTIONS");
 	return sc.readvalue();
 	}
 
@@ -603,12 +608,14 @@ Row DbmsRemote::get(Dir dir, char* query, bool one, Header& hdr, int tran)
 int DbmsRemote::tempdest()
 	{
 	sc.write("TEMPDEST\r\n");
+	LOG("c> " << "TEMPDEST");
 	return sc.readint('D');
 	}
 
 int DbmsRemote::cursors()
 	{
 	sc.write("CURSORS\r\n");
+	LOG("c> " << "CURSORS");
 	return sc.readint('N');
 	}
 
@@ -631,6 +638,7 @@ bool DbmsRemote::refresh(int tran)
 int DbmsRemote::final()
 	{
 	sc.write("FINAL\r\n");
+	LOG("c> " << "FINAL");
 	return sc.readint('N');
 	}
 
