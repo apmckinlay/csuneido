@@ -609,6 +609,12 @@ static SuString* format(int date, int time, char* fmt)
 			if (n > 1)
 				dst.push_back('M');
 			break ;
+		#define LOCALE_STR_DELIMITER '\''
+		case '\'':
+			f++;
+			while (*f && (*f != LOCALE_STR_DELIMITER))
+				dst.push_back(*f++);
+			break;
 		case '\\' :
 			dst.push_back(*++f);
 			break ;
