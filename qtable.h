@@ -59,8 +59,6 @@ public:
 	bool updateable() const
 		{ return true; }
 	bool output(const Record& r);
-	bool erase(const gcstring& index, const Record& key);
-	bool update(const gcstring& index, const Record& key, const Record& newrec);
 
 	gcstring table;
 	// used by Select for filters

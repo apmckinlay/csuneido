@@ -49,8 +49,6 @@ public:
 
 	bool output(const Record& r)
 		{ return source->output(r); }
-	bool update(const gcstring& index, const Record& key, const Record& newrec);
-	bool erase(const gcstring& index, const Record& key);
 //private:
 	static Fields rename_fields(Fields f, Fields from, Fields to);
 	static Indexes rename_indexes(Indexes i, Fields from, Fields to);

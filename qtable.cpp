@@ -416,20 +416,6 @@ bool Table::output(const Record& r)
 	return true;
 	}
 
-bool Table::erase(const gcstring& index, const Record& key)
-	{
-	verify(tran != INT_MAX);
-	theDB()->remove_record(tran, table, index, key);
-	return true;
-	}
-
-bool Table::update(const gcstring& index, const Record& key, const Record& newrec)
-	{
-	verify(tran != INT_MAX);
-	theDB()->update_record(tran, table, index, key, newrec);
-	return true;
-	}
-
 #include "testing.h"
 #include "tempdb.h"
 

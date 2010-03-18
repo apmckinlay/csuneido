@@ -50,8 +50,6 @@ public:
 	bool updateable() const
 		{ return Query1::updateable() && strategy == COPY; }
 	bool output(const Record& r);
-	bool update(const gcstring& index, const Record& key, const Record& rec);
-	bool erase(const gcstring& index, const Record& key);
 	void close(Query* q);
 private:
 	Fields flds;
