@@ -1193,6 +1193,7 @@ void SuNumber::pack(char* buf) const
 		if (sz == 10)
 			n->digits[3] = ~((buf[8] << 8) | buf[9]);
 		}
+	n->check();
 	return n;
 	}
 
