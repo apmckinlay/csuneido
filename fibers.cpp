@@ -116,7 +116,7 @@ static void save_stack()
 			}
 #elif defined(__GNUC__)
 		asm("movl %%fs:0x4,%%eax" : "=a" (p));
-#elif
+#else
 #warning "replacement for inline assembler required"
 #endif
 		curfiber->stack_end = p;
