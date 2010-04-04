@@ -44,7 +44,7 @@ public:
 	virtual Lisp<gcstring> order() = 0;
 	virtual Lisp<Lisp<gcstring> > keys() = 0;
 	virtual Row get(Dir dir) = 0;
-    virtual void rewind() = 0;
+	virtual void rewind() = 0;
 	virtual char* explain() = 0;
 	virtual bool output(const Record& rec) = 0;
 	virtual void set_transaction(int tran) = 0;
