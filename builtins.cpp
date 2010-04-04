@@ -297,10 +297,8 @@ PRIM(booleanq, "Boolean?(value)");
 
 Value functionq()
 	{
-	const char* type = TOP().type();
-	return 0 == strcmp(type, "Function") ||
-		0 == strcmp(type, "Method") ||
-		0 == strcmp(type, "Block")
+	Value x = TOP();
+	return val_cast<Func*>(x) || val_cast<SuMethod*>(x)
 		? SuTrue : SuFalse;
 	}
 PRIM(functionq, "Function?(value)");
