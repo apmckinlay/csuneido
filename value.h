@@ -158,4 +158,6 @@ extern Value SuTrue;
 extern Value SuFalse;
 extern Value SuEmptyString;
 
+NORETURN(method_not_found(const char* type, Value member));
+
 #endif

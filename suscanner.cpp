@@ -78,6 +78,6 @@ Value SuScanner::call(Value self, Value member, short nargs, short nargnames, us
 	else if (member == ITER)
 		return this;
 	else
-		unknown_method("Scanner", member);
+		method_not_found("scanner", member);
 	}
 

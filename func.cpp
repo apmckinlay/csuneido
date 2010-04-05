@@ -38,7 +38,7 @@ Value Func::call(Value self, Value member, short nargs, short nargnames, ushort*
 	if (member == Params)
 		return params();
 	else
-		unknown_method("function", member);
+		method_not_found("function", member);
 	return Value();
 	}
 

@@ -143,11 +143,19 @@ void cantforce(const char* t1, const char* t2)
 	except("can't convert " << t1 << " to " << t2);
 	}
 
+#include "sustring.h"
+
+void method_not_found(const char* type, Value member)
+	{
+	if (val_cast<SuString*>(member))
+		except("method not found: " << type << '.' << member.gcstr());
+	else
+		except("method not found: " << type << '.' << member);
+	}
+
 // test =============================================================
 
 #include "testing.h"
-#include "except.h"
-#include "sustring.h"
 
 class test_value : public Tests
 	{

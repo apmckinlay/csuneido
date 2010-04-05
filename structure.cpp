@@ -146,6 +146,6 @@ Value Structure::call(Value self, Value member, short nargs, short nargnames, us
 			except("member not found: " << ARG(1));
 		}
 	else
-		unknown_method("struct", member);
+		method_not_found("struct", member);
 	return Value();
 	}

@@ -73,7 +73,7 @@ Value SuClass::call(Value self, Value member, short nargs, short nargnames, usho
 		return globals[base].call(self, member, nargs, nargnames, argnames, each);
 	else
 		// for built-in classes that don't use RootClass
-		except("method not found: " << member);
+		method_not_found(type(), member);
 	}
 
 class Counter
@@ -204,6 +204,6 @@ Value RootClass::notfound(Value self, Value member, short nargs, short nargnames
 		return self.call(self, DEFAULT, nargs + 1, nargnames, argnames, each);
 		}
 	else
-		except("method not found: " << ARG(0));
+		method_not_found(self.type(), ARG(0));
 	}
 

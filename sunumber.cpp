@@ -1403,7 +1403,7 @@ Value SuNumber::call(Value self, Value member, short nargs, short nargnames, ush
 		if (SuNumbers && (ob = SuNumbers.ob_if_ob()) && ob->has(member))
 			return ob->call(self, member, nargs, nargnames, argnames, each);
 		else
-			unknown_method("number", member);
+			method_not_found("number", member);
 		}
 	}
 

@@ -21,12 +21,12 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "suvalue.h"
+#include "value.h"
 #include "except.h"
 #include "ostreamstr.h"
 #include "gcstring.h"
 #include <typeinfo>
 #include "symbols.h"
-#include "interp.h" // for unknown_method 
 #include "ctype.h"
 
 static int ord = ::order("other");
@@ -103,7 +103,7 @@ Value SuValue::call(Value self, Value member, short nargs, short nargnames, usho
 	if (member == CALL)
 		except("can't call " << type());
 	else
-		unknown_method(type(), member);
+		method_not_found(type(), member);
 	}
 
 int order(char* name)
@@ -122,10 +122,6 @@ const char* SuValue::type() const
 	const char* s = typeid(*this).name();
 	while (isdigit(*s))
 		++s; // for gcc
-	if (has_prefix(s, "BuiltinClass<"))
-		return "Class";
-	if (has_prefix(s, "BuiltinInstance<"))
-		return "Object";
 	if (has_prefix(s, "class "))
 		s += 6;
 	if (has_prefix(s, "Su"))

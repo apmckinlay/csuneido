@@ -140,7 +140,7 @@ Value SuDate::call(Value self, Value member, short nargs, short nargnames, ushor
 		if (Dates && (ob = Dates.ob_if_ob()) && ob->has(member))
 			return ob->call(self, member, nargs, nargnames, argnames, each);
 		else
-			unknown_method("date", member);
+			method_not_found("date", member);
 		}
 	}
 

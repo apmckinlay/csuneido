@@ -126,7 +126,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		return Value();
 		}
 	else
-		unknown_method("socketClient", member);
+		method_not_found("socketClient", member);
 	}
 
 void SuSocketClient::ckopen(char* action)

@@ -1239,7 +1239,7 @@ Value SuObjectIter::call(Value self, Value member, short nargs, short nargnames,
 		return this;
 		}
 	else
-		except("method not found: " << member);
+		method_not_found(type(), member);
 	}
 
 // tests ============================================================

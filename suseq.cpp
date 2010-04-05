@@ -173,7 +173,7 @@ Value SuSeqIter::call(Value self, Value member, short nargs, short nargnames, us
 		return Value();
 		}
 	else
-		except("SeqIter: unknown method: " << member);
+		method_not_found(type(), member);
 	}
 
 #include "interp.h"

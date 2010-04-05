@@ -173,7 +173,7 @@ public:
 			return new SuString(QUERYONE_PARAMS);
 			}
 		else
-			unknown_method(which, member);
+			method_not_found(which, member);
 		}
 	virtual const char* type() const
 		{ return "Builtin"; }
@@ -337,7 +337,7 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 		if (Trans && (ob = Trans.ob_if_ob()) && ob->has(member))
 			return ob->call(self, member, nargs, nargnames, argnames, each);
 		else
-			unknown_method("transaction", member);
+			method_not_found("transaction", member);
 		}
 	}
 
@@ -534,7 +534,7 @@ Value SuQuery::call(Value, Value member, short nargs, short nargnames, ushort* a
 		return Value();
 		}
 	else
-		unknown_method("query", member);
+		method_not_found("query", member);
 	}
 
 Value SuQuery::get(Dir dir)

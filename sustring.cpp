@@ -284,7 +284,7 @@ Value SuString::call(Value self, Value member, short nargs, short nargnames, ush
 		if (SuStrings && (ob = SuStrings.ob_if_ob()) && ob->has(member))
 			return ob->call(self, member, nargs, nargnames, argnames, each);
 		else
-			unknown_method("string", member);
+			method_not_found("string", member);
 		}
 	}
 
@@ -789,7 +789,7 @@ Value SuStringIter::call(Value self, Value member, short nargs, short nargnames,
 		return this;
 		}
 	else
-		except("method not found: " << member);
+		method_not_found(type(), member);
 	}
 
 Value SuString::Iter(short nargs, short nargnames, ushort* argnames, int each)

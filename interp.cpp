@@ -834,14 +834,6 @@ void Proc::clear_unused()
 	stack.clear_unused();
 	}
 
-void unknown_method(const char* type, Value member)
-	{
-	if (val_cast<SuString*>(member))
-		except("unknown method: " << type << '.' << member.gcstr());
-	else
-		except("unknown method: " << type << '.' << member);
-	}
-
 #include "testing.h"
 
 class test_catch_match : public Tests

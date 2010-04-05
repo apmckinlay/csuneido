@@ -27,6 +27,7 @@
 #include "interp.h"
 #include "suobject.h"
 #include "builtinargs.h"
+#include "ctype.h"
 
 template <class T> class BuiltinMethod : public SuValue
 	{
@@ -44,7 +45,7 @@ public:
 			BuiltinArgs args(nargs, nargnames, argnames, each);
 			return (ob->*fn)(args);
 			}
-		except("method not found: " << member);
+		method_not_found("builtin-method", member);
 		}
 private:
 	T* ob;
@@ -60,6 +61,18 @@ template <class T> struct Method
 	MemFun method;
 	};
 
+template <class T> const char* builtintype()
+	{
+	const char* s = typeid(T).name();
+	while (isdigit(*s))
+		++s; // for gcc
+	if (has_prefix(s, "class "))
+		s += 6;
+	if (has_prefix(s, "Su"))
+		s += 2;
+	return s;
+	}
+
 template <class T> class BuiltinInstance : public T
 	{
 	typedef Value (T::*MemFun)(BuiltinArgs&);
@@ -71,7 +84,7 @@ template <class T> class BuiltinInstance : public T
 			BuiltinArgs args(nargs, nargnames, argnames, each);
 			return (this->*m)(args);
 			}
-		except("method not found: " << member);
+		method_not_found(builtintype<T>(), member);
 		}
 	virtual Value getdata(Value member)
 		{
@@ -109,7 +122,7 @@ template <class T> class BuiltinClass : public SuValue
 			return ob;
 			}
 		else
-			except("method not found: " << member);
+			method_not_found(builtintype<T>(), member);
 		}
 	virtual void out(Ostream& os)
 		{ os << "/* builtin class */"; }
@@ -117,6 +130,8 @@ template <class T> class BuiltinClass : public SuValue
 		{ return new T; }
 	Value callclass(BuiltinArgs& args)
 		{ return instantiate(args); }
+	const char* type() const
+		{ return builtintype<T>(); }
 	};
 
 #endif

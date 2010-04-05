@@ -216,6 +216,4 @@ struct KeepSp
 // evaluate a string of source code
 Value run(const char* source);
 
-NORETURN(unknown_method(const char* type, Value member));
-
 #endif
