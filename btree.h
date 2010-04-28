@@ -489,6 +489,8 @@ public:
 			{
 			TreeNode* node = (TreeNode*) dest->adr(off);
 			TreeSlots& slots = node->slots;
+			if (slots.size() == 0)
+				return start;
 			TreeSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), TreeSlot(key));
 			int i = slot - slots.begin();
 			return start + (nodefrac * i) / slots.size();
@@ -497,6 +499,8 @@ public:
 			{
 			LeafNode* node = (LeafNode*) dest->adr(off);
 			LeafSlots& slots = node->slots;
+			if (slots.size() == 0)
+				return start;
 			LeafSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), LeafSlot(key));
 			int i = slot - slots.begin();
 			return start + (nodefrac * i) / slots.size();
