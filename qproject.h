@@ -67,6 +67,7 @@ private:
 	TempDest* td;
 	Fields via;
 
+	void includeDeps(const Fields& columns);
 	void ckmodify(char* action);
 	};
 

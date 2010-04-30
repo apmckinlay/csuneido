@@ -49,21 +49,26 @@ Project::Project(Query* s, const Fields& flds_, bool allbut)
 	else
 		flds = lispset(flds);
 
-	// include dependencies (_deps)
-	for (Fields f = flds; ! nil(f); ++f)
-		{
-		gcstring deps(*f + "_deps");
-		if (columns.member(deps) && ! flds.member(deps))
-			flds.append(deps);
-		}
-
 	// check if project contain candidate key
 	Indexes k = source->keys();
 	for (; ! nil(k); ++k)
 		if (subset(flds, *k))
 			break ;
 	if (! nil(k))
+		{
 		strategy = COPY;
+		includeDeps(columns);
+		}
+	}
+
+void Project::includeDeps(const Fields& columns)
+	{
+	for (Fields f = flds; ! nil(f); ++f)
+		{
+		gcstring deps(*f + "_deps");
+		if (columns.member(deps) && ! flds.member(deps))
+			flds.append(deps);
+		}
 	}
 
 void Project::out(Ostream& os) const
