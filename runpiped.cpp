@@ -91,7 +91,7 @@ RunPiped::RunPiped(char* cmd)
 		&piProcInfo);	// receives PROCESS_INFORMATION 
 
 	if (bFuncRetn == 0) 
-		except("RunPiped: CreateProcess failed");
+		except("RunPiped: CreateProcess failed for: " << cmd);
 	
 	CloseHandle(piProcInfo.hProcess);
 	CloseHandle(piProcInfo.hThread);
@@ -140,6 +140,7 @@ RunPiped::~RunPiped()
 #include "builtinclass.h"
 #include "sufinalize.h"
 #include "sustring.h"
+#include "ostreamstr.h"
 
 class SuRunPiped : public SuFinalize
 	{
@@ -198,12 +199,30 @@ void BuiltinClass<SuRunPiped>::out(Ostream& os)
 	os << "RunPiped /* builtin class */";
 	}
 
+static char* argsToCmd(BuiltinArgs& args)
+	{
+	bool first = true;
+	OstreamStr os;
+	while (Value value = args.getNextUnnamed())
+		{
+		gcstring arg = value.gcstr();
+		int i = arg.find(' ');
+		// don't put quotes on first arg to handle old style entire command line
+		if (first || i == -1)
+			os << arg;
+		else
+			os << '"' << arg << '"';
+		os << ' ';
+		first = false;
+		}
+	return os.str();
+	}
+
 template<>
 Value BuiltinClass<SuRunPiped>::instantiate(BuiltinArgs& args)
 	{
 	args.usage("usage: RunPiped(command)");
-	gcstring cmd = args.getgcstr("command");
-	args.end();
+	gcstring cmd = argsToCmd(args);
 	SuRunPiped* runpiped = new BuiltinInstance<SuRunPiped>();
 	runpiped->init(cmd);
 	return runpiped;
@@ -212,11 +231,9 @@ Value BuiltinClass<SuRunPiped>::instantiate(BuiltinArgs& args)
 template<>
 Value BuiltinClass<SuRunPiped>::callclass(BuiltinArgs& args)
 	{
-	args.usage("usage: RunPiped(filename, mode = 'r', block = false)");
-	gcstring cmd = args.getgcstr("command");
+	args.usage("usage: RunPiped(command, block = false)");
+	gcstring cmd = argsToCmd(args);
 	Value block = args.getValue("block", SuFalse);
-	args.end();
-
 	SuRunPiped* rp = new BuiltinInstance<SuRunPiped>();
 	rp->init(cmd);
 	if (block == SuFalse)

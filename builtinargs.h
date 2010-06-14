@@ -33,6 +33,7 @@ public:
 	BuiltinArgs(short& n, short& nn, ushort*& an, int& each);
 	BuiltinArgs& usage(char* s1, char* s2 = "", char* s3 = "")
 		{ msg1 = s1; msg2 = s2; msg3 = s3; return *this; }
+	void exceptUsage();
 	Value getValue(char* name);
 	Value getValue(char* name, Value defval)
 		{
@@ -68,6 +69,7 @@ public:
 		{ return nargnames > 0; }
 	Value getNext();
 	ushort curName();
+	Value getNextUnnamed();
 	void end();
 private:
 	Value getval(char* name);

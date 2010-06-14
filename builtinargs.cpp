@@ -82,7 +82,7 @@ Value BuiltinArgs::getValue(char* name)
 	{
 	Value val = getval(name);
 	if (! val)
-		except(msg1 << msg2 << msg3);
+		exceptUsage();
 	return val;
 	}
 
@@ -94,7 +94,7 @@ void BuiltinArgs::ckndef()
 void BuiltinArgs::end()
 	{
 	if (i < unnamed)
-		except(msg1 << msg2 << msg3);
+		exceptUsage();
 	}
 
 Value BuiltinArgs::getNext()
@@ -108,4 +108,14 @@ ushort BuiltinArgs::curName()
 	{
 	int cur = i - 1;
 	return cur < unnamed ? 0 :  argnames[cur - unnamed];
+	}
+
+Value BuiltinArgs::getNextUnnamed()
+	{
+	return i < unnamed ? ARG(i++) : Value();
+	}
+
+void BuiltinArgs::exceptUsage()
+	{
+	except(msg1 << msg2 << msg3);
 	}
