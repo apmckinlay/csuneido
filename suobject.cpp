@@ -289,7 +289,8 @@ Value SuObject::getdefault(Value member, Value def)
 	if (SuObject* defval_ob = def.ob_if_ob())
 		{
 		x = new SuObject(*defval_ob);
-		put(member, x);
+		if (! readonly)
+			put(member, x);
 		return x;
 		}
 	return def; // member not found
