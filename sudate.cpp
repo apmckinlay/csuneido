@@ -516,12 +516,12 @@ Value SuDate::parse(char* s, char* order)
 
 inline void add(std::vector<char>& dst, const char* s)
 	{
-	std::copy(s, s + strlen(s), std::back_inserter(dst));
+	dst.insert(dst.end(), s, s + strlen(s));
 	}
 
 inline void add(std::vector<char>& dst, const char* s, int n)
 	{
-	std::copy(s, s + n, std::back_inserter(dst));
+	dst.insert(dst.end(), s, s + n);
 	}
 
 static SuString* format(int date, int time, char* fmt)

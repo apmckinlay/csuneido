@@ -789,7 +789,7 @@ Value SuObject::Slice(short nargs, short nargnames, ushort* argnames, int each)
 	if (i < j)
 		{
 		vec.reserve(j - i);
-		std::copy(vec.begin() + i, vec.begin() + j, std::back_inserter(ob->vec));
+		ob->vec.insert(ob->vec.end(), vec.begin() + i, vec.begin() + j);
 		}
 	return ob;
 	}
@@ -869,7 +869,7 @@ Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
 		if (ob->mapsize() == 0)
 			{
 			if (each < ob->vecsize())
-				std::copy(ob->vec.begin() + each, ob->vec.end(), std::back_inserter(vec));
+				vec.insert(vec.end(), ob->vec.begin() + each, ob->vec.end());
 			return this;
 			}
 		}
