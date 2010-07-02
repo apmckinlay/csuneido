@@ -120,8 +120,10 @@ Mmoffset HistoryTable::next()
 			{
 			if (id + 1 < commit->ndeletes)
 				return commit->deletes()[++id].unpack();
-			else if (ic + 1 < commit->ncreates)
+			id = commit->ndeletes;
+			if (ic + 1 < commit->ncreates)
 				return commit->creates()[++ic].unpack();
+			ic = commit->ncreates;
 			}
 		do
 			if (++iter == end)
@@ -148,8 +150,10 @@ Mmoffset HistoryTable::prev()
 			{
 			if (ic > 0)
 				return commit->creates()[--ic].unpack();
-			else if (id > 0)
+			ic = -1;
+			if (id > 0)
 				return commit->deletes()[--id].unpack();
+			id = -1;
 			}
 		do
 			if (--iter == begin)
