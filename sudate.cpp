@@ -792,7 +792,7 @@ Value SuDate::WeekDay(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (*s == '#')
 		++s;
-	char* t = strchr(s, '.');
+	const char* t = strchr(s, '.');
 	int sn = strlen(s);
 	int tn = 0;
 	if (t != NULL)
