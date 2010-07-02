@@ -50,3 +50,6 @@ clean :
 .PHONY : install
 install : $(OUTPUT)/suneido.exe
 	copy /y $(OUTPUT)\\suneido.exe .
+#signtool sign /f Z:\std\documents\codecerts\mykey.pfx suneido.exe
+#signtool timestamp  /t http://timestamp.comodoca.com/authenticode suneido.exe
+	copy /y suneido.exe "C:\Users\andrew\Documents\My Dropbox"

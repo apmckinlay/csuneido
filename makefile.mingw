@@ -42,11 +42,11 @@ $(OUTPUT)/suneido.exe : $(OBJECTS) gc_$(OUTPUT).a $(OUTPUT)/res.o
 		-lws2_32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -luuid -liphlpapi \
 		-mwindows -mconsole
 		
-RC="C:\Program Files\Microsoft SDKs\Windows\v6.0A\bin\rc"
-CVTRES="C:\Program Files\Microsoft Visual Studio 9.0\VC\bin\cvtres"
+RC="C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Bin\rc"
+CVTRES="C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\cvtres"
 	
 $(OUTPUT)/res.o : suneido.rc resource.h res/suneido.exe.manifest
-	$(RC) /l 0x409 /fo"$(OUTPUT)/suneido.res" /i "c:/MinGW/include" /d "NDEBUG" suneido.rc
+	$(RC) /l 0x409 /fo"$(OUTPUT)/suneido.res" /i "c:/MinGW32/include" /d "NDEBUG" suneido.rc
 	$(CVTRES) /nologo /machine:x86 /out:$@ $(OUTPUT)/suneido.res
 
 -include $(DEPENDS)
