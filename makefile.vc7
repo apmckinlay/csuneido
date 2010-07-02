@@ -47,9 +47,11 @@ $(OUTPUT)/suneido.res : suneido.rc resource.h res/suneido.exe.manifest
 clean : 
 	del /q $(OUTPUT)\\*.*
 	
+SIGNTOOL = C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\signtool
+	
 .PHONY : install
 install : $(OUTPUT)/suneido.exe
 	copy /y $(OUTPUT)\\suneido.exe .
-#signtool sign /f Z:\std\documents\codecerts\mykey.pfx suneido.exe
-#signtool timestamp  /t http://timestamp.comodoca.com/authenticode suneido.exe
+	$(SIGNTOOL) sign /f Z:\std\documents\codecerts\mykey.pfx suneido.exe
+	$(SIGNTOOL) timestamp  /t http://timestamp.comodoca.com/authenticode suneido.exe
 	copy /y suneido.exe "C:\Users\andrew\Documents\My Dropbox"
