@@ -85,6 +85,7 @@ sesviews.cpp \
 slots.cpp \
 sockbuf.cpp \
 strdup.cpp \
+suadler32.cpp \
 sublock.cpp \
 suboolean.cpp \
 suclass.cpp \

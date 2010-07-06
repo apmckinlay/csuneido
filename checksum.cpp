@@ -38,32 +38,32 @@ typedef unsigned char uchar;
 
 ulong checksum(ulong adler, void* p, int len)
 	{
-    ulong s1 = adler & 0xffff;
-    ulong s2 = (adler >> 16) & 0xffff;
-    int k;
+	ulong s1 = adler & 0xffff;
+	ulong s2 = (adler >> 16) & 0xffff;
+	int k;
 
-    if (p == 0) 
+	if (p == 0) 
 		return 1;
 	uchar* buf = (uchar*) p;
 
-    while (len > 0)
+	while (len > 0)
 		{
-        k = len < NMAX ? len : NMAX;
-        len -= k;
-        while (k >= 16) 
+		k = len < NMAX ? len : NMAX;
+		len -= k;
+		while (k >= 16) 
 			{
-            DO16(buf);
+			DO16(buf);
 			buf += 16;
-            k -= 16;
+			k -= 16;
 			}
-        if (k != 0)
-			do 
-				{
-				s1 += *buf++;
-				s2 += s1;
-				} while (--k);
-        s1 %= BASE;
-        s2 %= BASE;
+		if (k != 0)
+		do 
+			{
+			s1 += *buf++;
+			s2 += s1;
+			} while (--k);
+		s1 %= BASE;
+		s2 %= BASE;
 		}
-    return (s2 << 16) | s1;
+	return (s2 << 16) | s1;
 	}
