@@ -23,7 +23,9 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "gcstring.h"
+
 // transliterate characters
-char* tr(char* src, char* from, char* to);
+gcstring tr(const gcstring& src, gcstring from, const gcstring& to);
 
 #endif

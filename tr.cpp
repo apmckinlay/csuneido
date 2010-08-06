@@ -20,93 +20,91 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// TODO: eliminate or check BUFSIZE
-// use gcstring, don't use nul terminators
-
 #include "tr.h"
 #include "except.h"
 #include <string.h>
+#include <vector>
+#include <algorithm>
 
-static void makset(char*, char*);
-static int xindex(char *, char, bool, int);
+using namespace std;
 
-const int BUFSIZE = 1024;
+static vector<char>  makset(const gcstring&);
+static int xindex(const vector<char>&, char, bool, int);
 
 inline void addchar(char*& dst, char* lim, char c)
-	{ verify(dst < lim); *dst++ = c; }
-
-char* tr(char* src, char* from, char* to)
 	{
-	char fromset[BUFSIZE], toset[BUFSIZE];
+	verify(dst < lim);
+	*dst++ = c; 
+	}
 
-	bool allbut = (*from == '^');
+gcstring tr(const gcstring& src, gcstring from, const gcstring& to)
+	{
+	bool allbut = (from[0] == '^');
 	if (allbut)
-		++from;
-	makset(fromset, from);
+		from = from.substr(1);
+	vector<char> fromset = makset(from);
+	vector<char> toset = makset(to);
 
-	if (to)
-		makset(toset, to);
-	else
-		toset[0] = 0;
-
-	int lastto = strlen(toset);
-	bool collapse = allbut || lastto < (int) strlen(fromset);
+	int lastto = toset.size();
+	bool collapse = allbut || lastto < fromset.size();
 	--lastto;
 
-	const int srclen = strlen(src);
+	const int srclen = src.size();
 	char* buf = new char[srclen + 1];
 	char* lim = buf + srclen;
 	char* dst = buf;
-	for (; *src; ++src)
+	for (int si = 0; si < src.size(); ++si)
 		{
-		verify(dst < lim);
-		int i = xindex(fromset, *src, allbut, lastto);
-		if (collapse && i >= lastto && lastto >= 0)
+		int i = xindex(fromset, src[si], allbut, lastto);
+		if (collapse && 0 <= lastto && lastto <= i)
 			{
 			addchar(dst, lim, toset[lastto]);
 			do
-				i = xindex(fromset, *++src, allbut, lastto);
+				i = xindex(fromset, src[++si], allbut, lastto);
 				while (i >= lastto);
 			}
-		if (! *src)
+		if (si >= src.size())
 			break ;
 		if (i >= 0 && lastto >= 0)
 			addchar(dst, lim, toset[i]);
 		else if (i < 0)
-			addchar(dst, lim, *src);
+			addchar(dst, lim, src[si]);
 		/* else
 			delete */
 		}
 	*dst = 0;
-	return buf;
+	return gcstring(dst - buf, buf);
 	}
 
-static void makset(char* dst, char* src)
+static vector<char> makset(const gcstring& src)
 	{
-	for (char* start = src; *src; ++src)
+	vector<char> dst;
+	for (int i = 0; i < src.size(); ++i)
 		{
-		if (*src == '-' && src > start && src[1])
+		if (src[i] == '-' && i > 0 && i + 1 < src.size())
 			{
-			for (char c = src[-1] + 1; c < src[1]; ++c)
-				*dst++ = c;
+			for (char c = src[i - 1] + 1; c < src[i + 1]; ++c)
+				dst.push_back(c);
 			}
 		else
-			*dst++ = *src;
+			dst.push_back(src[i]);
 		}
-	*dst = 0;
+	return dst;
 	}
 
-static int xindex(char* from, char c, bool allbut, int lastto)
+static int xindex(const vector<char>& from, char c, bool allbut, int lastto)
 	{
-	char* p = strchr(from, c);
+	int p = find(from.begin(), from.end(), c) - from.begin();
 	int i;
-	if (! c || (allbut && p))
+	if (allbut && p != from.size())
 		i = -1;
-	else if (allbut && ! p)
+	else if (allbut && p == from.size())
 		i = lastto + 1;
-	else if (p)
-		i = p - from;
+	else if (p != from.size())
+		i = p;
 	else
 		i = -1;
 	return i;
 	}
+
+	

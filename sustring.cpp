@@ -381,8 +381,8 @@ Value SuString::Tr(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 1 && nargs != 2)
 		except("usage: string.Tr(from [ , to ] )");
-	char* to = nargs == 1 ? NULL : ARG(1).str();
-	return new SuString(tr(str(), ARG(0).str(), to));
+	gcstring to = nargs == 1 ? "" : ARG(1).gcstr();
+	return new SuString(tr(gcstr(), ARG(0).gcstr(), to));
 	}
 
 Value SuString::Find(short nargs, short nargnames, ushort* argnames, int each)
