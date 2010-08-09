@@ -43,9 +43,12 @@ public:
 	int read(char* buf, int len);
 	void flush();
 	void closewrite();
+	void close();
+	int exitvalue();
 	~RunPiped();
 private:
 	HANDLE hChildStdinRd, hChildStdinWr, hChildStdoutRd, hChildStdoutWr;
+	HANDLE hProcess;
 	};
 
 RunPiped::RunPiped(char* cmd)
@@ -93,7 +96,7 @@ RunPiped::RunPiped(char* cmd)
 	if (bFuncRetn == 0) 
 		except("RunPiped: CreateProcess failed for: " << cmd);
 	
-	CloseHandle(piProcInfo.hProcess);
+	hProcess = piProcInfo.hProcess;
 	CloseHandle(piProcInfo.hThread);
 
 	CloseHandle(hChildStdinRd);
@@ -129,11 +132,33 @@ void RunPiped::closewrite()
 	hChildStdinWr = 0;
 	}
 
+void RunPiped::close()
+	{
+	if (! hChildStdoutRd)
+		return;
+	if (hChildStdinWr)
+		closewrite();
+	CloseHandle(hChildStdoutRd);
+	hChildStdoutRd = 0;
+	}
+
 RunPiped::~RunPiped()
 	{
-	if (hChildStdinWr)
-		CloseHandle(hChildStdinWr);
-	CloseHandle(hChildStdoutRd);
+	close();
+	CloseHandle(hProcess);
+	}
+
+int RunPiped::exitvalue()
+	{
+	close();
+	const int ONE_MINUTE = 60 * 1000;
+	if (0 != WaitForSingleObject(hProcess, ONE_MINUTE))
+		except("RunPiped: exitvalue wait failed");
+	DWORD exitcode;
+	if (! GetExitCodeProcess(hProcess, &exitcode))
+		except("RunPiped: exitvalue get exit code failed");
+	CloseHandle(hProcess);
+	return exitcode;
 	}
 
 #ifndef TEST
@@ -164,6 +189,7 @@ public:
 			Method<SuRunPiped>("Flush", &SuRunPiped::Flush),
 			Method<SuRunPiped>("CloseWrite", &SuRunPiped::CloseWrite),
 			Method<SuRunPiped>("Close", &SuRunPiped::Close),
+			Method<SuRunPiped>("ExitValue", &SuRunPiped::ExitValue),
 			Method<SuRunPiped>("", 0)
 			};
 		return methods;
@@ -179,6 +205,7 @@ private:
 	Value Flush(BuiltinArgs&);
 	Value CloseWrite(BuiltinArgs&);
 	Value Close(BuiltinArgs&);
+	Value ExitValue(BuiltinArgs&);
 
 	void ckopen();
 	virtual void finalize();
@@ -334,6 +361,13 @@ Value SuRunPiped::Close(BuiltinArgs& args)
 	ckopen();
 	close();
 	return Value();
+	}
+
+Value SuRunPiped::ExitValue(BuiltinArgs& args)
+	{
+	args.usage("usage: runpiped.ExitValue()");
+	args.end();
+	return rp->exitvalue();
 	}
 
 void SuRunPiped::ckopen()
