@@ -40,7 +40,7 @@
 #include "random.h"
 #include "dbms.h"
 #include "construct.h"
-#include "time.h" // for time for srand
+#include <time.h> // for time for srand
 #include "checksum.h"
 #include "susockets.h"
 #include "type.h"
@@ -699,6 +699,12 @@ Value su_winerr()
 	return new SuString(s.trim());
 	}
 PRIM(su_winerr, "WinErr(number)");
+
+Value su_unixtime()
+	{
+	return new SuNumber(time(NULL));
+	}
+PRIM(su_unixtime, "UnixTime()");
 
 // rich edit --------------------------------------------------------
 #include "rich.h"
