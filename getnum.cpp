@@ -25,15 +25,19 @@
 #include "gcstring.h"
 #include <stdlib.h>
 #include <ctype.h>
+#include <limits.h>
 
 int getnum(char type, char*& s)
 	{
 	while (isspace(*s))
 		++s;
-	if (toupper(s[0]) != type || ! isdigit(s[1]))
+	if (toupper(s[0]) != type || 
+		! (isdigit(s[1]) || (s[1] == '-' && isdigit(s[2]))))
 		return ERR;
 	++s;
-	int n = strtol(s, &s, 10);
+	long n = strtol(s, &s, 10);
+	if (n < INT_MIN || INT_MAX < n)
+		return ERR;
 	while (isspace(*s))
 		++s;
 	return n;
