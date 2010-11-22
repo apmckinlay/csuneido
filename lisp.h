@@ -169,6 +169,8 @@ public:
 		Cons* p = first;
 		for (; p->next && i > 0; p = p->next, --i)
 			;
+		if (i != 0)
+			except("attempted access past end of list");
 		return p->value;
 		}
 	const T& nth(int i) const
@@ -177,6 +179,8 @@ public:
 		Cons* p = first;
 		for (; p->next && i > 0; p = p->next, --i)
 			;
+		if (i != 0)
+			except("attempted access past end of list");
 		return p->value;
 		}
 	Lisp nthcdr(int i) const
@@ -184,6 +188,8 @@ public:
 		Cons* p = first;
 		for (; p && i > 0; p = p->next, --i)
 			;
+		if (i != 0)
+			except("attempted access past end of list");
 		return Lisp<T>(p);
 		}
 	bool member(const T& x) const

@@ -133,7 +133,7 @@ Lisp<int> Header::output_fldsyms() const
 	if (nil(fldsyms))
 		{
 		// WARNING: this depends on flds[1] being the actual fields
-		for (Fields f = flds[1]; ! nil(f); ++f)
+		for (Fields f = fields(); ! nil(f); ++f)
 			fldsyms.push(*f == "-" ? -1 : symnum(f->str()));
 		fldsyms.reverse();
 		}
@@ -145,7 +145,7 @@ int Header::timestamp_field() const
 	if (! timestamp)
 		{
 		timestamp = -1; // no timestamp
-		for (Fields f = flds[1]; ! nil(f) && timestamp == -1; ++f)
+		for (Fields f = fields(); ! nil(f) && timestamp == -1; ++f)
 			if (has_suffix(f->str(), "_TS"))
 				timestamp = symnum(f->str());
 		}

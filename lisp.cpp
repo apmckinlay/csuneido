@@ -67,6 +67,13 @@ class test_lisp : public Tests
 		asserteq(set_union(empty, x), x);
 		asserteq(difference(empty, x), empty);
 		asserteq(difference(x, empty), x);
+		
+		x = lisp(11, 22, 33);
+		asserteq(x[0], 11);
+		asserteq(x[1], 22);
+		asserteq(x[2], 33);
+		xassert(x[3]);
+		xassert(x[999]);
 		}
 	};
 REGISTER(test_lisp);
