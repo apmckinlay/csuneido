@@ -644,7 +644,7 @@ Value SuDate::Plus(short nargs, short nargnames, ushort* argnames, int each)
 	static ushort sn_minutes = ::symnum("minutes");
 	static ushort sn_seconds = ::symnum("seconds");
 	static ushort sn_milliseconds = ::symnum("milliseconds");
-	const char* usage = "usage: Plus(years:, months:, days:, hours:, minutes:, seconds:, milliseconds:";
+	const char* usage = "usage: Plus(years:, months:, days:, hours:, minutes:, seconds:, milliseconds:)";
 
 	if (nargs != nargnames)
 		except(usage);
