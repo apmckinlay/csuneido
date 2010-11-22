@@ -81,6 +81,7 @@ recover.cpp \
 regexp.cpp \
 row.cpp \
 scanner.cpp \
+servereval.cpp \
 sesviews.cpp \
 slots.cpp \
 sockbuf.cpp \

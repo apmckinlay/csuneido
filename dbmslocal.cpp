@@ -148,6 +148,7 @@ public:
 	int final();
 	void log(char* s);
 	int kill(char* s);
+	Value exec(Value ob);
 	};
 
 int DbmsLocal::transaction(TranType type, char* session_id)
@@ -264,6 +265,13 @@ extern Value run(const char*);
 Value DbmsLocal::run(char* s)
 	{
 	return ::run(s);
+	}
+
+extern Value exec(Value ob);
+
+Value DbmsLocal::exec(Value ob)
+	{
+	return ::exec(ob);
 	}
 
 int64 DbmsLocal::size()

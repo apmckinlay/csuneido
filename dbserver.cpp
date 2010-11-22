@@ -42,6 +42,7 @@
 #include <vector>
 #include "errlog.h"
 #include "exceptimp.h"
+#include "pack.h"
 
 //#define LOGGING
 #ifdef LOGGING
@@ -117,6 +118,7 @@ private:
 	char* cmd_final(char*);
 	char* cmd_log(char*);
 	char* cmd_kill(char*);
+	char* cmd_exec(char*);
 
 	char* get(DbmsQuery* q, Dir dir);
 
@@ -282,7 +284,8 @@ void DbServerImp::request(char* buf)
 		CMD(refresh),
 		CMD(final),
 		CMD(log),
-		CMD(kill)
+		CMD(kill),
+		CMD(exec)
 		};
 	const int ncmds = sizeof cmds / sizeof (Cmd);
 
@@ -782,6 +785,16 @@ char* DbServerImp::cmd_run(char* s)
 		{
 		return value_result(x);
 		}
+	}
+
+extern Value exec(Value ob);
+
+char* DbServerImp::cmd_exec(char* s)
+	{
+	int n = ck_getnum('P', s);
+	gcstring buf(n);
+	sc->read(buf.str(), n);
+	return value_result(exec(unpack(buf)));
 	}
 
 char* DbServerImp::cmd_log(char* s)

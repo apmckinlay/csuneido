@@ -867,6 +867,8 @@ void builtins()
 	builtin("QueryFirst", su_QueryFirst());
 	extern Value su_QueryLast();
 	builtin("QueryLast", su_QueryLast());
+	extern Value su_ServerEval();
+	builtin("ServerEval", su_ServerEval());
 
 	for (int i = 0; i < nprims; ++i)
 		{

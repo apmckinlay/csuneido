@@ -87,6 +87,7 @@ public:
 	virtual int final() = 0;
 	virtual void log(char* s) = 0;
 	virtual int kill(char* s) = 0;
+	virtual Value exec(Value ob) = 0;
 	};
 
 Dbms* dbms();

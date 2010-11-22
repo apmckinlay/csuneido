@@ -115,7 +115,7 @@ public:
 			return Value();
 		char* s = buf;
 		int n = ck_getnum('P', s);
-		gcstring result(n); // would alloca work?
+		gcstring result(n);
 		read(result.str(), n);
 		return unpack(result);
 		}
@@ -385,6 +385,7 @@ public:
 	int final();
 	void log(char* s);
 	int kill(char* s);
+	Value exec(Value ob);
 private:
 	CheckedSocketConnect sc;
 	OstreamStr os;
@@ -559,6 +560,16 @@ void DbmsRemote::copy(char* filename)
 Value DbmsRemote::run(char* s)
 	{
 	WRITE("RUN " << nl_to_sp(s));
+	return sc.readvalue();
+	}
+
+Value DbmsRemote::exec(Value ob)
+	{
+	int n = ob.packsize();
+	WRITEBUF("EXEC " << "P" << n);
+	char* buf = (char*) alloca(n);
+	ob.pack(buf);
+	sc.write(buf, n);
 	return sc.readvalue();
 	}
 
