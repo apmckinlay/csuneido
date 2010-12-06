@@ -441,7 +441,9 @@ private:
 	struct timeval tv;
 	};
 
-SocketConnect* socketClientSynch(char* addr, int port, int timeout)
+#define FDS(fds, sock) struct fd_set fds; FD_ZERO(&fds); FD_SET(sock, &fds);
+
+SocketConnect* socketClientSynch(char* addr, int port, int timeout, int timeoutConnect)
 	{
 	WSADATA wsadata;
 	verify(0 == WSAStartup(MAKEWORD(2,0), &wsadata));
@@ -460,13 +462,33 @@ SocketConnect* socketClientSynch(char* addr, int port, int timeout)
 			except("unknown address: " << addr);
 		saddr.sin_addr.s_addr = *(u_long *) h->h_addr;
 		}
-	if (0 != connect(sock, (LPSOCKADDR) &saddr, sizeof saddr))
-		except("can't connect to " << addr << " port " << port);
+	if (timeoutConnect == 0)
+		{
+		if (0 != connect(sock, (LPSOCKADDR) &saddr, sizeof saddr))
+			except("can't connect to " << addr << " port " << port);
+		}
+	else
+		{
+		ULONG NonBlocking = 1;
+		ioctlsocket(sock, FIONBIO, &NonBlocking);
+		int ret = connect(sock, (LPSOCKADDR) &saddr, sizeof saddr);
+		if (ret != 0 && ret != SOCKET_ERROR)
+			except("can't connect to " << addr << " port " << port);
+		FDS(wfds, sock);
+		FDS(efds, sock);
+		struct timeval tv;
+		tv.tv_sec = timeoutConnect / 1000;
+		tv.tv_usec = (timeoutConnect % 1000) * 1000; // ms => us
+		if (0 == select(0, NULL, &wfds, &efds, &tv))
+			except("socket connection timeout\n");
+		if (FD_ISSET(sock, &efds))
+			except("socket connection error\n");
+		ULONG Blocking = 0;
+		ioctlsocket(sock, FIONBIO, &Blocking);
+		}
 	closer.disable();
 	return new SocketConnectSynch(sock, timeout);
 	}
-
-#define FDS(fds, sock) struct fd_set fds; FD_ZERO(&fds); FD_SET(sock, &fds);
 
 void SocketConnectSynch::write(char* buf, int n)
 	{

@@ -52,7 +52,7 @@ typedef void (_stdcall *pNewServer)(void*);
 void socketServer(char* title, int port, pNewServer newserver, void* arg, bool exit);
 
 // create a synchronous (waits) socket connection
-SocketConnect* socketClientSynch(char* addr, int port, int timeout = 9999);
+SocketConnect* socketClientSynch(char* addr, int port, int timeout = 9999, int timeoutConnect = 0);
 
 // create an asynch (message driven) socket connection
 SocketConnect* socketClientAsynch(char* addr, int port);

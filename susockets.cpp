@@ -152,15 +152,16 @@ void SuSocketClient::finalize()
 
 Value suSocketClient()
 	{
-	const int nargs = 4;
+	const int nargs = 5;
 	char* ipaddr = ARG(0).str();
 	int port = ARG(1).integer();
 	int timeout = ARG(2).integer();
+	int timeoutConnect = (int) (ARG(3).number()->to_double() * 1000);
 	SuSocketClient* sc = new SuSocketClient(
 		Fibers::current() == Fibers::main()
-			? socketClientSynch(ipaddr, port, timeout)
+			? socketClientSynch(ipaddr, port, timeout, timeoutConnect)
 			: socketClientAsynch(ipaddr, port));
-	Value block = ARG(3);
+	Value block = ARG(4);
 	if (block == SuFalse)
 		return sc;
 	Closer<SuSocketClient*> closer(sc);
@@ -168,7 +169,7 @@ Value suSocketClient()
 	PUSH(sc);
 	return block.call(block, CALL, 1, 0, 0, -1);
 	}
-PRIM(suSocketClient, "SocketClient(ipaddress, port, timeout=60, block=false)");
+PRIM(suSocketClient, "SocketClient(ipaddress, port, timeout=60, timeoutConnect=0, block=false)");
 
 // SuSocketServer =====================================================
 // the base for user defined Server classes
