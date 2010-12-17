@@ -283,7 +283,8 @@ DbrStatus DbRecoverImp::check_indexes(bool (*progress)(int))
 					OstreamStr os;
 					os << "check indexes: " << tbl->name << " " << ix->columns << " data does not match index";
 					errlog(os.str());
-					return status_ = DBR_ERROR;
+					status_ = DBR_ERROR;
+					break ;
 					}
 				}
 			if (n != tbl->nrecords)
@@ -291,20 +292,22 @@ DbrStatus DbRecoverImp::check_indexes(bool (*progress)(int))
 				OstreamStr os;
 				os << "check indexes: " << tbl->name << " " << tbl->nrecords << " != " << ix->columns << " " << n;
 				errlog(os.str());
-				return status_ = DBR_ERROR;
+				status_ = DBR_ERROR;
+				break ;
 				}
 			if (prev_cksum && cksum != prev_cksum)
 				{
 				OstreamStr os;
 				os << "check indexes: " << tbl->name << " checksums do not match";
 				errlog(os.str());
-				return status_ = DBR_ERROR;
+				status_ = DBR_ERROR;
+				break ;
 				}
 			prev_cksum = cksum;
 			}
 		}
 	progress(100);
-	return DBR_OK;
+	return status_;
 	}
 
 char* DbRecoverImp::last_good_commit()
