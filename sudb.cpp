@@ -271,8 +271,8 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 		args.usage("usage: transaction.Query(value [, block][, field: value...])");
 		char* qstr = args.getstr("query");
 		Value block = args.getValue("block", Value());
-		if (! dynamic_cast<Func*>(block.ptr()))
-			block = Value();
+		if (block && ! dynamic_cast<Func*>(block.ptr()))
+			args.exceptUsage();
 		qstr = query_args(qstr, args);
 		TRACE(QUERY, 'T' << tran << ' ' << qstr);
 		Value q = query(qstr);
