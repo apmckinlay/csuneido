@@ -66,6 +66,7 @@ char* CmdLineOptions::parse(char* str)
 				}
 			else
 				argstr = "Suneido";
+			unattended = true;
 			break ;
 		case CLIENT :
 			if (! (argstr = get_word()))
