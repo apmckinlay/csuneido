@@ -32,7 +32,10 @@ gcstring get_mac_address()
 	ULONG buflen = sizeof (info);
 	if (NO_ERROR != GetAdaptersInfo(info, &buflen))
 		return "";
-	return gcstring((char*) info[0].Address, info[0].AddressLength);
+	for (int i = 0; i < 10; ++i)
+		if (info[i].AddressLength > 0)
+			return gcstring((char*) info[i].Address, info[i].AddressLength);
+	return "";
 	}
 
 #include "prim.h"
