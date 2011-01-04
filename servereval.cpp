@@ -75,6 +75,7 @@ Value exec(Value x)
 	SuObject* ob = force<SuObject*>(x);
 	Value fname = ob->get(0);
 	Value f = run(fname.str());
+	KEEPSP
 	PUSH(ob);
 	return f.call(f, CALL, 1, 0, 0, 1);	// nargs=1, each=1 => f(@+1 ob)
 	}
