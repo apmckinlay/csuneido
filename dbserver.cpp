@@ -186,7 +186,10 @@ void DbServerImp::timer_proc()
 	dbserver_clock += 10;
 	for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
 		if (dbserver_clock - dbservers[i]->last_activity > dbserver_timeout)
+			{
+			errlog(dbservers[i]->session_id, "idle timout, closing connection");
 			dbservers[i]->close();
+			}
 	}
 
 void start_dbserver(char* name)
