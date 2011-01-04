@@ -320,11 +320,7 @@ void Table::select_index(const Fields& index)
 
 Header Table::header()
 	{
-	// can't use index key as data if it's lower
-	Index* i = nil(idx) || singleton ? NULL
-		: theDB()->get_index(table, fields_to_commas(idx));
-	bool lower = i && i->is_lower();
-	return Header(lisp(singleton || lower ? Fields() : idx, 
+	return Header(lisp(singleton ? Fields() : idx,
 		theDB()->get_fields(table)), theDB()->get_columns(table));
 	}
 

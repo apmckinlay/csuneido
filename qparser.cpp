@@ -53,12 +53,11 @@ struct Arg
 
 struct IndexSpec
 	{
-	IndexSpec() : key(false), unique(false), lower(false)
+	IndexSpec() : key(false), unique(false)
 		{ }
 	Lisp<gcstring> columns;
 	bool key;
 	bool unique;
-	bool lower;
 	gcstring fktable;
 	Lisp<gcstring> fkcols;
 	Fkmode fkmode;
@@ -286,7 +285,7 @@ bool QueryParser::admin()
 			for (Lisp<IndexSpec> i = ts.indexes; ! nil(i); ++i)
 				theDB()->add_index(table, fields_to_commas(i->columns), i->key,
 					i->fktable, fields_to_commas(i->fkcols), i->fkmode,
-					i->unique, i->lower);
+					i->unique);
 			}
 		catch (const Except& e)
 			{
@@ -593,13 +592,8 @@ TableSpec QueryParser::table_spec()
 			IndexSpec idx;
 			idx.key = (scanner.keyword == K_KEY);
 			match();
-			for (;; match())
-				if (scanner.keyword == K_UNIQUE)
-					idx.unique = true;
-				else if (scanner.keyword == K_LOWER)
-					idx.lower = true;
-				else
-					break ;
+			if ((idx.unique = (scanner.keyword == K_UNIQUE)))
+				match();
 			idx.columns = column_list();
 			idx.fkmode = BLOCK;
 			if (scanner.keyword == K_IN)

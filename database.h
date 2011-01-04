@@ -91,7 +91,7 @@ struct Fkey
 	Fkey(const gcstring& t, const gcstring& c, int m)
 		: table(t), mode(m)
 		{
-		columns = c.has_prefix("lower:") ? c.substr(6) : c;
+		columns = c;
 		}
 	gcstring table;
 	gcstring columns;
@@ -230,7 +230,7 @@ public:
 	void add_column(const gcstring& table, const gcstring& column);
 	void add_index(const gcstring& table, const gcstring& columns, bool key,
 		const gcstring& fktable = "", const gcstring& fkcolumns = "", Fkmode fkmode = BLOCK,
-		bool unique = false, bool lower = false);
+		bool unique = false);
 	void add_view(const gcstring& table, const gcstring& definition);
 
 	void add_record(int tran, const gcstring& table, Record r);

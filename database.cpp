@@ -75,7 +75,7 @@ static Record key(const gcstring& table, const gcstring& columns)
 Idx::Idx(const gcstring& table, const Record& r, const gcstring& c, short* n, Index* i, Database* db)
 	: index(i), nnodes(i->get_nnodes()), rec(r), colnums(n)
 	{
-	columns = c.has_prefix("lower:") ? c.substr(6) : c;
+	columns = c;
 
 	iskey = (SuTrue == r.getval(I_KEY));
 
@@ -240,7 +240,7 @@ void Database::add_column(const gcstring& table, const gcstring& col)
 	}
 
 void Database::add_index(const gcstring& table, const gcstring& columns, bool key,
-	const gcstring& fktable, const gcstring& fkcolumns, Fkmode fkmode, bool unique, bool lower)
+	const gcstring& fktable, const gcstring& fkcolumns, Fkmode fkmode, bool unique)
 	{
 	Tbl* tbl = ck_get_table(table);
 	short* colnums = comma_to_nums(tbl->cols, columns);
@@ -250,7 +250,7 @@ void Database::add_index(const gcstring& table, const gcstring& columns, bool ke
 	for (Lisp<Idx> idxs = tbl->idxs; ! nil(idxs); ++idxs)
 		if (idxs->columns == columns)
 			except("add index: index already exists: " << columns << " in " << table);
-	Index* index = new Index(this, tbl->num, columns.str(), key, unique, lower);
+	Index* index = new Index(this, tbl->num, columns.str(), key, unique);
 
 	if (! nil(tbl->idxs) && tbl->nrecords)
 		{
@@ -268,7 +268,7 @@ void Database::add_index(const gcstring& table, const gcstring& columns, bool ke
 			}
 		}
 
-	Record r = record(tbl->num, (lower ? "lower:" : "") + columns,
+	Record r = record(tbl->num, columns,
 		index, fktable, fkcolumns, fkmode);
 	add_any_record(schema_tran, "indexes", r);
 	tbl->idxs.append(Idx(table, r, columns, colnums, index, this));
@@ -283,9 +283,6 @@ bool Database::recover_index(Record& idxrec)
 	if (! tbl)
 		return false;
 	gcstring columns = idxrec.getstr(I_COLUMNS);
-	bool lower = columns.has_prefix("lower:");
-	if (lower)
-		columns = columns.substr(6);
 	short* colnums = comma_to_nums(tbl->cols, columns);
 	if (! colnums)
 		return false; // invalid column name
@@ -293,7 +290,7 @@ bool Database::recover_index(Record& idxrec)
 		if (idxs->columns == columns)
 			return false; // already exists
 	bool key = idxrec.getval(I_KEY) == SuTrue;
-	Index* index = new Index(this, tbl->num, columns.str(), key, false, lower);
+	Index* index = new Index(this, tbl->num, columns.str(), key, false);
 
 	if (! nil(tbl->idxs))
 		{
@@ -711,8 +708,7 @@ void Database::remove_any_index(Tbl* tbl, const gcstring& columns)
 		except("delete index: nonexistent index: " << columns << " in " << tbl->name);
 	tbl->idxs.erase(*p);
 
-	remove_any_record(schema_tran, "indexes", "table,columns",
-		key(tbl->num, p->rec.getstr(I_COLUMNS))); // not columns cause you need lower:
+	remove_any_record(schema_tran, "indexes", "table,columns", key(tbl->num, columns));
 	}
 
 void Database::remove_record(int tran, const gcstring& table, const gcstring& index, const Record& key)
@@ -1120,9 +1116,6 @@ Index* Database::mkindex(const Record& r)
 	{
 	verify(! nil(r));
 	char* columns = r.getstr(I_COLUMNS).str();
-	bool lower = has_prefix(columns, "lower:");
-	if (lower)
-		columns += 6;
 	return new Index(this,
 		r.getlong(I_TBLNUM),
 		columns,
@@ -1130,9 +1123,7 @@ Index* Database::mkindex(const Record& r)
 		r.getlong(I_TREELEVELS),
 		r.getlong(I_NNODES),
 		r.getval(I_KEY) == SuTrue,
-		r.getval(I_KEY).gcstr() == "u",
-		lower
-		);
+		r.getval(I_KEY).gcstr() == "u");
 	}
 
 short* comma_to_nums(const Lisp<Col>& cols, const gcstring& str)
@@ -1219,8 +1210,6 @@ Tbl* Database::get_table(const Record& table_rec)
 		{
 		Record r(iter.data());
 		gcstring columns = r.getstr(I_COLUMNS).to_heap();
-		if (columns.has_prefix("lower:"))
-			columns = columns.substr(6);
 		short* colnums = comma_to_nums(cols, columns);
 		verify(colnums);
 		// make sure to use the same index for the system tables
