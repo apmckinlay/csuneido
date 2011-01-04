@@ -45,7 +45,6 @@ public:
 	SockBuf wrbuf;
 	};
 
-#ifndef ACE_SERVER
 // start a socket server (to listen)
 // calls supplied newserver function for connections
 typedef void (_stdcall *pNewServer)(void*);
@@ -56,6 +55,5 @@ SocketConnect* socketClientSynch(char* addr, int port, int timeout = 9999, int t
 
 // create an asynch (message driven) socket connection
 SocketConnect* socketClientAsynch(char* addr, int port);
-#endif
 
 #endif

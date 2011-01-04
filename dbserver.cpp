@@ -159,16 +159,6 @@ int dbserver_timeout = 240; // minutes = 4 hours
 
 static int dbserver_clock;
 
-#ifdef ACE_SERVER
-#include "ostreamstd.h"
-//~ #undef LOG
-//~ #define LOG(stuff) cout << stuff << endl
-
-DbServer* DbServer::make(SocketConnect* sc)
-	{
-	return new DbServerImp(sc);
-	};
-#else
 static void _stdcall dbserver(void* sc)
 	{
 	try
@@ -198,7 +188,6 @@ void start_dbserver(char* name)
 	extern void dbserver_timer(void (*pfn)());
 	dbserver_timer(DbServerImp::timer_proc);
 	}
-#endif
 
 DbServerImp::DbServerImp(SocketConnect* s)
 	: sc(s), textmode(true), data(DbServerData::create())

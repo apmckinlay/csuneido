@@ -35,13 +35,10 @@ char* get_dbms_server_ip()
 	return server_ip;
 	}
 
-#ifndef ACE_SERVER
 extern Dbms*& tss_thedbms();
-#endif
 
 Dbms* dbms()
 	{
-#ifndef ACE_SERVER
 	if (server_ip)
 		{ // client
 		if (! tss_thedbms())
@@ -50,7 +47,6 @@ Dbms* dbms()
 		return tss_thedbms();
 		}
 	else
-#endif
 		{
 		static Dbms* local = dbms_local();
 		return local;

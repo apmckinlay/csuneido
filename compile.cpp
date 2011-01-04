@@ -455,9 +455,6 @@ const int maxitems = 100;
 
 Value Compiler::structure()
 	{
-#ifdef ACE_SERVER
-	syntax_error("struct not supported in ace server");
-#else
 	matchnew();
 	match('{');
 	TypeItem memtypes[maxitems];
@@ -489,14 +486,10 @@ Value Compiler::structure()
 		}
 	match('}');
 	return new Structure(memtypes, memnames, n);
-#endif
 	}
 
 Value Compiler::dll()
 	{
-#ifdef ACE_SERVER
-	syntax_error("dll not supported in ace server");
-#else
 	matchnew();
 	short rtype;
 	switch (scanner.keyword)
@@ -572,7 +565,6 @@ Value Compiler::dll()
 		}
 	match(')');
 	return new Dll(rtype, library, name, paramtypes, paramnames, n);
-#endif
 	}
 
 bool Compiler::valid_dll_arg_type()
@@ -592,9 +584,6 @@ bool Compiler::valid_dll_arg_type()
 
 Value Compiler::callback()
 	{
-#ifdef ACE_SERVER
-	syntax_error("callback not supported in ace server");
-#else
 	matchnew();
 	match('(');
 	TypeItem paramtypes[maxitems];
@@ -618,7 +607,6 @@ Value Compiler::callback()
 		}
 	match(')');
 	return new Callback(paramtypes, paramnames, n);
-#endif
 	}
 
 // scanner functions ------------------------------------------------
