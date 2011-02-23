@@ -102,6 +102,8 @@ public:
 	char* ckglobal(char*);
 private:
 	bool valid_dll_arg_type();
+protected:
+	bool anyIdentifier();
 	};
 
 static ushort NEWNUM; // set by Compiler::Compiler
@@ -241,9 +243,7 @@ Value Compiler::constant(char* gname)
 			match();
 			return x;
 			}
-		else if (token == T_IDENTIFIER || token == T_STRING ||
-			token == T_AND || token == T_OR || token == I_NOT ||
-			token == I_IS || token == I_ISNT)
+		else if (token == T_STRING || anyIdentifier())
 			{
 			x = symbol(scanner.value);
 			match();
@@ -287,6 +287,17 @@ Value Compiler::constant(char* gname)
 		}
 	syntax_error();
 	return Value();
+	}
+
+bool Compiler::anyIdentifier()
+	{
+	if (token == T_IDENTIFIER || token >= KEYWORDS)
+		return true;
+	if ((token == T_AND || token == T_OR || token == I_NOT ||
+		token == I_IS || token == I_ISNT) &&
+		isalpha(*scanner.value))
+		return true;
+	return false;
 	}
 
 Value Compiler::number()
@@ -396,7 +407,7 @@ void Compiler::member(SuObject* ob, char* gname, short base)
 	char peek = *scanner.peek();
 	if (peek == ':' || (base > 0 && peek == '('))
 		{
-		if (token == T_IDENTIFIER || token == T_STRING)
+		if (token == T_STRING || anyIdentifier())
 			{
 			mv = symbol(mi = memname(gname, scanner.value));
 			match();
@@ -1794,7 +1805,7 @@ void FunctionCompiler::args_list(short & nargs, char* delims, vector<ushort>& ar
 			{
 			key = true;
 			int id;
-			if (token == T_IDENTIFIER || token == T_STRING)
+			if (token == T_STRING || anyIdentifier())
 				id = symnum(scanner.value);
 			else if (token == T_NUMBER)
 				{
