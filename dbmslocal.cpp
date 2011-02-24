@@ -80,7 +80,7 @@ Lisp<Lisp<gcstring> > DbmsQueryLocal::keys()
 static Query* last_q = NULL;
 void trace_last_q()
 	{
-	tout() << last_q << endl;
+	tout() << "IN: " << last_q << endl;
 	}
 
 Row DbmsQueryLocal::get(Dir dir)

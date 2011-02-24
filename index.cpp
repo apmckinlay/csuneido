@@ -153,17 +153,17 @@ void Index::iterator::operator++()
 	if (tranread)
 		{
 		if (iter.eof())
-{
+			{
 			tranread->end = to;
-if ((trace_level & TRACE_ALLINDEX))
-if (tranread->org == Record() || tranread->end == Record(keymax))
-{
-TRACE(ALLINDEX, ix->db->get_table(ix->tblnum)->name << " " << ix->idxname << " " <<
-	  tranread->org << " => " << tranread->end);
-extern void trace_last_q();
-trace_last_q();
-}
-}
+			if ((trace_level & TRACE_ALLINDEX) && ix->bt.get_nnodes() > 1 &&
+				tranread->org == Record() && tranread->end == Record(keymax))
+				{
+				TRACE(ALLINDEX, ix->db->get_table(ix->tblnum)->name << " " <<
+					ix->idxname);
+				extern void trace_last_q();
+				trace_last_q();
+				}
+			}
 		else if (iter->key > tranread->end)
 			tranread->end = iter->key;
 		}
