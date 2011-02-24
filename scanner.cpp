@@ -260,8 +260,13 @@ int Scanner::nextall()
 			*dst = 0;
 			value = buf;
 			keyword = keywords(buf);
-			if (keyword && keyword < KEYWORDS)
-				return keyword;
+			if (source[si] != ':' ||
+				! (keyword == I_IS || keyword == I_ISNT ||
+					keyword == T_AND || keyword == T_OR || keyword == I_NOT))
+				{
+				if (keyword && keyword < KEYWORDS)
+					return keyword;
+				}
 			return T_IDENTIFIER;
 		case '9' :
 			if (source[si] == '0' && tolower(source[si + 1]) == 'x')
