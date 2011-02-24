@@ -276,7 +276,7 @@ void dbserver_timer(void (*pfn)())
 	dbstp_pfn = pfn;
 	SetTimer(NULL,		// handle to main window 
 		0,				// timer identifier 
-		600000,			// 10 minute interval 
+		60000,			// 1 minute interval 
 		(TIMERPROC) DbServerTimerProc); 
 	}
 

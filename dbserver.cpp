@@ -173,7 +173,7 @@ static void _stdcall dbserver(void* sc)
 
 void DbServerImp::timer_proc()
 	{
-	dbserver_clock += 10;
+	++dbserver_clock;
 	for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
 		if (dbserver_clock - dbservers[i]->last_activity > dbserver_timeout)
 			{
