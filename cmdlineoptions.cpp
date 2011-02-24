@@ -31,7 +31,7 @@ enum { PORT = AFTER_ACTIONS, NOSPLASH, UNATTENDED, LOCAL_LIBRARY,
 	NO_EXCEPTION_HANDLING, NO_GARBAGE_COLLECTION,
 	INSTALL_SERVICE, SERVICE,
 	CHECK_START, COMPACT_EXIT, IGNORE_VERSION, IGNORE_CHECK,
-	TIMEOUT };
+	TIMEOUT, END_OF_OPTIONS };
 
 char* CmdLineOptions::parse(char* str)
 	{
@@ -156,6 +156,8 @@ char* CmdLineOptions::parse(char* str)
 				"	-t[ime]o[ut] minutes\n"
 				);
 			exit(EXIT_SUCCESS);
+		case END_OF_OPTIONS : // --
+			break ;
 		default :
 			unreachable();
 			}
@@ -193,6 +195,7 @@ static struct { char* str; int num; } options[] = {
 	{ "-ignoreversion", IGNORE_VERSION }, { "-iv", IGNORE_VERSION },
 	{ "-master", MASTER }, { "-m", MASTER },
 	{ "-ignorecheck", IGNORE_CHECK },
+	{ "--", END_OF_OPTIONS },
 	};
 const int noptions = sizeof options / sizeof options[0];
 
