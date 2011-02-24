@@ -1208,7 +1208,6 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 				stmtexpr();
 				}
 			static Value ret("block return");
-verify(ret.gcstr() == "block return");
 			emit(I_PUSH, LITERAL, literal(ret));
 			emit(I_THROW);
 			}
