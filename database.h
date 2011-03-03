@@ -351,7 +351,7 @@ private:
 	const Transaction* find_tran(int tran);
 	char* write_conflict(TblNum tblnum, Mmoffset a, TranDelete* p);
 	char* read_conflict(const Transaction* t, int tblnum, const Record& from, 
-		const Record& to, const Record& key, ActType type);
+		const Record& to, const char* index, const Record& key, ActType type);
 
 	Tables* tables;
 	// used by get_table

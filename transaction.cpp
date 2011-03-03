@@ -347,7 +347,8 @@ bool Database::validate_reads(Transaction* t)
 				Record key = project(rec, colnums);
 				if (from <= key && key <= to)
 					{
-					t->conflict = read_conflict(&*iter, tr->tblnum, from, to, key, act->type);
+					t->conflict = read_conflict(&*iter, tr->tblnum,
+							from, to, cur_index, key, act->type);
 					return false;
 					}
 				}
@@ -357,7 +358,7 @@ bool Database::validate_reads(Transaction* t)
 	}
 
 char* Database::read_conflict(const Transaction* t, int tblnum, const Record& from,
-	const Record& to, const Record& key, ActType type)
+	const Record& to, const char* index, const Record& key, ActType type)
 	{
 	OstreamStr os;
 	os << "read conflict with" ;
@@ -368,7 +369,7 @@ char* Database::read_conflict(const Transaction* t, int tblnum, const Record& fr
 		os << ' ' << tbl->name;
 	else
 		os << " table " << tblnum;
-	os << " from " << from << " to " << to << " key " << key <<
+	os << "^" << index << " from " << from << " to " << to << " key " << key <<
 		(type == CREATE_ACT ? " (create)" : " (delete)");
 	return os.str();
 	}
