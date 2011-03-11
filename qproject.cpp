@@ -178,6 +178,7 @@ Query* Project::transform()
 
 			source = e->source;
 			e->source = this;
+			e->init();
 			return e->transform();
 			}
 		e->flds = orig_flds;

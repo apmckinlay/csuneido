@@ -31,6 +31,7 @@ class Extend : public Query1
 	{
 public:
 	Extend(Query* source, const Fields& f, Lisp<Expr*> e, const Fields& r);
+	void init();
 	void out(Ostream& os) const;
 	Query* transform();
 	Fields columns()
@@ -59,7 +60,6 @@ public:
 	Fields eflds; // expr fields
 	Fields rules;
 private:
-	void init();
 	void iterate_setup();
 
 	bool first;
