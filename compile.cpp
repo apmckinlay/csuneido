@@ -1268,6 +1268,13 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 				statement(cont, pbrk);
 			a = emit(I_JUMP, UNCOND, a);
 			}
+		else
+			{
+			mark();
+			emit(I_POP);
+			emit(I_PUSH, LITERAL, literal("unhandled switch value"));
+			emit(I_THROW);
+			}
 		match('}');
 		emit(I_POP);
 		patch(a);
