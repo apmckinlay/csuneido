@@ -3240,7 +3240,7 @@ b();  \n\
 					  7  nop \n\
 					  8  call auto b 0 0\n\
 					 12  pop \n\
-					 13  jump 45\n\
+					 13  jump 49\n\
 case 2, 3, 4 :  \n\
 					 16  nop \n\
 					 17  push int 2\n\
@@ -3249,16 +3249,21 @@ case 2, 3, 4 :  \n\
 					 26  jump case yes 35\n\
 					 29  push int 4\n\
 					 32  jump case no 44\n\
-c();  } }\n\
+c();  \n\
 					 35  nop \n\
 					 36  call auto c 0 0\n\
 					 40  pop \n\
-					 41  jump 45\n\
-					 44  pop \n\
+					 41  jump 49\n\
+} }\n\
+					 44  nop \n\
+					 45  pop \n\
+					 46  push literal #\"unhandled switch value\"\n\
+					 47  throw \n\
+					 48  pop \n\
 \n\
-					 45  nop \n\
-					 46  return nil \n\
-					 47\n" },
+					 49  nop \n\
+					 50  return nil \n\
+					 51\n" },
 
 	{ "switch (a)\n { case 1 :\n b();\n case 2, 3, 4 :\n c();\n default :\n d();\n }", \
 	  "switch (a)  { \n\
