@@ -323,6 +323,8 @@ void RxCompile::cclass()
 			output(SPACE), s += 2;
 		else if (s[0] == '\\' && next() == 'S')
 			output(NSPACE), s += 2;
+		else if (s[0] == '\\' && s + 1 < lim)
+			output(CHAR, s[1]), s += 2;
 		else if (s[0] == '[' && next() == ':')
 			posix_cclass();
 		else
