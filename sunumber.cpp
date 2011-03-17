@@ -1082,8 +1082,10 @@ size_t SuNumber::packsize() const
 		return 8;
 	else if (digits[1])
 		return 6;
-	else
+	else if (digits[0])
 		return 4;
+	else
+		return 2; // infinity or minus_infinity
 	}
 
 void SuNumber::pack(char* buf) const
