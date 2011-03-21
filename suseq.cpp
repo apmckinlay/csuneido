@@ -40,6 +40,8 @@ Value SuSeq::call(Value self, Value member, short nargs, short nargnames, ushort
 
 	if (member == ITER)
 		{
+		if (ob)
+			return ob->call(self, member, nargs, nargnames, argnames, each);
 		static Value REWIND("Rewind");
 		Value newiter = iter.call(iter, COPY, 0, 0, 0, 0);
 		newiter.call(iter, REWIND, 0, 0, 0, 0);
@@ -82,7 +84,8 @@ SuObject* SuSeq::copy() const
 
 void SuSeq::putdata(Value i, Value x)
 	{
-	except("SuSeq is readonly");
+	build();
+	return ob->putdata(i, x);
 	}
 
 Value SuSeq::getdata(Value i)
