@@ -865,7 +865,7 @@ Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
 		{
 		verify(nargs == 1);
 		verify(nargnames == 0);
-		SuObject* ob = POP().object();
+		SuObject* ob = ARG(0).object();
 		if (ob->mapsize() == 0)
 			{
 			if (each < ob->vecsize())
