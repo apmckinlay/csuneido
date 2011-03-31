@@ -30,6 +30,8 @@ class gcstring;
 // return the symbol index for a char* string
 int symnum(const char* s);
 
+Value symbol_existing(const char* s);
+
 // return the SuSymbol for a gcstring
 Value symbol(const gcstring& s);
 

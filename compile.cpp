@@ -97,7 +97,7 @@ public:
 	NORETURN(syntax_error(char* err = ""));
 
 	void member(SuObject* ob, char* gname = 0, short base = -1);
-	ushort memname(char* gname, char* s);
+	Value memname(char* gname, char* s);
 	Params* params();
 	char* ckglobal(char*);
 private:
@@ -400,7 +400,7 @@ Value Compiler::suclass(char* gname) //===========================
 void Compiler::member(SuObject* ob, char* gname, short base)
 	{
 	Value mv;
-	int mi = -1;
+	bool name = false;
 	bool minus = false;
 	if (token == I_SUB)
 		{
@@ -415,7 +415,8 @@ void Compiler::member(SuObject* ob, char* gname, short base)
 		{
 		if (anyName())
 			{
-			mv = symbol(mi = memname(gname, scanner.value));
+			mv = memname(gname, scanner.value);
+			name = true;
 			match();
 			}
 		else if (token == T_NUMBER)
@@ -437,7 +438,7 @@ void Compiler::member(SuObject* ob, char* gname, short base)
 
 	Value x;
 	if (peek == '(' && base > 0)
-		x = functionCompiler(base, mi == NEWNUM, gname);
+		x = functionCompiler(base, mv.gcstr() == "New", gname);
 	else if (token != ',' && token != ')' && token != '}')
 		{
 		x = constant();
@@ -457,12 +458,12 @@ void Compiler::member(SuObject* ob, char* gname, short base)
 		}
 	else
 		ob->add(x);
-	if (mi != -1)
+	if (name)
 		if (Named* nx = x.get_named())
 			if (Named* nob = ob->get_named())
 				{
 				nx->parent = nob;
-				nx->num = mi;
+				nx->num = symnum(mv.str());
 				}
 	}
 
@@ -1656,7 +1657,7 @@ void FunctionCompiler::expr0(bool newtype)
 	case '.' :
 		matchnew('.');
 		option = MEM_SELF;
-		id = memname(gname, scanner.value);
+		id = symnum(memname(gname, scanner.value).str());
 		match(T_IDENTIFIER);
 		if (id == NEWNUM)
 			syntax_error();
@@ -2137,7 +2138,7 @@ void FunctionCompiler::patch(short i)
 	}
 
 // make lower case member names private by prefixing with class name
-ushort Compiler::memname(char* gname, char* s)
+Value Compiler::memname(char* gname, char* s)
 	{
 	if (gname && islower(s[0]))
 		{
@@ -2146,7 +2147,10 @@ ushort Compiler::memname(char* gname, char* s)
 		else
 			s = CATSTR3(gname, "_", s);
 		}
-	return symnum(s);
+	if (Value symbol = symbol_existing(s))
+		return symbol;
+	else
+		return new SuString(s);
 	}
 
 #include "testing.h"

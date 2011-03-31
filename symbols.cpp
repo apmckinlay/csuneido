@@ -44,7 +44,7 @@ public:
 
 const int MAX_SYMBOLS = 32 * 1024;
 static PermanentHeap symbols("symbol table", MAX_SYMBOLS * sizeof (SuSymbol));
-const int AVG_NAME_LEN = 18;
+const int AVG_NAME_LEN = 22;
 
 struct kofv
 	{
@@ -104,6 +104,14 @@ Value symbol(const gcstring& s)
 	}
 
 static PermanentHeap names("symbol names", MAX_SYMBOLS * AVG_NAME_LEN);
+
+Value symbol_existing(const char* s)
+	{
+	if (SuSymbol** psym = symtbl.find(s))
+		return *psym;
+	else
+		return Value();
+	}
 
 Value symbol(const char* s)
 	{
