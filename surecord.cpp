@@ -120,7 +120,7 @@ void SuRecord::dependencies(ushort mem, gcstring s)
 	for (;;)
 		{
 		int i = s.find(',');
-		gcstring t = s.substr(0, i);
+		gcstring t = s.substr(0, i).trim();
 		ushort m = ::symnum(t.str());
 		dependents[m].push(mem); // TODO: don't allow duplicates
 		if (i == -1)
