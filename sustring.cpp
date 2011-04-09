@@ -221,6 +221,8 @@ Value SuString::getdata(Value m)
 	int i;
 	if (! m.int_if_num(&i))
 		except("strings subscripts must be integers");
+	if (i < 0)
+		i += size();
 	return substr(i, 1);
 	}
 
