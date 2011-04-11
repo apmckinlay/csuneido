@@ -76,6 +76,7 @@ qtable.cpp \
 qtempindex.cpp \
 query.cpp \
 qunion.cpp \
+range.cpp \
 record.cpp \
 recover.cpp \
 regexp.cpp \

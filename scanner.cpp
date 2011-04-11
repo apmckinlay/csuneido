@@ -33,13 +33,13 @@ enum { OK = 1, DIG, ID, GO, WHITE, END };
 char cclass_[256] =
 	{
 	END, 0, 0, 0, 0, 0, 0, 0,						// NUL ...
-	0, WHITE, WHITE, WHITE, WHITE, WHITE, 0, 0,		// BS, HT, LF ...
+	0, WHITE, WHITE, WHITE, WHITE, WHITE, 0, 0,	// BS, HT, LF ...
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
-	WHITE, GO, GO, OK, GO, GO, GO, GO,				// SP ! " # $ % & '
-	OK, OK, GO, GO, OK, GO, GO, GO,					// ( ) * + , - . /
+	WHITE, GO, GO, OK, GO, GO, GO, GO,			// SP ! " # $ % & '
+	OK, OK, GO, GO, OK, GO, GO, GO,				// ( ) * + , - . /
 	DIG, DIG, DIG, DIG, DIG, DIG, DIG, DIG,			// 0 1 2 3 4 5 6 7
-	DIG, DIG, OK, OK, GO, GO, GO, OK,				// 8 9 : ; < = > ?
+	DIG, DIG, GO, OK, GO, GO, GO, OK,				// 8 9 : ; < = > ?
 	OK, ID, ID, ID, ID, ID, ID, ID,					// @ A B C D E F G
 	ID, ID, ID, ID, ID, ID, ID, ID,					// H I J K L M N O
 	ID, ID, ID, ID, ID, ID, ID, ID,					// P Q R S T U V W
@@ -248,6 +248,11 @@ int Scanner::nextall()
 				{ ++si; return I_CATEQ; }
 			else
 				return I_CAT;
+		case ':' :
+			if (':' == source[si])
+				{ ++si; return T_RANGELEN; }
+			else
+				return ':';
 		case '_' :
 			value = source + si;
 			for (dst = buf; ID == cclass(source[si]) ||
@@ -289,12 +294,13 @@ int Scanner::nextall()
 				buf[len] = 0;
 				si += len;
 				}
-
 			value = buf;
 			return T_NUMBER;
 		case '.' :
 			if (DIG == cclass(source[si]))
 				--si, state = '9';
+			else if ('.' == source[si])
+				{ ++si; return T_RANGETO; }
 			else
 				return '.';
 			break ;

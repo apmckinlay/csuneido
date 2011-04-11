@@ -1707,7 +1707,24 @@ void FunctionCompiler::expr0(bool newtype)
 		else if (token == '[')
 			{
 			match('[');
-			expr();
+			if (token == T_RANGETO || token == T_RANGELEN)
+				emit(I_PUSH, LITERAL, literal(SuZero));
+			else
+				expr();
+			if (token == T_RANGETO || token == T_RANGELEN) {
+				int type = token;
+				match();
+				if (token == ']')
+					emit(I_PUSH, LITERAL, literal(SuFalse));
+				else
+					expr();
+				static int g_rangeTo = globals("RangeTo");
+				static int g_rangeLen = globals("RangeLen");
+				vector<ushort> argnames;
+				emit(I_CALL, GLOBAL,
+					type == T_RANGETO ? g_rangeTo : g_rangeLen,
+					2, &argnames);
+			}
 			option = SUB;
 			match(']');
 			}

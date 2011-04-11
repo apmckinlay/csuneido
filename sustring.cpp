@@ -36,6 +36,7 @@
 #include "symbols.h"
 #include "minmax.h"
 #include "gc.h"
+#include "range.h"
 /*#if defined(_MSC_VER) && _MSC_VER <= 1200
 #include <locale>
 using namespace std;
@@ -218,9 +219,11 @@ static char doesc(const char*& s)
 
 Value SuString::getdata(Value m)
 	{
+	if (Range* r = val_cast<Range*>(m))
+		return new SuString(r->substr(gcstr()));
 	int i;
 	if (! m.int_if_num(&i))
-		except("strings subscripts must be integers");
+		except("string subscripts must be integers");
 	if (i < 0)
 		i += size();
 	return substr(i, 1);
