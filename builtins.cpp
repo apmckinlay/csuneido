@@ -738,7 +738,7 @@ class MkRec : public Func
 	{
 public:
 	MkRec()
-		{ named.num = globals("Construct"); }
+		{ named.num = globals("MkRec"); }
 	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
 	};
 
