@@ -39,6 +39,7 @@
 #include "catstr.h"
 #include "ostreamstr.h"
 #include "minmax.h"
+#include "range.h"
 
 extern Value root_class;
 
@@ -250,7 +251,10 @@ void SuObject::put(Value m, Value x)
 
 Value SuObject::getdata(Value member)
 	{
-	return getdefault(member, defval);
+	if (Range* r = val_cast<Range*>(member))
+		return r->sublist(this);
+	else
+		return getdefault(member, defval);
 	}
 
 Value SuObject::getdefault(Value member, Value def)
