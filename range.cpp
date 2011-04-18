@@ -136,6 +136,8 @@ SuObject* RangeLen::sublist(SuObject* ob)
 	{
 	int size = ob->vecsize();
 	int f = prepFrom(from, size);
+	if (len > size - f)
+		len = size - f;
 	int t = f + len;
 	return ::sublist(ob, f, t);
 	}
