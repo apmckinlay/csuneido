@@ -123,7 +123,7 @@ public:
 	static Expr* make_constant(Value x);
 	static Expr* make_identifier(const gcstring& s);
 	static Expr* make_unop(short o, Expr* a);
-	static Expr* make_call(const gcstring& id, const Lisp<Expr*>& e);
+	static Expr* make_call(Expr* ob, const gcstring& id, const Lisp<Expr*>& e);
 	static Expr* make_binop(short o, Expr* l, Expr* r);
 	static Expr* make_triop(Expr* e, Expr* t, Expr* f);
 	static Expr* make_in(Expr* e, const Lisp<Value>& v);

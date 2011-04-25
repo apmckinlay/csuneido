@@ -112,7 +112,7 @@ struct TriOp : public Expr
 		{
 		return set_union(expr->fields(),
 			set_union(iftrue->fields(), iffalse->fields()));
-	    }
+		}
 	Value eval(const Header& hdr, const Row& row);
 	Expr* rename(const Fields& from, const Fields& to);
 	Expr* replace(const Fields& from, const Lisp<Expr*>& to);
@@ -180,15 +180,17 @@ struct And : public MultiOp
 
 struct FunCall : public MultiOp
 	{
-	FunCall(const gcstring& f, const Lisp<Expr*>& e) : MultiOp(e), fname(f)
+	FunCall(Expr* e, const gcstring& f, const Lisp<Expr*>& args) : MultiOp(args), ob(e), fname(f)
 		{ }
 	void out(Ostream& os) const;
+	Fields fields();
 	Expr* rename(const Fields& from, const Fields& to);
 	Expr* replace(const Fields& from, const Lisp<Expr*>& to);
 	Expr* fold()
 		{ return this; }
 	Value eval(const Header& hdr, const Row& row);
 
+	Expr* ob;
 	gcstring fname;
 	};
 

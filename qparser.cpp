@@ -1275,12 +1275,19 @@ Expr* QueryParser::term()
 			t = Query::make_constant(constant());
 		else
 			{
+			Expr* ob = NULL;
 			gcstring id(scanner.value);
 			match(T_IDENTIFIER);
-			if (token != '(')
+			if (token != '(' && token != '.')
 				t = Query::make_identifier(id);
 			else
 				{
+				if (token == '.') {
+					match('.');
+					ob = Query::make_identifier(id);
+					id = scanner.value;
+					match(T_IDENTIFIER);
+				}
 				match('(');
 				Lisp<Expr*> exprs;
 				while (token != ')')
@@ -1290,7 +1297,7 @@ Expr* QueryParser::term()
 						match(',');
 					}
 				match(')');
-				t = Query::make_call(id, exprs.reverse());
+				t = Query::make_call(ob, id, exprs.reverse());
 				}
 			}
 		break ;

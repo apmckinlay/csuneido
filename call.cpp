@@ -39,6 +39,15 @@ Value call(const char* fname, Lisp<Value> args)
 	return docall(globals[fname], CALL, nargs, 0, 0, -1);
 	}
 
+Value method_call(Value ob, gcstring& method, Lisp<Value> args)
+	{
+	KEEPSP
+	int nargs = 0;
+	for (; ! nil(args); ++args, ++nargs)
+		PUSH(*args);
+	return docall(ob, method, nargs, 0, 0, -1);
+	}
+
 // used by sunapp
 char* trycall(const char* fn, char* arg, int* plen)
 	{

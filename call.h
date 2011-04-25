@@ -27,6 +27,7 @@
 #include "value.h"
 
 Value call(const char* fname, Lisp<Value> args);
+Value method_call(Value ob, gcstring& method, Lisp<Value> args);
 char* trycall(const char* fn, char* arg, int* plen = 0);
 
 #endif

@@ -589,13 +589,15 @@ Value And::eval(const Header& hdr, const Row& row)
 
 // FunCall ----------------------------------------------------------
 
-Expr* Query::make_call(const gcstring& fname, const Lisp<Expr*>& args)
+Expr* Query::make_call(Expr* ob, const gcstring& fname, const Lisp<Expr*>& args)
 	{
-	return new FunCall(fname, args);
+	return new FunCall(ob, fname, args);
 	}
 
 void FunCall::out(Ostream& os) const
 	{
+	if (ob != NULL)
+		os << ob << ".";
 	os << fname << "(";
 	for (Lisp<Expr*> e(exprs); ! nil(e); ++e)
 		{
@@ -606,16 +608,32 @@ void FunCall::out(Ostream& os) const
 	os << ")";
 	}
 
+Fields FunCall::fields()
+	{
+	Fields f = MultiOp::fields();
+	return (ob == NULL) ? f : set_union(ob->fields(), f);
+	}
+
 Expr* FunCall::rename(const Fields& from, const Fields& to)
 	{
+	Expr* new_ob = (ob == NULL) ? ob : ob->rename(from, to);
 	Lisp<Expr*> new_exprs = rename_exprs(from, to);
-	return nil(new_exprs) ? this : new FunCall(fname, new_exprs);
+	if (new_ob == ob && nil(new_exprs))
+		return this;
+	if (nil(new_exprs))
+		new_exprs = exprs;
+	return new FunCall(new_ob, fname, new_exprs);
 	}
 
 Expr* FunCall::replace(const Fields& from, const Lisp<Expr*>& to)
 	{
+	Expr* new_ob = (ob == NULL) ? ob : ob->replace(from, to);
 	Lisp<Expr*> new_exprs = replace_exprs(from, to);
-	return nil(new_exprs) ? this : new FunCall(fname, new_exprs);
+	if (new_ob == ob && nil(new_exprs))
+		return this;
+	if (nil(new_exprs))
+		new_exprs = exprs;
+	return new FunCall(new_ob, fname, new_exprs);
 	}
 
 Value FunCall::eval(const Header& hdr, const Row& row)
@@ -623,7 +641,11 @@ Value FunCall::eval(const Header& hdr, const Row& row)
 	Lisp<Value> args;
 	for (Lisp<Expr*> e(exprs); ! nil(e); ++e)
 		args.push((*e)->eval(hdr, row));
-	Value result = call(fname.str(), args.reverse());
+	Value result;
+	if (ob == NULL)
+		result = call(fname.str(), args.reverse());
+	else
+		result = method_call(ob->eval(hdr, row), fname, args.reverse());
 	if (! result)
 		except("no return value from: " << fname.str());
 	return result;
