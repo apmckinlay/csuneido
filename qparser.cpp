@@ -1154,10 +1154,10 @@ Expr* QueryParser::in()
 Expr* QueryParser::bitorop()
 	{
 	Expr* e = bitxor();
-	if (token == I_BITOR)
+	while (token == I_BITOR)
 		{
 		match();
-		e = Query::make_binop(I_BITOR, e, bitorop());
+		e = Query::make_binop(I_BITOR, e, bitxor());
 		}
 	return e;
 	}
@@ -1165,10 +1165,10 @@ Expr* QueryParser::bitorop()
 Expr* QueryParser::bitxor()
 	{
 	Expr* e = bitandop();
-	if (token == I_BITXOR)
+	while (token == I_BITXOR)
 		{
 		match();
-		e = Query::make_binop(I_BITXOR, e, bitxor());
+		e = Query::make_binop(I_BITXOR, e, bitandop());
 		}
 	return e;
 	}
@@ -1176,10 +1176,10 @@ Expr* QueryParser::bitxor()
 Expr* QueryParser::bitandop()
 	{
 	Expr* e = isop();
-	if (token == I_BITAND)
+	while (token == I_BITAND)
 		{
 		match();
-		e = Query::make_binop(I_BITAND, e, bitandop());
+		e = Query::make_binop(I_BITAND, e, isop());
 		}
 	return e;
 	}
@@ -1189,7 +1189,7 @@ Expr* QueryParser::isop()
 	Expr* e = cmpop();
 	if (token == I_EQ)
 		token = I_IS;
-	if (I_IS <= token && token <= I_MATCHNOT)
+	while (I_IS <= token && token <= I_MATCHNOT)
 		{
 		short t = token;
 		match(t);
@@ -1201,7 +1201,7 @@ Expr* QueryParser::isop()
 Expr* QueryParser::cmpop()
 	{
 	Expr* e = shift();
-	if (token == I_LT || token == I_LTE || token == I_GT || token == I_GTE)
+	while (token == I_LT || token == I_LTE || token == I_GT || token == I_GTE)
 		{
 		short t = token;
 		match(t);
@@ -1213,19 +1213,7 @@ Expr* QueryParser::cmpop()
 Expr* QueryParser::shift()
 	{
 	Expr* e = addop();
-	if (token == I_LSHIFT || token == I_RSHIFT)
-		{
-		short t = token;
-		match(t);
-		e = Query::make_binop(t, e, shift());
-		}
-	return e;
-	}
-
-Expr* QueryParser::addop()
-	{
-	Expr* e = mulop();
-	if (token == I_ADD || token == I_SUB || token == I_CAT)
+	while (token == I_LSHIFT || token == I_RSHIFT)
 		{
 		short t = token;
 		match(t);
@@ -1234,14 +1222,26 @@ Expr* QueryParser::addop()
 	return e;
 	}
 
-Expr* QueryParser::mulop()
+Expr* QueryParser::addop()
 	{
-	Expr* e = unop();
-	if (token == I_MUL || token == I_DIV || token == I_MOD)
+	Expr* e = mulop();
+	while (token == I_ADD || token == I_SUB || token == I_CAT)
 		{
 		short t = token;
 		match(t);
 		e = Query::make_binop(t, e, mulop());
+		}
+	return e;
+	}
+
+Expr* QueryParser::mulop()
+	{
+	Expr* e = unop();
+	while (token == I_MUL || token == I_DIV || token == I_MOD)
+		{
+		short t = token;
+		match(t);
+		e = Query::make_binop(t, e, unop());
 		}
 	return e;
 	}
