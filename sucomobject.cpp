@@ -25,6 +25,8 @@
 #include "suboolean.h"
 #include "sunumber.h"
 #include "sustring.h"
+#include "date.h"
+#include "sudate.h"
 #include "ostream.h"
 #include <objbase.h>
 
@@ -147,6 +149,29 @@ static Value com2su(VARIANT* var)
 		if (n == 0)
 			except("COM: string conversion error");
 		result = new SuString(s, n);
+		break;
+		}
+	case VT_DATE:
+		{
+		DATE wdt = varValue.date;
+		SYSTEMTIME sdt;
+		BOOL ret;
+
+		ret = VariantTimeToSystemTime(wdt, &sdt);
+		if (ret == FALSE)
+			{
+			except("COM: date conversion error");
+			break;
+			}
+		DateTime dat = DateTime(
+			sdt.wYear,
+			sdt.wMonth,
+			sdt.wDay,
+			sdt.wHour,
+			sdt.wMinute,
+			sdt.wSecond,
+			sdt.wMilliseconds);
+		result = new SuDate(dat.date(), dat.time());
 		break;
 		}
 	default:
