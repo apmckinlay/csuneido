@@ -51,6 +51,8 @@
 #include "codevisitor.h"
 #include "sublock.h" // for BLOCK_REST
 
+bool optionDisabled(const char* option);
+
 using namespace std;
 
 template <class T> T* dup(const vector<T>& x)
@@ -1269,7 +1271,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 				statement(cont, pbrk);
 			a = emit(I_JUMP, UNCOND, a);
 			}
-		else
+		else if (! optionDisabled("SwitchUnhandledThrow"))
 			{
 			mark();
 			emit(I_POP);
@@ -1679,7 +1681,8 @@ void FunctionCompiler::expr0(bool newtype)
 	default :
 		syntax_error();
 		}
-	while (token == '.' || token == '[' || token == '(' || token == '{')
+	while (token == '.' || token == '[' || token == '(' || 
+		(token == '{' && ! expecting_compound))
 		{
 		if (value && (token == '.' || token == '['))
 			{

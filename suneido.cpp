@@ -212,7 +212,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		extern char* build_date;
 		alert("Built:  " << build_date << "\n"
 			""
-			"Copyright (C) 2000-2007 Suneido Software Corp.\n"
+			"Copyright (C) 2000-2011 Suneido Software Corp.\n"
 			"All rights reserved worldwide.\n"
 			"Licensed under the GNU General Public License.\n"
 			"\n"
@@ -303,4 +303,13 @@ void handler(const Except& x)
 		message("Error in Debug", e.str());
 		}
 	tss_proc()->in_handler = false;
+	}
+
+// for options that are normally enabled
+bool optionDisabled(const char* option)
+	{
+	Value x = globals["Suneido"];
+	if (SuObject* ob = val_cast<SuObject*>(x))
+		return ob->get(option) == SuFalse;
+	return false;
 	}
