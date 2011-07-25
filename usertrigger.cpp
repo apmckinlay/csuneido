@@ -30,6 +30,8 @@
 #include "suboolean.h"
 #include "exceptimp.h"
 
+extern bool is_client;
+
 static Lisp<int> disabled_triggers;
 
 void Tbl::user_trigger(int tran, const Record& oldrec, const Record& newrec)
@@ -99,6 +101,8 @@ Value su_do_without_triggers()
 	{
 	int nargs = 2;
 
+	if (is_client)
+		except("DoWithoutTriggers cannot be used when running as a client");
 	SuObject* ob = ARG(0).object();
 	DisabledTriggers dt;
 	for (int i = 0; ob->has(i); ++i)
