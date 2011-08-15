@@ -566,7 +566,7 @@ Value DbmsRemote::run(char* s)
 Value DbmsRemote::exec(Value ob)
 	{
 	int n = ob.packsize();
-	WRITEBUF("EXEC " << "P" << n);
+	WRITEBUF("EXEC P" << n);
 	char* buf = (char*) alloca(n);
 	ob.pack(buf);
 	sc.write(buf, n);
