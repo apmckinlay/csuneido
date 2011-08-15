@@ -474,6 +474,8 @@ char* DbServerImp::cmd_cursors(char*)
 
 char* DbServerImp::value_result(Value x)
 	{
+	if (! x)
+		return "\r\n";
 	int n = x.packsize();
 	os << 'P' << n << "\r\n";
 	writebuf(os.str());
