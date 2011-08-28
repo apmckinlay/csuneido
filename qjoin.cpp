@@ -57,11 +57,11 @@ Join::Join(Query* s1, Query* s2, Fields by)
 		type = N_N;
 	}
 
+static const char* typestr[] = { "", " 1:1", " 1:n", " n:1", " n:n" };
 void Join::out(Ostream& os) const
 	{
-	const char* s[] = { "", " 1:1", " 1:n", " n:1", " n:n" };
 	os << "(" << *source << ") " <<
-		name() << s[type] << " on " << joincols <<
+		name() << typestr[type] << " on " << joincols <<
 		" (" << *source2 << ")";
 	}
 
@@ -160,7 +160,7 @@ double Join::opt(Query* src1, Query* src2, Type typ,
 	const Fields& index, const Fields& needs1, const Fields& needs2, bool is_cursor, bool freeze)
 	{
 	// guestimated from: (3 treelevels * 4096) / 10 ~ 1000
-	const double SELECT_COST = 1000;
+	const double SELECT_COST = 50;
 
 	// always have to read all of source 1
 	double cost1 = src1->optimize(index, needs1, joincols, is_cursor, freeze);
@@ -176,22 +176,24 @@ double Join::opt(Query* src1, Query* src2, Type typ,
 	if (cost2 >= IMPOSSIBLE)
 		return IMPOSSIBLE;
 	double nrecs2 = src2->nrecords();
-
 	bool is_cursor2 = is_cursor;
-	if (type == N_ONE && nrecs1 >= 0 && nrecs2 > 0)
+
+	if ((type == N_ONE || type == ONE_ONE) && nrecs1 >= 0 && nrecs2 > 0)
 		{
+		// can't read any more records from right side than left side
+		// if right side is bigger, try passing is_cursor = true to avoid temp indexes
 		double p = nrecs1 / nrecs2;
-		if (! is_cursor && p < .2)
+		if (! is_cursor && p < 1)
 			{
-			// "1" side can be no bigger than "n" side
-			// if "1" side is a lot bigger, then pass is_cursor = true to avoid temp or filter indexes
 			double cost2b = src2->optimize(joincols, needs2, Fields(), true, false);
-			if (cost2b < IMPOSSIBLE)
+			if (cost2b * p  < cost2)
 				{
 				is_cursor2 = true;
 				cost2 = cost2b;
 				}
 			}
+		if (p < 1 && is_cursor2)
+			cost2 *= p;
 		}
 	if (freeze)
 		src2->optimize(joincols, needs2, Fields(), is_cursor2, true);
@@ -213,12 +215,10 @@ double Join::opt(Query* src1, Query* src2, Type typ,
 	default :
 		unreachable();
 		}
-	nrecs /= 2; // convert from max to guess of expected
+	nrecs /= 2; // convert from max to guess of expected PROBABLY TOO LOW
 
 	if (nrecs <= 0)
 		cost2 = 0;
-	else if (is_cursor2 || ! src2->tempindexed())
-		cost2 =  nrecs * (cost2 / nrecs2);
 
 	return cost1 + cost2;
 	}

@@ -38,12 +38,6 @@ Query* query(char* s, bool is_cursor)
 	return query_setup(parse_query(s), is_cursor);
 	}
 
-void trace_tempindex(Query* q)
-	{
-	if ((trace_level & TRACE_TEMPINDEX) && q->tempindexed())
-		TRACE(TEMPINDEX, q);
-	}
-
 Query* query_setup(Query* q, bool is_cursor)
 	{
 	q = q->transform();
@@ -54,13 +48,30 @@ Query* query_setup(Query* q, bool is_cursor)
 	return q;
 	}
 
+static bool hasTempIndex(Query* q)
+	{
+	if (dynamic_cast<TempIndex1*>(q) || dynamic_cast<TempIndexN*>(q))
+		return true;
+	if (Query2* q2 = dynamic_cast<Query2*>(q))
+		return hasTempIndex(q2->source) || hasTempIndex(q2->source2);
+	if (Query1* q1 = dynamic_cast<Query1*>(q))
+		return hasTempIndex(q1->source);
+	return false;
+	}
+
+void trace_tempindex(Query* q)
+	{
+	if ((trace_level & TRACE_TEMPINDEX) && hasTempIndex(q))
+		TRACE(TEMPINDEX, q);
+	}
+
 Ostream& operator<<(Ostream& os, const Query& node)
 	{
 	node.out(os);
 	return os;
 	}
 
-Query::Query() : willneed_tempindex(false)
+Query::Query()
 	{
 	}
 
@@ -103,9 +114,9 @@ Fields Query::key_index(const Fields& needs)
 // tempindex ?
 double Query::optimize(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze)
 	{
-	TRACE(QUERYOPT, "Query::optimize START " << this << endl <<
+	TRACE(QUERYOPT, "Query::optimize START " << this << (freeze ? " FREEZE" : "") << endl <<
 		"\tindex: " << index << (is_cursor ? " is_cursor" : "") <<
-		" needs: " << needs << " firstneeds: " << firstneeds << (freeze ? " FREEZE" : ""));
+		" needs: " << needs << " firstneeds: " << firstneeds);
 	if (is_cursor || nil(index))
 		{
 		double cost = optimize1(index, needs, firstneeds, is_cursor, freeze);
@@ -133,11 +144,10 @@ double Query::optimize(const Fields& index, const Fields& needs, const Fields& f
 
 	TRACE(QUERYOPT, "Query::optimize END " << this << endl <<
 		"\twith " << index << " cost " << cost1 << endl <<
-		"\twith TEMPINDEX cost " << cost2 << "(" << no_index_cost << " + " << tempindex_cost << ")s " <<
+		"\twith TEMPINDEX cost " << cost2 << "(" << no_index_cost << " + " << tempindex_cost << ") " <<
 			" nrecords " << nrecords() << " keysize " << keysize << endl);
 
 	double cost = min(cost1, cost2);
-	willneed_tempindex = (cost2 < cost1);
 	if (! freeze)
 		return cost;
 
@@ -485,11 +495,11 @@ Querystruct querytests[] =
 	{ "customer join supplier", "(supplier^(city)) JOIN n:n on (name,city) (customer^(id) TEMPINDEX1(name,city))",
 "supplier	name	city	id\n" },
 // 37
-	{ "(customer times inven) join trans", "(trans^(date,item,id)) JOIN n:1 on (id,item) ((customer^(id)) TIMES (inven^(item)) TEMPINDEXN(id,item) unique)",
-"item	id	cost	date	name	city	qty\n\
-\"mouse\"	\"e\"	200	960204	\"emerald\"	\"vancouver\"	2\n\
-\"disk\"	\"a\"	100	970101	\"axon\"	\"saskatoon\"	5\n\
-\"mouse\"	\"c\"	200	970101	\"calac\"	\"calgary\"	2\n" },
+	{ "(customer times inven) join trans", "((customer^(id)) TIMES (inven^(item))) JOIN 1:n on (id,item) (trans^(date,item,id) TEMPINDEX1(id,item))",
+"id	name	city	item	qty	cost	date\n\
+\"a\"	\"axon\"	\"saskatoon\"	\"disk\"	5	100	970101\n\
+\"c\"	\"calac\"	\"calgary\"	\"mouse\"	2	200	970101\n\
+\"e\"	\"emerald\"	\"vancouver\"	\"mouse\"	2	200	960204\n" },
 
 	{ "trans join customer join inven", "((trans^(date,item,id)) JOIN n:1 on (id) (customer^(id))) JOIN n:1 on (item) (inven^(item))",
 "item	id	cost	date	name	city	qty\n\

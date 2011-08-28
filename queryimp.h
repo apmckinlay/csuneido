@@ -46,8 +46,6 @@ public:
 		}
 	void set_transaction(int tran)
 		{ source->set_transaction(tran); }
-	bool tempindexed()
-		{ return Query::tempindexed() || source->tempindexed(); }
 
 	// estimated result sizes
 	double nrecords()
@@ -94,11 +92,6 @@ public:
 		{
 		source->set_transaction(tran);
 		source2->set_transaction(tran);
-		}
-	bool tempindexed()
-		{
-		return Query::tempindexed() ||
-			source->tempindexed() || source2->tempindexed();
 		}
 	Lisp<Fixed> fixed() const
 		{ return Lisp<Fixed>(); }

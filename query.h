@@ -150,8 +150,6 @@ public:
 		{ error("not implemented yet"); return Row(); }
 	virtual Lisp<Fixed> fixed() const
 		{ return Lisp<Fixed>(); }
-	virtual bool tempindexed()
-		{ return willneed_tempindex; }
 
 	// updating
 	virtual bool updateable() const
@@ -181,10 +179,9 @@ public:
 
 	// used to insert TempIndex nodes
 	virtual Query* addindex(); // redefined by Query1 and Query2
-
+	
 private:
 	Fields tempindex;
-	bool willneed_tempindex;
 	};
 
 enum { IS_CURSOR = true };
