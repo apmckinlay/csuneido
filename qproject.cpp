@@ -157,32 +157,44 @@ Query* Project::transform()
 				new_flds.push(*f);
 				new_exprs.push(*ex);
 				}
+		Fields new_rules;
+		for (f = e->rules; ! nil(f); ++f)
+			if (member(flds, *f))
+				new_rules.push(*f);
 		Fields orig_flds = e->flds;
 		e->flds = new_flds;
 		Lisp<Expr*> orig_exprs = e->exprs;
 		e->exprs = new_exprs;
+		Fields orig_rules = e->rules;
+		e->rules = new_rules;
 
 		// project must include all fields required by extend
-		Fields eflds;
-		for (ex = e->exprs; ! nil(ex); ++ex)
-			eflds = set_union(eflds, (*ex)->fields());
-		if (subset(flds, eflds))
+		// there must be no rules left
+		// since we don't know fields are required by rules
+		if (nil(e->rules))
 			{
-			// remove extend fields from project
-			Fields new_fields;
-			Fields f = flds;
-			for (; ! nil(f); ++f)
-				if (! member(e->flds, *f))
-					new_fields.push(*f);
-			flds = new_fields.reverse();
+			Fields eflds;
+			for (ex = e->exprs; ! nil(ex); ++ex)
+				eflds = set_union(eflds, (*ex)->fields());
+			if (subset(flds, eflds))
+				{
+				// remove extend fields from project
+				Fields new_fields;
+				Fields f = flds;
+				for (; ! nil(f); ++f)
+					if (! member(e->flds, *f))
+						new_fields.push(*f);
+				flds = new_fields.reverse();
 
-			source = e->source;
-			e->source = this;
-			e->init();
-			return e->transform();
+				source = e->source;
+				e->source = this;
+				e->init();
+				return e->transform();
+				}
 			}
 		e->flds = orig_flds;
 		e->exprs = orig_exprs;
+		e->rules = orig_rules;
 		}
 	// distribute project over union/intersect (NOT difference)
 	else if (dynamic_cast<Difference*>(source))
@@ -277,18 +289,20 @@ Lisp<Fixed> Project::fixed() const
 
 Header Project::header()
 	{
-	return source->header().project(flds);
+	return strategy == COPY
+		? source->header().project(flds)
+		: Header(lisp(Fields(), flds), flds);
 	}
 
 Row Project::get(Dir dir)
 	{
-	if (strategy == COPY)
-		return source->get(dir);
+	static Record emptyrec;
 
 	if (first)
 		{
 		first = false;
-		hdr = header();
+		src_hdr = source->header();
+		proj_hdr = src_hdr.project(flds);
 		if (strategy == LOOKUP)
 			{
 			if (idx)
@@ -297,7 +311,11 @@ Row Project::get(Dir dir)
 			indexed = false;
 			}
 		}
-	if (strategy == SEQUENTIAL)
+	if (strategy == COPY)
+		{
+		return source->get(dir);
+		}
+	else if (strategy == SEQUENTIAL)
 		{
 		if (dir == NEXT)
 			{
@@ -307,12 +325,12 @@ Row Project::get(Dir dir)
 			do
 				if (Eof == (row = source->get(NEXT)))
 					return Eof;
-				while (! rewound && equal(hdr, row, currow));
+				while (! rewound && equal(proj_hdr, row, currow));
 			rewound = false;
 			prevrow = currow;
 			currow = row;
 			// output the first row of a new group
-			return row;
+			return Row(lisp(emptyrec, row_to_key(src_hdr, row, flds)));
 			}
 		else // dir == PREV
 			{
@@ -329,10 +347,10 @@ Row Project::get(Dir dir)
 					return Eof;
 				prevrow = source->get(PREV);
 				}
-				while (equal(hdr, row, prevrow));
+				while (equal(proj_hdr, row, prevrow));
 			// output the last row of a group
 			currow = row;
-			return row;
+			return Row(lisp(emptyrec, row_to_key(src_hdr, row, flds)));
 			}
 		}
 	else
@@ -347,7 +365,7 @@ Row Project::get(Dir dir)
 				Row row;
 				while (Eof != (row = source->get(NEXT)))
 					{
-					Record key = row_to_key(hdr, row, flds);
+					Record key = row_to_key(src_hdr, row, flds);
 					Vdata data(row.data);
 					for (Lisp<Record> rs = row.data; ! nil(rs); ++rs)
 						td->addref(rs->ptr());
@@ -361,7 +379,7 @@ Row Project::get(Dir dir)
 		Row row;
 		while (Eof != (row = source->get(dir)))
 			{
-			Record key = row_to_key(hdr, row, flds);
+			Record key = row_to_key(src_hdr, row, flds);
 			VVtree::iterator iter = idx->find(key);
 			if (iter == idx->end())
 				{
@@ -369,7 +387,7 @@ Row Project::get(Dir dir)
 					td->addref(rs->ptr());
 				Vdata data(row.data);
 				verify(idx->insert(VVslot(key, &data)));
-				return row;
+				return Row(lisp(emptyrec, key));
 				}
 			else
 				{
@@ -379,7 +397,7 @@ Row Project::get(Dir dir)
 					rs.push(Record::from_int(d->r[i], theDB()->mmf));
 				Row irow(rs);
 				if (row == irow)
-					return row;
+					return Row(lisp(emptyrec, key));
 				}
 			}
 		if (dir == NEXT)

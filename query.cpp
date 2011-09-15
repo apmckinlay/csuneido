@@ -901,7 +901,7 @@ class test_query : public Tests
 			}
 		q->close(q);
 		if (0 != strcmp(querytests[i].result, out.str()))
-			errs << i << ": " << s <<
+			errs << "prev " << i << ": " << s <<
 				"\n\tgot: '" << out.str() << "'" <<
 				"\n\tnot: '" << querytests[i].result << "'" << endl;
 		}

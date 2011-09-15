@@ -55,7 +55,8 @@ private:
 	Fields flds;
 	enum { NONE, COPY, SEQUENTIAL, LOOKUP } strategy;
 	bool first;
-	Header hdr;
+	Header src_hdr;
+	Header proj_hdr;
 	// used by LOOKUP
 	VVtree* idx;
 	Keyrange sel;
