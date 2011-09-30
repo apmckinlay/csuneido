@@ -391,6 +391,7 @@ static void _stdcall thread(void* arg)
 		}
 	catch (const Except& e)
 		{
+		errlog("error in thread", e.str());
 		MessageBox(0, e.str(), "Error in Thread", MB_TASKMODAL | MB_OK);
 		}
 
