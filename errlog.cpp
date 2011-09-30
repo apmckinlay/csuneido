@@ -25,9 +25,12 @@
 #include "ostreamfile.h"
 #include <time.h>
 
+extern bool is_client;
+extern char* err_filename();
+
 void errlog(const char* msg1, const char* msg2, const char* msg3)
 	{
-	OstreamFile log("error.log", "at");
+	OstreamFile log(is_client ? err_filename() : "error.log", "at");
 	time_t t;
 	time(&t);
 	char* s = ctime(&t);
