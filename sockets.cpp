@@ -232,6 +232,8 @@ private:
 
 void SocketConnectAsynch::write(char* s, int n)
 	{
+	if (mode == CLOSED)
+		except("socket Write failed (connection closed)");
 	wrbuf.add(s, n);
 	event(FD_WRITE);
 	}

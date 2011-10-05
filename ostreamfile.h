@@ -31,7 +31,7 @@ class OstreamFileImp;
 class OstreamFile : public Ostream
 	{
 public:
-	OstreamFile(char* filename, const char* mode = "w");
+	OstreamFile(const char* filename, const char* mode = "w");
 	~OstreamFile();
 	Ostream& write(const void* buf, int n);
 	operator void*();

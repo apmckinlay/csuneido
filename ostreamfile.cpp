@@ -26,7 +26,7 @@
 class OstreamFileImp
 	{
 public:
-	OstreamFileImp(char* filename, const char* mode) : f(fopen(filename, mode))
+	OstreamFileImp(const char* filename, const char* mode) : f(fopen(filename, mode))
 		{ }
 	void close()
 		{ if (f) fclose(f); }
@@ -40,7 +40,7 @@ private:
 	FILE* f;
 	};
 
-OstreamFile::OstreamFile(char* filename, const char* mode) 
+OstreamFile::OstreamFile(const char* filename, const char* mode) 
 	: imp(new OstreamFileImp(filename, mode))
 	{ }
 
