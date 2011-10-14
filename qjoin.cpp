@@ -159,8 +159,8 @@ double Join::optimize2(const Fields& index, const Fields& needs, const Fields& /
 double Join::opt(Query* src1, Query* src2, Type typ,
 	const Fields& index, const Fields& needs1, const Fields& needs2, bool is_cursor, bool freeze)
 	{
-	// guestimated from: (3 treelevels * 4096) / 10 ~ 1000
-	const double SELECT_COST = 50;
+	// SELECT_COST needs to be high to discourage N to 1 when N is large
+	const double SELECT_COST = 1000;
 
 	// always have to read all of source 1
 	double cost1 = src1->optimize(index, needs1, joincols, is_cursor, freeze);
