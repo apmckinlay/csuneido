@@ -495,11 +495,11 @@ Querystruct querytests[] =
 	{ "customer join supplier", "(supplier^(city)) JOIN n:n on (name,city) (customer^(id) TEMPINDEX1(name,city))",
 "supplier	name	city	id\n" },
 // 37
-	{ "(customer times inven) join trans", "((customer^(id)) TIMES (inven^(item))) JOIN 1:n on (id,item) (trans^(date,item,id) TEMPINDEX1(id,item))",
-"id	name	city	item	qty	cost	date\n\
-\"a\"	\"axon\"	\"saskatoon\"	\"disk\"	5	100	970101\n\
-\"c\"	\"calac\"	\"calgary\"	\"mouse\"	2	200	970101\n\
-\"e\"	\"emerald\"	\"vancouver\"	\"mouse\"	2	200	960204\n" },
+	{ "(customer times inven) join trans", "(trans^(date,item,id)) JOIN n:1 on (id,item) ((customer^(id)) TIMES (inven^(item)) TEMPINDEXN(id,item) unique)",
+"item	id	cost	date	name	city	qty\n\
+\"mouse\"	\"e\"	200	960204	\"emerald\"	\"vancouver\"	2\n\
+\"disk\"	\"a\"	100	970101	\"axon\"	\"saskatoon\"	5\n\
+\"mouse\"	\"c\"	200	970101	\"calac\"	\"calgary\"	2\n" },
 
 	{ "trans join customer join inven", "((trans^(date,item,id)) JOIN n:1 on (id) (customer^(id))) JOIN n:1 on (item) (inven^(item))",
 "item	id	cost	date	name	city	qty\n\
