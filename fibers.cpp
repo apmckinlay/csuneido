@@ -180,8 +180,8 @@ void Fibers::init()
 
 	// time slice timer
 	SetTimer(NULL,	// hwnd
-		0,			// id
-		100,		// ms
+		0,		// id
+		50,		// ms
 		NULL		// no timer proc - just generate messages
 		);
 

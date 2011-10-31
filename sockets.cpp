@@ -57,7 +57,7 @@ public:
 	void* protect(void* p);
 	void release(void* p);
 private:
-	enum { maxrefs = 99 };
+	enum { maxrefs = 199 };
 	void* refs[maxrefs];
 	};
 
