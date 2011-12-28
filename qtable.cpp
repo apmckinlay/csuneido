@@ -236,24 +236,30 @@ float Table::iselsize(const Fields& index, const Iselects& iselects)
 	return frac;
 	}
 
-// find the shortest of indexes with index as a prefix & containing needs
-// TODO: use number of nodes instead of number of fields
-static Fields match(Indexes idxs, const Fields& index, const Fields& needs)
+struct IdxSize
 	{
-	Fields best;
-	int bestremainder = 9999;
+	IdxSize(Fields index_, int size_) : index(index_), size(size_)
+		{ }
+	Fields index;
+	int size;
+	};
+
+static Lisp<IdxSize*> get_idxs(Table* tbl, Indexes indexes)
+	{
+	Lisp<IdxSize*> idxs;
+	for (; ! nil(indexes); ++indexes)
+		idxs.push(new IdxSize(*indexes, tbl->indexsize(*indexes)));
+	return idxs.reverse();
+	}
+
+// find the shortest of indexes with index as a prefix & containing needs
+static IdxSize* match(Lisp<IdxSize*> idxs, const Fields& index, const Fields& needs)
+	{
+	IdxSize* best = NULL;
 	for (; ! nil(idxs); ++idxs)
-		{
-		Fields i(*idxs);
-		Fields f(index);
-		for (; ! nil(i) && ! nil(f) && *i == *f; ++i, ++f)
-			;
-		if (! nil(f) || ! subset(*idxs, needs))
-			continue ;
-		int remainder = size(i);
-		if (remainder < bestremainder)
-			{ best = *idxs; bestremainder = remainder; }
-		}
+		if (prefix((*idxs)->index, index) && subset((*idxs)->index, needs))
+			if (best == NULL || best->size > (*idxs)->size)
+				best = *idxs;
 	return best;
 	}
 
@@ -270,29 +276,31 @@ double Table::optimize2(const Fields& index, const Fields& needs,
 	if (! subset(columns(), index))
 		return IMPOSSIBLE;
 	++tcn;
-	Indexes idxs = indexes();
-	if (nil(idxs))
+	Indexes indexes = this->indexes();
+	if (nil(indexes))
 		return IMPOSSIBLE;
 	if (singleton)
 		{
-		idx = nil(index) ? *idxs : index;
+		idx = nil(index) ? *indexes : index;
 		return recordsize();
 		}
+
+	Lisp<IdxSize*> idxs = get_idxs(this, indexes);
 	double cost1 = IMPOSSIBLE;
 	double cost2 = IMPOSSIBLE;
 	double cost3 = IMPOSSIBLE;
-	Fields idx1, idx2, idx3;
-	if (! nil(idx1 = match(idxs, index, needs)))
+	IdxSize *idx1, *idx2, *idx3;
+	if ((idx1 = match(idxs, index, needs)))
 		// index found that meets all needs
-		cost1 = nrecords() * keysize(idx1); // cost of reading index
-	if (! nil(firstneeds) && ! nil(idx2 = match(idxs, index, firstneeds)))
+		cost1 = idx1->size; // cost of reading index
+	if (! nil(firstneeds) && (idx2 = match(idxs, index, firstneeds)))
 		// index found that meets firstneeds
 		// assume this means we only have to read 75% of data
-		cost2 = .75 * nrecords() * recordsize() + // cost of reading data
-			nrecords() * keysize(idx2); // cost of reading index
-	if (! nil(needs) && ! nil(idx3 = match(idxs, index, none)))
-		cost3 = nrecords() * recordsize() + // cost of reading data
-			nrecords() * keysize(idx3); // cost of reading index
+		cost2 = .75 * totalsize() + // cost of reading data
+			idx2->size; // cost of reading index
+	if (! nil(needs) && (idx3 = match(idxs, index, none)))
+		cost3 = totalsize() + // cost of reading data
+			idx3->size; // cost of reading index
 	TRACE(TABLE, "optimize " << table << " index " << index <<
 		(is_cursor ? " is_cursor" : "") << (freeze ? " FREEZE" : "") <<
 		"\n\tneeds: " << needs <<
@@ -303,11 +311,11 @@ double Table::optimize2(const Fields& index, const Fields& needs,
 
 	double cost;
 	if (cost1 <= cost2 && cost1 <= cost3)
-		{ cost = cost1; idx = idx1; }
+		{ cost = cost1; idx = idx1 ? idx1->index : none; }
 	else if (cost2 <= cost1 && cost2 <= cost3)
-		{ cost = cost2; idx = idx2; }
+		{ cost = cost2; idx = idx2->index; }
 	else
-		{ cost = cost3; idx = idx3; }
+		{ cost = cost3; idx = idx3->index; }
 	TRACE(TABLE, "\tchose: idx " << idx << " cost " << cost);
 	return cost;
 	}
