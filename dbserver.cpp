@@ -135,6 +135,7 @@ private:
 	DbmsQuery* q_or_tc(char*& s);
 	char* value_result(Value x);
 	char* row_result(const Row& row, const Header& hdr, bool sendhdr = false);
+	bool matches(int i, char* sid);
 
 	SocketConnect* sc;
 	bool textmode;
@@ -173,13 +174,20 @@ static void _stdcall dbserver(void* sc)
 
 void DbServerImp::timer_proc()
 	{
-	++dbserver_clock;
-	for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
-		if (dbserver_clock - dbservers[i]->last_activity > dbserver_timeout)
-			{
-			errlog(dbservers[i]->session_id, "idle timout, closing connection");
-			dbservers[i]->close();
-			}
+	try
+		{
+		++dbserver_clock;
+		for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
+			if (dbserver_clock - dbservers[i]->last_activity > dbserver_timeout)
+				{
+				errlog(dbservers[i]->session_id, "idle timout, closing connection");
+				dbservers[i]->close();
+				}
+		}
+	catch (...)
+		{
+		errlog("unknown exception in idle timeout");
+		}
 	}
 
 void start_dbserver(char* name)
@@ -801,11 +809,29 @@ char* DbServerImp::cmd_kill(char* s)
 	{
 	int n_killed = 0;
 	for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
-		if (0 == strcmp(dbservers[i]->session_id, s))
-			{
-			dbservers[i]->close();
-			++n_killed;
-			}
+		if (matches(i, s))
+			try
+				{
+				dbservers[i]->close();
+				++n_killed;
+				}
+			catch (...)
+				{
+				errlog("kill: error from close");
+				}
 	os << 'N' << n_killed << "\r\n";
 	return os.str();
+	}
+
+bool DbServerImp::matches(int i, char* sid)
+	{
+	try
+		{
+		return 0 == strcmp(dbservers[i]->session_id, sid);
+		}
+	catch (...)
+		{
+		errlog("kill: bad entry in dbservers");
+		}
+	return false;
 	}
