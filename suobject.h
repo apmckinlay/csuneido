@@ -109,6 +109,7 @@ public:
 		iterator& operator++();
 		Pair operator*();
 		void rewind();
+		void checkForModification();
 	private:
 		const Vector& vec;
 		size_t vi;

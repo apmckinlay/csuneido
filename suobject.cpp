@@ -716,7 +716,7 @@ Value SuObject::Sort(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (readonly)
 		except("can't sort readonly objects");
-	ModificationCheck mc(this);
+	++version;
 	if (nargs == 0 || (nargs == 1 && ARG(0) == SuFalse))
 		sort();
 	else if (nargs == 1)
@@ -917,7 +917,7 @@ Value SuObject::Reverse(short nargs, short nargnames, ushort* argnames, int each
 		except("usage: object.Reverse()");
 	if (readonly)
 		except("can't Reverse readonly objects");
-	ModificationCheck mc(this);
+	++version;
 	std::reverse(vec.begin(), vec.end());
 	return this;
 	}
@@ -1094,13 +1094,18 @@ SuObject* SuObject::slice(size_t offset)
 
 SuObject::iterator& SuObject::iterator::operator++()
 	{
-	if (object_version != version)
-		except_err("object modified during iteration");
+	checkForModification();
 	if (vi < vec.size())
 		++vi;
 	else if (mi != mend)
 		++mi;
 	return *this;
+	}
+
+void SuObject::iterator::checkForModification()
+	{
+	if (object_version != version)
+		except_err("object modified during iteration");
 	}
 
 void SuObject::iterator::rewind()
@@ -1203,6 +1208,7 @@ Value SuObjectIter::call(Value self, Value member, short nargs, short nargnames,
 		{
 		if (nargs != 0)
 			except("usage: objectiter.Next()");
+		iter.checkForModification();
 		if (iter == end)
 			return this; // eof
 		std::pair<Value,Value> assoc = *iter;
