@@ -678,7 +678,7 @@ verify(block_return.gcstr() == "block return");
 		{
 		if (e.isBlockReturn())
 			{
-			if (blockframe || e.fp()->fn != fn)
+			if (blockframe || e.fp_fn() != fn)
 				throw ;
 			PUSH(tss_proc()->block_return_value);
 			tss_proc()->block_return_value = Value();

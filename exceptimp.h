@@ -27,6 +27,7 @@
 
 class SuObject;
 class Frame;
+class SuFunction;
 
 class Except : public SuString
 	{
@@ -36,12 +37,12 @@ public:
 	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
 	SuObject* calls() const
 		{ return calls_; }
-	Frame* fp() const
-		{ return fp_; }
+	SuFunction* fp_fn() const
+		{ return fp_fn_; }
 	bool isBlockReturn() const
 		{ return block_return; }
 private:
-	Frame* fp_;
+	SuFunction* fp_fn_;
 	SuObject* calls_;
 	bool block_return;
 	};

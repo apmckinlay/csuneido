@@ -31,7 +31,7 @@
 SuObject* copyCallStack();
 
 Except::Except(gcstring x)
-	: SuString(x.trim()), fp_(tss_proc() ? tss_proc()->fp : 0), block_return(x == "block return")
+	: SuString(x.trim()), fp_fn_(tss_proc() ? tss_proc()->fp->fn : 0), block_return(x == "block return")
 	{
 	if (x.has_prefix("block") &&
 		(x == "block:continue" || x == "block:break" || block_return))
@@ -39,7 +39,7 @@ Except::Except(gcstring x)
 		static SuObject* empty = new SuObject;
 		calls_ =  empty;
 		if (block_return)
-			verify(fp_);
+			verify(fp_fn_);
 		}
 	else
 		{
@@ -49,7 +49,7 @@ Except::Except(gcstring x)
 	}
 
 Except::Except(const Except& e, gcstring s)
-	: SuString(s), fp_(e.fp_), calls_(e.calls_), block_return(e.block_return)
+	: SuString(s), fp_fn_(e.fp_fn_), calls_(e.calls_), block_return(e.block_return)
 	{  }
 
 Ostream& operator<<(Ostream& os, const Except& e)
