@@ -94,6 +94,7 @@ private:
 	Lisp<ushort> invalidated;
 	Lisp<Value> active_rules;
 	Lisp<Observe> active_observers;
+	HashMap<ushort,Value> attached_rules;
 	};
 
 class SuRecordClass : public SuValue

@@ -473,11 +473,11 @@ Value SuObject::call(Value self, Value member, short nargs, short nargnames, ush
 	
 Value SuObject::Set_default(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 1)
-		except("usage: object.Set_default(value)");
+	if (nargs != 0 && nargs != 1)
+		except("usage: object.Set_default(value) or object.Set_default()");
 	if (readonly)
 		except("can't set_default on readonly object");
-	defval = TOP();
+	defval = nargs == 0 ? Value() : TOP();
 	if (SuObject* defval_ob = defval.ob_if_ob())
 		if (! defval_ob->readonly)
 			defval = new SuObject(*defval_ob);

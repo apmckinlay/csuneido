@@ -51,6 +51,7 @@ SuRecord::SuRecord()
 	: trans(0), recadr(0), status(NEW)
 	{
 	log("create");
+	defval = SuString::empty_string;
 	}
 
 SuRecord::SuRecord(const SuRecord& rec)
@@ -60,6 +61,7 @@ SuRecord::SuRecord(const SuRecord& rec)
 	// note: only have to copy() lists that are appended to
 	{
 	log("create");
+	defval = SuString::empty_string;
 	}
 
 SuRecord::SuRecord(const Row& r, const Header& h, int t)
@@ -78,6 +80,7 @@ void SuRecord::init(const Row& dbrow)
 	{
 	verify(recadr >= 0);
 	log("create");
+	defval = SuString::empty_string;
 	Row row(dbrow);
 	row.to_heap();
 	for (Row::iterator iter = row.begin(hdr); iter != row.end(); ++iter)
@@ -92,6 +95,7 @@ SuRecord::SuRecord(const Record& dbrec, const Lisp<int>& fldsyms, SuTransaction*
 	: trans(t), recadr(0), status(OLD)
 	{
 	log("create");
+	defval = SuString::empty_string;
 	Record rec = dbrec.to_heap();
 	int i = 0;
 	for (Lisp<int> f = fldsyms; ! nil(f); ++f, ++i)
@@ -212,6 +216,7 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 	static Value GetDeps("GetDeps");
 	static Value SetDeps("SetDeps");
 	static Value Add("Add");
+	static Value AttachRule("AttachRule");
 
 	if (member != Add) // Add optimizes each
 		argseach(nargs, nargnames, argnames, each);
@@ -305,12 +310,6 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 		SuObject::putdata(ARG(0), ARG(1));
 		return Value();
 		}
-	else if (member == Set_default)
-		{
-		if (nargs != 1 || ARG(0) != SuEmptyString)
-			except("Record does not support Set_default");
-		return this;
-		}
 	else if (member == GetDeps)
 		{
 		if (nargs != 1)
@@ -334,6 +333,13 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 		if (nargs != 2)
 			except("usage: record.SetDeps(field, comma_string)");
 		dependencies(ARG(0).symnum(), ARG(1).gcstr());
+		return Value();
+		}
+	else if (member == AttachRule)
+		{
+		if (nargs != 2)
+			except("usage: record.AttachRule(field, callable)");
+		attached_rules[ARG(0).symnum()] = ARG(1);
 		return Value();
 		}
 	else
@@ -385,11 +391,15 @@ void SuRecord::ck_modify(char* op)
 void SuRecord::putdata(Value m, Value x)
 	{
 	log("putdata " << m << " = " << x);
-	Value old = SuObject::getdata(m);
-	if (old && x == old)
-		return ;
-	SuObject::putdata(m, x);
 	int i = m.symnum();
+	invalid.erase(i); // before getdata
+	if (has(m))
+		{
+		Value old = SuObject::getdata(m);
+		if (old && x == old)
+			return ;
+		}
+	SuObject::putdata(m, x);
 	invalidate_dependents(i);
 	call_observers(i);
 	}
@@ -469,7 +479,7 @@ Value SuRecord::getdata(Value m)
 		if (Value x = call_rule(i))
 			result = x;
 		else if (! result)
-			result = SuString::empty_string;
+			result = defval;
 		}
 	return result;
 	}
@@ -502,7 +512,11 @@ Value SuRecord::call_rule(ushort i)
 
 	if (! (i & 0x8000))
 		return Value();
-	Value fn = globals.find(CATSTRA("Rule_", symstr(i)));
+	Value fn;
+	if (Value* pv = attached_rules.find(i))
+		fn = *pv;
+	else if (defval)
+		fn = globals.find(CATSTRA("Rule_", symstr(i)));
 
 	if (! fn || TrackRule::has(this, fn))
 		return Value();
