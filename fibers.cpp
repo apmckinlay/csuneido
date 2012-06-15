@@ -145,6 +145,10 @@ extern "C"
 	GC_warn_proc GC_set_warn_proc(GC_warn_proc fn);
 	void warn(char* msg, unsigned long arg)
 		{
+		const char* limit = "GC Info: Too close to address space limit: blacklisting ineffective";
+		if (0 == memcmp(msg, limit, strlen(limit)))
+			return ;
+		
 		const char* repeat = "GC Warning: Repeated allocation of very large block";
 		static int nrepeats = 0;
 		static int maxarg = 0;
