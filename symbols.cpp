@@ -44,7 +44,7 @@ public:
 
 const int MAX_SYMBOLS = 32 * 1024;
 static PermanentHeap symbols("symbol table", MAX_SYMBOLS * sizeof (SuSymbol));
-const int AVG_NAME_LEN = 22;
+const int AVG_NAME_LEN = 32;
 
 struct kofv
 	{
