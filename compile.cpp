@@ -230,12 +230,18 @@ Value Compiler::constant(char* gname)
 	case T_NUMBER :
 		return number();
 	case T_STRING :
-		if (scanner.len == 0)
-			x = SuString::empty_string;
-		else
-			x = new SuString(scanner.value, scanner.len);
-		match();
-		return x;
+		{
+		gcstring s;
+		while (true)
+			{
+			s += gcstring(scanner.value, scanner.len);
+			match(T_STRING);
+			if (token != I_CAT || scanner.peeknl() != '"')
+				break;
+			match(I_CAT);
+			}
+		return new SuString(s);
+		}
 	case '#' :
 		match();
 		if (token == T_NUMBER)
@@ -1232,7 +1238,10 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 	case K_SWITCH :
 		a = -1;
 		match();
-		opt_paren_expr();
+		if (token == '{')
+			emit(I_PUSH_VALUE, TRUE);
+		else
+			opt_paren_expr();
 		match('{');
 		while (scanner.keyword == K_CASE)
 			{
