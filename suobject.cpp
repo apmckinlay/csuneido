@@ -40,6 +40,7 @@
 #include "ostreamstr.h"
 #include "minmax.h"
 #include "range.h"
+#include "suseq.h"
 
 extern Value root_class;
 
@@ -108,6 +109,8 @@ int SuObject::order() const
 
 bool SuObject::lt(const SuValue& y) const
 	{
+	if (const SuSeq* suseq = dynamic_cast<const SuSeq*>(&y))
+		return lt(*suseq->object()); // build
 	int yo = y.order();
 	if (yo == ord)
 		return vec < static_cast<const SuObject&>(y).vec;
@@ -955,8 +958,6 @@ Value SuObject::IsReadonly(short nargs, short nargnames, ushort* argnames, int e
 		except("usage: object.Readonly?()");
 	return readonly ? SuTrue : SuFalse;
 	}
-
-#include "suseq.h"
 
 Value SuObject::Members(short nargs, short nargnames, ushort* argnames, int each)
 	{
