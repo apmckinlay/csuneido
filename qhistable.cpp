@@ -84,7 +84,7 @@ int HistoryTable::keysize(const Fields& index)
 	return 100;
 	}
 
-Header HistoryTable::header()
+Header HistoryTable::header() 
 	{
 	return Header(
 		lisp(
@@ -127,11 +127,15 @@ Mmoffset HistoryTable::next()
 			}
 		do
 			if (++iter == end)
+				{
+				rewind();
 				return 0;
+				}
 			while (iter.type() != MM_COMMIT);
 		commit = (Commit*) *iter;
 		id = ic = -1;
 		}
+	rewind();
 	return 0;
 	}
 
@@ -157,12 +161,16 @@ Mmoffset HistoryTable::prev()
 			}
 		do
 			if (--iter == begin)
+				{
+				rewind();
 				return 0;
+				}
 			while (iter.type() != MM_COMMIT);
 		commit = (Commit*) *iter;
 		id = commit->ndeletes;
 		ic = commit->ncreates;
 		}
+	rewind();
 	return 0;
 	}
 
