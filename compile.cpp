@@ -236,11 +236,11 @@ Value Compiler::constant(char* gname)
 			{
 			s += gcstring(scanner.value, scanner.len);
 			match(T_STRING);
-			if (token != I_CAT || scanner.peeknl() != '"')
+			if (token != I_CAT || *scanner.peek() != '"')
 				break;
-			match(I_CAT);
+			matchnew(I_CAT);
 			}
-		return new SuString(s);
+		return s == "" ? SuString::empty_string : new SuString(s);
 		}
 	case '#' :
 		match();
@@ -1564,8 +1564,18 @@ void FunctionCompiler::expr0(bool newtype)
 	bool super = false;
 	switch (token)
 		{
+	case T_STRING : 
+		{
+		SuString* s = (scanner.len == 0)
+			? SuString::empty_string
+			: new SuString(scanner.value, scanner.len);
+		match();
+		emit(I_PUSH, LITERAL, literal(s));
+		option = LITERAL;
+		lvalue = value = false;
+		break ;
+		}
 	case T_NUMBER :
-	case T_STRING :
 	case '#' :
 		emit_literal();
 		option = LITERAL;
