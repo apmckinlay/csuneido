@@ -167,7 +167,7 @@ Value Frame::run()
 	for (;;)
 	try
 		{
-		if (trace_level & TRACE_OPCODES && *ip != I_NOP)
+		if ((trace_level & TRACE_OPCODES) && *ip != I_NOP)
 			fn->disasm1(tout(), ip - fn->code);
 		uchar op = *ip++;
 		switch (op)
@@ -411,7 +411,6 @@ Value Frame::run()
 		case I_THROW :
 			{
 			static Value block_return("block return");
-verify(block_return.gcstr() == "block return");
 			arg = POP();
 			if (arg == block_return)
 				tss_proc()->block_return_value = POP();

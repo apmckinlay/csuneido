@@ -28,6 +28,7 @@
 #include "record.h"
 #include "mmfile.h"
 #include "except.h"
+#include "slots.h" // for keydup
 
 const Mmoffset NIL(0);
 

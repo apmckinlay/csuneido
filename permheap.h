@@ -30,7 +30,7 @@
 class PermanentHeap
 	{
 public:
-	PermanentHeap(char* name, int size);
+	PermanentHeap(const char* name, int size);
 	void* alloc(int size);	// grows heap
 	void free(void* p);		// shrinks heap
 	bool contains(const void* p)
@@ -46,7 +46,7 @@ public:
 	int remaining()
 		{ return (char*) limit - next; }
 private:
-	char* name;
+	const char* name;
 	void* start;
 	char* next;
 	char* commit_end;

@@ -767,8 +767,6 @@ Value MkRec::call(Value self, Value member, short nargs, short nargnames, ushort
 
 // ------------------------------------------------------------------
 
-Value su_ScintillaStyle();
-Value su_seq();
 Value su_exit();
 
 Value NEW;
@@ -786,7 +784,7 @@ Value SuEmptyString;
 Value root_class;
 
 void builtin(int gnum, Value value); // in library.cpp
-void builtin(char* name, Value value)
+void builtin(const char* name, Value value)
 	{
 	builtin(globals(name), value);
 	}
@@ -831,7 +829,7 @@ void builtins()
 	builtin("char", new TypeInt<char>);
 	builtin("short", new TypeInt<short>);
 	builtin("long", new TypeInt<long>);
-	builtin("int64", new TypeInt<int64>);
+	builtin("int64", new TypeInt<long long>);
 	builtin("float", new TypeFloat);
 	builtin("double", new TypeDouble);
 	builtin("handle", new TypeWinRes<SuHandle>);

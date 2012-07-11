@@ -76,7 +76,7 @@ public:
 		{ return (T) n; }
 	};
 
-template<> class TypeInt<int64> : public Type
+template<> class TypeInt<long long> : public Type
 	{
 public:
 	int size()

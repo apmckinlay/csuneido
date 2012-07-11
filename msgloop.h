@@ -22,4 +22,4 @@
 
 #include "win.h"
 
-void message_loop(HWND hdlg = false);
+void message_loop(HWND hdlg = 0);

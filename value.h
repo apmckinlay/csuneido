@@ -36,7 +36,7 @@ class Ostream;
 
 #define NUM(n) (new (alloca(sizeof (SuNumber))) SuNumber(n))
 
-#define VAL	(is_int() ? NUM(im.n) : p)
+#define VAL	((SuValue*) (is_int() ? NUM(im.n) : p))
 
 #define INTVAL	((short) 0xffff)
 

@@ -585,7 +585,7 @@ static void schema_dump(void* p, Ostream& log)
 	case TN_VIEWS :
 		{
 		table = r.getstr(V_NAME);
-		gcstring definition = r.getstr(V_DEFINITION);
+		//gcstring definition = r.getstr(V_DEFINITION);
 		log << "VIEW " << table << endl;
 		break ;
 		}

@@ -21,7 +21,7 @@ CFLAGS = -DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -D_X86_=1 /nologo \
 	-D_CRT_SECURE_NO_DEPRECATE -DLARGE_CONFIG \
 	-DSILENT -DALL_INTERIOR_POINTERS -DDONT_ADD_BYTE_AT_END \
 	-DTHREADS -DFIBERS -D__STDC__ -DGC_NOT_DLL -DGC_BUILD -Iinclude
-	
+
 .SUFFIXES:
 
 $(OUTPUT)/%.obj : %.c
@@ -29,13 +29,13 @@ $(OUTPUT)/%.obj : %.c
 
 $(OUTPUT)/test.obj : tests/test.c
 	@$(CC) $(CFLAGS) $(OFLAGS) /c /Fo"$@" $<
-	
+
 $(OBJECTS) $(OUTPUT)/test.obj : include/private/gc_priv.h include/private/gc_hdrs.h include/gc.h include/private/gcconfig.h \
 	include/private/gc_locks.h include/private/gc_pmark.h include/gc_mark.h
 
 $(OUTPUT)/gc.lib : $(OBJECTS)
 	lib /MACHINE:i386 /out:$(OUTPUT)/gc.lib $^
-	
+
 #  This produces a "GUI" applications that opens no windows and writes to "gc.log"
 $(OUTPUT)/gctest.exe : $(OUTPUT)/test.obj $(OUTPUT)/gc.lib $(OUTPUT)/stubs.obj
 	$(CC) /nologo $(LDFLAGS) /Fe"$(OUTPUT)/gctest.exe" $^ user32.lib
@@ -43,11 +43,11 @@ $(OUTPUT)/gctest.exe : $(OUTPUT)/test.obj $(OUTPUT)/gc.lib $(OUTPUT)/stubs.obj
 .PHONY : clean
 clean :
 	del /q $(OUTPUT)\\*.*
-	
+
 .PHONY : install
 install : $(OUTPUT)/gc.lib
 	copy /y $(OUTPUT)\\gc.lib ..\\gc_$(OUTPUT).lib
-	
+
 .PHONY : test
 test : $(OUTPUT)/gctest.exe
 	del gc.log

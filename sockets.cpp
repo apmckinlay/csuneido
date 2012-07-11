@@ -310,6 +310,7 @@ void SocketConnectAsynch::event(int msg)
 		// else
 			// fall thru
 		}
+		/* no break */
 	case FD_CLOSE :
 		closesocket(sock);
 		DestroyWindow(hwnd);

@@ -659,7 +659,7 @@ char* DbServerImp::cmd_get1(char* s)
 	Dir dir = NEXT;
 	bool one = false;
 	if (*s == '+')
-		;
+		{}
 	else if (*s == '-')
 		dir = PREV;
 	else if (*s == '1')

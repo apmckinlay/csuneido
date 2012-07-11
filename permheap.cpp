@@ -24,7 +24,7 @@
 #include "except.h"
 #include "port.h"
 
-PermanentHeap::PermanentHeap(char* n, int size) : name(n)
+PermanentHeap::PermanentHeap(const char* n, int size) : name(n)
 	{
 	start = mem_uncommitted(size);
 	next = (char*) start;

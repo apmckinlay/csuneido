@@ -11,7 +11,7 @@ void GC_push_all_stacks()
 		}
 #elif defined(__GNUC__)
 	asm("movl %%fs:0x4,%%eax" : "=a" (p));
-#elif
+#else
 #	warning "replacement for inline assembler required"
 #endif
 	GC_push_all_stack(&p, p);

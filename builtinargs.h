@@ -31,7 +31,7 @@ class BuiltinArgs
 	{
 public:
 	BuiltinArgs(short& n, short& nn, ushort*& an, int& each);
-	BuiltinArgs& usage(char* s1, char* s2 = "", char* s3 = "")
+	BuiltinArgs& usage(const char* s1, const char* s2 = "", const char* s3 = "")
 		{ msg1 = s1; msg2 = s2; msg3 = s3; return *this; }
 	void exceptUsage();
 	Value getValue(char* name);
@@ -80,9 +80,9 @@ private:
 	short nargnames;
 	ushort* argnames;
 	int unnamed;
-	char* msg1;
-	char* msg2;
-	char* msg3;
+	const char* msg1;
+	const char* msg2;
+	const char* msg3;
 	int i;
 	bool def;
 	};
