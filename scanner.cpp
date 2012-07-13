@@ -44,7 +44,7 @@ char cclass_[256] =
 	ID, ID, ID, ID, ID, ID, ID, ID,					// H I J K L M N O
 	ID, ID, ID, ID, ID, ID, ID, ID,					// P Q R S T U V W
 	ID, ID, ID, OK, 0, OK, GO, ID,					// X Y Z [ \ ] ^ _
-	0, ID, ID, ID, ID, ID, ID, ID,					// ` a b c d e f g
+	GO, ID, ID, ID, ID, ID, ID, ID,					// ` a b c d e f g
 	ID, ID, ID, ID, ID, ID, ID, ID,					// h i j k l m n o
 	ID, ID, ID, ID, ID, ID, ID, ID,					// p q r s t u v w
 	ID, ID, ID, OK, GO, OK, GO, 0					// x y z { | } ~ DEL
@@ -304,6 +304,24 @@ int Scanner::nextall()
 			else
 				return '.';
 			break ;
+		case '`' :
+			for (dst = buf, lim = dst + buflen; 
+				source[si] && source[si] != '`'; ++si)
+				{
+				if (dst >= lim)
+					{
+					prev = si;
+					err = "string literal too long";
+					return T_ERROR;
+					}
+				*dst++ = source[si];
+				}
+			*dst = 0;
+			if (source[si])
+				++si;	// skip closing quote
+			value = buf;
+			len = dst - buf;
+			return T_STRING;
 		case '"' :
 		case '\'' :
 			quote = state;

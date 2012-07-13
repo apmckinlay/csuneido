@@ -154,6 +154,8 @@ private:
 	Value Upper(short nargs, short nargnames, ushort* argnames, int each);
 	Value Upperq(short nargs, short nargnames, ushort* argnames, int each);
 	Value Wcstombs(short nargs, short nargnames, ushort* argnames, int each);
+
+	bool backquote() const;
 	};
 
 class SuBuffer : public SuString

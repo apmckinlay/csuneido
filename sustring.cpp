@@ -49,6 +49,8 @@ void SuString::out(Ostream& out)
 	extern bool obout_inkey;
 	if (obout_inkey && is_identifier())
 		out << s;
+	else if (backquote())
+		out << '`' << s << '`';
 	else
 		{
 		char quote = (s.find('"') != -1 && s.find('\'') == -1) ? '\'' : '"';
@@ -87,6 +89,16 @@ bool is_identifier(const char* buf, int n)
 bool SuString::is_identifier() const
 	{
 	return ::is_identifier(s.buf(), s.size());
+	}
+
+bool SuString::backquote() const
+	{
+	if (-1 != s.find('`') || -1 == s.find('\\'))
+		return false;
+	for (const char* t = s.begin(); t != s.end(); ++t)
+		if (! isprint(*t))
+			return false;
+	return true;
 	}
 
 int SuString::symnum() const
