@@ -153,8 +153,8 @@ Indexes Summarize::keys()
 double Summarize::optimize2(const Fields& index, const Fields& needs,
 	const Fields& firstneeds, bool is_cursor, bool freeze)
 	{
-	const Fields srcneeds = set_union(erase(on, gcstring("")),
-		difference(needs, cols));
+	const Fields srcneeds =
+		set_union(erase(on, gcstring("")), difference(needs, cols));
 
 	if (strategy == COPY)
 		{
@@ -177,23 +177,26 @@ double Summarize::optimize2(const Fields& index, const Fields& needs,
 			if (prefixed(*idxs, index, fixed))
 				indexes.push(*idxs);
 		}
+	// NOTE: using optimize1 to bypass tempindex
 	Fields best_index;
 	double best_cost = IMPOSSIBLE;
 	best_prefixed(indexes, by, srcneeds, is_cursor, best_index, best_cost);
-	if (nil(best_index) && prefix(by, index))
-		{
-		// accumulate results in memory
-		// doesn't require any order, can only supply in order of "by"
-		strategy = MAP;
-		return source->optimize(none, srcneeds, by, is_cursor, freeze);
-		}
-	if (nil(best_index))
-		return IMPOSSIBLE;
-	strategy = SEQUENTIAL;
+	double mapCost = prefix(by, index)
+			? 1.5 * source->optimize1(none, srcneeds, by, is_cursor, false)
+			: IMPOSSIBLE;
 	if (! freeze)
-		return best_cost;
-	via = best_index;
-	return source->optimize(best_index, srcneeds, Fields(), is_cursor, freeze);
+		return min(best_cost, mapCost);
+	if (mapCost < best_cost)
+		{
+		strategy = MAP;
+		return source->optimize1(none, srcneeds, by, is_cursor, freeze);
+		}
+	else
+		{
+		strategy = SEQUENTIAL;
+		via = best_index;
+		return source->optimize1(best_index, srcneeds, none, is_cursor, freeze);
+		}
 	}
 
 // functions ========================================================
