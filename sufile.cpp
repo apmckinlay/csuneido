@@ -132,15 +132,15 @@ void SuFile::init(char* fn, char* m)
 Value SuFile::Read(BuiltinArgs& args)
 	{
 	args.usage("usage: file.Read(nbytes = all)");
-	int n = args.getint("nbytes", INT_MAX);
+	long n = args.getint("nbytes", INT_MAX);
 	args.end();
 
 	ckopen("Read");
 	if (feof(f))
 		return SuFalse;
-	int pos = ftell(f);
+	long pos = ftell(f);
 	fseek(f, 0, SEEK_END);
-	int end = ftell(f);
+	long end = ftell(f);
 	fseek(f, pos, SEEK_SET);
 	n = min(n, end - pos);
 	if (n <= 0)
