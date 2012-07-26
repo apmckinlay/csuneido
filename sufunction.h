@@ -40,7 +40,8 @@ struct Debug
 class SuFunction : public Func
 	{
 public:
-	SuFunction() : code(0), nc(0), db(0), nd(0), nlocals(0), nliterals(0), src("")
+	SuFunction()
+		: code(0), nc(0), db(0), nd(0), nlocals(0), nliterals(0), src("")
 		{ }
 
 	uchar* code;
@@ -50,6 +51,7 @@ public:
 	short nlocals;
 	short nliterals;
 	char* src;
+	char* className; // for dot parameters, used by SuFunction call
 
 	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
 
@@ -61,6 +63,9 @@ public:
 	int source(int ci, int* pn);
 	void disasm(Ostream&);
 	int disasm1(Ostream&, int);
+
+private:
+	void dotParams(Value self);
 	};
 
 #endif

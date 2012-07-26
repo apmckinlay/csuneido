@@ -132,10 +132,11 @@ public:
 	ushort fetch2()
 		{ ushort j = ip[1] * 256 + ip[0]; ip += 2; return j; }
 	Value get(uchar);
-	Value dynamic(ushort);	// dynamic lookup
 
 	int each;
 	};
+
+Value dynamic(ushort);
 
 // a process (Fibers)
 struct Proc

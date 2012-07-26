@@ -31,6 +31,8 @@
 #include "ostreamstr.h"
 #include "cvt.h"
 #include "pack.h"
+#include "catstr.h"
+#include <ctype.h>
 
 #define TARGET(i)	(short) ((code[i] + (code[i+1] << 8)))
 
@@ -42,6 +44,10 @@ Value SuFunction::call(Value self, Value member, short nargs, short nargnames, u
 	if (member == CALL)
 		{
 		args(nargs, nargnames, argnames, each);
+
+		if (flags)
+			dotParams(self);
+
 		Framer frame(this, self);
 		return tss_proc()->fp->run();
 		}
@@ -59,6 +65,27 @@ Value SuFunction::call(Value self, Value member, short nargs, short nargnames, u
 		}
 	else
 		return Func::call(self, member, nargs, nargnames, argnames, each);
+	}
+
+void SuFunction::dotParams(Value self)
+	{
+	SuObject* ob = val_cast<SuObject*>(self);
+	if (! ob)
+		return ;
+	Value* args = GETSP() - nparams + 1;
+	for (int i = 0; i < nparams; ++i)
+		if (flags[i] & DOT)
+			{
+			char* name = symstr(locals[i]);
+			if (flags[i] & PUB)
+				{
+				name = STRDUPA(name);
+				*name = toupper(*name);
+				}
+			else // private
+				name = CATSTR3(className, "_", name);
+			ob->putdata(name, args[i]);
+			}
 	}
 
 int SuFunction::source(int ci, int* pn)

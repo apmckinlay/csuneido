@@ -26,12 +26,16 @@
 #include "value.h"
 #include "named.h"
 
+const char DOT = 1;
+const char DYN = 2;
+const char PUB = 4;
+
 // abstract base class for BuiltinFunc and SuFunction
 class Func : public SuValue
 	{
 public:
 	NAMED
-	Func() : nparams(0), rest(false), locals(0), ndefaults(0), literals(0)
+	Func() : nparams(0), rest(false), locals(0), ndefaults(0), literals(0), flags(0)
 		{ }
 	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
 
@@ -40,6 +44,7 @@ public:
 	ushort* locals;
 	short ndefaults;
 	Value* literals;
+	char* flags; // for dot and dyn params
 
 	void out(Ostream& out);
 	void args(short nargs, short nargnames, ushort* argnames, int each);

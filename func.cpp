@@ -30,6 +30,7 @@
 #include "ostreamstr.h"
 #include "sustring.h"
 #include "fatal.h"
+#include "catstr.h"
 
 Value Func::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	{
@@ -53,6 +54,8 @@ Value Func::params()
 			out << ",";
 		if (i == nparams - rest)
 			out << "@";
+		if (flags && (flags[i] & DYN))
+			out << "_";
 		out << symstr(locals[i]);
 		if (i >= nparams - ndefaults - rest && i < nparams - rest)
 			out << "=" << literals[j++];
@@ -136,6 +139,17 @@ void Func::args(short nargs, short nargnames, ushort* argnames, int each)
 		// initialized remaining params
 		for (i = unamed; i < nparams; ++i)
 			args[i] = Value();
+		}
+
+	// fill in dynamic implicits
+	if (flags)
+		{
+		for (i = 0; i < nparams; ++i)
+			if (! args[i] && (flags[i] & DYN))
+				{
+				int sn = ::symnum(CATSTRA("_", symstr(locals[i])));
+				args[i] = dynamic(sn);
+				}
 		}
 
 	// fill in defaults

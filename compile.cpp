@@ -189,6 +189,8 @@ private:
 	short emit(short, short = 0, short = 0, short = 0, vector<ushort>* = 0);
 	void patch(short);
 	void mark();
+	void params(vector<char>& flags);
+	bool notAllZero(vector<char>& flags);
 	};
 
 Value compile(char* s, char* gname, CodeVisitor* visitor)
@@ -198,15 +200,6 @@ Value compile(char* s, char* gname, CodeVisitor* visitor)
 	if (compiler.token != -1)
 		compiler.syntax_error();
 	return x;
-	}
-
-Params* compile_params(char* s)
-	{
-	Compiler compiler(s);
-	Params* params = compiler.params();
-	if (compiler.token != -1)
-		compiler.syntax_error();
-	return params;
 	}
 
 // Compiler ---------------------------------------------------------------
@@ -721,40 +714,6 @@ void Compiler::syntax_error(char* err)
 	except("syntax error at line " << line << "  " << err);
 	}
 
-Params* Compiler::params()
-	{
-	bool rest = false;
-	vector<ushort> pnames;
-	vector<Value> defaults;
-	for (;;)
-		{
-		if (token == '@')
-			{
-			match();
-			pnames.push_back(symnum(scanner.value));
-			match();
-			rest = true;
-			break ;
-			}
-		else if (token != T_IDENTIFIER)
-			break ;
-
-		pnames.push_back(symnum(scanner.value));
-		match();
-		if (token == I_EQ)
-			{
-			match();
-			defaults.push_back(constant());
-			}
-		else if (defaults.size() > 0)
-			syntax_error("default parameters must come last");
-		if (token == ',')
-			match();
-		}
-	return new Params(scanner.source, pnames.size(), defaults.size(), rest,
-		pnames.empty() ? 0 : &pnames[0], defaults.empty() ? 0 : &defaults[0]);
-	}
-
 // function ---------------------------------------------------------
 
 Value Compiler::functionCompiler(short base, bool newfn, char* gname)
@@ -772,41 +731,9 @@ const bool INIT = true;
 SuFunction* FunctionCompiler::function()
 	{
 	fn = new SuFunction;  // need this while code is generated
+	vector<char> flags;
 
-	// parameters
-	match('(');
-	if (token == '@')
-		{
-		match();
-		local(INIT);
-		match(T_IDENTIFIER);
-		rest = true;
-		nparams = 1;
-		ndefaults = 0;
-		}
-	else
-		{
-		rest = false;
-		for (nparams = ndefaults = 0; token != ')'; ++nparams)
-			{
-			int i = local(INIT);
-			if (i != locals.size() - 1)
-				except("duplicate function parameter (" << scanner.value << ")");
-			match(T_IDENTIFIER);
-
-			if (token == I_EQ)
-				{
-				match();
-				verify(ndefaults == literal(constant()));
-				++ndefaults;
-				}
-			else if (ndefaults)
-				syntax_error("default parameters must come last");
-			if (token != ')')
-				match(',');
-			}
-		}
-	matchnew(')');
+	params(flags);
 
 	if (token != '{')
 		syntax_error();
@@ -828,7 +755,74 @@ SuFunction* FunctionCompiler::function()
 	fn->ndefaults = ndefaults;
 	fn->rest = rest;
 	fn->src = scanner.source; // NOTE: all functions within it share the same source string
+	if (notAllZero(flags))
+		fn->flags = dup(flags, noptrs);
 	return fn;
+	}
+
+void FunctionCompiler::params(vector<char>& flags)
+	{
+	match('(');
+	if (token == '@')
+		{
+		match();
+		local(INIT);
+		match(T_IDENTIFIER);
+		rest = true;
+		nparams = 1;
+		ndefaults = 0;
+		}
+	else
+		{
+		rest = false;
+		for (nparams = ndefaults = 0; token != ')'; ++nparams)
+			{
+			flags.push_back(0);
+			if (token == '.')
+				{
+				match();
+				flags[nparams] |= DOT;
+				fn->className = strdup(gname); // needed to privatize
+				}
+			if (scanner.value[0] == '_')
+				{
+				++scanner.value;
+				flags[nparams] |= DYN;
+				}
+			if ((flags[nparams] & DOT) && isupper(*scanner.value))
+				{
+				*scanner.value = tolower(*scanner.value);
+				flags[nparams] |= PUB;
+				}
+			int i = local(INIT);
+			if (flags[nparams] & DOT)
+				// mark as used to prevent code warning
+				scanner.visitor->local(scanner.prev, i, false);
+			if (i != locals.size() - 1)
+				except("duplicate function parameter (" << scanner.value << ")");
+			match(T_IDENTIFIER);
+
+			if (token == I_EQ)
+				{
+				match();
+				verify(ndefaults == literal(constant()));
+				++ndefaults;
+				}
+			else if (ndefaults)
+				syntax_error("default parameters must come last");
+			if (token != ')')
+				match(',');
+			}
+		}
+	matchnew(')');
+	}
+
+bool FunctionCompiler::notAllZero(vector<char>& flags)
+	{
+	for (int i = 0; i < flags.size(); ++i)
+		if (flags[i] != 0)
+			return true;
+	return false;
 	}
 
 void FunctionCompiler::body()
@@ -3635,7 +3629,7 @@ void test_compile::process(int i, char* code, char* result)
 	if (0 != strcmp(result, output))
 		except(i << ": " << code << "\n\t=> " << result << "\n\t!= '" << output << "'");
 	}
-
+/*
 class test_compile_params : public Tests
 	{
 	TEST(0, main)
@@ -3672,7 +3666,7 @@ class test_compile_params : public Tests
 		}
 	};
 REGISTER(test_compile_params);
-
+*/
 class test_compile2 : public Tests
 	{
 	TEST(0, main)

@@ -796,9 +796,9 @@ Value Frame::get(uchar op)
 	return x;
 	}
 
-Value Frame::dynamic(ushort name)
+Value dynamic(ushort name)
 	{
-	for (Frame* f = tss_proc()->fp - 1; f >= tss_proc()->frames; --f)
+	for (Frame* f = tss_proc()->fp; f >= tss_proc()->frames; --f)
 		{
 		if (! f->fn)
 			continue ; // skip primitives
