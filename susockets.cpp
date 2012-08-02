@@ -189,41 +189,72 @@ void SuSocketServer::out(Ostream& os)
 
 static void _stdcall suserver(void* sc);
 
+class SuServerInstance : public SuObject
+	{
+public:
+	SuServerInstance(SocketConnect* c) : sc(c)
+		{ } // old way
+	SuServerInstance() : sc(0)
+		{ } // master
+	SuServerInstance(SuServerInstance* master, SocketConnect* s) : SuObject(*master), sc(s)
+		{ } // dup
+	void out(Ostream& os);
+	Value call(Value self, Value member, short nargs, short nargnames,
+		ushort* argnames, int each);
+	SocketConnect* sc;
+	};
+
 Value SuSocketServer::call(Value self, Value member, short nargs,
 	short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL_CLASS)
 		{
-		if (nargs > 3)
-			except("usage: Server(name = .Name, port = .Port, exit = False)");
-		SuObject* selfob = self.object();
 		static Value Name("Name");
 		static Value Port("Port");
-		static Value Exit("Exit");
-		Value name = selfob->getdata(Name);
-		Value port = selfob->getdata(Port);
-		Value exit = SuBoolean::f;
-		int unamed = nargs - nargnames;
-		if (unamed >= 1)
-			name = ARG(0);
-		if (unamed >= 2)
-			port = ARG(1);
-		if (unamed >= 3)
-			exit = ARG(2);
-		static int aname = ::symnum("name");
-		static int aport = ::symnum("port");
-		static int aexit = ::symnum("exit");
-		for (int i = 0; i < nargnames; ++i)
+		static int NAME = ::symnum("name");
+		static int PORT = ::symnum("port");
+		static int EXIT = ::symnum("exit");
+	
+		SuObject* selfob = self.object();
+		BuiltinArgs args(nargs, nargnames, argnames, each);
+		args.usage("SocketServer(name = .Name, port = .Port, exit = false, ...)");
+		Value name = args.getValue("name", Value());
+		Value port = args.getValue("port", Value());
+		Value exit = args.getValue("exit", Value());
+		
+		// convert arguments, make name, port, and exit named
+		int na = 0;
+		Value* a = (Value*) alloca(sizeof (Value) * nargs);
+		ushort* an = (ushort*) alloca(sizeof (short) * (nargnames + 3));
+		short nan = 0;
+		while (Value arg = args.getNext())
 			{
-			if (argnames[i] == aname)
-				name = ARG(unamed + i);
-			else if (argnames[i] == aport)
-				port = ARG(unamed + i);
-			else if (argnames[i] == aexit)
-				exit = ARG(unamed + i);
+			a[na++] = arg;
+			if (ushort n = args.curName())
+				an[nan++] = n;
 			}
+		KEEPSP
+		for (int i = 0; i < na; ++i)
+			PUSH(a[i]);
+		if (name)
+			{ PUSH(name); an[nan++] = NAME; ++na; }
+		else
+			name = selfob->getdata(Name);
+		if (port)
+			{ PUSH(port); an[nan++] = PORT; ++na; }
+		else
+			port = selfob->getdata(Port);
+		if (exit)
+			{ PUSH(exit); an[nan++] = EXIT; ++na; }
+		else
+			port = SuFalse;
+		
+		// construct a "master" instance, which will be duplicated for each connection
+		SuServerInstance* master = new SuServerInstance();
+		master->myclass = self;
+		master->call(master, NEW, na, nan, an, -1); 
 
-		socketServer(name.str(), port.integer(), suserver, self, exit == SuTrue);
+		socketServer(name.str(), port.integer(), suserver, master, exit == SuTrue);
 		}
 	return Value();
 	}
@@ -236,19 +267,6 @@ Value suSocketServer()
 
 // SuServerInstance & Server ========================================
 
-class Server;
-
-class SuServerInstance : public SuObject
-	{
-public:
-	SuServerInstance(SocketConnect* s) : sc(s)
-		{ }
-	void out(Ostream& os);
-	Value call(Value self, Value member, short nargs, short nargnames,
-		ushort* argnames, int each);
-	SocketConnect* sc;
-	};
-
 static void _stdcall suserver(void* arg)
 	{
 	SocketConnect* sc = 0;
@@ -256,10 +274,11 @@ static void _stdcall suserver(void* arg)
 		{
 		Proc p; tss_proc() = &p;
 
+		// make an instance by duplicating the master
 		sc = (SocketConnect*) arg;
-		SuServerInstance* ob = new SuServerInstance(sc);
-		ob->myclass = (SuValue*) sc->getarg();
-		ob->call(ob, NEW, 0, 0, 0, -1);
+		SuServerInstance* master = (SuServerInstance*) sc->getarg();
+		SuServerInstance* ob = new SuServerInstance(master, sc);
+
 		static Value RUN("Run");
 		ob->call(ob, RUN, 0, 0, 0, -1);
 		}
