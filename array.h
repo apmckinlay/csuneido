@@ -26,6 +26,8 @@
 #include <algorithm>
 #include "except.h"
 
+using namespace std;
+
 // TODO: clean up return types ie. bool & void
 
 template <class T, int cap> class Array

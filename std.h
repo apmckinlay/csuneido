@@ -24,20 +24,16 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <utility>
-#if __GNUC__ != 2
 using namespace std::rel_ops;
-#endif
 
 #ifdef _MSC_VER
 #pragma warning(4 : 4786)
 #endif
 
-#if __GNUC__ != 2
 template <class T1, class T2> inline void construct(T1* p, const T2& value)
 	{ (void) new (p) T1(value); }
 template <class T> inline void destroy(T* p)
 	{ p->~T(); }
-#endif
 
 typedef signed char schar;
 typedef unsigned char uchar;

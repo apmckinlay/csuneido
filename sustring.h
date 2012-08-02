@@ -92,7 +92,7 @@ public:
 	virtual int symnum() const;
 
 	virtual size_t hashfn()
-		{ return hash(s.buf(), s.size()); }
+		{ return ::hash(s.buf(), s.size()); }
 	SuString* substr(size_t i, size_t n)
 		{ return new SuString(s.substr(i, n)); }
 	bool operator==(const char* t) const

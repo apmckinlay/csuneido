@@ -47,13 +47,8 @@ public:
 		if (sp >= STACKSIZE - 10)
 			except("value stack overflow");
 		stack[++sp] = x;
-//		labels[sp] = 0;
 		}
-/*	ushort label()
-		{ return labels[sp]; }
-	void label(short n)
-		{ labels[sp] = n; }
-*/	Value& top()
+	Value& top()
 		{
 		return stack[sp];
 		}
@@ -74,7 +69,6 @@ public:
 private:
 	enum { STACKSIZE = 1000 };
 	Value stack[STACKSIZE];
-//	ushort labels[STACKSIZE];
 	int sp;
 	};
 
@@ -204,6 +198,7 @@ inline void SETSP(Value* newsp)
 
 extern Value block_return;
 
+// save and restore stack pointer
 struct KeepSp
 	{
 	KeepSp()

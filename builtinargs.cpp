@@ -48,7 +48,7 @@ e.g.
 #include "except.h"
 
 BuiltinArgs::BuiltinArgs(short& nargs_, short& nargnames_, ushort*& argnames_, int& each)
-	: i(0), def(false)
+	: msg1("invalid arguments"), msg2(""), msg3(""), i(0), def(false)
 	{
 	argseach(nargs_, nargnames_, argnames_, each);
 	nargs = nargs_;

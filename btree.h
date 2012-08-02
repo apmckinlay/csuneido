@@ -30,6 +30,8 @@
 #include "except.h"
 #include "slots.h" // for keydup
 
+using namespace std;
+
 const Mmoffset NIL(0);
 
 const int NODESIZE = 4096 - MM_OVERHEAD;

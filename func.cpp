@@ -172,6 +172,7 @@ void Func::args(short nargs, short nargnames, ushort* argnames, int each)
 			except("missing argument(s) to " << this);
 	}
 
+// expand @args
 void argseach(short& nargs, short& nargnames, ushort*& argnames, int& each)
 	{
 	if (each < 0)
