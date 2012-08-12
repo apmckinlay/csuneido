@@ -247,7 +247,7 @@ Value SuSocketServer::call(Value self, Value member, short nargs,
 		if (exit)
 			{ PUSH(exit); an[nan++] = EXIT; ++na; }
 		else
-			port = SuFalse;
+			exit = SuFalse;
 		
 		// construct a "master" instance, which will be duplicated for each connection
 		SuServerInstance* master = new SuServerInstance();
