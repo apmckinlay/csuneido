@@ -202,9 +202,11 @@ static int CALLBACK listenWndProc(HWND hwnd, int msg, int wParam, int lParam)
 class SocketConnectAsynch : public SocketConnect
 	{
 public:
-	SocketConnectAsynch(HWND h, int s, void* a, char* n) : hwnd(h), sock(s), arg(a), close_pending(false), 
-		mode(SIZE), blocked(0), adr(strdup(n))
+	SocketConnectAsynch(HWND h, int s, void* a, char* n) 
+		: hwnd(h), sock(s), arg(a), close_pending(false), 
+		mode(SIZE), blocked(0), adr(strdup(n)), connect_error(false)
 		{ }
+	bool connect(SOCKADDR_IN* saddr);
 	void event(int msg);
 	void write(char* s, int n);
 	void writebuf(char* s, int n);
@@ -218,6 +220,12 @@ public:
 	char* getadr()
 		{ return adr; }
 private:
+	void block()
+		{
+		blocked = Fibers::current();
+		Fibers::block();
+		}
+	
 	HWND hwnd;
 	int sock;
 	void* arg;
@@ -228,7 +236,15 @@ private:
 	int blocked_len;
 	bool blocked_readok;
 	char* adr;
+	bool connect_error;
 	};
+
+bool SocketConnectAsynch::connect(SOCKADDR_IN* saddr)
+	{
+	::connect(sock, (LPSOCKADDR) saddr, sizeof (SOCKADDR_IN));
+	block();
+	return ! connect_error;
+	}
 
 void SocketConnectAsynch::write(char* s, int n)
 	{
@@ -260,7 +276,8 @@ static SocketConnect* socketConnect(char* title, int sock, void* arg, char* adr)
 	SocketConnect* sc = new SocketConnectAsynch(hwnd, sock, arg, adr);
 	protector.protect(sc);
 	SetWindowLong(hwnd, GWL_USERDATA, (long) sc);
-	verify(0 == WSAAsyncSelect(sock, hwnd, WM_SOCKET, FD_READ + FD_WRITE + FD_CLOSE));
+	verify(0 == WSAAsyncSelect(sock, hwnd, WM_SOCKET, 
+		FD_CONNECT + FD_READ + FD_WRITE + FD_CLOSE));
 	return sc;
 	}
 
@@ -270,14 +287,22 @@ static int CALLBACK connectWndProc(HWND hwnd, int msg, int wParam, int lParam)
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 
 	SocketConnectAsynch* sc = (SocketConnectAsynch*) GetWindowLong(hwnd, GWL_USERDATA);
-	sc->event(LOWORD(lParam));
+	sc->event(lParam);
 	return 0;
 	}
 
-void SocketConnectAsynch::event(int msg)
+void SocketConnectAsynch::event(int lParam)
 	{
-	switch (msg)
+	switch (WSAGETSELECTEVENT(lParam))
 		{
+	case FD_CONNECT :
+		if(WSAGETSELECTERROR(lParam))
+			connect_error = true;
+		if (blocked)
+			{
+			Fibers::unblock(blocked);
+			blocked = 0;
+			}
 	case FD_READ :
 		{
 		const int READSIZE = 1024;
@@ -333,8 +358,7 @@ int SocketConnectAsynch::read(char* dst, int n)
 	blocked_len = n;
 	blocked_buf = dst;
 	blocked_readok = false;
-	blocked = Fibers::current();
-	Fibers::block();
+	block();
 	return blocked_readok ? n : 0;
 	}
 
@@ -360,8 +384,7 @@ bool SocketConnectAsynch::readline(char* dst, int n)
 	blocked_len = n;
 	blocked_buf = dst;
 	blocked_readok = false;
-	blocked = Fibers::current();
-	Fibers::block();
+	block();
 	return blocked_readok;
 	}
 
@@ -416,10 +439,11 @@ SocketConnect* socketClientAsynch(char* addr, int port)
 			except("unknown address: " << addr);
 		saddr.sin_addr.s_addr = *(u_long *) h->h_addr;
 		}
-	if (0 != connect(sock, (LPSOCKADDR) &saddr, sizeof saddr))
-		except("can't connect to " << addr << " port " << port);
+	SocketConnectAsynch* sc = (SocketConnectAsynch*) socketConnect("", sock, 0, "");
 	closer.disable();
-	return socketConnect("", sock, 0, "");
+	if (! sc->connect(&saddr))
+		except("can't connect to " << addr << " port " << port);
+	return sc;
 	}
 
 // synch client =====================================================
