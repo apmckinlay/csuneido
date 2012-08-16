@@ -29,6 +29,7 @@
 #include "mmfile.h"
 #include "except.h"
 #include "slots.h" // for keydup
+#include <math.h>
 
 using namespace std;
 
@@ -447,68 +448,97 @@ public:
 		else
 			return false;
 		}
+	
 	//---------------------------------------------------------------
+	
+	#define MIN_FRAC .001f
+	#define MIN_LEVEL_SIZE 100
+	
+	// returns value between 0 and 1
 	float rangefrac(const Key& from, const Key& to)
-		{
-		// from is inclusive, end is exclusive
-		if (treelevels == 0)
-			{
-			LeafNode* node = (LeafNode*) dest->adr(root());
-			LeafSlots& slots = node->slots;
-			if (slots.size() == 0)
-				return 0.0;
-			LeafSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), LeafSlot(from));
-			int org = slot - slots.begin();
-			slot = std::lower_bound(slots.begin(), slots.end(), LeafSlot(to));
-			int end = slot - slots.begin();
-			return (float) (end - org) / slots.size();
-			}
-		else
-			{
-			TreeNode* node = (TreeNode*) dest->adr(root());
-			TreeSlots& slots = node->slots;
-			TreeSlotsIterator fromslot = std::lower_bound(slots.begin(), slots.end(), TreeSlot(from));
-			int org = fromslot - slots.begin();
-			Mmoffset fromadr = fromslot < slots.end() ? (*fromslot).adr : node->lastoff.unpack();
-			TreeSlotsIterator toslot = std::lower_bound(slots.begin(), slots.end(), TreeSlot(to));
-			int end = toslot - slots.begin();
-			Mmoffset toadr = toslot < slots.end() ? (*toslot).adr : node->lastoff.unpack();
-			int n = slots.size() + 1;
-			if (n > 20)
-				return (float) (end - org) / n;
-			// not enough keys in root, look at next level
-			float pernode = 1.0 / n;
-			float result = keyfracpos(toadr, to, 1, (float) end / n, pernode) -
-				keyfracpos(fromadr, from, 1, (float) org / n, pernode);
-			return result < 0 ? 0 : result;
-			}
+		{ // from is inclusive, end is exclusive
+		if (isEmpty())
+			return 0;
+		float fromPos = estimatePos(from);
+		float toPos = estimatePos(to);
+		if (fabs(toPos - fromPos) < .0001)
+			return MIN_FRAC;
+		except_if(fromPos > toPos, 
+			"from " << from << " fromPos " << fromPos << 
+			" to " << to << " toPos " << toPos);
+		return max(toPos - fromPos, MIN_FRAC);
 		}
-	float keyfracpos(Mmoffset off, const Key& key,
-		int level,		// to determine if tree or leaf
-		float start,	// the fraction into the file where this node starts
-		float nodefrac)	// the fraction of the file under this node
+	
+	bool isEmpty()
 		{
+		if (! root_)
+			return true;
+		if (treelevels > 0)
+			return false;
+		TreeNode* node = (TreeNode*) dest->adr(root());
+		return node->slots.size() == 0;
+		}
+	
+	// returns value between 0 and 1
+	float estimatePos(const Key& key)
+		{
+		if (isMinimal(key))
+			return 0;
+		if (isMaximal(key))
+			return 1;
+		return estimatePos(key, root(), 0, 1, 0);
+		}
+
+	bool isMinimal(const Key& key)
+		{
+		for (int i = 0; i < key.size(); ++i)
+			if (key.getraw(i) != "")
+				return false;
+		return true;
+		}
+
+	bool isMaximal(const Key& key)
+		{
+		for (int i = 0; i < key.size(); ++i)
+			if (key.getraw(i) != "\x7f")
+				return false;
+		return true;
+		}
+
+	float estimatePos(const Key& key, Mmoffset nodeoff, int level,
+			int parentLevelSize, int parentPos)
+		{
+		int nodeSize;
+		int i;
 		if (level < treelevels)
 			{
-			TreeNode* node = (TreeNode*) dest->adr(off);
+			TreeNode* node = (TreeNode*) dest->adr(nodeoff);
 			TreeSlots& slots = node->slots;
-			if (slots.size() == 0)
-				return start;
+			nodeSize = slots.size() + 1;
 			TreeSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), TreeSlot(key));
-			int i = slot - slots.begin();
-			return start + (nodefrac * i) / slots.size();
+			i = slot - slots.begin();
+			nodeoff = node->find(key);
 			}
 		else
 			{
-			LeafNode* node = (LeafNode*) dest->adr(off);
+			LeafNode* node = (LeafNode*) dest->adr(nodeoff);
 			LeafSlots& slots = node->slots;
-			if (slots.size() == 0)
-				return start;
+			nodeSize = slots.size();
+			if (nodeSize == 0)
+				return 0.0f;
 			LeafSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), LeafSlot(key));
-			int i = slot - slots.begin();
-			return start + (nodefrac * i) / slots.size();
+			i = slot - slots.begin();
 			}
+		int levelSize = parentLevelSize * nodeSize;
+		int pos = parentPos * nodeSize + i;
+		verify(i <= nodeSize);
+		verify(pos <= levelSize);
+		if (level < treelevels && levelSize < MIN_LEVEL_SIZE)
+			// recurse
+			return estimatePos(key, nodeoff, level + 1, levelSize, pos);
+		return (float) pos / levelSize;
 		}
+
 /*	void printree(Mmoffset off = NIL, int level = 0)
 		{
 		if (off == NIL)

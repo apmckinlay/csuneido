@@ -66,10 +66,7 @@ public:
 	bool erase(const Key& key)
 		{ return bt.erase(key); }
 	float rangefrac(const Key& from, const Key& to)
-		{
-		float f = bt.rangefrac(from, to);
-		return f < .001 ? .001 : f;
-		}
+		{ return bt.rangefrac(from, to); }
 
 	class iterator
 		{

@@ -50,7 +50,11 @@ typedef Btree<Vslot,VFslot,Vslots,VFslots,TestDest> TestBtree;
 #include "value.h"
 #include <math.h>
 
-#define assertfeq(x, y)		verify(fabs((x) - (y)) < .01)
+#define assertfeq(x, y) \
+	do { float x_ = x; float y_ = (float) y; \
+	except_if(fabs(x_ - y_) > .015f, \
+	__FILE__ << ':' << __LINE__ << ": " << "error: " << #x << " (" << x_ << \
+	") not close to " << #y << " (" << y_ << ")"); } while (false)
 #define assertclose(x, y)	verify(fabs((x) - (y)) < .35)
 
 class test_btree : public Tests
@@ -69,12 +73,12 @@ class test_btree : public Tests
 		assertfeq(bt.rangefrac(key(0), endkey(99)), 1);
 		assertfeq(bt.rangefrac(Record(), endkey(99)), 1);
 		assertfeq(bt.rangefrac(Record(), endkey(20)), .2);
-		assertfeq(bt.rangefrac(key(0), endkey(999)), 1);
-		assertfeq(bt.rangefrac(Record(), endkey(999)), 1);
+		assertfeq(bt.rangefrac(key(0), maxkey()), 1);
+		assertfeq(bt.rangefrac(Record(), maxkey()), 1);
 		assertfeq(bt.rangefrac(key(10), key(20)), .1);
 		assertfeq(bt.rangefrac(key(20), endkey(20)), .01);
 		assertfeq(bt.rangefrac(Record(), Record()), 0);
-		assertfeq(bt.rangefrac(key(999), endkey(999)), 0);
+		assertfeq(bt.rangefrac(key(999), maxkey()), 0);
 		}
 	TEST(1, rangefrac_multilevel)
 		{
@@ -90,7 +94,7 @@ class test_btree : public Tests
 		assertfeq(bt.rangefrac(key(""), key(20)), .2);
 //		asserteq(bt.rangefrac(key(20), endkey(20)), .01);
 		assertfeq(bt.rangefrac(Record(), Record()), 0);
-		assertfeq(bt.rangefrac(key(999), endkey(999)), 0);
+		assertfeq(bt.rangefrac(key(999), maxkey()), 0);
 		}
 	Record key(int i)
 		{
@@ -110,6 +114,12 @@ class test_btree : public Tests
 		r.addmax();
 		return r;
 		}
+	Record maxkey()
+		{
+		Record r;
+		r.addmax();
+		return r;
+		}
 	Record bigkey(int i)
 		{
 		static gcstring filler = make_filler();
@@ -120,8 +130,9 @@ class test_btree : public Tests
 		}
 	gcstring make_filler()
 		{
-		gcstring s(500);
-		memset(s.buf(), ' ', 500);
+		const int N = 500;
+		gcstring s(N);
+		memset(s.buf(), ' ', N);
 		return s;
 		}
 	};
