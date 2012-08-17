@@ -451,9 +451,6 @@ public:
 	
 	//---------------------------------------------------------------
 	
-	#define MIN_FRAC .001f
-	#define MIN_LEVEL_SIZE 100
-	
 	// returns value between 0 and 1
 	float rangefrac(const Key& from, const Key& to)
 		{ // from is inclusive, end is exclusive
@@ -461,12 +458,7 @@ public:
 			return 0;
 		float fromPos = estimatePos(from);
 		float toPos = estimatePos(to);
-		if (fabs(toPos - fromPos) < .0001)
-			return MIN_FRAC;
-		except_if(fromPos > toPos, 
-			"from " << from << " fromPos " << fromPos << 
-			" to " << to << " toPos " << toPos);
-		return max(toPos - fromPos, MIN_FRAC);
+		return max(toPos - fromPos, 0.0f);
 		}
 	
 	bool isEmpty()
@@ -533,7 +525,7 @@ public:
 		int pos = parentPos * nodeSize + i;
 		verify(i <= nodeSize);
 		verify(pos <= levelSize);
-		if (level < treelevels && levelSize < MIN_LEVEL_SIZE)
+		if (level < treelevels)
 			// recurse
 			return estimatePos(key, nodeoff, level + 1, levelSize, pos);
 		return (float) pos / levelSize;
