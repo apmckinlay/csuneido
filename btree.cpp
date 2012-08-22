@@ -52,7 +52,7 @@ typedef Btree<Vslot,VFslot,Vslots,VFslots,TestDest> TestBtree;
 
 #define assertfeq(x, y) \
 	do { float x_ = x; float y_ = (float) y; \
-	except_if(fabs(x_ - y_) > .015f, \
+	except_if(fabs(x_ - y_) > .05f, \
 	__FILE__ << ':' << __LINE__ << ": " << "error: " << #x << " (" << x_ << \
 	") not close to " << #y << " (" << y_ << ")"); } while (false)
 #define assertclose(x, y)	verify(fabs((x) - (y)) < .35)

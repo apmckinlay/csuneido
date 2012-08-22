@@ -451,34 +451,50 @@ public:
 	
 	//---------------------------------------------------------------
 	
-	// returns value between 0 and 1
-	float rangefrac(const Key& from, const Key& to)
-		{ // from is inclusive, end is exclusive
+	float rangefrac(const Key& from, const Key& to) 
+		{
+		//con << "rangefrac " << from << " ... " << to << endl;
 		if (isEmpty())
 			return 0;
-		float fromPos = estimatePos(from);
-		float toPos = estimatePos(to);
+
+		//con << "not empty" << endl;
+		bool fromMinimal = isMinimal(from);
+		bool toMaximal = isMaximal(to);
+		if (fromMinimal && toMaximal)
+			return 1;
+
+		const int MAX_LEVELS = 64;
+		float fromNodeSize[MAX_LEVELS];
+		int fromNodePos[MAX_LEVELS];
+		if (! fromMinimal)
+			search(from, fromNodeSize, fromNodePos);
+
+		float toNodeSize[MAX_LEVELS];
+		int toNodePos[MAX_LEVELS];
+		if (! toMaximal)
+			search(to, toNodeSize, toNodePos);
+
+		if (! fromMinimal && ! toMaximal)
+			// average node sizes
+			for (int level = 0; level <= treelevels; ++level)
+				fromNodeSize[level] = toNodeSize[level] =
+						(fromNodeSize[level] + toNodeSize[level]) / 2;
+
+		float fromPos = fromMinimal ? 0 : estimatePos(fromNodeSize, fromNodePos);
+		float toPos = toMaximal ? 1 : estimatePos(toNodeSize, toNodePos);
+		//con << "fromPos " << fromPos << " toPos " << toPos << " = " << max(toPos - fromPos, 0.0f) << endl;
+
 		return max(toPos - fromPos, 0.0f);
-		}
-	
+	}
+
 	bool isEmpty()
 		{
 		if (! root_)
 			return true;
 		if (treelevels > 0)
 			return false;
-		TreeNode* node = (TreeNode*) dest->adr(root());
+		LeafNode* node = (LeafNode*) dest->adr(root());
 		return node->slots.size() == 0;
-		}
-	
-	// returns value between 0 and 1
-	float estimatePos(const Key& key)
-		{
-		if (isMinimal(key))
-			return 0;
-		if (isMaximal(key))
-			return 1;
-		return estimatePos(key, root(), 0, 1, 0);
 		}
 
 	bool isMinimal(const Key& key)
@@ -491,45 +507,50 @@ public:
 
 	bool isMaximal(const Key& key)
 		{
+		if (key.size() == 0)
+			return false;
 		for (int i = 0; i < key.size(); ++i)
 			if (key.getraw(i) != "\x7f")
 				return false;
 		return true;
 		}
 
-	float estimatePos(const Key& key, Mmoffset nodeoff, int level,
-			int parentLevelSize, int parentPos)
-		{
-		int nodeSize;
-		int i;
-		if (level < treelevels)
-			{
-			TreeNode* node = (TreeNode*) dest->adr(nodeoff);
-			TreeSlots& slots = node->slots;
-			nodeSize = slots.size() + 1;
-			TreeSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), TreeSlot(key));
-			i = slot - slots.begin();
-			nodeoff = node->find(key);
-			}
-		else
-			{
-			LeafNode* node = (LeafNode*) dest->adr(nodeoff);
-			LeafSlots& slots = node->slots;
-			nodeSize = slots.size();
-			if (nodeSize == 0)
-				return 0.0f;
-			LeafSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), LeafSlot(key));
-			i = slot - slots.begin();
-			}
-		int levelSize = parentLevelSize * nodeSize;
-		int pos = parentPos * nodeSize + i;
-		verify(i <= nodeSize);
-		verify(pos <= levelSize);
-		if (level < treelevels)
-			// recurse
-			return estimatePos(key, nodeoff, level + 1, levelSize, pos);
-		return (float) pos / levelSize;
+	void search(const Key& key, float* nodeSize, int* nodePos) {
+		Mmoffset nodeoff = root();
+		for (int level = 0; level <= treelevels; ++level) {
+			int n, i;
+			if (level < treelevels)
+				{
+				TreeNode* node = (TreeNode*) dest->adr(nodeoff);
+				TreeSlots& slots = node->slots;
+				n = slots.size() + 1;
+				TreeSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), TreeSlot(key));
+				i = slot - slots.begin();
+				nodeoff = node->find(key);
+				}
+			else
+				{
+				LeafNode* node = (LeafNode*) dest->adr(nodeoff);
+				LeafSlots& slots = node->slots;
+				n = slots.size();
+				LeafSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), LeafSlot(key));
+				i = slot - slots.begin();
+				}
+			//con << "search " << key << " level " << level << "/" << treelevels << " n " << n << " i " << i << endl;
+			nodeSize[level] = (float) n;
+			nodePos[level] = i;
 		}
+	}
+
+	float estimatePos(float* nodeSize, int* nodePos) {
+		float levelSize = 1;
+		float pos = 0;
+		for (int level = 0; level <= treelevels; ++level) {
+			levelSize *= nodeSize[level];
+			pos = pos * nodeSize[level] + nodePos[level];
+		}
+		return pos / levelSize;
+	}
 
 /*	void printree(Mmoffset off = NIL, int level = 0)
 		{
