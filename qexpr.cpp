@@ -128,15 +128,20 @@ Value UnOp::eval(const Header& hdr, const Row& row)
 	return eval2(x);
 	}
 
+bool tobool(Value x)
+	{
+	return force<SuBoolean*>(x) == SuBoolean::t;
+	}
+
 Value UnOp::eval2(Value x)
 	{
 	switch (op)
 		{
-	case I_NOT :	return x == SuFalse ? SuTrue : SuFalse;
+	case I_NOT :		return tobool(x) ? SuFalse : SuTrue;
 	case I_BITNOT :	return ~ x.integer();
-	case I_ADD :	return x;
-	case I_SUB :	return -x;
-	default :		error("invalid UnOp type");
+	case I_ADD :		return x;
+	case I_SUB :		return -x;
+	default :			error("invalid UnOp type");
 		}
 	}
 
@@ -318,22 +323,16 @@ Expr* TriOp::fold()
 	Expr* new_iftrue = iftrue->fold();
 	Expr* new_iffalse = iffalse->fold();
 	if (Constant* kexpr = dynamic_cast<Constant*>(new_expr))
-		{
-		if (kexpr->value == SuTrue)
-			return new_iftrue;
-		else
-			return new_iffalse;
-		}
+		return tobool(kexpr->value) ? new_iftrue : new_iffalse;
 	return new_expr == expr && new_iftrue == iftrue && new_iffalse == iffalse
 		? this : new TriOp(new_expr, new_iftrue, new_iffalse);
 	}
 
 Value TriOp::eval(const Header& hdr, const Row& row)
 	{
-	if (expr->eval(hdr, row) == SuTrue)
-		return iftrue->eval(hdr, row);
-	else
-		return iffalse->eval(hdr, row);
+	return tobool(expr->eval(hdr, row))
+		? iftrue->eval(hdr, row)
+		: iffalse->eval(hdr, row);
 	}
 
 // In ---------------------------------------------------------------
@@ -509,7 +508,7 @@ Expr* Or::fold()
 	for (Lisp<Expr*> e = nil(new_exprs) ? exprs : new_exprs; ! nil(e); ++e)
 		if (Constant* k = dynamic_cast<Constant*>(*e))
 			{
-			if (k->value == SuTrue)
+			if (tobool(k->value))
 				return new Constant(SuTrue);
 			}
 		else
@@ -522,7 +521,7 @@ Expr* Or::fold()
 Value Or::eval(const Header& hdr, const Row& row)
 	{
 	for (Lisp<Expr*> e(exprs); ! nil(e); ++e)
-		if (SuTrue == (*e)->eval(hdr, row))
+		if (tobool((*e)->eval(hdr, row)))
 			return SuTrue;
 	return SuFalse;
 	}
@@ -569,7 +568,7 @@ Expr* And::fold()
 	for (Lisp<Expr*> e = nil(new_exprs) ? exprs : new_exprs; ! nil(e); ++e)
 		if (Constant* k = dynamic_cast<Constant*>(*e))
 			{
-			if (k->value != SuTrue)
+			if (! tobool(k->value))
 				return new Constant(SuFalse);
 			}
 		else
@@ -582,7 +581,7 @@ Expr* And::fold()
 Value And::eval(const Header& hdr, const Row& row)
 	{
 	for (Lisp<Expr*> e(exprs); ! nil(e); ++e)
-		if (SuTrue != (*e)->eval(hdr, row))
+		if (! tobool((*e)->eval(hdr, row)))
 			return SuFalse;
 	return SuTrue;
 	}
