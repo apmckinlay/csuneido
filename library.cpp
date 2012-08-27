@@ -35,6 +35,7 @@
 #include "pack.h"
 #include "cmdlineoptions.h"
 #include "fatal.h"
+#include "trace.h"
 
 // register builtins
 

@@ -37,6 +37,7 @@
 #include "globals.h"
 #include "suclass.h"
 #include "sumethod.h"
+#include "trace.h"
 
 static bool catch_match(const char*, const char*);
 

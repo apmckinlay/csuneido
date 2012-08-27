@@ -27,7 +27,6 @@
 #include "value.h"
 #include "except.h"
 #include <new>
-#include "trace.h"
 
 class SuValue;
 class Func;

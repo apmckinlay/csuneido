@@ -30,7 +30,7 @@ enum
 	TRACE_FUNCTIONS =	1 << 0,
 	TRACE_STATEMENTS =	1 << 1,
 	TRACE_OPCODES =	1 << 2,
-	TRACE_STACK =		1 << 3,
+	TRACE_RECORDS =		1 << 3,
 	TRACE_LIBLOAD =	1 << 4,
 	TRACE_SLOWQUERY =	1 << 5,
 	TRACE_QUERY =		1 << 6,
@@ -46,7 +46,7 @@ enum
 	
 	TRACE_CLIENTSERVER = 1 << 15,
 	TRACE_EXCEPTIONS =	1 << 16,
-	TRACE_GLOBALS =	1 << 17
+	TRACE_GLOBALS =	1 << 17,
 	};
 
 #define TRACE_CLEAR() trace_level &= ~15

@@ -27,6 +27,7 @@
 #include "ostreamfile.h"
 #include "win.h"
 #include "winlib.h"
+#include "trace.h"
 
 static WinLib& loadlib(char* name)
 	{

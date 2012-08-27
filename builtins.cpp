@@ -54,6 +54,7 @@
 #include "win.h"
 #include "msgloop.h"
 #include "exceptimp.h"
+#include "trace.h"
 
 Value run(const char* s)
 	{

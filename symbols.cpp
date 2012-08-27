@@ -29,6 +29,7 @@
 #include "interp.h" // for stack for call
 #include "func.h" // for argseach for call
 #include "itostr.h"
+#include "trace.h"
 
 // unique strings used for member names
 class SuSymbol : public SuString

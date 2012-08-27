@@ -37,20 +37,13 @@
 #include "catstr.h"
 #include "commalist.h"
 #include "sublock.h"
+#include "trace.h"
 
-//#define LOG
-#ifdef LOG
-#include "ostreamfile.h"
-OstreamFile osf("surecord.log");
-#define log(args) ((osf << (void*) this << ": " << args << endl), osf.flush())
-#else
-#define log(args)
-#endif
+#define RTRACE(stuff) TRACE(RECORDS, (void*) this << " " << stuff)
 
 SuRecord::SuRecord()
 	: trans(0), recadr(0), status(NEW)
 	{
-	log("create");
 	defval = SuString::empty_string;
 	}
 
@@ -60,7 +53,6 @@ SuRecord::SuRecord(const SuRecord& rec)
 	invalid(rec.invalid), invalidated(rec.invalidated.copy())
 	// note: only have to copy() lists that are appended to
 	{
-	log("create");
 	defval = SuString::empty_string;
 	}
 
@@ -79,7 +71,6 @@ SuRecord::SuRecord(const Row& r, const Header& h, SuTransaction* t)
 void SuRecord::init(const Row& dbrow)
 	{
 	verify(recadr >= 0);
-	log("create");
 	defval = SuString::empty_string;
 	Row row(dbrow);
 	row.to_heap();
@@ -94,7 +85,6 @@ void SuRecord::init(const Row& dbrow)
 SuRecord::SuRecord(const Record& dbrec, const Lisp<int>& fldsyms, SuTransaction* t)
 	: trans(t), recadr(0), status(OLD)
 	{
-	log("create");
 	defval = SuString::empty_string;
 	Record rec = dbrec.to_heap();
 	int i = 0;
@@ -244,9 +234,10 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 			except("usage: record.Invalidate(member ...)");
 		for (int i = 0; i < nargs; ++i)
 			{
+			RTRACE(".Invalidate " << ARG(i).str());
 			ushort m = ::symnum(ARG(i).str());
 			invalidate(m);
-			call_observers(m);
+			call_observers(m, ".Invalidate");
 			}
 		return Value();
 		}
@@ -390,7 +381,7 @@ void SuRecord::ck_modify(char* op)
 
 void SuRecord::putdata(Value m, Value x)
 	{
-	log("putdata " << m << " = " << x);
+	RTRACE("set " << m << " = " << x);
 	int i = m.symnum();
 	invalid.erase(i); // before getdata
 	if (has(m))
@@ -401,20 +392,20 @@ void SuRecord::putdata(Value m, Value x)
 		}
 	SuObject::putdata(m, x);
 	invalidate_dependents(i);
-	call_observers(i);
+	call_observers(i, "set");
 	}
 
-void SuRecord::call_observers(ushort i)
+void SuRecord::call_observers(ushort i, const char* why)
 	{
-	call_observer(i);
+	call_observer(i, why);
 	for (; ! nil(invalidated); ++invalidated)
 		if (*invalidated != i)
-			call_observer(*invalidated);
+			call_observer(*invalidated, "invalidate");
 	}
 
 void SuRecord::invalidate_dependents(ushort mem)
 	{
-	log("invalidate dependents of " << symstr(mem));
+	RTRACE("invalidate dependents of " << symstr(mem));
 	for (Lisp<ushort> m = dependents[mem]; ! nil(m); ++m)
 		invalidate(*m);
 	}
@@ -422,7 +413,7 @@ void SuRecord::invalidate_dependents(ushort mem)
 void SuRecord::invalidate(ushort mem)
 	{
 	// TODO maybe clear dependencies? (would give a way to safely clear dependencies)
-	log("invalidate " << symstr(mem));
+	RTRACE("invalidate " << symstr(mem));
 	bool was_valid = ! invalid.find(mem);
 	if (! member(invalidated, mem))
 		invalidated.append(mem); // for observers
@@ -450,9 +441,9 @@ private:
 	SuRecord* rec;
 	};
 
-void SuRecord::call_observer(ushort member)
+void SuRecord::call_observer(ushort member, const char* why)
 	{
-	log("call_observer " << symstr(member));
+	RTRACE("call observer for " << symstr(member) << " due to " << why);
 	static ushort argname = ::symnum("member");
 	for (Lisp<Value> obs = observer; ! nil(obs); ++obs)
 		{
@@ -469,14 +460,13 @@ void SuRecord::call_observer(ushort member)
 
 Value SuRecord::getdata(Value m)
 	{
-	log("getdata " << m);
 	int i = m.symnum();
 	if (tss_proc()->fp->rule.rec == this)
 		add_dependent(tss_proc()->fp->rule.mem, i);
 	Value result = get(m);
 	if (! result || invalid.find(i))
 		{
-		if (Value x = call_rule(i))
+		if (Value x = call_rule(i, result ? "invalid" : "missing"))
 			result = x;
 		else if (! result)
 			result = defval;
@@ -486,10 +476,12 @@ Value SuRecord::getdata(Value m)
 
 void SuRecord::add_dependent(ushort src, ushort dst)
 	{
-	log("add_dependent " << symstr(src) << " on " << symstr(dst));
 	Lisp<ushort>& list = dependents[dst];
 	if (! member(list, src))
+		{
+		RTRACE("add dependency for " << symstr(src) << " uses " << symstr(dst));
 		list.push(src);
+		}
 	}
 
 // prevent rules from triggering themselves
@@ -506,7 +498,7 @@ private:
 	SuRecord* rec;
 	};
 
-Value SuRecord::call_rule(ushort i)
+Value SuRecord::call_rule(ushort i, const char* why)
 	{
 	invalid.erase(i);
 
@@ -522,7 +514,7 @@ Value SuRecord::call_rule(ushort i)
 		return Value();
 	TrackRule tr(this, fn);
 
-	log("call_rule " << symstr(i));
+	RTRACE("call rule " << symstr(i) << " - " << why);
 
 	Rule old_rule = tss_proc()->fp->rule;
 	tss_proc()->fp->rule.rec = this;

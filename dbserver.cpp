@@ -43,6 +43,7 @@
 #include "errlog.h"
 #include "exceptimp.h"
 #include "pack.h"
+#include "trace.h"
 
 //#define LOGGING
 #ifdef LOGGING

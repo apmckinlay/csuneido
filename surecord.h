@@ -57,7 +57,7 @@ public:
 	// getdata has to auto-register a rule as an observer
 	virtual Value getdata(Value);
 
-	Value call_rule(ushort i);
+	Value call_rule(ushort i, const char* why);
 
 	Record to_record(const Header& hdr);
 
@@ -77,8 +77,8 @@ private:
 	void init(const Row& r);
 	void addfield(char* field, gcstring value);
 	void dependencies(ushort mem, gcstring s);
-	void call_observer(ushort member);
-	void call_observers(ushort member);
+	void call_observer(ushort member, const char* why);
+	void call_observers(ushort member, const char* why);
 
 	void add_dependent(ushort src, ushort dst);
 	void invalidate(ushort mem);

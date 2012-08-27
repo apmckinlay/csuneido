@@ -36,6 +36,7 @@
 #include "ostreamstr.h"
 #include "func.h"
 #include "builtinargs.h"
+#include "trace.h"
 
 Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	{
