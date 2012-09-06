@@ -454,8 +454,9 @@ public:
 	float rangefrac(const Key& from, const Key& to) 
 		{
 		//con << "rangefrac " << from << " ... " << to << endl;
+		const float MIN_FRAC = .001f;
 		if (isEmpty())
-			return 0;
+			return MIN_FRAC;
 
 		//con << "not empty" << endl;
 		bool fromMinimal = isMinimal(from);
@@ -484,7 +485,7 @@ public:
 		float toPos = toMaximal ? 1 : estimatePos(toNodeSize, toNodePos);
 		//con << "fromPos " << fromPos << " toPos " << toPos << " = " << max(toPos - fromPos, 0.0f) << endl;
 
-		return max(toPos - fromPos, 0.0f);
+		return max(toPos - fromPos, MIN_FRAC);
 	}
 
 	bool isEmpty()
