@@ -7,7 +7,7 @@ suneido -load stdlib
 suneido -load suneidoc
 suneido -load imagebook
 suneido -load translatelanguage.su
-copy ..\workspace\jsuneido\jsuneido.jar
+copy z:\software\suneido\beta\jsuneido.jar
 del suneido%1.zip
 zip -9 suneido%1.zip suneido.exe suneido.db scilexer.dll libhpdf.dll clucene.dll hunspell.exe en_US.aff en_US.dic splash.bmp jsuneido.jar
 del jsuneido.jar
