@@ -1,7 +1,6 @@
 PORTSOURCES = \
 alert.cpp \
 array.cpp \
-bitmap.cpp \
 bmalloc.cpp \
 btree.cpp \
 builtinargs.cpp \
