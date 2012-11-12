@@ -329,7 +329,11 @@ Value SuDate::parse(char* s, char* order)
 			char* dst = buf;
 			*dst++ = toupper(*s);
 			for (++s; isalpha(*s); ++s)
+				{
+				if (dst >= buf + sizeof buf)
+					return SuFalse;
 				*dst++ = tolower(*s);
+				}
 			verify(dst < buf + sizeof buf);
 			*dst = 0;
 			int i;
