@@ -171,6 +171,20 @@ Value su_libraries()
 	}
 PRIM(su_libraries, "Libraries()");
 
+Value unload()
+	{
+	if (TOP() == SuFalse)
+		globals.clear();
+	else
+		{
+		gcstring s = TOP().gcstr();
+		// TODO: check for valid name
+		globals.put(s.str(), Value());
+		}
+	return Value();
+	}
+PRIM(unload, "Unload(name = false)");
+
 // low level libget used by dbmslocal
 
 #include "database.h"

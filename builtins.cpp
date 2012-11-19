@@ -244,15 +244,6 @@ Value buffer()
 	}
 PRIM(buffer, "Buffer(size, string='')");
 
-Value unload()
-	{
-	gcstring s = TOP().gcstr();
-	// TODO: check for valid name
-	globals.put(s.str(), Value());
-	return Value();
-	}
-PRIM(unload, "Unload(name)");
-
 Value objectq()
 	{
 	Value x = TOP();
