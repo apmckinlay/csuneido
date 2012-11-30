@@ -23,8 +23,6 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// NOTE: member numbers < 0x8000 are for numeric subscripts, > 0x8000 for names
-
 #include "value.h"
 #include "suvalue.h"
 #include <vector>
