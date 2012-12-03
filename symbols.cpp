@@ -45,7 +45,8 @@ public:
 
 const int MAX_SYMBOLS = 32 * 1024;
 static PermanentHeap symbols("symbol table", MAX_SYMBOLS * sizeof (SuSymbol));
-const int AVG_NAME_LEN = 32;
+const int NAMES_SPACE = 512 * 1024;
+static PermanentHeap names("symbol names", NAMES_SPACE);
 
 struct kofv
 	{
@@ -104,8 +105,6 @@ Value symbol(const gcstring& s)
 	return symbol(s.str());
 	}
 
-static PermanentHeap names("symbol names", MAX_SYMBOLS * AVG_NAME_LEN);
-
 Value symbol_existing(const char* s)
 	{
 	if (SuSymbol** psym = symtbl.find(s))
@@ -149,8 +148,8 @@ Value su_syminfo()
 	{
 	int n_symbols = symbols.size() / sizeof (SuSymbol);
 	OstreamStr os;
-	os << "Count " << n_symbols << " (max " << MAX_SYMBOLS << "), " <<
-		"Size " << names.size() << " (max " << (MAX_SYMBOLS * AVG_NAME_LEN) << ")";
+	os << "Symbols: Count " << n_symbols << " (max " << MAX_SYMBOLS << "), " <<
+		"Size " << names.size() << " (max " << NAMES_SPACE << ")";
 	return new SuString(os.str());
 	}
 PRIM(su_syminfo, "SymbolsInfo()");

@@ -50,6 +50,7 @@
 #include "gc.h"
 #include "codevisitor.h"
 #include "sublock.h" // for BLOCK_REST
+#include "varint.h"
 
 bool optionDisabled(const char* option);
 
@@ -107,8 +108,6 @@ private:
 protected:
 	bool anyName();
 	};
-
-static ushort NEWNUM; // set by Compiler::Compiler
 
 struct PrevLit
 	{
@@ -182,7 +181,7 @@ private:
 	void args_at(short& nargs, char* delims);
 	void args_list(short & nargs, char* delims, vector<ushort>& argnames);
 	void record();
-	short literal(Value);
+	ushort literal(Value value, bool reuse = false);
 	short emit_literal();
 	short local(bool init = false);
 	PrevLit poplits();
@@ -191,6 +190,8 @@ private:
 	void mark();
 	void params(vector<char>& flags);
 	bool notAllZero(vector<char>& flags);
+	void emit_target(int option, int target);
+	ushort mem(char* s);
 	};
 
 Value compile(char* s, char* gname, CodeVisitor* visitor)
@@ -208,7 +209,6 @@ Compiler::Compiler(char* s, CodeVisitor* visitor)
 	: scanner(*new Scanner(strdup(s), 0, visitor ? visitor : new CodeVisitor)),
 		stmtnest(99)
 	{
-	NEWNUM = symnum("New");
 	match(); // get first token
 	}
 
@@ -464,7 +464,7 @@ void Compiler::member(SuObject* ob, char* gname, short base)
 			if (Named* nob = ob->get_named())
 				{
 				nx->parent = nob;
-				nx->num = symnum(mv.str());
+				nx->str = mv.str();
 				}
 	}
 
@@ -926,6 +926,8 @@ void FunctionCompiler::block()
 		locals[i] = symnum(CATSTRA("_", symstr(locals[i])));
 	}
 
+#define NEW mem("New")
+
 void FunctionCompiler::compound(short cont, short* pbrk)
 	{
 	match(); // NOTE: caller must check for {
@@ -934,7 +936,7 @@ void FunctionCompiler::compound(short cont, short* pbrk)
 		if (scanner.keyword != K_SUPER || *scanner.peek() != '(')
 			{
 			emit(I_SUPER, 0, base);
-			emit(I_CALL, MEM_SELF, NEWNUM);
+			emit(I_CALL, MEM_SELF, NEW);
 			emit(I_POP);
 			}
 		}
@@ -965,6 +967,13 @@ void FunctionCompiler::opt_paren_expr()
 	OPT_PAREN_EXPR1
 	OPT_PAREN_EXPR2
 	}
+
+#define ITERKEYS mem("IterKeys")
+#define ITERLIST mem("IterList")
+#define ITERVALUES mem("Iter")
+#define ITERLISTVALUES mem("IterListValues")
+#define NEXT mem("Next")
+#define ITER mem("Iter")
 
 void FunctionCompiler::statement(short cont, short* pbrk)
 	{
@@ -1035,12 +1044,6 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 		}
 	case K_FOREACH :
 		{
-		static ushort ITERKEYS = symnum("IterKeys");
-		static ushort ITERLIST = symnum("IterList");
-		static ushort ITERVALUES = symnum("Iter");
-		static ushort ITERLISTVALUES = symnum("IterListValues");
-		static ushort NEXT = symnum("Next");
-
 		match();
 		OPT_PAREN_EXPR1
 		bool list = false;
@@ -1102,12 +1105,10 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 				code.resize(nc_before);
 				last_adr = -1;
 				OPT_PAREN_EXPR2
-				static ushort ITER = symnum("Iter");
 				emit(I_CALL, MEM, ITER);
 				a = code.size();
 				emit(I_DUP); // to save the iterator
 				emit(I_DUP); // to compare against for end
-				static ushort NEXT = symnum("Next");
 				emit(I_CALL, MEM, NEXT);
 				emit(I_EQ, 0x80 + (AUTO << 4), var);
 				emit(I_ISNT);
@@ -1289,8 +1290,8 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 		{
 		match();
 		a = emit(I_TRY, 0, -1);
-		uchar catchvalue = literal(0);
-		code.push_back(catchvalue);
+		int catchvalue = literal(0);
+		emit_target(LITERAL, catchvalue);
 		statement(cont, pbrk);	// try code
 		mark();
 		b = emit(I_CATCH, 0, -1);
@@ -1511,6 +1512,8 @@ void FunctionCompiler::mulop()
 		}
 	}
 
+#define INSTANTIATE mem("instantiate")
+
 void FunctionCompiler::unop()
 	{
 	if (token == I_NOT || token == I_ADD || token == I_SUB || token == I_BITNOT)
@@ -1523,8 +1526,6 @@ void FunctionCompiler::unop()
 		}
 	else if (scanner.keyword == K_NEW)
 		{
-		static short INSTANTIATE = symnum("instantiate");
-
 		match();
 		expr0(true);
 		short nargs = 0;
@@ -1602,13 +1603,13 @@ void FunctionCompiler::expr0(bool newtype)
 				{
 				// only allow super(...) at start of new function
 				option = MEM_SELF;
-				id = NEWNUM;
+				id = NEW;
 				}
 			else
 				{
 				match('.');
 				option = MEM_SELF;
-				id = symnum(scanner.value);
+				id = mem(scanner.value);
 				match(T_IDENTIFIER);
 				}
 			break ;
@@ -1672,10 +1673,8 @@ void FunctionCompiler::expr0(bool newtype)
 	case '.' :
 		matchnew('.');
 		option = MEM_SELF;
-		id = symnum(memname(gname, scanner.value).str());
+		id = literal(memname(gname, scanner.value));
 		match(T_IDENTIFIER);
-		if (id == NEWNUM)
-			syntax_error();
 		if (! expecting_compound && token == T_NEWLINE && *scanner.peek() == '{')
 			match();
 		break ;
@@ -1713,10 +1712,8 @@ void FunctionCompiler::expr0(bool newtype)
 			{
 			matchnew();
 			option = MEM;
-			id = symnum(scanner.value);
+			id = mem(scanner.value);
 			match(T_IDENTIFIER);
-			if (id == NEWNUM)
-				syntax_error();
 			if (! expecting_compound && token == T_NEWLINE && *scanner.peek() == '{')
 				match();
 			}
@@ -1747,11 +1744,15 @@ void FunctionCompiler::expr0(bool newtype)
 		else if (token == '(' || // function call
 			token == '{') // func { } == func() { } == func({ })
 			{
+			static Value NEWVAL("New");
 			short nargs = 0;
 			vector<ushort> argnames;
 			args(nargs, argnames);
 			if (super)
 				emit(I_SUPER, 0, base);
+			else if ((option == MEM || option == MEM_SELF) &&
+				literals[id] == NEWVAL)
+				syntax_error("cannot explicitly call New method");
 			emit(I_CALL, option, id, nargs, &argnames);
 			option = LITERAL;
 			lvalue = value = super = false;
@@ -1781,8 +1782,10 @@ void FunctionCompiler::expr0(bool newtype)
 			Named* n = k.get_named();
 			verify(n);
 			n->parent = &fn->named;
-			n->num = (option == AUTO || option == DYNAMIC ?
-					locals[id] : id);
+			if (option == AUTO || option == DYNAMIC)
+				n->num = locals[id];
+			else if (option == MEM || option == MEM_SELF)
+				n->str = literals[id].str();
 			emit(I_PUSH, LITERAL, literal(k));
 			}
 		else
@@ -1950,9 +1953,25 @@ void FunctionCompiler::record()
 		}
 	}
 
-short FunctionCompiler::literal(Value x)
+static Value symbolOrString(char* s)
 	{
-	except_if(literals.size() >= UCHAR_MAX, "too many literals");
+	Value m = symbol_existing(s);
+	return m ? m : new SuString(s);
+	}
+
+ushort FunctionCompiler::mem(char* s)
+	{
+	return literal(symbolOrString(s));
+	}
+
+// TODO use "reuse" in more places
+ushort FunctionCompiler::literal(Value x, bool reuse)
+	{
+	if (reuse)
+		for (int i = 0; i < literals.size(); ++i)
+			if (literals[i] == x)
+				return i;
+	except_if(literals.size() >= USHRT_MAX, "too many literals");
 	literals.push_back(x);
 	return literals.size() - 1;
 	}
@@ -2081,23 +2100,13 @@ short FunctionCompiler::emit(short op, short option, short target,
 		else if (option == AUTO && target < 16)
 			code[adr] = I_PUSH_AUTO | target;
 		else if (option >= LITERAL)
-			{
-			code.push_back(target & 255);
-			if (option >= MEM)
-				{
-				code.push_back(target >> 8);
-				}
-			}
+			emit_target(option, target);
 		}
 
 	else if (op == I_CALL)
 		{
 		if (option > LITERAL)	// literal means stack
-			{
-			code.push_back(target & 255);
-			if (option >= MEM)
-				code.push_back(target >> 8);
-			}
+			emit_target(option, target);
 
 		// OPTIMIZE: calls
 		int nargnames = nargs && argnames ? argnames->size() : 0;
@@ -2124,6 +2133,7 @@ short FunctionCompiler::emit(short op, short option, short target,
 		{
 		code.push_back(target & 255);
 		code.push_back(target >> 8);
+		// I_TRY is followed by literal index
 		}
 
 	else if (I_ADDEQ <= op && op <= I_POSTDEC)
@@ -2132,17 +2142,25 @@ short FunctionCompiler::emit(short op, short option, short target,
 		if (op == I_EQ && option == AUTO && target < 8)
 			code[adr] = I_EQ_AUTO | target;
 		else if (option >= LITERAL)
-			{
-			code.push_back(target & 255);
-			if (option >= MEM)
-				code.push_back(target >> 8);
-			}
+			emit_target(option, target);
 		}
 
 	else if (op == I_EACH)
 		code.push_back(target);
 
 	return adr;
+	}
+
+void FunctionCompiler::emit_target(int option, int target)
+	{
+	if (option == LITERAL || option == MEM || option == MEM_SELF)
+		push_varint(code, target);
+	else
+		{
+		code.push_back(target & 255);
+		if (option == GLOBAL) //TODO use varint
+			code.push_back(target >> 8);
+		}
 	}
 
 void FunctionCompiler::mark()
@@ -2180,10 +2198,7 @@ Value Compiler::memname(char* gname, char* s)
 		else
 			s = CATSTR3(gname, "_", s);
 		}
-	if (Value symbol = symbol_existing(s))
-		return symbol;
-	else
-		return new SuString(s);
+	return symbolOrString(s);
 	}
 
 #include "testing.h"
@@ -2267,14 +2282,14 @@ static Cmpltest cmpltests[] =
 					  0  nop \n\
 					  1  push auto a\n\
 					  2  call mem b 0\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ ".b();", ".b(); }\n\
 					  0  nop \n\
 					  1  call mem this b 0\n\
-					  4  return \n\
-					  5\n" },
+					  3  return \n\
+					  4\n" },
 
 	{ "a[b];", "a[b]; }\n\
 					  0  nop \n\
@@ -2295,14 +2310,14 @@ static Cmpltest cmpltests[] =
 					  0  nop \n\
 					  1  push auto a\n\
 					  2  push mem b\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ ".b;", ".b; }\n\
 					  0  nop \n\
 					  1  push mem this b\n\
-					  4  return \n\
-					  5\n" },
+					  3  return \n\
+					  4\n" },
 
 	{ "X;", "X; }\n\
 					  0  nop \n\
@@ -2464,109 +2479,109 @@ static Cmpltest cmpltests[] =
 					  0  nop \n\
 					  1  push value 1 \n\
 					  2  = mem this x\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ ".x += 1;", ".x += 1; }\n\
 					  0  nop \n\
 					  1  push value 1 \n\
 					  2  += mem this x\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ ".x -= 1;", ".x -= 1; }\n\
 					  0  nop \n\
 					  1  push value 1 \n\
 					  2  -= mem this x\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ ".x $= \"\";", ".x $= \"\"; }\n\
 					  0  nop \n\
 					  1  push value \"\" \n\
 					  2  $= mem this x\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ ".x *= 1;", ".x *= 1; }\n\
 					  0  nop \n\
 					  1  push value 1 \n\
 					  2  *= mem this x\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ ".x /= 1;", ".x /= 1; }\n\
 					  0  nop \n\
 					  1  push value 1 \n\
 					  2  /= mem this x\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ ".x %= 1;", ".x %= 1; }\n\
 					  0  nop \n\
 					  1  push value 1 \n\
 					  2  %= mem this x\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ ".x &= 1;", ".x &= 1; }\n\
 					  0  nop \n\
 					  1  push value 1 \n\
 					  2  &= mem this x\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ ".x |= 1;", ".x |= 1; }\n\
 					  0  nop \n\
 					  1  push value 1 \n\
 					  2  |= mem this x\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ ".x ^= 1;", ".x ^= 1; }\n\
 					  0  nop \n\
 					  1  push value 1 \n\
 					  2  ^= mem this x\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ ".x <<= 1;", ".x <<= 1; }\n\
 					  0  nop \n\
 					  1  push value 1 \n\
 					  2  <<= mem this x\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ ".x >>= 1;", ".x >>= 1; }\n\
 					  0  nop \n\
 					  1  push value 1 \n\
 					  2  >>= mem this x\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ "++.x;", "++.x; }\n\
 					  0  nop \n\
 					  1  ++? mem this x\n\
-					  4  return \n\
-					  5\n" },
+					  3  return \n\
+					  4\n" },
 
 	{ "--.x;", "--.x; }\n\
 					  0  nop \n\
 					  1  --? mem this x\n\
-					  4  return \n\
-					  5\n" },
+					  3  return \n\
+					  4\n" },
 
 	{ ".x++;", ".x++; }\n\
 					  0  nop \n\
 					  1  ?++ mem this x\n\
-					  4  return \n\
-					  5\n" },
+					  3  return \n\
+					  4\n" },
 
 	{ ".x--;", ".x--; }\n\
 					  0  nop \n\
 					  1  ?-- mem this x\n\
-					  4  return \n\
-					  5\n" },
+					  3  return \n\
+					  4\n" },
 
 	{ "a + b;", "a + b; }\n\
 					  0  nop \n\
@@ -2789,8 +2804,8 @@ static Cmpltest cmpltests[] =
 	{ ".a;", ".a; }\n\
 					  0  nop \n\
 					  1  push mem this a\n\
-					  4  return \n\
-					  5\n" },
+					  3  return \n\
+					  4\n" },
 
 /*	{ "[a];", "[a]; }\n\
 					  0  nop \n\
@@ -2809,8 +2824,8 @@ static Cmpltest cmpltests[] =
 					  0  nop \n\
 					  1  push auto a\n\
 					  2  push mem b\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ "a[b];", "a[b]; }\n\
 					  0  nop \n\
@@ -2830,10 +2845,10 @@ static Cmpltest cmpltests[] =
 					  0  nop \n\
 					  1  push auto a\n\
 					  2  push mem b\n\
-					  5  push mem c\n\
-					  8  push mem d\n\
-					 11  return \n\
-					 12\n" },
+					  4  push mem c\n\
+					  6  push mem d\n\
+					  8  return \n\
+					  9\n" },
 
 	{ "a[b][c][d];", "a[b][c][d]; }\n\
 					  0  nop \n\
@@ -2869,8 +2884,8 @@ a--; }\n\
 					  0  nop \n\
 					  1  call auto a 0 0\n\
 					  5  push mem b\n\
-					  8  return \n\
-					  9\n" },
+					  7  return \n\
+					  8\n" },
 
 	{ "a()()();", "a()()(); }\n\
 					  0  nop \n\
@@ -2884,8 +2899,8 @@ a--; }\n\
 					  0  nop \n\
 					  1  push auto a\n\
 					  2  call mem b 0\n\
-					  5  return \n\
-					  6\n" },
+					  4  return \n\
+					  5\n" },
 
 	{ "a = b;  a.b = c.d; a().b = c;", \
 	  "a = b;  \n\
@@ -2897,15 +2912,15 @@ a.b = c.d; \n\
 					  4  push auto a\n\
 					  5  push auto c\n\
 					  6  push mem d\n\
-					  9  = mem b\n\
-					 12  pop \n\
+					  8  = mem b\n\
+					 10  pop \n\
 a().b = c; }\n\
-					 13  nop \n\
-					 14  call auto a 0 0\n\
-					 18  push auto c\n\
-					 19  = mem b\n\
-					 22  return \n\
-					 23\n" },
+					 11  nop \n\
+					 12  call auto a 0 0\n\
+					 16  push auto c\n\
+					 17  = mem b\n\
+					 19  return \n\
+					 20\n" },
 
 
 	{ "a(); a(b); a(b()); a(b, c, d); a(b(), c());", \
@@ -3679,4 +3694,3 @@ class test_compile2 : public Tests
 		}
 	};
 REGISTER(test_compile2);
-

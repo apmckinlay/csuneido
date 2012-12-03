@@ -33,6 +33,7 @@
 #include "pack.h"
 #include "catstr.h"
 #include <ctype.h>
+#include "varint.h"
 
 #define TARGET(i)	(short) ((code[i] + (code[i+1] << 8)))
 
@@ -194,8 +195,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 			break ;
 		case I_CALL_MEM :
 		case I_CALL_MEM_SELF :
-			out << symstr(TARGET(ci)) << " " << (op & 7);
-			ci += 2;
+			out << mem(ci) << " " << (op & 7);
 			break ;
 		default : 
 			break ;
@@ -206,7 +206,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 		switch (op & 7)
 			{
 		case LITERAL :
-			out << literals[code[ci++]];
+			out << literals[varint(code, ci)];
 			break ;
 		case AUTO :
 		case DYNAMIC :
@@ -214,8 +214,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 			break ;
 		case MEM :
 		case MEM_SELF :
-			out << symstr(TARGET(ci));
-			ci += 2;
+			out << mem(ci);
 			break ;
 		case GLOBAL :
 			out << globals(TARGET(ci));
@@ -235,7 +234,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 			break ;
 		case MEM :
 		case MEM_SELF :
-			out << symstr(TARGET(ci));
+			out << mem(ci);
 			ci += 2;
 			break ;
 		case GLOBAL :
@@ -259,7 +258,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 		out << ci + 2 + TARGET(ci);
 		ci += 2;
 		if (op == I_TRY)
-			out << " " << literals[code[ci++]];
+			out << " " << literals[varint(code, ci)];
 		}
 	else if (I_ADDEQ <= op && op < I_ADD)
 		{
@@ -271,8 +270,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 			break ;
 		case MEM :
 		case MEM_SELF :
-			out << symstr(TARGET(ci));
-			ci += 2;
+			out << mem(ci);
 			break ;
 		default : 
 			break ;
@@ -280,6 +278,13 @@ int SuFunction::disasm1(Ostream& out, int ci)
 		}
 	out << "\n";
 	return ci;
+	}
+
+char* SuFunction::mem(int& ci)
+	{
+	int n = varint(code, ci);
+	except_if(n >= nliterals, "n " << n << " nliterals " << nliterals);
+	return literals[n].str();
 	}
 
 static int namerefs(uchar* code, int nc, char* buf = 0);

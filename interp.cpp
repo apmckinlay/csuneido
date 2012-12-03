@@ -38,6 +38,20 @@
 #include "suclass.h"
 #include "sumethod.h"
 #include "trace.h"
+#include "varint.h"
+
+short Frame::fetch_literal()
+	{
+	return varint(ip);
+	}
+
+Value Frame::fetch_member()
+	{ 
+	int n = fetch_literal();
+	if (n < 0 || n >= fn->nliterals)
+		except("bad member number " << "0x" << hex << n);
+	return fn->literals[n];
+	}
 
 static bool catch_match(const char*, const char*);
 
@@ -157,11 +171,12 @@ Frame::Frame(Frame* fp, int pc, int first, int nargs, Value s) :
 
 Value Frame::run()
 	{
-	int i = 0, jump, nargs, nargnames, member;
+	int i = 0, jump, nargs, nargnames;
 	Value arg;
 	Value subscript;
 	Value result;
 	Value* oldsp;
+	Value mem;
 
 	each = -1;
 	tss_proc()->super = 0;
@@ -248,30 +263,30 @@ Value Frame::run()
 		case I_CALL_MEM | 4 : case I_CALL_MEM | 5 :
 		case I_CALL_MEM | 6 : case I_CALL_MEM | 7 :
 			nargs = op & 7;
-			member = fetch_member();
-			CALLTOP(symbol(member), nargs, 0, 0, symstr(member));
+			mem = fetch_member();
+			CALLTOP(mem, nargs, 0, 0, mem.str());
 			break ;
 		case I_CALL_MEM_POP | 0 : case I_CALL_MEM_POP | 1 :
 		case I_CALL_MEM_POP | 2 : case I_CALL_MEM_POP | 3 :
 		case I_CALL_MEM_POP | 4 : case I_CALL_MEM_POP | 5 :
 		case I_CALL_MEM_POP | 6 : case I_CALL_MEM_POP | 7 :
 			nargs = op & 7;
-			CALLTOPPOP(symbol(fetch_member()), nargs, 0, 0);
+			CALLTOPPOP(fetch_member(), nargs, 0, 0);
 			break ;
 		case I_CALL_MEM_SELF | 0 : case I_CALL_MEM_SELF | 1 :
 		case I_CALL_MEM_SELF | 2 : case I_CALL_MEM_SELF | 3 :
 		case I_CALL_MEM_SELF | 4 : case I_CALL_MEM_SELF | 5 :
 		case I_CALL_MEM_SELF | 6 : case I_CALL_MEM_SELF | 7 :
 			nargs = op & 7;
-			member = fetch_member();
-			CALLX(self, symbol(member), nargs, 0, 0, symstr(member));
+			mem = fetch_member();
+			CALLX(self, mem, nargs, 0, 0, mem.str());
 			break ;
 		case I_CALL_MEM_SELF_POP | 0 : case I_CALL_MEM_SELF_POP | 1 :
 		case I_CALL_MEM_SELF_POP | 2 : case I_CALL_MEM_SELF_POP | 3 :
 		case I_CALL_MEM_SELF_POP | 4 : case I_CALL_MEM_SELF_POP | 5 :
 		case I_CALL_MEM_SELF_POP | 6 : case I_CALL_MEM_SELF_POP | 7 :
 			nargs = op & 7;
-			CALLPOP(self, symbol(fetch_member()), nargs, 0, 0);
+			CALLPOP(self, fetch_member(), nargs, 0, 0);
 			break ;
 		case I_PUSH | SUB :		case I_PUSH | SUB_SELF :
 		case I_PUSH | LITERAL :	case I_PUSH | AUTO :
@@ -314,16 +329,16 @@ Value Frame::run()
 			CALLSUBSELF(nargs, nargnames, (ushort*) ip);
 			break ;
 		case I_CALL | MEM :
-			member = fetch_member();
+			mem = fetch_member();
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLTOP(symbol(member), nargs, nargnames, (ushort*) ip, symstr(member));
+			CALLTOP(mem, nargs, nargnames, (ushort*) ip, mem.str());
 			break ;
 		case I_CALL | MEM_SELF :
-			member = fetch_member();
+			mem = fetch_member();
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLX(self, symbol(member), nargs, nargnames, (ushort*) ip, symstr(member));
+			CALLX(self, mem, nargs, nargnames, (ushort*) ip, mem.str());
 			break ;
 		case I_CALL | AUTO :
 		case I_CALL | DYNAMIC :
@@ -516,13 +531,13 @@ Value Frame::run()
 				break ;
 			case MEM :
 				ob = POP();
-				m = symbol(fetch_member());
+				m = fetch_member();
 				if (! eq && ! (x = ob.getdata(m)))
 					except("uninitialized member: " << m);
 				break ;
 			case MEM_SELF :
 				ob = self;
-				m = symbol(fetch_member());
+				m = fetch_member();
 				if (! eq && ! (x = self.getdata(m)))
 					except("uninitialized member: " << m);
 				break ;
@@ -778,11 +793,11 @@ Value Frame::get(uchar op)
 		break ;
 	case MEM :
 		ob = POP();
-		m = symbol(fetch_member());
+		m = fetch_member();
 		x = getdata(ob, m);
 		break ;
 	case MEM_SELF :
-		m = symbol(fetch_member());
+		m = fetch_member();
 		x = getdata(self, m);
 		break ;
 	case GLOBAL :

@@ -111,7 +111,8 @@ thedb.cpp \
 tr.cpp \
 transaction.cpp \
 usertrigger.cpp \
-value.cpp
+value.cpp \
+varint.cpp
 
 WINSOURCES=\
 alertwin.cpp \

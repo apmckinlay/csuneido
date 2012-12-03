@@ -112,12 +112,10 @@ public:
 
 	uchar fetch_local()
 		{ return fetch1(); }
-	uchar fetch_literal()
-		{ return fetch1(); }
+	short fetch_literal();
 	short fetch_jump()
 		{ return fetch2(); }
-	ushort fetch_member()
-		{ return fetch2(); }
+	Value fetch_member();
 	ushort fetch_global()
 		{ return fetch2(); }
 	uchar fetch1()

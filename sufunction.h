@@ -66,6 +66,7 @@ public:
 
 private:
 	void dotParams(Value self);
+	char* mem(int& ci);
 	};
 
 #endif

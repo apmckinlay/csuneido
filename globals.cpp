@@ -30,16 +30,15 @@
 
 Globals globals;
 
-const int INITSIZE = 500;
-const int AVG_NAME_LEN = 12;
-const int MAXNAMES = AVG_NAME_LEN * 32 * 1024;
+const int INITSIZE = 1024;
+const int NAMES_SPACE = 1024 * 1024;
 
 #define MISSING	((SuValue*) 1)
 
 static HashMap<const char*, int> tbl(INITSIZE);
 static std::vector<Value> data;
 static std::vector<char*> names;
-static PermanentHeap ph("global names", MAXNAMES);
+static PermanentHeap ph("global names", NAMES_SPACE);
 
 char* Globals::operator()(ushort j)
 	{
@@ -126,6 +125,31 @@ void Globals::pop(ushort i)
 	tbl.erase(s);
 	ph.free(s);
 	}
+
+#include "prim.h"
+
+#include "ostreamstr.h"
+#include "sustring.h"
+
+Value su_globalinfo()
+	{
+	OstreamStr os;
+	os << "Globals: Count " << names.size() << " (max " << USHRT_MAX << "), " <<
+		"Size " << ph.size() << " (max " << NAMES_SPACE << ")";
+	return new SuString(os.str());
+	}
+PRIM(su_globalinfo, "GlobalsInfo()");
+
+#include "ostreamfile.h"
+
+Value su_globaldump()
+	{
+	OstreamFile f("globals.txt");
+	for (int i = 0; i < names.size(); ++i)
+		f << names[i] << endl;
+	return Value();
+	}
+PRIM(su_globaldump, "DumpGlobals()");
 
 #include "testing.h"
 #include "random.h"

@@ -31,6 +31,8 @@ gcstring Named::name()
 		s = s + parent->name() + parent->separator;
 	if (num)
 		s += (num < 0x8000 ? globals(num) : symstr(num));
+	else if (str)
+		s += str;
 	return s;
 	}
 
