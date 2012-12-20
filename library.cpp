@@ -63,6 +63,10 @@ Dbms* libdb()
 		return dbms();
 	}
 
+// LibraryOverride
+
+HashMap<gcstring,gcstring> override;
+
 // load on demand - called by globals
 
 void libload(ushort gnum)
@@ -89,7 +93,11 @@ void libload(ushort gnum)
 			}
 		try
 			{
-			char* src = unpack_gcstr(*srcs).str();
+			char* src;
+			if (gcstring* ps = override.find(lib + ":" + gname))
+				src = ps->str();
+			else
+				src = unpack_gcstr(*srcs).str();
 			Value x = compile(src, gname);
 			if (Named* n = x.get_named())
 				{
@@ -184,6 +192,22 @@ Value unload()
 	return Value();
 	}
 PRIM(unload, "Unload(name = false)");
+
+Value libraryOverride()
+	{
+	const int nargs = 3;
+	gcstring lib = ARG(0).gcstr();
+	gcstring name = ARG(1).gcstr();
+	gcstring key = lib + ":" + name;
+	gcstring text = ARG(2).gcstr();
+	if (text == "")
+		override.erase(key);
+	else
+		override[key] = text;
+	globals.put(name.str(), Value());
+	return Value();
+	}
+PRIM(libraryOverride, "LibraryOverride(lib, name, text = '')");
 
 // low level libget used by dbmslocal
 
