@@ -116,7 +116,9 @@ void SuRecord::dependencies(ushort mem, gcstring s)
 		int i = s.find(',');
 		gcstring t = s.substr(0, i).trim();
 		ushort m = ::symnum(t.str());
-		dependents[m].push(mem); // TODO: don't allow duplicates
+		Lisp<ushort>& d = dependents[m];
+		if (! d.member(mem))
+			d.push(mem); 
 		if (i == -1)
 			break ;
 		s = s.substr(i + 1);
