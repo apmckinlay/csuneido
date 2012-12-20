@@ -948,8 +948,22 @@ Value SuObject::Set_readonly(short nargs, short nargnames, ushort* argnames, int
 	{
 	if (nargs != 0)
 		except("usage: object.Set_readonly()");
-	readonly = true;
+	setReadonly();
 	return this;
+	}
+
+void SuObject::setReadonly()
+	{
+	if (readonly == true)
+		return ;
+	readonly = true;
+	// recurse
+	for (std::vector<Value>::iterator iter = vec.begin(); iter != vec.end(); ++iter)
+		if (SuObject* ob = val_cast<SuObject*>(*iter))
+			ob->setReadonly();
+	for (Map::iterator iter = map.begin(); iter != map.end(); ++iter)
+		if (SuObject* ob = val_cast<SuObject*>(iter->val))
+			ob->setReadonly();
 	}
 
 Value SuObject::IsReadonly(short nargs, short nargnames, ushort* argnames, int each)

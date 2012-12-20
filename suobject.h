@@ -163,6 +163,7 @@ private:
 	Value Reverse(short nargs, short nargnames, ushort* argnames, int each);
 	Value Join(short nargs, short nargnames, ushort* argnames, int each);
 	Value Set_readonly(short nargs, short nargnames, ushort* argnames, int each);
+	void setReadonly();
 	Value IsReadonly(short nargs, short nargnames, ushort* argnames, int each);
 	Value Values(short nargs, short nargnames, ushort* argnames, int each);
 	Value Assocs(short nargs, short nargnames, ushort* argnames, int each);
