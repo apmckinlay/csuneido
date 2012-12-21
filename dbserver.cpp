@@ -173,6 +173,16 @@ static void _stdcall dbserver(void* sc)
 	Fibers::end();
 	}
 
+static void log_once(char* s1, char* s2 = "")
+	{
+	static bool first = true;
+	if (first)
+		{
+		first = false;
+		errlog(s1, s2);
+		}
+	}
+
 void DbServerImp::timer_proc()
 	{
 	try
@@ -181,13 +191,27 @@ void DbServerImp::timer_proc()
 		for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
 			if (dbserver_clock - dbservers[i]->last_activity > dbserver_timeout)
 				{
-				errlog(dbservers[i]->session_id, "idle timout, closing connection");
-				dbservers[i]->close();
+				try
+					{
+					errlog("idle timeout, closing connection:", dbservers[i]->session_id);
+					}
+				catch (...)
+					{
+					errlog("idle timeout, closing connection: ???");
+					}
+				try
+					{
+					dbservers[i]->close();
+					}
+				catch (...)
+					{
+					log_once("idle timeout, error from close");
+					}
 				}
 		}
 	catch (...)
 		{
-		errlog("unknown exception in idle timeout");
+		log_once("idle timeout, error from iteration");
 		}
 	}
 
