@@ -56,6 +56,7 @@ class Protector
 public:
 	void* protect(void* p);
 	void release(void* p);
+	int count();
 private:
 	enum { maxrefs = 199 };
 	void* refs[maxrefs];
@@ -77,7 +78,21 @@ void Protector::release(void* p)
 	error("release failed");
 	}
 
+int Protector::count()
+	{
+	int n = 0;
+	for (int i = 0; i < maxrefs; ++i)
+		if (refs[i] != 0)
+			++n;
+	return n;
+	}
+
 static Protector protector;
+
+int socketConnectionCount()
+	{
+	return protector.count();
+	}
 
 // register a window class ==========================================
 
@@ -442,7 +457,10 @@ SocketConnect* socketClientAsynch(char* addr, int port)
 	SocketConnectAsynch* sc = (SocketConnectAsynch*) socketConnect("", sock, 0, "");
 	closer.disable();
 	if (! sc->connect(&saddr))
+		{
+		protector.release(sc);
 		except("can't connect to " << addr << " port " << port);
+		}
 	return sc;
 	}
 

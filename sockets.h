@@ -56,4 +56,6 @@ SocketConnect* socketClientSynch(char* addr, int port, int timeout = 9999, int t
 // create an asynch (message driven) socket connection
 SocketConnect* socketClientAsynch(char* addr, int port);
 
+int socketConnectionCount();
+
 #endif

@@ -382,3 +382,11 @@ Value SuServerInstance::call(Value self, Value member, short nargs,
 	else
 		return SuObject::call(self, member, nargs, nargnames, argnames, each);
 	}
+
+#include "prim.h"
+
+Value su_SocketConnectionCount()
+	{
+	return socketConnectionCount();
+	}
+PRIM(su_SocketConnectionCount, "SocketConnectionCount()");
