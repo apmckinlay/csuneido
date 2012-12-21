@@ -209,6 +209,20 @@ Value libraryOverride()
 	}
 PRIM(libraryOverride, "LibraryOverride(lib, name, text = '')");
 
+Value libraryOverrideClear()
+	{
+	for (HashMap<gcstring,gcstring>::iterator iter = override.begin(); iter != override.end(); ++iter)
+		{
+		gcstring key = iter->key;
+		int i = key.find(':');
+		gcstring name = key.substr(i + 1);
+		globals.put(name.str(), Value());
+		}
+	override.clear();
+	return Value();
+	}
+PRIM(libraryOverrideClear, "LibraryOverrideClear()");
+
 // low level libget used by dbmslocal
 
 #include "database.h"
