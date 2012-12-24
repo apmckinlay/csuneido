@@ -211,7 +211,8 @@ PRIM(libraryOverride, "LibraryOverride(lib, name, text = '')");
 
 Value libraryOverrideClear()
 	{
-	for (HashMap<gcstring,gcstring>::iterator iter = override.begin(); iter != override.end(); ++iter)
+	for (HashMap<gcstring,gcstring>::iterator iter = override.begin();
+			iter != override.end(); ++iter)
 		{
 		gcstring key = iter->key;
 		int i = key.find(':');
@@ -222,6 +223,22 @@ Value libraryOverrideClear()
 	return Value();
 	}
 PRIM(libraryOverrideClear, "LibraryOverrideClear()");
+
+#include <ctype.h>
+
+Value builtinNames()
+	{
+	SuObject* c = new SuObject();
+	for (HashMap<int,Value>::iterator iter = builtins.begin();
+			iter != builtins.end(); ++iter)
+		{
+		char* name = globals(iter->key);
+		if (isupper(*name))
+			c->add(name);
+		}
+	return c;
+	}
+PRIM(builtinNames, "BuiltinNames()");
 
 // low level libget used by dbmslocal
 
