@@ -792,12 +792,6 @@ Prim::Prim(PrimFn f, char* d) : fn(f), decl(d)
 	prims[nprims++] = this;
 	}
 
-void prim(char* name, Primitive* prim)
-	{
-	prim->named.num = globals(name);
-	builtin(prim->named.num, prim);
-	}
-
 void builtins()
 	{
 	verify(FalseNum == globals("False"));
