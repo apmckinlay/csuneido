@@ -66,6 +66,7 @@ public:
 	char* alloc(size_t n);
 
 	size_t cursize() const;
+	size_t bufsize() const;
 	void* copyto(void* buf) const; // buf MUST be cursize()
 	void moveto(Mmfile* mmf, Mmoffset offset);
 	Record dup() const;

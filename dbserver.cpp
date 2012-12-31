@@ -628,6 +628,42 @@ char* DbServerImp::get(DbmsQuery* q, Dir dir)
 	return row_result(row, hdr);
 	}
 
+static int deletedSize(const Row& row, const Header& hdr)
+	{
+	int deleted = 0;
+	Lisp<Record> data = row.data;
+	Lisp<Fields> flds = hdr.flds;
+	for (; ! nil(data); ++data, ++flds)
+		{
+		int i = 0;
+		for (Fields f = *flds; ! nil(f); ++f, ++i)
+			if (*f == "-")
+				deleted += data->getraw(i).size();
+		}
+	return deleted;
+	}
+
+const int SMALL_RECORD = 1024;
+const int HUGE_RECORD = 256 * 1024; // safe to alloca
+
+static bool shouldRebuild(const Row& row, const Header& hdr, const Record& rec)
+	{
+	if (row.data.size() > 2)
+		return true; // must rebuild
+	if (rec.cursize() < SMALL_RECORD)
+		return false;
+	return deletedSize(row, hdr) > rec.cursize() / 3;
+	}
+
+static bool shouldCompact(const Record& rec)
+	{
+	if (rec.cursize() < SMALL_RECORD)
+		return false;
+	if (rec.cursize() > HUGE_RECORD)
+		return false; // too big to alloca
+	return (rec.bufsize() - rec.cursize()) > rec.cursize() / 3;
+	}
+
 char* DbServerImp::row_result(const Row& row, const Header& hdr, bool sendhdr)
 	{
 	if (nil(row.data))
@@ -649,11 +685,11 @@ char* DbServerImp::row_result(const Row& row, const Header& hdr, bool sendhdr)
 	else // binary
 		{
 		Record rec;
-		if (hdr.flds.size() == 1)
+		if (row.data.size() == 1)
 			rec = row.data[0];
-		else if (hdr.flds.size() == 2)
+		else if (row.data.size() == 2)
 			rec = row.data[1];
-		else
+		if (shouldRebuild(row, hdr, rec))
 			{
 			rec = Record(1000);
 			for (Fields f = hdr.fields(); ! nil(f); ++f)
@@ -665,16 +701,17 @@ char* DbServerImp::row_result(const Row& row, const Header& hdr, bool sendhdr)
 				--n;
 			rec.truncate(n);
 			}
+		if (shouldCompact(rec))
+			rec = rec.dup();
 
-		os << 'A' << mmoffset_to_int(row.recadr) << " R" << rec.cursize();
+		os << 'A' << mmoffset_to_int(row.recadr) << " R" << rec.bufsize();
 		if (sendhdr)
 			os << ' ' << hdr.schema();
 		os << "\r\n";
 		LOG("s> " << os.str());
 		writebuf(os.str());
-		char* buf = (char*) alloca(rec.cursize());
-		rec.copyto(buf); // compact
-		write(buf, rec.cursize());
+		
+		write((char*) rec.ptr(), rec.bufsize());
 		return 0;
 		}
 	}

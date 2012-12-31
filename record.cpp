@@ -223,6 +223,20 @@ size_t Record::cursize() const
 		}
 	}
 
+size_t Record::bufsize() const
+	{
+	if (! crep)
+		return sizeof (RecRep<uchar>); // min RecRep size
+	switch (crep->type)
+		{
+	case 'c' : return crep->sz;
+	case 's' : return srep->sz;
+	case 'l' : return lrep->sz;
+	case 'd' : return dbrep->rec().bufsize();
+	default : error("invalid record");
+		}
+	}
+
 int Record::avail() const
 	{
 	if (! crep)

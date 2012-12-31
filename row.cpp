@@ -205,6 +205,8 @@ gcstring Row::getraw(const Which& w) const
 
 Row::Which Row::find(const Header& hdr, const gcstring& col) const
 	{
+	if (col == "-")
+		return Which(data, -1);
 	int i = -1;
 	Records d = data;
 	for (Lisp<Fields> f = hdr.flds; ! nil(f); ++f, ++d)
