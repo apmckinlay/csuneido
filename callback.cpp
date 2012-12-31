@@ -138,8 +138,12 @@ void Callback::put(char*& dst, char*& dst2, const char* lim2, Value x)
 	int n;
 	if (x && x.int_if_num(&n))
 		f = (void*) n;
-	else if (callbacks.find(x))
-		except("duplicate callbacks not allowed");
+	else if (Cb* cb = callbacks.find(x))
+		{
+		if (cb->cb != this)
+			except("duplicate callback with different type");
+		f = cb->fn;
+		}
 	else
 		{
 		persist_if_block(x);
