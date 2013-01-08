@@ -162,7 +162,7 @@ template <class T> struct HashFn;
 template <> struct HashFn<gcstring>
 	{
 	size_t operator()(const gcstring& s)
-		{ return hash(s.buf(), s.size()); }
+		{ return hashfn(s.buf(), s.size()); }
 	};
 
 bool has_prefix(const char* s, const char* pre);

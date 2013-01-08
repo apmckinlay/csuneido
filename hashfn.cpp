@@ -24,7 +24,7 @@
 
 // TODO: check if it would be better to inline than unwind
 
-size_t hash(const char* s)
+size_t hashfn(const char* s)
 	{
 	// this is a version of hashpjw / elfhash
 	// WARNING: assumes size_t is 32 bits
@@ -53,7 +53,7 @@ size_t hash(const char* s)
 	return result;
 	}
 
-size_t hash(const char* s, int n)
+size_t hashfn(const char* s, int n)
 	{
 	// WARNING: assumes size_t is 32 bits
 	// unwind the code to the point where the 32 bits are filled up

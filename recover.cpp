@@ -39,7 +39,7 @@
 #include "ostreamstr.h"
 #include "exceptimp.h"
 
-#ifdef _MSC_VER
+#if _MSC_VER > 7 && _MSC_VER < 11
 typedef std::_Bvector BitVector;
 #else
 typedef std::vector<bool> BitVector;

@@ -40,21 +40,21 @@ template <> struct HashFn<int64>
 	};
 
 // hash char* that's nul terminated
-size_t hash(const char* s);
+size_t hashfn(const char* s);
 
 template <> struct HashFn<char*>
 	{
 	size_t operator()(char* key)
-		{ return hash(key); }
+		{ return hashfn(key); }
 	};
 
 template <> struct HashFn<const char*>
 	{
 	size_t operator()(const char* key)
-		{ return hash(key); }
+		{ return hashfn(key); }
 	};
 
 // hash char* given length
-size_t hash(const char* s, int n);
+size_t hashfn(const char* s, int n);
 
 #endif

@@ -43,7 +43,6 @@ library.cpp \
 lisp.cpp \
 literal.cpp \
 load.cpp \
-master.cpp \
 md5.cpp \
 mmfile.cpp \
 named.cpp \
@@ -125,7 +124,6 @@ fatal.cpp \
 fibers.cpp \
 getmacadr.cpp \
 msgloop.cpp \
-olddate.cpp \
 ostreamcon.cpp \
 rebuildgui.cpp \
 richeditio.cpp \

@@ -85,7 +85,6 @@ char* CmdLineOptions::parse(char* str)
 		case COMPACT :
 		case VERSION :
 		case UNINSTALL_SERVICE :
-		case SLAVE :
 			break ;
 		// options
 		case PORT :
@@ -117,10 +116,6 @@ char* CmdLineOptions::parse(char* str)
 			break ;
 		case IGNORE_VERSION :
 			ignore_version = true;
-			break ;
-		case MASTER :
-			if (! (argstr = get_word()))
-				argstr = "127.0.0.1";
 			break ;
 		case TIMEOUT :
 			{
@@ -172,7 +167,6 @@ static struct { char* str; int num; } options[] = {
 	{ "-locallibrary", LOCAL_LIBRARY }, { "-ll", LOCAL_LIBRARY },
 	{ "-load", LOAD }, { "-l", LOAD },
 	{ "-service", SERVICE }, 
-	{ "-slave", SLAVE }, 
 	{ "-server", SERVER }, { "-s", SERVER },
 	{ "-copy", COPY },
 	{ "-compact", COMPACT }, { "-compactexit", COMPACT_EXIT }, { "-ce", COMPACT_EXIT },
@@ -193,7 +187,6 @@ static struct { char* str; int num; } options[] = {
 	{ "-us", UNINSTALL_SERVICE }, { "-uninstallservice", UNINSTALL_SERVICE },
 	{ "-unattended", UNATTENDED }, { "-u", UNATTENDED },
 	{ "-ignoreversion", IGNORE_VERSION }, { "-iv", IGNORE_VERSION },
-	{ "-master", MASTER }, { "-m", MASTER },
 	{ "-ignorecheck", IGNORE_CHECK },
 	{ "--", END_OF_OPTIONS },
 	};
