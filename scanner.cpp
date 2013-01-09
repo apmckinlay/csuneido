@@ -432,6 +432,8 @@ inline bool lt(char* ss, char* tt)
 	}
 struct ScannerLt
 	{
+	bool operator()(const Keyword& k1, const Keyword& k2)
+		{ return lt(k1.word, k2.word); }
 	bool operator()(const Keyword& k, char* s)
 		{ return lt(k.word, s); }
 	bool operator()(char* s, const Keyword& k)

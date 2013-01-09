@@ -847,15 +847,6 @@ SuDate* SuDate::unpack(const gcstring& s)
 	verify(*p == PACK_DATE);
 	++p;
 
-#ifdef _MSC_VER
-	// handle migration from old date format
-	if (p[0] != 0 || p[1] >= 32)
-		{
-		SuDate* unpack_old_date(const unsigned char* p);
-		return unpack_old_date(p);
-		}
-#endif
-
 	int date = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
 	int time = (p[4] << 24) | (p[5] << 16) | (p[6] << 8) | p[7];
 

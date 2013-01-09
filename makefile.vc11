@@ -6,7 +6,7 @@ ifdef DEBUG
   LDFLAGS=/Z7
 else
   OUTPUT=vc11_release
-  FLAGS=/Ox  /DNDEBUG
+  FLAGS=/Ox /DNDEBUG
   LDFLAGS=
 endif
 
@@ -41,7 +41,7 @@ $(OUTPUT)/suneido.exe : $(OBJECTS) $(OUTPUT)/suneido.res
 	@$(CC) $(LDFLAGS) /Fe"$(OUTPUT)/suneido.exe" $^ $(OUTPUT)/build.obj $(LIBS)
 	
 $(OUTPUT)/suneido.res : suneido.rc resource.h res/suneido.exe.manifest
-	rc /l 0x409 /Fo"$(OUTPUT)/suneido.res"  /i "\Dev\Suneido" /d "NDEBUG" suneido.rc
+	rc /nologo /l 0x409 /Fo"$(OUTPUT)/suneido.res"  /i "\Dev\Suneido" /d "NDEBUG" suneido.rc
 
 -include $(DEPENDS)
 

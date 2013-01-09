@@ -67,6 +67,8 @@ static Keyword words[] =
 const int nwords = sizeof words / sizeof (Keyword);
 struct QscannerLt
 	{
+	bool operator()(const Keyword& k1, const Keyword& k2)
+		{ return strcmpic(k1.word, k2.word) < 0; }
 	bool operator()(const Keyword& k, char* s)
 		{ return strcmpic(k.word, s) < 0; }
 	bool operator()(char* s, const Keyword& k)

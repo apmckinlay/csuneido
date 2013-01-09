@@ -60,6 +60,8 @@ public:
 		{ return key < y.key; }
 	bool operator==(const Vslot& y) const
 		{ return key == y.key; }
+	bool operator!=(const Vslot& y) const
+		{ return key != y.key; }
 
 	Record key;
 	};
@@ -102,6 +104,8 @@ public:
 			{ return i - iter.i; }
 		bool operator==(const iterator& iter) const
 			{ return i == iter.i; }
+		bool operator!=(const iterator& iter) const
+			{ return i != iter.i; }
 		bool operator<(const iterator& iter) const
 			{ return i < iter.i; }
 	private:
@@ -223,6 +227,8 @@ public:
 		{ return key < y.key; }
 	bool operator==(const VFslot& y) const
 		{ return key == y.key; }
+	bool operator!=(const VFslot& y) const
+		{ return key != y.key; }
 	};
 class VFslots
 	{
@@ -264,6 +270,8 @@ public:
 			{ return i - iter.i; }
 		bool operator==(const iterator& iter) const
 			{ return i == iter.i; }
+		bool operator!=(const iterator& iter) const
+			{ return i != iter.i; }
 		bool operator<(const iterator& iter) const
 			{ return i < iter.i; }
 		void update(Mmoffset adr)
@@ -442,6 +450,8 @@ struct VVslot
 		{ return key < y.key; }
 	bool operator==(const VVslot& y) const
 		{ return key == y.key; }
+	bool operator!=(const VVslot& y) const
+		{ return key != y.key; }
 	};
 
 // have to round record sizes to multiples of 4 to ensure address's are alligned
@@ -480,6 +490,8 @@ public:
 			{ return i - iter.i; }
 		bool operator==(const iterator& iter) const
 			{ return i == iter.i; }
+		bool operator!=(const iterator& iter) const
+			{ return i != iter.i; }
 		bool operator<(const iterator& iter) const
 			{ return i < iter.i; }
 	private:
