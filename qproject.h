@@ -70,6 +70,8 @@ private:
 
 	void includeDeps(const Fields& columns);
 	void ckmodify(char* action);
+	static Fields withoutFixed(Fields fields, const Lisp<Fixed> fixed);
+	static bool hasFixed(Fields fields, const Lisp<Fixed> fixed);
 	};
 
 #endif

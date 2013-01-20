@@ -248,11 +248,12 @@ double Project::optimize2(const Fields& index, const Fields& needs, const Fields
 	Fields best_index;
 	double best_cost = IMPOSSIBLE;
 	Indexes idxs = nil(index) ? source->indexes() : Indexes(index);
+	Lisp<Fixed> fix = source->fixed();
+	Fields fldswof = withoutFixed(flds, fix);
 	for (; ! nil(idxs); ++idxs)
 		{
 		Fields ix = *idxs;
-		// TODO: take fixed into account
-		if (prefix_set(ix, flds))
+		if (prefix_set(withoutFixed(ix, fix), fldswof))
 			{
 			double cost = source->optimize1(ix, needs, firstneeds, is_cursor, false);
 			if (cost < best_cost)
@@ -276,6 +277,25 @@ double Project::optimize2(const Fields& index, const Fields& needs, const Fields
 		// NOTE: optimize1 to avoid tempindex
 		return source->optimize1(best_index, needs, firstneeds, is_cursor, freeze);
 		}
+	}
+
+Fields Project::withoutFixed(Fields fields, const Lisp<Fixed> fixed)
+	{
+	if (! hasFixed(fields, fixed))
+		return fields;
+	Fields fldswof;
+	for (; ! nil(fields); ++fields)
+		if (! isfixed(fixed, *fields))
+			fldswof.push(*fields);
+	return fldswof.reverse();
+	}
+
+bool Project::hasFixed(Fields fields, const Lisp<Fixed> fixed)
+	{
+	for (; ! nil(fields); ++fields)
+		if (isfixed(fixed, *fields)) 
+			return true;
+	return false;
 	}
 
 Lisp<Fixed> Project::fixed() const

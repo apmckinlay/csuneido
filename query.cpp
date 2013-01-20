@@ -187,7 +187,7 @@ void Query::select(const Fields& index, const Record& key)
 
 // Query1 ===========================================================
 
-static bool isfixed(Lisp<Fixed> f, const gcstring& field)
+bool isfixed(Lisp<Fixed> f, const gcstring& field)
 	{
 	for (; ! nil(f); ++f)
 		if (f->field == field && f->values.size() == 1)

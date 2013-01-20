@@ -50,6 +50,8 @@
     <IncludePath>$(WindowsSdkDir_71A)include;$(VCInstallDir)include</IncludePath>
     <EmbedManifest>true</EmbedManifest>
     <GenerateManifest>false</GenerateManifest>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -91,6 +93,20 @@
       <DataExecutionPrevention>false</DataExecutionPrevention>
     </Link>
     <Manifest />
+    <CustomBuildStep>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
+      <Outputs>
+      </Outputs>
+    </CustomBuildStep>
+    <PreBuildEvent>
+      <Command>del Release\build.obj</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>update Built</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\alert.cpp" />

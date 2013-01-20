@@ -67,6 +67,8 @@ public:
 	Query* source;
 	};
 
+bool isfixed(Lisp<Fixed> f, const gcstring& field);
+
 bool prefixed(Fields ix, Fields by, const Lisp<Fixed>& fixed);
 
 class Query2 : public Query1

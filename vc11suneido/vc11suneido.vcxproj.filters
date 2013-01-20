@@ -30,9 +30,6 @@
     <ClCompile Include="..\btree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\build.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\builtinargs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -442,6 +439,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\richeditole.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\build.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
