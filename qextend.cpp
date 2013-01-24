@@ -23,15 +23,33 @@
 #include "qextend.h"
 #include "qexpr.h"
 
-Query* Query::make_extend(Query* source, const Fields& f, Lisp<Expr*> e, const Fields& r)
+Query* Query::make_extend(Query* source, const Fields& f, Lisp<Expr*> e)
 	{
-	return new Extend(source, f, e, r);
+	return new Extend(source, f, e);
 	}
 
-Extend::Extend(Query* source, const Fields& f, Lisp<Expr*> e, const Fields& r)
-	: Query1(source), flds(f), exprs(e), rules(r), first(true), srccolnums(0)
+Extend::Extend(Query* source, const Fields& f, Lisp<Expr*> e)
+	: Query1(source), flds(f), exprs(e), first(true), srccolnums(0)
 	{
 	init();
+	check_dependencies();
+	}
+
+void Extend::check_dependencies()
+	{
+	Fields avail = source->columns();
+	Lisp<Expr*> e = exprs;
+	for (Fields f = flds; ! nil(f); ++f, ++e)
+		{
+		if (*e)
+			{
+			Fields eflds = (*e)->fields();
+			if (! subset(avail, eflds))
+				except("extend: invalid column(s) in expressions: " << 
+					difference(eflds, avail));
+			}
+		avail.push(*f);
+		}
 	}
 
 void Extend::init()
@@ -44,28 +62,25 @@ void Extend::init()
 
 	eflds = Fields();
 	for (Lisp<Expr*> e = exprs; ! nil(e); ++e)
-		eflds = set_union(eflds, (*e)->fields());
+		if (*e != NULL)
+			eflds = set_union(eflds, (*e)->fields());
 
-	Fields avail = set_union(set_union(srccols, rules), flds);
-	Fields invalid = difference(eflds, avail);
-	if (! nil(invalid))
-		except("extend: invalid column(s) in expressions: " << invalid);
+	//Fields avail = set_union(set_union(srccols, rules), flds);
+	//Fields invalid = difference(eflds, avail);
+	//if (! nil(invalid))
+	//	except("extend: invalid column(s) in expressions: " << invalid);
 	}
 
 void Extend::out(Ostream& os) const
 	{
 	os << *source << " EXTEND ";
 	char* sep = "";
-	Fields f;
-	for (f = rules; ! nil(f); ++f)
+	Lisp<Expr*> e = exprs;
+	for (Fields f = flds; ! nil(f); ++f, ++e)
 		{
 		os << sep << *f;
-		sep = ", ";
-		}
-	Lisp<Expr*> e = exprs;
-	for (f = flds; ! nil(f); ++f, ++e)
-		{
-		os << sep << *f << " = " << **e;
+		if (*e)
+			os << " = " << **e;
 		sep = ", ";
 		}
 	}
@@ -73,14 +88,13 @@ void Extend::out(Ostream& os) const
 Query* Extend::transform()
 	{
 	// remove empty Extends
-	if (nil(flds) && nil(rules))
+	if (nil(flds))
 		return source->transform();
 	// combine Extends
 	if (Extend* e = dynamic_cast<Extend*>(source))
 		{
 		flds = concat(e->flds, flds);
 		exprs = concat(e->exprs, exprs);
-		rules = set_union(e->rules, rules);
 		source = e->source;
 		init();
 		return transform();
@@ -93,18 +107,27 @@ double Extend::optimize2(const Fields& index, const Fields& needs, const Fields&
 	{
 	if (! nil(intersect(index, flds)))
 		return IMPOSSIBLE;
-	Fields extendfields = set_union(flds, rules);
 	// NOTE: optimize1 to bypass tempindex
 	return source->optimize1(index, 
-		set_union(difference(eflds, extendfields), difference(needs, extendfields)), 
-		difference(firstneeds, extendfields),
+		set_union(difference(eflds, flds), difference(needs, flds)), 
+		difference(firstneeds, flds),
 		is_cursor, freeze);
 	}
 
 void Extend::iterate_setup()
 	{
 	first = false;
-	hdr = source->header() + Header(lisp(Fields(), flds), set_union(flds, rules));
+	hdr = source->header() + Header(lisp(Fields(), real_fields()), flds);
+	}
+
+Fields Extend::real_fields()
+	{
+	Fields real;
+	Lisp<Expr*> e = exprs;
+	for (Fields f = flds; ! nil(f); ++f, ++e)
+		if (*e)
+			real.push(*f);
+	return real.reverse();
 	}
 
 Header Extend::header()
@@ -124,12 +147,13 @@ Row Extend::get(Dir dir)
 	Record r;
 	Lisp<Expr*> e = exprs;
 	for (Fields f = flds; ! nil(f); ++f, ++e)
-		{
-		// want eval to see the previously extended columns
-		// have to combine every time since record's rep may change
-		Value x = (*e)->eval(hdr, row + Row(lisp(Record(), r)));
-		r.addval(x);
-		}
+		if (*e)
+			{
+			// want eval to see the previously extended columns
+			// have to combine every time since record's rep may change
+			Value x = (*e)->eval(hdr, row + Row(lisp(Record(), r)));
+			r.addval(x);
+			}
 	static Record emptyrec;
 	return row + Row(emptyrec) + Row(r);
 	}
@@ -166,4 +190,29 @@ Lisp<Fixed> Extend::fixed() const
 bool Extend::output(const Record& r)
 	{
 	return source->output(r);
+	}
+
+bool Extend::has_rules()
+	{
+	return exprs.member(NULL);
+	}
+
+bool Extend::need_rule(Fields flds)
+	{
+	for (Fields f = flds; ! nil(f); ++f)
+		if (need_rule(*f))
+			return true;
+	return false;
+	}
+
+bool Extend::need_rule(const gcstring& fld)
+	{
+	int i = search(flds, fld);
+	if (i == -1)
+		return false; // fld is not a result of extend
+	Expr* expr = exprs[i];
+	if (expr == NULL)
+		return true; // direct dependency
+	Fields exprdeps = expr->fields();
+	return need_rule(exprdeps);
 	}

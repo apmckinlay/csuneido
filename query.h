@@ -105,8 +105,7 @@ public:
 	// factory methods - used by QueryParser
 	static Query* make_sort(Query* source, bool r, const Fields& s);
 	static Query* make_rename(Query* source, const Fields& f, const Fields& t);
-	static Query* make_extend(Query* source,
-		const Fields& f, Lisp<Expr*> e, const Fields& r);
+	static Query* make_extend(Query* source, const Fields& f, Lisp<Expr*> e);
 	static Query* make_project(Query* source, const Fields& f, bool allbut);
 	static Query* make_summarize(Query* source,
 		const Fields& p, const Fields& c, const Fields& f, const Fields& o);

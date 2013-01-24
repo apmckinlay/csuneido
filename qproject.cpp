@@ -158,20 +158,15 @@ Query* Project::transform()
 				new_exprs.push(*ex);
 				}
 		Fields new_rules;
-		for (f = e->rules; ! nil(f); ++f)
-			if (member(flds, *f))
-				new_rules.push(*f);
 		Fields orig_flds = e->flds;
 		e->flds = new_flds;
 		Lisp<Expr*> orig_exprs = e->exprs;
 		e->exprs = new_exprs;
-		Fields orig_rules = e->rules;
-		e->rules = new_rules;
 
 		// project must include all fields required by extend
 		// there must be no rules left
-		// since we don't know fields are required by rules
-		if (nil(e->rules))
+		// since we don't know what fields are required by rules
+		if (! e->has_rules())
 			{
 			Fields eflds;
 			for (ex = e->exprs; ! nil(ex); ++ex)
@@ -194,7 +189,6 @@ Query* Project::transform()
 			}
 		e->flds = orig_flds;
 		e->exprs = orig_exprs;
-		e->rules = orig_rules;
 		}
 	// distribute project over union/intersect (NOT difference)
 	else if (dynamic_cast<Difference*>(source))

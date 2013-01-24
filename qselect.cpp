@@ -305,10 +305,10 @@ Query* Select::transform()
 		for (Lisp<Expr*> exprs(expr->exprs); ! nil(exprs); ++exprs)
 			{
 			Expr* e = *exprs;
-			if (nil(intersect(extend->rules, e->fields())))
-				src1.push(e->replace(extend->flds, extend->exprs));
-			else
+			if (extend->need_rule(e->fields()))
 				rest.push(e);
+			else
+				src1.push(e->replace(extend->flds, extend->exprs));
 			}
 		if (! nil(src1))
 			extend->source = new Select(extend->source, new And(src1.reverse()));

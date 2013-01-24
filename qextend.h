@@ -30,12 +30,12 @@ class Expr;
 class Extend : public Query1
 	{
 public:
-	Extend(Query* source, const Fields& f, Lisp<Expr*> e, const Fields& r);
+	Extend(Query* source, const Fields& f, Lisp<Expr*> e);
 	void init();
 	void out(Ostream& os) const;
 	Query* transform();
 	Fields columns()
-		{ return set_union(source->columns(), set_union(flds, rules)); }
+		{ return set_union(source->columns(), flds); }
 	Indexes keys()
 		{ return source->keys(); }
 	Indexes indexes()
@@ -52,15 +52,19 @@ public:
 	void rewind()
 		{ source->rewind(); }
 	Lisp<Fixed> fixed() const;
+	bool has_rules();
+	bool need_rule(Fields flds);
 
 	bool output(const Record& r);
 	// not private - accessed by Project::transform
 	Fields flds;
 	Lisp<Expr*> exprs;
 	Fields eflds; // expr fields
-	Fields rules;
 private:
+	void check_dependencies();
 	void iterate_setup();
+	Fields real_fields();
+	bool need_rule(const gcstring& fld);
 
 	bool first;
 	Header hdr;

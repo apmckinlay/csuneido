@@ -961,24 +961,23 @@ Query* QueryParser::query()
 			{
 			Fields eflds;
 			Lisp<Expr*> exprs;
-			Fields rules;
 			do
 				{
 				match(); // EXTEND or ','
 				gcstring field;
 				field = scanner.value;
 				match(T_IDENTIFIER);
+				eflds.push(field);
 				if (token == I_EQ)
 					{
 					match(I_EQ);
-					eflds.push(field);
 					exprs.push(expr());
 					}
 				else
-					rules.push(field);
+					exprs.push(NULL);
 				}
 				while (token == ',');
-			q = Query::make_extend(q, eflds.reverse(), exprs.reverse(), rules);
+			q = Query::make_extend(q, eflds.reverse(), exprs.reverse());
 			break ;
 			}
 		default :
