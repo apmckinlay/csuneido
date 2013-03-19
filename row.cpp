@@ -169,7 +169,7 @@ Value Row::getval(const Header& hdr, const gcstring& col) const
 	// else rule
 	if (! surec)
 		get_surec(hdr);
-	return surec->getdata(col);
+	return surec->getdata(symbol(col));
 	}
 
 gcstring Row::getrawval(const Header& hdr, const gcstring& col) const
@@ -180,7 +180,7 @@ gcstring Row::getrawval(const Header& hdr, const gcstring& col) const
 	// else rule
 	if (! surec)
 		get_surec(hdr);
-	Value val = surec->getdata(col);
+	Value val = surec->getdata(symbol(col));
 	gcstring s(val.packsize());
 	val.pack(s.buf());
 	return s;

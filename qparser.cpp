@@ -643,7 +643,7 @@ SuRecord* QueryParser::record()
 	match('{');
 	while (token != '}')
 		{
-		gcstring col = scanner.value;
+		Value col = symbol(scanner.value);
 		match();
 		match(':');
 		surec->putdata(col, constant());

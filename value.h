@@ -59,8 +59,6 @@ public:
 		}
 	Value(const char* s) : p(symbol(s).p)
 		{ }
-	Value(const gcstring& s) : p(symbol(s).p)
-		{ }
 
 	SuValue* ptr() const
 		{ return is_int() ? 0 : p; }
