@@ -953,3 +953,17 @@ class test_regexp : public Tests
 		}
 	};
 REGISTER(test_regexp);
+
+class test_regexp2 : public Tests
+	{
+	TEST(0, main)
+		{
+		char* pat = rx_compile(gcstring(6, "[\x00-\xff]+"));
+		Rxpart parts[MAXPARTS];
+		char* s = "axb";
+		rx_amatch(s, 0, 3, pat, parts);
+		asserteq(parts[0].s, s);
+		asserteq(parts[0].n, 3);
+		}
+	};
+REGISTER(test_regexp2);

@@ -591,7 +591,7 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 				{
 				KEEPSP
 				gcstring match(parts[0].n, parts[0].s);
-				PUSH(match);
+				PUSH(new SuString(match));
 				Value x = docall(reparg, CALL, 1, 0, 0, -1);
 				gcstring replace = x ? x.gcstr() : match;
 				while (dst + replace.size() >= result_size)
@@ -604,6 +604,8 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 			}
 		if (m < 0 || m == i)
 			{
+			if (i == oldsize)
+				break;
 			if (dst + 1 >= result_size)
 				result = (char*) GC_realloc(result, result_size *= 2);
 			result[dst++] = old[i++];
@@ -612,7 +614,7 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 			i = m;
 		}
 	result[dst] = 0;
-	return new SuString(result);
+	return new SuString(gcstring(dst, result));
 	}
 
 Value SuString::Split(short nargs, short nargnames, ushort* argnames, int each)
@@ -1006,3 +1008,19 @@ class test_sustring : public Tests
 		}
 	};
 REGISTER(test_sustring);
+
+class test_sustring2 : public Tests
+	{
+	TEST(0, main)
+		{
+		Value result = run("'a\\x00bc'.Replace('[\\x00-\\xff][\\x00-\\xff]?[\\x00-\\xff]?', {|x| x.Size() })");
+//cout << "value result: " << result << endl;
+char buf[] = { '3', '1', 0 }; //'a', 0, 'b', 'c', 0 };
+gcstring g(sizeof (buf) - 1, buf);
+SuString s(g);
+Value v(&s);
+//cout << "should be: " << v << endl;
+		assert_eq(result, v);
+		}
+	};
+REGISTER(test_sustring2);
