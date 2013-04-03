@@ -22,6 +22,7 @@
 
 #include "qjoin.h"
 #include <algorithm>
+#include "trace.h"
 
 Query* Query::make_join(Query* s1, Query* s2, Fields by)
 	{
@@ -156,9 +157,12 @@ double Join::optimize2(const Fields& index, const Fields& needs, const Fields& /
 	return cost;
 	}
 
-double Join::opt(Query* src1, Query* src2, Type typ,
+double Join::opt(Query* src1, Query* src2, Type type,
 	const Fields& index, const Fields& needs1, const Fields& needs2, bool is_cursor, bool freeze)
 	{
+	TRACE(JOINOPT, "JOIN " << typestr[type] << " =====================");
+	TRACE(JOINOPT, "SRC1 " << src1);
+	TRACE(JOINOPT, "SRC2 " << src2);
 	// SELECT_COST needs to be high to discourage N to 1 when N is large
 	const double SELECT_COST = 1000;
 
@@ -167,6 +171,8 @@ double Join::opt(Query* src1, Query* src2, Type typ,
 	if (cost1 >= IMPOSSIBLE)
 		return IMPOSSIBLE;
 	double nrecs1 = src1->nrecords();
+	TRACE(JOINOPT, "nrecs1 " << nrecs1 << " cost1 = " << cost1 << " + " << 
+		(nrecs1 * SELECT_COST) << " = " << (cost1 + nrecs1 * SELECT_COST));
 
 	// for each of source 1, select on source2
 	cost1 += nrecs1 * SELECT_COST;
@@ -177,6 +183,7 @@ double Join::opt(Query* src1, Query* src2, Type typ,
 		return IMPOSSIBLE;
 	double nrecs2 = src2->nrecords();
 	bool is_cursor2 = is_cursor;
+	TRACE(JOINOPT, "nrecs2 " << nrecs2 << " cost2 " << cost2);
 
 	if ((type == N_ONE || type == ONE_ONE) && nrecs1 >= 0 && nrecs2 > 0)
 		{
@@ -190,15 +197,19 @@ double Join::opt(Query* src1, Query* src2, Type typ,
 				{
 				is_cursor2 = true;
 				cost2 = cost2b;
+				TRACE(JOINOPT, "ADJUST cost2 = " << cost2);
 				}
 			}
 		if (p < 1 && is_cursor2)
+			{
+			TRACE(JOINOPT, "ADJUST cost2 *= " << p << " = " << (cost2 * p));
 			cost2 *= p;
+			}
 		}
 	if (freeze)
 		src2->optimize(joincols, needs2, Fields(), is_cursor2, true);
 
-	switch (typ)
+	switch (type)
 		{
 	case ONE_ONE :
 		nrecs = min(nrecs1, nrecs2);
@@ -215,10 +226,14 @@ double Join::opt(Query* src1, Query* src2, Type typ,
 	default :
 		unreachable();
 		}
-	nrecs /= 2; // convert from max to guess of expected PROBABLY TOO LOW
+	TRACE(JOINOPT, "nrecs = " << nrecs << " / 2 = " << (nrecs > 1 ? nrecs / 2 : nrecs));
+	if (nrecs > 1)
+		nrecs /= 2; // convert from max to guess of expected
 
 	if (nrecs <= 0)
 		cost2 = 0;
+	TRACE(JOINOPT, "cost = " << cost1 << " + " << cost2 << " = " << 
+		(cost1 + cost2));
 
 	return cost1 + cost2;
 	}
