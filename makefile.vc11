@@ -49,6 +49,4 @@ $(OUTPUT)/suneido.res : suneido.rc resource.h res/suneido.exe.manifest
 clean : 
 	del /q $(OUTPUT)\\*.*
 	
-.PHONY : install
-install : $(OUTPUT)/suneido.exe
-	copy /y $(OUTPUT)\\suneido.exe .
+include makefile.install
