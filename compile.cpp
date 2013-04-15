@@ -212,6 +212,11 @@ Compiler::Compiler(char* s, CodeVisitor* visitor)
 	match(); // get first token
 	}
 
+bool isquote(char c)
+	{
+	return c == '"' || c == '\'' || '`';
+	}
+
 Value Compiler::constant(char* gname)
 	{
 	Value x;
@@ -229,9 +234,10 @@ Value Compiler::constant(char* gname)
 			{
 			s += gcstring(scanner.value, scanner.len);
 			match(T_STRING);
-			if (token != I_CAT || *scanner.peek() != '"')
+			if (token == I_CAT && isquote(*scanner.peek()))
+				matchnew(I_CAT);
+			else
 				break;
-			matchnew(I_CAT);
 			}
 		return s == "" ? SuString::empty_string : new SuString(s);
 		}
