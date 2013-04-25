@@ -71,6 +71,8 @@ public:
 	ushort curName();
 	Value getNextUnnamed();
 	void end();
+	bool hasUnnamed()
+		{ return unnamed > 0; }
 private:
 	Value getval(char* name);
 	void ckndef();

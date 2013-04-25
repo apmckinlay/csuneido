@@ -164,7 +164,6 @@
     <ClCompile Include="..\lisp.cpp" />
     <ClCompile Include="..\literal.cpp" />
     <ClCompile Include="..\load.cpp" />
-    <ClCompile Include="..\md5.cpp" />
     <ClCompile Include="..\mmfile.cpp" />
     <ClCompile Include="..\msgloop.cpp" />
     <ClCompile Include="..\named.cpp" />
@@ -227,6 +226,7 @@
     <ClCompile Include="..\sufinalize.cpp" />
     <ClCompile Include="..\sufunction.cpp" />
     <ClCompile Include="..\suimage.cpp" />
+    <ClCompile Include="..\sumd5.cpp" />
     <ClCompile Include="..\sumethod.cpp" />
     <ClCompile Include="..\sunapp.cpp" />
     <ClCompile Include="..\suneido.cpp" />
@@ -237,6 +237,7 @@
     <ClCompile Include="..\suseq.cpp" />
     <ClCompile Include="..\suservice.cpp" />
     <ClCompile Include="..\susetlocale.cpp" />
+    <ClCompile Include="..\susha1.cpp" />
     <ClCompile Include="..\susockets.cpp" />
     <ClCompile Include="..\sustring.cpp" />
     <ClCompile Include="..\suvalue.cpp" />

@@ -43,7 +43,6 @@ library.cpp \
 lisp.cpp \
 literal.cpp \
 load.cpp \
-md5.cpp \
 mmfile.cpp \
 named.cpp \
 numlen.cpp \
@@ -94,6 +93,7 @@ sudb.cpp \
 sufile.cpp \
 sufinalize.cpp \
 sufunction.cpp \
+sumd5.cpp \
 sumethod.cpp \
 sunumber.cpp \
 suobject.cpp \
@@ -101,6 +101,7 @@ surecord.cpp \
 suscanner.cpp \
 suseq.cpp \
 susetlocale.cpp \
+susha1.cpp \
 sustring.cpp \
 suvalue.cpp \
 symbols.cpp \

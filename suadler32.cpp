@@ -43,7 +43,7 @@ public:
 		return methods;
 		}
 	const char* type() const
-		{ return "File"; }
+		{ return "Adler32"; }
 	void update(gcstring gcstr);
 	ulong value;
 private:
@@ -72,14 +72,12 @@ Value BuiltinClass<SuAdler32>::instantiate(BuiltinArgs& args)
 template<>
 Value BuiltinClass<SuAdler32>::callclass(BuiltinArgs& args)
 	{
-	args.usage("usage: Adler32(string = false)");
-	Value x = args.getValue("string", Value());
-	args.end();
-
+	args.usage("usage: Adler32(string ...)");
 	SuAdler32* a = new BuiltinInstance<SuAdler32>();
-	if (! x)
+	if (! args.hasUnnamed())
 		return a;
-	a->update(x.gcstr());
+	while (Value x = args.getNextUnnamed())
+		a->update(x.gcstr());
 	return a->value;
 	}
 

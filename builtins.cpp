@@ -477,17 +477,6 @@ Value su_spawn()
 	}
 PRIM(su_spawn, "Spawn(mode, command, args='')");
 
-#include "md5.h"
-
-Value su_md5()
-	{
-	const int nargs = 1;
-	gcstring in = ARG(0).gcstr();
-	SuString* out = new SuString(16);
-	return md5(in.buf(), in.size(), out->buf()) ? (Value) out : (Value) SuFalse;
-	}
-PRIM(su_md5, "Md5(string)");
-
 Value su_eq()
 	{
 	const int nargs = 2;
@@ -841,6 +830,10 @@ void builtins()
 	builtin("File", su_file());
 	extern Value su_adler32();
 	builtin("Adler32", su_adler32());
+	extern Value su_md5();
+	builtin("Md5", su_md5());
+	extern Value su_sha1();
+	builtin("Sha1", su_sha1());
 	builtin("SocketServer", suSocketServer());
 	extern Value su_image();
 	builtin("Image", su_image());
