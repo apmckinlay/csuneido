@@ -22,7 +22,8 @@
 
 #include "win.h"
 #include <iphlpapi.h>
-#include "gcstring.h"
+#include "sustring.h"
+#include "suobject.h"
 
 // return mac address of FIRST adapter
 gcstring get_mac_address()
@@ -38,6 +39,24 @@ gcstring get_mac_address()
 	return "";
 	}
 
+// return a list of mac addresses
+SuObject* get_mac_addresses()
+	{
+	IP_ADAPTER_INFO tmp;
+	IP_ADAPTER_INFO* info = &tmp;
+	
+	ULONG buflen = sizeof (tmp);
+	if (ERROR_BUFFER_OVERFLOW == GetAdaptersInfo(info, &buflen))
+		info = (IP_ADAPTER_INFO*) alloca(buflen);
+	SuObject* list = new SuObject();
+	if (NO_ERROR != GetAdaptersInfo(info, &buflen))
+		return list;
+	for (; info; info = info->Next)
+		if (info->AddressLength > 0)
+			list->add(new SuString(gcstring((char*) info->Address, info->AddressLength)));
+	return list;
+	}
+
 #include "prim.h"
 #include "sustring.h"
 
@@ -46,3 +65,9 @@ Value su_get_mac_address()
 	return new SuString(get_mac_address());
 	}
 PRIM(su_get_mac_address, "GetMacAddress()");
+
+Value su_get_mac_addresses()
+	{
+	return get_mac_addresses();
+	}
+PRIM(su_get_mac_addresses, "GetMacAddresses()");
