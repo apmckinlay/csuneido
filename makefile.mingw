@@ -30,8 +30,8 @@ $(OUTPUT)/%.o : %.cpp
 	@$(CXX) $(FLAGS) -c -o $@ $<
 	$(call make-depend,$<,$@,$(subst .o,.d,$@),g++)
 
-SOURCES := $(subst sunapp.cpp ,,$(SOURCES))
-OBJECTS = $(patsubst %.c,$(OUTPUT)/%.o,$(subst .cpp,.c,$(SOURCES))) 
+SOURCES := $(subst sunapp.cpp ,,$(SOURCES)) # ostreamstd.cpp
+OBJECTS = $(patsubst %.c,$(OUTPUT)/%.o,$(subst .cpp,.c,$(SOURCES)))
 DEPENDS = $(subst .o,.d,$(OBJECTS))
 
 all : $(OUTPUT)/suneido.exe
@@ -43,8 +43,8 @@ $(OUTPUT)/suneido.exe : $(OBJECTS) gc_$(OUTPUT).a $(OUTPUT)/res.o
 		-lws2_32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -luuid -liphlpapi \
 		-mwindows -mconsole
 		
-RC="C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Bin\rc"
-CVTRES="C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Bin\win64\cvtres"
+RC="C:\Program Files\Microsoft SDKs\Windows\v7.0A\bin\rc"
+CVTRES="C:\Program Files\Microsoft Visual Studio 10.0\VC\BIN\cvtres"
 	
 $(OUTPUT)/res.o : suneido.rc resource.h res/suneido.exe.manifest
 	$(RC) /l 0x409 /fo"$(OUTPUT)/suneido.res" /i "c:/MinGW/include" /d "NDEBUG" suneido.rc
