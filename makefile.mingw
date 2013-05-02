@@ -44,8 +44,7 @@ $(OUTPUT)/suneido.exe : $(OBJECTS) gc_$(OUTPUT).a $(OUTPUT)/res.o
 		-mwindows -mconsole
 		
 RC="C:\Program Files\Microsoft SDKs\Windows\v7.0A\bin\rc"
-CVTRES="C:\Program Files\Microsoft Visual Studio 10.0\VC\BIN\cvtres"
-	
+CVTRES="C:\Program Files\Microsoft Visual Studio 10.0\VC\BIN\cvtres"	
 $(OUTPUT)/res.o : suneido.rc resource.h res/suneido.exe.manifest
 	$(RC) /l 0x409 /fo"$(OUTPUT)/suneido.res" /i "c:/MinGW/include" /d "NDEBUG" suneido.rc
 	$(CVTRES) /nologo /machine:x86 /out:$@ $(OUTPUT)/suneido.res
