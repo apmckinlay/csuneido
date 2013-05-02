@@ -988,6 +988,8 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 	a = code.size();	// before mark to include nop
 	mark();
 
+	while (token == T_NEWLINE || token == T_WHITE || token == T_COMMENT)
+		match();
 	switch (scanner.keyword)
 		{
 	case K_IF :
