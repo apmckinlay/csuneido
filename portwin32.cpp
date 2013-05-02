@@ -70,6 +70,8 @@ Heap::Heap(bool executable)
 	heap = HeapCreate(executable ? EXECUTABLE : 0,
 		0, // initial size
 		0); // max size, 0 = growable
+	if (! heap)
+		except("HeapCreate failed");
 	}
 
 void* Heap::alloc(int n)
