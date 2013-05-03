@@ -549,7 +549,7 @@ Value SuString::Extract(short nargs, short nargnames, ushort* argnames, int each
 Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs < 2 || 3 < nargs)
-		except("usage: string.Replace(pattern, replacement, count = 9999) -> string");
+		except("usage: string.Replace(pattern, replacement, count = false) -> string");
 	// pattern
 	char* pat = rx_compile(ARG(0).gcstr());
 	// replacement
@@ -561,7 +561,7 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 		rep = reparg.str();
 
 	// count
-	int count = (nargs < 3 ? 9999 : ARG(2).integer());
+	int count = (nargs < 3 ? INT_MAX : ARG(2).integer());
 
 	int oldsize = size();
 	int result_size = max(100, 2 * oldsize);
