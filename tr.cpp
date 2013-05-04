@@ -31,13 +31,25 @@ using namespace std;
 static vector<char>  makset(const gcstring&);
 static int xindex(const vector<char>&, char, bool, int);
 
-inline void addchar(char*& dst, char* lim, char c)
-	{
-	verify(dst < lim);
-	*dst++ = c; 
-	}
+#define COPY() \
+	do { \
+	if (! buf) \
+		dst = buf = new char[srclen + 1]; \
+	if (nsame > 0) \
+		{ \
+		memcpy(dst, src + si - nsame, nsame); \
+		dst += nsame; \
+		nsame = 0; \
+		} \
+	} while (false)
 
-gcstring tr(const gcstring& src, gcstring from, const gcstring& to)
+#define ADDCHAR(c) \
+	do { \
+	COPY(); \
+	*dst++ = c; \
+	} while (false)
+
+gcstring tr(const gcstring& srcstr, gcstring from, const gcstring& to)
 	{
 	bool allbut = (from[0] == '^');
 	if (allbut)
@@ -49,31 +61,35 @@ gcstring tr(const gcstring& src, gcstring from, const gcstring& to)
 	bool collapse = allbut || lastto < fromset.size();
 	--lastto;
 
-	const int srclen = src.size();
-	char* buf = new char[srclen + 1];
-	char* lim = buf + srclen;
-	char* dst = buf;
-	for (int si = 0; si < src.size(); ++si)
+	const int srclen = srcstr.size();
+	const char* src = srcstr.buf();
+	char* buf = 0;
+	char* dst = 0;
+	int nsame = 0;
+	int si = 0;
+	for (; si < srclen; ++si)
 		{
 		int i = xindex(fromset, src[si], allbut, lastto);
 		if (collapse && 0 <= lastto && lastto <= i)
 			{
-			addchar(dst, lim, toset[lastto]);
+			ADDCHAR(toset[lastto]);
 			do
 				i = xindex(fromset, src[++si], allbut, lastto);
 				while (i >= lastto);
 			}
-		if (si >= src.size())
+		if (si >= srclen)
 			break ;
 		if (i >= 0 && lastto >= 0)
-			addchar(dst, lim, toset[i]);
+			ADDCHAR(toset[i]);
 		else if (i < 0)
-			addchar(dst, lim, src[si]);
-		/* else
-			delete */
+			++nsame; // defer copying 
+		else // delete
+			COPY();
 		}
-	*dst = 0;
-	return gcstring(dst - buf, buf);
+	if (buf == 0)
+		return srcstr; // no changes
+	ADDCHAR(0);
+	return gcstring(dst - buf - 1, buf);
 	}
 
 static vector<char> makset(const gcstring& src)
@@ -107,4 +123,25 @@ static int xindex(const vector<char>& from, char c, bool allbut, int lastto)
 	return i;
 	}
 
-	
+#include "testing.h"
+
+class test_tr : public Tests
+	{
+	TEST(0, main)
+		{
+		asserteq(tr("", "", ""), "");
+		asserteq(tr("abc", "", ""), "abc");
+		asserteq(tr("abc", "xyz", ""), "abc");
+		asserteq(tr("zon", "xyz", ""), "on");
+		asserteq(tr("oyn", "xyz", ""), "on");
+		asserteq(tr("nox", "xyz", ""), "no");
+		asserteq(tr("zyx", "xyz", ""), "");
+
+		asserteq(tr("zon", "xyz", "XYZ"), "Zon");
+		asserteq(tr("oyn", "xyz", "XYZ"), "oYn");
+		asserteq(tr("nox", "xyz", "XYZ"), "noX");
+		asserteq(tr("zyx", "xyz", "XYZ"), "ZYX");
+		}
+	};
+REGISTER(test_tr);
+
