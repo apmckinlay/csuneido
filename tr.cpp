@@ -22,105 +22,102 @@
 
 #include "tr.h"
 #include "except.h"
-#include <string.h>
-#include <vector>
-#include <algorithm>
+#include "ostreamstr.h"
+#include "cachemap.h"
 
 using namespace std;
 
-static vector<char>  makset(const gcstring&);
-static int xindex(const vector<char>&, char, bool, int);
-
-#define COPY() \
-	do { \
-	if (! buf) \
-		dst = buf = new char[srclen + 1]; \
-	if (nsame > 0) \
-		{ \
-		memcpy(dst, src + si - nsame, nsame); \
-		dst += nsame; \
-		nsame = 0; \
-		} \
-	} while (false)
-
-#define ADDCHAR(c) \
-	do { \
-	COPY(); \
-	*dst++ = c; \
-	} while (false)
+static gcstring makset(const gcstring&);
+static gcstring expandRanges(const gcstring&);
+static int xindex(const gcstring&, char, bool, int);
 
 gcstring tr(const gcstring& srcstr, gcstring from, const gcstring& to)
 	{
+	const int srclen = srcstr.size();
+	if (srclen == 0 || from.size() == 0)
+		return srcstr;
+
 	bool allbut = (from[0] == '^');
 	if (allbut)
 		from = from.substr(1);
-	vector<char> fromset = makset(from);
-	vector<char> toset = makset(to);
+	gcstring fromset = makset(from);
 
-	int lastto = toset.size();
-	bool collapse = allbut || lastto < fromset.size();
-	--lastto;
-
-	const int srclen = srcstr.size();
 	const char* src = srcstr.buf();
-	char* buf = 0;
-	char* dst = 0;
-	int nsame = 0;
 	int si = 0;
 	for (; si < srclen; ++si)
 		{
+		int p = fromset.find(src[si]);
+		if (allbut == (p == -1))
+			break ;
+		}
+	if (si == srclen)
+		return srcstr; // no changes
+
+	gcstring toset = makset(to);
+	int lastto = toset.size();
+	bool collapse = lastto > 0 && (allbut || lastto < fromset.size());
+	--lastto;
+
+	char* buf = new char[srclen + 1];
+	memcpy(buf, src, si);
+	char* dst = buf + si;
+	for (; si < srclen; ++si)
+		{
 		int i = xindex(fromset, src[si], allbut, lastto);
-		if (collapse && 0 <= lastto && lastto <= i)
+		if (collapse && i >= lastto)
 			{
-			ADDCHAR(toset[lastto]);
+			*dst++ = toset[lastto];
 			do
-				i = xindex(fromset, src[++si], allbut, lastto);
+				{
+				if (++si >= srclen)
+					goto finished;
+				i = xindex(fromset, src[si], allbut, lastto);
+				}
 				while (i >= lastto);
 			}
-		if (si >= srclen)
-			break ;
-		if (i >= 0 && lastto >= 0)
-			ADDCHAR(toset[i]);
-		else if (i < 0)
-			++nsame; // defer copying 
-		else // delete
-			COPY();
+		if (i < 0)
+			*dst++ = src[si];
+		else if (lastto >= 0)
+			*dst++ = toset[i];
+		/* else
+			delete */
 		}
-	if (buf == 0)
-		return srcstr; // no changes
-	ADDCHAR(0);
-	return gcstring(dst - buf - 1, buf);
+finished:
+	*dst = 0;
+	return gcstring(dst - buf, buf); // no alloc
 	}
 
-static vector<char> makset(const gcstring& src)
+static gcstring makset(const gcstring& s)
 	{
-	vector<char> dst;
-	for (int i = 0; i < src.size(); ++i)
-		{
-		if (src[i] == '-' && i > 0 && i + 1 < src.size())
-			{
-			for (char c = src[i - 1] + 1; c < src[i + 1]; ++c)
-				dst.push_back(c);
-			}
+	int dash = s.find('-', 1);
+	if (dash == -1 || dash == s.size() - 1)
+		return s; // no ranges to expand
+	static CacheMap<10,gcstring,gcstring> cache;
+	if (gcstring* p = cache.get(s))
+		return *p;
+	return cache.put(s, expandRanges(s));
+	}
+
+static gcstring expandRanges(const gcstring& s)
+	{
+	int n = s.size();
+	OstreamStr dst(n);
+	for (int i = 0; i < s.size(); ++i)
+		if (s[i] == '-' && i > 0 && i + 1 < n)
+			for (char c = s[i - 1] + 1; c < s[i + 1]; ++c)
+				dst << c;
 		else
-			dst.push_back(src[i]);
-		}
-	return dst;
+			dst << s[i];
+	return gcstring(dst.size(), dst.str()); // no alloc
 	}
 
-static int xindex(const vector<char>& from, char c, bool allbut, int lastto)
+static int xindex(const gcstring& fromset, char c, bool allbut, int lastto)
 	{
-	int p = find(from.begin(), from.end(), c) - from.begin();
-	int i;
-	if (allbut && p != from.size())
-		i = -1;
-	else if (allbut && p == from.size())
-		i = lastto + 1;
-	else if (p != from.size())
-		i = p;
+	int i = fromset.find(c);
+	if (allbut)
+		return i == -1 ? lastto + 1 : -1;
 	else
-		i = -1;
-	return i;
+		return i;
 	}
 
 #include "testing.h"
@@ -130,6 +127,9 @@ class test_tr : public Tests
 	TEST(0, main)
 		{
 		asserteq(tr("", "", ""), "");
+		asserteq(tr("", "abc", "ABC"), "");
+		asserteq(tr("", "^abc", "x"), "");
+
 		asserteq(tr("abc", "", ""), "abc");
 		asserteq(tr("abc", "xyz", ""), "abc");
 		asserteq(tr("zon", "xyz", ""), "on");
@@ -141,6 +141,16 @@ class test_tr : public Tests
 		asserteq(tr("oyn", "xyz", "XYZ"), "oYn");
 		asserteq(tr("nox", "xyz", "XYZ"), "noX");
 		asserteq(tr("zyx", "xyz", "XYZ"), "ZYX");
+
+		asserteq(tr("a b - c", "^abc", ""), "abc"); // allbut delete
+		asserteq(tr("a b - c", "^a-z", ""), "abc"); // allbut delete
+		asserteq(tr("a  b - c", "^abc", " "), "a b c"); // allbut collapse
+		asserteq(tr("a  b - c", "^a-z", " "), "a b c"); // allbut collapse
+		asserteq(tr("a-b-c", "-x", ""), "abc"); // literal dash
+		asserteq(tr("a-b-c", "x-", ""), "abc"); // literal dash
+
+		// collapse at end
+		asserteq(tr("hello \t\n\n", " \t\n", "\n"), "hello\n");
 		}
 	};
 REGISTER(test_tr);

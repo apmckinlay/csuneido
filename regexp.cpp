@@ -127,12 +127,10 @@ private:
 
 char* rx_compile(const gcstring& s)
 	{
-	static CacheMap<5,gcstring,char*> cache;
+	static CacheMap<10,gcstring,char*> cache;
 	if (char** p = cache.get(s))
 		return *p;
-	char* pat = RxCompile(s.buf(), s.size()).compile();
-	cache.put(s, pat);
-	return pat;
+	return cache.put(s, RxCompile(s.buf(), s.size()).compile());
 	}
 
 char* RxCompile::compile()

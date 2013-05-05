@@ -33,7 +33,7 @@ template <int N, class Key, class Data> class CacheMap
 public:
 	CacheMap() : next(0), clock(0)
 		{ }
-	void put(const Key& key, const Data& data);
+	const Data& put(const Key& key, const Data& data);
 	Data* get(const Key& key);
 private:
 	int next;
@@ -52,18 +52,19 @@ private:
 	};
 
 template <int N, class Key, class Data>
-void CacheMap<N,Key,Data>::put(const Key& key, const Data& data)
+const Data& CacheMap<N,Key,Data>::put(const Key& key, const Data& data)
 	{
 	if (next < N)
 		{
 		slots[next++] = Slot(clock++, key, data);
-		return ;
+		return data;
 		}
 	int lru = 0;
 	for (int i = 0; i < next; ++i)
 		if (slots[i].lru < slots[lru].lru)
 			lru = i;
 	slots[lru] = Slot(clock++, key, data);
+	return data;
 	}
 
 template <int N, class Key, class Data>
