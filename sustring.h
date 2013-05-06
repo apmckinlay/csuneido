@@ -94,7 +94,11 @@ public:
 	virtual size_t hashfn()
 		{ return ::hashfn(s.buf(), s.size()); }
 	SuString* substr(size_t i, size_t n)
-		{ return new SuString(s.substr(i, n)); }
+		{ 
+		return (i == 0 && n >= s.size())
+			? this 
+			: new SuString(s.substr(i, n)); 
+		}
 	bool operator==(const char* t) const
 		{ return s == t; }
 	void adjust()	 // set length to strlen
