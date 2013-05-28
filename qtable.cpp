@@ -289,7 +289,7 @@ double Table::optimize2(const Fields& index, const Fields& needs,
 	double cost1 = IMPOSSIBLE;
 	double cost2 = IMPOSSIBLE;
 	double cost3 = IMPOSSIBLE;
-	IdxSize *idx1, *idx2, *idx3;
+	IdxSize *idx1, *idx2 = 0, *idx3 = 0;
 	if ((idx1 = match(idxs, index, needs)))
 		// index found that meets all needs
 		cost1 = idx1->size; // cost of reading index
