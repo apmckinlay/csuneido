@@ -283,7 +283,7 @@ void TypeBuffer::out(Ostream& os)
 	os << "buffer";
 	}
 
-//===================================================================
+// TypeString inherits from TypeBuffer ==============================
 
 Value TypeString::get(char*& src, Value x)
 	{
