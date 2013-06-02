@@ -13,7 +13,7 @@ endif
 CC=gcc
 CXX=g++
 FLAGS += -DCOMPILER=MinGW -Werror -Wall -Wno-sign-compare -Wfloat-equal  -Wno-write-strings \
-	-Wno-char-subscripts  -Wno-narrowing
+	-Wno-char-subscripts  -Wno-narrowing -Wno-unknown-pragmas
 ifndef GCC3
 FLAGS += -fno-strict-overflow
 endif

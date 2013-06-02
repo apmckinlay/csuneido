@@ -28,20 +28,21 @@
 #include <list>
 #include "resource.h"
 #include <winsock2.h>
-#include "gc.h"
 #include "fatal.h"
 
 //#define LOGGING
 
 #ifdef LOGGING
-#include "ostreamfile.h"
-static OstreamFile& log()
-	{
-	extern bool is_server;
-	static OstreamFile log(is_server ? "server.log" : "client.log");
-	return log;
-	}
-#define LOG(stuff) (log() << stuff << endl), log().flush()
+//#include "ostreamfile.h"
+//static OstreamFile& log()
+//	{
+//	extern bool is_server;
+//	static OstreamFile log(is_server ? "server.log" : "client.log");
+//	return log;
+//	}
+//#define LOG(stuff) (log() << stuff << endl), log().flush()
+#include "ostreamcon.h"
+#define LOG(stuff) (con() << stuff << endl)
 #include "gcstring.h"
 #else
 #define LOG(stuff)
@@ -56,6 +57,7 @@ class Protector
 public:
 	void* protect(void* p);
 	void release(void* p);
+	bool contains(void* p);
 	int count();
 private:
 	enum { maxrefs = 199 };
@@ -76,6 +78,14 @@ void Protector::release(void* p)
 		if (refs[i] == p)
 			{ refs[i] = 0; return ; }
 	error("release failed");
+	}
+
+bool Protector::contains(void* p)
+	{
+	for (int i = 0; i < maxrefs; ++i)
+		if (refs[i] == p)
+			return true;
+	return false;
 	}
 
 int Protector::count()
@@ -167,7 +177,8 @@ void socketServer(char* title, int port, pNewServer newserver, void* arg, bool e
 	verify(0 == WSAAsyncSelect(sock, hwnd, WM_SOCKET, FD_ACCEPT));
 	}
 
-static SocketConnect* socketConnect(char* title, int sock, void* arg, char* adr);
+class SocketConnectAsynch;
+static SocketConnectAsynch* newSocketConnectAsynch(char* title, int sock, void* arg, char* adr);
 
 static int CALLBACK listenWndProc(HWND hwnd, int msg, int wParam, int lParam)
 	{
@@ -192,7 +203,7 @@ static int CALLBACK listenWndProc(HWND hwnd, int msg, int wParam, int lParam)
 			strcat(title, " ");
 			strcat(title, adr);
 			}
-		SocketConnect* sc = socketConnect(title, sock, data->arg, adr);
+		SocketConnectAsynch* sc = newSocketConnectAsynch(title, sock, data->arg, adr);
 		Fibers::create(data->newserver, sc);
 		}
 	else if (msg == WM_DESTROY)
@@ -219,7 +230,7 @@ class SocketConnectAsynch : public SocketConnect
 public:
 	SocketConnectAsynch(HWND h, int s, void* a, char* n) 
 		: hwnd(h), sock(s), arg(a), close_pending(false), 
-		mode(SIZE), blocked(0), adr(strdup(n)), connect_error(false)
+		mode(CONNECT), blocked(0), adr(strdup(n)), connect_error(false)
 		{ }
 	bool connect(SOCKADDR_IN* saddr);
 	void event(int msg);
@@ -240,12 +251,20 @@ private:
 		blocked = Fibers::current();
 		Fibers::block();
 		}
+	void unblock()
+		{
+		if (! blocked)
+			return ;
+		Fibers::unblock(blocked);
+		blocked = 0;
+		}
+	void close2();
 	
 	HWND hwnd;
 	int sock;
 	void* arg;
 	bool close_pending;
-	enum { SIZE, LINE, CLOSED } mode;
+	enum { CONNECT, SIZE, LINE, CLOSED } mode;
 	void* blocked;
 	char* blocked_buf;
 	int blocked_len;
@@ -265,13 +284,16 @@ void SocketConnectAsynch::write(char* s, int n)
 	{
 	if (mode == CLOSED)
 		except("socket Write failed (connection closed)");
+	LOG("write");
 	wrbuf.add(s, n);
-	event(FD_WRITE);
+	if (wrbuf.size() > 0)
+		PostMessage(hwnd, WM_SOCKET, sock, FD_WRITE);
 	}
 
 void SocketConnectAsynch::close()
 	{
-	if (close_pending)
+	LOG("close");
+	if (close_pending || mode == CLOSED)
 		return ;
 	close_pending = true; 
 	PostMessage(hwnd, WM_SOCKET, sock, FD_WRITE);
@@ -279,20 +301,20 @@ void SocketConnectAsynch::close()
 
 static int CALLBACK connectWndProc(HWND hwnd, int msg, int wParam, int lParam);
 
-static SocketConnect* socketConnect(char* title, int sock, void* arg, char* adr)
+static SocketConnectAsynch* newSocketConnectAsynch(char* title, int sock, void* arg, char* adr)
 	{
-	LOG("socketConnect " << (title ? title : ""));
+	LOG("socketConnectAsync " << (title ? title : ""));
 	HWND hwnd = CreateWindow(wndClass, title, WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT, 150, 30,
 		0, 0, 0, 0);
 	verify(hwnd);
 	SetWindowLong(hwnd, GWL_WNDPROC, (int) connectWndProc);
 
-	SocketConnect* sc = new SocketConnectAsynch(hwnd, sock, arg, adr);
+	SocketConnectAsynch* sc = new SocketConnectAsynch(hwnd, sock, arg, adr);
 	protector.protect(sc);
 	SetWindowLong(hwnd, GWL_USERDATA, (long) sc);
 	verify(0 == WSAAsyncSelect(sock, hwnd, WM_SOCKET, 
-		FD_CONNECT + FD_READ + FD_WRITE + FD_CLOSE));
+		FD_CONNECT | FD_READ | FD_WRITE | FD_CLOSE));
 	return sc;
 	}
 
@@ -302,7 +324,8 @@ static int CALLBACK connectWndProc(HWND hwnd, int msg, int wParam, int lParam)
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 
 	SocketConnectAsynch* sc = (SocketConnectAsynch*) GetWindowLong(hwnd, GWL_USERDATA);
-	sc->event(lParam);
+	if (sc && protector.contains(sc))
+		sc->event(lParam);
 	return 0;
 	}
 
@@ -320,55 +343,77 @@ void SocketConnectAsynch::event(int lParam)
 			}
 	case FD_READ :
 		{
-		const int READSIZE = 1024;
-		int n = recv(sock, rdbuf.reserve(READSIZE), READSIZE, 0);
-		if (n <= 0)
-			break ;
-		rdbuf.added(n);
-		if (blocked && (mode == SIZE 
-			? tryread(blocked_buf, blocked_len) 
-			: tryreadline(blocked_buf, blocked_len)))
+		LOG("FD_READ");
+		const int MINRECVSIZE = 1024;
+		int n = 0;
+		int nr;
+		for (;;)
 			{
+			rdbuf.ensure(MINRECVSIZE);
+			nr = recv(sock, rdbuf.bufnext(), rdbuf.available(), 0);
+			if (nr <= 0)
+				break ;
+			rdbuf.added(nr);
+			n += nr;
+			}
+		LOG("FD_READ added " << n);
+		if (blocked && n > 0 &&
+			(mode == SIZE 
+				? tryread(blocked_buf, blocked_len) 
+				: tryreadline(blocked_buf, blocked_len)))
+			{
+			LOG("FD_READ unblocking");
 			blocked_readok = true;
-			Fibers::unblock(blocked);
-			blocked = 0;
+			unblock();
+			}
+		if (blocked && nr == 0) // socket closed
+			{
+			LOG("FD_READ socket closed, unblocking");
+			unblock();
 			}
 		break ;
 		}
 	case FD_WRITE :
 		{
 		int n = wrbuf.size();
+		LOG("FD_WRITE wrbuf.size " << n);
 		if (n > 0)
 			{
 			n = send(sock, wrbuf.buffer(), n, 0);
 			if (n > 0)
 				wrbuf.remove(n);
-			break ;
 			}
-		else if (! close_pending)
-			break ;
-		// else
-			// fall thru
+		// once we're finished writing we can close
+		else if (close_pending)
+			close2();
+		break ;
 		}
-		/* no break */
 	case FD_CLOSE :
-		closesocket(sock);
-		DestroyWindow(hwnd);
-		mode = CLOSED;
-		if (blocked)
-			Fibers::unblock(blocked);
-		protector.release(this);
+		LOG("FD_CLOSE");
+		close2();
 		break ;
 		}
 	}
 
+void SocketConnectAsynch::close2()
+	{
+	LOG("close2");
+	closesocket(sock);
+	DestroyWindow(hwnd);
+	protector.release(this);
+	mode = CLOSED;
+	unblock();
+	}
+
 int SocketConnectAsynch::read(char* dst, int n)
 	{
+	LOG("read " << n);
 	if (tryread(dst, n))
 		return n;
 	if (mode == CLOSED)
 		return 0;
 
+	LOG("read blocking");
 	mode = SIZE;
 	blocked_len = n;
 	blocked_buf = dst;
@@ -379,6 +424,7 @@ int SocketConnectAsynch::read(char* dst, int n)
 
 bool SocketConnectAsynch::tryread(char* dst, int n)
 	{
+	LOG("tryread " << n << " rdbuf.size " << rdbuf.size());
 	if (rdbuf.size() < n)
 		return false;
 
@@ -390,11 +436,14 @@ bool SocketConnectAsynch::tryread(char* dst, int n)
 
 bool SocketConnectAsynch::readline(char* dst, int n)
 	{
+	LOG("readline");
+	*dst = 0;
 	if (tryreadline(dst, n))
 		return true;
 	if (mode == CLOSED)
 		return false;
 
+	LOG("readline blocking");
 	mode = LINE;
 	blocked_len = n;
 	blocked_buf = dst;
@@ -454,7 +503,7 @@ SocketConnect* socketClientAsynch(char* addr, int port)
 			except("unknown address: " << addr);
 		saddr.sin_addr.s_addr = *(u_long *) h->h_addr;
 		}
-	SocketConnectAsynch* sc = (SocketConnectAsynch*) socketConnect("", sock, 0, "");
+	SocketConnectAsynch* sc = newSocketConnectAsynch("", sock, 0, "");
 	closer.disable();
 	if (! sc->connect(&saddr))
 		{
@@ -579,6 +628,7 @@ int SocketConnectSynch::read(char* dst, int dstsize)
 	return nread;
 	}
 
+// returns whether or not it got a newline
 bool SocketConnectSynch::readline(char* dst, int n)
 	{
 	verify(n > 1);
@@ -591,13 +641,13 @@ bool SocketConnectSynch::readline(char* dst, int n)
 		if (0 == select(1, &fds, NULL, NULL, &tv))
 			break ; // timeout
 
-		const int READSIZE = 1024;
-		int n = recv(sock, rdbuf.reserve(READSIZE), READSIZE, 0);
+		const int MINRECVSIZE = 1024;
+		rdbuf.ensure(MINRECVSIZE);
+		int n = recv(sock, rdbuf.bufnext(), rdbuf.available(), 0);
 		if (n == 0)
 			break ; // connection closed
 		if (n < 0)
 			except("SocketClient read failed (" << WSAGetLastError() << ")");
-		verify(n <= READSIZE);
 		rdbuf.added(n);
 		}
 	char* buf = rdbuf.buffer();
@@ -616,3 +666,9 @@ void SocketConnectSynch::close()
 	shutdown(sock, SD_SEND);
 	closesocket(sock);
 	}
+
+void SocketConnect::write(char* s)
+	{ write(s, strlen(s)); }
+
+void SocketConnect::writebuf(char* s)
+	{ writebuf(s, strlen(s)); }

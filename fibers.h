@@ -65,6 +65,9 @@ struct Fibers
 
 	// change priority (for dbcopy)
 	static void priority(int p);
+
+	// current number of fibers
+	static int size();
 	};
 
 void sleepms(int ms);

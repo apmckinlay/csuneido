@@ -167,6 +167,7 @@ static void _stdcall dbserver(void* sc)
 		{
 		DbServerImp dbs((SocketConnect*) sc);
 		dbs.run();
+		// destructor cleans up and closes socket
 		}
 	catch (...)
 		{ }

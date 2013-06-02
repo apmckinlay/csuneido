@@ -306,9 +306,6 @@
     <ClCompile Include="..\slots.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sockbuf.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\sockets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -445,6 +442,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\susha1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -787,9 +787,6 @@
     <ClInclude Include="..\slots.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\sockbuf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\sockets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -902,6 +899,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\winlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

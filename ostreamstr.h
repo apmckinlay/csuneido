@@ -25,7 +25,8 @@
 
 #include "ostream.h"
 
-class OstreamStrBuf;
+class gcstring;
+class Buffer;
 
 // an output stream to a string
 class OstreamStr : public Ostream
@@ -34,10 +35,11 @@ public:
 	OstreamStr(int len = 32);
 	Ostream& write(const void* buf, int n);
 	char* str();
+	gcstring gcstr();
 	void clear();
 	int size() const;
 private:
-	OstreamStrBuf* buf;
+	Buffer* buf;
 	};
 
 #endif

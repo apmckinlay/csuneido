@@ -35,8 +35,8 @@
 #include <ctype.h>
 #include "symbols.h"
 #include "minmax.h"
-#include "gc.h"
 #include "range.h"
+#include "buffer.h"
 /*#if defined(_MSC_VER) && _MSC_VER <= 1200
 #include <locale>
 using namespace std;
@@ -272,6 +272,7 @@ Value SuString::call(Value self, Value member, short nargs, short nargnames, ush
 		METHOD(Iter);
 		METHOD(Lower);
 		methods["Lower?"] = &SuString::Lowerq;
+		METHOD(MapN);
 		METHOD(Match);
 		METHOD(Mbstowcs);
 		methods["Number?"] = &SuString::Numberq;
@@ -564,12 +565,10 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 	int count = (nargs < 3 ? INT_MAX : ARG(2).integer());
 
 	int oldsize = size();
-	int result_size = max(100, 2 * oldsize);
-	char* result = new char[result_size];
+	Buffer result(oldsize + oldsize / 4); // usually result will be similar size
 	char* old = str();
 	int lastm = -1;
 	Rxpart parts[MAXPARTS];
-	int dst = 0;
 	for (int nsubs = 0, i = 0; i <= oldsize; )
 		{
 		int m;
@@ -582,10 +581,7 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 			if (rep)
 				{
 				int replen = rx_replen(rep, parts);
-				while (dst + replen >= result_size)
-					result = (char*) GC_realloc(result, result_size *= 2);
-				rx_mkrep(result + dst, rep, parts);
-				dst += replen;
+				rx_mkrep(result.alloc(replen), rep, parts);
 				}
 			else // block
 				{
@@ -594,10 +590,7 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 				PUSH(new SuString(match));
 				Value x = docall(reparg, CALL, 1, 0, 0, -1);
 				gcstring replace = x ? x.gcstr() : match;
-				while (dst + replace.size() >= result_size)
-					result = (char*) GC_realloc(result, result_size *= 2);
-				memcpy(result + dst, replace.buf(), replace.size());
-				dst += replace.size();
+				result.add(replace.buf(), replace.size());
 				}
 			++nsubs; 
 			lastm = m;
@@ -606,15 +599,28 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 			{
 			if (i == oldsize)
 				break;
-			if (dst + 1 >= result_size)
-				result = (char*) GC_realloc(result, result_size *= 2);
-			result[dst++] = old[i++];
+			result.add(old[i++]);
 			}
 		else
 			i = m;
 		}
-	result[dst] = 0;
-	return new SuString(gcstring(dst, result));
+	return new SuString(result.gcstr());
+	}
+
+Value SuString::MapN(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	if (nargs != 2)
+		except("usage: string.MapN(n, block)");
+	int n = ARG(0).integer();
+	Value block = ARG(1);
+	Buffer dst; // don't allocate large buffer because MapN may be used just for side effects
+	for (int i = 0; i < size(); i += n)
+		{
+		KEEPSP
+		PUSH(new SuString(s.substr(i, n)));
+		dst.add(docall(block, CALL, 1, 0, 0, -1).gcstr());
+		}
+	return new SuString(dst.gcstr());
 	}
 
 Value SuString::Split(short nargs, short nargnames, ushort* argnames, int each)

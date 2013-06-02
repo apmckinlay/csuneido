@@ -333,3 +333,8 @@ void Fibers::priority(int p)
 	verify(p == 0 || p == -1);
 	curfiber->priority = p;
 	}
+
+int Fibers::size()
+	{
+	return fibers.size();
+	}

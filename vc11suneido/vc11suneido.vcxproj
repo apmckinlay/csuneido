@@ -117,6 +117,7 @@
     <ClCompile Include="..\array.cpp" />
     <ClCompile Include="..\bmalloc.cpp" />
     <ClCompile Include="..\btree.cpp" />
+    <ClCompile Include="..\buffer.cpp" />
     <ClCompile Include="..\build.cpp" />
     <ClCompile Include="..\builtinargs.cpp" />
     <ClCompile Include="..\builtins.cpp" />
@@ -212,7 +213,6 @@
     <ClCompile Include="..\servereval.cpp" />
     <ClCompile Include="..\sesviews.cpp" />
     <ClCompile Include="..\slots.cpp" />
-    <ClCompile Include="..\sockbuf.cpp" />
     <ClCompile Include="..\sockets.cpp" />
     <ClCompile Include="..\splash.cpp" />
     <ClCompile Include="..\strdup.cpp" />
@@ -272,6 +272,7 @@
     <ClInclude Include="..\awcursor.h" />
     <ClInclude Include="..\bitmap.h" />
     <ClInclude Include="..\btree.h" />
+    <ClInclude Include="..\buffer.h" />
     <ClInclude Include="..\build.h" />
     <ClInclude Include="..\builtinargs.h" />
     <ClInclude Include="..\builtinclass.h" />
@@ -377,7 +378,6 @@
     <ClInclude Include="..\scintilla.h" />
     <ClInclude Include="..\sesviews.h" />
     <ClInclude Include="..\slots.h" />
-    <ClInclude Include="..\sockbuf.h" />
     <ClInclude Include="..\sockets.h" />
     <ClInclude Include="..\splash.h" />
     <ClInclude Include="..\std.h" />

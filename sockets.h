@@ -23,7 +23,7 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "sockbuf.h"
+#include "buffer.h"
 
 // abstract base class (interface) for socket connections
 class SocketConnect
@@ -41,8 +41,8 @@ public:
 		{ return 0; }
 	virtual char* getadr() = 0;
 
-	SockBuf rdbuf;
-	SockBuf wrbuf;
+	Buffer rdbuf;
+	Buffer wrbuf;
 	};
 
 // start a socket server (to listen)

@@ -372,10 +372,26 @@ Value su_random()
 	}
 PRIM(su_random, "Random(range)");
 
+#pragma warning(disable:4722) // destructor never returns
+struct ThreadCloser
+	{
+	ThreadCloser() // to avoid gcc unused warning
+		{ }
+	~ThreadCloser()
+		{
+		extern Dbms*& tss_thedbms();
+		delete tss_thedbms();
+		tss_thedbms() = 0;
+
+		Fibers::end();
+		}
+	};
+
 static void _stdcall thread(void* arg)
 	{
 	Proc p; tss_proc() = &p;
 
+	ThreadCloser closer;
 	try
 		{
 		Value fn = (SuValue*) arg;
@@ -386,13 +402,13 @@ static void _stdcall thread(void* arg)
 		errlog("error in thread", e.str());
 		MessageBox(0, e.str(), "Error in Thread", MB_TASKMODAL | MB_OK);
 		}
-
-	extern Dbms*& tss_thedbms();
-	delete tss_thedbms();
-	tss_thedbms() = 0;
-
-	Fibers::end();
 	}
+
+Value su_threadcount()
+	{
+	return Fibers::size();
+	}
+PRIM(su_threadcount, "ThreadCount()");
 
 Value su_thread()
 	{

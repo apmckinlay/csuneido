@@ -62,3 +62,8 @@ OstreamCon::operator void*()
 	return *imp;
 	}
 
+Ostream& con()
+	{
+	static OstreamCon con;
+	return con;
+	}

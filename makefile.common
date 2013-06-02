@@ -3,6 +3,7 @@ alert.cpp \
 array.cpp \
 bmalloc.cpp \
 btree.cpp \
+buffer.cpp \
 builtinargs.cpp \
 builtins.cpp \
 cachemap.cpp \
@@ -82,7 +83,6 @@ scanner.cpp \
 servereval.cpp \
 sesviews.cpp \
 slots.cpp \
-sockbuf.cpp \
 strdup.cpp \
 suadler32.cpp \
 sublock.cpp \

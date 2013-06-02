@@ -142,6 +142,7 @@ private:
 	Value Iter(short nargs, short nargnames, ushort* argnames, int each);
 	Value Lower(short nargs, short nargnames, ushort* argnames, int each);
 	Value Lowerq(short nargs, short nargnames, ushort* argnames, int each);
+	Value MapN(short nargs, short nargnames, ushort* argnames, int each);
 	Value Match(short nargs, short nargnames, ushort* argnames, int each);
 	Value Mbstowcs(short nargs, short nargnames, ushort* argnames, int each);
 	Value Numberq(short nargs, short nargnames, ushort* argnames, int each);

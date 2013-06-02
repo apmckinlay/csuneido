@@ -39,4 +39,6 @@ private:
 	OstreamConImp* imp;
 	};
 
+extern Ostream& con();
+
 #endif
