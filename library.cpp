@@ -87,8 +87,7 @@ void libload(ushort gnum)
 		if (lib == "")
 			{ // compiled
 			globals.put(gnum, ::unpack(*srcs));
-			if (trace_level & TRACE_LIBLOAD)
-				tout() << "LIBLOAD " << gname << " (compiled)" << endl;
+			TRACE(LIBRARIES, "loaded " << gname << " (pre-compiled)");
 			break ;
 			}
 		try
@@ -105,8 +104,7 @@ void libload(ushort gnum)
 				n->num = gnum;
 				}
 			globals.put(gnum, x);
-			if (trace_level & TRACE_LIBLOAD)
-				tout() << "loaded " << gname << " from " << lib << endl;
+			TRACE(LIBRARIES, "loaded " << gname << " from " << lib);
 			}
 		catch (const Except& e)
 			{
@@ -135,6 +133,7 @@ Value su_use()
 		return SuFalse;
 	if (is_client && ! cmdlineoptions.local_library)
 		except("can't Use('" << lib << "')\nWhen client-server, only the server can Use");
+	TRACE(LIBRARIES, "Use " << lib);
 	try
 		{
 		DbmsQuery* cursor = libdb()->cursor(
@@ -162,6 +161,7 @@ Value su_unuse()
 		return SuFalse;
 	if (is_client && ! cmdlineoptions.local_library)
 		except("can't Unuse('" << lib << "')\nWhen client-server, only the server can Unuse");
+	TRACE(LIBRARIES, "Unuse " << lib);
 	libs.erase(lib);
 	globals.clear();
 	return SuTrue;
@@ -182,12 +182,16 @@ PRIM(su_libraries, "Libraries()");
 Value unload()
 	{
 	if (TOP() == SuFalse)
+		{
+		TRACE(LIBRARIES, "Unload()");
 		globals.clear();
+		}
 	else
 		{
-		gcstring s = TOP().gcstr();
+		gcstring name = TOP().gcstr();
 		// TODO: check for valid name
-		globals.put(s.str(), Value());
+		TRACE(LIBRARIES, "Unload " << name);
+		globals.put(name.str(), Value());
 		}
 	return Value();
 	}
@@ -201,9 +205,17 @@ Value libraryOverride()
 	gcstring key = lib + ":" + name;
 	gcstring text = ARG(2).gcstr();
 	if (text == "")
+		{
+		if (! override.find(key))
+			return Value();
+		TRACE(LIBRARIES, "LibraryOverride erase " << lib << ":" << name);
 		override.erase(key);
+		}
 	else
+		{
+		TRACE(LIBRARIES, "LibraryOverride " << lib << ":" << name);
 		override[key] = text;
+		}
 	globals.put(name.str(), Value());
 	return Value();
 	}
@@ -211,6 +223,7 @@ PRIM(libraryOverride, "LibraryOverride(lib, name, text = '')");
 
 Value libraryOverrideClear()
 	{
+	TRACE(LIBRARIES, "LibraryOverrideClear");
 	for (HashMap<gcstring,gcstring>::iterator iter = override.begin();
 			iter != override.end(); ++iter)
 		{
