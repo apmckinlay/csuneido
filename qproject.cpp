@@ -199,13 +199,17 @@ Query* Project::transform()
 		if (c->disjoint != "" && ! member(flds, c->disjoint))
 			{
 			Fields flds2 = flds.copy().push(c->disjoint);
-			c->source = new Project(c->source, flds2);
-			c->source2 = new Project(c->source2, flds2);
+			c->source = new Project(c->source,  
+				intersect(flds2, c->source->columns()));
+			c->source2 = new Project(c->source2,  
+				intersect(flds2, c->source2->columns()));
 			}
 		else
 			{
-			c->source = new Project(c->source, flds);
-			c->source2 = new Project(c->source2, flds);
+			c->source = new Project(c->source, 
+				intersect(flds, c->source->columns()));
+			c->source2 = new Project(c->source2, 
+				intersect(flds, c->source2->columns()));
 			return source->transform();
 			}
 		}
