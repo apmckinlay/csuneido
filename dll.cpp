@@ -78,7 +78,7 @@ void Dll::out(Ostream& os)
 			{
 			if (i > 0)
 				os << ", ";
-			params.items[i].type().out(os);
+			params.items[i].out(os);
 			verify(locals);
 			os << " " << symstr(locals[i]);
 			}

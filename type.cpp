@@ -464,6 +464,15 @@ Type& TypeItem::type()
 	return *tval;
 	}
 
+void TypeItem::out(Ostream& os)
+	{
+	os << globals(gnum);
+	if (n == 0)
+		os << '*';
+	else if (n < 0)
+		os << '[' << -n << ']';
+	}
+
 //===================================================================
 
 TypeMulti::TypeMulti(TypeItem* it, int n) : nitems(n)
@@ -502,7 +511,7 @@ void TypeParams::out(Ostream& os)
 		{
 		if (i > 0)
 			os << ", ";
-		items[i].type().out(os);
+		items[i].out(os);
 		}
 	os << ')';
 	}

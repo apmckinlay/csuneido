@@ -65,7 +65,7 @@ void Structure::out(Ostream& os)
 		os << "struct { ";
 		for (int i = 0; i < nitems; ++i)
 			{
-			items[i].type().out(os);
+			items[i].out(os);
 			os << " " << symstr(mems[i]) << "; ";
 			}
 		os << '}';

@@ -190,6 +190,8 @@ struct TypeItem
 	TypeItem() : n(0), gnum(0), tval(0)
 		{ }
 	Type& type();
+	void out(Ostream& os);
+	
 	short n;	// 0 for pointer, >0 for normal value, <0 for array
 	short gnum;
 	Type* tval;

@@ -222,7 +222,7 @@ void Callback::out(Ostream& os)
 		{
 		if (i > 0)
 			os << ", ";
-		items[i].type().out(os);
+		items[i].out(os);
 		os << ' ' << names(mems[i]);
 		}
 	os << ')';
