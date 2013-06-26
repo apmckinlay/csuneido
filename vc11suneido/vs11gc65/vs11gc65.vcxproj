@@ -46,7 +46,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\dev\suneido\gc6.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\gc6.5\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PreprocessorDefinitions>CRTAPI1=_cdecl;CRTAPI2=_cdecl;_X86_=1;_CRT_SECURE_NO_DEPRECATE;LARGE_CONFIG;SILENT;ALL_INTERIOR_POINTERS;DONT_ADD_BYTE_AT_END;THREADS;FIBERS;__STDC__;GC_NOT_DLL;GC_BUILD</PreprocessorDefinitions>
     </ClCompile>
@@ -64,7 +64,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>CRTAPI1=_cdecl;CRTAPI2=_cdecl;_X86_=1;_CRT_SECURE_NO_DEPRECATE;LARGE_CONFIG;SILENT;ALL_INTERIOR_POINTERS;DONT_ADD_BYTE_AT_END;THREADS;FIBERS;__STDC__;GC_NOT_DLL;GC_BUILD</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\dev\suneido\gc6.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\gc6.5\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
