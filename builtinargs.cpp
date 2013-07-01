@@ -99,7 +99,7 @@ void BuiltinArgs::end()
 
 Value BuiltinArgs::getNext()
 	{
-	while (i < nargs && i > unnamed && taken.member(argnames[i - unnamed]))
+	while (i < nargs && i >= unnamed && taken.member(argnames[i - unnamed]))
 		++i;
 	return i < nargs ? ARG(i++) : Value();
 	}
