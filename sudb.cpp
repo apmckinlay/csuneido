@@ -467,6 +467,7 @@ Value SuQuery::call(Value, Value member, short nargs, short nargnames, ushort* a
 	static Value Output("Output");
 	static Value Columns("Columns");
 	static Value Fields("Fields");
+	static Value RuleColumns("RuleColumns");
 	static Value Order("Order");
 	static Value Rewind("Rewind");
 	static Value Explain("Explain");
@@ -503,11 +504,17 @@ Value SuQuery::call(Value, Value member, short nargs, short nargnames, ushort* a
 			except("usage: query.Rewind()");
 		return rewind();
 		}
-	else if (member == Columns || member == Fields) // deprecated
+	else if (member == Columns || member == Fields) // Fields is deprecated
 		{
 		if (nargs != 0)
 			except("usage: query.Columns()");
 		return getfields();
+		}
+	else if (member == RuleColumns)
+		{
+		if (nargs != 0)
+			except("usage: query.RuleColumns()");
+		return getRuleColumns();
 		}
 	else if (member == Order)
 		{
@@ -568,6 +575,14 @@ SuObject* SuQuery::getfields()
 	for (Fields f = hdr.columns(); ! nil(f); ++f)
 		if (! f->has_suffix("_deps"))
 			ob->add(new SuString(*f));
+	return ob;
+	}
+
+SuObject* SuQuery::getRuleColumns()
+	{
+	SuObject* ob = new SuObject();
+	for (Fields f = hdr.rules(); ! nil(f); ++f)
+		ob->add(new SuString(*f));
 	return ob;
 	}
 

@@ -61,6 +61,7 @@ protected:
 	Value get(Dir);
 	Value rewind();
 	SuObject* getfields();
+	SuObject* getRuleColumns();
 	SuObject* getkeys();
 	SuObject* getindexes();
 	SuObject* getorder();
