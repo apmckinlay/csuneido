@@ -89,18 +89,13 @@ Value Globals::operator[](ushort j)
 
 Value Globals::find(ushort j)
 	{
-	Value x = data[j];
-	if (x.ptr() == MISSING)
-		return Value();
-
-	if (! x)
+	if (! data[j])
 		{
-		libload(j);
-		x = data[j];
-		if (! x)
+		libload(j); // if in fiber could yield
+		if (! data[j])
 			data[j] = MISSING;
 		}
-	return x;
+	return get(j); // handles MISSING
 	}
 
 ushort Globals::copy(char* s)	// called by Compiler::suclass for class : _Base
