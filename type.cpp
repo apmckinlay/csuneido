@@ -42,7 +42,8 @@ void Type::getbyref(char*& src, Value x)
 
 void TypeBool::put(char*& dst, char*& dst2, const char* lim2, Value x)
 	{
-	force<SuBoolean*>(x);
+	if (x)
+		force<SuBoolean*>(x);
 	*((int*) dst) = (x == SuTrue ? 1 : 0);
 	dst += sizeof (int);
 	}
