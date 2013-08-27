@@ -109,9 +109,10 @@ Value Dll::call(Value self, Value member, short nargs, short nargnames, ushort* 
 
 	char buf[maxbuf];
 	char* dst = buf;
+	const int64 MARKER = 0xaa55aa55aa55aa55;
 	char buf2[32000];	// for stuff passed by pointer
 	char* dst2 = buf2;
-	char* lim2 = buf2 + sizeof buf2;
+	char* lim2 = buf2 + sizeof buf2 - sizeof (MARKER);
 
 	const int params_size = params.size();
 	if (params_size > maxbuf)
@@ -119,6 +120,7 @@ Value Dll::call(Value self, Value member, short nargs, short nargnames, ushort* 
 	Value* args = GETSP() - nparams + 1;
 	params.putall(dst, dst2, lim2, args);
 	verify(dst == buf + params_size);
+	*((int64*) dst2) = MARKER;
 
 	if (trace)
 		{
@@ -175,6 +177,8 @@ Value Dll::call(Value self, Value member, short nargs, short nargnames, ushort* 
 #else
 #warning "replacement for inline assembler required"
 #endif
+
+	verify(*((int64*) dst2) == MARKER);
 
 	trace_level = save_trace_level;
 
