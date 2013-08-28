@@ -36,7 +36,7 @@ class gcstring
 public:
 	gcstring() : n(0), p(empty_buf)
 		{ }
-	explicit gcstring(size_t nn) ;
+	explicit gcstring(size_t nn);
 	gcstring(const gcstring& s) : n(s.n), p(s.p)
 		{ }
 	gcstring& operator=(const gcstring& s)
