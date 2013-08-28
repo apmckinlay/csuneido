@@ -376,11 +376,11 @@ int TypeArray::size()
 
 void TypeArray::put(char*& dst, char*& dst2, const char* lim2, Value x)
 	{
-	if (dynamic_cast<TypeBuffer*>(type))
+	if (dynamic_cast<TypeBuffer*>(type)) // includes TypeString
 		{
 		if (! x)
 			*dst = 0;
-		else if (SuString* sx = val_cast<SuString*>(x))
+		else if (SuString* sx = val_cast<SuString*>(x)) // includes SuBuffer
 			{
 			// string[] is special case for strings
 			int len = min(sx->size(), n);
