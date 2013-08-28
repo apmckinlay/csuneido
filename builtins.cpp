@@ -237,10 +237,9 @@ Value buffer()
 	int n;
 	if (! ARG(0).int_if_num(&n))
 		except("usage: Buffer(size, string=\"\")");
-	if (n < 0)
-		except("invalid Buffer size: " << n);
-	SuBuffer* b = new SuBuffer(n, ARG(1).gcstr());
-	return b;
+	if (n <= 0)
+		except("Buffer size must be greater than zero");
+	return new SuBuffer(n, ARG(1).gcstr());
 	}
 PRIM(buffer, "Buffer(size, string='')");
 

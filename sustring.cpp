@@ -136,10 +136,13 @@ bool SuString::lt(const SuValue& y) const
 		return ord < yo;
 	}
 
-SuBuffer::SuBuffer(size_t n, const gcstring& s) : SuString(n + 1)
-	{ 
-	memcpy(buf(), s.buf(), min(n, (size_t) s.size()));
-	buf()[n] = 0;
+SuBuffer::SuBuffer(size_t n, const gcstring& s) : SuString(n)
+	{
+	size_t sn = s.size();
+	if (n < sn)
+		except("Buffer must be large enough for initial string");
+	memcpy(buf(), s.buf(), sn);
+	memset(buf() + sn, 0, n - sn);
 	}
 
 // packing ==========================================================
