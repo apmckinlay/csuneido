@@ -79,7 +79,7 @@ Value SuClass::call(Value self, Value member, short nargs, short nargnames, usho
 class Counter
 	{
 public:
-	explicit Counter()
+	Counter()
 		{ ++count; }
 	~Counter()
 		{ --count; }
