@@ -84,8 +84,6 @@ static void check_result(HRESULT hr, char* progid, char* name, char* action)
 		except("COM: " << progid << " " << action << " " << name << " param not found");
 	else if (hr == DISP_E_TYPEMISMATCH)
 		except("COM: " << progid << " " << action << " " << name << " type mismatch");
-	else if (hr == DISP_E_PARAMNOTFOUND)
-		except("COM: " << progid << " " << action << " " << name << " param not found");
 	else if (hr == DISP_E_PARAMNOTOPTIONAL)
 		except("COM: " << progid << " " << action << " " << name << " param not optional");
 	else if (FAILED(hr))
