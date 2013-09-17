@@ -305,7 +305,7 @@ Value SuCOMobject::call(Value self, Value member, short nargs, short nargnames, 
 
 	VARIANT result;
 	VariantInit(&result);
-	hr = idisp->Invoke(dispid, IID_NULL, LOCALE_SYSTEM_DEFAULT, DISPATCH_METHOD | DISPATCH_PROPERTYGET,
+	hr = idisp->Invoke(dispid, IID_NULL, LOCALE_SYSTEM_DEFAULT, DISPATCH_METHOD,
 		&args, &result, NULL, NULL);
 	check_result(hr, progid, name, "call");
 
