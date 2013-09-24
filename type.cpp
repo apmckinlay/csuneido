@@ -424,13 +424,16 @@ Value TypeArray::get(char*& src, Value x)
 	if (! x)
 		x = new SuObject;//(n);
 	SuObject* ob = x.object();
-	for (int i = 0; i < n; ++i)
-		{
-		Value old = ob->get(i);
-		Value now = type->get(src, old);
-		if (old != now)
-			ob->put(i, now);
-		}
+	if (ob->get_readonly())
+		src += size();
+	else
+		for (int i = 0; i < n; ++i)
+			{
+			Value old = ob->get(i);
+			Value now = type->get(src, old);
+			if (old != now)
+				ob->put(i, now);
+			}
 	return x;
 	}
 
