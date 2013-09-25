@@ -796,6 +796,8 @@ Prim::Prim(PrimFn f, char* d) : fn(f), decl(d)
 	prims[nprims++] = this;
 	}
 
+#define BUILTIN_CLASS(name, clazz) extern Value clazz(); builtin(name, clazz());
+
 void builtins()
 	{
 	verify(FalseNum == globals("False"));
@@ -841,27 +843,20 @@ void builtins()
 	builtin("Cursor", new CursorClass);
 	builtin("Record", new SuRecordClass);
 	builtin("Date", new SuDateClass);
-	extern Value su_file();
-	builtin("File", su_file());
-	extern Value su_adler32();
-	builtin("Adler32", su_adler32());
-	extern Value su_md5();
-	builtin("Md5", su_md5());
-	extern Value su_sha1();
-	builtin("Sha1", su_sha1());
-	builtin("SocketServer", suSocketServer());
-	extern Value su_image();
-	builtin("Image", su_image());
-	extern Value su_runpiped();
-	builtin("RunPiped", su_runpiped());
-	extern Value su_Query1();
-	builtin("Query1", su_Query1());
-	extern Value su_QueryFirst();
-	builtin("QueryFirst", su_QueryFirst());
-	extern Value su_QueryLast();
-	builtin("QueryLast", su_QueryLast());
-	extern Value su_ServerEval();
-	builtin("ServerEval", su_ServerEval());
+
+	BUILTIN_CLASS("File", su_file);
+	BUILTIN_CLASS("Adler32", su_adler32);
+	BUILTIN_CLASS("Md5", su_md5);
+	BUILTIN_CLASS("Sha1", su_sha1);
+	BUILTIN_CLASS("SocketServer", suSocketServer);
+	BUILTIN_CLASS("Image", su_image);
+	BUILTIN_CLASS("RunPiped", su_runpiped);
+	BUILTIN_CLASS("Query1", su_Query1);
+	BUILTIN_CLASS("QueryFirst", su_QueryFirst);
+	BUILTIN_CLASS("QueryLast", su_QueryLast);
+	BUILTIN_CLASS("ServerEval", su_ServerEval);
+	BUILTIN_CLASS("Scanner", su_scanner);
+	BUILTIN_CLASS("QueryScanner", su_queryscanner);
 
 	for (int i = 0; i < nprims; ++i)
 		{

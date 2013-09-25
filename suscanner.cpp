@@ -20,6 +20,7 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "builtinclass.h"
 #include "scanner.h"
 #include "suvalue.h"
 #include "interp.h"
@@ -31,53 +32,162 @@
 class SuScanner : public SuValue
 	{
 public:
-	explicit SuScanner(char* s) : scanner(s)
-		{ }
+	virtual void init(char* s);
 	void out(Ostream& os)
 		{ os << "Scanner"; }
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	static Method<SuScanner>* methods()
+		{
+		static Method<SuScanner> methods[] =
+			{
+			Method<SuScanner>("Next", &SuScanner::Next),
+			Method<SuScanner>("Position", &SuScanner::Position),
+			Method<SuScanner>("Type", &SuScanner::Type),
+			Method<SuScanner>("Text", &SuScanner::Text),
+			Method<SuScanner>("Length", &SuScanner::Length),
+			Method<SuScanner>("Value", &SuScanner::Valu),
+			Method<SuScanner>("Keyword", &SuScanner::Keyword),
+			Method<SuScanner>("Iter", &SuScanner::Iter),
+			Method<SuScanner>("", 0)
+			};
+		return methods;
+		}
+	Value Next(BuiltinArgs&); // returns same as Text
+	Value Position(BuiltinArgs&); // position after current token
+	Value Type(BuiltinArgs&); // token number
+	Value Text(BuiltinArgs&); // raw text 
+	Value Length(BuiltinArgs&); // length of current token
+	Value Valu(BuiltinArgs&); // for strings returns escaped
+	Value Keyword(BuiltinArgs&); // keyword number (else zero)
+	Value Iter(BuiltinArgs&);
+protected:
+	Scanner* scanner;
 private:
-	Scanner scanner;
 	int token;
 	};
 
-Value suscanner()
+Value su_scanner()
 	{
-	return new SuScanner(TOP().str());
+	static BuiltinClass<SuScanner> clazz;
+	return &clazz;
 	}
-PRIM(suscanner, "Scanner(string)");
 
-Value SuScanner::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+template<>
+Value BuiltinClass<SuScanner>::instantiate(BuiltinArgs& args)
 	{
-	static Value NEXT("Next");
-	static Value POSITION("Position");
-	static Value TYPE("Type");
-	static Value N_TEXT("Text");
-	static Value VALUE("Value");
-	static Value KEYWORD("Keyword");
-	static Value ITER("Iter");
+	args.usage("usage: Scanner(string)");
+	char* s = args.getstr("string");
+	args.end();
+	SuScanner* scanner = new BuiltinInstance<SuScanner>();
+	scanner->init(s);
+	return scanner;
+	}
 
-	if (member == NEXT)
-		{
-		token = scanner.nextall();
-		if (token == -1)
-			return this;
-		else
-			return new SuString(scanner.source + scanner.prev, scanner.si - scanner.prev);
-		}
-	else if (member == TYPE)
-		return token;
-	else if (member == N_TEXT)
-		return new SuString(scanner.source + scanner.prev, scanner.si - scanner.prev);
-	else if (member == VALUE)
-		return new SuString(scanner.value);
-	else if (member == POSITION)
-		return scanner.si;
-	else if (member == KEYWORD)
-		return scanner.keyword == 0 ? 0 : scanner.keyword - KEYWORDS;
-	else if (member == ITER)
+void SuScanner::init(char* s)
+	{
+	scanner = new Scanner(s);
+	}
+
+Value SuScanner::Next(BuiltinArgs& args)
+	{
+	args.usage("usage: scanner.Next()");
+	args.end();
+
+	token = scanner->nextall();
+	if (token == -1)
 		return this;
 	else
-		method_not_found("scanner", member);
+		return new SuString(scanner->source + scanner->prev, scanner->si - scanner->prev);
+	}
+
+Value SuScanner::Position(BuiltinArgs& args)
+	{
+	args.usage("usage: scanner.Position()");
+	args.end();
+
+	return scanner->si;
+	}
+
+Value SuScanner::Type(BuiltinArgs& args)
+	{
+	args.usage("usage: scanner.Type()");
+	args.end();
+
+	return token;
+	}
+
+Value SuScanner::Text(BuiltinArgs& args)
+	{
+	args.usage("usage: scanner.Text()");
+	args.end();
+
+	return new SuString(scanner->source + scanner->prev, scanner->si - scanner->prev);
+	}
+
+Value SuScanner::Length(BuiltinArgs& args)
+	{
+	args.usage("usage: scanner.Size()");
+	args.end();
+
+	return scanner->si - scanner->prev;
+	}
+
+Value SuScanner::Valu(BuiltinArgs& args)
+	{
+	args.usage("usage: scanner.Value()");
+	args.end();
+
+	return new SuString(scanner->value);
+	}
+
+Value SuScanner::Keyword(BuiltinArgs& args)
+	{
+	args.usage("usage: scanner.Keyword()");
+	args.end();
+
+	return scanner->keyword == 0 ? 0 : scanner->keyword - KEYWORDS;
+	}
+
+Value SuScanner::Iter(BuiltinArgs& args)
+	{
+	args.usage("usage: scanner.Iter()");
+	args.end();
+
+	return this;
+	}
+
+// QueryScanner -----------------------------------------------------
+
+class SuQueryScanner : public SuScanner
+	{
+public:
+	virtual void init(char* s);
+	static Method<SuQueryScanner>* methods()
+		{
+		return (Method<SuQueryScanner>*) SuScanner::methods();
+		}
+	};
+
+Value su_queryscanner()
+	{
+	static BuiltinClass<SuQueryScanner> clazz;
+	return &clazz;
+	}
+
+template<>
+Value BuiltinClass<SuQueryScanner>::instantiate(BuiltinArgs& args)
+	{
+	args.usage("usage: QueryScanner(string)");
+	char* s = args.getstr("string");
+	args.end();
+	SuQueryScanner* scanner = new BuiltinInstance<SuQueryScanner>();
+	scanner->init(s);
+	return scanner;
+	}
+
+#include "qscanner.h"
+
+void SuQueryScanner::init(char* s)
+	{
+	scanner = new QueryScanner(s);
 	}
 

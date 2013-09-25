@@ -101,7 +101,7 @@ int Scanner::nextall()
 	int state;
 	char quote;
 
-	prev = si; state = 0; keyword = 0;
+	prev = si; state = 0; keyword = 0; value = "";
 	for (;;)
 		{
 		switch (state)
@@ -118,7 +118,6 @@ int Scanner::nextall()
 				state = '_';
 				break ;
 			case GO :
-				value = source + si;
 				state = source[si++];
 				break ;
 			case WHITE :
@@ -254,7 +253,6 @@ int Scanner::nextall()
 			else
 				return ':';
 		case '_' :
-			value = source + si;
 			for (dst = buf; ID == cclass(source[si]) ||
 				DIG == cclass(source[si]); ++si)
 				{
@@ -462,7 +460,6 @@ static char* input = "and break case catch continue class callback default dll d
 struct Result
 	{
 	int token;
-//	int keyword;
 	char* value;
 	};
 
