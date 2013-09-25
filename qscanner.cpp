@@ -48,13 +48,13 @@ static Keyword words[] =
 	{ "count", K_COUNT }, { "create", K_CREATE }, { "delete", K_DELETE }, 
 	{ "destroy", K_DROP }, { "drop", K_DROP },
 	{ "ensure", K_ENSURE }, { "extend", K_EXTEND }, 
-	{ "false", K_FALSE }, { "in", K_IN },
+	{ "false", K_FALSE }, { "history", K_HISTORY }, { "in", K_IN },
 	{ "index", K_INDEX }, { "insert", K_INSERT }, 
 	{ "intersect", K_INTERSECT }, { "into", K_INTO }, 
 	{ "is", I_IS }, { "isnt", I_ISNT },
 	{ "join", K_JOIN }, { "key", K_KEY },
 	{ "leftjoin", K_LEFTJOIN }, { "list", K_LIST },
-	{ "max", K_MAX }, { "min", K_MIN }, { "minus", K_DIFFERENCE }, 
+	{ "max", K_MAX }, { "min", K_MIN }, { "minus", K_MINUS }, 
 	{ "not", I_NOT }, { "or", T_OR }, { "project", K_PROJECT },
 	{ "remove", K_REMOVE }, { "rename", K_RENAME }, { "reverse", K_REVERSE },
 	{ "set", K_SET }, { "sort", K_SORT },
@@ -94,7 +94,7 @@ void QueryScanner::insert(const gcstring& s)
 #include "except.h"
 
 static char* qscanner_input = "alter average by count create delete \
-		destroy drop ensure extend false in into index insert intersect join \
+		destroy drop ensure extend false history in into index insert intersect join \
 		key leftjoin list max min minus project remove rename reverse set \
 		sort summarize times to total true union unique update view where";
 
@@ -103,9 +103,9 @@ static short results[] =
 	K_ALTER, K_AVERAGE, K_BY,
 	K_COUNT, K_CREATE, K_DELETE, 
 	K_DROP, K_DROP, K_ENSURE, K_EXTEND, K_FALSE,
-	K_IN, K_INTO, K_INDEX, K_INSERT, 
+	K_HISTORY, K_IN, K_INTO, K_INDEX, K_INSERT, 
 	K_INTERSECT, K_JOIN, K_KEY, K_LEFTJOIN, K_LIST,
-	K_MAX, K_MIN, K_DIFFERENCE, K_PROJECT, K_REMOVE,
+	K_MAX, K_MIN, K_MINUS, K_PROJECT, K_REMOVE,
 	K_RENAME, K_REVERSE, K_SET, K_SORT, K_SUMMARIZE,
 	K_TIMES, K_TO, K_TOTAL, K_TRUE, K_UNION,
 	K_UNIQUE, K_UPDATE, K_VIEW, K_WHERE, 

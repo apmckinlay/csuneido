@@ -936,7 +936,7 @@ Query* QueryParser::query()
 			match();
 			q = Query::make_intersect(q, source());
 			break ;
-		case K_DIFFERENCE :
+		case K_MINUS :
 			match();
 			q = Query::make_difference(q, source());
 			break ;
