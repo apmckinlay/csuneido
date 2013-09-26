@@ -405,17 +405,17 @@ static Keyword words[] =
 	{ "class", K_CLASS }, { "continue", K_CONTINUE }, 
 	{ "default", K_DEFAULT }, { "dll", K_DLL }, { "do", K_DO }, 
 	{ "double", K_DOUBLE }, { "else", K_ELSE }, { "false", K_FALSE }, 
-	{ "float", K_FLOAT }, { "for", K_FOR }, { "foreach", K_FOREACH }, 
+	{ "float", K_FLOAT }, { "for", K_FOR }, 
 	{ "forever", K_FOREVER }, { "function", K_FUNCTION }, 
 	{ "gdiobj", K_GDIOBJ }, { "handle", K_HANDLE }, { "if", K_IF }, 
 	{ "in", K_IN }, { "int64", K_INT64 }, { "is", I_IS }, 
-	{ "isnt", I_ISNT }, { "list", K_LIST }, { "long", K_LONG },
+	{ "isnt", I_ISNT }, { "long", K_LONG },
 	{ "new", K_NEW }, { "not", I_NOT }, { "or", T_OR }, 
 	{ "resource", K_RESOURCE },	{ "return", K_RETURN }, 
 	{ "short", K_SHORT }, { "string", K_STRING }, { "struct", K_STRUCT }, 
 	{ "super", K_SUPER }, { "switch", K_SWITCH }, { "this", K_THIS }, 
 	{ "throw", K_THROW }, { "true", K_TRUE }, { "try", K_TRY }, 
-	{ "value", K_VALUE }, { "void", K_VOID }, { "while", K_WHILE }, 
+	{ "void", K_VOID }, { "while", K_WHILE }, 
 	{ "xor", I_ISNT }
 	};
 const int nwords = sizeof words / sizeof (Keyword);
@@ -447,7 +447,7 @@ int Scanner::keywords(char* s)
 #include "testing.h"
 
 static char* input = "and break case catch continue class callback default dll do \
-	else for foreach forever function if is isnt or not \
+	else for forever function if is isnt or not \
 	new switch struct super return throw try while \
 	true True false False \
 	== = =~ ~ != !~ ! <<= << <> <= < \
@@ -468,7 +468,7 @@ static Result results[] =
 	{ T_AND, 0 }, { K_BREAK, 0 }, { K_CASE, 0 }, { K_CATCH, 0 }, 
 	{ K_CONTINUE, 0 }, { K_CLASS, 0 }, { K_CALLBACK, 0 }, 
 	{ K_DEFAULT, 0 }, { K_DLL, 0 }, { K_DO, 0 }, { K_ELSE, 0 }, 
-	{ K_FOR, 0 }, { K_FOREACH, 0 },  { K_FOREVER, 0 }, { K_FUNCTION, 0 },
+	{ K_FOR, 0 }, { K_FOREVER, 0 }, { K_FUNCTION, 0 },
 	{ K_IF, 0 }, { I_IS, 0 }, { I_ISNT, 0 }, { T_OR, 0 }, { I_NOT, 0 },
 	{ K_NEW, 0 }, { K_SWITCH, 0 }, { K_STRUCT, 0 }, { K_SUPER, 0 }, 
 	{ K_RETURN, 0 }, { K_THROW, 0 }, { K_TRY, 0 }, { K_WHILE, 0 }, 

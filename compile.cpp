@@ -1050,43 +1050,6 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 		patch(b);
 		break ;
 		}
-	case K_FOREACH :
-		{
-		match();
-		OPT_PAREN_EXPR1
-		bool list = false;
-		if (scanner.keyword == K_LIST)
-			{
-			list = true;
-			match();
-			}
-		bool value = false;
-		if (scanner.keyword == K_VALUE)
-			{
-			value = true;
-			match();
-			}
-		short var = local(INIT);
-		match(T_IDENTIFIER);
-		match(K_IN);
-		OPT_PAREN_EXPR2
-		emit(I_CALL, MEM, (value
-			? (list ? ITERLISTVALUES : ITERVALUES)
-			: (list ? ITERLIST : ITERKEYS)));
-		a = code.size();
-		emit(I_DUP); // to save the iterator
-		emit(I_DUP); // to compare against for end
-		emit(I_CALL, MEM, NEXT);
-		emit(I_EQ, 0x80 + (AUTO << 4), var);
-		emit(I_ISNT);
-		b = emit(I_JUMP, POP_NO, -1);
-		statement(a, &b);
-		emit(I_JUMP, UNCOND, a - (code.size() + 3));
-		patch(b);
-		emit(I_POP);
-		last_adr = -1; // prevent POP from being optimized away
-		break ;
-		}
 	case K_FOR :
 		{
 		b = -1;

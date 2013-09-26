@@ -158,7 +158,7 @@ PRIM(su_ScintillaStyle, "ScintillaStyle(hwnd, start, end = 0, query = false)");
 
 static int tokenStyle(int token, int keyword, bool query)
 	{
-	if (keyword > 0 && (query || (keyword != K_LIST && keyword != K_VALUE)))
+	if (keyword > 0)
 		return STYLE_KEYWORD;
 	switch (token)
 		{
