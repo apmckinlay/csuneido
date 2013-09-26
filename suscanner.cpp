@@ -144,7 +144,11 @@ Value SuScanner::Keyword(BuiltinArgs& args)
 	args.usage("usage: scanner.Keyword()");
 	args.end();
 
-	return scanner->keyword == 0 ? 0 : scanner->keyword - KEYWORDS;
+	if (scanner->keyword && scanner->source[scanner->si] == ':')
+		return 0;
+	return scanner->keyword < KEYWORDS
+		? scanner->keyword
+		: scanner->keyword - KEYWORDS;
 	}
 
 Value SuScanner::Iter(BuiltinArgs& args)
