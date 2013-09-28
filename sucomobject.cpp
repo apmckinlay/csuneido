@@ -47,8 +47,10 @@ inline LPWSTR WINAPI AtlA2WHelper(LPWSTR lpw, LPCSTR lpa, int nChars)
 class SuCOMobject : public  SuValue
 	{
 public:
-	SuCOMobject(IDispatch* id, char* pi = "???") : idisp(id), progid(pi)
-		{ }
+	SuCOMobject(IDispatch* id, char* pi = "???") : idisp(id), progid(pi), isdisp(true)
+		{ verify(NULL != idisp); }
+	SuCOMobject(IUnknown* iu, char* pi = "???") : iunk(iu), progid(pi), isdisp(false)
+		{ verify(NULL != iunk); }
 	void out(Ostream& os);
 	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
 	// properties
@@ -57,9 +59,29 @@ public:
 	IDispatch* idispatch()
 		{ return idisp; }
 private:
-	IDispatch* idisp;
-	char* progid;
+	void verify_not_released();
+	void require_idispatch();
+	union
+		{
+		IUnknown* iunk;
+		IDispatch* idisp;
+		void* isalive;
+		};
+	char* progid;       // never NULL, but might be '???' if progid isn't known
+	bool isdisp;        // indicates whether this is an IDispatch or just an IUnknown
 	};
+
+void SuCOMobject::verify_not_released()
+	{
+	if (! isalive)
+		except("COM: " << progid << " already released");
+	}
+
+void SuCOMobject::require_idispatch()
+	{
+	if (! isdisp)
+		except("COM: " << progid << " doesn't support IDispatch");
+	}
 
 void SuCOMobject::out(Ostream& os)
 	{
@@ -127,9 +149,13 @@ static Value com2su(VARIANT* var)
 		IUnknown* iunk = V_UNKNOWN(&varValue);
 		IDispatch* idisp = 0;
 		hr = iunk->QueryInterface(IID_IDispatch, (void**) &idisp);
-		if (FAILED(hr) || ! idisp)
-			except("COM: couldn't convert UNKNOWN");
-		result = new SuCOMobject(V_DISPATCH(&varValue));
+		if (SUCCEEDED(hr) && idisp)
+			result = new SuCOMobject(idisp);
+		else
+			{
+			iunk->AddRef();
+			result = new SuCOMobject(iunk);
+			}
 		break;
 		}
 	case VT_NULL:
@@ -182,8 +208,8 @@ static Value com2su(VARIANT* var)
 
 Value SuCOMobject::getdata(Value member)
 	{
-	if (! idisp)
-		except("COM: " << progid << " already released");
+	verify_not_released();
+	require_idispatch();
 	// get id from name
 	char* name = member.str();
 	USES_CONVERSION;
@@ -249,8 +275,8 @@ static void su2com(Value x, VARIANT* v)
 
 void SuCOMobject::putdata(Value member, Value val)
 	{
-	if (! idisp)
-		except("COM: " << progid << " already released");
+	verify_not_released();
+	require_idispatch();
 	// get id from name
 	char* name = member.str();
 	USES_CONVERSION;
@@ -273,16 +299,31 @@ void SuCOMobject::putdata(Value member, Value val)
 
 Value SuCOMobject::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (! idisp)
-		except("COM: " << progid << " already released");
+	verify_not_released();
 	static Value RELEASE("Release");
+	static Value ADDREF("AddRef");
+	static Value DISPATCHQ("Dispatch?");
 	if (member == RELEASE)
 		{
 		if (nargs != 0)
 			except("usage: comobject.Release()");
-		idisp->Release();
-		idisp = 0;
-		return Value();
+		int count = isdisp ? idisp->Release() : iunk->Release();
+		if (count < 1)
+			isalive = 0;
+		return Value(count);
+		}
+	else if (member == DISPATCHQ)
+		{
+		if (nargs != 0)
+			except("usage: comobject.Dispatch?()");
+		return isdisp ? SuBoolean::t : SuBoolean::f;
+		}
+	else if (member == ADDREF)
+		{
+		if (nargs != 0)
+			except("usage: comobject.AddRef()");
+		int count = isdisp ? idisp->AddRef() : iunk->AddRef();
+		return Value(count);
 		}
 	// else call
 
@@ -322,13 +363,18 @@ Value su_COMobject()
 	HRESULT hr;
 	char* progid = "???";
 	IDispatch* idisp = 0;
+	IUnknown* iunk = 0;
 	int n;
-	if (ARG(0).int_if_num(&n))
+	if (ARG(0).int_if_num(&n) && (iunk = (IUnknown*)n))
 		{
-		if (IUnknown* iunk = (IUnknown*) n)
-			hr = iunk->QueryInterface(IID_IDispatch, (void**) &idisp);
+		hr = iunk->QueryInterface(IID_IDispatch, (void**) &idisp);
+		if (SUCCEEDED(hr) && idisp)
+			return new SuCOMobject(idisp, progid);
 		else
-			return SuBoolean::f;
+			{
+			iunk->AddRef();
+			return new SuCOMobject(iunk, progid);
+			}
 		}
 	else
 		{
@@ -341,9 +387,12 @@ Value su_COMobject()
 			return SuBoolean::f;
 		// get idispatch
 		hr = CoCreateInstance(clsid, NULL, CLSCTX_SERVER, IID_IDispatch, (void**) &idisp);
+		if (SUCCEEDED(hr) && idisp)
+			return new SuCOMobject(idisp, progid);
+		hr = CoCreateInstance(clsid, NULL, CLSCTX_SERVER, IID_IUnknown, (void **) &iunk);
+		if (SUCCEEDED(hr) && iunk)
+			return new SuCOMobject(iunk, progid);
 		}
-	if (FAILED(hr) || ! idisp)
-		return SuBoolean::f;
-	return new SuCOMobject(idisp, progid);
+	return SuBoolean::f;
 	}
 PRIM(su_COMobject, "COMobject(progid)");
