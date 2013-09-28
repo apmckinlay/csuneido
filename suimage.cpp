@@ -118,7 +118,11 @@ void SuImage::init(const gcstring& data)
 	LPSTREAM pstm = NULL;
 	// create IStream* from global memory
 	HRESULT hr = CreateStreamOnHGlobal(hGlobal, TRUE, &pstm);
-	verify(SUCCEEDED(hr) && pstm);
+	if (! SUCCEEDED(hr) && pstm)
+		{
+		GlobalFree(hGlobal);           // Otherwise, fDeleteOnRelease = TRUE will do this
+		verify(SUCCEEDED(hr) && pstm); // Throw assertion failure to Suneido programmer
+		}
 
 	// Create IPicture from image file
 	hr = ::OleLoadPicture(pstm, dwSize, FALSE, IID_IPicture, (LPVOID *)&gpPicture);
