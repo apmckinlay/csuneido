@@ -310,20 +310,20 @@ Value SuCOMobject::call(Value self, Value member, short nargs, short nargnames, 
 		int count = isdisp ? idisp->Release() : iunk->Release();
 		if (count < 1)
 			isalive = 0;
-		return Value(count);
+		return count;
 		}
 	else if (member == DISPATCHQ)
 		{
 		if (nargs != 0)
 			except("usage: comobject.Dispatch?()");
-		return isdisp ? SuBoolean::t : SuBoolean::f;
+		return isdisp ? SuTrue : SuFalse;
 		}
 	else if (member == ADDREF)
 		{
 		if (nargs != 0)
 			except("usage: comobject.AddRef()");
 		int count = isdisp ? idisp->AddRef() : iunk->AddRef();
-		return Value(count);
+		return count;
 		}
 	// else call
 
@@ -393,6 +393,6 @@ Value su_COMobject()
 		if (SUCCEEDED(hr) && iunk)
 			return new SuCOMobject(iunk, progid);
 		}
-	return SuBoolean::f;
+	return SuFalse;
 	}
 PRIM(su_COMobject, "COMobject(progid)");
