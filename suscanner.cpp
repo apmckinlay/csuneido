@@ -40,24 +40,28 @@ public:
 		static Method<SuScanner> methods[] =
 			{
 			Method<SuScanner>("Next", &SuScanner::Next),
+			Method<SuScanner>("Next2", &SuScanner::Next2),
 			Method<SuScanner>("Position", &SuScanner::Position),
 			Method<SuScanner>("Type", &SuScanner::Type),
 			Method<SuScanner>("Text", &SuScanner::Text),
 			Method<SuScanner>("Length", &SuScanner::Length),
 			Method<SuScanner>("Value", &SuScanner::Valu),
 			Method<SuScanner>("Keyword", &SuScanner::Keyword),
+			Method<SuScanner>("Keyword?", &SuScanner::KeywordQ),
 			Method<SuScanner>("Iter", &SuScanner::Iter),
 			Method<SuScanner>("", 0)
 			};
 		return methods;
 		}
 	Value Next(BuiltinArgs&); // returns same as Text
+	Value Next2(BuiltinArgs&); // returns Type as string
 	Value Position(BuiltinArgs&); // position after current token
 	Value Type(BuiltinArgs&); // token number
 	Value Text(BuiltinArgs&); // raw text 
 	Value Length(BuiltinArgs&); // length of current token
 	Value Valu(BuiltinArgs&); // for strings returns escaped
 	Value Keyword(BuiltinArgs&); // keyword number (else zero)
+	Value KeywordQ(BuiltinArgs&); // 
 	Value Iter(BuiltinArgs&);
 protected:
 	Scanner* scanner;
@@ -97,6 +101,45 @@ Value SuScanner::Next(BuiltinArgs& args)
 		return this;
 	else
 		return new SuString(scanner->source + scanner->prev, scanner->si - scanner->prev);
+	}
+
+#define TYPE(type) static Value type(#type)
+
+// doesn't allocate a string every time whether needed or not
+Value SuScanner::Next2(BuiltinArgs& args)
+	{
+	args.usage("usage: scanner.Next()");
+	args.end();
+
+	token = scanner->nextall();
+	if (token == -1)
+		return this;
+	TYPE(ERROR);
+	TYPE(IDENTIFIER);
+	TYPE(NUMBER);
+	TYPE(STRING);
+	TYPE(WHITESPACE);
+	TYPE(COMMENT);
+	TYPE(NEWLINE);
+	switch (token)
+		{
+	case T_ERROR:
+		return ERROR;
+	case T_IDENTIFIER:
+		return IDENTIFIER;
+	case T_NUMBER:
+		return NUMBER;
+	case T_STRING:
+		return STRING;
+	case T_WHITE:
+		return WHITESPACE;
+	case T_COMMENT:
+		return COMMENT;
+	case T_NEWLINE:
+		return NEWLINE;
+	default:
+		return "";
+		}
 	}
 
 Value SuScanner::Position(BuiltinArgs& args)
@@ -139,6 +182,7 @@ Value SuScanner::Valu(BuiltinArgs& args)
 	return new SuString(scanner->value);
 	}
 
+// deprecated, replaced by Keyword?
 Value SuScanner::Keyword(BuiltinArgs& args)
 	{
 	args.usage("usage: scanner.Keyword()");
@@ -149,6 +193,16 @@ Value SuScanner::Keyword(BuiltinArgs& args)
 	return scanner->keyword < KEYWORDS
 		? scanner->keyword
 		: scanner->keyword - KEYWORDS;
+	}
+
+Value SuScanner::KeywordQ(BuiltinArgs& args)
+	{
+	args.usage("usage: scanner.Keyword?()");
+	args.end();
+
+	if (scanner->keyword && scanner->source[scanner->si] == ':')
+		return SuFalse;
+	return scanner->keyword ? SuTrue : SuFalse;
 	}
 
 Value SuScanner::Iter(BuiltinArgs& args)
