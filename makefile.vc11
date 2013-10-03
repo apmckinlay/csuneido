@@ -6,8 +6,11 @@ ifdef DEBUG
   LDFLAGS=/Z7
 else
   OUTPUT=vc11_release
-  FLAGS=/Ox /DNDEBUG
-  LDFLAGS=
+  OLD_FLAGS=/Ox /DNDEBUG
+  FLAGS=/GS /GL /analyze- /Gy /Zc:wchar_t /Gm- /O2  /D "_USING_V110_SDK71_" /WX /Gd /Oy- /Oi /MT
+  LDFLAGS=/LTCG /NXCOMPAT:NO \
+	/DEBUG /MACHINE:X86 /OPT:REF /SAFESEH /INCREMENTAL:NO /SUBSYSTEM:WINDOWS",5.01" \
+	/OPT:ICF /ERRORREPORT:PROMPT /NOLOGO /TLBID:1 
 endif
 
 CC = cl
@@ -25,7 +28,7 @@ $(OUTPUT)/%.obj : %.cpp
 	@$(CC) $(FLAGS) /c /Fo"$@" $<
 	$(call make-depend,$<,$@,$(subst .obj,.d,$@),g++)
 
-LDFLAGS += /nologo /FIXED /DELAYLOAD:advapi32.dll /DELAYLOAD:wininet.dll \
+LDFLAGS += /nologo /DELAYLOAD:advapi32.dll /DELAYLOAD:wininet.dll \
 	/DELAYLOAD:urlmon.dll /DELAYLOAD:ws2_32.dll 
 
 LIBS = gc_$(OUTPUT).lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib \
@@ -35,10 +38,10 @@ LIBS = gc_$(OUTPUT).lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.
 OBJECTS = $(patsubst %.c,$(OUTPUT)/%.obj,$(subst .cpp,.c,$(SOURCES))) 
 DEPENDS = $(subst .obj,.d,$(OBJECTS))
 
-$(OUTPUT)/suneido.exe : $(OBJECTS) $(OUTPUT)/suneido.res
+$(OUTPUT)/suneido.exe : $(OBJECTS) $(OUTPUT)/suneido.res gc_$(OUTPUT).lib
 	@$(CC) $(FLAGS) /c /Fo"$(OUTPUT)/build.obj" build.cpp
 	@echo link $(OUTPUT)/suneido.exe
-	@$(CC) $(LDFLAGS) /Fe"$(OUTPUT)/suneido.exe" $^ $(OUTPUT)/build.obj $(LIBS)
+	@$(CC) /Fe"$(OUTPUT)/suneido.exe" $^ $(OUTPUT)/build.obj $(LIBS) /link $(LDFLAGS)
 	
 $(OUTPUT)/suneido.res : suneido.rc resource.h res/suneido.exe.manifest
 	rc /nologo /l 0x409 /Fo"$(OUTPUT)/suneido.res"  /i "\Dev\Suneido" /d "NDEBUG" suneido.rc
