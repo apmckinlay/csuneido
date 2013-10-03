@@ -43,6 +43,7 @@ public:
 			Method<SuScanner>("Next2", &SuScanner::Next2),
 			Method<SuScanner>("Position", &SuScanner::Position),
 			Method<SuScanner>("Type", &SuScanner::Type),
+			Method<SuScanner>("Type", &SuScanner::Type2),
 			Method<SuScanner>("Text", &SuScanner::Text),
 			Method<SuScanner>("Length", &SuScanner::Length),
 			Method<SuScanner>("Value", &SuScanner::Valu),
@@ -54,9 +55,10 @@ public:
 		return methods;
 		}
 	Value Next(BuiltinArgs&); // returns same as Text
-	Value Next2(BuiltinArgs&); // returns Type as string
+	Value Next2(BuiltinArgs&); // NEW returns Type2
 	Value Position(BuiltinArgs&); // position after current token
 	Value Type(BuiltinArgs&); // token number
+	Value Type2(BuiltinArgs&); // NEW returns token type as string
 	Value Text(BuiltinArgs&); // raw text 
 	Value Length(BuiltinArgs&); // length of current token
 	Value Valu(BuiltinArgs&); // for strings returns escaped
@@ -91,6 +93,7 @@ void SuScanner::init(char* s)
 	scanner = new Scanner(s);
 	}
 
+// OLD - returns Text
 Value SuScanner::Next(BuiltinArgs& args)
 	{
 	args.usage("usage: scanner.Next()");
@@ -103,17 +106,41 @@ Value SuScanner::Next(BuiltinArgs& args)
 		return new SuString(scanner->source + scanner->prev, scanner->si - scanner->prev);
 	}
 
-#define TYPE(type) static Value type(#type)
-
+// NEW - returns Type2
 // doesn't allocate a string every time whether needed or not
 Value SuScanner::Next2(BuiltinArgs& args)
 	{
-	args.usage("usage: scanner.Next()");
-	args.end();
-
 	token = scanner->nextall();
 	if (token == -1)
 		return this;
+	return Type2(args);
+	}
+
+Value SuScanner::Position(BuiltinArgs& args)
+	{
+	args.usage("usage: scanner.Position()");
+	args.end();
+
+	return scanner->si;
+	}
+
+// OLD - returns type as integer
+Value SuScanner::Type(BuiltinArgs& args)
+	{
+	args.usage("usage: scanner.Type()");
+	args.end();
+
+	return token;
+	}
+
+#define TYPE(type) static Value type(#type)
+
+// NEW - returns type as string
+Value SuScanner::Type2(BuiltinArgs& args)
+	{
+	args.usage("usage: scanner.Type()");
+	args.end();
+
 	TYPE(ERROR);
 	TYPE(IDENTIFIER);
 	TYPE(NUMBER);
@@ -140,22 +167,6 @@ Value SuScanner::Next2(BuiltinArgs& args)
 	default:
 		return "";
 		}
-	}
-
-Value SuScanner::Position(BuiltinArgs& args)
-	{
-	args.usage("usage: scanner.Position()");
-	args.end();
-
-	return scanner->si;
-	}
-
-Value SuScanner::Type(BuiltinArgs& args)
-	{
-	args.usage("usage: scanner.Type()");
-	args.end();
-
-	return token;
 	}
 
 Value SuScanner::Text(BuiltinArgs& args)
