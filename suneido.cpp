@@ -207,9 +207,9 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		extern char* build_date;
 		alert("Built:  " << build_date << "\n"
 			""
-			"Copyright (C) 2000-2011 Suneido Software Corp.\n"
+			"Copyright (C) 2000-2013 Suneido Software Corp.\n"
 			"All rights reserved worldwide.\n"
-			"Licensed under the GNU General Public License.\n"
+			"Licensed under the GNU General Public License v2\n"
 			"\n"
 			"Boehm-Demers-Weiser garbage collector\n"
 			"www.hpl.hp.com/personal/Hans_Boehm/gc"
@@ -228,7 +228,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 
 	if (cmdlineoptions.check_start)
 		if (0 != fork_rebuild())
-			fatal("Database corrupt, unable to start");
+			fatal("Database corrupt, rebuild failed, unable to start");
 
 	if (run("Init()") == SuFalse)
 		exit(EXIT_FAILURE);
