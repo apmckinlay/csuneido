@@ -43,7 +43,7 @@ public:
 			Method<SuScanner>("Next2", &SuScanner::Next2),
 			Method<SuScanner>("Position", &SuScanner::Position),
 			Method<SuScanner>("Type", &SuScanner::Type),
-			Method<SuScanner>("Type", &SuScanner::Type2),
+			Method<SuScanner>("Type2", &SuScanner::Type2),
 			Method<SuScanner>("Text", &SuScanner::Text),
 			Method<SuScanner>("Length", &SuScanner::Length),
 			Method<SuScanner>("Value", &SuScanner::Valu),
