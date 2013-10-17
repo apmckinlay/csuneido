@@ -77,10 +77,14 @@ public:
 	Compiler(Scanner& sc, int t, int sn) // for FunctionCompiler
 		: scanner(sc), stmtnest(sn), token(t)
 		{ }
-	Value constant(char* gname = 0);
+	Value constant(char* gname, char* className);
+	Value constant()
+		{ return constant(NULL, NULL); }
 	Value object();
-	Value suclass(char* gname = 0);
-	Value functionCompiler(short base = -1, bool newfn = false, char* gname = 0);
+	Value suclass(char* gname, char* classNam);
+	Value functionCompiler(short base, bool newfn, char* gname, char* className);
+	Value functionCompiler(char* gname)
+		{ return functionCompiler(-1, false, gname, NULL); }
 	Value dll();
 	Value structure();
 	Value callback();
@@ -99,8 +103,10 @@ public:
 	void ckmatch(int t);
 	NORETURN(syntax_error(char* err = ""));
 
-	void member(SuObject* ob, char* gname = 0, short base = -1);
-	Value memname(char* gname, char* s);
+	void member(SuObject* ob, char* gname, char* className, short base);
+	void member(SuObject* ob)
+		{ member(ob, 0, 0, -1); }
+	Value memname(char* className, char* s);
 	Params* params();
 	char* ckglobal(char*);
 private:
@@ -124,11 +130,11 @@ class FunctionCompiler : public Compiler
 	{
 public:
 	FunctionCompiler(Scanner& scanner, int token, int stmtnest,
-		short b, bool nf, char* gn = "")
+		short b, bool nf, char* gn, char* cn)
 		: Compiler(scanner, token, stmtnest),
 		fn(0), last_adr(-1), nparams(0), ndefaults(0),
-		rest(false), newfn(nf), base(b), gname(gn), inblock(false),
-		expecting_compound(false)
+		rest(false), newfn(nf), base(b), gname(gn), className(cn), 
+		inblock(false), expecting_compound(false)
 		{
 		code.reserve(2000);
 		db.reserve(500);
@@ -148,6 +154,7 @@ private:
 	bool newfn;
 	short base;
 	char* gname;
+	char* className;
 	bool inblock;
 	bool expecting_compound;
 	// for loops
@@ -197,7 +204,7 @@ private:
 Value compile(char* s, char* gname, CodeVisitor* visitor)
 	{
 	Compiler compiler(s, visitor);
-	Value x = compiler.constant(gname);
+	Value x = compiler.constant(gname, gname);
 	if (compiler.token != -1)
 		compiler.syntax_error();
 	return x;
@@ -217,7 +224,7 @@ bool isquote(char c)
 	return c == '"' || c == '\'' || '`';
 	}
 
-Value Compiler::constant(char* gname)
+Value Compiler::constant(char* gname, char* className)
 	{
 	Value x;
 	switch (token)
@@ -268,9 +275,9 @@ Value Compiler::constant(char* gname)
 			{
 		case K_FUNCTION :
 			matchnew();
-			return functionCompiler();
+			return functionCompiler(gname);
 		case K_CLASS :
-			return suclass(gname);
+			return suclass(gname, className);
 		case K_DLL :
 			return dll();
 		case K_STRUCT :
@@ -285,7 +292,7 @@ Value Compiler::constant(char* gname)
 			return SuBoolean::f;
 		default :
 			if (*scanner.peek() == '{')
-				return suclass(gname);
+				return suclass(gname, className);
 			// else identifier => string
 			x = new SuString(scanner.value);
 			match();
@@ -356,45 +363,41 @@ char* Compiler::ckglobal(char* s)
 	return s;
 	}
 
-Value Compiler::suclass(char* gname) //===========================
+Value Compiler::suclass(char* gname, char* className) //===========================
 	{
-	if (! gname)
+	if (! className)
 		{
 		static int classnum = 0;
 		char buf[32] = "Class";
 		itoa(classnum++, buf + 5, 10);
-		gname = buf;
+		className = buf;
 		}
 
-	short base = OBJECT;
 	if (scanner.keyword == K_CLASS)
 		{
 		matchnew();
 		if (token == ':')
-			{
 			matchnew();
-			if (*scanner.value == '_')
-				base = globals.copy(ckglobal(scanner.value));
-			else
-				base = globals(ckglobal(scanner.value));
-			scanner.visitor->global(scanner.prev, base);
-			matchnew(T_IDENTIFIER);
-			}
 		}
-	else
+	short base = OBJECT;
+	if (token != '{')
 		{
 		if (*scanner.value == '_')
-			base = globals.copy(ckglobal(scanner.value));
+			{
+			if (! gname || 0 != strcmp(gname, scanner.value + 1))
+				except("invalid reference to " << scanner.value);
+			base = globals.copy(ckglobal(scanner.value)); // throws if undefined
+			}
 		else
 			base = globals(ckglobal(scanner.value));
-		scanner.visitor->global(scanner.prev, base);
+		scanner.visitor->global(scanner.prev, scanner.value);
 		matchnew(T_IDENTIFIER);
 		}
 	SuClass *ob = new SuClass(base);
 	match('{');
 	while (token != '}')
 		{
-		member(ob, gname, base);
+		member(ob, gname, className, base);
 		if (token == ',' || token == ';')
 			match();
 		}
@@ -404,7 +407,7 @@ Value Compiler::suclass(char* gname) //===========================
 	}
 
 // object constant & class members
-void Compiler::member(SuObject* ob, char* gname, short base)
+void Compiler::member(SuObject* ob, char* gname, char* className, short base)
 	{
 	Value mv;
 	bool name = false;
@@ -422,7 +425,7 @@ void Compiler::member(SuObject* ob, char* gname, short base)
 		{
 		if (anyName())
 			{
-			mv = memname(gname, scanner.value);
+			mv = memname(className, scanner.value);
 			name = true;
 			match();
 			}
@@ -445,7 +448,7 @@ void Compiler::member(SuObject* ob, char* gname, short base)
 
 	Value x;
 	if (peek == '(' && base > 0)
-		x = functionCompiler(base, mv.gcstr() == "New", gname);
+		x = functionCompiler(base, mv.gcstr() == "New", gname, className);
 	else if (token != ',' && token != ')' && token != '}')
 		{
 		x = constant();
@@ -722,10 +725,11 @@ void Compiler::syntax_error(char* err)
 
 // function ---------------------------------------------------------
 
-Value Compiler::functionCompiler(short base, bool newfn, char* gname)
+Value Compiler::functionCompiler(
+	short base, bool newfn, char* gname, char* className)
 	{
 	scanner.visitor->begin_func();
-	FunctionCompiler compiler(scanner, token, stmtnest, base, newfn, gname);
+	FunctionCompiler compiler(scanner, token, stmtnest, base, newfn, gname, className);
 	Value fn = compiler.function();
 	scanner.visitor->end_func();
 	token = compiler.token;
@@ -788,7 +792,7 @@ void FunctionCompiler::params(vector<char>& flags)
 				{
 				match();
 				flags[nparams] |= DOT;
-				fn->className = strdup(gname); // needed to privatize
+				fn->className = strdup(className); // needed to privatize
 				}
 			if (scanner.value[0] == '_')
 				{
@@ -1601,7 +1605,7 @@ void FunctionCompiler::expr0(bool newtype)
 		  			{
 					lvalue = false;
 					id = globals(scanner.value);
-					scanner.visitor->global(scanner.prev, id);
+					scanner.visitor->global(scanner.prev, scanner.value);
 					if (id == TrueNum || id == FalseNum)
 						{
 						emit(I_PUSH, LITERAL,
@@ -1611,9 +1615,13 @@ void FunctionCompiler::expr0(bool newtype)
 					}
 				else if (option == LITERAL) // _Name
 					{
+					// check if name is the name of what we're compiling
+					if (! gname || 0 != strcmp(gname, scanner.value + 1))
+						except("invalid reference to " << scanner.value);
 					Value x = globals.get(scanner.value + 1);
 					if (! x)
 						except("can't find " << scanner.value);
+					scanner.visitor->global(scanner.prev, scanner.value);
 					emit(I_PUSH, LITERAL, literal(x));
 					lvalue = value = false;
 					}
@@ -1644,7 +1652,7 @@ void FunctionCompiler::expr0(bool newtype)
 	case '.' :
 		matchnew('.');
 		option = MEM_SELF;
-		id = literal(memname(gname, scanner.value));
+		id = literal(memname(className, scanner.value));
 		match(T_IDENTIFIER);
 		if (! expecting_compound && token == T_NEWLINE && *scanner.peek() == '{')
 			match();
@@ -1964,7 +1972,10 @@ short FunctionCompiler::local(bool init)
 			}
 	except_if(locals.size() >= UCHAR_MAX, "too many local variables");
 	locals.push_back(num);
-	scanner.visitor->local(scanner.prev, locals.size() - 1, init);
+	if (*scanner.value == '_')
+		scanner.visitor->dynamic(locals.size() - 1);
+	else
+		scanner.visitor->local(scanner.prev, locals.size() - 1, init);
 	return locals.size() - 1;
 	}
 
@@ -2160,14 +2171,14 @@ void FunctionCompiler::patch(short i)
 	}
 
 // make lower case member names private by prefixing with class name
-Value Compiler::memname(char* gname, char* s)
+Value Compiler::memname(char* className, char* s)
 	{
-	if (gname && islower(s[0]))
+	if (className && islower(s[0]))
 		{
 		if (has_prefix(s, "get_"))
-			s = CATSTR3("Get_", gname, s + 3); // get_name => Get_Class_name
+			s = CATSTR3("Get_", className, s + 3); // get_name => Get_Class_name
 		else
-			s = CATSTR3(gname, "_", s);
+			s = CATSTR3(className, "_", s);
 		}
 	return symbolOrString(s);
 	}

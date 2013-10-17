@@ -50,6 +50,7 @@ Value Globals::operator[](const char* s)
 	return operator[](operator()(s));
 	}
 
+// returns Value() if MISSING
 Value Globals::get(ushort j)
 	{
 	return data[j].ptr() == MISSING ? Value() : data[j];
@@ -79,6 +80,7 @@ ushort Globals::operator()(const char* s)
 	return num;
 	}
 
+// throws if not found
 Value Globals::operator[](ushort j)
 	{
 	if (Value x = find(j))
@@ -87,6 +89,7 @@ Value Globals::operator[](ushort j)
 		except("can't find " << names[j]);
 	}
 
+// returns Value() if not found
 Value Globals::find(ushort j)
 	{
 	if (! data[j])

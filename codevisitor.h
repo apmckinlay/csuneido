@@ -23,9 +23,11 @@
 class CodeVisitor
 	{
 public:
-	virtual void local(int pos, int i, bool init)
+	virtual void local(int pos, int var, bool init)
 		{ }
-	virtual void global(int pos, int gnum)
+	virtual void dynamic(int var)
+		{ }
+	virtual void global(int pos, char* name)
 		{ }
 	virtual void begin_func()
 		{ }

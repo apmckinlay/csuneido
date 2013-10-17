@@ -28,7 +28,6 @@
 #include <vector>
 #include <stack>
 
-// TODO: uninitialized locals
 // TODO: private members only used once
 // TODO: uninitialized private members (by definition or assignment)
 
@@ -57,8 +56,9 @@ class CodeCheck : public CodeVisitor
 public:
 	CodeCheck(SuObject* ob) : results(ob)
 		{ }
-	virtual void local(int pos, int i, bool init);
-	virtual void global(int pos, int gnum);
+	virtual void local(int pos, int var, bool init);
+	virtual void dynamic(int var);
+	virtual void global(int pos, char* name);
 	virtual void begin_func();
 	virtual void end_func();
 private:
@@ -85,6 +85,16 @@ void CodeCheck::local(int pos, int var, bool init)
 			process(event.pos, event.var, event.init);
 		}
 	event = Event(pos, var, init);
+	}
+
+void CodeCheck::dynamic(int var)
+	{
+	if (event.pos != -1)
+		process(event.pos, event.var, event.init);
+	// mark _name as both used and initialized
+	process(0, var, true);
+	process(0, var, false);
+	event = Event();
 	}
 
 void CodeCheck::process(int pos, int var, bool init)
@@ -137,8 +147,19 @@ void CodeCheck::end_func()
 
 #include "globals.h"
 
-void CodeCheck::global(int pos, int gnum)
+void CodeCheck::global(int pos, char* name)
 	{
-	if (*globals(gnum) == '_'  || ! globals.find(gnum))
-		results->add(pos); // _Name without Name - ERROR
+	if (*name == '_')
+		results->add(-pos); // _Name where Name is defined - WARNING
+		// Compiler throws before getting here if Name is undefined
+	else
+		try
+			{
+			if (! globals.find(name))
+				results->add(pos); // reference to undefined global - ERROR
+			}
+		catch (...)
+			{
+			results->add(-pos); // error compiling referenced global - WARNING
+			}
 	}
