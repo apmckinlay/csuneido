@@ -1961,6 +1961,8 @@ short FunctionCompiler::local(bool init)
 
 	// for blocks
 	static ushort it_num = symnum("it");
+	if (0 == strcmp("_", scanner.value))
+		num = it_num;
 	if (num == it_num)
 		it_used = true;
 
