@@ -817,13 +817,6 @@ Value SuObject::find(Value value)
 	return SuFalse;
 	}
 
-void SuObject::remove(Value value)
-	{
-	Value member;
-	while (SuFalse != (member = find(value)))
-		erase(member);
-	}
-
 void SuObject::remove1(Value value)
 	{
 	Value member;
@@ -833,32 +826,44 @@ void SuObject::remove1(Value value)
 
 Value SuObject::Delete(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	static ushort all = ::symnum("all");
-	if (nargs != 1 || (nargnames == 1 && argnames[0] != all))
-		except("usage: object.Delete(member) or Delete(all:)");
 	if (readonly)
 		except("can't Delete from readonly objects");
-	ModificationCheck mc(this);
-	if (nargnames)
-		{ // all:
-		std::fill(vec.begin(), vec.end(), Value());
-		vec.clear();
-		map.clear();
+	argseach(nargs, nargnames, argnames, each);
+	static ushort all = ::symnum("all");
+	if (nargs == 1 && nargnames == 1 && argnames[0] == all)
+		{
+		if (TOP() == SuTrue)
+			clear();
 		}
-	else if (! erase(TOP()))
-		return SuBoolean::f;
+	else if (nargs > 0 && nargnames == 0)
+		{
+		for (int i = 0; i < nargs; ++i)
+			erase(ARG(i));
+		}
+	else
+		except("usage: object.Delete(member ...) or Delete(all:)");
 	return this;
+	}
+
+void SuObject::clear()
+	{
+	ModificationCheck mc(this);
+	std::fill(vec.begin(), vec.end(), Value());
+	vec.clear();
+	map.clear();
 	}
 
 // like Delete, but doesn't move in vector
 Value SuObject::Erase(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 1)
-		except("usage: object.Erase(member)");
 	if (readonly)
 		except("can't Erase from readonly objects");
-	if (! erase2(TOP()))
-		return SuBoolean::f;
+	argseach(nargs, nargnames, argnames, each);
+	if (nargs > 0 && nargnames == 0)
+		for (int i = 0; i < nargs; ++i)
+			erase2(ARG(i));
+	else
+		except("usage: object.Erase(member ...)");
 	return this;
 	}
 
@@ -1462,30 +1467,6 @@ class test_object : public Tests
 			verify(s.size() == 1 && s[0] >= 'a' && s[0] <= 'z');
 			}	
 		verify(obiter == obiter.call(obiter, "Next", 0, 0, 0, -1));
-		}
-	TEST(8, remove)
-		{
-		SuObject ob;
-		ob.remove(SuTrue);
-
-		ob.add(SuTrue);
-		asserteq(ob.size(), 1);
-		ob.remove(SuFalse);
-		asserteq(ob.size(), 1);
-		ob.remove(SuTrue);
-		asserteq(ob.size(), 0);
-
-		ob.add(1);
-		ob.add(2);
-		ob.add(4);
-		ob.put(10, 2);
-		ob.put(11, 3);
-		asserteq(ob.size(), 5);
-		ob.remove(2);
-		asserteq(ob.size(), 3);
-		asserteq(ob.get(0), 1);
-		asserteq(ob.get(1), 4);
-		asserteq(ob.get(11), 3);
 		}
 	TEST(9, remove1)
 		{

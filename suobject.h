@@ -123,7 +123,6 @@ public:
 	iterator end()
 		{ return iterator(vec, map, false, false, version); }
 	Value find(Value value);
-	void remove(Value value);
 	void remove1(Value value);
 	void sort();
 protected:
@@ -159,6 +158,7 @@ private:
 	Value Find(short nargs, short nargnames, ushort* argnames, int each);
 	Value Erase(short nargs, short nargnames, ushort* argnames, int each);
 	Value Delete(short nargs, short nargnames, ushort* argnames, int each);
+	void clear();
 	Value Add(short nargs, short nargnames, ushort* argnames, int each);
 	Value Reverse(short nargs, short nargnames, ushort* argnames, int each);
 	Value Join(short nargs, short nargnames, ushort* argnames, int each);
