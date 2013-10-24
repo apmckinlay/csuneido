@@ -258,9 +258,7 @@ Value SuString::call(Value self, Value member, short nargs, short nargnames, ush
 		methods["Alpha?"] = &SuString::Alphaq;
 		methods["AlphaNum?"] = &SuString::AlphaNumq;
 		METHOD(Compile);
-		METHOD(Contains);
 		METHOD(Detab);
-		METHOD(EndsWith);
 		METHOD(Entab);
 		METHOD(Eval);
 		METHOD(Eval2);
@@ -271,7 +269,7 @@ Value SuString::call(Value self, Value member, short nargs, short nargnames, ush
 		METHOD(FindLast1of);
 		METHOD(Findnot1of);
 		METHOD(FindLastnot1of);
-		methods["Has?"] = &SuString::Contains;
+		methods["Has?"] = &SuString::Hasq;
 		METHOD(Iter);
 		METHOD(Lower);
 		methods["Lower?"] = &SuString::Lowerq;
@@ -280,15 +278,14 @@ Value SuString::call(Value self, Value member, short nargs, short nargnames, ush
 		METHOD(Mbstowcs);
 		methods["Number?"] = &SuString::Numberq;
 		methods["Numeric?"] = &SuString::Numericq;
-		methods["Prefix?"] = &SuString::StartsWith;
+		methods["Prefix?"] = &SuString::Prefixq;
 		METHOD(Repeat);
 		METHOD(Replace);
 		METHOD(ServerEval);
 		METHOD(Size);
 		METHOD(Split);
-		METHOD(StartsWith);
 		METHOD(Substr);
-		methods["Suffix?"] = &SuString::EndsWith;
+		methods["Suffix?"] = &SuString::Suffixq;
 		METHOD(Tr);
 		METHOD(Unescape);
 		METHOD(Upper);
@@ -945,7 +942,7 @@ Value SuString::AlphaNumq(short nargs, short nargnames, ushort* argnames, int ea
 	return SuTrue;
 	}
 
-Value SuString::Contains(short nargs, short nargnames, ushort* argnames, int each)
+Value SuString::Hasq(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("usage: string.Has?(string)");
@@ -954,7 +951,7 @@ Value SuString::Contains(short nargs, short nargnames, ushort* argnames, int eac
 	return s.find(str) == -1 ? SuFalse : SuTrue;
 	}
 
-Value SuString::StartsWith(short nargs, short nargnames, ushort* argnames, int each)
+Value SuString::Prefixq(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("usage: string.Prefix?(string, pos = 0)");
@@ -964,7 +961,7 @@ Value SuString::StartsWith(short nargs, short nargnames, ushort* argnames, int e
 	return s.has_prefix(str, pos) ? SuTrue : SuFalse;
 	}
 
-Value SuString::EndsWith(short nargs, short nargnames, ushort* argnames, int each)
+Value SuString::Suffixq(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("usage: string.Suffix?(string)");

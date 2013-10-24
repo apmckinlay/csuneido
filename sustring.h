@@ -126,9 +126,7 @@ private:
 	Value AlphaNumq(short nargs, short nargnames, ushort* argnames, int each);
 	Value Asc(short nargs, short nargnames, ushort* argnames, int each);
 	Value Compile(short nargs, short nargnames, ushort* argnames, int each);
-	Value Contains(short nargs, short nargnames, ushort* argnames, int each);
 	Value Detab(short nargs, short nargnames, ushort* argnames, int each);
-	Value EndsWith(short nargs, short nargnames, ushort* argnames, int each);
 	Value Entab(short nargs, short nargnames, ushort* argnames, int each);
 	Value Eval(short nargs, short nargnames, ushort* argnames, int each);
 	Value Eval2(short nargs, short nargnames, ushort* argnames, int each);
@@ -139,6 +137,7 @@ private:
 	Value FindLast1of(short nargs, short nargnames, ushort* argnames, int each);
 	Value Findnot1of(short nargs, short nargnames, ushort* argnames, int each);
 	Value FindLastnot1of(short nargs, short nargnames, ushort* argnames, int each);
+	Value Hasq(short nargs, short nargnames, ushort* argnames, int each);
 	Value Iter(short nargs, short nargnames, ushort* argnames, int each);
 	Value Lower(short nargs, short nargnames, ushort* argnames, int each);
 	Value Lowerq(short nargs, short nargnames, ushort* argnames, int each);
@@ -147,13 +146,14 @@ private:
 	Value Mbstowcs(short nargs, short nargnames, ushort* argnames, int each);
 	Value Numberq(short nargs, short nargnames, ushort* argnames, int each);
 	Value Numericq(short nargs, short nargnames, ushort* argnames, int each);
+	Value Prefixq(short nargs, short nargnames, ushort* argnames, int each);
 	Value Repeat(short nargs, short nargnames, ushort* argnames, int each);
 	Value Replace(short nargs, short nargnames, ushort* argnames, int each);
 	Value ServerEval(short nargs, short nargnames, ushort* argnames, int each);
 	Value Size(short nargs, short nargnames, ushort* argnames, int each);
 	Value Split(short nargs, short nargnames, ushort* argnames, int each);
-	Value StartsWith(short nargs, short nargnames, ushort* argnames, int each);
 	Value Substr(short nargs, short nargnames, ushort* argnames, int each);
+	Value Suffixq(short nargs, short nargnames, ushort* argnames, int each);
 	Value Tr(short nargs, short nargnames, ushort* argnames, int each);
 	Value Unescape(short nargs, short nargnames, ushort* argnames, int each);
 	Value Upper(short nargs, short nargnames, ushort* argnames, int each);
