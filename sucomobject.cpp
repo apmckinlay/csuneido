@@ -164,6 +164,8 @@ static Value com2su(VARIANT* var)
 		break;
 	case VT_BSTR:
 		{
+        // FIXME: I think we need to make sure the BSTR memory gets cleaned up.
+        //        Best way is to make sure VariantClear() gets called.
 		int nw = SysStringLen(V_BSTR(&varValue));
 		if (nw == 0)
 			return SuString::empty_string;
@@ -262,10 +264,20 @@ static void su2com(Value x, VARIANT* v)
 		V_VT(v) = VT_BSTR;
 		V_BSTR(v) = A2WBSTR(s);
 		// TODO: handle strings with embedded nuls
-		// TODO: THIS SHOULD BE FREE'D WITH SysFreeString
+		// TODO: THIS SHOULD BE FREE'D WITH SysFreeString ... ACTUALLY, I don't
+		//       think it should be freed. COM convention seems to be "caller
+		//       allocates, callee frees", so whoever gets this VARIANT
+		//       structure is in charge of freeing the memory. The leak is
+		//       in com2su(), not su2com().
 		}
 	else if (SuCOMobject* sco = val_cast<SuCOMobject*>(x))
 		{
+		// FIXME: There are a couple of problems with this.
+		//        First, we need to AddRef() the interface, as the COM convention
+		//        is "caller allocates, callee frees".
+		//        Second, this doesn't work with the recent changes I made to this
+		//        file because now a COMobject might just wrap IUnknown. We need
+		//        to check.
 		V_VT(v) = VT_DISPATCH;
 		V_DISPATCH(v) = sco->idispatch();
 		}
