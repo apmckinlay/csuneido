@@ -57,7 +57,9 @@ public:
 	Value getdata(Value);
 	void putdata(Value, Value);
 	IDispatch* idispatch()
-		{ return idisp; }
+		{ return isdisp ? idisp : NULL; }
+	IUnknown * iunknown()
+		{ return isdisp ? NULL : iunk; }
 private:
 	void verify_not_released();
 	void require_idispatch();
@@ -122,6 +124,7 @@ static Value com2su(VARIANT* var)
 	VARIANT varValue;
 	VariantInit(&varValue);
 	VariantCopyInd(&varValue, var);
+	VariantClear(var);
 
 	USES_CONVERSION;
 	switch (V_VT(&varValue))
@@ -153,7 +156,7 @@ static Value com2su(VARIANT* var)
 			result = new SuCOMobject(idisp);
 		else
 			{
-			iunk->AddRef();
+			iunk->AddRef(); // VariantClear() will release the reference from varValue
 			result = new SuCOMobject(iunk);
 			}
 		break;
@@ -163,9 +166,7 @@ static Value com2su(VARIANT* var)
 		result = 0;
 		break;
 	case VT_BSTR:
-		{
-        // FIXME: I think we need to make sure the BSTR memory gets cleaned up.
-        //        Best way is to make sure VariantClear() gets called.
+		{ // VariantClear() will release the BSTR in varValue
 		int nw = SysStringLen(V_BSTR(&varValue));
 		if (nw == 0)
 			return SuString::empty_string;
@@ -262,24 +263,26 @@ static void su2com(Value x, VARIANT* v)
 	else if ((s = x.str_if_str()))
 		{
 		V_VT(v) = VT_BSTR;
-		V_BSTR(v) = A2WBSTR(s);
+		V_BSTR(v) = A2WBSTR(s); // COM convention is callee will free memory
 		// TODO: handle strings with embedded nuls
-		// TODO: THIS SHOULD BE FREE'D WITH SysFreeString ... ACTUALLY, I don't
-		//       think it should be freed. COM convention seems to be "caller
-		//       allocates, callee frees", so whoever gets this VARIANT
-		//       structure is in charge of freeing the memory. The leak is
-		//       in com2su(), not su2com().
 		}
 	else if (SuCOMobject* sco = val_cast<SuCOMobject*>(x))
 		{
-		// FIXME: There are a couple of problems with this.
-		//        First, we need to AddRef() the interface, as the COM convention
-		//        is "caller allocates, callee frees".
-		//        Second, this doesn't work with the recent changes I made to this
-		//        file because now a COMobject might just wrap IUnknown. We need
-		//        to check.
-		V_VT(v) = VT_DISPATCH;
-		V_DISPATCH(v) = sco->idispatch();
+		IDispatch * idisp = sco->idispatch();
+		if (idisp)
+			{
+			V_VT(v) = VT_DISPATCH;
+			V_DISPATCH(v) = idisp;
+			idisp->AddRef(); // COM convention is callee will Release()
+			}
+		else
+			{
+			IUnknown * iunk = sco->iunknown();
+			verify(NULL != iunk);
+			V_VT(v) = VT_UNKNOWN;
+			V_UNKNOWN(v) = iunk;
+			iunk->AddRef(); // COM convention is callee will Release()
+			}
 		}
 	else
 		except("COM: can't convert: " << x);
@@ -313,29 +316,20 @@ Value SuCOMobject::call(Value self, Value member, short nargs, short nargnames, 
 	{
 	verify_not_released();
 	static Value RELEASE("Release");
-	static Value ADDREF("AddRef");
 	static Value DISPATCHQ("Dispatch?");
 	if (member == RELEASE)
 		{
 		if (nargs != 0)
 			except("usage: comobject.Release()");
-		int count = isdisp ? idisp->Release() : iunk->Release();
-		if (count < 1)
-			isalive = 0;
-		return count;
+		isdisp ? idisp->Release() : iunk->Release();
+		isalive = false;
+		return 0;
 		}
 	else if (member == DISPATCHQ)
 		{
 		if (nargs != 0)
 			except("usage: comobject.Dispatch?()");
 		return isdisp ? SuTrue : SuFalse;
-		}
-	else if (member == ADDREF)
-		{
-		if (nargs != 0)
-			except("usage: comobject.AddRef()");
-		int count = isdisp ? idisp->AddRef() : iunk->AddRef();
-		return count;
 		}
 	// else call
 
@@ -381,12 +375,12 @@ Value su_COMobject()
 		{
 		hr = iunk->QueryInterface(IID_IDispatch, (void**) &idisp);
 		if (SUCCEEDED(hr) && idisp)
-			return new SuCOMobject(idisp, progid);
-		else
 			{
-			iunk->AddRef();
-			return new SuCOMobject(iunk, progid);
+			iunk->Release();
+			return new SuCOMobject(idisp, progid);
 			}
+		else
+			return new SuCOMobject(iunk, progid);
 		}
 	else
 		{
