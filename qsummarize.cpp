@@ -193,6 +193,8 @@ double Summarize::optimize2(const Fields& index, const Fields& needs,
 		}
 	else
 		{
+		if (best_cost >= IMPOSSIBLE)
+			return IMPOSSIBLE;
 		strategy = SEQUENTIAL;
 		via = best_index;
 		return source->optimize1(best_index, srcneeds, none, is_cursor, freeze);
