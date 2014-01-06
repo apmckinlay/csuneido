@@ -48,6 +48,18 @@ random_class randnum;
 
 // misc. routines --------------------------------------------
 
+SuNumber::SuNumber(char s, schar e) : sign(s), exp(e)
+	{
+	memset(digits, 0, sizeof digits);
+	check();
+	}
+
+SuNumber::SuNumber(char s, schar e, const short* d) : sign(s), exp(e)
+	{
+	memcpy(digits, d, sizeof digits);
+	check();
+	}
+
 void* SuNumber::operator new(size_t n)
 	{ 
 	return ::operator new (n, noptrs);
@@ -88,13 +100,6 @@ size_t SuNumber::hashfn()
 		return sign == PLUS ? result : -result;
 		}
 	return digits[0] ^ digits[1] ^ digits[2] ^ digits[3];
-	}
-
-SuNumber::SuNumber(Sign _sign, schar _exp)
-	{
-	sign = _sign;
-	exp = _exp;
-	digits[0] = digits[1] = digits[2] = digits[3] = 0;
 	}
 
 #ifdef NDEBUG
@@ -191,13 +196,7 @@ SuNumber::SuNumber(long sx)
 	check();
 	}
 
-#ifdef _MSC_VER
-#define LONG_LONG_MAX _I64_MAX
-#define LONG_LONG_MIN _I64_MIN
-const uint64 ONE12ZEROS =1000000000000;
-#else
-const uint64 ONE12ZEROS =1000000000000LL;
-#endif
+const uint64 ONE12ZEROS = 1000000000000LL;
 	
 SuNumber* SuNumber::from_int64(int64 sx)
 	{
@@ -277,7 +276,7 @@ int64 SuNumber::bigint() const
 	if (is_zero() || exp < 1)
 		return 0;
 	else if (exp > 4)
-		return sign == PLUS ? LONG_LONG_MAX : LONG_LONG_MIN;	// out of range
+		return sign == PLUS ? LLONG_MAX : LLONG_MIN;	// out of range
 	int64 result = 0;
 	for (int i = 0; i < exp; ++i)
 		{
@@ -315,7 +314,7 @@ SuNumber* uadd(const SuNumber* x, const SuNumber* y)
 		swap(x, y);
 	verify(x->exp <= y->exp);
 	if (y->exp - x->exp > NDIGITS)
-		return (new SuNumber(y))->setsign(PLUS);
+		return new SuNumber(PLUS, y->exp, y->digits);
 	SuNumber* z = new SuNumber(x);
 	z->sign = PLUS;
 	while (z->exp < y->exp)
@@ -573,9 +572,7 @@ SuNumber* div(const SuNumber* x, const SuNumber* yy)
 	if (yy->is_infinity()) // && ! x->is_infinity()
 		return &SuNumber::zero;
 
-	SuNumber y(yy);
-	y.exp = 0;
-	y.sign = PLUS;
+	SuNumber y(PLUS, 0, yy->digits);
 	//dbg("y " << y);
 	long y8 = y.first8();
 	long y5 = y.first5();
@@ -584,9 +581,7 @@ SuNumber* div(const SuNumber* x, const SuNumber* yy)
 	short zd[MAXDIGITS]; 	// most significant first
 	memset(zd, 0, sizeof zd);
 
-	SuNumber remainder(x);
-	remainder.exp = 0;
-	remainder.sign = PLUS;
+	SuNumber remainder(PLUS, 0, x->digits);
 	short loops = 0;
 	short n = 0;
 	SuNumber tmp(0L);
@@ -644,8 +639,7 @@ SuNumber* div(const SuNumber* x, const SuNumber* yy)
 		//dbg("remainder " << remainder);
 		}
 	n += 2;
-	SuNumber* z = new SuNumber(0L);
-	z->sign = (x->sign == yy->sign);
+	bool sign = (x->sign == yy->sign);
 	int exp = x->exp - yy->exp + 1;
 	// round zd
 	short* zdp = zd;
@@ -654,19 +648,17 @@ SuNumber* div(const SuNumber* x, const SuNumber* yy)
 	if (exp <= SCHAR_MIN)
 		return &SuNumber::zero;
 	if (exp >= SCHAR_MAX)
-		return z->sign ? &SuNumber::infinity : &SuNumber::minus_infinity;
-	z->exp = exp;
+		return sign ? &SuNumber::infinity : &SuNumber::minus_infinity;
 	verify(zdp < &zd[MAXDIGITS]);
 	for (short carry = zdp[4] > 5000, i = 3; carry; --i)
 		{
+		verify(i >= 0);
 		zdp[i] += carry;
 		if ((carry = (zdp[i] > 9999 ? 1 : 0)) != 0)
 			zdp[i] = 0;
 		}
-	memcpy(z->digits, zdp, sizeof z->digits);
-	z->check();
 	//dbg("");
-	return z;
+	return new SuNumber(sign, exp, zdp);
 	}
 
 // this = SuNumber * short (only used by divide)
@@ -690,6 +682,128 @@ void SuNumber::product(const SuNumber& x, short y)
 		// += instead of = because shift_right rounding may carry into it
 		}
 	check();
+	}
+
+struct Tmp
+	{
+	short digits[3 * NDIGITS];
+	Tmp(const short* d)
+		{
+		memset(digits, 0, sizeof digits);
+		for (int i = 0; i < NDIGITS; ++i)
+			digits[i + NDIGITS] = d[i];
+		}
+	short& operator[](int i)
+		{ return digits[i]; 	}
+	operator short*()
+		{ return digits; }
+	};
+
+void round2(int digits, int exp, Tmp& tmp, char mode);
+void muldiv10(short tmp[], int digits);
+
+SuNumber* round(SuNumber* x, int digits, char mode)
+	{
+	if (x->is_zero() || digits <= -MAXDIGITS)
+		return &SuNumber::zero;
+	if (x->is_infinity())
+		return &SuNumber::infinity;
+	if (digits >= MAXDIGITS)
+		return new SuNumber(x); // can't return x because it may be on stack
+
+	Tmp tmp(x->digits);
+	round2(digits, x->exp, tmp, mode);
+
+	muldiv10(tmp, -digits);
+
+	// handle round up overflowing
+	// e.g. .9.Round(0) => 1 or .995.Round(2) => 1 or 9999.Round(-4) => 10000
+	if (tmp[NDIGITS - 1] == 1)
+		return new SuNumber(x->sign, x->exp + 1, SuNumber::one.digits);
+
+	// check for zero
+	bool zero = true;
+	for (int i = NDIGITS; i < 2 * NDIGITS; ++i)
+		if (tmp[i] != 0)
+			zero = false;
+	if (zero)
+		return &SuNumber::zero;
+
+	return new SuNumber(x->sign, x->exp, tmp + NDIGITS);
+	}
+
+void round2(int digits, int exp, Tmp& tmp, char mode) // also used by mask
+	{
+	muldiv10(tmp, digits);
+
+	// inc if rounding up
+	if (exp < 2 * NDIGITS && (
+		(mode == 'h' && tmp[NDIGITS + exp] >= 5000) ||
+		(mode == 'u' &&  tmp[NDIGITS + exp] > 0)))
+		{
+		int carry = 1;
+		for (int i = NDIGITS + exp - 1; i >= 0; --i)
+			{
+			verify(0 <= i && i < 3 * NDIGITS);
+			int x = carry + tmp[i];
+			tmp[i] = x % 10000;
+			carry = x / 10000;
+			}
+		verify(carry == 0);
+		}
+	// else if mode == 'd'
+	// nothing required
+
+	// discard fractional part
+	for (int i = NDIGITS + exp; i >= 0 && i < 3 * NDIGITS; ++i)
+		{
+		verify(0 <= i && i < 3 * NDIGITS);
+		tmp[i] = 0;
+		}
+	}
+
+void mul10(short tmp[]);
+void div10(short tmp[]);
+
+void muldiv10(short tmp[], int digits)
+	{
+	if (digits > 0)
+		{ // multiply
+		for (int d = 0; d < digits; ++d)
+			mul10(tmp); 
+		}
+	else if (digits < 0)
+		{
+		for (int d = 0; d < -digits; ++d)
+			div10(tmp);
+		}
+	// else digits == 0, return unchanged
+	}
+
+void mul10(short tmp[])
+	{
+	int carry = 0;
+	for (int i = 3 * NDIGITS - 1; i >= 0; --i)
+		{
+		verify(0 <= i && i < 3 * NDIGITS);
+		int x = tmp[i] * 10 + carry;
+		tmp[i] = x % 10000;
+		carry = x / 10000;
+		}
+	verify(carry == 0);
+	}
+
+void div10(short tmp[])
+	{
+	int carry = 0;
+	for (int i = 0; i < 3 * NDIGITS; ++i)
+		{
+		verify(0 <= i && i < 3 * NDIGITS);
+		int x = carry * 1000 + tmp[i] / 10;
+		carry = tmp[i] % 10;
+		tmp[i] = x;
+		}
+	verify(carry == 0);
 	}
 
 // conversions from strings to numbers ------------------------------
@@ -844,6 +958,23 @@ static void put(char*& s, short x)
 		}
 	}
 
+static void strmove(char* dst, const char* src)
+	{
+	// not using strcpy because it's undefined for overlapping
+	while (*dst++ = *src++)
+		;
+	}
+
+static void remove_leading_zeroes(char* num)
+	{
+	if (num[0] != '0')
+		return ;
+	char* s = num;
+	while (*s == '0')
+		++s;
+	strmove(num, s);
+	}
+
 // TODO: pass buf size
 char* SuNumber::format(char* buf) const
 	{
@@ -916,13 +1047,7 @@ char* SuNumber::format(char* buf) const
 			}
 		}
 	*s = 0;
-	// remove leading zeroes (too hard to not generate them)
-	if (*start == '0')
-		{
-		for (s = start; *s == '0'; ++s)
-			;
-		strcpy(start, s);
-		}
+	remove_leading_zeroes(start);
 	return buf;
 	}
 
@@ -944,8 +1069,7 @@ SuNumber& SuNumber::toint()
 		}
 	else
 		{
-		int i;
-		for (i = exp; i < NDIGITS; ++i)
+		for (int i = exp; i < NDIGITS; ++i)
 			digits[i] = 0;
 		}
 	return *this;
@@ -977,15 +1101,13 @@ SuNumber& SuNumber::tofrac()
 	}
 
 // buf should be as long as mask
-char* SuNumber::mask(char* buf, char* mask)
+char* SuNumber::mask(char* buf, char* mask) const
 	{
-	static SuNumber ten(10);
-	static SuNumber half(".5");
-	SuNumber x(this);
-	x.sign = PLUS;
+	if (is_infinity())
+		return strcpy(buf, "#");
 
 	const size_t masksize = strlen(mask);
-	char num[32];
+	char num[4 * NDIGITS * 2 + 1];
 	if (is_zero())
 		{
 		char* dst = num;
@@ -996,17 +1118,20 @@ char* SuNumber::mask(char* buf, char* mask)
 		}
 	else
 		{
+		// round to number of decimal places in mask
+		if (exp > NDIGITS)
+			return strcpy(buf, "#");
+		int decimals = 0;
 		if (char* d = strchr(mask, '.'))
 			for (++d; *d == '#'; ++d)
-				x = x * ten;
-		SuNumber tmp(x);
-		tmp.toint();
-		if (x != tmp)
-			{ // need to round
-			x = x + half;
-			x.toint();
-			}
-		x.format(num);
+				++decimals;
+		Tmp tmp(digits);
+		round2(decimals, exp, tmp, 'h');
+		char* dst = num;
+		for (int i = 0; i < NDIGITS + exp; ++i)
+			put(dst, tmp[i]);
+		*dst = 0;
+		remove_leading_zeroes(num);
 		}
 	char* dst = buf + masksize;
 	*dst = 0;
@@ -1048,8 +1173,10 @@ char* SuNumber::mask(char* buf, char* mask)
 	char* end = start;
 	while (*end == '0' && end[1])
 		++end;
+	if (end > start && *end == '.' && (! end[1] || ! isdigit(end[1])))
+		--end;
 	if (end > start)
-		strcpy(start, end);
+		strmove(start, end);
 
 	if (j >= 0)
 		return strcpy(buf, "#"); // too many digits for mask
@@ -1061,13 +1188,12 @@ char* SuNumber::mask(char* buf, char* mask)
 SuNumber::SuNumber(random_class)
 	{
 	sign = ::random(2);
-//	exp = ::random(3) - 1;
 	exp = ::random(21) - 10;
 	digits[0] = 1 + ::random(4999); // prevent add_sub from overflow
 	digits[1] = ::random(10000);
 	digits[2] = ::random(10000);
 	digits[3] = ::random(10000);
-//	check();
+	check();
 	}
 
 // packing ==========================================================
@@ -1273,6 +1399,9 @@ Value SuNumber::call(Value self, Value member, short nargs, short nargnames, ush
 	static Value HEX("Hex");
 	static Value OCTAL("Octal");
 	static Value BINARY("Binary");
+	static Value ROUND("Round");
+	static Value ROUND_UP("RoundUp");
+	static Value ROUND_DOWN("RoundDown");
 
 	if (member == FORMAT)
 		{
@@ -1396,6 +1525,24 @@ Value SuNumber::call(Value self, Value member, short nargs, short nargnames, ush
 		char buf[40];
 		utostr(integer(), buf, 2);
 		return new SuString(buf);
+		}
+	else if (member == ROUND)
+		{
+		if (nargs != 1)
+			except("usage: number.Round(number)");
+		return round(this, ARG(0).integer(), 'h');
+		}
+	else if (member == ROUND_UP)
+		{
+		if (nargs != 1)
+			except("usage: number.Round(number)");
+		return round(this, ARG(0).integer(), 'u');
+		}
+	else if (member == ROUND_DOWN)
+		{
+		if (nargs != 1)
+			except("usage: number.Round(number)");
+		return round(this, ARG(0).integer(), 'd');
 		}
 	else
 		{

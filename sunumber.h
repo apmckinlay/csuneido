@@ -75,23 +75,12 @@ public:
 	explicit SuNumber(long);
 	static SuNumber* from_int64(int64);
 	explicit SuNumber(const char* buf, short len = -1);
-	explicit SuNumber(random_class);
 	explicit SuNumber(const SuNumber* x) 
 		{ *this = *x; }
-	SuNumber& operator=(const SuNumber& x)
-		{
-		if (this == &x)
-			return *this;
-		sign = x.sign; exp = x.exp;
-		memcpy(digits, x.digits, sizeof digits);
-		return *this;
-		}
 
 	char* format(char* buf) const;
 
-	SuNumber& toint();
-	SuNumber& tofrac();
-	char* mask(char* buf, char* mask);
+	char* mask(char* buf, char* mask) const;
 
 	double to_double() const;
 	static SuNumber* from_float(float x);
@@ -107,9 +96,12 @@ public:
 
 	static SuNumber zero, one, minus_one, infinity, minus_infinity;
 private:
-	SuNumber(Sign _sign, schar _exp);
-	SuNumber* setsign(char _sign)
-		{ sign = _sign; return this; }
+	SuNumber(char s, schar e);
+	SuNumber(char s, schar e, const short* d);
+	explicit SuNumber(random_class);
+	friend class test_number;
+	SuNumber& toint();
+	SuNumber& tofrac();
 	void check() const;
 	bool is_zero() const
 		{ return exp == SCHAR_MIN; }
@@ -126,6 +118,7 @@ private:
 	friend int ucmp(const SuNumber*, const SuNumber*);
 	friend SuNumber* uadd(const SuNumber*, const SuNumber*);
 	friend SuNumber* usub(const SuNumber*, const SuNumber*, SuNumber*);
+	friend SuNumber* round(SuNumber*, int digits, char mode);
 	long first9()
 		{ return digits[0] * 100000L + digits[1] * 10L + digits[2] / 1000; }
 	long first8()
