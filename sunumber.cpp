@@ -961,7 +961,7 @@ static void put(char*& s, short x)
 static void strmove(char* dst, const char* src)
 	{
 	// not using strcpy because it's undefined for overlapping
-	while (*dst++ = *src++)
+	while ((*dst++ = *src++))
 		;
 	}
 
