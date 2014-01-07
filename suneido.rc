@@ -1,49 +1,32 @@
-//Microsoft Developer Studio generated resource script.
-//
-#include "resource.h"
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+ * This file is part of Suneido - The Integrated Application Platform
+ * see: http://www.suneido.com for more information.
+ * 
+ * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation - version 2. 
+ *
+ * This program is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License in the file COPYING
+ * for more details. 
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free
+ * Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#define APSTUDIO_READONLY_SYMBOLS
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 2 resource.
-//
-//#include "afxres.h"
+#include "resource.h"
 #include "windows.h"
+
 #define IDC_STATIC (-1)
 
-/////////////////////////////////////////////////////////////////////////////
-#undef APSTUDIO_READONLY_SYMBOLS
-
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
-
-#ifdef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXTINCLUDE
-//
-
-1 TEXTINCLUDE DISCARDABLE 
-BEGIN
-    "resource.h\0"
-END
-
-2 TEXTINCLUDE DISCARDABLE 
-BEGIN
-    "#include ""afxres.h""\r\n"
-    "\0"
-END
-
-3 TEXTINCLUDE DISCARDABLE 
-BEGIN
-    "\r\n"
-    "\0"
-END
-
-#endif    // APSTUDIO_INVOKED
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -319,13 +302,6 @@ IDI_CLOSE	ICON DISCARDABLE "res\\close.ico"
 // Dialog
 //
 
-DIALOG DIALOG DISCARDABLE  0, 0, 187, 95
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "Dialog"
-FONT 8, "MS Sans Serif"
-BEGIN
-END
-
 REBUILD DIALOG DISCARDABLE  0, 0, 205, 78
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION
 CAPTION "suneido -rebuild"
@@ -342,34 +318,6 @@ BEGIN
 END
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
-BEGIN
-    "DIALOG", DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 180
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 88
-    END
-
-    "REBUILD", DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 198
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 71
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
-#ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
@@ -412,8 +360,6 @@ BEGIN
     END
 END
 
-#endif    // !_MAC
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -433,15 +379,6 @@ IDC_SPLITH              CURSOR  DISCARDABLE     "res\\splith.cur"
 IDC_SPLITV              CURSOR  DISCARDABLE     "res\\splitv.cur"
 IDC_PUSH                CURSOR  DISCARDABLE     "res\\push.cur"
 IDC_ARROWMOVE           CURSOR  DISCARDABLE     "res\\cursor1.cur"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// BINDATA
-//
-
-IDR_COIL                BINDATA DISCARDABLE     "res\\coil.bmp"
-/////////////////////////////////////////////////////////////////////////////
-
 
 /////////////////////////////////////////////////////////////////////////////
 //

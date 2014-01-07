@@ -11,9 +11,9 @@ else
 endif
 
 CC=gcc
-CXX=g++
+CXX=g++ -std=gnu++0x
 FLAGS += -DCOMPILER=MinGW -Werror -Wall -Wno-sign-compare -Wfloat-equal  -Wno-write-strings \
-	-Wno-char-subscripts  -Wno-narrowing -Wno-unknown-pragmas
+	-Wno-char-subscripts  -Wno-narrowing -Wno-unknown-pragmas -D_USE_32BIT_TIME_T
 ifndef GCC3
 FLAGS += -fno-strict-overflow
 endif
@@ -43,13 +43,9 @@ $(OUTPUT)/suneido.exe : $(OBJECTS) gc_$(OUTPUT).a $(OUTPUT)/res.o
 		-lws2_32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -luuid -liphlpapi \
 		-mwindows -mconsole
 		
-RC="C:\Program Files (x86)\Windows Kits\8.0\bin\x86\rc"
-CVTRES="C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\BIN\cvtres"
-
 $(OUTPUT)/res.o : suneido.rc resource.h res/suneido.exe.manifest
-	$(RC) /l 0x409 /fo"$(OUTPUT)/suneido.res" /i "c:/MinGW/include" /d "NDEBUG" suneido.rc
-	$(CVTRES) /nologo /machine:x86 /out:$@ $(OUTPUT)/suneido.res
-
+	windres suneido.rc $@
+	
 -include $(DEPENDS)
 
 .PHONY : clean
