@@ -322,7 +322,7 @@ Value SuCOMobject::call(Value self, Value member, short nargs, short nargnames, 
 		if (nargs != 0)
 			except("usage: comobject.Release()");
 		isdisp ? idisp->Release() : iunk->Release();
-		isalive = false;
+		isalive = nullptr;
 		return 0;
 		}
 	else if (member == DISPATCHQ)
