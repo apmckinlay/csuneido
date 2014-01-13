@@ -104,7 +104,7 @@ static gcstring expandRanges(const gcstring& s)
 	OstreamStr dst(n);
 	for (int i = 0; i < s.size(); ++i)
 		if (s[i] == '-' && i > 0 && i + 1 < n)
-			for (char c = s[i - 1] + 1; c < s[i + 1]; ++c)
+			for (uchar c = s[i - 1] + 1; c < (uchar) s[i + 1]; ++c)
 				dst << c;
 		else
 			dst << s[i];
@@ -151,6 +151,11 @@ class test_tr : public Tests
 
 		// collapse at end
 		asserteq(tr("hello \t\n\n", " \t\n", "\n"), "hello\n");
+
+		// signed char range
+		asserteq(tr("hello", "^\x20-\xff", ""), "hello");
+		asserteq(tr("hello\x7f", "\x70-\x7f", ""), "hello");
+		asserteq(tr("hello\xff", "\x7f-\xff", ""), "hello");
 		}
 	};
 REGISTER(test_tr);
