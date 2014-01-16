@@ -145,7 +145,14 @@ static Value com2su(VARIANT* var)
 		result = SuNumber::from_double(V_R8(&varValue));
 		break ;
 	case VT_DISPATCH:
-		result = new SuCOMobject(V_DISPATCH(&varValue));
+		{
+		IDispatch* idisp = V_DISPATCH(&varValue);
+		if (idisp)
+			{
+			idisp->AddRef(); // VariantClear will release the reference from varValue
+			result = new SuCOMobject(idisp);
+			}
+		}
 		break;
 	case VT_UNKNOWN:
 		{
@@ -159,8 +166,8 @@ static Value com2su(VARIANT* var)
 			iunk->AddRef(); // VariantClear() will release the reference from varValue
 			result = new SuCOMobject(iunk);
 			}
-		break;
 		}
+		break;
 	case VT_NULL:
 	case VT_EMPTY:
 		result = 0;
