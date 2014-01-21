@@ -44,6 +44,7 @@
 #include "exceptimp.h"
 #include "pack.h"
 #include "trace.h"
+#include "tmpalloc.h"
 
 //#define LOGGING
 #ifdef LOGGING
@@ -389,7 +390,7 @@ char* DbServerImp::cmd_admin(char* s)
 char* DbServerImp::cmd_cursor(char* s)
 	{
 	int qlen = ck_getnum('Q', s);
-	char* buf = (char*) alloca(qlen + 1);
+	char* buf = tmpalloc(qlen + 1);
 	sc->read(buf, qlen);
 	buf[qlen] = 0;
 	DbmsQuery* q = dbms->cursor(buf);
@@ -429,7 +430,7 @@ char* DbServerImp::cmd_request(char* s)
 	if (! textmode)
 		{ // binary
 		int qlen = ck_getnum('Q', s);
-		char* buf = (char*) alloca(qlen + 1);
+		char* buf = tmpalloc(qlen + 1);
 		sc->read(buf, qlen);
 		buf[qlen] = 0;
 		LOG("q: " << buf << endl);
@@ -443,7 +444,7 @@ char* DbServerImp::cmd_query(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	int qlen = ck_getnum('Q', s);
-	char* buf = (char*) alloca(qlen + 1);
+	char* buf = tmpalloc(qlen + 1);
 	sc->read(buf, qlen);
 	buf[qlen] = 0;
 	LOG("q: " << buf << endl);
@@ -513,7 +514,7 @@ char* DbServerImp::value_result(Value x)
 	int n = x.packsize();
 	os << 'P' << n << "\r\n";
 	writebuf(os.str());
-	char* buf = (char*) alloca(n);
+	char* buf = tmpalloc(n);
 	x.pack(buf);
 	write(buf, n);
 	return 0;
@@ -733,7 +734,7 @@ char* DbServerImp::cmd_get1(char* s)
 
 	int tran = ck_getnum('T', s);
 	int qlen = ck_getnum('Q', s);
-	char* buf = (char*) alloca(qlen + 1);
+	char* buf = tmpalloc(qlen + 1);
 	sc->read(buf, qlen);
 	buf[qlen] = 0;
 	LOG("q: " << buf << endl);
@@ -757,7 +758,7 @@ char* DbServerImp::cmd_output(char* s)
 
 	int reclen = ck_getnum('R', s);
 
-	char* buf = (char*) alloca(reclen);
+	char* buf = tmpalloc(reclen);
 	sc->read(buf, reclen);
 	Record rec((void*) buf);
 	return bool_result(q->output(rec));
@@ -777,7 +778,7 @@ char* DbServerImp::cmd_update(char* s)
 	Mmoffset recadr = int_to_mmoffset(ck_getnum('A', s));
 	verify(recadr >= 0);
 	int reclen = ck_getnum('R', s);
-	char* buf = (char*) alloca(reclen);
+	char* buf = tmpalloc(reclen);
 	sc->read(buf, reclen);
 	Record newrec((void*) buf);
 

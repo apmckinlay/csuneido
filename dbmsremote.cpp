@@ -39,6 +39,7 @@
 #include "gc.h"
 #include "cmdlineoptions.h" // for ignore_version
 #include "exceptimp.h"
+#include "tmpalloc.h"
 
 //#define LOGGING
 #ifdef LOGGING
@@ -58,6 +59,9 @@ OstreamFile& dbmslog()
 #endif
 
 #define DO(fn) try { fn; } catch (const Except& e) { fatal("lost connection:", e.str()); exit(0); }
+
+#define WRITE_LIMIT	(1024 * 1024) // 1 mb
+#define CK(n) except_if(n > WRITE_LIMIT, "client write of " << n << " exceeds limit of " << WRITE_LIMIT)
 
 class CheckedSocketConnect
 	{
@@ -306,6 +310,7 @@ char* DbmsQueryRemote::explain()
 bool DbmsQueryRemote::output(const Record& rec)
 	{
 	int reclen = rec.cursize();
+	CK(reclen);
 	WRITEBUF("OUTPUT " << this << " R" << reclen);
 	sc.write((char*) rec.dup().ptr(), reclen);
 	return sc.readbool();
@@ -454,6 +459,7 @@ bool DbmsRemote::admin(char* s)
 
 int DbmsRemote::request(int tran, char* s)
 	{
+	CK(strlen(s));
 	WRITEBUF("REQUEST T" << tran << " Q" << strlen(s));
 	sc.write(s);
 	return sc.readint('R');
@@ -461,6 +467,7 @@ int DbmsRemote::request(int tran, char* s)
 
 DbmsQuery* DbmsRemote::cursor(char* s)
 	{
+	CK(strlen(s));
 	WRITEBUF("CURSOR Q" << strlen(s));
 	sc.write(s);
 	return new DbmsCursorRemote(sc, sc.readint('C'));
@@ -468,6 +475,7 @@ DbmsQuery* DbmsRemote::cursor(char* s)
 
 DbmsQuery* DbmsRemote::query(int tran, char* s)
 	{
+	CK(strlen(s));
 	WRITEBUF("QUERY T" << tran << " Q" << strlen(s));
 	LOG("c> " << s);
 	sc.write(s);
@@ -566,8 +574,9 @@ Value DbmsRemote::run(char* s)
 Value DbmsRemote::exec(Value ob)
 	{
 	int n = ob.packsize();
+	CK(n);
 	WRITEBUF("EXEC P" << n);
-	char* buf = (char*) alloca(n);
+	char* buf = tmpalloc(n);
 	ob.pack(buf);
 	sc.write(buf, n);
 	return sc.readvalue();
@@ -596,6 +605,7 @@ void DbmsRemote::erase(int tran, Mmoffset recadr)
 Mmoffset DbmsRemote::update(int tran, Mmoffset recadr, Record& rec)
 	{
 	int reclen = rec.cursize();
+	CK(reclen);
 	WRITEBUF("UPDATE T" << tran << " A" << mmoffset_to_int(recadr) << " R" << reclen);
 	sc.write((char*) rec.dup().ptr(), reclen);
 	return int_to_mmoffset(sc.readint('U'));
@@ -609,6 +619,7 @@ bool DbmsRemote::record_ok(int tran, Mmoffset recadr)
 
 Row DbmsRemote::get(Dir dir, char* query, bool one, Header& hdr, int tran)
 	{
+	CK(strlen(query));
 	WRITEBUF("GET1 " << (dir == PREV ? "- " : (one ? "1 " : "+ "))
 		<< " T" << tran << " Q" << strlen(query));
 	LOG("c> " << query);
