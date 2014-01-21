@@ -335,7 +335,7 @@ Value DbmsLocal::sessionid(char* s)
 	{
 	static char* session_id = "127.0.0.1";
 	if (*s)
-		session_id = strdup(s);
+		session_id = dupstr(s);
 	extern bool is_server;
 	extern char*& tss_fiber_id();
 	return new SuString(is_server ? tss_fiber_id() : session_id);

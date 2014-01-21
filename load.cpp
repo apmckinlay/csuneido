@@ -95,7 +95,7 @@ void load(const gcstring& table)
 		}
 	else										// load entire database
 		{
-		if (access("suneido.db", 0) == 0)
+		if (_access("suneido.db", 0) == 0)
 			{
 			remove("suneido.bak");
 			verify(0 == rename("suneido.db", "suneido.bak"));

@@ -300,7 +300,7 @@ char* DbmsQueryRemote::explain()
 	WRITE("EXPLAIN " << this);
 	char buf[16000];
 	sc.ck_readline(buf, sizeof buf);
-	return strdup(stripnl(buf));
+	return dupstr(stripnl(buf));
 	}
 
 bool DbmsQueryRemote::output(const Record& rec)
@@ -406,7 +406,7 @@ DbmsRemote::DbmsRemote(SocketConnect* s) : sc(s)
 
 	WRITE("SESSIONID ");
 	sc.ck_readline(buf, sizeof buf);
-	session_id = strdup(stripnl(buf));
+	session_id = dupstr(stripnl(buf));
 	}
 
 DbmsRemote::~DbmsRemote()
@@ -428,7 +428,7 @@ bool DbmsRemote::commit(int tran, char** conflict)
 	if (0 == strcmp(buf, "OK\r\n"))
 		return true;
 	if (conflict)
-		*conflict = strdup(stripnl(buf));
+		*conflict = dupstr(stripnl(buf));
 	return false;
 	}
 

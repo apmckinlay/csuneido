@@ -163,7 +163,7 @@ Ostream& Ostream::operator<<(int64 i)
 Ostream& Ostream::operator<<(double d)
 	{ 
 	char buf[32]; 
-	gcvt(d, 6, buf);
+	_gcvt(d, 6, buf);
 	return write_padded(buf, strlen(buf));
 	}
 

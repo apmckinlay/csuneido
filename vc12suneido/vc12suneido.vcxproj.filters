@@ -7,7 +7,7 @@
     </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
@@ -15,6 +15,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\richeditole.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\alert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -28,6 +31,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\btree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\build.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\builtinargs.cpp">
@@ -192,6 +201,9 @@
     <ClCompile Include="..\ostream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\ostreamcon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\ostreamfile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -312,9 +324,6 @@
     <ClCompile Include="..\splash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\strdup.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\structure.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -351,6 +360,9 @@
     <ClCompile Include="..\suimage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\sumd5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\sumethod.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -379,6 +391,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\susetlocale.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\susha1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\susockets.cpp">
@@ -426,25 +441,7 @@
     <ClCompile Include="..\value.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ostreamcon.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\build.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\richeditole.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\varint.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\sumd5.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\susha1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\dupstr.cpp">
@@ -460,16 +457,22 @@
     <ClInclude Include="..\alert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\array.h">
+    <ClInclude Include="..\alertout.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\alertout.h">
+    <ClInclude Include="..\array.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\awcursor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\bitmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\btree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\build.h">
@@ -479,9 +482,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\builtinclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\bitmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\cachemap.h">
@@ -902,9 +902,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\winlib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

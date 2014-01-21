@@ -258,7 +258,7 @@ void DbServerImp::run()
 inline bool match(char* s, char* pre)
 	{
 	const int npre = strlen(pre);
-	return 0 == memicmp(s, pre, npre) &&
+	return 0 == _memicmp(s, pre, npre) &&
 		(s[npre] == ' ' || s[npre] == 0);
 	}
 
@@ -338,7 +338,7 @@ void DbServerImp::request(char* buf)
 			catch (const Except& e)
 				{
 				os.clear();
-				char* t = strdup(e.str());
+				char* t = dupstr(e.str());
 				for (char* s = t; *s; ++s)
 					if (*s == '\r')
 						*s = '\\';
@@ -529,7 +529,7 @@ char* DbServerImp::cmd_sessionid(char* s)
 	if (*s)
 		{
 		dbserver_connections().remove1(session_id);
-		tss_fiber_id() = session_id = strdup(s);
+		tss_fiber_id() = session_id = dupstr(s);
 		dbserver_connections().add(session_id);
 		}
 	os << session_id << "\r\n";

@@ -1364,14 +1364,14 @@ double SuNumber::to_double() const
 SuNumber* SuNumber::from_float(float x)
 	{
 	char buf[32];
-	gcvt(x, 7, buf);
+	_gcvt(x, 7, buf);
 	return new SuNumber(buf);
 	}
 
 SuNumber* SuNumber::from_double(double x)
 	{
 	char buf[32];
-	gcvt(x, 16, buf);
+	_gcvt(x, 16, buf);
 	return new SuNumber(buf);
 	}
 

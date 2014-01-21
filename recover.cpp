@@ -316,7 +316,7 @@ char* DbRecoverImp::last_good_commit()
 	if (! s)
 		return "";
 	s[strlen(s) - 1] = 0; // strip \n
-	return strdup(s); // dup since ctime is static
+	return dupstr(s); // dup since ctime is static
 	}
 
 bool DbRecoverImp::rebuild(bool (*progress)(int), bool log)

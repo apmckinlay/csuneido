@@ -487,7 +487,7 @@ PRIM(su_system, "System(command)");
 Value su_spawn()
 	{
 	const int nargs = 3;
-	return spawnlp(ARG(0).integer(),
+	return _spawnlp(ARG(0).integer(),
 		ARG(1).str(), ARG(1).str(), ARG(2).str(), NULL);
 	}
 PRIM(su_spawn, "Spawn(mode, command, args='')");

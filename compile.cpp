@@ -213,7 +213,7 @@ Value compile(char* s, char* gname, CodeVisitor* visitor)
 // Compiler ---------------------------------------------------------------
 
 Compiler::Compiler(char* s, CodeVisitor* visitor)
-	: scanner(*new Scanner(strdup(s), 0, visitor ? visitor : new CodeVisitor)),
+	: scanner(*new Scanner(dupstr(s), 0, visitor ? visitor : new CodeVisitor)),
 		stmtnest(99)
 	{
 	match(); // get first token
@@ -369,7 +369,7 @@ Value Compiler::suclass(char* gname, char* className) //========================
 		{
 		static int classnum = 0;
 		char buf[32] = "Class";
-		itoa(classnum++, buf + 5, 10);
+		_itoa(classnum++, buf + 5, 10);
 		className = buf;
 		}
 
@@ -792,7 +792,7 @@ void FunctionCompiler::params(vector<char>& flags)
 				{
 				match();
 				flags[nparams] |= DOT;
-				fn->className = strdup(className); // needed to privatize
+				fn->className = dupstr(className); // needed to privatize
 				}
 			if (scanner.value[0] == '_')
 				{

@@ -1,13 +1,10 @@
 Building Suneido
 
-The supplied executable is built with the free
-Microsoft Visual C++ 2003 Toolkit.
-(no longer available)
-
-Suneido can also be built with the free
-Microsoft Visual C++ 2005 Express Edition.
-You will also require the
-Windows® Server 2003 R2 Platform SDK 
+Suneido is normally built with the free
+Microsoft Visual Studio Express 2013 
+for Windows Desktop
+using the included Solution and Project files
+(Note: VS 2013 = VC 12 i.e. year != version)
 
 It is also possible to build with MinGW, although
 the Internet Explorer interface (SuneidoAPP)
@@ -18,10 +15,6 @@ use one of the following batch files:
 
 mingw_debug.bat
 mingw_release.bat
-vc7_debug.bat
-vc7_release.bat
-vc8_debug.bat
-vc8_release.bat
 
 The title bar on your Command Prompt window
 should change accordingly.
@@ -36,6 +29,6 @@ A precompiled gc.lib is supplied, to build it
 yourself use make in the gc directory 
 after running one of the above batch files.
 
-Note: The setup batch files add to the path,
+Note: The setup batch files *add* to the path,
 to switch to a different configuration,
 start a new command prompt window.

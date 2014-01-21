@@ -36,7 +36,7 @@ static WinLib& loadlib(char* name)
 	static int nlibs = 0;
 	int i = 0;
 	for (; i < nlibs; ++i)
-		if (0 == stricmp(libs[i].name, name))
+		if (0 == _stricmp(libs[i].name, name))
 			return libs[i];
 	if (nlibs >= NLIBS)
 		except("can't load " << name << " - too many dll's loaded");

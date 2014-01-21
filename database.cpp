@@ -153,7 +153,7 @@ Database::Database(char* file, bool createmode)
 	fkey_index(0), views_index(0), clock(1),
 	cksum(::checksum(0,0,0)), output_type(MM_DATA)
 	{
-	bool existed = access(file, 0) == 0;
+	bool existed = _access(file, 0) == 0;
 	mmf = new Mmfile(file, createmode);
 	if (existed && ! check_shutdown(mmf))
 		{

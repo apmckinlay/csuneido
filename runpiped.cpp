@@ -172,7 +172,7 @@ class SuRunPiped : public SuFinalize
 public:
 	void init(const gcstring& cmd)
 		{
-		rp = new RunPiped(strdup(cmd.str()));
+		rp = new RunPiped(dupstr(cmd.str()));
 		}
 	virtual void out(Ostream& os)
 		{

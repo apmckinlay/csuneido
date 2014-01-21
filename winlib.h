@@ -28,7 +28,7 @@ struct WinLib
 	{
 	WinLib() : lib(0)
 		{ }
-	explicit WinLib(char* s) : name(strdup(s))
+	explicit WinLib(char* s) : name(dupstr(s))
 		{ lib = LoadLibrary(name); }
 	~WinLib()
 		{

@@ -230,7 +230,7 @@ class SocketConnectAsynch : public SocketConnect
 public:
 	SocketConnectAsynch(HWND h, int s, void* a, char* n) 
 		: hwnd(h), sock(s), arg(a), close_pending(false), 
-		mode(CONNECT), blocked(0), adr(strdup(n)), connect_error(false)
+		mode(CONNECT), blocked(0), adr(dupstr(n)), connect_error(false)
 		{ }
 	bool connect(SOCKADDR_IN* saddr);
 	void event(int msg);
