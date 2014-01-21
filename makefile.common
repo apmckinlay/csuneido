@@ -26,6 +26,7 @@ dbmslocal.cpp \
 dbserver.cpp \
 dbserverdata.cpp \
 dump.cpp \
+dupstr.cpp \
 errlog.cpp \
 except.cpp \
 func.cpp \
@@ -83,7 +84,6 @@ scanner.cpp \
 servereval.cpp \
 sesviews.cpp \
 slots.cpp \
-strdup.cpp \
 suadler32.cpp \
 sublock.cpp \
 suboolean.cpp \
