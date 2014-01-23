@@ -643,6 +643,8 @@ int DbmsRemote::cursors()
 
 Value DbmsRemote::sessionid(char* s)
 	{
+	if (! *s)
+		return new SuString(session_id);
 	WRITE("SESSIONID " << s);
 	char buf[80];
 	sc.ck_readline(buf, sizeof buf);
