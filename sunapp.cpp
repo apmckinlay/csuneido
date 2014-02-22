@@ -325,7 +325,6 @@ void sunapp_register_classes()
 		alert("CoInternetGetSession failed");
 	else
 		{
-		USES_CONVERSION;
 		iis->RegisterNameSpace(&factory, CLSID_SuneidoAPP, L"suneido", 0, 0, 0);
 		iis->Release();
 		}
