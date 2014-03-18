@@ -37,10 +37,6 @@
 #include "minmax.h"
 #include "range.h"
 #include "buffer.h"
-/*#if defined(_MSC_VER) && _MSC_VER <= 1200
-#include <locale>
-using namespace std;
-#endif*/
 
 SuString* SuString::empty_string = new SuString("");
 
