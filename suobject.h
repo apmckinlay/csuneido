@@ -71,8 +71,8 @@ public:
 
 	virtual bool has(Value);
 
-	bool erase(Value x);
-	bool erase2(Value x);
+	virtual bool erase(Value x);
+	virtual bool erase2(Value x);
 
 	bool operator==(const SuObject& ob) const;
 	virtual bool eq(const SuValue& x) const;

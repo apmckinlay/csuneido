@@ -397,6 +397,30 @@ void SuRecord::putdata(Value m, Value x)
 	call_observers(i, "set");
 	}
 
+bool SuRecord::erase(Value m)
+	{
+	bool result = SuObject::erase(m);
+	if (result)
+		{
+		int i = m.symnum();
+		invalidate_dependents(i);
+		call_observers(i, "delete");
+		}
+	return result;
+	}
+
+bool SuRecord::erase2(Value m)
+	{
+	bool result = SuObject::erase2(m);
+	if (result)
+		{
+		int i = m.symnum();
+		invalidate_dependents(i);
+		call_observers(i, "erase");
+		}
+	return result;
+	}
+
 void SuRecord::call_observers(ushort i, const char* why)
 	{
 	call_observer(i, why);

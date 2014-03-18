@@ -57,6 +57,9 @@ public:
 	// getdata has to auto-register a rule as an observer
 	virtual Value getdata(Value);
 
+	virtual bool erase(Value x);
+	virtual bool erase2(Value x);
+
 	Value call_rule(ushort i, const char* why);
 
 	Record to_record(const Header& hdr);
