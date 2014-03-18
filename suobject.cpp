@@ -938,8 +938,8 @@ Value SuObject::Join(short nargs, short nargnames, ushort* argnames, int each)
 	OstreamStr oss;
 	for (std::vector<Value>::iterator iter = vec.begin(); iter != vec.end(); )
 		{
-		if (const char* s = (*iter).str_if_str())
-			oss << s;
+		if (SuString* ss = val_cast<SuString*>(*iter))
+			oss << ss->gcstr();
 		else
 			oss << *iter;
 		if (++iter == vec.end())
