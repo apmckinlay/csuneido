@@ -29,7 +29,12 @@
 #include "mmfile.h"
 #include "except.h"
 #include "slots.h" // for keydup
+#include "gc.h" // for noptrs
+#include <malloc.h> // for alloca
 #include <math.h>
+
+//#include "ostreamcon.h"
+//#include "ostreamstr.h"
 
 using namespace std;
 
@@ -183,6 +188,67 @@ private:
 		TreeSlots slots;
 		Mmoffset32 lastoff;
 		};
+
+	class Node
+		{
+		public:
+			Node(int lev) : level_(lev)
+				{ }
+			int level() const
+				{ return level_; }
+			virtual int size() const = 0;
+			virtual int findPos(const Key& key) const = 0;
+			virtual Mmoffset adr(int pos) const = 0;
+		private:
+			int level_;
+		};
+
+	class TNode : public Node
+		{
+		public:
+			TNode(int level, TreeNode* n) : Node(level), node(n)
+				{ }
+			int size() const
+				{
+				return node->slots.size() + 1;
+				}
+			int findPos(const Key& key) const
+				{
+				TreeSlots& slots = node->slots;
+				TreeSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), TreeSlot(key));
+				return slot < slots.end() ? slot - slots.begin() : slots.size();
+				}
+			Mmoffset adr(int pos) const
+				{
+				return pos == node->slots.size() ? node->lastoff.unpack() : node->slots[pos].adr;
+				}
+		private:
+			TreeNode* node;
+		};
+
+	class LNode : public Node
+		{
+		public:
+			LNode(int level, LeafNode* n) : Node(level), node(n)
+				{ }
+			int size() const
+				{
+				return node->slots.size();
+				}
+			int findPos(const Key& key) const
+				{
+				LeafSlots& slots = node->slots;
+				LeafSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), LeafSlot(key));
+				return slot - slots.begin();
+				}
+			Mmoffset adr(int pos) const
+				{
+				except("should not be called");
+				}
+		private:
+			LeafNode* node;
+		};
+
 public:
 	// iterator -----------------------------------------------------
 	class iterator;
@@ -453,37 +519,21 @@ public:
 	
 	float rangefrac(const Key& from, const Key& to) 
 		{
-		//con << "rangefrac " << from << " ... " << to << endl;
 		const float MIN_FRAC = .001f;
 		if (isEmpty())
 			return MIN_FRAC;
 
-		//con << "not empty" << endl;
 		bool fromMinimal = isMinimal(from);
 		bool toMaximal = isMaximal(to);
 		if (fromMinimal && toMaximal)
 			return 1;
 
-		const int MAX_LEVELS = 64;
-		float fromNodeSize[MAX_LEVELS];
-		int fromNodePos[MAX_LEVELS];
-		if (! fromMinimal)
-			search(from, fromNodeSize, fromNodePos);
-
-		float toNodeSize[MAX_LEVELS];
-		int toNodePos[MAX_LEVELS];
-		if (! toMaximal)
-			search(to, toNodeSize, toNodePos);
-
-		if (! fromMinimal && ! toMaximal)
-			// average node sizes
-			for (int level = 0; level <= treelevels; ++level)
-				fromNodeSize[level] = toNodeSize[level] =
-						(fromNodeSize[level] + toNodeSize[level]) / 2;
-
-		float fromPos = fromMinimal ? 0 : estimatePos(fromNodeSize, fromNodePos);
-		float toPos = toMaximal ? 1 : estimatePos(toNodeSize, toNodePos);
-		//con << "fromPos " << fromPos << " toPos " << toPos << " = " << max(toPos - fromPos, 0.0f) << endl;
+		//con() << "rangefrac " << from << " ... " << to << endl;
+		float* rootChildFracs = getChildFracs(rootNode());
+		
+		float fromPos = fromMinimal ? 0 : fracPos(from, rootChildFracs);
+		float toPos = toMaximal ? 1 : fracPos(to, rootChildFracs);
+		//con() << "fromPos " << fromPos << " toPos " << toPos << " = " << max(toPos - fromPos, MIN_FRAC) << endl;
 
 		return max(toPos - fromPos, MIN_FRAC);
 	}
@@ -516,43 +566,82 @@ public:
 		return true;
 		}
 
-	void search(const Key& key, float* nodeSize, int* nodePos) {
-		Mmoffset nodeoff = root();
-		for (int level = 0; level <= treelevels; ++level) {
-			int n, i;
-			if (level < treelevels)
-				{
-				TreeNode* node = (TreeNode*) dest->adr(nodeoff);
-				TreeSlots& slots = node->slots;
-				n = slots.size() + 1;
-				TreeSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), TreeSlot(key));
-				i = slot - slots.begin();
-				nodeoff = node->find(key);
-				}
-			else
-				{
-				LeafNode* node = (LeafNode*) dest->adr(nodeoff);
-				LeafSlots& slots = node->slots;
-				n = slots.size();
-				LeafSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), LeafSlot(key));
-				i = slot - slots.begin();
-				}
-			//con << "search " << key << " level " << level << "/" << treelevels << " n " << n << " i " << i << endl;
-			nodeSize[level] = (float) n;
-			nodePos[level] = i;
+	float* getChildFracs(Node* node)
+		{
+		int n = node->size();
+		int *childSizes = (int*) alloca(n * sizeof (int));
+		int total = 0;
+		//con() << "child sizes";
+		for (int i = 0; i < n; ++i)
+			{
+			total += childSizes[i] = node->level() >= treelevels ? 1 : childNode(node, i)->size();
+			//con() << " " << childSizes[i];
+			}
+		//con() << endl;
+		float* childFracs = new(noptrs) float[n];
+		for (int i = 0; i < n; ++i)
+			childFracs[i] = (float) childSizes[i] / total;
+		return childFracs;
 		}
-	}
 
-	float estimatePos(float* nodeSize, int* nodePos) {
-		float levelSize = 1;
-		float pos = 0;
-		for (int level = 0; level <= treelevels; ++level) {
-			levelSize *= nodeSize[level];
-			pos = pos * nodeSize[level] + nodePos[level];
+	float fracPos(const Key& key, float* childFracs)
+		{
+		//con() << "fracPos " << key << endl;
+		Node* node = rootNode();
+		int pos = node->findPos(key);
+		float fracPos = 0;
+		for (int i = 0; i < pos; ++i)
+			fracPos += childFracs[i];
+		//OstreamStr oss;
+		//oss << "fracPos " << node->size() << "^" << pos << " " << fracPos;
+
+		if (treelevels > 0)
+			{
+			float portion = childFracs[pos];
+			node = childNode(node, pos);
+			childFracs = getChildFracs(node);
+			pos = node->findPos(key);
+			for (int i = 0; i < pos; ++i)
+				fracPos += portion * childFracs[i];
+			//oss << ", " << node->size() << "^" << pos << " " << fracPos;
+			if (treelevels > 1)
+				{
+				portion *= childFracs[pos];
+				node = childNode(node, pos);
+				pos = node->findPos(key);
+				fracPos += portion * pos / node->size();
+				//oss << ", " << node->size() << "^" << pos << " " << fracPos;
+
+				if (treelevels > 2)
+					{
+					portion /= node->size();
+					fracPos += portion * 0.5f;
+					//oss << ", " << fracPos;
+					}
+				}
+			}
+		//con() << oss.gcstr() << endl;
+		return fracPos;
 		}
-		return pos / levelSize;
-	}
 
+	Node* rootNode()
+		{
+		if (treelevels)
+			return new TNode(0, (TreeNode*)dest->adr(root()));
+		else
+			return new LNode(0, (LeafNode*)dest->adr(root()));
+		}
+
+	Node* childNode(Node* node, int pos) const
+		{
+		int level = node->level() + 1;
+		verify(level <= treelevels);
+		Mmoffset adr = node->adr(pos);
+		if (level < treelevels)
+			return new TNode(level, (TreeNode*)dest->adr(adr));
+		else
+			return new LNode(level, (LeafNode*)dest->adr(adr));
+		}
 /*	void printree(Mmoffset off = NIL, int level = 0)
 		{
 		if (off == NIL)

@@ -89,6 +89,12 @@ class test_btree : public Tests
 			bt.insert(Vslot(bigkey(i)));
 		asserteq(bt.treelevels, 2);
 
+		assertfeq(bt.rangefrac(key(""), key(0)), 0);
+		assertfeq(bt.rangefrac(key(""), key(25)), .25);
+		assertfeq(bt.rangefrac(key(""), key(50)), .5);
+		assertfeq(bt.rangefrac(key(""), key(75)), .75);
+		assertfeq(bt.rangefrac(key(""), key(100)), 1);
+
 		assertfeq(bt.rangefrac(key(0), endkey(99)), 1);
 		assertclose(bt.rangefrac(key(10), key(20)), .1);
 		assertfeq(bt.rangefrac(key(""), key(20)), .2);
