@@ -174,7 +174,7 @@ static void DateCalc_Normalize_Signs(int *Dd, int *Dh, int *Dm, int *Ds)
 
 static bool DateCalc_check_date(int year, int month, int day)
 	{
-	if ((year >= 1) &&
+	if ((year >= 1) && (year <= 3000) &&
 		(month >= 1) && (month <= 12) &&
 		(day >= 1) &&
 		(day <= DateCalc_Days_in_Month_[DateCalc_leap_year(year)][month]))
