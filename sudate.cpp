@@ -677,7 +677,7 @@ Value SuDate::Plus(short nargs, short nargnames, ushort* argnames, int each)
 	DateTime dt(date, time);
 	dt.plus(years, months, days, hours, minutes, seconds, milliseconds);
 	if (!dt.valid())
-		except("invalid date");
+		except("bad date");
 	return new SuDate(dt.date(), dt.time());
 	}
 
