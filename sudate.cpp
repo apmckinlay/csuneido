@@ -676,6 +676,8 @@ Value SuDate::Plus(short nargs, short nargnames, ushort* argnames, int each)
 		except(usage);
 	DateTime dt(date, time);
 	dt.plus(years, months, days, hours, minutes, seconds, milliseconds);
+	if (!dt.valid())
+		except("invalid date");
 	return new SuDate(dt.date(), dt.time());
 	}
 
@@ -836,9 +838,6 @@ void SuDate::pack(char* buf) const
 	buf[5] = (char) (n >>= 8);
 	buf[4] = (char) (n >> 8);
 	}
-
-#include "alert.h"
-#include "fatal.h"
 
 SuDate* SuDate::unpack(const gcstring& s)
 	{
