@@ -445,6 +445,8 @@ void Compiler::member(SuObject* ob, char* gname, char* className, short base)
 		}
 	else
 		default_allowed = false;
+	if (base > 0 && ! mv)
+		syntax_error("class members must be named");
 
 	Value x;
 	if (peek == '(' && base > 0)
