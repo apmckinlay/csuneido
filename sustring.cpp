@@ -37,6 +37,7 @@
 #include "minmax.h"
 #include "range.h"
 #include "buffer.h"
+#include "func.h" // for argseach for call
 
 SuString* SuString::empty_string = new SuString("");
 
@@ -253,6 +254,7 @@ Value SuString::call(Value self, Value member, short nargs, short nargnames, ush
 		METHOD(Asc);
 		methods["Alpha?"] = &SuString::Alphaq;
 		methods["AlphaNum?"] = &SuString::AlphaNumq;
+		methods[CALL] = &SuString::Call;
 		METHOD(Compile);
 		METHOD(Detab);
 		METHOD(Entab);
@@ -300,6 +302,21 @@ Value SuString::call(Value self, Value member, short nargs, short nargnames, ush
 		else
 			method_not_found("string", member);
 		}
+	}
+
+Value SuString::Call(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	// #symbol(ob, ...) => ob.symbol(...)
+	if (nargs < 1)
+		except("string call requires 'this' argument");
+	// remove first argument (object) from stack
+	argseach(nargs, nargnames, argnames, each); // have to expand first
+	Value* args = GETSP() - nargs + 1;
+	Value ob = args[0];
+	for (int i = 1; i < nargs; ++i)
+		args[i - 1] = args[i];
+	POP();
+	return ob.call(ob, this, nargs - 1, nargnames, argnames, each);
 	}
 
 Value SuString::Substr(short nargs, short nargnames, ushort* argnames, int each)

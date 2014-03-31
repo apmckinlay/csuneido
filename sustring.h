@@ -125,6 +125,7 @@ private:
 	Value Alphaq(short nargs, short nargnames, ushort* argnames, int each);
 	Value AlphaNumq(short nargs, short nargnames, ushort* argnames, int each);
 	Value Asc(short nargs, short nargnames, ushort* argnames, int each);
+	Value Call(short nargs, short nargnames, ushort* argnames, int each);
 	Value Compile(short nargs, short nargnames, ushort* argnames, int each);
 	Value Detab(short nargs, short nargnames, ushort* argnames, int each);
 	Value Entab(short nargs, short nargnames, ushort* argnames, int each);

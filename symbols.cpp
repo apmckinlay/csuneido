@@ -26,8 +26,6 @@
 #include "hashtbl.h"
 #include "sustring.h"
 #include "sunumber.h"
-#include "interp.h" // for stack for call
-#include "func.h" // for argseach for call
 #include "itostr.h"
 #include "trace.h"
 
@@ -40,7 +38,6 @@ public:
 	virtual int symnum() const;
 	virtual bool eq(const SuValue& y) const;
 	virtual void out(Ostream& os);
-	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
 	};
 
 const int MAX_SYMBOLS = 32 * 1024;
@@ -75,24 +72,6 @@ void SuSymbol::out(Ostream& os)
 		os << gcstr();
 	else
 		SuString::out(os);
-	}
-
-Value SuSymbol::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
-	{
-	if (member == CALL)
-		{ // #symbol(ob, ...) => ob.symbol(...)
-		if (nargs < 1)
-			except("usage: #symbol(object, ...)");
-		// remove first argument (object) from stack
-		argseach(nargs, nargnames, argnames, each); // have to expand first
-		Value* args = GETSP() - nargs + 1;
-		Value ob = args[0];
-		for (int i = 1; i < nargs; ++i)
-			args[i - 1] = args[i];
-		POP();
-		return ob.call(ob, this, nargs - 1, nargnames, argnames, each);
-		}
-	return SuString::call(self, member, nargs, nargnames, argnames, each);
 	}
 
 int symnum(const char* s)
