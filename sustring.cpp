@@ -562,12 +562,12 @@ Value SuString::Extract(short nargs, short nargnames, ushort* argnames, int each
 // "hello world".Replace(".", "<&>", 5) => "<h><e><l><l><o> world"
 Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs < 2 || 3 < nargs)
-		except("usage: string.Replace(pattern, replacement, count = false) -> string");
+	if (nargs < 1 || 3 < nargs)
+		except("usage: string.Replace(pattern, replacement = '', count = false) -> string");
 	// pattern
 	char* pat = rx_compile(ARG(0).gcstr());
 	// replacement
-	Value reparg = ARG(1);
+	Value reparg = nargs == 1 ? SuEmptyString : ARG(1);
 	// TODO: replacement shouldn't have to be nul terminated
 	const char* rep = reparg.str_if_str();
 	if (! rep && (reparg.is_int() || 
