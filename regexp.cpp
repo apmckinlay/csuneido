@@ -638,9 +638,12 @@ bool RxMatch::cclass()
 			break ;
 		case RANGE :
 			{
-			unsigned p1 = (ignore_case ? tolower(p[1]) : p[1]);
-			unsigned p2 = (ignore_case ? tolower(p[2]) : p[2]);
-			if (p1 <= (unsigned) c && (unsigned) c <= p2)
+			unsigned from = (ignore_case ? tolower(p[1]) : p[1]);
+			unsigned to = (ignore_case ? tolower(p[2]) : p[2]);
+			if (ignore_case && (
+				(from == p[1]) != (to == p[2]) || (p[1] < 'A' && 'Z' < p[2])))
+				except("regular expression range invalid with ignore case");
+			if (from <= (unsigned) c && (unsigned) c <= to)
 				in = true;
 			p += 3;
 			break ;
@@ -706,7 +709,7 @@ bool RxMatch::cclass()
 			++p;
 			break ;
 		case UPPER :
-			if (isupper(c))
+			if (ignore_case ? islower(c) : isupper(c))
 				in = true;
 			++p;
 			break ;
