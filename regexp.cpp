@@ -406,26 +406,28 @@ private:
 	int domatch_nest;
 	};
 
-bool rx_match(char* s, int n, char* pat, Rxpart* psubs)
+bool rx_match(char* s, int n, int i, char* pat, Rxpart* psubs)
 	{
-	int i = 0;
-	int inc = 1;
-	if (n < 0)
-		{
-		// searches backwards if n < 0
-		n = -n;
-		inc = -1;
-		i = n;
-		}
 	RxMatch match(s, n, psubs);
 	do
 		{
 		if (0 <= match.amatch(i, pat))
 			return true;
-		i += inc;
-		}
-		while (i <= n && i >= 0);
-	return false;
+		i++;
+		} while (i <= n);
+		return false;
+	}
+
+bool rx_match_reverse(char* s, int n, int i, char* pat, Rxpart* psubs)
+	{
+	RxMatch match(s, n, psubs);
+	do
+		{
+		if (0 <= match.amatch(i, pat))
+			return true;
+		i--;
+		} while (i >= 0);
+		return false;
 	}
 
 int rx_amatch(char* s, int i, int n, char* pat, Rxpart* psubs)
@@ -920,7 +922,7 @@ class test_regexp : public Tests
 			char* pattern = rxtests[i].pattern;
 			char* pat = rx_compile(pattern);
 			char* string = rxtests[i].string;
-			except_if(rxtests[i].result != rx_match(string, strlen(string), pat, NULL),
+			except_if(rxtests[i].result != rx_match(string, strlen(string), 0, pat, NULL),
 				string << " =~ " << pattern << " should be " << (rxtests[i].result ? "true" : "false"));
 			}
 		}
@@ -942,7 +944,7 @@ class test_regexp : public Tests
 		char* pat = rx_compile("(\\w+ )+");
 		Rxpart parts[MAXPARTS];
 		char* s = "hello world ";
-		rx_match(s, strlen(s), pat, parts);
+		rx_match(s, strlen(s), 0, pat, parts);
 		asserteq(parts[0].s, s);
 		asserteq(parts[0].n, 12);
 		asserteq(parts[1].s, s + 6);

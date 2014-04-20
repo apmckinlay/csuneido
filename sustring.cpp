@@ -520,14 +520,18 @@ Value SuString::FindLastnot1of(short nargs, short nargnames, ushort* argnames, i
 
 Value SuString::Match(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	static ushort prev = ::symnum("prev");
-	if (! (nargs == 1 || (nargs == 2 && nargnames == 1 && argnames[0] == prev)))
-		except("usage: string.Match(pattern [, prev:] ) -> object");
-	gcstring pat = ARG(0).gcstr();
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.Match(pattern, pos = false, prev = false) => object");
+	gcstring pat = args.getgcstr("pattern");
+	Value posval = args.getValue("pos", SuFalse);
+	bool prev = args.getValue("prev", SuFalse) == SuTrue;
+	int pos = (posval == SuFalse) ? (prev ? size() : 0) : posval.integer();
+	args.end();
 	Rxpart parts[MAXPARTS];
 	char* s = buf();
-	int n = nargs == 1 ? size() : -size();
-	if (! rx_match(buf(), n, rx_compile(pat), parts))
+	bool hasmatch = prev ? rx_match_reverse(s, size(), pos, rx_compile(pat), parts)
+						 : rx_match(s, size(), pos, rx_compile(pat), parts);
+	if (! hasmatch)
 		return SuFalse;
 	SuObject* ob = new SuObject;
 	for (int i = 0; i < MAXPARTS; ++i)
@@ -549,7 +553,7 @@ Value SuString::Extract(short nargs, short nargnames, ushort* argnames, int each
 		except("usage: string.Extract(pattern, part = 0/1) -> false or string");
 	gcstring pat = ARG(0).gcstr();
 	Rxpart parts[MAXPARTS];
-	if (! rx_match(buf(), size(), rx_compile(pat), parts))
+	if (! rx_match(buf(), size(), 0, rx_compile(pat), parts))
 		return SuFalse;
 
 	int i = nargs == 2 ? ARG(1).integer() : (parts[1].n >= 0 ? 1 : 0);

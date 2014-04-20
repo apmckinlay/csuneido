@@ -39,7 +39,8 @@ class gcstring;
 char* rx_compile(const gcstring& s);
 
 // match a string against a compiled regular expression
-bool rx_match(char* s, int n, char* pat, Rxpart* psubs = 0);
+bool rx_match(char* s, int n, int i, char* pat, Rxpart* psubs = 0);
+bool rx_match_reverse(char* s, int n, int i, char* pat, Rxpart* psubs = 0);
 
 // match a specific point in a string against a compiled regular expression
 int rx_amatch(char* s, int i, int n, char* pat, Rxpart* psubs = 0);

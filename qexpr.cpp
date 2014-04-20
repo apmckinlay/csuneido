@@ -272,14 +272,14 @@ Value BinOp::eval2(Value x, Value y)
 		{ 
 		gcstring sx = x.gcstr(); 
 		gcstring sy = y.gcstr();
-		return rx_match(sx.buf(), sx.size(), rx_compile(sy))
+		return rx_match(sx.buf(), sx.size(), 0, rx_compile(sy))
 			? SuTrue : SuFalse; 
 		}
 	case I_MATCHNOT :
 		{ 
 		gcstring sx = x.gcstr(); 
 		gcstring sy = y.gcstr();
-		return rx_match(sx.buf(), sx.size(), rx_compile(sy))
+		return rx_match(sx.buf(), sx.size(), 0, rx_compile(sy))
 			? SuFalse : SuTrue; 
 		}
 	default :

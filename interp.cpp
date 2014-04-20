@@ -653,7 +653,7 @@ Value Frame::run()
 			{
 			gcstring sy = POP().gcstr();
 			gcstring sx = TOP().gcstr();
-			TOP() = rx_match(sx.buf(), sx.size(), rx_compile(sy))
+			TOP() = rx_match(sx.buf(), sx.size(), 0, rx_compile(sy))
 				? SuTrue : SuFalse;
 			break ;
 			}
@@ -661,7 +661,7 @@ Value Frame::run()
 			{
 			gcstring sy = POP().gcstr();
 			gcstring sx = TOP().gcstr();
-			TOP() = rx_match(sx.buf(), sx.size(), rx_compile(sy))
+			TOP() = rx_match(sx.buf(), sx.size(), 0, rx_compile(sy))
 				? SuFalse : SuTrue;
 			break ;
 			}

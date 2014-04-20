@@ -590,7 +590,7 @@ Value su_match()
 	const int nargs = 2;
 	gcstring sy = ARG(0).gcstr();
 	gcstring sx = ARG(1).gcstr();
-	return rx_match(sx.buf(), sx.size(), rx_compile(sy))
+	return rx_match(sx.buf(), sx.size(), 0, rx_compile(sy))
 		? SuTrue : SuFalse;
 	}
 PRIM(su_match, "Match(x, y)");
