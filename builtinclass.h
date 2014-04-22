@@ -25,6 +25,7 @@
 
 #include "func.h"
 #include "interp.h"
+#include "sustring.h"
 #include "suobject.h"
 #include "builtinargs.h"
 #include "ctype.h"
@@ -103,6 +104,12 @@ template <class T> class BuiltinInstance : public T
 
 template <class T> class BuiltinClass : public SuValue
 	{
+public:
+	char* params;
+
+	BuiltinClass(char* p) : params(p)
+		{}
+
 	virtual Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort *argnames, int each)
 		{
@@ -112,6 +119,8 @@ template <class T> class BuiltinClass : public SuValue
 			return callclass(args);
 		else if (member == INSTANTIATE)
 			return instantiate(args);
+		else if (member == PARAMS && params != nullptr)
+			return new SuString(params);
 		else if (member == Members)
 			{
 			args.usage("usage: .Members()");
@@ -131,7 +140,7 @@ template <class T> class BuiltinClass : public SuValue
 	Value callclass(BuiltinArgs& args)
 		{ return instantiate(args); }
 	const char* type() const
-		{ return builtintype<T>(); }
+		{ return "BuiltinClass"; }
 	};
 
 #endif

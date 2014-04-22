@@ -53,7 +53,7 @@ private:
 
 Value su_adler32()
 	{
-	static BuiltinClass<SuAdler32> suAdler32Class;
+	static BuiltinClass<SuAdler32> suAdler32Class("(@strings)");
 	return &suAdler32Class;
 	}
 
@@ -72,7 +72,7 @@ Value BuiltinClass<SuAdler32>::instantiate(BuiltinArgs& args)
 template<>
 Value BuiltinClass<SuAdler32>::callclass(BuiltinArgs& args)
 	{
-	args.usage("usage: Adler32(string ...)");
+	args.usage("usage: Adler32(@strings)");
 	SuAdler32* a = new BuiltinInstance<SuAdler32>();
 	if (! args.hasUnnamed())
 		return a;

@@ -180,6 +180,8 @@ public:
 	void out(Ostream& os);
 	Value call(Value self, Value member, short nargs, short nargnames,
 		ushort* argnames, int each);
+	const char* type() const
+		{ return "BuiltinClass"; }
 	};
 
 void SuSocketServer::out(Ostream& os)
@@ -207,7 +209,9 @@ public:
 Value SuSocketServer::call(Value self, Value member, short nargs,
 	short nargnames, ushort* argnames, int each)
 	{
-	if (member == CALL_CLASS)
+	if (member == PARAMS)
+		return new SuString("(name = .Name, port = .Port, exit = false, ...)");
+	else if (member == CALL_CLASS)
 		{
 		static Value Name("Name");
 		static Value Port("Port");

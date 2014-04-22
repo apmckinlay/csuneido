@@ -72,7 +72,7 @@ private:
 
 Value su_image()
 	{
-	static BuiltinClass<SuImage> suImageClass;
+	static BuiltinClass<SuImage> suImageClass("(image)");
 	return &suImageClass;
 	}
 

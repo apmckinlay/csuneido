@@ -216,7 +216,7 @@ private:
 
 Value su_runpiped()
 	{
-	static BuiltinClass<SuRunPiped> suRunPipedClass;
+	static BuiltinClass<SuRunPiped> suRunPipedClass("(command, block = false)");
 	return &suRunPipedClass;
 	}
 
@@ -226,30 +226,11 @@ void BuiltinClass<SuRunPiped>::out(Ostream& os)
 	os << "RunPiped /* builtin class */";
 	}
 
-static char* argsToCmd(BuiltinArgs& args)
-	{
-	bool first = true;
-	OstreamStr os;
-	while (Value value = args.getNextUnnamed())
-		{
-		gcstring arg = value.gcstr();
-		int i = arg.find(' ');
-		// don't put quotes on first arg to handle old style entire command line
-		if (first || i == -1)
-			os << arg;
-		else
-			os << '"' << arg << '"';
-		os << ' ';
-		first = false;
-		}
-	return os.str();
-	}
-
 template<>
 Value BuiltinClass<SuRunPiped>::instantiate(BuiltinArgs& args)
 	{
 	args.usage("usage: RunPiped(command)");
-	gcstring cmd = argsToCmd(args);
+	gcstring cmd = args.getgcstr("command");
 	SuRunPiped* runpiped = new BuiltinInstance<SuRunPiped>();
 	runpiped->init(cmd);
 	return runpiped;
@@ -259,7 +240,7 @@ template<>
 Value BuiltinClass<SuRunPiped>::callclass(BuiltinArgs& args)
 	{
 	args.usage("usage: RunPiped(command, block = false)");
-	gcstring cmd = argsToCmd(args);
+	gcstring cmd = args.getgcstr("command");
 	Value block = args.getValue("block", SuFalse);
 	SuRunPiped* rp = new BuiltinInstance<SuRunPiped>();
 	rp->init(cmd);

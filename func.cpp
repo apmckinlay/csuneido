@@ -34,9 +34,7 @@
 
 Value Func::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	{
-	static Value Params("Params");
-
-	if (member == Params)
+	if (member == PARAMS)
 		return params();
 	else
 		method_not_found("function", member);

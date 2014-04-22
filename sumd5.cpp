@@ -71,7 +71,7 @@ private:
 
 Value su_md5()
 	{
-	static BuiltinClass<Md5> Md5Class;
+	static BuiltinClass<Md5> Md5Class("(@strings)");
 	return &Md5Class;
 	}
 
@@ -90,7 +90,7 @@ Value BuiltinClass<Md5>::instantiate(BuiltinArgs& args)
 template<>
 Value BuiltinClass<Md5>::callclass(BuiltinArgs& args)
 	{
-	args.usage("usage: Md5(string ...)");
+	args.usage("usage: Md5(@strings)");
 	Md5* a = new BuiltinInstance<Md5>();
 	if (! args.hasUnnamed())
 		return a;

@@ -72,7 +72,7 @@ private:
 
 Value su_sha1()
 	{
-	static BuiltinClass<Sha1> Md5Class;
+	static BuiltinClass<Sha1> Md5Class("(@strings)");
 	return &Md5Class;
 	}
 
@@ -91,7 +91,7 @@ Value BuiltinClass<Sha1>::instantiate(BuiltinArgs& args)
 template<>
 Value BuiltinClass<Sha1>::callclass(BuiltinArgs& args)
 	{
-	args.usage("usage: Sha1(string ...)");
+	args.usage("usage: Sha1(@strings)");
 	Sha1* a = new BuiltinInstance<Sha1>();
 	if (! args.hasUnnamed())
 		return a;

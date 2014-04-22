@@ -76,7 +76,7 @@ private:
 
 Value su_file()
 	{
-	static BuiltinClass<SuFile> suFileClass;
+	static BuiltinClass<SuFile> suFileClass("(filename, mode = 'r', block = false)");
 	return &suFileClass;
 	}
 

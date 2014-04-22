@@ -146,6 +146,7 @@ template <> struct HashFn<Value>
 
 extern Value NEW;
 extern Value CALL;
+extern Value PARAMS;
 extern Value CALL_CLASS;
 extern Value CALL_INSTANCE;
 extern Value INSTANTIATE;

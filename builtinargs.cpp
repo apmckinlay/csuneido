@@ -30,7 +30,7 @@ Used by BuiltinClass
 - must get arguments in order
 - can handle variable args with getNext and curName
 e.g.
-	BuiltinArgs(nargs, nargnames, argnames, each);
+	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("usage: ...");
 	char* first = args.getstr("first");
 	Value second = args.getValue("second", SuFalse);

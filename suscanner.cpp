@@ -73,7 +73,7 @@ private:
 
 Value su_scanner()
 	{
-	static BuiltinClass<SuScanner> clazz;
+	static BuiltinClass<SuScanner> clazz("(string)");
 	return &clazz;
 	}
 
@@ -238,7 +238,7 @@ public:
 
 Value su_queryscanner()
 	{
-	static BuiltinClass<SuQueryScanner> clazz;
+	static BuiltinClass<SuQueryScanner> clazz("(string)");
 	return &clazz;
 	}
 
