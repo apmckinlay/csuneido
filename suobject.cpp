@@ -157,9 +157,6 @@ void SuObject::setup()
 	BASIC_METHOD(Eval2);
 	BASIC_METHOD(Find);
 	BASIC_METHOD(Iter);
-	BASIC_METHOD(IterKeys);
-	BASIC_METHOD(IterList);
-	BASIC_METHOD(IterListValues);
 	BASIC_METHOD(Join);
 	basic_methods["Member?"] = &SuObject::HasMember;
 	basic_methods["Method?"] = &SuObject::HasMethod;
@@ -524,27 +521,6 @@ Value SuObject::Iter(short nargs, short nargnames, ushort* argnames, int each)
 	if (nargs != 0)
 		except("usage: object.Iter()");
 	return new SuObjectIter(this, ITER_VALUES);
-	}
-
-Value SuObject::IterKeys(short nargs, short nargnames, ushort* argnames, int each)
-	{
-	if (nargs != 0)
-		except("usage: object.IterKeys()");
-	return new SuObjectIter(this, ITER_KEYS);
-	}
-
-Value SuObject::IterList(short nargs, short nargnames, ushort* argnames, int each)
-	{
-	if (nargs != 0)
-		except("usage: object.IterList()");
-	return new SuObjectIter(this, ITER_KEYS, true, false);
-	}
-
-Value SuObject::IterListValues(short nargs, short nargnames, ushort* argnames, int each)
-	{
-	if (nargs != 0)
-		except("usage: object.IterListValues()");
-	return new SuObjectIter(this, ITER_VALUES, true, false);
 	}
 
 template <class Finder>
@@ -1453,20 +1429,6 @@ class test_object : public Tests
 			verify(p.second == s[0] - 'a');
 			}
 		verify(iter == ob.end());
-
-		Value obiter = ob.call(&ob, "IterKeys", 0, 0, 0, -1);
-		for (i = 0; i < 100; ++i)
-			{
-			Value x = obiter.call(obiter, "Next", 0, 0, 0, -1);
-			verify(x == i);
-			}
-		for (i = 0; i < 26; ++i)
-			{
-			Value x = obiter.call(obiter, "Next", 0, 0, 0, -1);
-			gcstring s = x.gcstr();
-			verify(s.size() == 1 && s[0] >= 'a' && s[0] <= 'z');
-			}	
-		verify(obiter == obiter.call(obiter, "Next", 0, 0, 0, -1));
 		}
 	TEST(9, remove1)
 		{

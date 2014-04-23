@@ -980,10 +980,6 @@ void FunctionCompiler::opt_paren_expr()
 	OPT_PAREN_EXPR2
 	}
 
-#define ITERKEYS mem("IterKeys")
-#define ITERLIST mem("IterList")
-#define ITERVALUES mem("Iter")
-#define ITERLISTVALUES mem("IterListValues")
 #define NEXT mem("Next")
 #define ITER mem("Iter")
 
