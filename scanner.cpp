@@ -33,11 +33,11 @@ enum { OK = 1, DIG, ID, GO, WHITE, END };
 char cclass_[256] =
 	{
 	END, 0, 0, 0, 0, 0, 0, 0,						// NUL ...
-	0, WHITE, WHITE, WHITE, WHITE, WHITE, 0, 0,	// BS, HT, LF ...
+	0, WHITE, WHITE, WHITE, WHITE, WHITE, 0, 0,		// BS, HT, LF ...
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
-	WHITE, GO, GO, OK, GO, GO, GO, GO,			// SP ! " # $ % & '
-	OK, OK, GO, GO, OK, GO, GO, GO,				// ( ) * + , - . /
+	WHITE, GO, GO, OK, GO, GO, GO, GO,				// SP ! " # $ % & '
+	OK, OK, GO, GO, OK, GO, GO, GO,					// ( ) * + , - . /
 	DIG, DIG, DIG, DIG, DIG, DIG, DIG, DIG,			// 0 1 2 3 4 5 6 7
 	DIG, DIG, GO, OK, GO, GO, GO, OK,				// 8 9 : ; < = > ?
 	OK, ID, ID, ID, ID, ID, ID, ID,					// @ A B C D E F G
@@ -69,20 +69,40 @@ Scanner::Scanner(char* s, int i, CodeVisitor* v)
 	{
 	}
 
-char* Scanner::peek()
+Scanner::Scanner(const Scanner* sc) : source(sc->source), si(sc->si)
+	{}
+
+static bool isquote(char c)
 	{
-	int i;
-	for (i = si; cclass(source[i]) == WHITE; ++i)
-		;
-	return source + i;
+	return c == '"' || c == '\'' || c == '`';
 	}
 
-char Scanner::peeknl()
+int Scanner::ahead() const
 	{
-	int i;
-	for (i = si; cclass(source[i]) == WHITE && source[i] != '\n'; ++i)
-		;
-	return source[i];
+	Scanner tmp(this);
+	int token;
+	do
+		{
+		if (isquote(tmp.source[tmp.si])) // avoid actually processing strings
+			return T_STRING;
+		token = tmp.nextall();
+		}
+		while (token == T_WHITE || token == T_COMMENT || token == T_NEWLINE);
+	return tmp.keyword ? tmp.keyword : token;
+	}
+
+int Scanner::aheadnl() const
+	{
+	Scanner tmp(this);
+	int token;
+	do
+		{
+		if (isquote(tmp.source[tmp.si])) // avoid actually processing strings
+			return T_STRING;
+		token = tmp.nextall();
+		}
+		while (token == T_WHITE || token == T_COMMENT);
+	return tmp.keyword ? tmp.keyword : token;
 	}
 
 int Scanner::next()

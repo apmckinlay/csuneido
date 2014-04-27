@@ -50,7 +50,7 @@ public:
 	short nd;
 	short nlocals;
 	short nliterals;
-	char* src;
+	const char* src;
 	char* className; // for dot parameters, used by SuFunction call
 
 	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);

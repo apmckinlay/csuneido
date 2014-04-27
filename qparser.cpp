@@ -758,8 +758,8 @@ void QueryParser::member(SuObject* ob, char* gname, short base)
 			syntax_error();
 		}
 	bool default_allowed = true;
-	char peek = *scanner.peek();
-	if (peek == ':' || (base > 0 && peek == '('))
+	int ahead = scanner.ahead();
+	if (ahead == ':' || (base > 0 && ahead == '('))
 		{
 		if (token == T_IDENTIFIER || token == T_STRING)
 			{

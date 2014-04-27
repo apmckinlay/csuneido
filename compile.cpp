@@ -174,6 +174,7 @@ private:
 	void triop();
 	void orop();
 	void andop();
+	void inop();
 	void bitorop();
 	void bitxor();
 	void bitandop();
@@ -219,11 +220,6 @@ Compiler::Compiler(char* s, CodeVisitor* visitor)
 	match(); // get first token
 	}
 
-bool isquote(char c)
-	{
-	return c == '"' || c == '\'' || '`';
-	}
-
 Value Compiler::constant(char* gname, char* className)
 	{
 	Value x;
@@ -241,7 +237,7 @@ Value Compiler::constant(char* gname, char* className)
 			{
 			s += gcstring(scanner.value, scanner.len);
 			match(T_STRING);
-			if (token == I_CAT && isquote(*scanner.peek()))
+			if (token == I_CAT && scanner.ahead() == T_STRING)
 				matchnew(I_CAT);
 			else
 				break;
@@ -291,7 +287,7 @@ Value Compiler::constant(char* gname, char* className)
 			match();
 			return SuBoolean::f;
 		default :
-			if (*scanner.peek() == '{')
+			if (scanner.ahead() == '{')
 				return suclass(gname, className);
 			// else identifier => string
 			x = new SuString(scanner.value);
@@ -420,8 +416,8 @@ void Compiler::member(SuObject* ob, char* gname, char* className, short base)
 			syntax_error();
 		}
 	bool default_allowed = true;
-	char peek = *scanner.peek();
-	if (peek == ':' || (base > 0 && peek == '('))
+	int ahead = scanner.ahead();
+	if (ahead == ':' || (base > 0 && ahead == '('))
 		{
 		if (anyName())
 			{
@@ -449,7 +445,7 @@ void Compiler::member(SuObject* ob, char* gname, char* className, short base)
 		syntax_error("class members must be named");
 
 	Value x;
-	if (peek == '(' && base > 0)
+	if (ahead == '(' && base > 0)
 		x = functionCompiler(base, mv.gcstr() == "New", gname, className);
 	else if (token != ',' && token != ')' && token != '}')
 		{
@@ -657,28 +653,18 @@ void Compiler::match()
 
 bool Compiler::binopnext()
 	{
-	char* s = scanner.peek();
-	switch (*s)
+	switch (scanner.ahead())
 		{
-	case '?' :
-	case '*' :
-	case '%' :
-	case '&' :
-	case '|' :
-	case '<' :
-	case '>' :
-	case '=' :
-	case '!' :
-	case '^' :
-	case '$' :
+	case T_AND: case T_OR:
+	case I_ADD: case I_SUB: case I_CAT: case I_MUL: case I_DIV: case I_MOD:
+	case I_ADDEQ: case I_SUBEQ: case I_CATEQ: case I_MULEQ: case I_DIVEQ: case I_MODEQ:
+	case I_BITAND: case I_BITOR: case I_BITXOR:
+	case I_BITANDEQ: case I_BITOREQ: case I_BITXOREQ:
+	case I_GT: case I_GTE: 	case I_LT: case I_LTE:
+	case I_LSHIFT: case I_LSHIFTEQ: case I_RSHIFT: case I_RSHIFTEQ:
+	case I_EQ : case I_IS: case I_ISNT: case I_MATCH: case I_MATCHNOT:
+	case '?':
 		return true;
-	case '/' :
-		if (s[1] == '*')
-			return false;
-		// fall thru
-	case '+' :
-	case '-' :
-		return s[1] != s[0]; // but not //, ++, --
 	default :
 		return false;
 		}
@@ -870,7 +856,7 @@ void FunctionCompiler::block()
 	int first = locals.size();
 	verify(first < BLOCK_REST);
 	int nparams = 0;
-	if (*scanner.peek() == '|')
+	if (scanner.ahead() == I_BITOR)
 		{ // parameters
 		match('{');
 		match(I_BITOR);
@@ -945,7 +931,7 @@ void FunctionCompiler::compound(short cont, short* pbrk)
 	match(); // NOTE: caller must check for {
 	if (newfn && last_adr == -1)
 		{
-		if (scanner.keyword != K_SUPER || *scanner.peek() != '(')
+		if (scanner.keyword != K_SUPER || scanner.ahead() != '(')
 			{
 			emit(I_SUPER, 0, base);
 			emit(I_CALL, MEM_SELF, NEW);
@@ -1057,46 +1043,36 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 		b = -1;
 		match();
 		OPT_PAREN_EXPR1
+		if (token == T_IDENTIFIER && scanner.ahead() == K_IN)
+			{ // for var in expr
+			int var = local(INIT);
+			match(T_IDENTIFIER);
+			match(K_IN);
+			last_adr = -1;
+			OPT_PAREN_EXPR2
+			emit(I_CALL, MEM, ITER);
+			a = code.size();
+			emit(I_DUP); // to save the iterator
+			emit(I_DUP); // to compare against for end
+			emit(I_CALL, MEM, NEXT);
+			emit(I_EQ, 0x80 + (AUTO << 4), var);
+			emit(I_ISNT);
+			b = emit(I_JUMP, POP_NO, -1);
+			statement(a, &b);
+			emit(I_JUMP, UNCOND, a - (code.size() + 3));
+			patch(b);
+			emit(I_POP);
+			last_adr = -1; // prevent POP from being optimized away
+			break;
+			}
+		if (! parens)
+			syntax_error("parenthesis required: for (expr; expr; expr)");
 		if (token != ';')
 			{
 			// INITIALIZATION
-			int nc_before = code.size();
-			int local_pos = scanner.prev;
 			exprlist();
-			if (scanner.keyword == K_IN)
-				{ // for (var in expr)
-				match();
-				int codelen = code.size() - nc_before;
-				int var = 0;
-				if (codelen == 1 && (code[nc_before] & 0xf0) == I_PUSH_AUTO)
-					var = code[nc_before] & 15;
-				else if (codelen == 2 && code[nc_before] == (I_PUSH | AUTO))
-					var = code[nc_before + 1];
-				else
-					syntax_error("usage: for (local_variable in expression)");
-				scanner.visitor->local(local_pos, var, INIT); // fix up previous
-				code.resize(nc_before);
-				last_adr = -1;
-				OPT_PAREN_EXPR2
-				emit(I_CALL, MEM, ITER);
-				a = code.size();
-				emit(I_DUP); // to save the iterator
-				emit(I_DUP); // to compare against for end
-				emit(I_CALL, MEM, NEXT);
-				emit(I_EQ, 0x80 + (AUTO << 4), var);
-				emit(I_ISNT);
-				b = emit(I_JUMP, POP_NO, -1);
-				statement(a, &b);
-				emit(I_JUMP, UNCOND, a - (code.size() + 3));
-				patch(b);
-				emit(I_POP);
-				last_adr = -1; // prevent POP from being optimized away
-				break ;
-				}
 			emit(I_POP);
 			}
-		if (! parens)
-			syntax_error("usage: for (expr; expr; expr)");
 		match(';');
 		short aa = code.size();
 		short test_nc = 0;
@@ -1378,15 +1354,40 @@ void FunctionCompiler::orop()
 
 void FunctionCompiler::andop()
 	{
-	bitorop();
+	inop();
 	short a = -1;
 	while (token == T_AND)
 		{
 		matchnew();
 		a = emit(I_JUMP, ELSE_POP_NO, a);
-		bitorop();
+		inop();
 		}
 	patch(a);
+	}
+
+void FunctionCompiler::inop()	
+	{
+	bitorop();
+	if (scanner.keyword == K_IN)
+		{
+		matchnew();
+		match('(');
+		short a = -1;
+		while (token != ')')
+			{
+			expr();
+			a = emit(I_JUMP, CASE_YES, a);
+			if (token == ',')
+				match(',');
+			}
+		emit(I_POP);
+		emit(I_PUSH_VALUE, FALSE);
+		short b = emit(I_JUMP, UNCOND, -1);
+		patch(a);
+		emit(I_PUSH_VALUE, TRUE);
+		patch(b);
+		match(')');
+		}
 	}
 
 void FunctionCompiler::bitorop()
@@ -1588,7 +1589,7 @@ void FunctionCompiler::expr0(bool newtype)
 			break ;
 		default :
 			if (isupper(scanner.value[*scanner.value == '_' ? 1 : 0]) &&
-				'{' == (expecting_compound ? scanner.peeknl() : *scanner.peek()))
+				'{' == (expecting_compound ? scanner.aheadnl() : scanner.ahead()))
 				{ // Name { => class
 				emit_literal();
 				option = LITERAL;
@@ -1652,7 +1653,7 @@ void FunctionCompiler::expr0(bool newtype)
 		option = MEM_SELF;
 		id = literal(memname(className, scanner.value));
 		match(T_IDENTIFIER);
-		if (! expecting_compound && token == T_NEWLINE && *scanner.peek() == '{')
+		if (! expecting_compound && token == T_NEWLINE && scanner.ahead() == '{')
 			match();
 		break ;
 	case '[' :
@@ -1691,7 +1692,7 @@ void FunctionCompiler::expr0(bool newtype)
 			option = MEM;
 			id = mem(scanner.value);
 			match(T_IDENTIFIER);
-			if (! expecting_compound && token == T_NEWLINE && *scanner.peek() == '{')
+			if (! expecting_compound && token == T_NEWLINE && scanner.ahead() == '{')
 				match();
 			}
 		else if (token == '[')
@@ -1794,7 +1795,7 @@ void FunctionCompiler::args(short& nargs, vector<ushort>& argnames, char* delims
 		{
 		if (! just_block)
 			args_list(nargs, delims, argnames);
-		if (token == T_NEWLINE && ! expecting_compound && *scanner.peek() == '{')
+		if (token == T_NEWLINE && ! expecting_compound && scanner.ahead() == '{')
 			match();
 		if (token == '{')
 			{ // take block following args as another arg
@@ -1827,7 +1828,7 @@ void FunctionCompiler::args_list(short & nargs, char* delims, vector<ushort>& ar
 	bool key = false;
 	for (nargs = 0; token != delims[1]; ++nargs)
 		{
-		if (*scanner.peek() == ':')
+		if (scanner.ahead() == ':')
 			{
 			key = true;
 			int id;
@@ -1849,7 +1850,7 @@ void FunctionCompiler::args_list(short & nargs, char* delims, vector<ushort>& ar
 			}
 		else if (key)
 			syntax_error("un-named arguments must come before named arguments");
-		if (key && (*scanner.peek() == ':' || token == ',' || token == delims[1]))
+		if (key && (scanner.ahead() == ':' || token == ',' || token == delims[1]))
 			emit(I_PUSH, LITERAL, literal(SuTrue));
 		else
 			expr();
@@ -1869,7 +1870,7 @@ void FunctionCompiler::record()
 	int argi = 0;
 	for (nargs = 0; token != ']'; ++nargs, ++argi)
 		{
-		if (*scanner.peek() == ':')
+		if (scanner.ahead() == ':')
 			{
 			key = true;
 			int id;
@@ -1892,7 +1893,7 @@ void FunctionCompiler::record()
 		else if (key)
 			syntax_error();
 		prevlits.clear();
-		if (key && (*scanner.peek() == ':' || token == ',' || token == ']'))
+		if (key && (scanner.ahead() == ':' || token == ',' || token == ']'))
 			emit(I_PUSH, LITERAL, literal(SuTrue));
 		else
 			expr();
@@ -2185,6 +2186,8 @@ Value Compiler::memname(char* className, char* s)
 
 #include "testing.h"
 #include "ostreamstr.h"
+#include "except.h"
+#include "exceptimp.h"
 
 const int BUFLEN = 10000;
 char *buf = new char[BUFLEN];
@@ -2280,13 +2283,6 @@ static Cmpltest cmpltests[] =
 					  3  push sub \n\
 					  4  return \n\
 					  5\n" },
-
-/*	{ "[b];", "[b]; }\n\
-					  0  nop \n\
-					  1  push auto b\n\
-					  2  push sub this \n\
-					  3  return \n\
-					  4\n" },*/
 
 	{ "a.b;", "a.b; }\n\
 					  0  nop \n\
@@ -2770,6 +2766,20 @@ static Cmpltest cmpltests[] =
 					 10  return \n\
 					 11\n" },
 
+	{ "a in (b, c);", "a in (b, c); }\n\
+					  0  nop \n\
+					  1  push auto a\n\
+					  2  push auto b\n\
+					  3  jump case yes 15\n\
+					  6  push auto c\n\
+					  7  jump case yes 15\n\
+					 10  pop \n\
+					 11  push value false \n\
+					 12  jump 16\n\
+					 15  push value true \n\
+					 16  return \n\
+					 17\n" },
+
 	{ "a < b + c * -d;", "a < b + c * -d; }\n\
 					  0  nop \n\
 					  1  push auto a\n\
@@ -2788,13 +2798,6 @@ static Cmpltest cmpltests[] =
 					  1  push mem this a\n\
 					  3  return \n\
 					  4\n" },
-
-/*	{ "[a];", "[a]; }\n\
-					  0  nop \n\
-					  1  push auto a\n\
-					  2  push sub this \n\
-					  3  return \n\
-					  4\n" },*/
 
 	{ "(a);", "(a); }\n\
 					  0  nop \n\
@@ -3216,6 +3219,26 @@ F(); }\n\
 					  8  return nil \n\
 					  9\n" },
 
+	{ "for (a in b) F();", "for (a in b) \n\
+					  0  nop \n\
+					  1  push auto b\n\
+					  2  call mem Iter 0\n\
+					  4  dup \n\
+					  5  dup \n\
+					  6  call mem Next 0\n\
+					  8  = auto a\n\
+					  9  != \n\
+					 10  jump pop no 20\n\
+F(); }\n\
+					 13  nop \n\
+					 14  call global pop F 0\n\
+					 17  jump 4\n\
+					 20  pop \n\
+\n\
+					 21  nop \n\
+					 22  return nil \n\
+					 23\n" },
+
 	{ "forever\n {\n if (a)\n continue;\n if (b)\n continue ;\n if (c)\n break ;\n if (d)\n break ;\n}" , \
 	  "forever  {  if (a)  \n\
 					  0  nop \n\
@@ -3619,7 +3642,15 @@ void test_compile::process(int i, char* code, char* result)
 	strcpy(buf, "function () {\n");
 	strcat(buf, code);
 	strcat(buf, "\n}");
-	SuFunction* fn = force<SuFunction*>(compile(buf));
+	SuFunction* fn;
+	try
+		{
+		fn = force<SuFunction*>(compile(buf));
+		}
+	catch (const Except& e)
+		{
+		except(i << ": " << code << "\n\t=> " << e);
+		}
 	OstreamStr out;
 	fn->disasm(out);
 	const char* output = out.str();

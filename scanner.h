@@ -33,12 +33,12 @@ class CodeVisitor;
 class Scanner
 	{
 public:
-	explicit Scanner(char* = "", int = 0, CodeVisitor* cv = 0);
-	char* peek();
-	char peeknl();
+	Scanner(char* = "", int = 0, CodeVisitor* cv = 0);
+	int ahead() const;
+	int aheadnl() const;
 	int next();
 	int nextall();
-	char* rest()
+	const char* rest() const
 		{ return source + si; }
 
 	int prev;
@@ -47,12 +47,13 @@ public:
 	char* err;
 	enum { buflen = 20000 };		// maximum string constant length
 	char buf[buflen];
-	char* source;
+	const char* source;
 	int si;
 	int keyword;
 	CodeVisitor* visitor; // not used by Scanner
 	// but placed here to avoid passing around extra argument in compiler
 protected:
+	explicit Scanner(const Scanner*);
 	char doesc(void);
 	virtual int keywords(char*);
 	};
