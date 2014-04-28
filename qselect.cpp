@@ -454,7 +454,7 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 
 	LOG("Select::optimize " << tbl->table << (freeze ? " FREEZE" : "") << 
 		" index " << index << ", needs " << needs);
-	LOG("exprs " << expr);
+	LOG("original exprs: " << expr);
 	if (optFirst)
 		{
 		optFirst = false;
@@ -576,7 +576,7 @@ Lisp<Cmp> Select::extract_cmps()
 		newexprs.push(*exprs);
 		}
 	expr = new And(newexprs);
-	LOG("exprs " << *expr);
+	LOG("exprs: " << *expr);
 	LOG("cmps: " << cmps);
 	return cmps;
 	}
