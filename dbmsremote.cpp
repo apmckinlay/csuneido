@@ -40,6 +40,7 @@
 #include "cmdlineoptions.h" // for ignore_version
 #include "exceptimp.h"
 #include "tmpalloc.h"
+#include "fibers.h" // for tss_fiber_id
 
 //#define LOGGING
 #ifdef LOGGING
@@ -396,8 +397,6 @@ private:
 	OstreamStr os;
 	};
 
-char* session_id = "";
-
 DbmsRemote::DbmsRemote(SocketConnect* s) : sc(s)
 	{
 	char buf[80];
@@ -411,7 +410,7 @@ DbmsRemote::DbmsRemote(SocketConnect* s) : sc(s)
 
 	WRITE("SESSIONID ");
 	sc.ck_readline(buf, sizeof buf);
-	session_id = dupstr(stripnl(buf));
+	tss_fiber_id() = dupstr(stripnl(buf));
 	}
 
 DbmsRemote::~DbmsRemote()
@@ -644,12 +643,12 @@ int DbmsRemote::cursors()
 Value DbmsRemote::sessionid(char* s)
 	{
 	if (! *s)
-		return new SuString(session_id);
+		return new SuString(tss_fiber_id());
 	WRITE("SESSIONID " << s);
 	char buf[80];
 	sc.ck_readline(buf, sizeof buf);
 	SuString* ss = new SuString(stripnl(buf));
-	session_id = ss->str();
+	tss_fiber_id() = ss->str();
 	return ss;
 	}
 

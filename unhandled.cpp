@@ -23,6 +23,7 @@
 #include "unhandled.h"
 #include "win.h"
 #include "except.h"
+#include "fibers.h" // for tss_fiber_id()
 #include <stdlib.h> // for exit
 
 #define EXCEPT(x) case EXCEPTION_##x: except("win32 exception: " #x);
@@ -82,9 +83,8 @@ inline void log_and_exit(const char* error, const char* extra = "")
 	if (h_file != INVALID_HANDLE_VALUE)
 		{
 		SetFilePointer(h_file, 0, 0, FILE_END);
-		extern char* session_id; // only for clients i.e. dbmsremote
-		write(session_id);
-		if (*session_id != 0)
+		write(tss_fiber_id());
+		if (*tss_fiber_id() != 0)
 			write(": ");
 		write("fatal error: ");
 		write(error);

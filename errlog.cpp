@@ -23,6 +23,7 @@
 #include "errlog.h"
 #include <string.h>
 #include "ostreamfile.h"
+#include "fibers.h" // for tss_fiber_id()
 #include <time.h>
 
 extern bool is_client;
@@ -39,8 +40,7 @@ void errlog(const char* msg1, const char* msg2, const char* msg3)
 	else
 		s[strlen(s) - 1] = 0;
 	log << s << ' ';
-	extern char* session_id; // only for clients i.e. dbmsremote
-	if (*session_id)
-		log << session_id << ": ";
+	if (*tss_fiber_id())
+		log << tss_fiber_id() << ": ";
 	log << msg1 << " " << msg2 << " " << msg3 << endl;
 	}
