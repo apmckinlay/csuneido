@@ -408,6 +408,8 @@ void SocketConnectAsynch::close2()
 int SocketConnectAsynch::read(char* dst, int n)
 	{
 	LOG("read " << n);
+	if (mode == CLOSED && rdbuf.size() > 0 && n > rdbuf.size())
+		n = rdbuf.size();
 	if (tryread(dst, n))
 		return n;
 	if (mode == CLOSED)
@@ -431,6 +433,7 @@ bool SocketConnectAsynch::tryread(char* dst, int n)
 	// data available
 	memcpy(dst, rdbuf.buffer(), n);
 	rdbuf.remove(n);
+	LOG("returning " << n);
 	return true;
 	}
 
