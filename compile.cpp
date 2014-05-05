@@ -656,13 +656,14 @@ bool Compiler::binopnext()
 	switch (scanner.ahead())
 		{
 	case T_AND: case T_OR:
-	case I_ADD: case I_SUB: case I_CAT: case I_MUL: case I_DIV: case I_MOD:
+	// NOTE: not ADD or SUB because they can be unary
+	case I_CAT: case I_MUL: case I_DIV: case I_MOD:
 	case I_ADDEQ: case I_SUBEQ: case I_CATEQ: case I_MULEQ: case I_DIVEQ: case I_MODEQ:
 	case I_BITAND: case I_BITOR: case I_BITXOR:
 	case I_BITANDEQ: case I_BITOREQ: case I_BITXOREQ:
 	case I_GT: case I_GTE: 	case I_LT: case I_LTE:
 	case I_LSHIFT: case I_LSHIFTEQ: case I_RSHIFT: case I_RSHIFTEQ:
-	case I_EQ : case I_IS: case I_ISNT: case I_MATCH: case I_MATCHNOT:
+	case I_EQ: case I_IS: case I_ISNT: case I_MATCH: case I_MATCHNOT:
 	case '?':
 		return true;
 	default :
