@@ -83,6 +83,9 @@
     <PreBuildEvent>
       <Message>update Built</Message>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>copy /y "$(TargetDir)$(TargetFileName)" $(MSBuildProjectDirectory)\..\suneido.exe</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\alert.cpp" />
