@@ -1349,6 +1349,7 @@ void FunctionCompiler::orop()
 		matchnew();
 		a = emit(I_JUMP, ELSE_POP_YES, a);
 		andop();
+		emit(I_BOOL);
 		}
 	patch(a);
 	}
@@ -1362,6 +1363,7 @@ void FunctionCompiler::andop()
 		matchnew();
 		a = emit(I_JUMP, ELSE_POP_NO, a);
 		inop();
+		emit(I_BOOL);
 		}
 	patch(a);
 	}
@@ -2081,7 +2083,7 @@ short FunctionCompiler::emit(short op, short option, short target,
 		// OPTIMIZE: pushes
 		if (option == LITERAL && target < 16)
 			code[adr] = I_PUSH_LITERAL | target;
-		else if (option == AUTO && target < 16)
+		else if (option == AUTO && target < 15)
 			code[adr] = I_PUSH_AUTO | target;
 		else if (option >= LITERAL)
 			emit_target(option, target);

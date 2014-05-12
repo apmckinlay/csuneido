@@ -33,7 +33,7 @@ const char* opcodes[256] =
 	"push auto", "push auto", "push auto", "push auto",
 	"push auto", "push auto", "push auto", "push auto",
 	"push auto", "push auto", "push auto", "push auto",
-	"push auto", "push auto", "push auto", "push auto",
+	"push auto", "push auto", "push auto", "bool",
 	"= auto", "= auto", "= auto", "= auto",
 	"= auto", "= auto", "= auto", "= auto",
 	"= auto pop", "= auto pop", "= auto pop", "= auto pop",

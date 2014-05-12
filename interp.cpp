@@ -225,7 +225,7 @@ Value Frame::run()
 		case I_PUSH_AUTO | 8 : case I_PUSH_AUTO | 9 :
 		case I_PUSH_AUTO | 10 : case I_PUSH_AUTO | 11 :
 		case I_PUSH_AUTO | 12 : case I_PUSH_AUTO | 13 :
-		case I_PUSH_AUTO | 14 : case I_PUSH_AUTO | 15 :
+		case I_PUSH_AUTO | 14 : // 15 is used for I_BOOL
 			arg = local[op & 15];
 			if (! arg)
 				except("uninitialized variable: " << symstr(fn->locals[op & 15]));
@@ -410,6 +410,9 @@ Value Frame::run()
 			else
 				POP();
 			break ;
+		case I_BOOL:
+			topbool();
+			break;
 		case I_TRY :
 			// save the catcher offset & stack pointer
 			jump = fetch_jump();

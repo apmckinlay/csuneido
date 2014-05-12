@@ -173,7 +173,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 		out << TARGET(ci);
 		ci += 2;
 		}
-	else if (op < 16)
+	else if (op < 16 || op == I_BOOL)
 		;
 	else if (op < I_PUSH)
 		{
@@ -399,7 +399,7 @@ static int namerefs(uchar* code, int nc, char* buf)
 			ci += 4;
 		else if (op == I_PUSH_INT)
 			ci += 2;
-		else if (op < 16)
+		else if (op < 16 || op == I_BOOL)
 			;
 		else if (op < I_PUSH)
 			{
@@ -561,7 +561,7 @@ static int fixnames(uchar* code, int nc, const char* buf)
 			ci += 4;
 		else if (op == I_PUSH_INT)
 			ci += 2;
-		else if (op < 16)
+		else if (op < 16 || op == I_BOOL)
 			;
 		else if (op < I_PUSH)
 			{
