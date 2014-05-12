@@ -192,6 +192,9 @@ static bool DateCalc_check_time(int hour, int min, int sec)
 
 bool DateTime::valid() const
 	{
+	if (year == 3000 && (month != 1 || day != 1 ||
+		hour != 0 || minute != 0 || second != 0 || millisecond != 0))
+		return false;
 	return DateCalc_check_date(year, month, day) &&
 		DateCalc_check_time(hour, minute, second) &&
 		0 <= millisecond && millisecond <= 999;

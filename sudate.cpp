@@ -157,7 +157,7 @@ static void adjust(int& n, int& n2, int range)
         }
 	}
 
-static bool normalize(DateTime& dt)
+static void normalize(DateTime& dt)
 	{
 	adjust(dt.second, dt.minute, 60);
 	adjust(dt.minute, dt.hour, 60);
@@ -171,7 +171,6 @@ static bool normalize(DateTime& dt)
 		dt.day = 1;
 		dt.add_days(days);
 		}
-	return true;
 	}
 
 SuDate::SuDate()
@@ -240,7 +239,8 @@ Value SuDate::instantiate(short nargs, short nargnames, ushort* argnames, int ea
 			else if (argnames[i] == millisecond)
 				dt.millisecond = n;
 			}
-		if (! normalize(dt))
+		normalize(dt);
+		if (!dt.valid())
 			return SuFalse;
 
 		return new SuDate(dt.date(), dt.time());
@@ -258,7 +258,7 @@ char* weekday[] =
 
 enum {			 YEAR, MONTH, DAY, HOUR, MINUTE, SECOND, UNK };
 int minval[] = { 0,	   1,	  1,    0,	  0,	  0 };
-int maxval[] = { 2500, 12,	  31,	59,	  59,	  59 };
+int maxval[] = { 3000, 12,	  31,	59,	  59, 59 };
 
 static bool ampm_ahead(char* s)
 	{
