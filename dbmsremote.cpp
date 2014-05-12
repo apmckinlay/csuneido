@@ -397,14 +397,33 @@ private:
 	OstreamStr os;
 	};
 
+static bool builtMatch(char* resp)
+	{
+	if (cmdlineoptions.ignore_version)
+		return true;
+	char* prefix = "Suneido Database Server (";
+	if (!has_prefix(resp, prefix))
+		return false;
+	resp = resp + strlen(prefix);
+	if (!strstr(resp, "Java"))
+		return has_prefix(resp, build_date);	
+	else
+		{
+		// just compare date (not time)
+		int n = 11; // e.g. 'May 10 2014'
+		if (resp[n-1] == ' ')
+			--n; // single digit day
+		return 0 == memcmp(resp, build_date, n);
+		}
+	}
+
 DbmsRemote::DbmsRemote(SocketConnect* s) : sc(s)
 	{
 	char buf[80];
 	sc.readline(buf, sizeof buf);
-	os << "Suneido Database Server (" << build_date << ")\r\n";
-	if (! cmdlineoptions.ignore_version &&
-		0 != strcmp(buf, os.str()))
-		except("connect failed\nexpected: " << os.str() << "\ngot: " << buf);
+	if (! builtMatch(buf))
+		except("connect failed\nexpected: Suneido Database Server (" 
+			<< build_date << ")\ngot: " << buf);
 	sc.write("BINARY\r\n");
 	sc.ck_ok();
 
