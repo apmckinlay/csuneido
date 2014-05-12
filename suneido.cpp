@@ -207,7 +207,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		extern char* build_date;
 		alert("Built:  " << build_date << "\n"
 			""
-			"Copyright (C) 2000-2013 Suneido Software Corp.\n"
+			"Copyright (C) 2000-2014 Suneido Software Corp.\n"
 			"All rights reserved worldwide.\n"
 			"Licensed under the GNU General Public License v2\n"
 			"\n"
