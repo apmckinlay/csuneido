@@ -102,6 +102,8 @@ Value SuScanner::Next(BuiltinArgs& args)
 	token = scanner->nextall();
 	if (token == -1)
 		return this;
+	else if (scanner->si <= scanner->prev)
+		return SuEmptyString;
 	else
 		return new SuString(scanner->source + scanner->prev, scanner->si - scanner->prev);
 	}
@@ -173,7 +175,8 @@ Value SuScanner::Text(BuiltinArgs& args)
 	{
 	args.usage("usage: scanner.Text()");
 	args.end();
-
+	if (scanner->si <= scanner->prev)
+		return SuEmptyString;
 	return new SuString(scanner->source + scanner->prev, scanner->si - scanner->prev);
 	}
 
