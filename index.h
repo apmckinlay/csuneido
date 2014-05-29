@@ -65,8 +65,7 @@ public:
 	bool insert(int tran, Vslot x);
 	bool erase(const Key& key)
 		{ return bt.erase(key); }
-	float rangefrac(const Key& from, const Key& to)
-		{ return bt.rangefrac(from, to); }
+	float rangefrac(const Key& from, const Key& to);
 
 	class iterator
 		{

@@ -202,6 +202,29 @@ void Index::iterator::operator--()
 		}
 	}
 
+static bool sameKey(const Record& from, const Record& to)
+	{
+	extern gcstring fieldmax;
+	if (from.size() != to.size() - 1)
+		return false;
+	if (to.getraw(to.size() - 1) != fieldmax)
+		return false;
+	for (int i = 0; i < from.size(); ++i)
+		if (from.getraw(i) != to.getraw(i))
+			return false;
+	return true;
+	}
+
+float Index::rangefrac(const Key& from, const Key& to)
+	{
+	if (iskey && sameKey(from, to))
+		{
+		int n = db->nrecords(db->get_table(tblnum)->name);
+		return n > 0 ? 1.0f / n : .001f;
+		}
+	return bt.rangefrac(from, to);
+	}
+
 #include "testing.h"
 #include "random.h"
 #include "tempdb.h"
