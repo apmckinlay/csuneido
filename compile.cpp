@@ -1349,7 +1349,8 @@ void FunctionCompiler::orop()
 		matchnew();
 		a = emit(I_JUMP, ELSE_POP_YES, a);
 		andop();
-		emit(I_BOOL);
+		if (token != T_OR)
+			emit(I_BOOL);
 		}
 	patch(a);
 	}
@@ -1363,7 +1364,8 @@ void FunctionCompiler::andop()
 		matchnew();
 		a = emit(I_JUMP, ELSE_POP_NO, a);
 		inop();
-		emit(I_BOOL);
+		if (token != T_AND)
+			emit(I_BOOL);
 		}
 	patch(a);
 	}
