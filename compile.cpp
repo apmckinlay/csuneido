@@ -2754,22 +2754,24 @@ static Cmpltest cmpltests[] =
 	{ "a || b || c;", "a || b || c; }\n\
 					  0  nop \n\
 					  1  push auto a\n\
-					  2  jump else pop yes 10\n\
+					  2  jump else pop yes 11\n\
 					  5  push auto b\n\
-					  6  jump else pop yes 10\n\
+					  6  jump else pop yes 11\n\
 					  9  push auto c\n\
-					 10  return \n\
-					 11\n" },
+					 10  bool \n\
+					 11  return \n\
+					 12\n" },
 
 	{ "a && b && c;", "a && b && c; }\n\
 					  0  nop \n\
 					  1  push auto a\n\
-					  2  jump else pop no 10\n\
+					  2  jump else pop no 11\n\
 					  5  push auto b\n\
-					  6  jump else pop no 10\n\
+					  6  jump else pop no 11\n\
 					  9  push auto c\n\
-					 10  return \n\
-					 11\n" },
+					 10  bool \n\
+					 11  return \n\
+					 12\n" },
 
 	{ "a in (b, c);", "a in (b, c); }\n\
 					  0  nop \n\
