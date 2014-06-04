@@ -686,7 +686,8 @@ void SuNumber::product(const SuNumber& x, short y)
 
 struct Tmp
 	{
-	short digits[3 * NDIGITS];
+	enum { SIZE = 3 * NDIGITS };
+	short digits[SIZE];
 	Tmp(const short* d)
 		{
 		memset(digits, 0, sizeof digits);
@@ -694,9 +695,10 @@ struct Tmp
 			digits[i + NDIGITS] = d[i];
 		}
 	short& operator[](int i)
-		{ return digits[i]; 	}
-	operator short*()
-		{ return digits; }
+		{
+		verify(0 <= i && i <= sizeof (digits));
+		return digits[i];
+		}
 	};
 
 void round2(int digits, int exp, Tmp& tmp, char mode);
@@ -714,7 +716,7 @@ SuNumber* round(SuNumber* x, int digits, char mode)
 	Tmp tmp(x->digits);
 	round2(digits, x->exp, tmp, mode);
 
-	muldiv10(tmp, -digits);
+	muldiv10(tmp.digits, -digits);
 
 	// handle round up overflowing
 	// e.g. .9.Round(0) => 1 or .995.Round(2) => 1 or 9999.Round(-4) => 10000
@@ -729,22 +731,22 @@ SuNumber* round(SuNumber* x, int digits, char mode)
 	if (zero)
 		return &SuNumber::zero;
 
-	return new SuNumber(x->sign, x->exp, tmp + NDIGITS);
+	return new SuNumber(x->sign, x->exp, tmp.digits + NDIGITS);
 	}
 
 void round2(int digits, int exp, Tmp& tmp, char mode) // also used by mask
 	{
-	muldiv10(tmp, digits);
+	muldiv10(tmp.digits, digits);
 
 	// inc if rounding up
-	if (exp < 2 * NDIGITS && (
-		(mode == 'h' && tmp[NDIGITS + exp] >= 5000) ||
-		(mode == 'u' &&  tmp[NDIGITS + exp] > 0)))
+	int ti = NDIGITS + exp;
+	if (0 <= ti && ti < Tmp::SIZE && (
+		(mode == 'h' && tmp[ti] >= 5000) ||
+		(mode == 'u' &&  tmp[ti] > 0)))
 		{
 		int carry = 1;
 		for (int i = NDIGITS + exp - 1; i >= 0; --i)
 			{
-			verify(0 <= i && i < 3 * NDIGITS);
 			int x = carry + tmp[i];
 			tmp[i] = x % 10000;
 			carry = x / 10000;
@@ -752,14 +754,12 @@ void round2(int digits, int exp, Tmp& tmp, char mode) // also used by mask
 		verify(carry == 0);
 		}
 	// else if mode == 'd'
-	// nothing required
+	// no increment required
 
 	// discard fractional part
-	for (int i = NDIGITS + exp; i >= 0 && i < 3 * NDIGITS; ++i)
-		{
-		verify(0 <= i && i < 3 * NDIGITS);
-		tmp[i] = 0;
-		}
+	for (int i = 0; i < Tmp::SIZE; ++i)
+		if (i >= NDIGITS + exp)
+			tmp[i] = 0;
 	}
 
 void mul10(short tmp[]);
@@ -1743,6 +1743,20 @@ class test_number2 : public Tests
 			SuNumber* n = SuNumber::from_int64(x);
 			verify(n->bigint() == x);
 			}
+		}
+	TEST(2, round)
+		{
+		test("1e-20", "0");
+		test("0", "0");
+		test(".11", ".11");
+		test(".111", ".11");
+		test(".999", "1");
+		test("1e20", "1e20");
+		}
+	void test(char* s, char* expected)
+		{
+		SuNumber n(s);
+		assert_eq(round(&n, 2, 'h')->gcstr(), expected);
 		}
 	};
 REGISTER(test_number2);
