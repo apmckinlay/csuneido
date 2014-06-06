@@ -524,7 +524,10 @@ Value Compiler::dll()
 		rtype = 0;
 		break ;
 	case K_BOOL :
-	case K_CHAR : case K_SHORT : case K_LONG : case K_INT64 :
+		// TODO: Replace <char, short, long> => <int8, int16, int32>
+	case K_CHAR : case K_SHORT : case K_LONG : case K_INT64 : case K_POINTER:
+		// FIXME: Note float/double return values aren't really handled by the
+		//        cSuneido return value unmarshalling code. See jSuneido.
 	case K_FLOAT : case K_DOUBLE :
 	case K_STRING :
 	case K_HANDLE : case K_GDIOBJ :
@@ -579,6 +582,7 @@ Value Compiler::dll()
 			syntax_error();
 		match();
 		paramtypes[n].n = 1;
+		// TODO: Reject pointer-to-primitive at syntax level.
 		if (token == I_MUL)
 			{ // pointer
 			match();
@@ -600,9 +604,10 @@ bool Compiler::valid_dll_arg_type()
 	switch (scanner.keyword)
 		{
 	case K_BOOL : case K_FLOAT : case K_DOUBLE :
-	case K_CHAR : case K_SHORT : case K_LONG : case K_INT64 :
+	case K_CHAR : case K_SHORT : case K_LONG : case K_INT64 : case K_POINTER :
 	case K_STRING : case K_BUFFER :
-	case K_HANDLE : case K_GDIOBJ : case K_RESOURCE :
+	case K_HANDLE : case K_GDIOBJ :
+	case K_RESOURCE :
 		return true;
 		}
 	return false;

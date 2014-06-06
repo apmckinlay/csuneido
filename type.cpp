@@ -102,6 +102,11 @@ Value TypeInt<int64>::get(char*& src, Value x)
 
 //===================================================================
 
+void TypeOpaquePointer::out(Ostream& os)
+	{ os << "pointer"; }
+
+//===================================================================
+
 void TypeFloat::put(char*& dst, char*&, const char*, Value x)
 	{
 	*((float*) dst) = x ? (float) x.number()->to_double() : 0;
@@ -172,6 +177,7 @@ void TypeWinRes<SuGdiObj>::out(Ostream& os)
 
 //===================================================================
 
+// Implements pointer-to-type: don't confuse with TypeOpaquePointer
 class TypePointer : public Type
 	{
 public:
@@ -546,6 +552,9 @@ class test_types : public Tests
 		test1(new TypeInt<long>, sizeof (long), 0, 123);
 		test1(new TypeInt<long>, sizeof (long), 0, 0);
 		test1(new TypeInt<long>, sizeof (long), 0, -123);
+		test1(new TypeOpaquePointer, sizeof (long), 0, 123);
+		test1(new TypeOpaquePointer, sizeof (long), 0, 0);
+		test1(new TypeOpaquePointer, sizeof (long), 0, -123);
 		test1(new TypeFloat, sizeof (float), 0, 123);
 		test1(new TypeFloat, sizeof (float), 0, new SuNumber("123.456"));
 		test1(new TypeDouble, sizeof (double), 0, 123);

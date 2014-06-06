@@ -52,7 +52,7 @@ public:
 	void out(Ostream& os);
 	};
 
-// integer Type's
+// integer Types
 template <class T> class TypeInt : public Type
 	{
 public:
@@ -89,6 +89,12 @@ public:
 		int64 n = hi;
 		return (n << 32) + lo;
 		}
+	};
+
+// opaque pointer type (Suneido treats it like a number)
+class TypeOpaquePointer : public TypeInt<long>
+	{
+	void out(Ostream& os);
 	};
 
 // float

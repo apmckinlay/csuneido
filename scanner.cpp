@@ -430,7 +430,7 @@ static Keyword words[] =
 	{ "gdiobj", K_GDIOBJ }, { "handle", K_HANDLE }, { "if", K_IF }, 
 	{ "in", K_IN }, { "int64", K_INT64 }, { "is", I_IS }, 
 	{ "isnt", I_ISNT }, { "long", K_LONG },
-	{ "new", K_NEW }, { "not", I_NOT }, { "or", T_OR }, 
+	{ "new", K_NEW }, { "not", I_NOT }, { "or", T_OR }, { "pointer", K_POINTER },
 	{ "resource", K_RESOURCE },	{ "return", K_RETURN }, 
 	{ "short", K_SHORT }, { "string", K_STRING }, { "struct", K_STRUCT }, 
 	{ "super", K_SUPER }, { "switch", K_SWITCH }, { "this", K_THIS }, 

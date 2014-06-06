@@ -858,6 +858,7 @@ void builtins()
 	builtin("short", new TypeInt<short>);
 	builtin("long", new TypeInt<long>);
 	builtin("int64", new TypeInt<long long>);
+	builtin("pointer", new TypeOpaquePointer);
 	builtin("float", new TypeFloat);
 	builtin("double", new TypeDouble);
 	builtin("handle", new TypeWinRes<SuHandle>);
