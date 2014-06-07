@@ -1,0 +1,6 @@
+# Disable LF normalization for all files
+* -text
+
+# The recommended one time convert & commit
+# caused GitHub for Windows to choke
+# so disabling for now
