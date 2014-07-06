@@ -524,8 +524,7 @@ Value Compiler::dll()
 		rtype = 0;
 		break ;
 	case K_BOOL :
-		// TODO: Replace <char, short, long> => <int8, int16, int32>
-	case K_CHAR : case K_SHORT : case K_LONG : case K_INT64 : case K_POINTER:
+	case K_INT8 : case K_INT16 : case K_INT32 : case K_INT64 : case K_POINTER:
 		// FIXME: Note float/double return values aren't really handled by the
 		//        cSuneido return value unmarshalling code. See jSuneido.
 	case K_FLOAT : case K_DOUBLE :
@@ -604,7 +603,7 @@ bool Compiler::valid_dll_arg_type()
 	switch (scanner.keyword)
 		{
 	case K_BOOL : case K_FLOAT : case K_DOUBLE :
-	case K_CHAR : case K_SHORT : case K_LONG : case K_INT64 : case K_POINTER :
+	case K_INT8 : case K_INT16 : case K_INT32 : case K_INT64 : case K_POINTER :
 	case K_STRING : case K_BUFFER :
 	case K_HANDLE : case K_GDIOBJ :
 	case K_RESOURCE :
