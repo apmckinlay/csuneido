@@ -12,21 +12,16 @@
 /.cproject
 /.settings
 /ETA.ico
-/ace_debug
-/ace_messages
 /axon.ico
 /clindex_ETAHelp
+/clindex_wiki
 /en_US.aff
 /en_US.dic
-/etaserver.go
-/gc-7.0
+/eta.go
 /getjar.bat
-/hunspell.exe
-/java
 /makefile.install
 /mingw_debug
 /mingw_release
-/nightlychecktimes.txt
 /optimize.bat
 /stdlib.su
 /suneido.db.1
@@ -40,31 +35,20 @@
 /suneido.db.9
 /suneido.db.bak
 /suneido.exe
-/vc10_release
-/vc11_release
-/vc7_debug
-/vc7_release
-/vc8_release
-/vc9_release
+
+vc12suneido/Release/*
+vc12suneido/Debug/*
+vc12gc65/Release/*
+vc12gc65/Debug/*
 
 # /gc6.5/
 /gc6.5/mingw_release
 /gc6.5/mingw_debug
-/gc6.5/vc7_release
-/gc6.5/dmc_debug
-/gc6.5/vc10_release
-/gc6.5/vc7_debug
-/gc6.5/vc8_release
-/gc6.5/vc9_release
 
 # /installer/
-/installer/Thumbs.db
 /installer/Output
 
-# /res/
-/res/Thumbs.db
-
-# /vc11suneido/
-/vc11suneido/*.sdf
-/vc11suneido/*.suo
-/vc11suneido/*.user
+Thumbs.db
+*.opensdf
+*.sdf
+*.suo
