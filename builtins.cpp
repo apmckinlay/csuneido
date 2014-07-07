@@ -854,9 +854,15 @@ void builtins()
 
 	// struct, dll, callback types
 	builtin("bool", new TypeBool);
+
+	// TODO remove char/short/long once switch over is complete
 	builtin("char", new TypeInt<char>);
 	builtin("short", new TypeInt<short>);
 	builtin("long", new TypeInt<long>);
+
+	builtin("int8", new TypeInt<char>);
+	builtin("int16", new TypeInt<short>);
+	builtin("int32", new TypeInt<long>);
 	builtin("int64", new TypeInt<long long>);
 	builtin("pointer", new TypeOpaquePointer);
 	builtin("float", new TypeFloat);
