@@ -52,3 +52,6 @@ Thumbs.db
 *.opensdf
 *.sdf
 *.suo
+
+dropsrc.bat
+install.bat

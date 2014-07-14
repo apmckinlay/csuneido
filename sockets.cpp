@@ -495,6 +495,9 @@ SocketConnect* socketClientAsynch(char* addr, int port)
 	verify(sock > 0);
 	SocketCloser closer(sock);
 
+	BOOL t = true;
+	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*)&t, sizeof t);
+
 	SOCKADDR_IN saddr;
 	memset(&saddr, 0, sizeof saddr);
 	saddr.sin_family =  AF_INET;
@@ -547,6 +550,9 @@ SocketConnect* socketClientSynch(char* addr, int port, int timeout, int timeoutC
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	verify(sock > 0);
 	SocketCloser closer(sock);
+
+	BOOL t = true;
+	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*) &t, sizeof t);
 
 	SOCKADDR_IN saddr;
 	memset(&saddr, 0, sizeof saddr);
