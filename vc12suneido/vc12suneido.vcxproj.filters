@@ -306,9 +306,6 @@
     <ClCompile Include="..\scanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\scistyle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\servereval.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

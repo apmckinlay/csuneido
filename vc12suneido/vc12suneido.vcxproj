@@ -186,7 +186,6 @@
     <ClCompile Include="..\row.cpp" />
     <ClCompile Include="..\runpiped.cpp" />
     <ClCompile Include="..\scanner.cpp" />
-    <ClCompile Include="..\scistyle.cpp" />
     <ClCompile Include="..\servereval.cpp" />
     <ClCompile Include="..\sesviews.cpp" />
     <ClCompile Include="..\slots.cpp" />
