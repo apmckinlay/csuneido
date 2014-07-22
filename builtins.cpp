@@ -893,7 +893,6 @@ void builtins()
 	BUILTIN_CLASS("Md5", su_md5);
 	BUILTIN_CLASS("Sha1", su_sha1);
 	BUILTIN_CLASS("SocketServer", suSocketServer);
-	BUILTIN_CLASS("Image", su_image);
 	BUILTIN_CLASS("RunPiped", su_runpiped);
 	BUILTIN_CLASS("Query1", su_Query1);
 	BUILTIN_CLASS("QueryFirst", su_QueryFirst);

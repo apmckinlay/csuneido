@@ -354,9 +354,6 @@
     <ClCompile Include="..\sufunction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\suimage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\sumd5.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

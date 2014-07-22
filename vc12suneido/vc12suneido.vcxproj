@@ -202,7 +202,6 @@
     <ClCompile Include="..\sufile.cpp" />
     <ClCompile Include="..\sufinalize.cpp" />
     <ClCompile Include="..\sufunction.cpp" />
-    <ClCompile Include="..\suimage.cpp" />
     <ClCompile Include="..\sumd5.cpp" />
     <ClCompile Include="..\sumethod.cpp" />
     <ClCompile Include="..\sunapp.cpp" />
