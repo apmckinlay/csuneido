@@ -808,7 +808,11 @@ void FunctionCompiler::params(vector<char>& flags)
 			if (token == I_EQ)
 				{
 				match();
-				verify(ndefaults == literal(constant()));
+				bool was_id = (token == T_IDENTIFIER);
+				Value k = constant();
+				if (was_id && val_cast<SuString*>(k))
+					syntax_error("parameter defaults must be constants");
+				verify(ndefaults == literal(k));
 				++ndefaults;
 				}
 			else if (ndefaults)
