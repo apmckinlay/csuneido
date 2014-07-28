@@ -525,8 +525,6 @@ Value Compiler::dll()
 		break ;
 	case K_BOOL :
 	case K_INT8 : case K_INT16 : case K_INT32 : case K_INT64 : case K_POINTER:
-		// FIXME: Note float/double return values aren't really handled by the
-		//        cSuneido return value unmarshalling code. See jSuneido.
 	case K_FLOAT : case K_DOUBLE :
 	case K_STRING :
 	case K_HANDLE : case K_GDIOBJ :
