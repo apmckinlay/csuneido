@@ -62,15 +62,15 @@ void TypeBool::out(Ostream& os)
 
 template<>
 void TypeInt<char>::out(Ostream& os)
-	{ os << "char"; }
+	{ os << "int8"; }
 
 template<>
 void TypeInt<short>::out(Ostream& os)
-	{ os << "short"; }
+	{ os << "int16"; }
 
 template<>
 void TypeInt<long>::out(Ostream& os)
-	{ os << "long"; }
+	{ os << "int32"; }
 
 void TypeInt<int64>::out(Ostream& os)
 	{ os << "int64"; }
