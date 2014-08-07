@@ -315,7 +315,7 @@ static CFactory factory;
 void sunapp_register_classes()
 	{
 	HRESULT hr;
-	hr = CoInitialize(NULL);
+	hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 	if (FAILED(hr))
 		alert("CoInitialize failed");
 
