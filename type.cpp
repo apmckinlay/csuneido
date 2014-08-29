@@ -331,7 +331,7 @@ inline int short_int(Value x)
 
 void TypeResource::put(char*& dst, char*& dst2, const char* lim2, Value x)
 	{
-	if (short_int(x))
+	if (!x || short_int(x))
 		tint.put(dst, dst2, lim2, x);
 	else
 		tstr.put(dst, dst2, lim2, x);
