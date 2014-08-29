@@ -57,3 +57,6 @@ dropsrc.bat
 install.bat
 res/axon.ico
 sign.bat
+ignore_rc.bat
+*.log
+*.user
