@@ -208,7 +208,8 @@ Value SuFile::Writeline(BuiltinArgs& args)
 Value SuFile::Seek(BuiltinArgs& args)
 	{
 	args.usage("usage: file.Seek(offset, origin)");
-	int offset = args.getint("offset");
+	Value arg = args.getValue("offset");
+	int64 offset = arg.is_int() ? (int64) arg.integer() : arg.number()->bigint();
 	gcstring origin_s = args.getgcstr("origin", "set");
 	args.end();
 
@@ -223,7 +224,7 @@ Value SuFile::Seek(BuiltinArgs& args)
 		except("file.Seek: origin must be 'set', 'end', or 'cur'");
 
 	ckopen("Seek");
-	return fseek(f, offset, origin) == 0 ? SuTrue : SuFalse;
+	return _fseeki64(f, offset, origin) == 0 ? SuTrue : SuFalse;
 	}
 
 Value SuFile::Tell(BuiltinArgs& args)
@@ -232,7 +233,11 @@ Value SuFile::Tell(BuiltinArgs& args)
 	args.end();
 
 	ckopen("Tell");
-	return ftell(f);
+	int64 offset = _ftelli64(f);
+	if (INT_MIN <= offset && offset <= INT_MAX)
+		return (int) offset;
+	else
+		return SuNumber::from_int64(offset);
 	}
 
 Value SuFile::Flush(BuiltinArgs& args)
