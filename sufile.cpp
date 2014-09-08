@@ -151,6 +151,7 @@ Value SuFile::Read(BuiltinArgs& args)
 	return s;
 	}
 
+// NOTE: Readline should be consistent across file, socket, and runpiped
 Value SuFile::Readline(BuiltinArgs& args)
 	{
 	args.usage("usage: file.Readline()");
@@ -161,19 +162,14 @@ Value SuFile::Readline(BuiltinArgs& args)
 	std::vector<char> buf;
 	while (EOF != (c = fgetc(f)))
 		{
-		if (c == '\n')
-			break ;
-		if (c == '\r')
-			{
-			c = fgetc(f);
-			if (c != EOF && c != '\n')
-				ungetc(c, f);
-			break ;
-			}
 		buf.push_back(c);
+		if (c == '\n')
+			break;
 		}
-	if (feof(f) && buf.size() == 0)
+	if (buf.size() == 0)
 		return SuFalse;
+	while (buf.size() > 0 && (buf.back() == '\r' || buf.back() == '\n'))
+		buf.pop_back();
 	buf.push_back(0); // allow space for nul
 	return new SuString(buf.size() - 1, &buf[0]); // no alloc
 	}

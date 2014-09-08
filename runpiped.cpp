@@ -265,29 +265,25 @@ Value SuRunPiped::Read(BuiltinArgs& args)
 	return n == 0 ? SuFalse : new SuString(gcstr.substr(0, n));
 	}
 
+// NOTE: Readline should be consistent across file, socket, and runpiped
 Value SuRunPiped::Readline(BuiltinArgs& args)
 	{
 	args.usage("usage: runpiped.Readline()");
 	args.end();
 
 	ckopen();
-	bool data = false;
 	char c;
 	std::vector<char> buf;
 	while (0 != rp->read(&c, 1))
 		{
-		data = true;
+		buf.push_back(c);
 		if (c == '\n')
 			break ;
-		if (c == '\r')
-			{
-			rp->read(&c, 1);
-			break ;
-			}
-		buf.push_back(c);
 		}
-	if (! data)
+	if (buf.size() == 0)
 		return SuFalse;
+	while (buf.size() > 0 && (buf.back() == '\r' || buf.back() == '\n'))
+		buf.pop_back();
 	buf.push_back(0); // allow space for nul
 	return new SuString(buf.size() - 1, &buf[0]); // no alloc
 	}

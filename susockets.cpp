@@ -87,6 +87,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		}
 	else if (member == Readline)
 		{
+		// NOTE: Readline should be consistent across file, socket, and runpiped
 		if (nargs != 0)
 			except("usage: socketClient.Readline()");
 		ckopen("Readline");
@@ -94,6 +95,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		sc->readline(buf, 2000);
 		if (! *buf)
 			except("socket client: lost connection or timeout in Readline");
+		// assumes nul termination (so line may not contain nuls)
 		for (int n = strlen(buf) - 1; n >= 0 && (buf[n] == '\r' || buf[n] == '\n'); --n)
 			buf[n] = 0;
 		return new SuString(buf);

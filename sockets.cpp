@@ -465,7 +465,7 @@ bool SocketConnectAsynch::tryreadline(char* dst, int n)
 
 	// removes entire line, regardless of length
 	// but only returns as many characters as requested
-	int len = eol - buf + 1;
+	int len = eol - buf + 1; // includes newline
 	if (len < n)
 		n = len;
 	memcpy(dst, buf, n);
