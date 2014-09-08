@@ -94,7 +94,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		sc->readline(buf, 2000);
 		if (! *buf)
 			except("socket client: lost connection or timeout in Readline");
-		for (int n = strlen(buf) - 1; (n >= 0 && buf[n] == '\r') || buf[n] == '\n'; --n)
+		for (int n = strlen(buf) - 1; n >= 0 && (buf[n] == '\r' || buf[n] == '\n'); --n)
 			buf[n] = 0;
 		return new SuString(buf);
 		}
