@@ -35,7 +35,8 @@ class Func : public SuValue
 	{
 public:
 	NAMED
-	Func() : nparams(0), rest(false), locals(0), ndefaults(0), literals(0), flags(0)
+	Func() : nparams(0), rest(false), locals(0), ndefaults(0), literals(0), 
+				flags(0), isMethod(false)
 		{ }
 	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
 
@@ -45,6 +46,7 @@ public:
 	short ndefaults;
 	Value* literals;
 	char* flags; // for dot and dyn params
+	bool isMethod;
 
 	void out(Ostream& out);
 	void args(short nargs, short nargnames, ushort* argnames, int each);

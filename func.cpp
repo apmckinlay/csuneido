@@ -196,7 +196,14 @@ void argseach(short& nargs, short& nargnames, ushort*& argnames, int& each)
 
 void Func::out(Ostream& out)
   	{
-	out << named.name() << " /* " << named.library() << " function */";
+	out << named.name() << " /* ";
+	gcstring lib = named.library();
+	if (lib != "")
+		out << lib << " ";
+	if (isMethod)
+		out << "method */";
+	else
+		out << "function */";
 /*
 	short j = 0;
 	for (short i = 0; i < nparams; ++i)

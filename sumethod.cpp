@@ -27,7 +27,19 @@
 
 void SuMethod::out(Ostream& os)
 	{
-	os << "aMethod";
+	//os << "OBJECT: " << object << endl;
+	//os << "METHOD: " << method << endl;
+	//os << "SUFN: " << sufn->named.info() << endl;
+	if (sufn)
+		{
+		if (sufn->named.lib != "" || sufn->named.parent)
+			os << sufn;
+		else
+			os << "/* method " << sufn->named.name() << " */";
+		}
+	else
+		os << "/* method */";
+//	os << method;
 	}
 
 bool SuMethod::eq(const SuValue& y) const

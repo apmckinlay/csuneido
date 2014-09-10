@@ -31,6 +31,7 @@ struct Named
 		{ }
 	gcstring name();
 	gcstring library();
+	gcstring info(); // for debugging
 
 	gcstring lib;
 	Named* parent;

@@ -75,7 +75,7 @@ Value suBlock(Frame* frame, int pc, int first, int nparams)
 
 void SuBlock::out(Ostream& out)
 	{
-	out << "/* aBlock */";
+	out << "/* block */";
 	}
 
 Value SuBlock::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)

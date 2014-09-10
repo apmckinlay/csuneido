@@ -45,3 +45,23 @@ gcstring Named::library()
 	else
 		return "";
 	}
+
+#include "ostreamstr.h"
+
+// for debugging
+gcstring Named::info()
+	{
+	OstreamStr os;
+	os << "Named {";
+	if (lib != "")
+		os << " lib: " << lib;
+	if (parent)
+		os << ", parent: " << parent->info();
+	os << ", sep: '" << separator << "'";
+	if (num)
+		os << ", num: " << (num < 0x8000 ? globals(num) : symstr(num));
+	else if (str)
+		os << ", str: " << str;
+	os << " }";
+	return os.gcstr();
+	}

@@ -721,9 +721,11 @@ Value Compiler::functionCompiler(
 	{
 	scanner.visitor->begin_func();
 	FunctionCompiler compiler(scanner, token, stmtnest, base, newfn, gname, className);
-	Value fn = compiler.function();
+	SuFunction* fn = compiler.function();
 	scanner.visitor->end_func();
 	token = compiler.token;
+	if (className)
+		fn->isMethod = true;
 	return fn;
 	}
 
