@@ -71,7 +71,7 @@ enum
  *				|	simple *			BRANCH-forward simple BRANCH-backward
  *				|	simple ??			NGBRANCH-forward simple
  *				|	simple +?			simple NGBRANCH-backward
- *				|	simple *?			NGSTAR simple NGBRANCH-backward
+ *				|	simple *?			NGBRANCH-forward simple NGBRANCH-backward
  *
  *	simple		:	.					ANY
  *				|	[...]				CCL ... CCLEND
@@ -228,7 +228,7 @@ void RxCompile::element()
 		else if (*s == '*' && next() == '?')
 			{
 			output(NGBRANCH, -len);
-			insert(BRANCH, start); insert(len + 2, start + 1);
+			insert(NGBRANCH, start); insert(len + 2, start + 1);
 			s += 2;
 			}
 		else if (*s == '*')
