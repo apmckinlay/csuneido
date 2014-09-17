@@ -162,10 +162,8 @@ void SuObject::setup()
 	basic_methods["Method?"] = &SuObject::HasMethod;
 	BASIC_METHOD(Members);
 	BASIC_METHOD(MethodClass);
-	BASIC_METHOD(Reverse);
 	basic_methods["Reverse!"] = &SuObject::Reverse;
 	BASIC_METHOD(Size);
-	BASIC_METHOD(Partition);
 	basic_methods["Partition!"] = &SuObject::Partition;
 	BASIC_METHOD(Sort);
 	basic_methods["Sort!"] = &SuObject::Sort;
