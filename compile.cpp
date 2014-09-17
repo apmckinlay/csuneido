@@ -3415,43 +3415,43 @@ d();  } }\n\
 */
 	{ "function () { };", "function () { }; }\n\
 					  0  nop \n\
-					  1  push literal  /*  function */\n\
+					  1  push literal  /* function */\n\
 					  2  return \n\
 					  3\n" },
 
 	{ "function (a) { };", "function (a) { }; }\n\
 					  0  nop \n\
-					  1  push literal  /*  function */\n\
+					  1  push literal  /* function */\n\
 					  2  return \n\
 					  3\n" },
 
 	{ "function (a, b, c) { };", "function (a, b, c) { }; }\n\
 					  0  nop \n\
-					  1  push literal  /*  function */\n\
+					  1  push literal  /* function */\n\
 					  2  return \n\
 					  3\n" },
 
 	{ "function (a = 1) { };", "function (a = 1) { }; }\n\
 					  0  nop \n\
-					  1  push literal  /*  function */\n\
+					  1  push literal  /* function */\n\
 					  2  return \n\
 					  3\n" },
 
 	{ "function (a = 1, b = 2, c = 3) { };", "function (a = 1, b = 2, c = 3) { }; }\n\
 					  0  nop \n\
-					  1  push literal  /*  function */\n\
+					  1  push literal  /* function */\n\
 					  2  return \n\
 					  3\n" },
 
 	{ "function (a, b, c = 0, d = 1) { };", "function (a, b, c = 0, d = 1) { }; }\n\
 					  0  nop \n\
-					  1  push literal  /*  function */\n\
+					  1  push literal  /* function */\n\
 					  2  return \n\
 					  3\n" },
 
 	{ "function (@args) { };", "function (@args) { }; }\n\
 					  0  nop \n\
-					  1  push literal  /*  function */\n\
+					  1  push literal  /* function */\n\
 					  2  return \n\
 					  3\n" },
 
