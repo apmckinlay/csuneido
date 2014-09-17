@@ -192,8 +192,8 @@ Value SuScanner::Valu(BuiltinArgs& args)
 	{
 	args.usage("usage: scanner.Value()");
 	args.end();
-
-	return new SuString(scanner->value);
+	// scanner->len only set for strings ???
+	return token == T_STRING ? new SuString(scanner->value, scanner->len) : new SuString(scanner->value);
 	}
 
 // deprecated, replaced by Keyword?
