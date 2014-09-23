@@ -519,7 +519,7 @@ public:
 	
 	float rangefrac(const Key& from, const Key& to) 
 		{
-		const float MIN_FRAC = .001f;
+		const float MIN_FRAC = 1e-6f;
 		if (isEmpty())
 			return MIN_FRAC;
 
