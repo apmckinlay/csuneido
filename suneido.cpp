@@ -111,7 +111,7 @@ static void init(HINSTANCE hInstance, LPSTR lpszCmdLine)
 
 static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	{
-	verify(memcmp("\xff", "\x1", 1) > 0); // ensure unsigned cmp
+	verify(memcmp("\xff", "\x01", 1) > 0); // ensure unsigned cmp
 	verify(sizeof (time_t) == 4); // required by Commit
 
 	Fibers::init();
