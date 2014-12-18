@@ -21,11 +21,94 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "regexp.h"
-#include <ctype.h>
 #include <limits.h>
 #include "cachemap.h"
 #include "gcstring.h"
 #include "except.h"
+
+// use our own definitions instead of ctype
+// to be consistent across all implementations
+
+inline bool isupper(char c)
+	{
+	return 'A' <= c && c <= 'Z';
+	}
+
+inline bool islower(char c)
+	{
+	return 'a' <= c && c <= 'z';
+	}
+
+inline bool isalpha(char c)
+	{
+	return islower(c) || isupper(c);
+	}
+
+inline bool isdigit(char c)
+	{
+	return '0' <= c && c <= '9';
+	}
+
+inline bool isalnum(char c)
+	{
+	return isalpha(c) || isdigit(c);
+	}
+
+inline bool isword(char c)
+	{
+	return c == '_' || isalnum(c);
+	}
+
+inline bool isspace(char c)
+	{
+	switch (c)
+		{
+	case ' ':
+	case '\t':
+	case '\r':
+	case '\n':
+	case '\v':
+	case '\f':
+		return true;
+	default:
+		return false;
+		}
+	}
+
+inline bool isxdigit(char c)
+	{
+	return isdigit(c) || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
+	}
+
+inline bool iscntrl(char c)
+	{
+	return (0 <= c && c <= 0x1f) || c == 0x7f;
+	}
+
+inline bool isprint(char c)
+	{
+	return ! iscntrl(c);
+	}
+
+inline bool isgraph(char c)
+	{
+	return isprint(c) && c != ' ';
+	}
+
+inline bool ispunct(char c)
+	{
+	return isgraph(c) && ! isalnum(c);
+	}
+
+inline char tolower(char c)
+	{
+	return isupper(c) ? c + ('a' - 'A') : c;
+	}
+
+inline char toupper(char c)
+	{
+	return islower(c) ? c - ('a' - 'A') : c;
+	}
 
 enum
 	{
@@ -383,6 +466,11 @@ void RxCompile::insert(int c, int i)
  * match finds first successful amatch
  */
 
+inline bool between(unsigned from, unsigned to, unsigned x)
+	{
+	return from <= x && x <= to;
+	}
+
 class RxMatch
 	{
 public:
@@ -394,6 +482,16 @@ private:
 	bool domatch();
 	bool omatch();
 	bool cclass();
+	inline bool same(char c1, char c2)
+		{
+		return ignore_case ? tolower(c1) == tolower(c2) : c1 == c2;
+		}
+	inline bool inrange(char from, char to, char c)
+		{
+		return ignore_case
+			? between(from, to, tolower(c)) || between(from, to, toupper(c))
+			: between(from, to, c);
+		}
 
 	char* s;	// string
 	int i;		// current position in string
@@ -463,8 +561,7 @@ bool RxMatch::domatch()
 		case CHAR :
 			++i;
 			p += 2;
-			if (i > n || 
-				(ignore_case ? tolower(p[-1]) != tolower(s[i-1]) : p[-1] != s[i-1]))
+			if (i > n || ! same(s[i-1], p[-1]))
 				return false;
 			break ;
 		case BRANCH :
@@ -536,13 +633,6 @@ bool RxMatch::domatch()
 	return true;
 	}
 
-#define ISSPACE(c)	isspace((unsigned char) (c))
-#define ISALPHA(c)	isalpha((unsigned char) (c))
-#define ISDIGIT(c)	isdigit((unsigned char) (c))
-#define ISWORD(c)	(isalnum((unsigned char) (c)) || c == '_')
-#define TOLOWER(c)	tolower((unsigned char) (c))
-#define TOUPPER(c)	toupper((unsigned char) (c))
-
 bool RxMatch::omatch()
 	{
 	switch (*p++)
@@ -559,9 +649,9 @@ bool RxMatch::omatch()
 	case END_LINE :
 		return i == n || s[i] == '\n' || s[i] == '\r';
 	case START_WORD :
-		return i == 0 || ! ISWORD(s[i-1]);
+		return i == 0 || ! isword(s[i-1]);
 	case END_WORD :
-		return i == n || ! ISWORD(s[i]);
+		return i == n || ! isword(s[i]);
 
 		// modes
 	case IGNORE_CASE :
@@ -579,17 +669,17 @@ bool RxMatch::omatch()
 	case NCCL :
 		return i < n ? ! cclass() : false;
 	case DIGIT :
-		return i < n && ISDIGIT(s[i]) ? (++i, true) : false;
+		return i < n && isdigit(s[i]) ? (++i, true) : false;
 	case NDIGIT :
-		return i < n && ! ISDIGIT(s[i]) ? (++i, true) : false;
+		return i < n && ! isdigit(s[i]) ? (++i, true) : false;
 	case WORD :
-		return i < n && ISWORD(s[i]) ? (++i, true) : false;
+		return i < n && isword(s[i]) ? (++i, true) : false;
 	case NWORD :
-		return i < n && ! ISWORD(s[i]) ? (++i, true) : false;
+		return i < n && ! isword(s[i]) ? (++i, true) : false;
 	case SPACE :
-		return i < n && ISSPACE(s[i]) ? (++i, true) : false;
+		return i < n && isspace(s[i]) ? (++i, true) : false;
 	case NSPACE :
-		return i < n && ! ISSPACE(s[i]) ? (++i, true) : false;
+		return i < n && ! isspace(s[i]) ? (++i, true) : false;
 
 		// grouping
 	case LEFT :
@@ -612,8 +702,8 @@ bool RxMatch::omatch()
 		char* t = part[*p].s;
 		int tn = part[*p].n;
 		++p;
-		for (int j = 0; j < tn && i < n; ++j, ++i)
-			if (ignore_case ? tolower(t[j]) != tolower(s[i]) : t[j] != s[i])
+		for (int ti = 0; ti < tn && i < n; ++ti, ++i)
+			if (! same(s[i], t[ti]))
 				return false;
 		return true;
 		}
@@ -626,26 +716,19 @@ bool RxMatch::cclass()
 	{
 	bool in;
 
-	int c = (unsigned char) s[i++];
-	if (ignore_case)
-		c = tolower(c);
+	char c = s[i++];
 	for (in = false; *p != CCLEND; )
 		{
 		switch (*p)
 			{
 		case CHAR :
-			if (c == (ignore_case ? tolower(p[1]) : p[1]))
+			if (same(c, p[1]))
 				in = true;
 			p += 2;
 			break ;
 		case RANGE :
 			{
-			unsigned from = (ignore_case ? tolower(p[1]) : p[1]);
-			unsigned to = (ignore_case ? tolower(p[2]) : p[2]);
-			if (ignore_case && (
-				(from == p[1]) != (to == p[2]) || (p[1] < 'A' && 'Z' < p[2])))
-				except("regular expression range invalid with ignore case");
-			if (from <= (unsigned) c && (unsigned) c <= to)
+			if (inrange(p[1], p[2], c))
 				in = true;
 			p += 3;
 			break ;
@@ -661,12 +744,12 @@ bool RxMatch::cclass()
 			++p;
 			break ;
 		case WORD :
-			if (ISWORD(c))
+			if (isword(c))
 				in = true;
 			++p;
 			break ;
 		case NWORD :
-			if (! ISWORD(c))
+			if (!isword(c))
 				in = true;
 			++p;
 			break ;
@@ -706,12 +789,12 @@ bool RxMatch::cclass()
 			++p;
 			break ;
 		case LOWER :
-			if (islower(c))
+			if (ignore_case ? isalpha(c) : islower(c))
 				in = true;
 			++p;
 			break ;
 		case UPPER :
-			if (ignore_case ? islower(c) : isupper(c))
+			if (ignore_case ? isalpha(c) : isupper(c))
 				in = true;
 			++p;
 			break ;
@@ -756,7 +839,7 @@ int rx_replen(const char* rep, Rxpart* subs)
 		else if ('\\' == *rep && rep[1])
 			{
 			++rep;
-			if (ISDIGIT(*rep))
+			if (isdigit(*rep))
 				{
 				if (subs[*rep - '0'].n > 0)
 					len += subs[*rep - '0'].n;
@@ -805,7 +888,7 @@ char* rx_mkrep(char* buf, const char* rep, Rxpart* subs)
 		else if ('\\' == *rep && rep[1])
 			{
 			++rep;
-			if (ISDIGIT(*rep))
+			if (isdigit(*rep))
 				dst = insert(dst, subs[*rep - '0'], tr);
 			else if (*rep == 'n')
 				*dst++ = '\n';
@@ -910,7 +993,14 @@ static Rxtest rxtests[] =
 	{ "ABC", "(?i)[A-Z]", true },
 	{ "ABC", "(?i)[a-z]", true },
 	{ "abc", "(?i)[A-Z]", true },
-	{ "abc", "(?i)[a-z]", true }
+	{ "abc", "(?i)[a-z]", true },
+	{ "\xaa", "[\xaa\xbb]", true },
+	{ "\xaa", "(?i)[\xaa\xbb]", true },
+	{ "\x8a", "(?i)\x9a", false },
+	{ "\x8a", "(?i)[\x9a\xbb]", false }, // need \xbb to keep char class
+	{ "\x8a", "[\x80-\x90]", true },
+	{ "\x8a", "(?i)[\x80-\x90]", true }, // 0x8a is upper in latin charset
+	{ "x", "(?i)[2-Y]", true }
 	};
 
 class test_regexp : public Tests
