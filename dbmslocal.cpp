@@ -360,7 +360,9 @@ void DbmsLocal::log(char* s)
 
 int DbmsLocal::kill(char* s)
 	{
-	return 0;
+	extern bool is_server;
+	extern int kill_connections(char* s); // in dbserver.cpp
+	return is_server ? kill_connections(s) : 0;
 	}
 
 // factory method ===================================================
