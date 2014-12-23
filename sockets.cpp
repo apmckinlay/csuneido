@@ -259,6 +259,7 @@ private:
 		blocked = 0;
 		}
 	void close2();
+	void doread(char* dst, int n);
 	
 	HWND hwnd;
 	int sock;
@@ -266,9 +267,7 @@ private:
 	bool close_pending;
 	enum { CONNECT, SIZE, LINE, CLOSED } mode;
 	void* blocked;
-	char* blocked_buf;
 	int blocked_len;
-	bool blocked_readok;
 	char* adr;
 	bool connect_error;
 	};
@@ -345,30 +344,25 @@ void SocketConnectAsynch::event(int lParam)
 		{
 		LOG("FD_READ");
 		const int MINRECVSIZE = 1024;
-		int n = 0;
-		int nr;
+		int n;
 		for (;;)
 			{
 			rdbuf.ensure(MINRECVSIZE);
-			nr = recv(sock, rdbuf.bufnext(), rdbuf.available(), 0);
-			if (nr <= 0)
+			// ensure grows by doubling so available likely > MINRECVSIZE
+			n = recv(sock, rdbuf.bufnext(), rdbuf.available(), 0);
+			if (n <= 0)
 				break ;
-			rdbuf.added(nr);
-			n += nr;
+			rdbuf.added(n);
+			LOG("FD_READ recv " << n);
 			}
-		LOG("FD_READ added " << n);
-		if (blocked && n > 0 &&
-			(mode == SIZE 
-				? tryread(blocked_buf, blocked_len) 
-				: tryreadline(blocked_buf, blocked_len)))
+		bool closed = (n == 0);
+		if (blocked && 
+			(closed ||
+				((mode == SIZE)
+					? rdbuf.size() >= blocked_len 
+					: memchr(rdbuf.buffer(), '\n', rdbuf.size()))))
 			{
-			LOG("FD_READ unblocking");
-			blocked_readok = true;
-			unblock();
-			}
-		if (blocked && nr == 0) // socket closed
-			{
-			LOG("FD_READ socket closed, unblocking");
+			LOG("FD_READ unblocking " << (closed ? "closed" : "can read"));
 			unblock();
 			}
 		break ;
@@ -407,6 +401,7 @@ void SocketConnectAsynch::close2()
 
 int SocketConnectAsynch::read(char* dst, int n)
 	{
+	verify(n > 0);
 	LOG("read " << n);
 	if (mode == CLOSED && rdbuf.size() > 0 && n > rdbuf.size())
 		n = rdbuf.size();
@@ -418,10 +413,14 @@ int SocketConnectAsynch::read(char* dst, int n)
 	LOG("read blocking");
 	mode = SIZE;
 	blocked_len = n;
-	blocked_buf = dst;
-	blocked_readok = false;
 	block();
-	return blocked_readok ? n : 0;
+	if (rdbuf.size() == 0)
+		return 0;
+	if (rdbuf.size() < n)
+		// socket has been closed, final partial read
+		n = rdbuf.size();
+	doread(dst, n);
+	return n;
 	}
 
 bool SocketConnectAsynch::tryread(char* dst, int n)
@@ -429,16 +428,21 @@ bool SocketConnectAsynch::tryread(char* dst, int n)
 	LOG("tryread " << n << " rdbuf.size " << rdbuf.size());
 	if (rdbuf.size() < n)
 		return false;
-
-	// data available
-	memcpy(dst, rdbuf.buffer(), n);
-	rdbuf.remove(n);
+	doread(dst, n);
 	LOG("returning " << n);
 	return true;
 	}
 
+void SocketConnectAsynch::doread(char* dst, int n)
+	{
+	verify(n <= rdbuf.size());
+	memcpy(dst, rdbuf.buffer(), n);
+	rdbuf.remove(n);
+	}
+
 bool SocketConnectAsynch::readline(char* dst, int n)
 	{
+	verify(n > 0);
 	LOG("readline");
 	*dst = 0;
 	if (tryreadline(dst, n))
@@ -448,11 +452,19 @@ bool SocketConnectAsynch::readline(char* dst, int n)
 
 	LOG("readline blocking");
 	mode = LINE;
-	blocked_len = n;
-	blocked_buf = dst;
-	blocked_readok = false;
 	block();
-	return blocked_readok;
+	// either we got a newline or the socket was closed
+	LOG("readline unblocked with " << rdbuf.size());
+	if (rdbuf.size() == 0)
+		return false;
+	if (tryreadline(dst, n))
+		return true;
+	// no newline so socket was closed
+	if (rdbuf.size() < n)
+		n = rdbuf.size();
+	memcpy(dst, rdbuf.buffer(), n);
+	rdbuf.clear(); // remove any excess > n
+	return true;
 	}
 
 bool SocketConnectAsynch::tryreadline(char* dst, int n)
