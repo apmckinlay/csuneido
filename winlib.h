@@ -37,12 +37,6 @@ struct WinLib
 		}
 	void* GetProcAddress(char* name)
 		{ return (void*) ::GetProcAddress(lib, name); }
-	void retarget(char* name)
-		{
-		if (lib)
-			FreeLibrary(lib);
-		lib = LoadLibrary(name);
-		}
 	operator void*()
 		{ return lib; }
 
