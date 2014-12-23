@@ -76,6 +76,10 @@ public:
 		sc->close();
 		}
 	static void timer_proc();
+	char* id()
+		{
+		return session_id;
+		}
 private:
 	static void abort_fn(int tran)
 		{
@@ -137,7 +141,6 @@ private:
 	DbmsQuery* q_or_tc(char*& s);
 	char* value_result(Value x);
 	char* row_result(const Row& row, const Header& hdr, bool sendhdr = false);
-	bool matches(int i, char* sid);
 
 	SocketConnect* sc;
 	bool textmode;
@@ -869,7 +872,20 @@ char* DbServerImp::cmd_log(char* s)
 	return "OK\r\n";
 	}
 
-char* DbServerImp::cmd_kill(char* s)
+static bool matches(int i, char* sid)
+	{
+	try
+		{
+		return 0 == strcmp(dbservers[i]->id(), sid);
+		}
+	catch (...)
+		{
+		errlog("kill: bad entry in dbservers");
+		}
+	return false;
+	}
+
+int kill_connections(char* s)
 	{
 	int n_killed = 0;
 	for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
@@ -883,19 +899,12 @@ char* DbServerImp::cmd_kill(char* s)
 				{
 				errlog("kill: error from close");
 				}
-	os << 'N' << n_killed << "\r\n";
-	return os.str();
+	return n_killed;
 	}
 
-bool DbServerImp::matches(int i, char* sid)
+char* DbServerImp::cmd_kill(char* s)
 	{
-	try
-		{
-		return 0 == strcmp(dbservers[i]->session_id, sid);
-		}
-	catch (...)
-		{
-		errlog("kill: bad entry in dbservers");
-		}
-	return false;
+	int n_killed = kill_connections(s);
+	os << 'N' << n_killed << "\r\n";
+	return os.str();
 	}

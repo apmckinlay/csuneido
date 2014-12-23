@@ -29,22 +29,6 @@
 #include <vector>
 #include <algorithm>
 
-// use function pointers to allow loading from kernel32 or w95fiber
-
-typedef void* (_stdcall *pCTTF)(void* data);
-static pCTTF MyConvertThreadToFiber;
-
-typedef void (CALLBACK *FIBER_PROC)(void* param);
-
-typedef void* (_stdcall *pCF)(DWORD dwStackSize, FIBER_PROC start, void* param);
-static pCF MyCreateFiber;
-
-typedef void (_stdcall *pSTF)(void* fiber);
-static pSTF MySwitchToFiber;
-
-typedef void (_stdcall *pDF)(void* fiber);
-static pDF MyDeleteFiber;
-
 struct Proc;
 class Dbms;
 class SesViews;
@@ -89,21 +73,6 @@ SesViews*& tss_session_views()
 
 char*& tss_fiber_id()
 	{ return curfiber->tss_fiber_id; }
-
-static void* getproc(char* name)
-	{
-	static WinLib lib("kernel32");
-
-	void* p = lib.GetProcAddress(name);
-	if (! p)
-		{
-		lib.retarget("w95fiber");
-		p = lib.GetProcAddress(name);
-		}
-	if (! p)
-		except("can't load " << name);
-	return p;
-	}
 
 static void save_stack()
 	{
@@ -171,14 +140,7 @@ extern "C"
 
 void Fibers::init()
 	{
-	verify(! MyCreateFiber);
-
-	MyConvertThreadToFiber = (pCTTF) getproc("ConvertThreadToFiber");
-	MyCreateFiber = (pCF) getproc("CreateFiber");
-	MySwitchToFiber = (pSTF) getproc("SwitchToFiber");
-	MyDeleteFiber = (pDF) getproc("DeleteFiber");
-
-	main_fiber.fiber = MyConvertThreadToFiber(0);
+	main_fiber.fiber = ConvertThreadToFiber(0);
 	verify(main_fiber.fiber);
 	curfiber = &main_fiber;
 
@@ -194,9 +156,7 @@ void Fibers::init()
 
 void* Fibers::create(void (_stdcall *fiber_proc)(void* arg), void* arg)
 	{
-	verify(MyCreateFiber);
-
-	void* f = MyCreateFiber(0, fiber_proc, arg);
+	void* f = CreateFiber(0, fiber_proc, arg);
 	verify(f);
 	fibers.push_back(Fiber(f, arg));
 	return f;
@@ -210,7 +170,7 @@ static void switchto(Fiber& fiber)
 	save_stack();
 	
 	curfiber = &fiber;
-	MySwitchToFiber(fiber.fiber);
+	SwitchToFiber(fiber.fiber);
 	}
 
 void Fibers::yieldif()
@@ -300,7 +260,7 @@ void Fibers::cleanup()
 		{
 		if (fibers[i].status == Fiber::ENDED)
 			{
-			MyDeleteFiber(fibers[i].fiber);
+			DeleteFiber(fibers[i].fiber);
 			fibers.erase(fibers.begin() + i);
 			}
 		}
