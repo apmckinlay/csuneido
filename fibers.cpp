@@ -35,7 +35,7 @@ class SesViews;
 
 struct Fiber
 	{
-	enum Status { READY, BLOCKED, ENDED };
+	enum Status { READY, BLOCKED, ENDED, REUSE };
 	explicit Fiber(void* f, void* arg = 0)
 		: fiber(f), status(READY), priority(0), stack_ptr(0), stack_end(0),
 		tss_proc(0), tss_thedbms(0), tss_session_views(0), tss_fiber_id(""),
@@ -60,7 +60,9 @@ struct Fiber
 
 static Fiber main_fiber(0);
 static std::vector<Fiber> fibers;
-static Fiber* curfiber = &main_fiber;
+const int MAIN = -1;
+static int cur = MAIN;
+#define curfiber (cur < 0 ? &main_fiber : &fibers[cur])
 
 Proc*& tss_proc()
 	{ return curfiber->tss_proc; }
@@ -142,7 +144,6 @@ void Fibers::init()
 	{
 	main_fiber.fiber = ConvertThreadToFiber(0);
 	verify(main_fiber.fiber);
-	curfiber = &main_fiber;
 
 	// time slice timer
 	SetTimer(NULL,	// hwnd
@@ -158,18 +159,26 @@ void* Fibers::create(void (_stdcall *fiber_proc)(void* arg), void* arg)
 	{
 	void* f = CreateFiber(0, fiber_proc, arg);
 	verify(f);
+	for (int i = 0; i < fibers.size(); ++i)
+		if (fibers[i].status == Fiber::REUSE)
+			{
+			fibers[i] = Fiber(f, arg);
+			return f;
+			}
+	// else
 	fibers.push_back(Fiber(f, arg));
 	return f;
 	}
 
-static void switchto(Fiber& fiber)
+static void switchto(int i)
 	{
+	Fiber& fiber = (i == MAIN ? main_fiber : fibers[i]);
 	verify(fiber.status == Fiber::READY);
-	if (&fiber == curfiber)
+	if (i == cur)
 		return ;
 	save_stack();
 	
-	curfiber = &fiber;
+	cur = i;
 	SwitchToFiber(fiber.fiber);
 	}
 
@@ -178,7 +187,7 @@ void Fibers::yieldif()
 	// only yield if any messages waiting
 	// this includes time slice events
 	if (curfiber != &main_fiber && HIWORD(GetQueueStatus(QS_ALLEVENTS)))
-		switchto(main_fiber);
+		switchto(MAIN);
 	}
 
 void Fibers::yield()
@@ -198,7 +207,7 @@ void Fibers::yield()
 			}
 		if (fibers[f].status == Fiber::READY)
 			{
-			switchto(fibers[f]);
+			switchto(f);
 			return ;
 			}
 		}
@@ -210,12 +219,12 @@ void Fibers::yield()
 				continue ;
 			if (fibers[f].status == Fiber::READY)
 				{
-				switchto(fibers[f]);
+				switchto(f);
 				return ;
 				}
 			}
 	// no runnable fibers
-	switchto(main_fiber);
+	switchto(MAIN);
 	}
 
 void* Fibers::current()
@@ -239,7 +248,11 @@ void Fibers::unblock(void* fiber)
 	{
 	for (int i = 0; i < fibers.size(); ++i)
 		if (fibers[i].fiber == fiber)
-			{ fibers[i].status = Fiber::READY; return ; }
+			{
+			verify(fibers[i].status == Fiber::BLOCKED);
+			fibers[i].status = Fiber::READY;
+			return ;
+			}
 	error("unblock didn't find fiber");
 	}
 
@@ -256,12 +269,13 @@ void Fibers::cleanup()
 	{
 #ifndef __GNUC__
 	verify(current() == main());
-	for (int i = fibers.size() - 1; i >= 0; --i)
+	for (int i = 0; i < fibers.size(); ++i)
 		{
-		if (fibers[i].status == Fiber::ENDED)
+		if (i != cur && fibers[i].status == Fiber::ENDED)
 			{
 			DeleteFiber(fibers[i].fiber);
-			fibers.erase(fibers.begin() + i);
+			memset(&fibers[i], 0, sizeof Fiber);
+			fibers[i].status = Fiber::REUSE;
 			}
 		}
 #endif
@@ -272,14 +286,14 @@ void Fibers::foreach_stack(StackFn fn)
 	save_stack();
 	fn(main_fiber.stack_ptr, main_fiber.stack_end);
 	for (int i = 0; i < fibers.size(); ++i)
-		if (fibers[i].status != Fiber::ENDED)
+		if (fibers[i].status < Fiber::ENDED)
 			fn(fibers[i].stack_ptr, fibers[i].stack_end);
 	}
 
 void Fibers::foreach_proc(ProcFn fn)
 	{
 	for (int i = 0; i < fibers.size(); ++i)
-		if (fibers[i].status != Fiber::ENDED)
+		if (fibers[i].status < Fiber::ENDED)
 			fn(fibers[i].tss_proc);
 	}
 
@@ -296,5 +310,9 @@ void Fibers::priority(int p)
 
 int Fibers::size()
 	{
-	return fibers.size();
+	int n = 0;
+	for (int i = 0; i < fibers.size(); ++i)
+		if (fibers[i].status < Fiber::ENDED)
+			++n;
+	return n;
 	}
