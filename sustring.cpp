@@ -869,14 +869,8 @@ Value SuString::Upper(short nargs, short nargnames, ushort* argnames, int each)
 		except("usage: string.Upper()");
 	SuString* dst = new SuString(size());
 	char* t = dst->buf();
-/*#if defined(_MSC_VER) && _MSC_VER <= 1200
-	const ctype<char>& ct = use_facet< ctype<char> >(locale(), 0, true);
-	for (char* s = begin(); s != end(); ++s, ++t)
-		*t = ct.toupper((unsigned int) *s);
-#else*/
 	for (char* s = begin(); s != end(); ++s, ++t)
 		*t = toupper((unsigned int) *s);
-//#endif
 	return dst;
 	}
 
@@ -886,14 +880,8 @@ Value SuString::Lower(short nargs, short nargnames, ushort* argnames, int each)
 		except("usage: string.Lower()");
 	SuString* dst = new SuString(size());
 	char* t = dst->buf();
-/*#if defined(_MSC_VER) && _MSC_VER <= 1200
-	const ctype<char>& ct = use_facet< ctype<char> >(locale(), 0, true);
-	for (char* s = begin(); s != end(); ++s, ++t)
-		*t = ct.tolower((unsigned int) *s);
-#else*/
 	for (char* s = begin(); s != end(); ++s, ++t)
 		*t = tolower((unsigned int) *s);
-//#endif
 	return dst;
 	}
 
