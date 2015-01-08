@@ -265,6 +265,8 @@ Value SuRunPiped::Read(BuiltinArgs& args)
 	return n == 0 ? SuFalse : new SuString(gcstr.substr(0, n));
 	}
 
+const int MAX_LINE = 2001; // should be consistent with susockets Readline
+
 // NOTE: Readline should be consistent across file, socket, and runpiped
 Value SuRunPiped::Readline(BuiltinArgs& args)
 	{
@@ -276,7 +278,8 @@ Value SuRunPiped::Readline(BuiltinArgs& args)
 	std::vector<char> buf;
 	while (0 != rp->read(&c, 1))
 		{
-		buf.push_back(c);
+		if (buf.size() < MAX_LINE)
+			buf.push_back(c);
 		if (c == '\n')
 			break ;
 		}
