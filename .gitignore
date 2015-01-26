@@ -61,3 +61,6 @@ sign.bat
 ignore_rc.bat
 *.log
 *.user
+*.bak
+*.tmp
+tmp.*

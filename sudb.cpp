@@ -48,6 +48,7 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 	static Value SessionId("SessionId");
 	static Value Final("Final");
 	static Value Kill("Kill");
+	static Value Dump("Dump");
 
 	if (member == CALL || member == INSTANTIATE)
 		{
@@ -106,6 +107,18 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 		if (nargs != 1)
 			except("usage: Database.Kill(session_id)");
 		return dbms()->kill(ARG(0).str());
+		}
+	else if (member == Dump)
+		{
+		char* what;
+		if (nargs == 0)
+			what = "";
+		else if (nargs == 1)
+			what = ARG(0).str();
+		else
+			except("usage: Database.Dump(table = '')");
+		dbms()->dump(what);
+		return Value();
 		}
 	else
 		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
