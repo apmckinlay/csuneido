@@ -103,7 +103,6 @@ public:
 		{ return s == t; }
 	void adjust()	 // set length to strlen
 		{ s = s.substr(0, s.find('\0')); }
-	friend SuString* cat(SuString* left, SuString* right);
 
 	virtual void out(Ostream& out);
 
