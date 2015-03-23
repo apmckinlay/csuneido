@@ -38,9 +38,9 @@ public:
 	// does ensure(n) and then added(n)
 	char* alloc(int n);
 
-	void add(char c);
-	void add(const char* s, int n);
-	void add(const gcstring& s);
+	Buffer& add(char c);
+	Buffer& add(const char* s, int n);
+	Buffer& add(const gcstring& s);
 
 	void remove(int n);
 	int size()

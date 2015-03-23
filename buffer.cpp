@@ -46,20 +46,23 @@ char* Buffer::alloc(int n)
 	return dst;
 	}
 
-void Buffer::add(char c)
+Buffer& Buffer::add(char c)
 	{
 	*alloc(1) = c;
+	return *this;
 	}
 
-void Buffer::add(const char* s, int n)
+Buffer& Buffer::add(const char* s, int n)
 	{
 	memcpy(alloc(n), s, n);
+	return *this;
 	}
 
-void Buffer::add(const gcstring& s)
+Buffer& Buffer::add(const gcstring& s)
 	{
 	int n = s.size();
 	memcpy(alloc(n), s.buf(), n);
+	return *this;
 	}
 
 // WARNING: remove will invalidate previous gcstr
