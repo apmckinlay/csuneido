@@ -27,6 +27,7 @@
 #include "prim.h"
 #include "sustring.h"
 #include "ostreamstr.h"
+#include "buffer.h"
 #include <algorithm>
 
 const int QSIZE = 500;
@@ -41,11 +42,15 @@ void circ_log(gcstring s)
 
 static gcstring get()
 	{
-	gcstring s = "";
-	for (int i = (qi + 1) % QSIZE; i != qi; i = (i + 1) % QSIZE)
-		if (queue[i] != "")
-			s += queue[i] + "\n";
-	return s;
+	Buffer buf;
+	int i = qi;
+	do
+		{
+		if (queue[i] != "") // uninitialized
+			buf.add(queue[i]).add('\n');
+		i = (i + 1) % QSIZE;
+		} while (i != qi);
+	return buf.gcstr();
 	}
 
 Value su_circ_log()
