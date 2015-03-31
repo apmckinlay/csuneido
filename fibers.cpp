@@ -38,8 +38,7 @@ struct Fiber
 	enum Status { READY, BLOCKED, ENDED, REUSE };
 	explicit Fiber(void* f, void* arg = 0)
 		: fiber(f), status(READY), priority(0), stack_ptr(0), stack_end(0),
-		tss_proc(0), tss_thedbms(0), tss_session_views(0), tss_fiber_id(""),
-		arg_ref(arg)
+		tss_proc(0), tss_thedbms(0), tss_session_views(0), tss_fiber_id("")
 		{ }
 	bool operator==(Status s)
 		{ return status == s; }
@@ -55,7 +54,6 @@ struct Fiber
 	Dbms* tss_thedbms;
 	SesViews* tss_session_views;
 	char* tss_fiber_id;
-	void* arg_ref;
 	};
 
 static Fiber main_fiber(0);
