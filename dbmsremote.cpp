@@ -673,7 +673,7 @@ Value DbmsRemote::sessionid(char* s)
 
 bool DbmsRemote::refresh(int tran)
 	{
-	WRITE("REFRESH T" << tran << "\r\n");
+	WRITE("REFRESH T" << tran);
 	return sc.readbool();
 	}
 
@@ -693,7 +693,7 @@ void DbmsRemote::log(char* s)
 
 int DbmsRemote::kill(char* s)
 	{
-	WRITE("KILL " << s << "\r\n");
+	WRITE("KILL " << s);
 	return sc.readint('N');
 	}
 
