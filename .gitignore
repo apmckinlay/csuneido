@@ -64,3 +64,4 @@ ignore_rc.bat
 *.bak
 *.tmp
 tmp.*
+nightlychecktimes.txt

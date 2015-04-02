@@ -148,12 +148,12 @@ inline bool popbool()
 	}
 
 Frame::Frame(BuiltinFunc* p, Value s) :
-	prim(p), fn(0), self(s), rule(tss_proc()->fp[-1].rule), blockframe(0)
+	prim(p), fn(0), self(s), rule(tls().proc->fp[-1].rule), blockframe(0)
 	{ }
 
 Frame::Frame(SuFunction* f, Value s) :
 	prim(0), fn(f), self(s), ip(fn->code), local(1 + GETSP() - fn->nparams),
-	rule(tss_proc()->fp[-1].rule), catcher(0), blockframe(0)
+	rule(tls().proc->fp[-1].rule), catcher(0), blockframe(0)
 	{
 	for (int i = fn->nparams; i < fn->nlocals; ++i)
 		local[i] = Value();
@@ -179,7 +179,7 @@ Value Frame::run()
 	Value mem;
 
 	each = -1;
-	tss_proc()->super = 0;
+	tls().proc->super = 0;
 	for (;;)
 	try
 		{
@@ -196,7 +196,7 @@ Value Frame::run()
 				}
 			extern void ckinterrupt();
 			ckinterrupt();
-			if (! tss_proc()->synchronized)
+			if (! tls().proc->synchronized)
 				Fibers::yieldif();
 			break;
 		case I_POP :
@@ -206,7 +206,7 @@ Value Frame::run()
 			PUSH(TOP());
 			break ;
 		case I_SUPER :
-			tss_proc()->super = fetch_global();
+			tls().proc->super = fetch_global();
 			break ;
 		case I_PUSH_LITERAL | 0 : case I_PUSH_LITERAL | 1 :
 		case I_PUSH_LITERAL | 2 : case I_PUSH_LITERAL | 3 :
@@ -360,7 +360,7 @@ Value Frame::run()
 			jump = fetch_jump();
 			i = fetch_local(); // first
 			nargs = fetch1();
-			PUSH(suBlock(tss_proc()->fp, ip - fn->code, i, nargs));
+			PUSH(suBlock(tls().proc->fp, ip - fn->code, i, nargs));
 			ip += jump - 2;
 			break ;
 		case I_JUMP | UNCOND :
@@ -432,7 +432,7 @@ Value Frame::run()
 			static Value block_return("block return");
 			arg = POP();
 			if (arg == block_return)
-				tss_proc()->block_return_value = POP();
+				tls().proc->block_return_value = POP();
 			if (Except* e = val_cast<Except*>(arg))
 				throw *e;
 			else
@@ -698,8 +698,8 @@ Value Frame::run()
 			{
 			if (blockframe || e.fp_fn() != fn)
 				throw ;
-			PUSH(tss_proc()->block_return_value);
-			tss_proc()->block_return_value = Value();
+			PUSH(tls().proc->block_return_value);
+			tls().proc->block_return_value = Value();
 			goto done;
 			}
 		else if (catcher &&
@@ -817,7 +817,7 @@ Value Frame::get(uchar op)
 
 Value dynamic(ushort name)
 	{
-	for (Frame* f = tss_proc()->fp; f >= tss_proc()->frames; --f)
+	for (Frame* f = tls().proc->fp; f >= tls().proc->frames; --f)
 		{
 		if (! f->fn)
 			continue ; // skip primitives

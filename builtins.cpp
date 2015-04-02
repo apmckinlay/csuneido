@@ -185,9 +185,9 @@ PRIM(display, "Display(value)");
 struct Synch
 	{
 	Synch()
-		{ ++tss_proc()->synchronized; }
+		{ ++tls().proc->synchronized; }
 	~Synch()
-		{ --tss_proc()->synchronized; }
+		{ --tls().proc->synchronized; }
 	};
 
 Value synchronized()
@@ -202,12 +202,12 @@ PRIM(synchronized, "Synchronized(block)");
 Value frame()
 	{
 	int i = 1 + abs(TOP().integer()); // + 1 to skip this frame
-	if (tss_proc()->fp - i <= tss_proc()->frames)
+	if (tls().proc->fp - i <= tls().proc->frames)
 		return SuBoolean::f;
-	if (tss_proc()->fp[-i].fn)
-		return tss_proc()->fp[-i].fn;
+	if (tls().proc->fp[-i].fn)
+		return tls().proc->fp[-i].fn;
 	else
-		return tss_proc()->fp[-i].prim;
+		return tls().proc->fp[-i].prim;
 	}
 PRIM(frame, "Frame(offset)");
 
@@ -216,9 +216,9 @@ Value locals()
 	static Value SYM_THIS("this");
 
 	int i = 1 + abs(TOP().integer()); // + 1 to skip this frame
-	if (tss_proc()->fp - i < tss_proc()->frames)
+	if (tls().proc->fp - i < tls().proc->frames)
 		return SuBoolean::f;
-	Frame& frame = tss_proc()->fp[-i];
+	Frame& frame = tls().proc->fp[-i];
 	SuObject* ob = new SuObject();
 	ob->put(SYM_THIS, frame.self);
 	if (frame.fn)
@@ -378,23 +378,31 @@ struct ThreadCloser
 		{ }
 	~ThreadCloser()
 		{
-		extern Dbms*& tss_thedbms();
-		delete tss_thedbms();
-		tss_thedbms() = 0;
+		delete tls().thedbms;
+		tls().thedbms = 0;
 
 		Fibers::end();
 		}
 	};
 
+struct ThreadInfo
+	{
+	ThreadInfo(Value f, const gcstring& t) : fn(f), token(t)
+		{ }
+	Value fn;
+	gcstring token;
+	};
+
 static void _stdcall thread(void* arg)
 	{
-	Proc p; tss_proc() = &p;
+	Proc p; tls().proc = &p;
 
 	ThreadCloser closer;
 	try
 		{
-		Value fn = (SuValue*) arg;
-		fn.call(fn, CALL, 0, 0, 0, -1);
+		ThreadInfo* ti = (ThreadInfo*) arg;
+		tls().token = ti->token; // save token to authorize if dbms needed
+		ti->fn.call(ti->fn, CALL, 0, 0, 0, -1);
 		}
 	catch (const Except& e)
 		{
@@ -403,19 +411,20 @@ static void _stdcall thread(void* arg)
 		}
 	}
 
+Value su_thread()
+	{
+	const int nargs = 1;
+	gcstring token = dbms()->token();
+	Fibers::create(thread, new ThreadInfo(ARG(0), dbms()->token()));
+	return Value();
+	}
+PRIM(su_thread, "Thread(function)");
+
 Value su_threadcount()
 	{
 	return Fibers::size();
 	}
 PRIM(su_threadcount, "ThreadCount()");
-
-Value su_thread()
-	{
-	const int nargs = 1;
-	Fibers::create(thread, ARG(0).ptr());
-	return Value();
-	}
-PRIM(su_thread, "Thread(function)");
 
 Value su_timestamp()
 	{

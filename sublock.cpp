@@ -86,7 +86,7 @@ Value SuBlock::call(Value self, Value member, short nargs, short nargnames, usho
 		{
 		args(nargs, nargnames, argnames, each);
 		Framer framer(frame, pc, first, nparams, self.ptr() == this ? frame->self : self);
-		return tss_proc()->fp->run();
+		return tls().proc->fp->run();
 		}
 	else
 		return Func::call(self, member, nargs, nargnames, argnames, each);
@@ -103,23 +103,23 @@ void persist_if_block(Value x)
 
 void SuBlock::persist()
 	{
-	if (within(tss_proc()->stack, frame->local))
+	if (within(tls().proc->stack, frame->local))
 		{
 		// save locals on heap - only done once per call/frame
 		Value* old_locals = frame->local;
 		int n = frame->fn->nlocals * sizeof (Value);
 		frame->local = (Value*) memcpy(new char[n], frame->local, n);
 
-		verify(within(tss_proc()->frames, frame));
-		for (Frame* f = tss_proc()->fp; f > tss_proc()->frames && 
-			(! within(tss_proc()->stack, f->local) || f->local >= old_locals); 
+		verify(within(tls().proc->frames, frame));
+		for (Frame* f = tls().proc->fp; f > tls().proc->frames && 
+			(! within(tls().proc->stack, f->local) || f->local >= old_locals); 
 			--f)
 			{
 			if (f->local == old_locals)
 				f->local = frame->local;
 			}
 		}
-	if (within(tss_proc()->frames, frame))
+	if (within(tls().proc->frames, frame))
 		{
 		// save frame on heap
 		frame = (Frame*) memcpy(new Frame, frame, sizeof (Frame));

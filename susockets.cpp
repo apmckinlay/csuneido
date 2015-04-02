@@ -278,7 +278,7 @@ static void _stdcall suserver(void* arg)
 	SocketConnect* sc = 0;
 	try
 		{
-		Proc p; tss_proc() = &p;
+		Proc p; tls().proc = &p;
 
 		// make an instance by duplicating the master
 		sc = (SocketConnect*) arg;
@@ -305,9 +305,8 @@ static void _stdcall suserver(void* arg)
 		if (sc)
 			sc->close();
 
-		extern Dbms*& tss_thedbms();
-		delete tss_thedbms();
-		tss_thedbms() = 0;
+		delete tls().thedbms;
+		tls().thedbms = 0;
 
 		Fibers::end();
 		}

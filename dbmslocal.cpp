@@ -31,6 +31,8 @@
 #include "sudate.h"
 #include "suobject.h"
 #include "sustring.h"
+#include "fibers.h" // for tls()
+#include "auth.h"
 
 // DbmsQueryLocal ===================================================
 
@@ -85,7 +87,7 @@ void trace_last_q()
 
 Row DbmsQueryLocal::get(Dir dir)
 	{
-last_q = q;
+	last_q = q;
 	Row row(q->get(dir));
 	if (q->updateable() && row != Row::Eof)
 		row.recadr = row.data[1].off(); // [1] to skip key
@@ -149,6 +151,9 @@ public:
 	void log(char* s);
 	int kill(char* s);
 	Value exec(Value ob);
+	gcstring nonce();
+	gcstring token();
+	bool auth(const gcstring& data);
 	};
 
 int DbmsLocal::transaction(TranType type, char* session_id)
@@ -337,8 +342,7 @@ Value DbmsLocal::sessionid(char* s)
 	if (*s)
 		session_id = dupstr(s);
 	extern bool is_server;
-	extern char*& tss_fiber_id();
-	return new SuString(is_server ? tss_fiber_id() : session_id);
+	return new SuString(is_server ? tls().fiber_id : session_id);
 	}
 
 bool DbmsLocal::refresh(int tran)
@@ -363,6 +367,21 @@ int DbmsLocal::kill(char* s)
 	extern bool is_server;
 	extern int kill_connections(char* s); // in dbserver.cpp
 	return is_server ? kill_connections(s) : 0;
+	}
+
+gcstring DbmsLocal::nonce()
+	{
+	except("nonce only allowed on clients");
+	}
+
+gcstring DbmsLocal::token()
+	{
+	return Auth::token();
+	}
+
+bool DbmsLocal::auth(const gcstring& data)
+	{
+	except("auth only allowed on clients");
 	}
 
 // factory method ===================================================

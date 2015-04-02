@@ -40,7 +40,8 @@
 #include "cmdlineoptions.h" // for ignore_version
 #include "exceptimp.h"
 #include "tmpalloc.h"
-#include "fibers.h" // for tss_fiber_id
+#include "fibers.h" // for tls()
+#include "auth.h" // for NONCE_SIZE and TOKEN_SIZE
 
 //#define LOGGING
 #ifdef LOGGING
@@ -392,6 +393,9 @@ public:
 	void log(char* s);
 	int kill(char* s);
 	Value exec(Value ob);
+	gcstring nonce();
+	gcstring token();
+	bool auth(const gcstring& data);
 private:
 	CheckedSocketConnect sc;
 	OstreamStr os;
@@ -429,7 +433,7 @@ DbmsRemote::DbmsRemote(SocketConnect* s) : sc(s)
 
 	WRITE("SESSIONID ");
 	sc.ck_readline(buf, sizeof buf);
-	tss_fiber_id() = dupstr(stripnl(buf));
+	tls().fiber_id = dupstr(stripnl(buf));
 	}
 
 DbmsRemote::~DbmsRemote()
@@ -662,12 +666,12 @@ int DbmsRemote::cursors()
 Value DbmsRemote::sessionid(char* s)
 	{
 	if (! *s)
-		return new SuString(tss_fiber_id());
+		return new SuString(tls().fiber_id);
 	WRITE("SESSIONID " << s);
 	char buf[80];
 	sc.ck_readline(buf, sizeof buf);
 	SuString* ss = new SuString(stripnl(buf));
-	tss_fiber_id() = ss->str();
+	tls().fiber_id = ss->str();
 	return ss;
 	}
 
@@ -695,6 +699,31 @@ int DbmsRemote::kill(char* s)
 	{
 	WRITE("KILL " << s);
 	return sc.readint('N');
+	}
+
+gcstring DbmsRemote::nonce()
+	{
+	sc.write("NONCE\r\n");
+	gcstring buf(Auth::NONCE_SIZE);
+	sc.read(buf.buf(), buf.size());
+	return buf;
+	}
+
+gcstring DbmsRemote::token()
+	{
+	sc.write("TOKEN\r\n");
+	gcstring buf(Auth::TOKEN_SIZE);
+	sc.read(buf.buf(), buf.size());
+	return buf;
+	}
+
+bool DbmsRemote::auth(const gcstring& data)
+	{
+	if (data.size() == 0)
+		return false;
+	WRITEBUF("AUTH D" << data.size());
+	sc.write((char*) data.buf(), data.size());
+	return sc.readbool();
 	}
 
 // factory methods ==================================================

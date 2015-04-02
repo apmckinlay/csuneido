@@ -43,7 +43,9 @@ class DbServerDataImp : public DbServerData
 	{
 public:
 	DbServerDataImp() : nextQnum(0), nextCnum(0)
-		{ }
+		{ 
+		auth = true; //TEMPORARY  until applications are converted
+		}
 
 	void add_tran(int tran);
 	int add_query(int tran, DbmsQuery* q);

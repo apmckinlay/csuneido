@@ -88,6 +88,9 @@ public:
 	virtual void log(char* s) = 0;
 	virtual int kill(char* s) = 0;
 	virtual Value exec(Value ob) = 0;
+	virtual gcstring nonce() = 0;
+	virtual gcstring token() = 0;
+	virtual bool auth(const gcstring& data) = 0;
 	};
 
 Dbms* dbms();

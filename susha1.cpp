@@ -140,3 +140,11 @@ void Sha1::finalize()
 	CryptDestroyHash(hHash);
 	CryptReleaseContext(hCryptProv, 0);
 	}
+
+// for auth
+gcstring sha1(const gcstring& s)
+	{
+	Sha1* a = new BuiltinInstance<Sha1>();
+	a->update(s);
+	return a->value();
+	}

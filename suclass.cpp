@@ -62,9 +62,9 @@ Value SuClass::call(Value self, Value member, short nargs, short nargnames, usho
 		return (this->*(*p))(nargs, nargnames, argnames, each);
 	if (member == CALL)
 		member = CALL_CLASS;
-	if (tss_proc()->super)
+	if (tls().proc->super)
 		{
-		short super = tss_proc()->super; tss_proc()->super = 0;
+		short super = tls().proc->super; tls().proc->super = 0;
 		return globals[super].call(self, member, nargs, nargnames, argnames, each);
 		}
 	if (Value x = get(member))

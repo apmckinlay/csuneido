@@ -29,8 +29,6 @@
 class SesViews : public HashMap<gcstring,gcstring>
 	{ };
 
-extern SesViews*& tss_session_views();
-
 void set_session_view(const gcstring& name, const gcstring& def);
 
 gcstring get_session_view(const gcstring& name);

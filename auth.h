@@ -1,5 +1,5 @@
-#ifndef DBSERVERDATA_H
-#define DBSERVERDATA_H
+#ifndef AUTH_H
+#define AUTH_H
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
@@ -25,29 +25,16 @@
 
 #include "gcstring.h"
 
-class DbmsQuery;
-template <class T> class Lisp;
+class DbserverData;
 
-class DbServerData
+class Auth
 	{
 public:
-	static DbServerData* create();
-
-	virtual void add_tran(int tran) = 0;
-	virtual int add_query(int tran, DbmsQuery* q) = 0;
-	virtual DbmsQuery* get_query(int qn) = 0;
-	virtual bool erase_query(int qn) = 0;
-	virtual Lisp<int> get_trans() = 0;
-	virtual void end_transaction(int tran) = 0;
-
-	virtual int add_cursor(DbmsQuery* q) = 0;
-	virtual DbmsQuery* get_cursor(int cn) = 0;
-	virtual bool erase_cursor(int cn) = 0;
-
-	virtual void abort(void (*fn)(int tran)) = 0;
-
-	gcstring nonce;
-	bool auth;
+	enum { NONCE_SIZE = 8 };
+	enum { TOKEN_SIZE = 16 };
+	static gcstring token();
+	static gcstring nonce();
+	static bool auth(const gcstring& nonce, const gcstring& data);
 	};
 
 #endif

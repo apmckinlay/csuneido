@@ -487,8 +487,8 @@ void SuRecord::call_observer(ushort member, const char* why)
 Value SuRecord::getdata(Value m)
 	{
 	int i = m.symnum();
-	if (tss_proc()->fp->rule.rec == this)
-		add_dependent(tss_proc()->fp->rule.mem, i);
+	if (tls().proc->fp->rule.rec == this)
+		add_dependent(tls().proc->fp->rule.mem, i);
 	Value result = get(m);
 	if (! result || invalid.find(i))
 		{
@@ -542,9 +542,9 @@ Value SuRecord::call_rule(ushort i, const char* why)
 
 	RTRACE("call rule " << symstr(i) << " - " << why);
 
-	Rule old_rule = tss_proc()->fp->rule;
-	tss_proc()->fp->rule.rec = this;
-	tss_proc()->fp->rule.mem = i;
+	Rule old_rule = tls().proc->fp->rule;
+	tls().proc->fp->rule.rec = this;
+	tls().proc->fp->rule.mem = i;
 
 	KEEPSP
 	Value x;
@@ -555,11 +555,11 @@ Value SuRecord::call_rule(ushort i, const char* why)
 	catch (const Except& e)
 		{
 		// TODO handle block return ?
-		tss_proc()->fp->rule = old_rule;
+		tls().proc->fp->rule = old_rule;
 		throw Except(e, e.gcstr() + " (Rule_" + symstr(i) + ")");
 		}
 
-	tss_proc()->fp->rule = old_rule;
+	tls().proc->fp->rule = old_rule;
 
 	if (x && ! get_readonly())
 		put(symbol(i), x);

@@ -23,7 +23,7 @@
 #include "unhandled.h"
 #include "win.h"
 #include "except.h"
-#include "fibers.h" // for tss_fiber_id()
+#include "fibers.h" // for tls()
 #include <stdlib.h> // for exit
 
 #define EXCEPT(x) case EXCEPTION_##x: except("win32 exception: " #x);
@@ -83,9 +83,11 @@ inline void log_and_exit(const char* error, const char* extra = "")
 	if (h_file != INVALID_HANDLE_VALUE)
 		{
 		SetFilePointer(h_file, 0, 0, FILE_END);
-		write(tss_fiber_id());
-		if (*tss_fiber_id() != 0)
+		if (*tls().fiber_id != 0)
+			{
+			write(tls().fiber_id);
 			write(": ");
+			}
 		write("fatal error: ");
 		write(error);
 		if (*extra)

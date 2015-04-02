@@ -50,7 +50,7 @@ Value SuFunction::call(Value self, Value member, short nargs, short nargnames, u
 			dotParams(self);
 
 		Framer frame(this, self);
-		return tss_proc()->fp->run();
+		return tls().proc->fp->run();
 		}
 	else if (member == Disasm)
 		{

@@ -30,8 +30,8 @@
 
 SuObject* copyCallStack();
 
-Except::Except(gcstring x)
-	: SuString(x.trim()), fp_fn_(tss_proc() ? tss_proc()->fp->fn : 0), block_return(x == "block return")
+Except::Except(gcstring x) : SuString(x.trim()), 
+	fp_fn_(tls().proc ? tls().proc->fp->fn : 0), block_return(x == "block return")
 	{
 	if (x.has_prefix("block") &&
 		(x == "block:continue" || x == "block:break" || block_return))
@@ -85,9 +85,9 @@ SuObject* copyCallStack()
 	{
 	static Value qqq = new SuString("???");
 	SuObject* calls = new SuObject;
-	if (! tss_proc() || ! tss_proc()->fp)
+	if (! tls().proc || ! tls().proc->fp)
 		return calls;
-	for (Frame* f = tss_proc()->fp; f > tss_proc()->frames; --f)
+	for (Frame* f = tls().proc->fp; f > tls().proc->frames; --f)
 		{
 		SuObject* call = new SuObject;
 		SuObject* vars = new SuObject;

@@ -35,16 +35,17 @@ char* get_dbms_server_ip()
 	return server_ip;
 	}
 
-extern Dbms*& tss_thedbms();
-
 Dbms* dbms()
 	{
 	if (server_ip)
 		{ // client
-		if (! tss_thedbms())
-			tss_thedbms() = (Fibers::current() == Fibers::main() ? 
+		if (! tls().thedbms)
+			{
+			tls().thedbms = (Fibers::current() == Fibers::main() ? 
 				dbms_remote(server_ip) : dbms_remote_asynch(server_ip));
-		return tss_thedbms();
+			tls().thedbms->auth(tls().token);
+			}
+		return tls().thedbms;
 		}
 	else
 		{

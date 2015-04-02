@@ -49,6 +49,9 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 	static Value Final("Final");
 	static Value Kill("Kill");
 	static Value Dump("Dump");
+	static Value Nonce("Nonce");
+	static Value Token("Token");
+	static Value Auth("Auth");
 
 	if (member == CALL || member == INSTANTIATE)
 		{
@@ -119,6 +122,24 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 			except("usage: Database.Dump(table = '')");
 		dbms()->dump(what);
 		return Value();
+		}
+	else if (member == Token)
+		{
+		if (nargs != 0)
+			except("usage: Database.Token()");
+		return new SuString(dbms()->token());
+		}
+	else if (member == Nonce)
+		{
+		if (nargs != 0)
+			except("usage: Database.Nonce()");
+		return new SuString(dbms()->nonce());
+		}
+	else if (member == Auth)
+		{
+		if (nargs != 1)
+			except("usage: Database.Auth(string)");
+		return dbms()->auth(ARG(0).gcstr()) ? SuTrue : SuFalse;
 		}
 	else
 		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);

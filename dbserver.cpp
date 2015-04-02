@@ -45,6 +45,8 @@
 #include "pack.h"
 #include "trace.h"
 #include "tmpalloc.h"
+#include "auth.h"
+#include "dbmsunauth.h"
 
 //#define LOGGING
 #ifdef LOGGING
@@ -83,7 +85,7 @@ public:
 private:
 	static void abort_fn(int tran)
 		{
-		dbms->abort(tran);
+		dbms_auth->abort(tran);
 		}
 
 	// commands
@@ -125,6 +127,9 @@ private:
 	char* cmd_log(char*);
 	char* cmd_kill(char*);
 	char* cmd_exec(char*);
+	char* cmd_nonce(char*);
+	char* cmd_token(char*);
+	char* cmd_auth(char*);
 
 	char* get(DbmsQuery* q, Dir dir);
 
@@ -142,12 +147,16 @@ private:
 	char* value_result(Value x);
 	char* row_result(const Row& row, const Header& hdr, bool sendhdr = false);
 
+	Dbms* dbms()
+		{ return data->auth ? dbms_auth : dbms_unauth; }
+
 	SocketConnect* sc;
 	bool textmode;
 	OstreamStr os;
 	DbServerData* data;
 	char* session_id;
-	static Dbms* dbms;
+	static Dbms* dbms_auth;
+	static Dbms* dbms_unauth;
 	int last_activity;
 
 	Proc proc;
@@ -158,7 +167,8 @@ static std::vector<DbServerImp*> dbservers;
 
 const bool SEND_FIELDS = true;
 
-Dbms* DbServerImp::dbms = 0;
+Dbms* DbServerImp::dbms_auth = 0;
+Dbms* DbServerImp::dbms_unauth = 0;
 
 int su_port = 3147;
 int dbserver_timeout = 240; // minutes = 4 hours
@@ -230,17 +240,20 @@ void start_dbserver(char* name)
 DbServerImp::DbServerImp(SocketConnect* s)
 	: sc(s), textmode(true), data(DbServerData::create())
 	{
-	if (! dbms)
-		dbms = ::dbms();
-	tss_fiber_id() = session_id = sc->getadr();
+	if (! dbms_auth)
+		{
+		dbms_auth = ::dbms();
+		dbms_unauth = newDbmsUnauth(dbms_auth);
+		}
+	tls().fiber_id = session_id = sc->getadr();
 	dbserver_connections().add(session_id);
 	dbservers.push_back(this);
 
 	os << "Suneido Database Server (" << build_date << ")\r\n";
 	write(os.str());
 
-	tss_proc() = &proc;
-	tss_session_views() = &session_views;
+	tls().proc = &proc;
+	tls().session_views = &session_views;
 	}
 
 DbServerImp::~DbServerImp()
@@ -315,7 +328,10 @@ void DbServerImp::request(char* buf)
 		CMD(final),
 		CMD(log),
 		CMD(kill),
-		CMD(exec)
+		CMD(exec),
+		CMD(nonce),
+		CMD(token),
+		CMD(auth)
 		};
 	const int ncmds = sizeof cmds / sizeof (Cmd);
 
@@ -387,7 +403,7 @@ char* DbServerImp::cmd_binary(char* req)
 
 char* DbServerImp::cmd_admin(char* s)
 	{
-	return bool_result(dbms->admin(s));
+	return bool_result(dbms()->admin(s));
 	}
 
 char* DbServerImp::cmd_cursor(char* s)
@@ -396,7 +412,7 @@ char* DbServerImp::cmd_cursor(char* s)
 	char* buf = tmpalloc(qlen + 1);
 	sc->read(buf, qlen);
 	buf[qlen] = 0;
-	DbmsQuery* q = dbms->cursor(buf);
+	DbmsQuery* q = dbms()->cursor(buf);
 	os << 'C' << data->add_cursor(q) << "\r\n";
 	return os.str();
 	}
@@ -421,7 +437,7 @@ char* DbServerImp::cmd_transaction(char* s)
 		mode = Dbms::READWRITE;
 	else
 		return "ERR invalid mode\r\n";
-	int tran = dbms->transaction(mode, session_id);
+	int tran = dbms()->transaction(mode, session_id);
 	data->add_tran(tran);
 	os << 'T' << tran << "\r\n";
 	return os.str();
@@ -439,7 +455,7 @@ char* DbServerImp::cmd_request(char* s)
 		LOG("q: " << buf << endl);
 		s = buf;
 		}
-	os << 'R' << dbms->request(tran, s) << "\r\n";
+	os << 'R' << dbms()->request(tran, s) << "\r\n";
 	return os.str();
 	}
 
@@ -451,14 +467,14 @@ char* DbServerImp::cmd_query(char* s)
 	sc->read(buf, qlen);
 	buf[qlen] = 0;
 	LOG("q: " << buf << endl);
-	DbmsQuery* q = dbms->query(tran, buf);
+	DbmsQuery* q = dbms()->query(tran, buf);
 	os << 'Q' << data->add_query(tran, q) << "\r\n";
 	return os.str();
 	}
 
 char* DbServerImp::cmd_libget(char* name)
 	{
-	Lisp<gcstring> srcs = dbms->libget(name);
+	Lisp<gcstring> srcs = dbms()->libget(name);
 
 	Lisp<gcstring> s;
 	for (s = srcs; ! nil(s); ++s)
@@ -482,7 +498,7 @@ char* DbServerImp::cmd_libget(char* name)
 
 char* DbServerImp::cmd_libraries(char*)
 	{
-	os << dbms->libraries() << "\r\n";
+	os << dbms()->libraries() << "\r\n";
 	return os.str();
 	}
 
@@ -494,19 +510,19 @@ char* DbServerImp::cmd_tranlist(char*)
 
 char* DbServerImp::cmd_size(char*)
 	{
-	os << 'S' << mmoffset_to_int(dbms->size()) << "\r\n";
+	os << 'S' << mmoffset_to_int(dbms()->size()) << "\r\n";
 	return os.str();
 	}
 
 char* DbServerImp::cmd_tempdest(char*)
 	{
-	os << 'D' << dbms->tempdest() << "\r\n";
+	os << 'D' << dbms()->tempdest() << "\r\n";
 	return os.str();
 	}
 
 char* DbServerImp::cmd_cursors(char*)
 	{
-	os << 'N' << dbms->cursors() << "\r\n";
+	os << 'N' << dbms()->cursors() << "\r\n";
 	return os.str();
 	}
 
@@ -533,7 +549,7 @@ char* DbServerImp::cmd_sessionid(char* s)
 	if (*s)
 		{
 		dbserver_connections().remove1(session_id);
-		tss_fiber_id() = session_id = dupstr(s);
+		tls().fiber_id = session_id = dupstr(s);
 		dbserver_connections().add(session_id);
 		}
 	os << session_id << "\r\n";
@@ -543,12 +559,12 @@ char* DbServerImp::cmd_sessionid(char* s)
 char* DbServerImp::cmd_refresh(char* s)
 	{
 	int tran = ck_getnum('T', s);
-	return bool_result(dbms->refresh(tran));
+	return bool_result(dbms()->refresh(tran));
 	}
 
 char* DbServerImp::cmd_final(char*)
 	{
-	os << 'N' << dbms->final() << "\r\n";
+	os << 'N' << dbms()->final() << "\r\n";
 	return os.str();
 	}
 
@@ -743,7 +759,7 @@ char* DbServerImp::cmd_get1(char* s)
 	LOG("q: " << buf << endl);
 
 	Header hdr;
-	Row row = dbms->get(dir, buf, one, hdr, tran);
+	Row row = dbms()->get(dir, buf, one, hdr, tran);
 	return row_result(row, hdr, true);
 	}
 
@@ -771,7 +787,7 @@ char* DbServerImp::cmd_erase(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	Mmoffset recadr = int_to_mmoffset(ck_getnum('A', s));
-	dbms->erase(tran, recadr);
+	dbms()->erase(tran, recadr);
 	return "OK\r\n";
 	}
 
@@ -785,7 +801,7 @@ char* DbServerImp::cmd_update(char* s)
 	sc->read(buf, reclen);
 	Record newrec((void*) buf);
 
-	os << 'U' << mmoffset_to_int(dbms->update(tran, recadr, newrec)) << "\r\n";
+	os << 'U' << mmoffset_to_int(dbms()->update(tran, recadr, newrec)) << "\r\n";
 	return os.str();
 	}
 
@@ -793,7 +809,7 @@ char* DbServerImp::cmd_recordok(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	Mmoffset recadr = int_to_mmoffset(ck_getnum('A', s));
-	return bool_result(dbms->record_ok(tran, recadr));
+	return bool_result(dbms()->record_ok(tran, recadr));
 	}
 
 char* DbServerImp::cmd_commit(char* s)
@@ -801,7 +817,7 @@ char* DbServerImp::cmd_commit(char* s)
 	int tran = ck_getnum('T', s);
 	data->end_transaction(tran);
 	char* conflict;
-	if (dbms->commit(tran, &conflict))
+	if (dbms()->commit(tran, &conflict))
 		return "OK\r\n";
 	else
 		{
@@ -814,13 +830,13 @@ char* DbServerImp::cmd_abort(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	data->end_transaction(tran);
-	dbms->abort(tran);
+	dbms()->abort(tran);
 	return "OK\r\n";
 	}
 
 char* DbServerImp::cmd_timestamp(char* s)
 	{
-	os << dbms->timestamp() << "\r\n";
+	os << dbms()->timestamp() << "\r\n";
 	return os.str();
 	}
 
@@ -828,7 +844,7 @@ char* DbServerImp::cmd_timestamp(char* s)
 
 char* DbServerImp::cmd_dump(char* s)
 	{
-	dbms->dump(s);
+	dbms()->dump(s);
 	return "OK\r\n";
 	}
 
@@ -836,13 +852,13 @@ char* DbServerImp::cmd_dump(char* s)
 
 char* DbServerImp::cmd_copy(char* s)
 	{
-	dbms->copy(s);
+	dbms()->copy(s);
 	return "OK\r\n";
 	}
 
 char* DbServerImp::cmd_run(char* s)
 	{
-	Value x = dbms->run(s);
+	Value x = dbms()->run(s);
 	if (! x)
 		return "\r\n";
 	if (textmode)
@@ -907,4 +923,30 @@ char* DbServerImp::cmd_kill(char* s)
 	int n_killed = kill_connections(s);
 	os << 'N' << n_killed << "\r\n";
 	return os.str();
+	}
+
+char* DbServerImp::cmd_nonce(char* s)
+	{
+	gcstring nonce = Auth::nonce();
+	write(nonce.buf(), nonce.size());
+	data->nonce = nonce;
+	return 0;
+	}
+
+char* DbServerImp::cmd_token(char* s)
+	{
+	gcstring token = Auth::token();
+	write(token.buf(), token.size());
+	return 0;
+	}
+
+char* DbServerImp::cmd_auth(char* s)
+	{
+	int n = ck_getnum('D', s);
+	gcstring buf(n);
+	sc->read(buf.buf(), n);
+	bool result = Auth::auth(data->nonce, buf);
+	if (result)
+		data->auth = true;
+	return  bool_result(result);
 	}

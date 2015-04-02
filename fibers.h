@@ -23,6 +23,8 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "gcstring.h"
+
 struct Proc;
 
 typedef void (*StackFn)(void* org, void* end);
@@ -72,6 +74,21 @@ struct Fibers
 
 void sleepms(int ms);
 
-extern char*& tss_fiber_id();
+struct Proc;
+class Dbms;
+class SesViews;
+
+struct ThreadLocalStorage
+	{
+	ThreadLocalStorage();
+
+	Proc* proc;
+	Dbms* thedbms;
+	SesViews* session_views;
+	char* fiber_id;
+	gcstring token;
+	};
+
+extern ThreadLocalStorage& tls();
 
 #endif

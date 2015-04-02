@@ -24,6 +24,7 @@
 #include "except.h"
 #include "itostr.h" // for gc warn
 #include "errlog.h" // for gc warn
+#include "gcstring.h"
 #include "win.h"
 #include "winlib.h"
 #include <vector>
@@ -38,7 +39,6 @@ struct Fiber
 	enum Status { READY, BLOCKED, ENDED, REUSE };
 	explicit Fiber(void* f, void* arg = 0)
 		: fiber(f), status(READY), priority(0), stack_ptr(0), stack_end(0),
-		tss_proc(0), tss_thedbms(0), tss_session_views(0), tss_fiber_id(""),
 		arg_ref(arg)
 		{ }
 	bool operator==(Status s)
@@ -50,12 +50,8 @@ struct Fiber
 	// for garbage collector
 	void* stack_ptr;
 	void* stack_end;
-	// thread/fiber local storage
-	Proc* tss_proc;
-	Dbms* tss_thedbms;
-	SesViews* tss_session_views;
-	char* tss_fiber_id;
-	void* arg_ref;
+	void* arg_ref; // prevent it being garbage collected
+	ThreadLocalStorage tls;
 	};
 
 static Fiber main_fiber(0);
@@ -64,17 +60,14 @@ const int MAIN = -1;
 static int cur = MAIN;
 #define curfiber (cur < 0 ? &main_fiber : &fibers[cur])
 
-Proc*& tss_proc()
-	{ return curfiber->tss_proc; }
+ThreadLocalStorage::ThreadLocalStorage() 
+	: proc(0), thedbms(0), session_views(0), fiber_id("")
+	{ }
 
-Dbms*& tss_thedbms()
-	{ return curfiber->tss_thedbms; }
-
-SesViews*& tss_session_views()
-	{ return curfiber->tss_session_views; }
-
-char*& tss_fiber_id()
-	{ return curfiber->tss_fiber_id; }
+ThreadLocalStorage& tls()
+	{
+	return curfiber->tls;
+	}
 
 static void save_stack()
 	{
@@ -294,7 +287,7 @@ void Fibers::foreach_proc(ProcFn fn)
 	{
 	for (int i = 0; i < fibers.size(); ++i)
 		if (fibers[i].status < Fiber::ENDED)
-			fn(fibers[i].tss_proc);
+			fn(fibers[i].tls.proc);
 	}
 
 void sleepms(int ms)

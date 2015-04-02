@@ -102,9 +102,6 @@
     <ClCompile Include="..\dbmslocal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\dbmsremote.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\dbserver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -439,6 +436,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\dupstr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\auth.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dbmsremote.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dbmsunauth.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -896,6 +902,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\winlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dbmsunauth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

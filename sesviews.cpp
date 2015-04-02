@@ -21,24 +21,25 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "sesviews.h"
+#include "fibers.h" // for tls()
 
 void set_session_view(const gcstring& name, const gcstring& def)
 	{
-	if (! tss_session_views())
-		tss_session_views() = new SesViews;
-	(*tss_session_views())[name] = def;
+	if (! tls().session_views)
+		tls().session_views = new SesViews;
+	(*tls().session_views)[name] = def;
 	}
 
 gcstring get_session_view(const gcstring& name)
 	{
-	if (tss_session_views())
-		if (gcstring* p = tss_session_views()->find(name))
+	if (tls().session_views)
+		if (gcstring* p = tls().session_views->find(name))
 			return *p;
 	return "";
 	}
 
 void remove_session_view(const gcstring& name)
 	{
-	if (tss_session_views())
-		tss_session_views()->erase(name);
+	if (tls().session_views)
+		tls().session_views->erase(name);
 	}

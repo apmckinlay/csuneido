@@ -26,6 +26,7 @@
 #include "std.h"
 #include "value.h"
 #include "except.h"
+#include "fibers.h" // for tls().proc
 #include <new>
 
 class SuValue;
@@ -146,8 +147,6 @@ struct Proc
 	int synchronized; // normally 0 (meaning allow yield), incremented by Synchronized
 	};
 
-extern Proc*& tss_proc(); // current Proc
-
 // push and pop Frame's
 struct Framer
 	{
@@ -165,13 +164,13 @@ struct Framer
 		}
 	Frame* nextfp()
 		{
-		if (tss_proc()->fp >= tss_proc()->frames + Proc::MAXFRAMES - 1)
+		if (tls().proc->fp >= tls().proc->frames + Proc::MAXFRAMES - 1)
 			except("function call overflow");
-		return ++tss_proc()->fp;
+		return ++tls().proc->fp;
 		}
 	~Framer()
 		{
-		--tss_proc()->fp;
+		--tls().proc->fp;
 		}
 	};
 
@@ -180,18 +179,18 @@ extern int callnest;
 // call a standalone or member function
 Value docall(Value x, Value member, short nargs = 0, short nargnames = 0, ushort* argnames = 0, int each = -1);
 
-#define ARG(i) tss_proc()->stack.getsp()[1 - nargs + i]
+#define ARG(i) tls().proc->stack.getsp()[1 - nargs + i]
 
 inline void PUSH(Value x)
-	{ tss_proc()->stack.push(x); }
+	{ tls().proc->stack.push(x); }
 inline Value& TOP()
-	{ return tss_proc()->stack.top(); }
+	{ return tls().proc->stack.top(); }
 inline Value POP()
-	{ return tss_proc()->stack.pop(); }
+	{ return tls().proc->stack.pop(); }
 inline Value* GETSP()
-	{ return tss_proc()->stack.getsp(); }
+	{ return tls().proc->stack.getsp(); }
 inline void SETSP(Value* newsp)
-	{ tss_proc()->stack.setsp(newsp); }
+	{ tls().proc->stack.setsp(newsp); }
 
 extern Value block_return;
 

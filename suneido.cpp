@@ -116,7 +116,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 
 	Fibers::init();
 
-	tss_proc() = new Proc;
+	tls().proc = new Proc;
 	builtins(); // internal initialization
 
 	cmdline = cmdlineoptions.parse(lpszCmdLine);
@@ -276,12 +276,12 @@ void message(const char* s, const char* t)
 
 void handler(const Except& x)
 	{
-	if (tss_proc()->in_handler)
+	if (tls().proc->in_handler)
 		{
 		message("Error in Error Handler", x.str());
 		return ;
 		}
-	tss_proc()->in_handler = true;
+	tls().proc->in_handler = true;
 
 // TODO: use GetAncestor
 	// determine top level window responsible
@@ -297,7 +297,7 @@ void handler(const Except& x)
 		{
 		message("Error in Debug", e.str());
 		}
-	tss_proc()->in_handler = false;
+	tls().proc->in_handler = false;
 	}
 
 // for options that are normally enabled

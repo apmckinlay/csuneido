@@ -452,9 +452,9 @@ Value SuObject::call(Value self, Value member, short nargs, short nargnames, ush
 	{
 	if (member == CALL)
 		member = CALL_INSTANCE;
-	if (tss_proc()->super)
+	if (tls().proc->super)
 		{
-		short super = tss_proc()->super; tss_proc()->super = 0;
+		short super = tls().proc->super; tls().proc->super = 0;
 		return globals[super].call(self, member, nargs, nargnames, argnames, each);
 		}
 //else if (Value fn = myclass.getdata(member))
