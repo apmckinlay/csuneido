@@ -49,3 +49,6 @@ Database* theDB()
 		}
 	return thedb;
 	}
+
+TranCloser::~TranCloser()
+	{ theDB()->abort(t); }
