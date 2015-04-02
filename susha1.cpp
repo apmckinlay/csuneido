@@ -72,8 +72,8 @@ private:
 
 Value su_sha1()
 	{
-	static BuiltinClass<Sha1> Md5Class("(@strings)");
-	return &Md5Class;
+	static BuiltinClass<Sha1> Sha1Class("(@strings)");
+	return &Sha1Class;
 	}
 
 template<>
