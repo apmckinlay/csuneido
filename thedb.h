@@ -25,4 +25,16 @@
 
 class Database* theDB();
 
+class TranCloser
+	{
+public:
+	TranCloser(int t_) : t(t_)
+		{ }
+	operator int() const
+		{ return t; }
+	~TranCloser();
+private:
+	int t;
+	};
+
 #endif

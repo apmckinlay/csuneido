@@ -266,7 +266,7 @@ Lisp<gcstring> libgetall(char* name)
 	key.addval(name);
 	key.addval(Value(-1));
 	Lisp<gcstring> srcs;
-	int t = theDB()->transaction(READONLY);
+	TranCloser t = theDB()->transaction(READONLY);
 	for (Lisp<gcstring> libs = reverse(libraries()); ! nil(libs); ++libs)
 		{
 		Fields flds = theDB()->get_fields(*libs);
@@ -292,6 +292,5 @@ Lisp<gcstring> libgetall(char* name)
 			srcs.push(*libs);
 			}
 		}
-	theDB()->commit(t);
 	return srcs;
 	}
