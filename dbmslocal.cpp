@@ -155,6 +155,8 @@ public:
 	gcstring token();
 	bool auth(const gcstring& data);
 	Value check();
+	Value readCount(int tran);
+	Value writeCount(int tran);
 	};
 
 int DbmsLocal::transaction(TranType type, char* session_id)
@@ -388,6 +390,16 @@ bool DbmsLocal::auth(const gcstring& data)
 Value DbmsLocal::check()
 	{
 	except("check while running only supported with jSuneido server");
+	}
+
+Value DbmsLocal::readCount(int tran)
+	{
+	except("ReadCount only supported with jSuneido server");
+	}
+
+Value DbmsLocal::writeCount(int tran)
+	{
+	except("WriteCount only supported with jSuneido server");
 	}
 
 // factory method ===================================================

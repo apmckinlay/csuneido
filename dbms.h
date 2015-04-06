@@ -92,6 +92,8 @@ public:
 	virtual gcstring token() = 0;
 	virtual bool auth(const gcstring& data) = 0;
 	virtual Value check() = 0;
+	virtual Value readCount(int tran) = 0;
+	virtual Value writeCount(int tran) = 0;
 	};
 
 Dbms* dbms();

@@ -306,6 +306,8 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 	static Value Query1("Query1");
 	static Value Refresh("Refresh");
 	static Value Conflict("Conflict");
+	static Value ReadCount("ReadCount");
+	static Value WriteCount("WriteCount");
 
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	if (member == Query)
@@ -370,6 +372,18 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 		if (nargs != 0)
 			except("usage: transaction.Conflict()");
 		return new SuString(conflict ? conflict : "");
+		}
+	else if (member == ReadCount)
+		{
+		if (nargs != 0)
+			except("usage: transaction.ReadCount()");
+		return dbms()->readCount(tran);
+		}
+	else if (member == WriteCount)
+		{
+		if (nargs != 0)
+			except("usage: transaction.ReadCount()");
+		return dbms()->writeCount(tran);
 		}
 	else
 		{

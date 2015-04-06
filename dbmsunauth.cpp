@@ -96,6 +96,10 @@ public:
 		{ return dbms->auth(data); }
 	Value check()
 		{ except(notauth); }
+	Value readCount(int tran)
+		{ except(notauth); }
+	Value writeCount(int tran)
+		{ except(notauth); }
 private:
 	Dbms* dbms;
 	const char* notauth = "not authorized";

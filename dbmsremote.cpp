@@ -397,6 +397,8 @@ public:
 	gcstring token();
 	bool auth(const gcstring& data);
 	Value check();
+	Value readCount(int tran);
+	Value writeCount(int tran);
 private:
 	CheckedSocketConnect sc;
 	OstreamStr os;
@@ -731,6 +733,18 @@ Value DbmsRemote::check()
 	{
 	sc.write("CHECK\r\n");
 	return sc.readvalue();
+	}
+
+Value DbmsRemote::readCount(int tran)
+	{
+	WRITE("READCOUNT T" << tran);
+	return sc.readint('C');
+	}
+
+Value DbmsRemote::writeCount(int tran)
+	{
+	WRITE("WRITECOUNT T" << tran);
+	return sc.readint('C');
 	}
 
 // factory methods ==================================================
