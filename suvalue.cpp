@@ -77,11 +77,11 @@ SuObject* SuValue::object()
 		except("can't convert " << type() << " to object");
 	}
 
-Value SuValue::getdata(Value)
-	{ except(type() << " does not support get"); }
+Value SuValue::getdata(Value k)
+	{ except(type() << " does not support get (" << k << ")"); }
 
-void SuValue::putdata(Value, Value)
-	{ except(type() << " does not support put"); }
+void SuValue::putdata(Value k, Value v)
+	{ except(type() << " does not support put (" << k << ")"); }
 
 size_t SuValue::packsize() const
 	{ except("can't pack " << type()); }
