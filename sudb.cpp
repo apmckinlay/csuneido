@@ -52,6 +52,7 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 	static Value Nonce("Nonce");
 	static Value Token("Token");
 	static Value Auth("Auth");
+	static Value Check("Check");
 
 	if (member == CALL || member == INSTANTIATE)
 		{
@@ -140,6 +141,12 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 		if (nargs != 1)
 			except("usage: Database.Auth(string)");
 		return dbms()->auth(ARG(0).gcstr()) ? SuTrue : SuFalse;
+		}
+	else if (member == Check)
+		{
+		if (nargs != 0)
+			except("usage: Database.Check()");
+		return dbms()->check();
 		}
 	else
 		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);

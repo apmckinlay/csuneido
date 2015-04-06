@@ -130,6 +130,7 @@ private:
 	char* cmd_nonce(char*);
 	char* cmd_token(char*);
 	char* cmd_auth(char*);
+	char* cmd_check(char*);
 
 	char* get(DbmsQuery* q, Dir dir);
 
@@ -331,7 +332,8 @@ void DbServerImp::request(char* buf)
 		CMD(exec),
 		CMD(nonce),
 		CMD(token),
-		CMD(auth)
+		CMD(auth),
+		CMD(check)
 		};
 	const int ncmds = sizeof cmds / sizeof (Cmd);
 
@@ -949,4 +951,9 @@ char* DbServerImp::cmd_auth(char* s)
 	if (result)
 		data->auth = true;
 	return  bool_result(result);
+	}
+
+char* DbServerImp::cmd_check(char* s)
+	{
+	return value_result(dbms()->check());
 	}

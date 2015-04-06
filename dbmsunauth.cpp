@@ -94,6 +94,8 @@ public:
 		{ except(notauth); }
 	bool auth(const gcstring& data) 
 		{ return dbms->auth(data); }
+	Value check()
+		{ except(notauth); }
 private:
 	Dbms* dbms;
 	const char* notauth = "not authorized";

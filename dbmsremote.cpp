@@ -396,6 +396,7 @@ public:
 	gcstring nonce();
 	gcstring token();
 	bool auth(const gcstring& data);
+	Value check();
 private:
 	CheckedSocketConnect sc;
 	OstreamStr os;
@@ -724,6 +725,12 @@ bool DbmsRemote::auth(const gcstring& data)
 	WRITEBUF("AUTH D" << data.size());
 	sc.write((char*) data.buf(), data.size());
 	return sc.readbool();
+	}
+
+Value DbmsRemote::check()
+	{
+	sc.write("CHECK\r\n");
+	return sc.readvalue();
 	}
 
 // factory methods ==================================================

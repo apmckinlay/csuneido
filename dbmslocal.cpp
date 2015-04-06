@@ -154,6 +154,7 @@ public:
 	gcstring nonce();
 	gcstring token();
 	bool auth(const gcstring& data);
+	Value check();
 	};
 
 int DbmsLocal::transaction(TranType type, char* session_id)
@@ -382,6 +383,11 @@ gcstring DbmsLocal::token()
 bool DbmsLocal::auth(const gcstring& data)
 	{
 	except("auth only allowed on clients");
+	}
+
+Value DbmsLocal::check()
+	{
+	except("check while running only supported with jSuneido server");
 	}
 
 // factory method ===================================================
