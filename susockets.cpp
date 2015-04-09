@@ -35,6 +35,7 @@
 #include "errlog.h"
 #include "builtinargs.h"
 #include "exceptimp.h"
+#include "readline.h"
 
 // SuSocketClient ===================================================
 
@@ -91,8 +92,8 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		if (nargs != 0)
 			except("usage: socketClient.Readline()");
 		ckopen("Readline");
-		char buf[2000];
-		sc->readline(buf, 2001); // 2000 plus nul
+		char buf[MAX_LINE + 1];
+		sc->readline(buf, sizeof buf);
 		if (! *buf)
 			except("socket client: lost connection or timeout in Readline");
 		// assumes nul termination (so line may not contain nuls)

@@ -29,6 +29,7 @@
 #include <vector> // for Readline
 #include "sufinalize.h"
 #include "minmax.h"
+#include "readline.h"
 
 class SuFile : public SuFinalize
 	{
@@ -159,19 +160,7 @@ Value SuFile::Readline(BuiltinArgs& args)
 
 	ckopen("Readline");
 	int c;
-	std::vector<char> buf;
-	while (EOF != (c = fgetc(f)))
-		{
-		buf.push_back(c);
-		if (c == '\n')
-			break;
-		}
-	if (buf.size() == 0)
-		return SuFalse;
-	while (buf.size() > 0 && (buf.back() == '\r' || buf.back() == '\n'))
-		buf.pop_back();
-	buf.push_back(0); // allow space for nul
-	return new SuString(buf.size() - 1, &buf[0]); // no alloc
+	READLINE(EOF != (c = fgetc(f)));
 	}
 
 Value SuFile::Write(BuiltinArgs& args)

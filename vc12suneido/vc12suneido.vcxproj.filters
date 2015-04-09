@@ -907,5 +907,8 @@
     <ClInclude Include="..\dbmsunauth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\readline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

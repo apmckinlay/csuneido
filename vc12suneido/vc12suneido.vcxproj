@@ -344,6 +344,7 @@
     <ClInclude Include="..\qunion.h" />
     <ClInclude Include="..\random.h" />
     <ClInclude Include="..\range.h" />
+    <ClInclude Include="..\readline.h" />
     <ClInclude Include="..\rebuildgui.h" />
     <ClInclude Include="..\record.h" />
     <ClInclude Include="..\recover.h" />

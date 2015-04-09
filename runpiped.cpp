@@ -166,6 +166,7 @@ int RunPiped::exitvalue()
 #include "sufinalize.h"
 #include "sustring.h"
 #include "ostreamstr.h"
+#include "readline.h"
 
 class SuRunPiped : public SuFinalize
 	{
@@ -265,8 +266,6 @@ Value SuRunPiped::Read(BuiltinArgs& args)
 	return n == 0 ? SuFalse : new SuString(gcstr.substr(0, n));
 	}
 
-const int MAX_LINE = 2001; // should be consistent with susockets Readline
-
 // NOTE: Readline should be consistent across file, socket, and runpiped
 Value SuRunPiped::Readline(BuiltinArgs& args)
 	{
@@ -275,20 +274,7 @@ Value SuRunPiped::Readline(BuiltinArgs& args)
 
 	ckopen();
 	char c;
-	std::vector<char> buf;
-	while (0 != rp->read(&c, 1))
-		{
-		if (buf.size() < MAX_LINE)
-			buf.push_back(c);
-		if (c == '\n')
-			break ;
-		}
-	if (buf.size() == 0)
-		return SuFalse;
-	while (buf.size() > 0 && (buf.back() == '\r' || buf.back() == '\n'))
-		buf.pop_back();
-	buf.push_back(0); // allow space for nul
-	return new SuString(buf.size() - 1, &buf[0]); // no alloc
+	READLINE(0 != rp->read(&c, 1));
 	}
 
 Value SuRunPiped::Write(BuiltinArgs& args)
