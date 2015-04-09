@@ -460,9 +460,11 @@ bool SocketConnectAsynch::readline(char* dst, int n)
 	if (tryreadline(dst, n))
 		return true;
 	// no newline so socket was closed
+	--n; // allow for nul
 	if (rdbuf.size() < n)
 		n = rdbuf.size();
 	memcpy(dst, rdbuf.buffer(), n);
+	dst[n] = 0;
 	rdbuf.clear(); // remove any excess > n
 	return true;
 	}
@@ -664,12 +666,12 @@ bool SocketConnectSynch::readline(char* dst, int n)
 
 		const int MINRECVSIZE = 1024;
 		rdbuf.ensure(MINRECVSIZE);
-		int n = recv(sock, rdbuf.bufnext(), rdbuf.available(), 0);
-		if (n == 0)
+		int nr = recv(sock, rdbuf.bufnext(), rdbuf.available(), 0);
+		if (nr == 0)
 			break ; // connection closed
-		if (n < 0)
+		if (nr < 0)
 			except("SocketClient read failed (" << WSAGetLastError() << ")");
-		rdbuf.added(n);
+		rdbuf.added(nr);
 		}
 	char* buf = rdbuf.buffer();
 	int len = eol ? eol - buf + 1 : rdbuf.size();
