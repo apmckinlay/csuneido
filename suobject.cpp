@@ -906,9 +906,11 @@ Value SuObject::Reverse(short nargs, short nargnames, ushort* argnames, int each
 
 Value SuObject::Join(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 1)
-		except("usage: object.Join(separator)");
-	gcstring separator = ARG(0).gcstr();
+	gcstring separator;
+	if (nargs == 1)
+		separator = ARG(0).gcstr();
+	else if (nargs != 0)
+		except("usage: object.Join(separator = '')");
 	OstreamStr oss;
 	for (std::vector<Value>::iterator iter = vec.begin(); iter != vec.end(); )
 		{
