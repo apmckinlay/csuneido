@@ -43,13 +43,13 @@ Value SuSeq::call(Value self, Value member, short nargs, short nargnames, ushort
 		if (ob)
 			return ob->call(self, member, nargs, nargnames, argnames, each);
 		static Value REWIND("Rewind");
-		Value newiter = iter.call(iter, COPY, 0, 0, 0, 0);
-		newiter.call(iter, REWIND, 0, 0, 0, 0);
+		Value newiter = iter.call(iter, COPY, 0, 0, 0, -1);
+		newiter.call(iter, REWIND, 0, 0, 0, -1);
 		return newiter;
 		}
 	else if (member == NEXT)
 		{
-		return iter.call(iter, NEXT, 0, 0, 0, 0);
+		return iter.call(iter, NEXT, 0, 0, 0, -1);
 		}
 	else if (member == COPY && ! ob)
 		{
@@ -57,6 +57,9 @@ Value SuSeq::call(Value self, Value member, short nargs, short nargnames, ushort
 		}
 	else
 		{
+		if (SuObject* x = val_cast<SuObject*>(iter))
+			if (x->hasMethod(member))
+				return iter.call(iter, member, nargs, nargnames, argnames, each);
 		build();
 		return ob->call(self, member, nargs, nargnames, argnames, each);
 		}
@@ -75,9 +78,9 @@ SuObject* SuSeq::copy() const
 	static Value NEXT("Next");
 
 	SuObject* copy = new SuObject;
-	iter.call(iter, REWIND, 0, 0, 0, 0);
+	iter.call(iter, REWIND, 0, 0, 0, -1);
 	Value x;
-	while (iter != (x = iter.call(iter, NEXT, 0, 0, 0, 0)))
+	while (iter != (x = iter.call(iter, NEXT, 0, 0, 0, -1)))
 		copy->add(x);
 	return copy;
 	}
@@ -146,6 +149,7 @@ void SuSeqIter::out(Ostream& os)
 	os << "SeqIter";
 	}
 
+
 Value SuSeqIter::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value ITER("Iter");
@@ -188,3 +192,15 @@ Value su_seq()
 	return new SuSeq(new SuSeqIter(ARG(0), ARG(1), ARG(2)));
 	}
 PRIM(su_seq, "Seq(from, to = false, by = 1)");
+
+// Sequence =========================================================
+
+Value su_sequence()
+	{
+	const int nargs = 1;
+	if (SuObject* ob = val_cast<SuObject*>(ARG(0)))
+		return new SuSeq(ob);
+	else
+		except("usage: Sequence(object)");
+	}
+PRIM(su_sequence, "Sequence(object)");

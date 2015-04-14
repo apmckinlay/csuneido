@@ -125,6 +125,7 @@ public:
 	Value find(Value value);
 	void remove1(Value value);
 	void sort();
+	bool hasMethod(Value name);
 protected:
 	typedef Value (SuObject::*pmfn)(short, short, ushort*, int);
 	static HashMap<Value,pmfn> basic_methods;

@@ -581,8 +581,13 @@ Value SuObject::HasMethod(short nargs, short nargnames, ushort* argnames, int ea
 	{
 	if (nargs != 1)
 		except("usage: object.Method?(name)");
-	Value x = lookup(this, MethodFinder(TOP()));
-	return x && x != SuFalse ? SuTrue : SuFalse;
+	return hasMethod(TOP()) ? SuTrue : SuFalse;
+	}
+
+bool SuObject::hasMethod(Value name)
+	{
+	Value x = lookup(this, MethodFinder(name));
+	return x && x != SuFalse;
 	}
 
 Value SuObject::MethodClass(short nargs, short nargnames, ushort* argnames, int each)
