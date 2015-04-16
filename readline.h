@@ -34,14 +34,14 @@ const int MAX_LINE = 4000;
 	int i = 0; \
 	while (getc) \
 		{ \
-		if (c == '\n') \
-			break; \
 		if (i < MAX_LINE) \
 			buf[i++] = c; \
+		if (c == '\n') \
+			break; \
 		} \
 	if (i == 0) \
 		return SuFalse; \
-	while (i > 0 && buf[i-1] == '\r') \
+	while (i > 0 && buf[i-1] == '\r' || buf[i-1] == '\n') \
 		--i; \
 	buf[i] = 0; \
 	return new SuString(buf, i)
