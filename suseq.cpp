@@ -22,6 +22,7 @@
 
 #include "suseq.h"
 #include "suobject.h"
+#include "interp.h"
 
 SuSeq::SuSeq(Value i) : iter(i), ob(0)
 	{ }
@@ -37,14 +38,14 @@ Value SuSeq::call(Value self, Value member, short nargs, short nargnames, ushort
 	static Value ITER("Iter");
 	static Value NEXT("Next");
 	static Value COPY("Copy");
+	static Value REWIND("Rewind");
 
 	if (member == ITER)
 		{
 		if (ob)
 			return ob->call(self, member, nargs, nargnames, argnames, each);
-		static Value REWIND("Rewind");
 		Value newiter = iter.call(iter, COPY, 0, 0, 0, -1);
-		newiter.call(iter, REWIND, 0, 0, 0, -1);
+		newiter.call(newiter, REWIND, 0, 0, 0, -1);
 		return newiter;
 		}
 	else if (member == NEXT)
@@ -53,7 +54,9 @@ Value SuSeq::call(Value self, Value member, short nargs, short nargnames, ushort
 		}
 	else if (member == COPY && ! ob)
 		{
-		return ob ? new SuObject(ob) : copy();
+		// avoid two copies (build & copy)
+		// for common usage: for m in ob.Members().Copy()
+		return copy();
 		}
 	else
 		{
@@ -77,6 +80,7 @@ SuObject* SuSeq::copy() const
 	static Value REWIND("Rewind");
 	static Value NEXT("Next");
 
+	KEEPSP
 	SuObject* copy = new SuObject;
 	iter.call(iter, REWIND, 0, 0, 0, -1);
 	Value x;
