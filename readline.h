@@ -41,7 +41,7 @@ const int MAX_LINE = 4000;
 		} \
 	if (i == 0) \
 		return SuFalse; \
-	while (i > 0 && buf[i-1] == '\r' || buf[i-1] == '\n') \
+	while (i > 0 && (buf[i-1] == '\r' || buf[i-1] == '\n')) \
 		--i; \
 	buf[i] = 0; \
 	return new SuString(buf, i)
