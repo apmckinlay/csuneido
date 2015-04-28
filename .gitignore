@@ -65,3 +65,4 @@ ignore_rc.bat
 *.tmp
 tmp.*
 nightlychecktimes.txt
+clindex_*/*
