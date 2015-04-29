@@ -214,7 +214,7 @@ void SuObject::add(Value x)
 void SuObject::putdata(Value m, Value x)
 	{
 	if (readonly)
-		except("read only objects cannot be modified");
+		except("can't modify readonly objects");
 	if (has_setter && ! has(m))
 		{
 		static Value Set_("Set_");
@@ -348,6 +348,8 @@ int Nest::nest = 0;
 
 size_t SuObject::packsize() const
 	{
+	if (myclass != root_class)
+		except("can't pack class instance");
 	int ps = 1;
 	if (size() == 0)
 		return ps;
@@ -368,6 +370,8 @@ size_t SuObject::packsize() const
 
 void SuObject::pack(char* buf) const
 	{
+	if (myclass != root_class)
+		except("can't pack class instance");
 	*buf++ = PACK_OBJECT;
 	if (size() == 0)
 		return ;
