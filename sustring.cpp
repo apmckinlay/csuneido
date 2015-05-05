@@ -38,6 +38,7 @@
 #include "range.h"
 #include "buffer.h"
 #include "func.h" // for argseach for call
+#include "scanner.h" // for doesc
 
 SuString* SuString::empty_string = new SuString("");
 
@@ -165,66 +166,6 @@ void SuString::pack(char* dst) const
 		return SuString::empty_string;
 	else
 		return new SuString(s.substr(1));
-	}
-
-// literal ==========================================================
-
-inline int hexval(char c)
-	{ return c <= '9' ? c - '0' : tolower(c) - 'a' + 10; }
-
-inline bool isodigit(char c)
-	{ return '0' <= c && c <= '7'; }
-
-static char doesc(const char*& s)
-	{
-	++s; // backslash
-	switch (*s)
-		{
-	case 'n' :
-		return '\n';
-	case 't' :
-		return '\t';
-	case 'r' :
-		return '\r';
-	case 'x' :
-		if (isxdigit(s[1]) && isxdigit(s[2]))
-			{
-			s += 2;
-			return 16 * hexval(s[-1]) + hexval(s[0]);
-			}
-		else
-			return *--s; // the backslash itself
-	case '\\' :
-	case '"' :
-	case '\'' :
-		return *s;
-	default :
-		if (isodigit(s[0]) && isodigit(s[1]) && isodigit(s[2]))
-			{
-			s += 2;
-			return (s[0] - '0') + 8 * (s[-1] - '0') + 64 * (s[-2] - '0');
-			}
-		else
-			return *--s; // the backslash itself
-		}
-	}
-
-/* static */ SuString* SuString::literal(const char* s)
-	{
-	size_t n = strlen(s);
-	if ((*s != '"' && *s != '\'') || *s != s[n - 1])
-		return 0;
-	char* buf = (char*) alloca(n);
-	char* dst = buf;
-	for (char quote = *s++; *s != quote; ++s)
-		{
-		if ('\\' == *s)
-			*dst++ = doesc(s);
-		else
-			*dst++ = *s;
-		}
-	*dst = 0;
-	return new SuString(buf, dst - buf);
 	}
 
 // methods ==========================================================
@@ -784,17 +725,15 @@ Value SuString::Unescape(short nargs, short nargnames, ushort* argnames, int eac
 
 	int n = size();
 	const char* s = buf();
-	const char* lim = s + n;
 	char* buf = (char*) alloca(n);
 	char* dst = buf;
-	for (; s < lim; ++s)
+	for (int i = 0; i < n; ++i)
 		{
-		if (*s == '\\')
-			*dst++ = doesc(s);
+		if (s[i] == '\\')
+			*dst++ = Scanner::doesc(s, i);
 		else
-			*dst++ = *s;
+			*dst++ = s[i];
 		}
-	*dst = 0;
 	return new SuString(buf, dst - buf);
 	}
 

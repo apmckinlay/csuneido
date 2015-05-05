@@ -353,7 +353,7 @@ int Scanner::nextall()
 					return T_ERROR;
 					}
 				else if ('\\' == source[si])
-					*dst++ = doesc();
+					*dst++ = doesc(source, si);
 				else
 					*dst++ = source[si];
 				}
@@ -372,13 +372,18 @@ int Scanner::nextall()
 inline int hexval(char c)
 	{ return c <= '9' ? c - '0' : tolower(c) - 'a' + 10; }
 
+inline int octval(char c)
+	{ return c - '0'; }
+
 inline bool isodigit(char c)
 	{ return '0' <= c && c <= '7'; }
 
-char Scanner::doesc()
+// should be called with i pointing at backslash
+// 
+/* static */ char Scanner::doesc(const char* src, int& i)
 	{
-	++si; // backslash
-	switch (source[si])
+	++i; // backslash
+	switch (src[i])
 		{
 	case 'n' :
 		return '\n';
@@ -387,27 +392,25 @@ char Scanner::doesc()
 	case 'r' :
 		return '\r';
 	case 'x' :
-		if (isxdigit(source[si + 1]) && isxdigit(source[si + 2]))
+		if (isxdigit(src[i + 1]) && isxdigit(src[i + 2]))
 			{
-			si += 2;
-			return 16 * hexval(source[si - 1]) + hexval(source[si]);
+			i += 2;
+			return 16 * hexval(src[i - 1]) + hexval(src[i]);
 			}
 		else
-			return source[--si];
+			return src[--i];
 	case '\\' :
 	case '"' :
 	case '\'' :
-		return source[si];
+		return src[i];
 	default : 
-		if (isodigit(source[si]) && isodigit(source[si + 1]) && isodigit(source[si + 2]))
+		if (isodigit(src[i]) && isodigit(src[i + 1]) && isodigit(src[i + 2]))
 			{
-			si += 2;
-			return (source[si] - '0') + 
-				8 * (source[si-1] - '0') + 
-				64 * (source[si-2] - '0');
+			i += 2;
+			return octval(src[i]) + 	8 * octval(src[i-1]) + 64 * octval(src[i-2]);
 			}
 		else
-			return source[--si];
+			return src[--i];
 		}
 	}
 

@@ -40,6 +40,7 @@ public:
 	int nextall();
 	const char* rest() const
 		{ return source + si; }
+	static char doesc(const char* source, int& si);
 
 	int prev;
 	char* value;
@@ -54,7 +55,6 @@ public:
 	// but placed here to avoid passing around extra argument in compiler
 protected:
 	explicit Scanner(const Scanner*);
-	char doesc(void);
 	virtual int keywords(char*);
 	};
 

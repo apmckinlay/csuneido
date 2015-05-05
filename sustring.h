@@ -64,8 +64,6 @@ public:
 	virtual void pack(char* buf) const;
 	static SuString* unpack(const gcstring& s);
 
-	static SuString* literal(const char* s);
-
 	char* buf()
 		{ return s.buf(); }
 	const char* buf() const
