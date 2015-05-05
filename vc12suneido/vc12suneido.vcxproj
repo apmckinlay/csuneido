@@ -144,7 +144,6 @@
     <ClCompile Include="..\itostr.cpp" />
     <ClCompile Include="..\library.cpp" />
     <ClCompile Include="..\lisp.cpp" />
-    <ClCompile Include="..\literal.cpp" />
     <ClCompile Include="..\load.cpp" />
     <ClCompile Include="..\mmfile.cpp" />
     <ClCompile Include="..\msgloop.cpp" />
@@ -303,7 +302,6 @@
     <ClInclude Include="..\keyeq.h" />
     <ClInclude Include="..\library.h" />
     <ClInclude Include="..\lisp.h" />
-    <ClInclude Include="..\literal.h" />
     <ClInclude Include="..\load.h" />
     <ClInclude Include="..\md5.h" />
     <ClInclude Include="..\minmax.h" />

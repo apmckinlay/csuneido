@@ -28,7 +28,6 @@
 #include "thedb.h"
 #include "record.h"
 #include "query.h"
-#include "literal.h"
 #include <stdlib.h>
 #include "port.h"
 #ifdef _WIN32
