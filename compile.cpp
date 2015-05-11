@@ -1836,37 +1836,54 @@ void FunctionCompiler::args_at(short& nargs, char* delims)
 	match(delims[1]);
 	}
 
+static void add_argname(vector<ushort>& argnames, int id)
+	{
+	if (find(argnames.begin(), argnames.end(), id) != argnames.end())
+		except("duplicate argument name: " << symstr(id));
+	argnames.push_back(id);
+	}
+
 void FunctionCompiler::args_list(short & nargs, char* delims, vector<ushort>& argnames)
 	{
 	bool key = false;
 	for (nargs = 0; token != delims[1]; ++nargs)
 		{
-		if (scanner.ahead() == ':')
+		if (token == ':')
 			{
+			// f(:name) is equivalent to f(name: name)
 			key = true;
-			int id;
-			if (anyName())
-				id = symnum(scanner.value);
-			else if (token == T_NUMBER)
-				{
-				id = strtoul(scanner.value, NULL, 0);
-				if (id >= 0x8000)
-					except("numeric subscript overflow: (" << scanner.value << ")");
-				}
-			else
-				syntax_error();
-			if (find(argnames.begin(), argnames.end(), id) != argnames.end())
-				except("duplicate argument name (" << scanner.value << ")");
-			argnames.push_back(id);
-			match();
-			match();
+			match(':');
+			int id = symnum(scanner.value);
+			add_argname(argnames, id);
+			expr0(); // really should be limited to a single name
 			}
-		else if (key)
-			syntax_error("un-named arguments must come before named arguments");
-		if (key && (scanner.ahead() == ':' || token == ',' || token == delims[1]))
-			emit(I_PUSH, LITERAL, literal(SuTrue));
 		else
-			expr();
+			{
+			if (scanner.ahead() == ':')
+				{
+				key = true;
+				int id;
+				if (anyName())
+					id = symnum(scanner.value);
+				else if (token == T_NUMBER)
+					{
+					id = strtoul(scanner.value, NULL, 0);
+					if (id >= 0x8000)
+						except("numeric subscript overflow: (" << scanner.value << ")");
+					}
+				else
+					syntax_error();
+				add_argname(argnames, id);
+				match();
+				match();
+				}
+			else if (key)
+				syntax_error("un-named arguments must come before named arguments");
+			if (key && (scanner.ahead() == ':' || token == ',' || token == delims[1]))
+				emit(I_PUSH, LITERAL, literal(SuTrue));
+			else
+				expr();
+			}
 		if (token == ',')
 			match();
 		}
