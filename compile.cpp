@@ -1900,46 +1900,56 @@ void FunctionCompiler::record()
 	int argi = 0;
 	for (nargs = 0; token != ']'; ++nargs, ++argi)
 		{
-		if (scanner.ahead() == ':')
+		if (token == ':')
 			{
+			// f(:name) is equivalent to f(name: name)
 			key = true;
-			int id;
-			if (token == T_IDENTIFIER || token == T_STRING)
-				id = symnum(scanner.value);
-			else if (token == T_NUMBER)
-				{
-				id = strtoul(scanner.value, NULL, 0);
-				if (id >= 0x8000)
-					except("numeric subscript overflow: (" << scanner.value << ")");
-				}
-			else
-				syntax_error();
-			if (find(argnames.begin(), argnames.end(), id) != argnames.end())
-				except("duplicate member name (" << scanner.value << ")");
-			argnames.push_back(id);
-			match();
-			match();
+			match(':');
+			int id = symnum(scanner.value);
+			add_argname(argnames, id);
+			expr0(); // really should be limited to a single name
 			}
-		else if (key)
-			syntax_error();
-		prevlits.clear();
-		if (key && (scanner.ahead() == ':' || token == ',' || token == ']'))
-			emit(I_PUSH, LITERAL, literal(SuTrue));
 		else
-			expr();
-		if (prevlits.size() > 0)
 			{
-			PrevLit prev = poplits();
-			if (! rec)
-				rec = new SuRecord;
-			if (! key)
-				rec->put(argi, prev.lit);
-			else
+			if (scanner.ahead() == ':')
 				{
-				rec->put(symbol(argnames.back()), prev.lit);
-				argnames.pop_back();
+				key = true;
+				int id;
+				if (token == T_IDENTIFIER || token == T_STRING)
+					id = symnum(scanner.value);
+				else if (token == T_NUMBER)
+					{
+					id = strtoul(scanner.value, NULL, 0);
+					if (id >= 0x8000)
+						except("numeric subscript overflow: (" << scanner.value << ")");
+					}
+				else
+					syntax_error();
+				add_argname(argnames, id);
+				match();
+				match();
 				}
-			--nargs;
+			else if (key)
+				syntax_error();
+			prevlits.clear();
+			if (key && (scanner.ahead() == ':' || token == ',' || token == ']'))
+				emit(I_PUSH, LITERAL, literal(SuTrue));
+			else
+				expr();
+			if (prevlits.size() > 0)
+				{
+				PrevLit prev = poplits();
+				if (! rec)
+					rec = new SuRecord;
+				if (! key)
+					rec->put(argi, prev.lit);
+				else
+					{
+					rec->put(symbol(argnames.back()), prev.lit);
+					argnames.pop_back();
+					}
+				--nargs;
+				}
 			}
 		if (token == ',')
 			match();
