@@ -188,6 +188,8 @@ private:
 	void args(short&, vector<ushort>&, char* delims = "()");
 	void args_at(short& nargs, char* delims);
 	void args_list(short & nargs, char* delims, vector<ushort>& argnames);
+	void keywordArgShortcut(vector<ushort>& argnames);
+	bool just_name();
 	void record();
 	ushort literal(Value value, bool reuse = false);
 	short emit_literal();
@@ -1850,12 +1852,8 @@ void FunctionCompiler::args_list(short & nargs, char* delims, vector<ushort>& ar
 		{
 		if (token == ':')
 			{
-			// f(:name) is equivalent to f(name: name)
 			key = true;
-			match(':');
-			int id = symnum(scanner.value);
-			add_argname(argnames, id);
-			expr0(); // really should be limited to a single name
+			keywordArgShortcut(argnames);
 			}
 		else
 			{
@@ -1890,6 +1888,32 @@ void FunctionCompiler::args_list(short & nargs, char* delims, vector<ushort>& ar
 	match(delims[1]);
 	}
 
+void FunctionCompiler::keywordArgShortcut(vector<ushort>& argnames)
+	{
+	// f(:name) is equivalent to f(name: name)
+	match(':');
+	if (! just_name())
+		syntax_error();
+	add_argname(argnames, symnum(scanner.value));
+	expr0();
+	}
+
+bool FunctionCompiler::just_name()
+	{
+	// only checks enough to call expr0
+	if (token != T_IDENTIFIER)
+		return false;
+	switch (scanner.ahead())
+		{
+		case '.':
+		case '(':
+		case '[':
+		case '{':
+			return false;
+		}
+	return true;
+	}
+
 void FunctionCompiler::record()
 	{
 	SuRecord* rec = 0;
@@ -1902,12 +1926,8 @@ void FunctionCompiler::record()
 		{
 		if (token == ':')
 			{
-			// f(:name) is equivalent to f(name: name)
 			key = true;
-			match(':');
-			int id = symnum(scanner.value);
-			add_argname(argnames, id);
-			expr0(); // really should be limited to a single name
+			keywordArgShortcut(argnames);
 			}
 		else
 			{
