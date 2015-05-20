@@ -360,7 +360,7 @@ void SocketConnectAsynch::event(int lParam)
 			(closed ||
 				((mode == SIZE)
 					? rdbuf.size() >= blocked_len 
-					: memchr(rdbuf.buffer(), '\n', rdbuf.size()))))
+					: nullptr != memchr(rdbuf.buffer(), '\n', rdbuf.size()))))
 			{
 			LOG("FD_READ unblocking " << (closed ? "closed" : "can read"));
 			unblock();

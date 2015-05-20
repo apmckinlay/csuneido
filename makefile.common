@@ -1,5 +1,6 @@
 PORTSOURCES = \
 alert.cpp \
+auth.cpp \
 array.cpp \
 bmalloc.cpp \
 btree.cpp \
@@ -23,6 +24,7 @@ date.cpp \
 dbcopy.cpp \
 dbms.cpp \
 dbmslocal.cpp \
+dbmsunauth.cpp \
 dbserver.cpp \
 dbserverdata.cpp \
 dump.cpp \
@@ -43,7 +45,6 @@ istreamstr.cpp \
 itostr.cpp \
 library.cpp \
 lisp.cpp \
-literal.cpp \
 load.cpp \
 mmfile.cpp \
 named.cpp \
@@ -130,7 +131,6 @@ rebuildgui.cpp \
 richeditio.cpp \
 richeditole.c \
 runpiped.cpp \
-scistyle.cpp \
 sockets.cpp \
 splash.cpp \
 structure.cpp \

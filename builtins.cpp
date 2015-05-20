@@ -414,7 +414,6 @@ static void _stdcall thread(void* arg)
 Value su_thread()
 	{
 	const int nargs = 1;
-	gcstring token = dbms()->token();
 	Fibers::create(thread, new ThreadInfo(ARG(0), dbms()->token()));
 	return Value();
 	}
