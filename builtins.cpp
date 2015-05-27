@@ -55,6 +55,7 @@
 #include "msgloop.h"
 #include "exceptimp.h"
 #include "trace.h"
+#include "build.h"
 
 Value run(const char* s)
 	{
@@ -477,7 +478,6 @@ PRIM(su_exepath, "ExePath()");
 
 Value su_built()
 	{
-	extern char* build_date;
 	return new SuString(build_date);
 	}
 PRIM(su_built, "Built()");

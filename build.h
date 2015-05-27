@@ -23,6 +23,6 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-extern char* build_date;
+extern const char* build_date;
 
 #endif

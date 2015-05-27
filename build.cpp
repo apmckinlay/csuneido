@@ -31,4 +31,4 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
-char* build_date = __DATE__ " " __TIME__ " (" TOSTRING(COMPILER) " " BUILD ")";
+const char* build_date = __DATE__ " " __TIME__ " (" TOSTRING(COMPILER) " " BUILD ")";

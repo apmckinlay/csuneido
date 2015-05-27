@@ -55,6 +55,7 @@
 #include "msgloop.h"
 #include "port.h" // for fork_rebuild for start_check
 #include "exceptimp.h"
+#include "build.h"
 
 #include "suservice.h"
 
@@ -204,7 +205,6 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		UnInstallService();
 		exit(EXIT_SUCCESS);
 	case VERSION :
-		extern char* build_date;
 		alert("Built:  " << build_date << "\n"
 			""
 			"Copyright (C) 2000-2014 Suneido Software Corp.\n"
