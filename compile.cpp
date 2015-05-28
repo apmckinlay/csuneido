@@ -175,6 +175,7 @@ private:
 	void orop();
 	void andop();
 	void inop();
+	bool isIn();
 	void bitorop();
 	void bitxor();
 	void bitandop();
@@ -1383,7 +1384,8 @@ void FunctionCompiler::andop()
 void FunctionCompiler::inop()	
 	{
 	bitorop();
-	if (scanner.keyword == K_IN)
+	int op = token;
+	if (isIn())
 		{
 		matchnew();
 		match('(');
@@ -1396,13 +1398,20 @@ void FunctionCompiler::inop()
 				match(',');
 			}
 		emit(I_POP);
-		emit(I_PUSH_VALUE, FALSE);
+		emit(I_PUSH_VALUE, op == I_NOT);
 		short b = emit(I_JUMP, UNCOND, -1);
 		patch(a);
-		emit(I_PUSH_VALUE, TRUE);
+		emit(I_PUSH_VALUE, op != I_NOT);
 		patch(b);
 		match(')');
 		}
+	}
+
+bool FunctionCompiler::isIn()
+	{
+	if (token == I_NOT && scanner.ahead() == K_IN)
+		match();
+	return scanner.keyword == K_IN;
 	}
 
 void FunctionCompiler::bitorop()
