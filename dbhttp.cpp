@@ -60,54 +60,60 @@ void start_dbhttp()
 
 void DbHttp::run()
 	{
-	const int bufsize = 512;
-	char buf[bufsize];
-	sc->readline(buf, bufsize);
+	try
+		{
+		const int bufsize = 512;
+		char buf[bufsize];
+		sc->readline(buf, bufsize);
 
-	extern SuObject& dbserver_connections();
-	SuObject& conns = dbserver_connections();
-	conns.sort();
-	extern int tempdest_inuse;
-	extern int cursors_inuse;
-	OstreamStr page;
-	page << "<html>\r\n"
-		<< "<head>\r\n"
-		<< "<title>Suneido Server Monitor</title>\r\n"
-		<< "<meta http-equiv=\"refresh\" content=\"15\" />\r\n"
-		<< "</head>\r\n"
-		<< "<body>\r\n"
-		<< "<h1>Suneido Server Monitor</h1>\r\n"
-		<< "<p>Built: " << build_date << "</p>\r\n"
-		<< "<p>Heap Size: " << MB(GC_get_heap_size()) << "mb</p>\r\n"
-		<< "<p>Temp Dest: " << tempdest_inuse << "</p>\r\n"
-		<< "<p>Transactions: " << theDB()->tranlist().size() << "</p>\r\n"
-		<< "<p>Cursors: " << cursors_inuse << "</p>\r\n"
-		<< "<p>Database Size: " << MB(theDB()->mmf->size()) << "mb</p>\r\n"
-		<< "<p>Connections: (" << conns.size() << ") ";
-	for (SuObject::iterator iter = conns.begin();  iter != conns.end(); ++iter)
-			page << (iter == conns.begin() ? "" : " + ")
-				<< (*iter).second.gcstr();
-	page << "</p>\r\n"
-		<< "</body>\r\n"
-		<< "</html>\r\n";
+		extern SuObject& dbserver_connections();
+		SuObject& conns = dbserver_connections();
+		conns.sort();
+		extern int tempdest_inuse;
+		extern int cursors_inuse;
+		OstreamStr page;
+		page << "<html>\r\n"
+			<< "<head>\r\n"
+			<< "<title>Suneido Server Monitor</title>\r\n"
+			<< "<meta http-equiv=\"refresh\" content=\"15\" />\r\n"
+			<< "</head>\r\n"
+			<< "<body>\r\n"
+			<< "<h1>Suneido Server Monitor</h1>\r\n"
+			<< "<p>Built: " << build_date << "</p>\r\n"
+			<< "<p>Heap Size: " << MB(GC_get_heap_size()) << "mb</p>\r\n"
+			<< "<p>Temp Dest: " << tempdest_inuse << "</p>\r\n"
+			<< "<p>Transactions: " << theDB()->tranlist().size() << "</p>\r\n"
+			<< "<p>Cursors: " << cursors_inuse << "</p>\r\n"
+			<< "<p>Database Size: " << MB(theDB()->mmf->size()) << "mb</p>\r\n"
+			<< "<p>Connections: (" << conns.size() << ") ";
+		for (SuObject::iterator iter = conns.begin();  iter != conns.end(); ++iter)
+				page << (iter == conns.begin() ? "" : " + ")
+					<< (*iter).second.gcstr();
+		page << "</p>\r\n"
+			<< "</body>\r\n"
+			<< "</html>\r\n";
 
-	time_t t;
-	time(&t);
-	struct tm* today = localtime(&t);
-	char date[128];
-	strftime(date, 128, "%a, %d %b %Y %H:%m:%S", today);
+		time_t t;
+		time(&t);
+		struct tm* today = localtime(&t);
+		char date[128];
+		strftime(date, 128, "%a, %d %b %Y %H:%m:%S", today);
 
-	OstreamStr hdr;
-	hdr << "HTTP/1.0 200 OK\r\n"
-		<< "Server: Suneido\r\n"
-		<< "Content-Type: text/html\r\n"
-		<< "Content-Length: " << page.size() << "\r\n"
-		<< "Last-Modified: " << date << "\r\n"
-		<< "Date: " << date << "\r\n"
-		<< "Expires: " << date << "\r\n"
-		<< "\r\n";
-	sc->writebuf(hdr.str(), hdr.size());
-	sc->write(page.str(), page.size());
-	sc->close();
+		OstreamStr hdr;
+		hdr << "HTTP/1.0 200 OK\r\n"
+			<< "Server: Suneido\r\n"
+			<< "Content-Type: text/html\r\n"
+			<< "Content-Length: " << page.size() << "\r\n"
+			<< "Last-Modified: " << date << "\r\n"
+			<< "Date: " << date << "\r\n"
+			<< "Expires: " << date << "\r\n"
+			<< "\r\n";
+		sc->writebuf(hdr.str(), hdr.size());
+		sc->write(page.str(), page.size());
+		sc->close();
+		}
+	catch (...)
+		{
+		}
 	}
 
