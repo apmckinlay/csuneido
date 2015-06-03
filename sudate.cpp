@@ -498,8 +498,8 @@ Value SuDate::parse(char* s, char* order)
 
 	if (dt.year == 9999)
 		{
-		if (dt.month >= max(now.month - 6, 1) &&
-			dt.month <= min(now.month + 5, 12))
+		if (dt.month >= max(now.month - 5, 1) &&
+			dt.month <= min(now.month + 6, 12))
 			dt.year = now.year;
 		else if (now.month < 6)
 			dt.year = now.year - 1;
