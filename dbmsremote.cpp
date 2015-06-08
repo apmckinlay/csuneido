@@ -42,6 +42,7 @@
 #include "tmpalloc.h"
 #include "fibers.h" // for tls()
 #include "auth.h" // for NONCE_SIZE and TOKEN_SIZE
+#include "tr.h"
 
 //#define LOGGING
 #ifdef LOGGING
@@ -417,10 +418,10 @@ static bool builtMatch(char* resp)
 	else
 		{
 		// just compare date (not time)
-		int n = 11; // e.g. 'May 10 2014'
-		if (resp[n-1] == ' ')
-			--n; // single digit day
-		return 0 == memcmp(resp, build_date, n);
+		gcstring bd(build_date, 11); // 11 = MMM dd yyyy
+		// squeeze out extra space for single digit dates on cSuneido
+		bd = tr(bd, "  ", " ");
+		return has_prefix(resp, bd.str());
 		}
 	}
 
