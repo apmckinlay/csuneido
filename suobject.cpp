@@ -626,6 +626,8 @@ Value SuObject::HasBase(short nargs, short nargnames, ushort* argnames, int each
 	{
 	if (nargs != 1)
 		except("usage: object.Base?(class)");
+	if (myclass == TOP())
+		return SuTrue; // handle Object().Base?(Object)
 	return lookup(this, BaseFinder(TOP())) ? SuTrue : SuFalse;
 	}
 
