@@ -1318,7 +1318,8 @@ void FunctionCompiler::stmtexpr()
 		match();
 	else if (token != '}' &&
 		scanner.keyword != K_CATCH &&
-		scanner.keyword != K_WHILE)
+		scanner.keyword != K_WHILE &&
+		scanner.keyword != K_ELSE)
 		syntax_error();
 	}
 
@@ -3775,6 +3776,7 @@ class test_compile2 : public Tests
 		compile("function () { x \n * y }");
 		compile("function () { x \n ? y : z }");
 		compile("function () { [1, x, a: y, b: 4] }");
+		compile("function () { if (A) B else C }");
 		}
 	};
 REGISTER(test_compile2);
