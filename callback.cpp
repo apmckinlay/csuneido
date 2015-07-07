@@ -58,7 +58,7 @@ __declspec(naked) int master()
 		}
 	}
 #else
-char master[32] = {
+uchar master[32] = {
 	0x8D, 0x44, 0x24, 0x04,				// lea eax,[esp+4]
 	0x50,								// push eax
 	0x68, 0x55, 0x55, 0x55, 0x55,		// push 55555555h

@@ -42,6 +42,11 @@ vc12suneido/Debug/*
 vc12gc65/Release/*
 vc12gc65/Debug/*
 
+vs2015suneido/Release/*
+vs2015suneido/Debug/*
+vs2015gc65/Release/*
+vs2015gc65/Debug/*
+
 # /gc6.5/
 /gc6.5/mingw_release
 /gc6.5/mingw_debug
