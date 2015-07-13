@@ -28,6 +28,7 @@
 #include <list>
 #include "resource.h"
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include "fatal.h"
 
 //#define LOGGING
@@ -232,7 +233,7 @@ public:
 		: hwnd(h), sock(s), arg(a), close_pending(false), 
 		mode(CONNECT), blocked(0), adr(dupstr(n)), connect_error(false)
 		{ }
-	bool connect(SOCKADDR_IN* saddr);
+	bool connect(struct addrinfo* ai);
 	void event(int msg);
 	void write(char* s, int n);
 	void writebuf(char* s, int n);
@@ -272,9 +273,9 @@ private:
 	bool connect_error;
 	};
 
-bool SocketConnectAsynch::connect(SOCKADDR_IN* saddr)
+bool SocketConnectAsynch::connect(struct addrinfo* ai)
 	{
-	::connect(sock, (LPSOCKADDR) saddr, sizeof (SOCKADDR_IN));
+	::connect(sock, ai->ai_addr, ai->ai_addrlen);
 	block();
 	return ! connect_error;
 	}
@@ -490,6 +491,47 @@ bool SocketConnectAsynch::tryreadline(char* dst, int n)
 
 // asynch client ====================================================
 
+static struct addrinfo* resolve(char* addr, int port)
+	{
+	struct addrinfo hints;
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;     // IPv4 or IPv6
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+
+	char portstr[16];
+	itoa(port, portstr, 10);
+	int status;
+	struct addrinfo* ai;
+	if (0 != (status = getaddrinfo(addr, portstr, &hints, &ai)))
+		except("could not resolve " << addr << ":" << portstr << " " << gai_strerror(status));
+	return ai;
+	}
+
+struct AiFree
+	{
+	AiFree(struct addrinfo* a) : ai(a)
+		{ }
+	struct addrinfo* operator->()
+		{ return ai; }
+	operator addrinfo*()
+		{ return ai; }
+	~AiFree()
+		{
+		freeaddrinfo(ai);
+		}
+	struct addrinfo *ai;
+	};
+
+int makeSocket(struct addrinfo* ai)
+	{
+	int sock = socket(ai->ai_family, SOCK_STREAM, IPPROTO_TCP);
+	verify(sock > 0);
+	BOOL t = true;
+	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*)&t, sizeof t);
+	return sock;
+	}
+
 struct SocketCloser
 	{
 	SocketCloser(int sock) : socket(sock)
@@ -505,30 +547,18 @@ SocketConnect* socketClientAsynch(char* addr, int port)
 	{
 	WSADATA wsadata;
 	verify(0 == WSAStartup(MAKEWORD(2,0), &wsadata));
-	int sock = socket(AF_INET, SOCK_STREAM, 0);
-	verify(sock > 0);
+
+	AiFree ai(resolve(addr, port));
+
+	int sock = makeSocket(ai);
 	SocketCloser closer(sock);
 
-	BOOL t = true;
-	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*)&t, sizeof t);
-
-	SOCKADDR_IN saddr;
-	memset(&saddr, 0, sizeof saddr);
-	saddr.sin_family =  AF_INET;
-	saddr.sin_port = htons(port);
-	if (INADDR_NONE == (saddr.sin_addr.s_addr = inet_addr(addr)))
-		{
-		struct hostent* h;
-		if (! (h = gethostbyname(addr)))
-			except("unknown address: " << addr);
-		saddr.sin_addr.s_addr = *(u_long *) h->h_addr;
-		}
 	SocketConnectAsynch* sc = newSocketConnectAsynch("", sock, 0, "");
 	closer.disable();
-	if (! sc->connect(&saddr))
+	if (! sc->connect(ai))
 		{
 		protector.release(sc);
-		except("can't connect to " << addr << " port " << port);
+		except("can't connect to " << addr << ":" << port);
 		}
 	return sc;
 	}
@@ -561,36 +591,24 @@ SocketConnect* socketClientSynch(char* addr, int port, int timeout, int timeoutC
 	{
 	WSADATA wsadata;
 	verify(0 == WSAStartup(MAKEWORD(2,0), &wsadata));
-	int sock = socket(AF_INET, SOCK_STREAM, 0);
-	verify(sock > 0);
+
+	AiFree ai(resolve(addr, port));
+
+	int sock = makeSocket(ai);
 	SocketCloser closer(sock);
 
-	BOOL t = true;
-	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*) &t, sizeof t);
-
-	SOCKADDR_IN saddr;
-	memset(&saddr, 0, sizeof saddr);
-	saddr.sin_family =  AF_INET;
-	saddr.sin_port = htons(port);
-	if (INADDR_NONE == (saddr.sin_addr.s_addr = inet_addr(addr)))
+	if (timeoutConnect == 0) // default timeout
 		{
-		struct hostent* h;
-		if (! (h = gethostbyname(addr)))
-			except("unknown address: " << addr);
-		saddr.sin_addr.s_addr = *(u_long *) h->h_addr;
-		}
-	if (timeoutConnect == 0)
-		{
-		if (0 != connect(sock, (LPSOCKADDR) &saddr, sizeof saddr))
-			except("can't connect to " << addr << " port " << port);
+		if (0 != connect(sock, ai->ai_addr, ai->ai_addrlen))
+			except("can't connect to " << addr << ":" << port);
 		}
 	else
 		{
 		ULONG NonBlocking = 1;
 		ioctlsocket(sock, FIONBIO, &NonBlocking);
-		int ret = connect(sock, (LPSOCKADDR) &saddr, sizeof saddr);
+		int ret = connect(sock, ai->ai_addr, ai->ai_addrlen);
 		if (ret != 0 && ret != SOCKET_ERROR)
-			except("can't connect to " << addr << " port " << port);
+			except("can't connect to " << addr << ":" << port);
 		FDS(wfds, sock);
 		FDS(efds, sock);
 		struct timeval tv;
