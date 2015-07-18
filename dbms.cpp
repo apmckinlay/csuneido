@@ -43,7 +43,7 @@ Dbms* dbms()
 			{
 			tls().thedbms = (Fibers::current() == Fibers::main() ? 
 				dbms_remote(server_ip) : dbms_remote_asynch(server_ip));
-			tls().thedbms->auth(tls().token);
+			tls().thedbms->auth(Fibers::main_dbms()->token());
 			}
 		return tls().thedbms;
 		}

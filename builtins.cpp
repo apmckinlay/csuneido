@@ -388,10 +388,9 @@ struct ThreadCloser
 
 struct ThreadInfo
 	{
-	ThreadInfo(Value f, const gcstring& t) : fn(f), token(t)
+	ThreadInfo(Value f) : fn(f)
 		{ }
 	Value fn;
-	gcstring token;
 	};
 
 static void _stdcall thread(void* arg)
@@ -402,7 +401,6 @@ static void _stdcall thread(void* arg)
 	try
 		{
 		ThreadInfo* ti = (ThreadInfo*) arg;
-		tls().token = ti->token; // save token to authorize if dbms needed
 		ti->fn.call(ti->fn, CALL, 0, 0, 0, -1);
 		}
 	catch (const Except& e)
@@ -415,7 +413,7 @@ static void _stdcall thread(void* arg)
 Value su_thread()
 	{
 	const int nargs = 1;
-	Fibers::create(thread, new ThreadInfo(ARG(0), dbms()->token()));
+	Fibers::create(thread, new ThreadInfo(ARG(0)));
 	return Value();
 	}
 PRIM(su_thread, "Thread(function)");

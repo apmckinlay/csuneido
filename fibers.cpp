@@ -230,6 +230,11 @@ void* Fibers::main()
 	return main_fiber.fiber;
 	}
 
+Dbms* Fibers::main_dbms()
+	{
+	return main_fiber.tls.thedbms;
+	}
+
 void Fibers::block()
 	{
 	verify(current() != main());

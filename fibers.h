@@ -43,6 +43,9 @@ struct Fibers
 	// get main fiber
 	static void* main();
 
+	// get main fibers dbms
+	static class Dbms* main_dbms();
+
 	// mark the fiber as blocked and yield
 	static void block();
 
@@ -86,7 +89,6 @@ struct ThreadLocalStorage
 	Dbms* thedbms;
 	SesViews* session_views;
 	char* fiber_id;
-	gcstring token;
 	};
 
 extern ThreadLocalStorage& tls();
