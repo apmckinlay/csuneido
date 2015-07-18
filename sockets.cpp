@@ -21,6 +21,9 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "sockets.h"
+#ifndef WINVER
+#define WINVER 0x600 // needed for mingw for getaddrinfo (0x600 = Vista/2008)
+#endif
 #include "win.h"
 #include "except.h"
 #include "fibers.h"
