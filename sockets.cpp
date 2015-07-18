@@ -500,7 +500,7 @@ static struct addrinfo* resolve(char* addr, int port)
 	hints.ai_protocol = IPPROTO_TCP;
 
 	char portstr[16];
-	itoa(port, portstr, 10);
+	_itoa(port, portstr, 10);
 	int status;
 	struct addrinfo* ai;
 	if (0 != (status = getaddrinfo(addr, portstr, &hints, &ai)))
