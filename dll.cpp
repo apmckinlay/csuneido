@@ -133,7 +133,7 @@ Value Dll::call(Value self, Value member, short nargs, short nargnames, ushort* 
 		log() << endl;
 		}
 
-	short save_trace_level = trace_level;
+	int save_trace_level = trace_level;
 	TRACE_CLEAR();
 
 	long result, result2;
