@@ -147,6 +147,16 @@ inline bool popbool()
 	return false;
 	}
 
+Value cat(Value x, Value y)
+	{
+	gcstring result = x.gcstr() + y.gcstr();
+	if (Except* e = val_cast<Except*>(x))
+		return new Except(*e, result);
+	if (Except* e = val_cast<Except*>(y))
+		return new Except(*e, result);
+	return new SuString(result);
+	}
+
 Frame::Frame(BuiltinFunc* p, Value s) :
 	prim(p), fn(0), self(s), rule(tls().proc->fp[-1].rule), blockframe(0)
 	{ }
@@ -553,7 +563,7 @@ Value Frame::run()
 				{
 			case I_ADDEQ :		z = x = x + y; break ;
 			case I_SUBEQ :		z = x = x - y; break ;
-			case I_CATEQ :		z = x = new SuString(x.gcstr() + y.gcstr()); break ;
+			case I_CATEQ :		z = x = cat(x, y); break ;
 			case I_MULEQ :		z = x = x * y; z = x; break ;
 			case I_DIVEQ :		z = x = x / y; z = x; break ;
 			case I_MODEQ :		z = x = x.integer() % y.integer(); break ;
@@ -614,7 +624,7 @@ Value Frame::run()
 			break ;
 		case I_CAT :
 			arg = POP();
-			TOP() = new SuString(TOP().gcstr() + arg.gcstr());
+			TOP() = cat(TOP(), arg);
 			break ;
 		case I_MUL :
 			arg = POP();
