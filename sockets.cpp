@@ -498,7 +498,10 @@ static struct addrinfo* resolve(char* addr, int port)
 	{
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_UNSPEC;     // IPv4 or IPv6
+	// specify IPv4 since allowing IPv6 with AF_UNSPEC seems to cause problems
+	// e.g. addr of "" doesn't work and it's giving IPv6 
+	// although 127.0.0.1 gives IPv4
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 
