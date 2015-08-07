@@ -30,13 +30,13 @@ void fatal(const char* error, const char* extra)
 	if (! cmdlineoptions.unattended)
 		{
 		extern void message(const char*, const char*);
-		message("Fatal Error", error);
+		message("FATAL: ", error);
 		}
 	extern bool is_client;
 	if (is_client)
 		// assume we've lost connection
 		fatal_log(error, extra);
 	else
-		errlog("Fatal Error", error, extra);
+		errlog("FATAL: ", error, extra);
 	exit(-1);
 	}
