@@ -41,17 +41,16 @@ Ostream& osexcept();
 	((e) ? except(msg) : (void) 0)
 
 #define error(msg) \
-	except_err(__FILE__ << ':' << __LINE__ << ": " << msg)
+	except_err(__FILE__ << ':' << __LINE__ << ": ERROR:" << msg)
 
 #define verify(e) \
-	((e) ? (void) 0 : error("assertion failure: " << #e))
+	((e) ? (void) 0 : error("assert failed: " << #e))
 
 #define asserteq(x, y) \
-	((x) == (y) ? (void) 0 : error("assertion failure: " << \
+	((x) == (y) ? (void) 0 : error("assert failed: " << \
 	"\n" << #x << " " << (x) << "\n!=\n" << #y << " " << (y)))
 
 #define unreachable()	error("should not reach here!")
-#define unimplemented()	error("not implemented yet")
 
 class Except;
 
