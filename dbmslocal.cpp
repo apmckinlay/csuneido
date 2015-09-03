@@ -134,7 +134,7 @@ public:
 	Lisp<gcstring> libraries();
 	Lisp<int> tranlist();
 	Value timestamp();
-	void dump(char* filename);
+	Value dump(char* filename);
 	void copy(char* filename);
 	Value run(char* s);
 	int64 size();
@@ -256,9 +256,10 @@ Row DbmsLocal::get(Dir dir, char* querystr, bool one, Header& hdr, int t)
 
 #include "dump.h"
 
-void DbmsLocal::dump(char* filename)
+Value DbmsLocal::dump(char* filename)
 	{
 	::dump(filename);
+	return "";
 	}
 
 #include "dbcopy.h"

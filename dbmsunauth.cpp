@@ -54,7 +54,7 @@ public:
 		{ except(notauth); }
 	Value timestamp() 
 		{ except(notauth); }
-	void dump(char* filename) 
+	Value dump(char* filename) 
 		{ except(notauth); }
 	void copy(char* filename) 
 		{ except(notauth); }

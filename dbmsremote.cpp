@@ -377,7 +377,7 @@ public:
 	Lisp<gcstring> libraries();
 	Lisp<int> tranlist();
 	Value timestamp();
-	void dump(char* filename);
+	Value dump(char* filename);
 	void copy(char* filename);
 	Value run(char* s);
 	int64 size();
@@ -579,10 +579,10 @@ Value DbmsRemote::timestamp()
 	return x;
 	}
 
-void DbmsRemote::dump(char* filename)
+Value DbmsRemote::dump(char* filename)
 	{
 	WRITE("DUMP " << filename);
-	sc.ck_ok();
+	return sc.readvalue();
 	}
 
 void DbmsRemote::copy(char* filename)

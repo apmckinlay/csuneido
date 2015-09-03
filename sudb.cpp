@@ -121,8 +121,7 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 			what = ARG(0).str();
 		else
 			except("usage: Database.Dump(table = '')");
-		dbms()->dump(what);
-		return Value();
+		return dbms()->dump(what);
 		}
 	else if (member == Token)
 		{

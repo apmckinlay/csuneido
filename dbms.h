@@ -71,7 +71,7 @@ public:
 	virtual Lisp<gcstring> libraries() = 0;
 	virtual Lisp<int> tranlist() = 0;
 	virtual Value timestamp() = 0;
-	virtual void dump(char* filename) = 0;
+	virtual Value dump(char* filename) = 0;
 	virtual void copy(char* filename) = 0;
 	virtual Value run(char* s) = 0;
 	virtual int64 size() = 0;
