@@ -847,7 +847,7 @@ char* DbServerImp::cmd_timestamp(char* s)
 char* DbServerImp::cmd_dump(char* s)
 	{
 	dbms()->dump(s);
-	return "OK\r\n";
+	return value_result("");
 	}
 
 #include "dbcopy.h"
