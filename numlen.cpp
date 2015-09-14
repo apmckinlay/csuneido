@@ -40,9 +40,9 @@ int numlen(const char* s)
 	if (! intdigits && ! fracdigits)
 		return -1;
 	if ((*s == 'e' || *s == 'E') &&
-		(isdigit(s[1]) || (s[1] == '-' && isdigit(s[2]))))
+		(isdigit(s[1]) || ((s[1] == '-' || s[1] == '+') && isdigit(s[2]))))
 		{
-		s += (s[1] == '-' ? 3 : 2);
+		s += ((s[1] == '-' || s[1] == '+') ? 3 : 2);
 		while (isdigit(*s))
 			++s;
 		}
