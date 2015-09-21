@@ -763,9 +763,9 @@ static char* httpget(char* addr, int port)
 	{
 	try
 		{
-		SocketConnect* sc = socketClientSynch(addr, su_port + 1);
+		SocketConnect* sc = socketClientSynch(addr, su_port);
 		OstreamStr oss;
-		oss << "GET http://" << addr << "/:" << (su_port + 1) << " HTTP/1.0\r\n\r\n";
+		oss << "GET http://" << addr << "/:" << su_port << " HTTP/1.0\r\n\r\n";
 		sc->write(oss.str());
 		char buf[1024];
 		int n = sc->read(buf, sizeof buf);
@@ -787,7 +787,7 @@ Dbms* dbms_remote(char* addr)
 		}
 	catch (const Except& e)
 		{
-		char* status = httpget(addr, su_port);
+		char* status = httpget(addr, su_port + 1);
 		if (strstr(status, "Checking database ..."))
 			throw(Except(e, "Can't connect, server is checking the database, please try again later"));
 		else if (strstr(status, "Rebuilding database ..."))
