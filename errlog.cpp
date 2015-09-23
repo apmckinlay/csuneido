@@ -34,12 +34,9 @@ void errlog(const char* msg1, const char* msg2, const char* msg3)
 	OstreamFile log(is_client ? err_filename() : "error.log", "at");
 	time_t t;
 	time(&t);
-	char* s = ctime(&t);
-	if (! s)
-		s = "???";
-	else
-		s[strlen(s) - 1] = 0;
-	log << s << ' ';
+	char buf[100];
+	strftime(buf, sizeof buf, "%Y-%m-%d %H:%M:%S", localtime(&t));
+	log << buf << ' ';
 	if (*tls().fiber_id)
 		log << tls().fiber_id << ": ";
 	log << msg1 << " " << msg2 << " " << msg3 << endl;
