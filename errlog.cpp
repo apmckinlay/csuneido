@@ -24,10 +24,10 @@
 #include <string.h>
 #include "ostreamfile.h"
 #include "fibers.h" // for tls()
+#include "unhandled.h" // for err_filename()
 #include <time.h>
 
 extern bool is_client;
-extern char* err_filename();
 
 void errlog(const char* msg1, const char* msg2, const char* msg3)
 	{
