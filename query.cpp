@@ -148,17 +148,17 @@ double Query::optimize(const Fields& index, const Fields& needs, const Fields& f
 			" nrecords " << nrecords() << " keysize " << keysize << endl);
 
 	double cost = min(cost1, cost2);
-	if (! freeze)
-		return cost;
-
 	if (cost >= IMPOSSIBLE)
-		cost = IMPOSSIBLE;
-	else if (cost1 <= cost2)
-		optimize1(index, needs, firstneeds, is_cursor, true);
-	else // cost2 < cost1
+		return IMPOSSIBLE;
+	if (freeze)
 		{
-		tempindex = index;
-		optimize1(none, tempindex_needs, firstneeds, is_cursor, true);
+		if (cost1 <= cost2)
+			optimize1(index, needs, firstneeds, is_cursor, true);
+		else // cost2 < cost1
+			{
+			tempindex = index;
+			optimize1(none, tempindex_needs, firstneeds, is_cursor, true);
+			}
 		}
 	return cost;
 	}
