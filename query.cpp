@@ -133,8 +133,8 @@ double Query::optimize(const Fields& index, const Fields& needs, const Fields& f
 	// tempindex
 	double cost2 = IMPOSSIBLE;
 	int keysize = size(index) * columnsize() * 2; // *2 for index overhead
-	double no_index_cost = optimize1(none, needs,
-		nil(firstneeds) ? firstneeds : set_union(firstneeds, index), is_cursor, false);
+	Fields tempindex_needs = set_union(needs, index);	
+	double no_index_cost = optimize1(none, tempindex_needs, firstneeds, is_cursor, false);
 	double tempindex_cost =
 		nrecords() * keysize * WRITE_FACTOR	// write index
 		+ nrecords() * keysize					// read index
@@ -158,7 +158,7 @@ double Query::optimize(const Fields& index, const Fields& needs, const Fields& f
 	else // cost2 < cost1
 		{
 		tempindex = index;
-		optimize1(none, needs, index, is_cursor, true);
+		optimize1(none, tempindex_needs, firstneeds, is_cursor, true);
 		}
 	return cost;
 	}

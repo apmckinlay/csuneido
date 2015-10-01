@@ -289,8 +289,9 @@ double Table::optimize2(const Fields& index, const Fields& needs,
 	double cost1 = IMPOSSIBLE;
 	double cost2 = IMPOSSIBLE;
 	double cost3 = IMPOSSIBLE;
+	Fields allneeds = set_union(needs, firstneeds);
 	IdxSize *idx1, *idx2 = 0, *idx3 = 0;
-	if ((idx1 = match(idxs, index, needs)))
+	if ((idx1 = match(idxs, index, allneeds)))
 		// index found that meets all needs
 		cost1 = idx1->size; // cost of reading index
 	if (! nil(firstneeds) && (idx2 = match(idxs, index, firstneeds)))
@@ -311,11 +312,23 @@ double Table::optimize2(const Fields& index, const Fields& needs,
 
 	double cost;
 	if (cost1 <= cost2 && cost1 <= cost3)
-		{ cost = cost1; idx = idx1 ? idx1->index : none; }
+		{ 
+		cost = cost1;
+		if (freeze)
+			idx = idx1 ? idx1->index : none; 
+		}
 	else if (cost2 <= cost1 && cost2 <= cost3)
-		{ cost = cost2; idx = idx2->index; }
+		{ 
+		cost = cost2; 
+		if (freeze)
+			idx = idx2->index;
+		}
 	else
-		{ cost = cost3; idx = idx3->index; }
+		{ 
+		cost = cost3; 
+		if (freeze)
+			idx = idx3->index;
+		}
 	TRACE(TABLE, "\tchose: idx " << idx << " cost " << cost);
 	return cost;
 	}
