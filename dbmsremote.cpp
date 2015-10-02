@@ -750,8 +750,6 @@ Value DbmsRemote::writeCount(int tran)
 
 // factory methods ==================================================
 
-#include "alert.h"
-
 extern int su_port;
 
 Dbms* dbms_remote_asynch(char* addr)
@@ -763,9 +761,9 @@ static char* httpget(char* addr, int port)
 	{
 	try
 		{
-		SocketConnect* sc = socketClientSynch(addr, su_port);
+		SocketConnect* sc = socketClientSynch(addr, port);
 		OstreamStr oss;
-		oss << "GET http://" << addr << "/:" << su_port << " HTTP/1.0\r\n\r\n";
+		oss << "GET http://" << addr << "/:" << port << " HTTP/1.0\r\n\r\n";
 		sc->write(oss.str());
 		char buf[1024];
 		int n = sc->read(buf, sizeof buf);
@@ -773,7 +771,7 @@ static char* httpget(char* addr, int port)
 		buf[n] = 0;
 		return strdup(buf);
 		}
-	catch (const Except&)
+	catch (const Except& e)
 		{
 		return "";
 		}
@@ -789,9 +787,9 @@ Dbms* dbms_remote(char* addr)
 		{
 		char* status = httpget(addr, su_port + 1);
 		if (strstr(status, "Checking database ..."))
-			throw(Except(e, "Can't connect, server is checking the database, please try again later"));
+			fatal("Can't connect, server is checking the database, please try again later");
 		else if (strstr(status, "Rebuilding database ..."))
-			throw(Except(e, "Can't connect, server is repairing the database, please try again later"));
+			fatal("Can't connect, server is repairing the database, please try again later");
 		throw e;
 		}
 	}
