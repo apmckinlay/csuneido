@@ -71,5 +71,5 @@ ignore_rc.bat
 tmp.*
 nightlychecktimes.txt
 clindex_*/*
-
+splash/*
 .idea/*
