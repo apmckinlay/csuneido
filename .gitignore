@@ -73,3 +73,5 @@ nightlychecktimes.txt
 clindex_*/*
 splash/*
 .idea/*
+
+*.aps
