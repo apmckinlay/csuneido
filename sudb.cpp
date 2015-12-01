@@ -185,6 +185,8 @@ static char* traceTran(SuTransaction* tran)
 
 static Value queryone(char* which, Dir dir, bool one, SuTransaction* tran, BuiltinArgs& args)
 	{
+	if (tran && tran->isdone())
+		except("cannot query completed Transaction " << tran);
 	args.usage("usage: ", which, QUERYONE_PARAMS);
 	char* query = args.getstr("query");
 	query = query_args(query, args);
@@ -402,7 +404,7 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 Value SuTransaction::query(char* s)
 	{
 	if (done)
-		except("cannot Query completed Transaction " << tran);
+		except("cannot query completed Transaction " << tran);
 	if (is_request(s))
 		return dbms()->request(tran, s);
 	else
