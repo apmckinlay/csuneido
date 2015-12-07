@@ -21,28 +21,36 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "gc.h"
+#include "fatal.h"
 #include <memory.h>
 
 NoPtrs noptrs;
 
+inline void* ck(void* p)
+	{
+	if (p == nullptr)
+		fatal("out of memory");
+	return p;
+	}
+
 void* operator new(size_t n)
 	{
-	return GC_malloc(n);
+	return ck(GC_malloc(n));
 	}
 
 void* operator new(size_t n, NoPtrs)
 	{ 
-	return GC_malloc_atomic(n); 
+	return ck(GC_malloc_atomic(n)); 
 	}
 
 void* operator new[](size_t n)
 	{ 
-	return GC_malloc(n); 
+	return ck(GC_malloc(n));
 	}
 	
 void* operator new[](size_t n, NoPtrs)
 	{ 
-	return GC_malloc_atomic(n);
+	return ck(GC_malloc_atomic(n));
 	}
 
 void operator delete(void*)
