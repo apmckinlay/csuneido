@@ -101,13 +101,12 @@ public:
 	void matchnew();
 	void matchnew(int t);
 	void ckmatch(int t);
-	NORETURN(syntax_error(char* err = ""));
+	[[noreturn]] void syntax_error(char* err = "");
 
 	void member(SuObject* ob, char* gname, char* className, short base);
 	void member(SuObject* ob)
 		{ member(ob, 0, 0, -1); }
 	Value memname(char* className, char* s);
-	Params* params();
 	char* ckglobal(char*);
 private:
 	bool valid_dll_arg_type();

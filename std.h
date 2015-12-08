@@ -39,22 +39,8 @@ typedef signed char schar;
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned long ulong;
-
-#ifdef _MSC_VER
-typedef _int64 int64;
-typedef unsigned _int64 uint64;
-#else
 typedef long long int64;
 typedef unsigned long long uint64;
-#endif
-
-#if defined(_MSC_VER)
-#define NORETURN(fn) void _declspec(noreturn) fn
-#elif defined(__GNUC__)
-#define NORETURN(fn) void fn __attribute__((noreturn))
-#else
-#define NORETURN(fn) void fn
-#endif
 
 template<class T> struct Closer
 	{

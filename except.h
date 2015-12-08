@@ -24,10 +24,9 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "ostream.h"
-#include "std.h" // for NORETURN
 
-NORETURN(except_());
-NORETURN(except_err_());
+[[noreturn]] void except_();
+[[noreturn]] void except_err_();
 
 Ostream& osexcept();
 

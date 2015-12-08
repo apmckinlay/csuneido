@@ -127,7 +127,7 @@ template <class T> inline T val_cast(Value v)
 	return dynamic_cast<T>(v.ptr());
 	}
 
-NORETURN(cantforce(const char* t1, const char* t2));
+[[noreturn]] void cantforce(const char* t1, const char* t2);
 
 template <class T> T force(Value x)
 	{
@@ -157,6 +157,6 @@ extern Value SuTrue;
 extern Value SuFalse;
 extern Value SuEmptyString;
 
-NORETURN(method_not_found(const char* type, Value member));
+[[noreturn]] void method_not_found(const char* type, Value member);
 
 #endif

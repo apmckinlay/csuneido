@@ -23,10 +23,8 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "std.h" // for NORETURN
+[[noreturn]] void fatal(const char* error, const char* extra = "");
 
-NORETURN(fatal(const char* error, const char* extra = ""));
-
-NORETURN(fatal_log(const char* error, const char* extra = ""));
+[[noreturn]] void fatal_log(const char* error, const char* extra = "");
 
 #endif
