@@ -27,6 +27,7 @@
 #include "alert.h"
 #include "ostreamstr.h"
 #include "ostreamfile.h"
+#include "build.h"
 
 class TestObserverAlert : public TestObserver
 	{
@@ -55,9 +56,10 @@ public:
 		OstreamStr os;
 		os << ntests << " test" << (ntests > 1 ? "s" : "") << ' ';
 		if (nfailed == 0)
-			alert(os.str() << "ALL SUCCESSFUL");
+			alert(os.str() << "ALL SUCCESSFUL\n\nBuilt: " << build_date);
 		else
-			alert(errs.str() << os.str() << nfailed << " FAILURE" << (nfailed == 1 ? "" : "S"));
+			alert(errs.str() << os.str() << nfailed << " FAILURE" << (nfailed == 1 ? "" : "S") 
+				<< "\n\nBuilt: " << build_date);
 		}
 private:
 	int ntests;
