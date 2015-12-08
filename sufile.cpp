@@ -31,6 +31,14 @@
 #include "minmax.h"
 #include "readline.h"
 
+#ifdef _MSC_VER
+#define FTELL64 _ftelli64
+#define FSEEK64 _fseeki64
+#else
+#define FTELL64 ftello64
+#define FSEEK64 fseeko64
+#endif
+
 class SuFile : public SuFinalize
 	{
 public:
@@ -209,7 +217,7 @@ Value SuFile::Seek(BuiltinArgs& args)
 		except("file.Seek: origin must be 'set', 'end', or 'cur'");
 
 	ckopen("Seek");
-	return _fseeki64(f, offset, origin) == 0 ? SuTrue : SuFalse;
+	return FSEEK64(f, offset, origin) == 0 ? SuTrue : SuFalse;
 	}
 
 Value SuFile::Tell(BuiltinArgs& args)
@@ -218,7 +226,7 @@ Value SuFile::Tell(BuiltinArgs& args)
 	args.end();
 
 	ckopen("Tell");
-	int64 offset = _ftelli64(f);
+	int64 offset = FTELL64(f);
 	if (INT_MIN <= offset && offset <= INT_MAX)
 		return (int) offset;
 	else
