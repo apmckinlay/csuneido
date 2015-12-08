@@ -25,6 +25,7 @@
 #include "except.h"
 #include "gcstring.h"
 #include "minmax.h"
+#include "fatal.h"
 #include <string.h>
 
 Buffer::Buffer(int n) 
@@ -35,7 +36,11 @@ char* Buffer::ensure(int n)
 	{
 	++n;  // allow for nul for gcstr
 	if (used + n > capacity)
+		{
 		buf = (char*) GC_realloc(buf, capacity = max(2 * capacity, capacity + n));
+		if (! buf)
+			fatal("out of memory");
+		}
 	return buf + used;
 	}
 
