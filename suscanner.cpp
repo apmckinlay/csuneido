@@ -167,7 +167,7 @@ Value SuScanner::Type2(BuiltinArgs& args)
 	case T_NEWLINE:
 		return NEWLINE;
 	default:
-		return "";
+		return SuEmptyString;
 		}
 	}
 

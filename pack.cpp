@@ -278,7 +278,7 @@ class test_pack : public Tests
 		}
 	TEST(1, string_pack)
 		{
-		testpack(new SuString(""));
+		testpack(SuString::empty_string);
 		testpack(new SuString("hello\nworld"));
 		verify(SuString::unpack(gcstring("")) == SuString::empty_string);
 		}

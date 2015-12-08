@@ -78,7 +78,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		int n = args.getint("size");
 		args.end();
 		if (n == 0)
-			return "";
+			return SuEmptyString;
 		ckopen("Read");
 		SuString* s = new SuString(n);
 		int nr = sc->read(s->buf(), n);
@@ -345,7 +345,7 @@ Value SuServerInstance::call(Value self, Value member, short nargs,
 			except("usage: socketServer.Read(size)");
 		int n = ARG(0).integer();
 		if (n == 0)
-			return "";
+			return SuEmptyString;
 		SuString* s = new SuString(n);
 		if (0 == sc->read(s->buf(), n))
 			except("socket server: lost connection");

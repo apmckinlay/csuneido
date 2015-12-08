@@ -259,7 +259,7 @@ Row DbmsLocal::get(Dir dir, char* querystr, bool one, Header& hdr, int t)
 Value DbmsLocal::dump(char* filename)
 	{
 	::dump(filename);
-	return "";
+	return SuEmptyString;
 	}
 
 #include "dbcopy.h"
