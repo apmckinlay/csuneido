@@ -59,8 +59,10 @@
 
 #include "suservice.h"
 
+static_assert(sizeof(int64) == 8, "long long must be 64 bits / 8 bytes");
+static_assert(sizeof(time_t) == 4, "time_t must be 32 bits / 4 bytes");
+
 void builtins();
-bool iswindow();
 
 static void init(HINSTANCE hInstance, LPSTR lpszCmdLine);
 static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine);
@@ -113,7 +115,6 @@ static void init(HINSTANCE hInstance, LPSTR lpszCmdLine)
 static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	{
 	verify(memcmp("\xff", "\x01", 1) > 0); // ensure unsigned cmp
-	verify(sizeof (time_t) == 4); // required by Commit
 
 	Fibers::init();
 
