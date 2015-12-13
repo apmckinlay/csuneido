@@ -92,7 +92,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		if (nargs != 0)
 			except("usage: socketClient.Readline()");
 		ckopen("Readline");
-		char buf[MAX_LINE + 1];
+		char buf[MAX_LINE + 1] = { 0 };
 		sc->readline(buf, sizeof buf);
 		if (! *buf)
 			except("socket client: lost connection or timeout in Readline");
