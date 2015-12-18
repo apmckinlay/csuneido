@@ -103,6 +103,7 @@ public:
 	Value query(char* s);
 	bool commit();
 	void rollback();
+	void checkNotEnded(char* action);
 		
 	char* get_conflict() const
 		{ return conflict; }

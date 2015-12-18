@@ -769,7 +769,7 @@ static char* httpget(char* addr, int port)
 		int n = sc->read(buf, sizeof buf);
 		sc->close();
 		buf[n] = 0;
-		return strdup(buf);
+		return _strdup(buf);
 		}
 	catch (const Except& e)
 		{
