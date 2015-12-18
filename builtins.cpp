@@ -462,7 +462,8 @@ PRIM(su_serverip, "ServerIP()");
 Value su_serverport()
 	{
 	extern int su_port;
-	return su_port;
+	extern bool is_client, is_server;
+	return (is_client || is_server) ? su_port : SuEmptyString;
 	}
 PRIM(su_serverport, "ServerPort()");
 
