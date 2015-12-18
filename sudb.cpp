@@ -185,8 +185,8 @@ static char* traceTran(SuTransaction* tran)
 
 static Value queryone(char* which, Dir dir, bool one, SuTransaction* tran, BuiltinArgs& args)
 	{
-	if (tran && tran->isdone())
-		except("cannot query completed Transaction " << tran);
+	if (tran)
+		tran->checkNotEnded("query");
 	args.usage("usage: ", which, QUERYONE_PARAMS);
 	char* query = args.getstr("query");
 	query = query_args(query, args);
@@ -295,7 +295,7 @@ SuTransaction::SuTransaction(TranType type) : done(false), conflict("")
 	tran = dbms()->transaction((Dbms::TranType) type);
 	}
 
-SuTransaction::SuTransaction(int t) : tran(t), done(false)
+SuTransaction::SuTransaction(int t) : tran(t), done(false), conflict("")
 	{ verify(t > 0); }
 
 Value SuTransaction::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
@@ -403,8 +403,7 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 
 Value SuTransaction::query(char* s)
 	{
-	if (done)
-		except("cannot query completed Transaction " << tran);
+	checkNotEnded("query");
 	if (is_request(s))
 		return dbms()->request(tran, s);
 	else
@@ -418,8 +417,7 @@ Value SuTransaction::query(char* s)
 
 bool SuTransaction::commit()
 	{
-	if (done)
-		except("cannot Complete completed Transaction " << tran);
+	checkNotEnded("Complete");
 	bool ok = dbms()->commit(tran, &conflict);
 	done = true;
 	return ok;
@@ -427,10 +425,16 @@ bool SuTransaction::commit()
 
 void SuTransaction::rollback()
 	{
-	if (done)
-		except("cannot Rollback completed Transaction " << tran);
+	checkNotEnded("Rollback");
 	dbms()->abort(tran);
 	done = true;
+	}
+
+void SuTransaction::checkNotEnded(char* action)
+	{
+	if (done)
+		except("can't " << action << " ended Transaction" << 
+			(*conflict ? " (" + gcstring(conflict) + ")" : ""));
 	}
 
 // SuCursor ------------------------------------------------------
