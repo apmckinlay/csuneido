@@ -117,6 +117,7 @@ public:
 	short fetch_jump()
 		{ return fetch2(); }
 	Value fetch_member();
+	bool jumpToPopReturn();
 	ushort fetch_global()
 		{ return fetch2(); }
 	uchar fetch1()

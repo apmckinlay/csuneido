@@ -85,12 +85,24 @@ Value docall(Value x, Value member, short nargs, short nargnames, ushort* argnam
 		return x.call(x, member, nargs, nargnames, argnames, each);
 	}
 
+// to detect: return cond ? f() : g() or: cond ? f() : f(); ...
+bool Frame::jumpToPopReturn()
+	{
+	uchar* save_ip = ip;
+	++ip;
+	int jump = fetch_jump();
+	uchar* target = ip + jump;
+	ip = save_ip;
+	return *target == I_POP || *target == I_RETURN;
+	}
+
 #define POSTCALL(nargnames, name) \
 	SETSP(oldsp); \
 	PUSH(result); \
 	each = -1; \
 	ip += nargnames * sizeof (ushort); \
-	if (! TOP() && *ip != I_POP && *ip != I_RETURN) \
+	if (! TOP() && *ip != I_POP && *ip != I_RETURN && \
+		(*ip != I_JUMP || ! jumpToPopReturn())) \
 		except(name << " has no return value")
 
 #define CALLX(x, member, nargs, nargnames, argnames, name) \
