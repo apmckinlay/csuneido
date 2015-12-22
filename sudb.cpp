@@ -54,6 +54,8 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 	static Value Auth("Auth");
 	static Value Check("Check");
 
+	argseach(nargs, nargnames, argnames, each);
+
 	if (member == CALL || member == INSTANTIATE)
 		{
 		if (nargs != 1)
