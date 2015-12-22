@@ -25,6 +25,7 @@
 #include "globals.h"
 #include "suobject.h"
 #include "dbms.h"
+#include "sustring.h"
 
 class ServerEval : public Func
 	{
@@ -73,9 +74,22 @@ Value ServerEval::call(Value self, Value member, short nargs, short nargnames, u
 Value exec(Value x)
 	{
 	SuObject* ob = force<SuObject*>(x);
-	Value fname = ob->get(0);
-	Value f = run(fname.str());
+	gcstring fname = ob->get(0).gcstr();
+	int i = fname.find('.');
+	gcstring g;
+	Value m;
+	if (i == -1)
+		{
+		g = fname;
+		m = CALL;
+		}
+	else
+		{
+		g = fname.substr(0, i);
+		m = Value(fname.substr(i + 1).str());
+		}
+	Value f = globals[g.str()];
 	KEEPSP
 	PUSH(ob);
-	return f.call(f, CALL, 1, 0, 0, 1);	// nargs=1, each=1 => f(@+1 ob)
+	return f.call(f, m, 1, 0, 0, 1);	// nargs=1, each=1 => f(@+1 ob)
 	}
