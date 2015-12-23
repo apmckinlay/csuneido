@@ -186,15 +186,19 @@ Value RootClass::notfound(Value self, Value member, short nargs, short nargnames
 	{
 	static Value DEFAULT("Default");
 
+	argseach(nargs, nargnames, argnames, each);
 	if (member == NEW)
+		{
+		if (nargs != 0)
+			except("too many arguments to New");
 		return Value();
+		}
 	else if (member == CALL_CLASS)
 		// default for CallClass is instantiate
 		return self.call(self, INSTANTIATE, nargs, nargnames, argnames, each);
 	else if (member != DEFAULT)
 		{
 		// insert member before args
-		argseach(nargs, nargnames, argnames, each); // have to expand first
 		PUSH(0); // make space
 		Value* sp = GETSP();
 		int i;
