@@ -189,6 +189,7 @@ private:
 	void args_at(short& nargs, char* delims);
 	void args_list(short & nargs, char* delims, vector<ushort>& argnames);
 	void keywordArgShortcut(vector<ushort>& argnames);
+	bool isKeyword();
 	bool just_name();
 	void record();
 	ushort literal(Value value, bool reuse = false);
@@ -1866,7 +1867,7 @@ void FunctionCompiler::args_list(short & nargs, char* delims, vector<ushort>& ar
 			}
 		else
 			{
-			if (scanner.ahead() == ':')
+			if (isKeyword())
 				{
 				key = true;
 				int id;
@@ -1905,6 +1906,11 @@ void FunctionCompiler::keywordArgShortcut(vector<ushort>& argnames)
 		syntax_error();
 	add_argname(argnames, symnum(scanner.value));
 	expr0();
+	}
+
+bool FunctionCompiler::isKeyword()
+	{
+	return (anyName() || token == T_NUMBER) && scanner.ahead() == ':';
 	}
 
 bool FunctionCompiler::just_name()
