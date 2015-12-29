@@ -189,7 +189,7 @@ Value RootClass::notfound(Value self, Value member, short nargs, short nargnames
 	argseach(nargs, nargnames, argnames, each);
 	if (member == NEW)
 		{
-		if (nargs != 0)
+		if (nargs > nargnames) // as usual, excess named arguments are ignored
 			except("too many arguments to New");
 		return Value();
 		}
