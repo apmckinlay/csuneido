@@ -615,12 +615,12 @@ Value SuQuery::get(Dir dir)
 	if (! t || t->isdone())
 		except("cannot use a completed Transaction");
 	if (eof == (dir == NEXT ? NEXT_EOF : PREV_EOF))
-		return SuBoolean::f;
+		return SuFalse;
 	Row row = q->get(dir);
 	if (row == Row::Eof)
 		{
 		eof = (dir == NEXT ? NEXT_EOF : PREV_EOF);
-		return SuBoolean::f;
+		return SuFalse;
 		}
 	eof = NOT_EOF;
 	SuRecord* ob = new SuRecord(row, hdr, t);
@@ -680,9 +680,7 @@ Value SuQuery::explain()
 Value SuQuery::output(SuObject* ob)
 	{
 	Record r = object_to_record(hdr, ob);
-	if (! q->output(r))
-		return SuBoolean::f;
-	return SuBoolean::t;
+	return q->output(r) ? SuTrue : SuFalse;
 	}
 
 Record object_to_record(const Header& hdr, SuObject* ob)

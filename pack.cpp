@@ -40,9 +40,9 @@ Value unpack(const gcstring& s)
 	switch (s[0])
 		{
 	case PACK_FALSE :
-		return SuBoolean::f;
+		return SuFalse;
 	case PACK_TRUE :
-		return SuBoolean::t;
+		return SuTrue;
 	case PACK_MINUS :
 	case PACK_PLUS :
 		return SuNumber::unpack(s);
@@ -272,8 +272,8 @@ class test_pack : public Tests
 	{
 	TEST(0, boolean_pack)
 		{
-		testpack(SuBoolean::t);
-		testpack(SuBoolean::f);
+		testpack(SuTrue);
+		testpack(SuFalse);
 		verify(SuBoolean::unpack(gcstring("")) == SuBoolean::f);
 		}
 	TEST(1, string_pack)

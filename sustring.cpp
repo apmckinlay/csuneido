@@ -715,7 +715,7 @@ Value SuString::Numberq(short nargs, short nargnames, ushort* argnames, int each
 	{
 	if (nargs != 0)
 		except("usage: string.Number?()");
-	return size() == numlen(str()) ? SuBoolean::t : SuBoolean::f;
+	return size() == numlen(str()) ? SuTrue : SuFalse;
 	}
 
 Value SuString::Unescape(short nargs, short nargnames, ushort* argnames, int each)

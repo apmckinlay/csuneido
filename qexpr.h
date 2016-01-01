@@ -47,7 +47,7 @@ public:
 		{ return false; }
 	// for select execution
 	virtual Value eval(const Header&, const Row&)
-		{ return SuBoolean::f; }
+		{ return SuFalse; }
 	virtual Expr* rename(const Fields& from, const Fields& to) = 0;
 	virtual Expr* replace(const Fields& from, const Lisp<Expr*>& to) = 0;
 	virtual Expr* fold() = 0;

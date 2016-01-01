@@ -204,7 +204,7 @@ Value frame()
 	{
 	int i = 1 + abs(TOP().integer()); // + 1 to skip this frame
 	if (tls().proc->fp - i <= tls().proc->frames)
-		return SuBoolean::f;
+		return SuFalse;
 	if (tls().proc->fp[-i].fn)
 		return tls().proc->fp[-i].fn;
 	else
@@ -218,7 +218,7 @@ Value locals()
 
 	int i = 1 + abs(TOP().integer()); // + 1 to skip this frame
 	if (tls().proc->fp - i < tls().proc->frames)
-		return SuBoolean::f;
+		return SuFalse;
 	Frame& frame = tls().proc->fp[-i];
 	SuObject* ob = new SuObject();
 	ob->put(SYM_THIS, frame.self);

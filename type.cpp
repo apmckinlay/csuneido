@@ -270,7 +270,7 @@ Value TypeBuffer::get(char*& src, Value x)
 	{
 	char* now = *((char**) src);
 	if (! now)
-		x = SuBoolean::f;
+		x = SuFalse;
 	else if (! x)
 		x = new SuString(now);
 	else if (SuBuffer* buf = val_cast<SuBuffer*>(x))
@@ -311,7 +311,7 @@ Value TypeString::result(long, long n)
 	if (s)
 		return new SuString(s);
 	else
-		return SuBoolean::f;
+		return SuFalse;
 	}
 
 void TypeString::out(Ostream& os)

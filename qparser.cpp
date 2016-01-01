@@ -698,9 +698,9 @@ Value QueryParser::constant()
 		break ;
 	case T_IDENTIFIER :
 		if (scanner.keyword == K_TRUE)
-			{ x = SuBoolean::t; match(); break ; }
+			{ x = SuTrue; match(); break ; }
 		else if (scanner.keyword == K_FALSE)
-			{ x = SuBoolean::f; match(); break ; }
+			{ x = SuFalse; match(); break ; }
 		// else fall thru to syntax_error
 	default :
 		syntax_error();
@@ -791,7 +791,7 @@ void QueryParser::member(SuObject* ob, char* gname, short base)
 			x = -x;
 		}
 	else if (default_allowed)
-		x = SuBoolean::t; // default value
+		x = SuTrue; // default value
 	else
 		syntax_error();
 

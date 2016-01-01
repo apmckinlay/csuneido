@@ -107,7 +107,7 @@ Value Structure::call(Value self, Value member, short nargs, short nargnames, us
 			{
 			// interpret number as pointer to structure
 			if (! n)
-				return SuBoolean::f;
+				return SuFalse;
 			// TODO: use VirtualQuery to check if valid
 			char* s = (char*) n;
 			return get(s, Value());

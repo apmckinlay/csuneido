@@ -397,7 +397,7 @@ Value su_COMobject()
 		USES_CONVERSION;
 		hr = CLSIDFromProgID(A2OLE(progid), &clsid);
 		if (FAILED(hr))
-			return SuBoolean::f;
+			return SuFalse;
 		// get idispatch
 		hr = CoCreateInstance(clsid, NULL, CLSCTX_SERVER, IID_IDispatch, (void**) &idisp);
 		if (SUCCEEDED(hr) && idisp)

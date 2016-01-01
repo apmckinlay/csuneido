@@ -285,10 +285,10 @@ Value Compiler::constant(char* gname, char* className)
 			return callback();
 		case K_TRUE :
 			match();
-			return SuBoolean::t;
+			return SuTrue;
 		case K_FALSE :
 			match();
-			return SuBoolean::f;
+			return SuFalse;
 		default :
 			if (scanner.ahead() == '{')
 				return suclass(gname, className);
@@ -457,7 +457,7 @@ void Compiler::member(SuObject* ob, char* gname, char* className, short base)
 			x = -x;
 		}
 	else if (default_allowed)
-		x = SuBoolean::t; // default value
+		x = SuTrue; // default value
 	else
 		syntax_error();
 
