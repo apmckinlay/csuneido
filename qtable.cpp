@@ -299,7 +299,8 @@ double Table::optimize2(const Fields& index, const Fields& needs,
 		// assume this means we only have to read 75% of data
 		cost2 = .75 * totalsize() + // cost of reading data
 			idx2->size; // cost of reading index
-	if (! nil(needs) && (idx3 = match(idxs, index, none)))
+	// if nil(allneeds) then this is unnecessary - same as idx1 case
+	if (! nil(allneeds) && (idx3 = match(idxs, index, none)))
 		cost3 = totalsize() + // cost of reading data
 			idx3->size; // cost of reading index
 	TRACE(TABLE, "optimize " << table << " index " << index <<
