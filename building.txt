@@ -1,34 +1,13 @@
 Building Suneido
 
 Suneido is normally built with the free
-Microsoft Visual Studio Express 2013 
-for Windows Desktop
+Microsoft Visual Studio 2015 Community Edition
 using the included Solution and Project files
-(Note: VS 2013 = VC 12 i.e. year != version)
 
 It is also possible to build with MinGW, although
 the Internet Explorer interface (SuneidoAPP)
 which is used by "Books" is not supported.
 
-Assuming standard configurations,
-use one of the following batch files:
-
-mingw_debug.bat
-mingw_release.bat
-
-The title bar on your Command Prompt window
-should change accordingly.
-
-You can then build using GNU make.
-
 Suneido uses the Boehm-Demers-Weiser 
 garbage collector.
 (http://www.hpl.hp.com/personal/Hans_Boehm/gc/)
-
-A precompiled gc.lib is supplied, to build it
-yourself use make in the gc directory 
-after running one of the above batch files.
-
-Note: The setup batch files *add* to the path,
-to switch to a different configuration,
-start a new command prompt window.

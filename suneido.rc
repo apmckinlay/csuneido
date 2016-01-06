@@ -345,7 +345,7 @@ BEGIN
             VALUE "FileDescription", "Suneido\0"
             VALUE "FileVersion", "1.0\0"
             VALUE "InternalName", "Suneido\0"
-            VALUE "LegalCopyright", "Copyright © 2000-2007\0"
+            VALUE "LegalCopyright", "Copyright © 2000-2016\0"
             VALUE "LegalTrademarks", "Suneido TM\0"
             VALUE "OriginalFilename", "suneido.exe\0"
             VALUE "PrivateBuild", "\0"
