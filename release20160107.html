@@ -1,0 +1,91 @@
+<html>
+<body style="width: 50em;">
+
+<h1>Release Notes</h2>
+
+<h2>Language</h3>
+
+<ul>
+<li><a href="/suneidoc/Language/Blocks">Blocks</a> now accept "_" as an alias for "it" (for automatic parameter)</li>
+
+<li><a href="/suneidoc/Language/Reference/String/string.Match">string.Match</a> has a new starting position option</li>
+
+<li>there is a new "in" (and "not in") operator (see <a href="/suneidoc/Language/Expressions/Comparison">Expressions - Comparison</a>)</li>
+
+<li>because it was misleading, function/method parameter <i>defaults</i> can no longer be identifiers. Previously identifiers were taken as strings like in #(...) Use quotes if you want a string. <b style="color: red;">This is potentially a breaking change.</b></li>
+
+<li>regular expressions are no longer affected by SetLocale. Upper, lower, and ignore case only apply to a-zA-Z (not extended ascii).</li>
+
+<li>line ending handling has been made consistent between <a href="/suneidoc/Language/Reference/StringLines">StringLines</a>, <a href="/suneidoc/Language/Reference/String/string.Lines">string.Lines</a>, <a href="/suneidoc/Language/Reference/File/file.Readline">file.Readline</a>, <a href="/suneidoc/Language/Reference/SocketClient/socketClient.Readline">socketClient.Readline</a>, <a href="/suneidoc/Language/Reference/SocketServer/socketServer.Readline">socketServer.Readline</a> on both cSuneido and jSuneido</li>
+
+<li>new named argument shortcut e.g. fn(:a, :b) see <a href="/suneidoc/Language/Expressions/Function Calls">Function Calls</a></li>
+
+<li><a href="/suneidoc/Language/Exceptions">exception.As</a> has been <span class="deprecated">Deprecated</span> since concatenation now preserves exception information.</li>
+
+</ul>
+
+<h2>Functions & Methods</h3>
+<ul>
+<li><a href="/suneidoc/Language/Reference/Object/object.Delete">object.Delete</a> and <a href="/suneidoc/Language/Reference/Object/object.Erase">object.Erase</a> now always returns the object. Previously it would return false if the member did not exist. <b style="color: red;">This is potentially a breaking change.</b></li>
+
+<li><a href="/suneidoc/Language/Reference/Object/object.Delete">object.Delete</a> and <a href="/suneidoc/Language/Reference/Object/object.Erase">object.Erase</a> now accepts multiple arguments e.g. object.Delete('name', 'age')</li>
+
+<li><a href="/suneidoc/Language/Reference/Object/object.Each">object.Each</a> no longer passes member: member <b style="color: red;">This is potentially a breaking change.</b></li>
+
+<li><a href="/suneidoc/Language/Reference/Number/number.Round">number.Round</a>, <a href="/suneidoc/Language/Reference/Number/number.RoundDown">number.RoundDown</a>, and <a href="/suneidoc/Language/Reference/Number/number.RoundUp">number.RoundUp</a> are now built-in. RoundUp now rounds away from zero, and RoundDown rounds towards zero. <b style="color: red;">For negative numbers, this is different than the previous behavior.</b> (But more consistent with Round)</li>
+<li>new <a href="/suneidoc/Database/Reference/Query/query.RuleColumns">query.RuleColumns</a> built-in method</li>
+
+<li><a href="/suneidoc/Language/Reference/Scanner/scanner.Keyword?">scanner.Keyword?</a></li>
+<li><a href="/suneidoc/Language/Reference/Scanner/scanner.Next2">scanner.Next2</a></li>
+<li><a href="/suneidoc/Language/Reference/Scanner/scanner.Type2">scanner.Type2</a></li>
+
+<li>new <a href="/suneidoc/Language/Reference/Object/object.Each2">object.Each2</a> that passes member and value</li>
+
+<li>number.Round2 has changed to <a href="/suneidoc/Language/Reference/Number/number.RoundToPrecision">number.RoundToPrecision</a> where RoundToPrecision(2) is equivalent to the old behavior. <b style="color: red;">This is potentially a breaking change.</b></li>
+
+<li>object.Reverse and object.Partition have been removed, use <a href="/suneidoc/Language/Reference/Object/object.Reverse!">object.Reverse!</a> and <a href="/suneidoc/Language/Reference/Object/object.Partition!">object.Partition!</a></li>
+
+<li><a href="/suneidoc/Database/Reference/Dump">Dump</a> has been <span class="deprecated">Deprecated</span>. Use <a href="/suneidoc/Database/Reference/Database/Database.Dump">Database.Dump</a>. (functionally the same)</li>
+
+<li><a href="/suneidoc/Database/Reference/Backup">Backup</a> has been <span class="deprecated">Deprecated</span>. Use <a href="/suneidoc/Database/Reference/Database/Database.Dump">Database.Dump</a> instead.</li>
+
+<li>client-server authorization - see <a href="/suneidoc/Database/Reference/Database/Database.Auth">Database.Auth</a>, <a href="/suneidoc/Database/Reference/Database/Database.Nonce">Database.Nonce</a>, <a href="/suneidoc/Database/Reference/Database/Database.Token">Database.Token</a></li>
+
+<li><a href="/suneidoc/Language/Reference/Object/object.Join">object.Join</a> now has a default argument of "" e.g. #(one,two).Join() => "onetwo"</li>
+
+<li>new <a href="/suneidoc/Language/Reference/Sequence">Sequence</a> built-in function that allows user-defined sequences similar to <a href="/suneidoc/Language/Reference/Seq">Seq</a></li>
+
+<li><a href="/suneidoc/Language/Reference/Date/date.Quarter">date.Quarter</a></li>
+
+<li><a href="/suneidoc/Language/Reference/ServerIP">ServerIP</a>() and <a href="/suneidoc/Language/Reference/ServerPort">ServerPort</a>() now return "" if not running client-server</li>
+
+</ul>
+
+<h2>IDE</h3>
+<ul>
+<li><a href="/suneidoc/Tools/WorkSpace">WorkSpace</a> now has two tabs on the main (top) pane. The new Find pane replaces the previous Find in Libraries dialog.</li>
+
+<li>Multiple improvements to <a href="/suneidoc/Tools/LibraryView">LibraryView</a> e.g.
+<ul>
+<li>new bottom pane that displays comments like //TODO. If the current record is a folder it will display comments from all the records in that folder.</li>
+<li>editing improvement, e.g. multiple selection</li>
+<li>watch points and break points</li>
+</ul>
+</li>
+</ul>
+
+<h2>Miscellaneous</h3>
+<ul>
+<li>on jSuneido (or from a cSuneido client connected to a jSuneido server) you can run <a href="/suneidoc/Database/Reference/Database/Database.Check">Database.Check</a>() while the system is live. (You can not use -check from the command line while a server is running.)</li>
+
+<li>on jSuneido, dumping the database (-dump or <a href="/suneidoc/Database/Reference/Database/Database.Dump">Database.Dump</a>) will check it first and will not do the dump if the database is corrupt.</li>
+
+<li>on jSuneido, if the database is not shut down properly a full check will done at startup (instead of the normal quick check). If <a href="/suneidoc/Database/Reference/Database/Database.Check">Database.Check</a>() fails the database will be switched to read-only to avoid further damage. See <a href="/suneidoc/Introduction/Crash Recovery">Crash Recovery</a>.</li>
+
+<li>PDF output for reports no longer uses libhpdf.dll, generation is now done by stdlib code using <a href="/suneidoc/Language/Reference/Zlib">Zlib</a> for compression (using zlibwapi.dll on cSuneido, built in on jSuneido)</li>
+
+<li>In Books you can now drag bookmarks to change the order and right click to change their color.</li>
+</ul>
+
+</body>
+</html>
