@@ -78,15 +78,21 @@ void SuSeq::build() const
 SuObject* SuSeq::copy() const
 	{
 	static Value REWIND("Rewind");
-	static Value NEXT("Next");
 
-	KEEPSP
 	SuObject* copy = new SuObject;
 	iter.call(iter, REWIND, 0, 0, 0, -1);
 	Value x;
-	while (iter != (x = iter.call(iter, NEXT, 0, 0, 0, -1)))
+	while (iter != (x = next()))
 		copy->add(x);
 	return copy;
+	}
+
+Value SuSeq::next() const
+	{
+	static Value NEXT("Next");
+
+	KEEPSP
+	return iter.call(iter, NEXT, 0, 0, 0, -1);
 	}
 
 void SuSeq::putdata(Value i, Value x)

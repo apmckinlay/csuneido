@@ -44,6 +44,7 @@ public:
 private:
 	void build() const;
 	SuObject* copy() const;
+	Value next() const;
 
 	mutable Value iter;
 	mutable SuObject* ob;
