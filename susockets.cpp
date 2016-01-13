@@ -28,7 +28,6 @@
 #include "interp.h"
 #include "sustring.h"
 #include "suclass.h"
-#include "suboolean.h"
 #include "fibers.h"
 #include "dbms.h"
 #include "win.h"
