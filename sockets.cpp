@@ -56,57 +56,42 @@ const int WM_SOCKET	= WM_USER + 1;
 
 // protect from garbage collection ==================================
 
-class Protector
+template <class T, int N> class Protector
 	{
 public:
-	void* protect(void* p);
-	void release(void* p);
-	bool contains(void* p);
-	int count();
-private:
-	enum { maxrefs = 199 };
-	void* refs[maxrefs];
+	void* protect(T p)
+		{
+		for (int i = 0; i < N; ++i)
+			if (refs[i] == 0)
+				return refs[i] = p;
+		fatal("protect overflow");
+		}
+	void release(T p)
+		{
+		for (int i = 0; i < N; ++i)
+			if (refs[i] == p)
+				{ refs[i] = 0; return ; }
+		error("release failed");
+		}
+	bool contains(T p) const
+		{
+		for (int i = 0; i < N; ++i)
+			if (refs[i] == p)
+				return true;
+		return false;
+		}
+	int count() const
+		{
+		int n = 0;
+		for (int i = 0; i < N; ++i)
+			if (refs[i] != 0)
+				++n;
+		return n;
+		}
+//private:
+	const int size = N;
+	T refs[N];
 	};
-
-void* Protector::protect(void* p)
-	{
-	for (int i = 0; i < maxrefs; ++i)
-		if (refs[i] == 0)
-			return refs[i] = p;
-	fatal("protect overflow");
-	}
-
-void Protector::release(void* p)
-	{
-	for (int i = 0; i < maxrefs; ++i)
-		if (refs[i] == p)
-			{ refs[i] = 0; return ; }
-	error("release failed");
-	}
-
-bool Protector::contains(void* p)
-	{
-	for (int i = 0; i < maxrefs; ++i)
-		if (refs[i] == p)
-			return true;
-	return false;
-	}
-
-int Protector::count()
-	{
-	int n = 0;
-	for (int i = 0; i < maxrefs; ++i)
-		if (refs[i] != 0)
-			++n;
-	return n;
-	}
-
-static Protector protector;
-
-int socketConnectionCount()
-	{
-	return protector.count();
-	}
 
 // register a window class ==========================================
 
@@ -138,6 +123,8 @@ struct Ldata
 	bool exit;
 	};
 
+static Protector<Ldata*, 100> protldata;
+
 static char* wndClass = socketRegisterClass();
 
 void socketServer(char* title, int port, pNewServer newserver, void* arg, bool exit)
@@ -162,7 +149,7 @@ void socketServer(char* title, int port, pNewServer newserver, void* arg, bool e
 		}
 	
 	Ldata* data = new Ldata(title, sock, newserver, arg, exit);
-	protector.protect(data);
+	protldata.protect(data);
 	SetWindowLong(hwnd, GWL_USERDATA, (int) data);
 
 	// to avoid problems restarting server
@@ -183,6 +170,7 @@ void socketServer(char* title, int port, pNewServer newserver, void* arg, bool e
 
 class SocketConnectAsynch;
 static SocketConnectAsynch* newSocketConnectAsynch(char* title, int sock, void* arg, char* adr);
+void closeChildConnections(void* arg);
 
 static int CALLBACK listenWndProc(HWND hwnd, int msg, int wParam, int lParam)
 	{
@@ -216,7 +204,8 @@ static int CALLBACK listenWndProc(HWND hwnd, int msg, int wParam, int lParam)
 		WSACleanup();
 		if (data->exit)
 			PostQuitMessage(0);
-		protector.release(data);
+		closeChildConnections(data->arg);
+		protldata.release(data);
 		}
 	else if (msg == WM_ENDSESSION)
 		{
@@ -239,7 +228,6 @@ public:
 	bool connect(struct addrinfo* ai);
 	void event(int msg);
 	void write(char* s, int n);
-	void writebuf(char* s, int n);
 	int read(char* dst, int n);
 	bool tryread(char* dst, int n);
 	bool readline(char* dst, int n);
@@ -276,6 +264,15 @@ private:
 	bool connect_error;
 	};
 
+static Protector<SocketConnectAsynch*, 200> protsca;
+
+void closeChildConnections(void* arg)
+	{
+	for (auto sca : protsca.refs)
+		if (sca && sca->getarg() == arg)
+			sca->close();
+	}
+
 bool SocketConnectAsynch::connect(struct addrinfo* ai)
 	{
 	::connect(sock, ai->ai_addr, ai->ai_addrlen);
@@ -304,6 +301,11 @@ void SocketConnectAsynch::close()
 
 static int CALLBACK connectWndProc(HWND hwnd, int msg, int wParam, int lParam);
 
+int socketConnectionCount()
+	{
+	return protsca.count();
+	}
+
 static SocketConnectAsynch* newSocketConnectAsynch(char* title, int sock, void* arg, char* adr)
 	{
 	LOG("socketConnectAsync " << (title ? title : ""));
@@ -314,7 +316,7 @@ static SocketConnectAsynch* newSocketConnectAsynch(char* title, int sock, void* 
 	SetWindowLong(hwnd, GWL_WNDPROC, (int) connectWndProc);
 
 	SocketConnectAsynch* sc = new SocketConnectAsynch(hwnd, sock, arg, adr);
-	protector.protect(sc);
+	protsca.protect(sc);
 	SetWindowLong(hwnd, GWL_USERDATA, (long) sc);
 	verify(0 == WSAAsyncSelect(sock, hwnd, WM_SOCKET, 
 		FD_CONNECT | FD_READ | FD_WRITE | FD_CLOSE));
@@ -327,7 +329,7 @@ static int CALLBACK connectWndProc(HWND hwnd, int msg, int wParam, int lParam)
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 
 	SocketConnectAsynch* sc = (SocketConnectAsynch*) GetWindowLong(hwnd, GWL_USERDATA);
-	if (sc && protector.contains(sc))
+	if (sc && protsca.contains(sc))
 		sc->event(lParam);
 	return 0;
 	}
@@ -398,7 +400,7 @@ void SocketConnectAsynch::close2()
 	LOG("close2");
 	closesocket(sock);
 	DestroyWindow(hwnd);
-	protector.release(this);
+	protsca.release(this);
 	mode = CLOSED;
 	unblock();
 	}
@@ -563,7 +565,7 @@ SocketConnect* socketClientAsynch(char* addr, int port)
 	closer.disable();
 	if (! sc->connect(ai))
 		{
-		protector.release(sc);
+		protsca.release(sc);
 		except("can't connect to " << addr << ":" << port);
 		}
 	return sc;
@@ -579,7 +581,6 @@ public:
 		tv.tv_sec = timeout;
 		tv.tv_usec = 0;
 		}
-	void writebuf(char* buf, int n);
 	void write(char* buf, int n);
 	int read(char* dst, int n);
 	bool readline(char* dst, int n);
