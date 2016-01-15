@@ -1887,7 +1887,7 @@ void FunctionCompiler::args_list(short & nargs, char* delims, vector<ushort>& ar
 				}
 			else if (key)
 				syntax_error("un-named arguments must come before named arguments");
-			if (key && (scanner.ahead() == ':' || token == ',' || token == delims[1]))
+			if (key && (token == ',' || token == delims[1] || isKeyword()))
 				emit(I_PUSH, LITERAL, literal(SuTrue));
 			else
 				expr();
