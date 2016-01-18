@@ -83,6 +83,7 @@ Value ThreadClass::call(Value self, Value member, short nargs, short nargnames, 
 	{
 	static Value Count("Count");
 	static Value List("List");
+	static Value Name("Name");
 
 	argseach(nargs, nargnames, argnames, each);
 
@@ -106,6 +107,13 @@ Value ThreadClass::call(Value self, Value member, short nargs, short nargnames, 
 		SuObject* list = new SuObject();
 		//TODO implement Thread.List()
 		return list;
+		}
+	else if (member == Name)
+		{
+		if (nargs > 1)
+			except("usage: Thread.Name(name = false)");
+		//TODO implement Thread.Name()
+		return "";
 		}
 	else
 		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
