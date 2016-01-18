@@ -114,7 +114,6 @@ private:
 	char* cmd_abort(char* s);
 	char* cmd_timestamp(char* s);
 	char* cmd_dump(char* s);
-	char* cmd_copy(char* s);
 	char* cmd_run(char* s);
 	char* cmd_size(char* s);
 	char* cmd_connections(char* s);
@@ -314,7 +313,6 @@ void DbServerImp::request(char* buf)
 		CMD(abort),
 		CMD(timestamp),
 		CMD(dump),
-		CMD(copy),
 		CMD(run),
 		CMD(text),
 		CMD(binary),
@@ -848,14 +846,6 @@ char* DbServerImp::cmd_dump(char* s)
 	{
 	dbms()->dump(s);
 	return value_result("");
-	}
-
-#include "dbcopy.h"
-
-char* DbServerImp::cmd_copy(char* s)
-	{
-	dbms()->copy(s);
-	return "OK\r\n";
 	}
 
 char* DbServerImp::cmd_run(char* s)

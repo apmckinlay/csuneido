@@ -89,7 +89,7 @@ static void destroy_windows()
 	}
 
 #include "cmdlineoptions.h" // for compact_exit
-#include "dbcopy.h" // for compact
+#include "dbcompact.h" // for compact
 
 static void shutdown(int status)
 	{

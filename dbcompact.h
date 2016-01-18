@@ -1,5 +1,5 @@
-#ifndef DBCOPY_H
-#define DBCOPY_H
+#ifndef DBCOMPACT_H
+#define DBCOMPACT_H
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
@@ -24,6 +24,5 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void compact();
-void db_copy(char* dest);
 
 #endif

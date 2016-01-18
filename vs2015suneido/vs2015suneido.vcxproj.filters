@@ -90,9 +90,6 @@
     <ClCompile Include="..\date.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\dbcopy.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\dbhttp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -447,6 +444,9 @@
     <ClCompile Include="..\suthread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\dbcompact.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\suneido.rc">
@@ -530,9 +530,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\date.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dbcopy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\dbghelp.h">
@@ -905,6 +902,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\readline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dbcompact.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

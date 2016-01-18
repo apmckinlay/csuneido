@@ -40,7 +40,7 @@
 #include "suobject.h"
 #include "call.h"
 #include "sunapp.h"
-#include "dbcopy.h"
+#include "dbcompact.h"
 #include "recover.h"
 #include "globals.h"
 #include <ctype.h> // for isspace
@@ -160,9 +160,6 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		}
 	case DBDUMP :
 		dbdump();
-		exit(EXIT_SUCCESS);
-	case COPY :
-		db_copy(cmdlineoptions.argstr);
 		exit(EXIT_SUCCESS);
 	case TESTS :
 		{

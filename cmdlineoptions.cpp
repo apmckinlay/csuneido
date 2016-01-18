@@ -48,10 +48,6 @@ char* CmdLineOptions::parse(char* str)
 			else
 				argstr = "";
 			break ;
-		case COPY :
-			if (! (argstr = get_word()))
-				argstr = "suneido.db.copy";
-			break ;
 		case TEST :
 			if (*s == '_')
 				++s;
@@ -130,7 +126,6 @@ char* CmdLineOptions::parse(char* str)
 				"	-check\n"
 				"	-c[heck]s[tart]\n"
 				"	-r[ebuild]\n"
-				"	-copy [filename]\n"
 				"	-compact\n"
 				"	-c[compact]e[xit]\n"
 				"	-d[ump] [tablename]\n"
@@ -168,9 +163,10 @@ static struct { char* str; int num; } options[] = {
 	{ "-load", LOAD }, { "-l", LOAD },
 	{ "-service", SERVICE }, 
 	{ "-server", SERVER }, { "-s", SERVER },
-	{ "-copy", COPY },
-	{ "-compact", COMPACT }, { "-compactexit", COMPACT_EXIT }, { "-ce", COMPACT_EXIT },
-	{ "-check", CHECK }, { "-checkstart", CHECK_START }, { "-cs", CHECK_START },
+	{ "-compact", COMPACT }, 
+	{ "-compactexit", COMPACT_EXIT }, { "-ce", COMPACT_EXIT },
+	{ "-check", CHECK }, 
+	{ "-checkstart", CHECK_START }, { "-cs", CHECK_START },
 	{ "-client", CLIENT }, { "-c", CLIENT },
 	{ "-eh", NO_EXCEPTION_HANDLING }, { "-exceptionhandling", NO_EXCEPTION_HANDLING },
 	{ "-gc", NO_GARBAGE_COLLECTION }, { "-garbagecollection", NO_GARBAGE_COLLECTION },

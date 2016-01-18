@@ -26,11 +26,11 @@
 
 // useful for online backup
 
-// TODO: if no update transactions were started during the copy
+// COULD: if no update transactions were started during the copy
 // then you can switch over to the new database
 // in order to "optimize" without shutting down
 
-#include "dbcopy.h"
+#include "dbcompact.h"
 #include "database.h"
 #include "gcstring.h"
 #include "thedb.h"
@@ -40,21 +40,6 @@
 #include "sudate.h"
 #include "fatal.h"
 
-void compact()
-	{
-	char* tmp = tmpnam(NULL);
-	if (*tmp == '\\')
-		++tmp;
-	db_copy(tmp);
-	extern void close_db();
-	close_db();
-	remove("suneido.db.bak");
-	if (0 != rename("suneido.db", "suneido.db.bak"))
-		fatal("can't rename suneido.db to suneido.db.bak");
-	if (0 != rename(tmp, "suneido.db"))
-		fatal("can't rename temp file to suneido.db");
-	}
-	
 struct DbCopy
 	{
 	DbCopy(char* dest);
@@ -69,13 +54,23 @@ struct DbCopy
 	int tran;
 	};
 
-void db_copy(char* dest)
+void compact()
 	{
-	remove(dest);
-	DbCopy dbcopy(dest);
+	char* tmp = tmpnam(NULL);
+	if (*tmp == '\\')
+		++tmp;
+	remove(tmp);
+	DbCopy dbcopy(tmp);
 	dbcopy.copy();
+	extern void close_db();
+	close_db();
+	remove("suneido.db.bak");
+	if (0 != rename("suneido.db", "suneido.db.bak"))
+		fatal("can't rename suneido.db to suneido.db.bak");
+	if (0 != rename(tmp, "suneido.db"))
+		fatal("can't rename temp file to suneido.db");
 	}
-
+	
 DbCopy::DbCopy(char* dest) : 
 	thedb(*theDB()),
 	newdb(dest, DBCREATE), 

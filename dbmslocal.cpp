@@ -135,7 +135,6 @@ public:
 	Lisp<int> tranlist();
 	Value timestamp();
 	Value dump(char* filename);
-	void copy(char* filename);
 	Value run(char* s);
 	int64 size();
 	Value connections();
@@ -260,13 +259,6 @@ Value DbmsLocal::dump(char* filename)
 	{
 	::dump(filename);
 	return SuEmptyString;
-	}
-
-#include "dbcopy.h"
-
-void DbmsLocal::copy(char* filename)
-	{
-	db_copy(filename);
 	}
 
 extern Value run(const char*);

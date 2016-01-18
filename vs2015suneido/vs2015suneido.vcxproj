@@ -116,7 +116,7 @@
     <ClCompile Include="..\cvt.cpp" />
     <ClCompile Include="..\database.cpp" />
     <ClCompile Include="..\date.cpp" />
-    <ClCompile Include="..\dbcopy.cpp" />
+    <ClCompile Include="..\dbcompact.cpp" />
     <ClCompile Include="..\dbhttp.cpp" />
     <ClCompile Include="..\dbms.cpp" />
     <ClCompile Include="..\dbmslocal.cpp" />
@@ -271,7 +271,7 @@
     <ClInclude Include="..\cvt.h" />
     <ClInclude Include="..\database.h" />
     <ClInclude Include="..\date.h" />
-    <ClInclude Include="..\dbcopy.h" />
+    <ClInclude Include="..\dbcompact.h" />
     <ClInclude Include="..\dbghelp.h" />
     <ClInclude Include="..\dbhttp.h" />
     <ClInclude Include="..\dbms.h" />
