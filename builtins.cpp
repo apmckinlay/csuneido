@@ -372,52 +372,7 @@ Value su_random()
 	}
 PRIM(su_random, "Random(range)");
 
-#pragma warning(disable:4722) // destructor never returns
-struct ThreadCloser
-	{
-	ThreadCloser() // to avoid gcc unused warning
-		{ }
-	~ThreadCloser()
-		{
-		delete tls().thedbms;
-		tls().thedbms = 0;
-
-		Fibers::end();
-		}
-	};
-
-struct ThreadInfo
-	{
-	ThreadInfo(Value f) : fn(f)
-		{ }
-	Value fn;
-	};
-
-static void _stdcall thread(void* arg)
-	{
-	Proc p; tls().proc = &p;
-
-	ThreadCloser closer;
-	try
-		{
-		ThreadInfo* ti = (ThreadInfo*) arg;
-		ti->fn.call(ti->fn, CALL, 0, 0, 0, -1);
-		}
-	catch (const Except& e)
-		{
-		errlog("error in thread", e.str());
-		MessageBox(0, e.str(), "Error in Thread", MB_TASKMODAL | MB_OK);
-		}
-	}
-
-Value su_thread()
-	{
-	const int nargs = 1;
-	Fibers::create(thread, new ThreadInfo(ARG(0)));
-	return Value();
-	}
-PRIM(su_thread, "Thread(function)");
-
+//DEPRECATED: use Thread.Count()
 Value su_threadcount()
 	{
 	return Fibers::size();
@@ -429,22 +384,6 @@ Value su_timestamp()
 	return dbms()->timestamp();
 	}
 PRIM(su_timestamp, "Timestamp()");
-
-Value su_dump()
-	{
-	const int nargs = 1;
-	dbms()->dump(ARG(0).str());
-	return Value();
-	}
-PRIM(su_dump, "Dump(table='')");
-
-Value su_backup()
-	{
-	const int nargs = 1;
-	dbms()->copy(ARG(0).str());
-	return Value();
-	}
-PRIM(su_backup, "Backup(filename='suneido.db.backup')");
 
 Value su_serverq()
 	{
@@ -907,6 +846,7 @@ void builtins()
 	BUILTIN_CLASS("ServerEval", su_ServerEval);
 	BUILTIN_CLASS("Scanner", su_scanner);
 	BUILTIN_CLASS("QueryScanner", su_queryscanner);
+	BUILTIN_CLASS("Thread", thread_singleton);
 
 	for (int i = 0; i < nprims; ++i)
 		{

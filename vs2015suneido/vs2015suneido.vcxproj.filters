@@ -444,6 +444,9 @@
     <ClCompile Include="..\dbmsunauth.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\suthread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\suneido.rc">

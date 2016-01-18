@@ -220,6 +220,7 @@
     <ClCompile Include="..\susha1.cpp" />
     <ClCompile Include="..\susockets.cpp" />
     <ClCompile Include="..\sustring.cpp" />
+    <ClCompile Include="..\suthread.cpp" />
     <ClCompile Include="..\suvalue.cpp" />
     <ClCompile Include="..\suwinres.cpp" />
     <ClCompile Include="..\symbols.cpp" />
