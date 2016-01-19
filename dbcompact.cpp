@@ -54,14 +54,19 @@ struct DbCopy
 	int tran;
 	};
 
+void copy(char* tmp)
+	{
+	remove(tmp);
+	DbCopy dbcopy(tmp);
+	dbcopy.copy();
+	}
+
 void compact()
 	{
 	char* tmp = tmpnam(NULL);
 	if (*tmp == '\\')
 		++tmp;
-	remove(tmp);
-	DbCopy dbcopy(tmp);
-	dbcopy.copy();
+	copy(tmp);
 	extern void close_db();
 	close_db();
 	remove("suneido.db.bak");
