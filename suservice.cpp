@@ -77,8 +77,26 @@ void CallServiceDispatcher(char* a)
 
 void init2(HINSTANCE hInstance, LPSTR lpszCmdLine);
 
+static HANDLE create_job()
+	{
+	HANDLE ghJob = CreateJobObject(nullptr, nullptr); // GLOBAL
+	if (ghJob == nullptr)
+		alert("Could not create job object");
+	else
+		{
+		JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = { 0 };
+		// Configure all child processes associated with the job to terminate when the
+		jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+		if (0 == SetInformationJobObject(ghJob, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli)))
+			alert("Could not SetInformationJobObject");
+		}
+	return ghJob;
+	}
+
 static void WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
 	{
+	HANDLE ghJob = create_job();
+
 	serviceStatusHandle = RegisterServiceCtrlHandler(
 		exe_path()->name,  ServiceCtrlHandler);
 	if (! serviceStatusHandle)
@@ -111,7 +129,9 @@ static void WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
 		PrintError("ServiceMain", "CreateProcess failed");
 		return ;
 		}
-   
+	if (ghJob && 0 == AssignProcessToJobObject(ghJob, pi.hProcess))
+		alert("Could not AssignProcessToObject");
+
 	UpdateSCMStatus(SERVICE_RUNNING);
 	
 	// Wait until child process exits.
@@ -204,7 +224,7 @@ void UnInstallService()
 	success = DeleteService(myService);
 	if (! success)
 		{
-		PrintError("UnIstallService", "DeleteService Failed");
+		PrintError("UnInstallService", "DeleteService Failed");
 		return ;
 		}
 	alert("Service successfully removed.\n" << exe_path()->name);
