@@ -135,6 +135,15 @@ void socketServer(char* title, int port, pNewServer newserver, void* arg, bool e
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	verify(sock > 0);
 
+	SOCKADDR_IN addr;
+	memset(&addr, 0, sizeof addr);
+	addr.sin_family =  AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = INADDR_ANY;
+	if (0 != bind(sock, (LPSOCKADDR) &addr, sizeof addr))
+		except("can't bind to port " << port << " (" << WSAGetLastError() << ")");
+	verify(0 == listen(sock, 5));
+
 	RECT rect;
 	GetWindowRect(GetDesktopWindow(), &rect);
 	HWND hwnd = CreateWindow(wndClass, title, WS_OVERLAPPEDWINDOW,
@@ -152,19 +161,6 @@ void socketServer(char* title, int port, pNewServer newserver, void* arg, bool e
 	protldata.protect(data);
 	SetWindowLong(hwnd, GWL_USERDATA, (int) data);
 
-	// to avoid problems restarting server
-	// as recommended by Effective TCP/IP Programming
-	const BOOL on = TRUE;
-	verify(0 == setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*) &on, sizeof on));
-
-	SOCKADDR_IN addr;
-	memset(&addr, 0, sizeof addr);
-	addr.sin_family =  AF_INET;
-	addr.sin_port = htons(port);
-	addr.sin_addr.s_addr = INADDR_ANY;
-	if (0 != bind(sock, (LPSOCKADDR) &addr, sizeof addr))
-		except("can't bind to port " << port << " (" << WSAGetLastError() << ")");
-	verify(0 == listen(sock, 5));
 	verify(0 == WSAAsyncSelect(sock, hwnd, WM_SOCKET, FD_ACCEPT));
 	}
 
