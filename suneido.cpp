@@ -128,7 +128,6 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 
 	if (cmdlineoptions.install)
 		{
-		// default to server
 		InstallService(cmdlineoptions.install);
 		exit(EXIT_SUCCESS);
 		}
