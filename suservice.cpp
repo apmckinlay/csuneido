@@ -42,6 +42,8 @@
 #include "except.h"
 #include "ostreamstr.h"
 #include "alert.h"
+#include "cmdlineoptions.h"
+#include <process.h>
 
 extern int su_port;
 
@@ -52,7 +54,7 @@ struct ExePath
 	char name[100];
 	};
 
-static void PrintError(LPTSTR lpszFunction, LPTSTR msg) ;
+static void PrintError(char* lpszFunction, char* msg) ;
 static void UpdateSCMStatus (DWORD dwCurrentState, DWORD dwWaitHint = 0);
 static void WINAPI ServiceCtrlHandler (DWORD controlCode);
 static void WINAPI ServiceMain(DWORD argc, LPTSTR* argv);
@@ -77,25 +79,43 @@ void CallServiceDispatcher(char* a)
 
 void init2(HINSTANCE hInstance, LPSTR lpszCmdLine);
 
-static HANDLE create_job()
+static void create_job(HANDLE hProcess)
 	{
 	HANDLE ghJob = CreateJobObject(nullptr, nullptr); // GLOBAL
 	if (ghJob == nullptr)
-		alert("Could not create job object");
-	else
 		{
-		JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = { 0 };
-		// Configure all child processes associated with the job to terminate when the
-		jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-		if (0 == SetInformationJobObject(ghJob, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli)))
-			alert("Could not SetInformationJobObject");
+		alert("Could not create job object");
+		return ;
 		}
-	return ghJob;
+	JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = { 0 };
+	// Configure the job to terminate child processes when it's finished
+	jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+	if (0 == SetInformationJobObject(ghJob, JobObjectExtendedLimitInformation, 
+		&jeli, sizeof(jeli)))
+		alert("Could not SetInformationJobObject");
+	if (0 == AssignProcessToJobObject(ghJob, hProcess))
+		alert("Could not AssignProcessToObject");
+	}
+
+void onexit(HANDLE hProcess)
+	{
+	DWORD result;
+	if (!GetExitCodeProcess(hProcess, &result))
+		{
+		alert("failed to get exit code");
+		return ;
+		}
+	if (result < 1 || 9 < result)
+		return ;
+	OstreamStr oss;
+	oss << "onexit" << result << ".bat";
+	if (-1 == _spawnlp(P_NOWAIT, "cmd", "/c", oss.str(), nullptr))
+		alert("failed to run " << oss.str());
 	}
 
 static void WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
 	{
-	HANDLE ghJob = create_job();
+	SetCurrentDirectory(exe_path()->dir);
 
 	serviceStatusHandle = RegisterServiceCtrlHandler(
 		exe_path()->name,  ServiceCtrlHandler);
@@ -129,14 +149,17 @@ static void WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
 		PrintError("ServiceMain", "CreateProcess failed");
 		return ;
 		}
-	if (ghJob && 0 == AssignProcessToJobObject(ghJob, pi.hProcess))
-		alert("Could not AssignProcessToObject");
+	if (cmdlineoptions.use_job)
+		create_job(pi.hProcess);
 
 	UpdateSCMStatus(SERVICE_RUNNING);
-	
+
 	// Wait until child process exits.
 	// ServiceMain must not return until Server has ended
 	WaitForSingleObject(pi.hProcess, INFINITE);
+	if (cmdlineoptions.use_job)
+		onexit(pi.hProcess);
+
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 

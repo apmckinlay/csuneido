@@ -31,7 +31,7 @@ enum { PORT = AFTER_ACTIONS, NOSPLASH, UNATTENDED, LOCAL_LIBRARY,
 	NO_EXCEPTION_HANDLING, NO_GARBAGE_COLLECTION,
 	INSTALL_SERVICE, SERVICE,
 	CHECK_START, COMPACT_EXIT, IGNORE_VERSION, IGNORE_CHECK,
-	TIMEOUT, END_OF_OPTIONS };
+	TIMEOUT, USE_JOB, END_OF_OPTIONS };
 
 char* CmdLineOptions::parse(char* str)
 	{
@@ -121,6 +121,9 @@ char* CmdLineOptions::parse(char* str)
 				dbserver_timeout = minutes;
 			break ;
 			}
+		case USE_JOB :
+			use_job = true;
+			break ;
 		case HELP :
 			alert("options:\n"
 				"	-check\n"
@@ -144,6 +147,7 @@ char* CmdLineOptions::parse(char* str)
 				"	-i[nstall]s[ervice] [options]\n"
 				"	-u[ninstall]s[ervice]\n"
 				"	-t[ime]o[ut] minutes\n"
+				"	-j[ob]\n"
 				);
 			exit(EXIT_SUCCESS);
 		case END_OF_OPTIONS : // --
@@ -184,6 +188,7 @@ static struct { char* str; int num; } options[] = {
 	{ "-unattended", UNATTENDED }, { "-u", UNATTENDED },
 	{ "-ignoreversion", IGNORE_VERSION }, { "-iv", IGNORE_VERSION },
 	{ "-ignorecheck", IGNORE_CHECK },
+	{ "-job", USE_JOB }, { "-j", USE_JOB},
 	{ "--", END_OF_OPTIONS },
 	};
 const int noptions = sizeof options / sizeof options[0];
