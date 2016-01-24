@@ -21,7 +21,7 @@ construct.cpp \
 cvt.cpp \
 database.cpp \
 date.cpp \
-dbcopy.cpp \
+dbcompact.cpp \
 dbms.cpp \
 dbmslocal.cpp \
 dbmsunauth.cpp \
@@ -104,6 +104,7 @@ suseq.cpp \
 susetlocale.cpp \
 susha1.cpp \
 sustring.cpp \
+suthread.cpp \
 suvalue.cpp \
 symbols.cpp \
 tempdest.cpp \

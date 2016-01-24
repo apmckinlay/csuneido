@@ -11,12 +11,10 @@ else
 endif
 
 CC=gcc
-CXX=g++ -std=gnu++0x
+CXX=g++ -std=gnu++11
 FLAGS += -DCOMPILER=MinGW -Werror -Wall -Wno-sign-compare -Wfloat-equal  -Wno-write-strings \
-	-Wno-char-subscripts  -Wno-narrowing -Wno-unknown-pragmas -D_USE_32BIT_TIME_T
-ifndef GCC3
-FLAGS += -fno-strict-overflow
-endif
+	-Wno-char-subscripts  -Wno-narrowing -Wno-unknown-pragmas -D_USE_32BIT_TIME_T \
+	-D_WIN32_WINNT=0x0600 -DJOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE=0x2000
 
 .SUFFIXES:
 

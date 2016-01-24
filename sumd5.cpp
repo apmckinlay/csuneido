@@ -20,9 +20,6 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// must define this to get Crypt functions
-#define _WIN32_WINNT	0x0400
-
 #include <windows.h>
 #include <wincrypt.h>
 #include "builtinclass.h"
