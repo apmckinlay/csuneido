@@ -539,7 +539,7 @@ Value SuQuery::call(Value, Value member, short nargs, short nargnames, ushort* a
 	static Value Close("Close");
 
 	if (closed)
-		except("cannot used closed query");
+		except("cannot use closed query");
 	if (member == NewRecord)
 		{
 		static Value gRecord = globals["Record"];
