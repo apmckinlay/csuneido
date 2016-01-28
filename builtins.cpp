@@ -125,12 +125,6 @@ Value stackoverflow()
 	}
 PRIM(stackoverflow, "StackOverflow()");
 
-Value functioncalloverflow()
-	{
-	except_log_stack("function call overflow");
-	}
-PRIM(functioncalloverflow, "FunctionCallOverflow()");
-
 Value trace()
 	{
 	const int nargs = 2;
