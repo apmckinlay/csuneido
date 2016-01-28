@@ -27,6 +27,7 @@
 
 [[noreturn]] void except_();
 [[noreturn]] void except_err_();
+[[noreturn]] void except_log_stack_();
 
 Ostream& osexcept();
 
@@ -41,6 +42,9 @@ Ostream& osexcept();
 
 #define error(msg) \
 	except_err(__FILE__ << ':' << __LINE__ << ": ERROR:" << msg)
+
+#define except_log_stack(msg) \
+	((osexcept() << msg), except_log_stack_())
 
 #define verify(e) \
 	((e) ? (void) 0 : error("assert failed: " << #e))

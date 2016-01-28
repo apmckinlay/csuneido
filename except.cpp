@@ -27,6 +27,7 @@
 #include "trace.h"
 #include "suobject.h"
 #include "sufunction.h"
+#include "errlog.h"
 
 SuObject* copyCallStack();
 
@@ -118,6 +119,24 @@ SuObject* copyCallStack()
 		calls->add(call);
 		}
 	return calls;
+	}
+
+// used for "function call overflow" and "value stack overflow"
+void except_log_stack_()
+	{
+	OstreamStr stk;
+	gcstring indent = "";
+	for (Frame* f = tls().proc->fp; f > tls().proc->frames; --f)
+		{
+		stk << endl << indent;
+		if (f->fn)
+			stk << f->fn;
+		else if (f->prim)
+			stk << f->prim;
+		indent += "  ";
+		}
+	errlog(os.str(), stk.str());
+	except_();
 	}
 
 Value Except::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)

@@ -45,7 +45,7 @@ public:
 	void push(Value x)
 		{
 		if (sp >= STACKSIZE - 10)
-			except("value stack overflow");
+			except_log_stack("value stack overflow");
 		stack[++sp] = x;
 		}
 	Value& top()
@@ -166,7 +166,7 @@ struct Framer
 	Frame* nextfp()
 		{
 		if (tls().proc->fp >= tls().proc->frames + Proc::MAXFRAMES - 1)
-			except("function call overflow");
+			except_log_stack("function call overflow");
 		return ++tls().proc->fp;
 		}
 	~Framer()
