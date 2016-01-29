@@ -179,6 +179,8 @@ long callback(Value fn, Callback* cb, char* src)
 	return cb->callback(fn, src);
 	}
 
+extern void handler(const Except&);
+
 long Callback::callback(Value fn, char* src)
 	{
 	KEEPSP
@@ -208,7 +210,6 @@ long Callback::callback(Value fn, char* src)
 		}
 	catch (const Except& e)
 		{
-		extern void handler(const Except& e);
 		handler(e);
 		return 0;
 		}
