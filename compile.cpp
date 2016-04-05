@@ -52,7 +52,7 @@
 #include "sublock.h" // for BLOCK_REST
 #include "varint.h"
 
-bool optionDisabled(const char* option);
+bool getSystemOption(const char* option, bool def_value);
 
 using namespace std;
 
@@ -1236,7 +1236,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 				statement(cont, pbrk);
 			a = emit(I_JUMP, UNCOND, a);
 			}
-		else if (! optionDisabled("SwitchUnhandledThrow"))
+		else if (getSystemOption("SwitchUnhandledThrow", true))
 			{
 			mark();
 			emit(I_POP);

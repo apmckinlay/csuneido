@@ -297,11 +297,10 @@ void handler(const Except& x)
 	tls().proc->in_handler = false;
 	}
 
-// for options that are normally enabled
-bool optionDisabled(const char* option)
+bool getSystemOption(const char* option, bool def_value)
 	{
-	Value x = globals["Suneido"];
-	if (SuObject* ob = val_cast<SuObject*>(x))
-		return ob->get(option) == SuFalse;
-	return false;
+	if (SuObject* suneido = val_cast<SuObject*>(globals["Suneido"]))
+		if (Value val = suneido->get(option))
+			return (val == SuTrue) ? true : (val == SuFalse) ? false : def_value;
+	return def_value;
 	}
