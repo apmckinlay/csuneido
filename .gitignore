@@ -77,3 +77,4 @@ splash/*
 *.aps
 *.opendb
 *.DS_Store
+*.db
