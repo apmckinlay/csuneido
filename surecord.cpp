@@ -98,9 +98,21 @@ static ushort basename(char* field)
 	return ::symnum(PREFIXA(field, strlen(field) - 5));
 	}
 
+bool getSystemOption(const char* option, bool def_value);
+
+static bool skipField(char* field, gcstring value)
+	{
+	if (value != "")
+		return false;
+	if (getSystemOption("CreateRuleFieldsInDbRecords", false) &&
+		globals.find(CATSTRA("Rule_", field)))
+		return false;
+	return true;
+	}
+
 void SuRecord::addfield(char* field, gcstring value)
 	{
-	if (value == "")
+	if (skipField(field, value))
 		return;
 	Value x = ::unpack(value);
 	if (has_suffix(field, "_deps"))
