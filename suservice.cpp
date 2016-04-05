@@ -149,16 +149,14 @@ static void WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
 		PrintError("ServiceMain", "CreateProcess failed");
 		return ;
 		}
-	if (cmdlineoptions.use_job)
-		create_job(pi.hProcess);
+	create_job(pi.hProcess);
 
 	UpdateSCMStatus(SERVICE_RUNNING);
 
 	// Wait until child process exits.
 	// ServiceMain must not return until Server has ended
 	WaitForSingleObject(pi.hProcess, INFINITE);
-	if (cmdlineoptions.use_job)
-		onexit(pi.hProcess);
+	onexit(pi.hProcess);
 
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);

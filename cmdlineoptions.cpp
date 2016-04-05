@@ -121,9 +121,6 @@ char* CmdLineOptions::parse(char* str)
 				dbserver_timeout = minutes;
 			break ;
 			}
-		case USE_JOB :
-			use_job = true;
-			break ;
 		case HELP :
 			alert("options:\n"
 				"	-check\n"
@@ -147,7 +144,6 @@ char* CmdLineOptions::parse(char* str)
 				"	-i[nstall]s[ervice] [options]\n"
 				"	-u[ninstall]s[ervice]\n"
 				"	-t[ime]o[ut] minutes\n"
-				"	-j[ob]\n"
 				);
 			exit(EXIT_SUCCESS);
 		case END_OF_OPTIONS : // --
