@@ -691,10 +691,12 @@ Value SuDate::MinusDays(short nargs, short nargnames, ushort* argnames, int each
 	return dt1.minus_days(dt2);
 	}
 
-int SuDate::minus_ms(SuDate* d1, SuDate* d2)
+long long SuDate::minus_ms(SuDate* d1, SuDate* d2)
 	{
 	DateTime dt1(d1->date, d1->time);
 	DateTime dt2(d2->date, d2->time);
+	if (dt1.minus_days(dt2) > 50 * 365) // 50 years
+		except("date.MinusSeconds interval too large");
 	return dt1.minus_milliseconds(dt2);
 	}
 
@@ -703,10 +705,10 @@ Value SuDate::MinusSeconds(short nargs, short nargnames, ushort* argnames, int e
 	if (nargs != 1 || nargnames != 0)
 		except("usage: date.MinusSeconds(date)");
 	
-	int ms = minus_ms(this, force<SuDate*>(ARG(0)));
+	long long ms = minus_ms(this, force<SuDate*>(ARG(0)));
 
 	char buf[40];
-	itostr(ms / 1000, buf); // seconds
+	i64tostr(ms / 1000, buf); // seconds
 	int n = strlen(buf);
 	buf[n++] = '.';
 	ms %= 1000;

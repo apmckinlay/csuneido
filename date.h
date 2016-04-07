@@ -1,5 +1,6 @@
 #ifndef DATE_H
 #define DATE_H
+#include "auth.h"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
@@ -44,7 +45,7 @@ struct DateTime
 		{ plus(0, 0, days, 0, 0, 0, 0); }
 	void plus(int y, int mo, int d, int h, int mi, int s, int ms);
 	int minus_days(DateTime& dt2);
-	int minus_milliseconds(DateTime& dt2);
+	long long minus_milliseconds(DateTime& dt2);
 	};
 
 bool operator==(const DateTime&, const DateTime&);

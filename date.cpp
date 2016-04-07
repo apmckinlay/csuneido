@@ -223,13 +223,13 @@ static bool DateCalc_delta_hms(int *Dd,
     return(false);
 	}
 
-int DateTime::minus_milliseconds(DateTime& dt2)
+long long DateTime::minus_milliseconds(DateTime& dt2)
 	{
 	int dd = 0, dh = 0, dm = 0, ds = 0;
 	DateCalc_delta_hms(&dd, &dh, &dm, &ds,
 		dt2.hour, dt2.minute, dt2.second, hour, minute, second);
 	int dms = millisecond - dt2.millisecond;
-	return ((((minus_days(dt2) + dd) * 24 + dh) * 60 + dm) * 60 + ds) * 1000 + dms;
+	return (((((long long) minus_days(dt2) + dd) * 24 + dh) * 60 + dm) * 60 + ds) * 1000 + dms;
 	}
 
 static void DateCalc_Normalize_Ranges(int *Dd, int *Dh, int *Dm, int *Ds)
