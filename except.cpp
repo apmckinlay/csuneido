@@ -124,16 +124,21 @@ SuObject* copyCallStack()
 // used for "function call overflow" and "value stack overflow"
 void except_log_stack_()
 	{
+	static bool first = true;
 	OstreamStr stk;
-	gcstring indent = "";
-	for (Frame* f = tls().proc->fp; f > tls().proc->frames; --f)
+	if (first)
 		{
-		stk << endl << indent;
-		if (f->fn)
-			stk << f->fn;
-		else if (f->prim)
-			stk << f->prim;
-		indent += "  ";
+		first = false;
+		gcstring indent = "";
+		for (Frame* f = tls().proc->fp; f > tls().proc->frames; --f)
+			{
+			stk << endl << indent;
+			if (f->fn)
+				stk << f->fn;
+			else if (f->prim)
+				stk << f->prim;
+			indent += "  ";
+			}
 		}
 	errlog(os.str(), stk.str());
 	except_();
