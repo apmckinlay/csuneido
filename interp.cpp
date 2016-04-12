@@ -185,7 +185,7 @@ Frame::Frame(SuFunction* f, Value s) :
 // used by SuBlock::call
 Frame::Frame(Frame* fp, int pc, int first, int nargs, Value s) :
 	prim(0), fn(fp->fn), self(s), ip(fn->code + pc),
-	local(fp->local), rule(fp->rule), catcher(0), blockframe(fp)
+	local(fp->local), rule(tls().proc->fp[-1].rule), catcher(0), blockframe(fp)
 	{
 	for (int i = nargs - 1; i >= 0; --i)
 		local[first + i] = POP();
