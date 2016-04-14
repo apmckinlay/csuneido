@@ -372,13 +372,6 @@ Value su_random()
 	}
 PRIM(su_random, "Random(range)");
 
-//DEPRECATED: use Thread.Count()
-Value su_threadcount()
-	{
-	return Fibers::size();
-	}
-PRIM(su_threadcount, "ThreadCount()");
-
 Value su_timestamp()
 	{
 	return dbms()->timestamp();
