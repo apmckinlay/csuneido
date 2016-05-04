@@ -136,7 +136,9 @@ void Callback::put(char*& dst, char*& dst2, const char* lim2, Value x)
 	{
 	void* f;
 	int n;
-	if (x && x.int_if_num(&n))
+	if (!x)
+		f = nullptr;
+	else if (x.int_if_num(&n))
 		f = (void*) n;
 	else if (Cb* cb = callbacks.find(x))
 		{
