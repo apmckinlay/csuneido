@@ -157,7 +157,7 @@ PRIM(su_use, "Use(string)");
 Value su_unuse()
 	{
 	gcstring lib = TOP().gcstr();
-	if (! member(libdb()->libraries(), lib))
+	if (lib == "stdlib" || ! member(libdb()->libraries(), lib))
 		return SuFalse;
 	if (is_client && ! cmdlineoptions.local_library)
 		except("can't Unuse('" << lib << "')\nWhen client-server, only the server can Unuse");
