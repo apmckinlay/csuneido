@@ -94,11 +94,6 @@ void load(const gcstring& table)
 		}
 	else										// load entire database
 		{
-		if (_access("suneido.db", 0) == 0)
-			{
-			remove("suneido.bak");
-			verify(0 == rename("suneido.db", "suneido.bak"));
-			}
 		IstreamFile fin("database.su", "rb");
 		if (! fin)
 			except("can't open database.su");
@@ -106,6 +101,12 @@ void load(const gcstring& table)
 		if (! has_prefix(buf, "Suneido dump"))
 			except("invalid file");
 		fix = has_prefix(buf, "Suneido dump 0.9");
+
+		if (_access("suneido.db", 0) == 0)
+			{
+			remove("suneido.bak");
+			verify(0 == rename("suneido.db", "suneido.bak"));
+			}
 
 		Loading loading;
 		while (fin.getline(buf, bufsize))
