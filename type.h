@@ -187,7 +187,7 @@ public:
 	void out(Ostream& os);
 private:
 	static TypeString tstr;
-	static TypeInt<long> tint;
+	static TypeInt<short> tint;
 	};
 
 // Structure members and TypeParams & Callback parameters

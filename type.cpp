@@ -331,20 +331,25 @@ inline int short_int(Value x)
 
 void TypeResource::put(char*& dst, char*& dst2, const char* lim2, Value x)
 	{
-	if (!x || short_int(x))
-		tint.put(dst, dst2, lim2, x);
-	else
+	if (x && x.str_if_str())
 		tstr.put(dst, dst2, lim2, x);
+	else
+		{
+		tint.put(dst, dst2, lim2, x);
+		tint.put(dst, dst2, lim2, SuZero);
+		}
 	}
 
 Value TypeResource::get(char*& src, Value x)
 	{
-	char* save_src = src;
-	x = tint.get(src, x);
-	if (short_int(x))
+	if (src[2] == 0 && src[3] == 0)
+		{
+		x = tint.get(src, x);
+		tint.get(src, SuZero);
 		return x;
-	src = save_src;
-	return tstr.get(src, x);
+		}
+	else
+		return tstr.get(src, x);
 	}
 
 void TypeResource::out(Ostream& os)
@@ -353,7 +358,7 @@ void TypeResource::out(Ostream& os)
 	}
 
 TypeString TypeResource::tstr;
-TypeInt<long> TypeResource::tint;
+TypeInt<short> TypeResource::tint;
 
 //===================================================================
 
