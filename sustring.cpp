@@ -817,10 +817,15 @@ Value SuString::Lower(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
 		except("usage: string.Lower()");
+	return tolower();
+	}
+
+SuString* SuString::tolower() const
+	{
 	SuString* dst = new SuString(size());
 	char* t = dst->buf();
-	for (char* s = begin(); s != end(); ++s, ++t)
-		*t = tolower((unsigned int) *s);
+	for (auto s = begin(); s != end(); ++s, ++t)
+		*t = ::tolower((unsigned int) *s);
 	return dst;
 	}
 

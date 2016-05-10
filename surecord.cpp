@@ -519,12 +519,29 @@ Value SuRecord::getdata(Value m)
 	Value result = get(m);
 	if (! result || invalid.find(i))
 		{
-		if (Value x = call_rule(i, result ? "invalid" : "missing"))
+		if (Value x = get_if_special(i))
+			result = x;
+		else if (x = call_rule(i, result ? "invalid" : "missing"))
 			result = x;
 		else if (! result)
 			result = defval;
 		}
 	return result;
+	}
+
+Value SuRecord::get_if_special(ushort i)
+	{
+	gcstring name = symstr(i);
+	if (!name.has_suffix("_lower!"))
+		return Value();
+	gcstring base = name.substr(0, name.size() - 7);
+	Value x = get(symbol(base));
+	if (! x)
+		return Value();
+	const char* s = x.str_if_str();
+	if (! s)
+		return x;
+	return SuString(s).tolower();
 	}
 
 void SuRecord::add_dependent(ushort src, ushort dst)

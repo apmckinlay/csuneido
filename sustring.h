@@ -112,6 +112,8 @@ public:
 
 	bool is_identifier() const;
 
+	SuString* tolower() const;
+
 protected:
 	gcstring s;
 

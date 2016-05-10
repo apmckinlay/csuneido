@@ -60,7 +60,6 @@ public:
 	virtual bool erase(Value x);
 	virtual bool erase2(Value x);
 
-	Value call_rule(ushort i, const char* why);
 
 	Record to_record(const Header& hdr);
 
@@ -86,6 +85,8 @@ private:
 	void add_dependent(ushort src, ushort dst);
 	void invalidate(ushort mem);
 	void invalidate_dependents(ushort member);
+	Value get_if_special(ushort i);
+	Value call_rule(ushort i, const char* why);
 
 	Header hdr;
 	SuTransaction* trans;
