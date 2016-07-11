@@ -138,6 +138,12 @@ static Value com2su(VARIANT* var)
 	case VT_I4:
 		result = V_I4(&varValue);
 		break;
+	case VT_UI2:
+		result = V_UI2(&varValue);
+		break;
+	case VT_UI4:
+		result = V_UI4(&varValue);
+		break;
 	case VT_R4:
 		result = SuNumber::from_float(V_R4(&varValue));
 		break ;
