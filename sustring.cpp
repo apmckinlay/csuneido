@@ -907,6 +907,10 @@ Value SuString::Prefixq(short nargs, short nargnames, ushort* argnames, int each
 	gcstring str = args.getgcstr("string");
 	int pos = args.getint("pos", 0);
 	args.end();
+	if (pos < 0)
+		pos += s.size();
+	if (pos < 0)
+		pos = 0;
 	return s.has_prefix(str, pos) ? SuTrue : SuFalse;
 	}
 
