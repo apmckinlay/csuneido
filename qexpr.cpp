@@ -232,9 +232,9 @@ Value BinOp::eval(const Header& hdr, const Row& row)
 		case I_IS :		result = (field == value); break ;
 		case I_ISNT :	result = (field != value); break ;
 		case I_LT :		result = (field < value); break ;
-		case I_LTE :	result = ! (value < field); break ;
+		case I_LTE :		result = ! (value < field); break ;
 		case I_GT :		result = (value < field); break ;
-		case I_GTE :	result = ! (field < value); break ;
+		case I_GTE :		result = ! (field < value); break ;
 		default :		unreachable();
 			}
 		return result ? SuTrue : SuFalse;
@@ -254,15 +254,15 @@ Value BinOp::eval2(Value x, Value y)
 	case I_IS :		return x == y ? SuTrue : SuFalse;
 	case I_ISNT :	return x != y ? SuTrue : SuFalse;
 	case I_LT :		return x < y ? SuTrue : SuFalse;
-	case I_LTE :	return x <= y ? SuTrue : SuFalse;
+	case I_LTE :		return x <= y ? SuTrue : SuFalse;
 	case I_GT :		return x > y ? SuTrue : SuFalse;
-	case I_GTE :	return x >= y ? SuTrue : SuFalse;
-	case I_ADD :	return x + y;
-	case I_SUB :	return x - y;
-	case I_CAT :	return new SuString(x.gcstr() + y.gcstr());
-	case I_MUL :	return x * y;
-	case I_DIV :	return x / y;
-	case I_MOD :	return x.integer() % y.integer();
+	case I_GTE :		return x >= y ? SuTrue : SuFalse;
+	case I_ADD :		return x + y;
+	case I_SUB :		return x - y;
+	case I_CAT :		return new SuString(x.gcstr() + y.gcstr());
+	case I_MUL :		return x * y;
+	case I_DIV :		return x / y;
+	case I_MOD :		return x.integer() % y.integer();
 	case I_LSHIFT :	return x.integer() << y.integer();
 	case I_RSHIFT :	return x.integer() >> y.integer();
 	case I_BITAND :	return x.integer() & y.integer();
