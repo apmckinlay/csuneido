@@ -28,27 +28,23 @@
 static HBRUSH CreatePatternBrushFromFile(LPCTSTR filename, HINSTANCE hInstance,
 	int& width, int& height)
 	{
-	HBRUSH hbr = NULL;
 	HBITMAP hbm = (HBITMAP) LoadImage(hInstance, filename,
 		IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-
-	if (hbm)
-		{
-		BITMAP bm;
-		GetObject(hbm, sizeof (bm), & bm);
-		width = bm.bmWidth;
-		height = bm.bmHeight;
-		hbr = CreatePatternBrush(hbm);
-		DeleteObject(hbm);
-		}
+	if (! hbm)
+		return NULL;
+	BITMAP bm;
+	GetObject(hbm, sizeof (bm), & bm);
+	width = bm.bmWidth;
+	height = bm.bmHeight;
+	HBRUSH hbr = CreatePatternBrush(hbm);
+	DeleteObject(hbm);
 	return hbr;
 	}
 
 static BOOL CreateClassFromFile(LPSTR filename, HINSTANCE hInstance,
 	int& width, int& height)
 	{
-	HBRUSH hbr = CreatePatternBrushFromFile(filename, hInstance,
-		width, height);
+	HBRUSH hbr = CreatePatternBrushFromFile(filename, hInstance, width, height);
 	if (! hbr)
 		return FALSE;
 
@@ -87,7 +83,7 @@ HWND splash(HINSTANCE hInstance)
 	int x = wr.left + (wr.right - wr.left - width) / 2;
 	int y = wr.top + (wr.bottom - wr.top - height) / 2;
 	HWND hdlg = CreateWindowEx(WS_EX_TOOLWINDOW, "splash", NULL, 
-		WS_VISIBLE | WS_POPUP | SS_BITMAP,
+		WS_VISIBLE | WS_POPUP,
 		x, y, width, height, NULL, NULL, (HINSTANCE) hInstance, NULL);
 	ShowWindow(hdlg, SW_SHOWNORMAL);
 	UpdateWindow(hdlg);
