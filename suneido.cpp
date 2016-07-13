@@ -204,7 +204,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	case VERSION :
 		alert("Built:  " << build_date << "\n"
 			""
-			"Copyright (C) 2000-2015 Suneido Software Corp.\n"
+			"Copyright (C) 2000-2016 Suneido Software Corp.\n"
 			"All rights reserved worldwide.\n"
 			"Licensed under the GNU General Public License v2\n"
 			"\n"
