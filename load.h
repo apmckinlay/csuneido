@@ -29,4 +29,6 @@ extern bool loading;
 
 void load(const gcstring& table);
 
+int load_table(const gcstring& table);
+
 #endif

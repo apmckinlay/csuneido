@@ -378,6 +378,7 @@ public:
 	Lisp<int> tranlist();
 	Value timestamp();
 	Value dump(char* filename);
+	int load(char* filename);
 	void copy(char* filename);
 	Value run(char* s);
 	int64 size();
@@ -584,6 +585,12 @@ Value DbmsRemote::dump(char* filename)
 	WRITE("DUMP " << filename);
 	return sc.readvalue();
 	}
+
+int DbmsRemote::load(char* filename)
+{
+	WRITE("LOAD " << filename);
+	return sc.readint('N');
+}
 
 void DbmsRemote::copy(char* filename)
 	{

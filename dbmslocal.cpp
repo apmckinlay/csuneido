@@ -135,6 +135,7 @@ public:
 	Lisp<int> tranlist();
 	Value timestamp();
 	Value dump(char* filename);
+	int load(char* filename);
 	Value run(char* s);
 	int64 size();
 	Value connections();
@@ -260,6 +261,12 @@ Value DbmsLocal::dump(char* filename)
 	::dump(filename);
 	return SuEmptyString;
 	}
+
+#include "load.h"
+int DbmsLocal::load(char* filename)
+{
+	return ::load_table(filename);
+}
 
 extern Value run(const char*);
 

@@ -56,6 +56,8 @@ public:
 		{ except(notauth); }
 	Value dump(char* filename) 
 		{ except(notauth); }
+	int load(char* filename)
+		{ except(notauth); }
 	void copy(char* filename) 
 		{ except(notauth); }
 	Value run(char* s) 

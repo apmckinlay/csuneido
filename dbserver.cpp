@@ -114,6 +114,7 @@ private:
 	char* cmd_abort(char* s);
 	char* cmd_timestamp(char* s);
 	char* cmd_dump(char* s);
+	char* cmd_load(char* s);
 	char* cmd_run(char* s);
 	char* cmd_size(char* s);
 	char* cmd_connections(char* s);
@@ -313,6 +314,7 @@ void DbServerImp::request(char* buf)
 		CMD(abort),
 		CMD(timestamp),
 		CMD(dump),
+		CMD(load),
 		CMD(run),
 		CMD(text),
 		CMD(binary),
@@ -846,6 +848,14 @@ char* DbServerImp::cmd_dump(char* s)
 	{
 	dbms()->dump(s);
 	return value_result("");
+	}
+
+#include "load.h"
+
+char* DbServerImp::cmd_load(char* s)
+	{
+	os << 'N' << dbms()->load(s) << "\r\n";
+	return os.str();
 	}
 
 char* DbServerImp::cmd_run(char* s)
