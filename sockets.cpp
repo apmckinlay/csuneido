@@ -127,6 +127,20 @@ static Protector<Ldata*, 100> protldata;
 
 static char* wndClass = socketRegisterClass();
 
+int getDpi()
+	{
+	HDC dc = GetDC(NULL);
+	int dpi = GetDeviceCaps(dc, LOGPIXELSY);
+	ReleaseDC(NULL, dc);
+	return dpi;
+	}
+
+int scale(int n)
+	{
+	static int dpi = getDpi();
+	return (n * dpi) / 96;
+	}
+
 void socketServer(char* title, int port, pNewServer newserver, void* arg, bool exit)
 	{
 	LOG("socketServer " << title << " " << port);
@@ -147,7 +161,7 @@ void socketServer(char* title, int port, pNewServer newserver, void* arg, bool e
 	RECT rect;
 	GetWindowRect(GetDesktopWindow(), &rect);
 	HWND hwnd = CreateWindow(wndClass, title, WS_OVERLAPPEDWINDOW,
-		rect.right - 255, 5, 250, 50,
+		rect.right - scale(255), scale(5), scale(250), scale(50),
 		0, 0, 0, 0);
 	verify(hwnd);
 	SetWindowLong(hwnd, GWL_WNDPROC, (int) listenWndProc);
