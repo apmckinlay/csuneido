@@ -309,9 +309,6 @@
     <ClCompile Include="..\sockets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\splash.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\structure.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -785,9 +782,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\sockets.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\splash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\std.h">

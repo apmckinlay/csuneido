@@ -194,7 +194,6 @@
     <ClCompile Include="..\sesviews.cpp" />
     <ClCompile Include="..\slots.cpp" />
     <ClCompile Include="..\sockets.cpp" />
-    <ClCompile Include="..\splash.cpp" />
     <ClCompile Include="..\structure.cpp" />
     <ClCompile Include="..\suadler32.cpp" />
     <ClCompile Include="..\sublock.cpp" />
@@ -359,7 +358,6 @@
     <ClInclude Include="..\sesviews.h" />
     <ClInclude Include="..\slots.h" />
     <ClInclude Include="..\sockets.h" />
-    <ClInclude Include="..\splash.h" />
     <ClInclude Include="..\std.h" />
     <ClInclude Include="..\strdup.h" />
     <ClInclude Include="..\structure.h" />

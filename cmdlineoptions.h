@@ -31,7 +31,7 @@ class CmdLineOptions
 	{
 public:
 	CmdLineOptions() :
-		action(NONE), argstr(0), argint(0), splash(true), unattended(false),
+		action(NONE), argstr(0), argint(0), unattended(false),
 		local_library(false), no_exception_handling(false), install(0), service(0),
 		check_start(false), compact_exit(false), ignore_version(false)
 		{ }
@@ -41,7 +41,6 @@ public:
 	int action;
 	char* argstr;
 	int argint;
-	bool splash;
 	bool unattended;
 	bool local_library;
 	bool no_exception_handling;
