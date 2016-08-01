@@ -72,28 +72,14 @@ void load(const gcstring& table)
 	extern bool thedb_create;
 	thedb_create = true;
 
-	const size_t bufsize = 8000;
-	char buf[bufsize];
 	if (table != "")							// load a single table
 		{
-		IstreamFile fin((table + ".su").str(), "rb");
-		if (! fin)
-			except("can't open " << table << ".su");
-		fin.getline(buf, bufsize);
-		if (! has_prefix(buf, "Suneido dump"))
-			except("invalid file");
-		fix = has_prefix(buf, "Suneido dump 0.9");
-
-		char* buf2 = buf + table.size() + 1;
-		fin.getline(buf2, bufsize);
-		verify(0 == memcmp(buf2, "======", 6));
-		memcpy(buf, "create ", 7);
-		memcpy(buf + 7, table.buf(), table.size());
-		Loading loading;
-		load1(fin, buf);
+		load_table(table);
 		}
 	else										// load entire database
 		{
+		const size_t bufsize = 8000;
+		char buf[bufsize];
 		IstreamFile fin("database.su", "rb");
 		if (! fin)
 			except("can't open database.su");
@@ -119,8 +105,31 @@ void load(const gcstring& table)
 			else
 				except("bad file format");
 			}
-		}
-	verify(! alerts);
+		verify(!alerts);
+		}	
+	}
+
+int load_table(const gcstring& table)
+	{
+	const size_t bufsize = 8000;
+	char buf[bufsize];
+	IstreamFile fin((table + ".su").str(), "rb");
+	if (!fin)
+		except("can't open " << table << ".su");
+	fin.getline(buf, bufsize);
+	if (!has_prefix(buf, "Suneido dump"))
+		except("invalid file");
+	fix = has_prefix(buf, "Suneido dump 0.9");
+
+	char* buf2 = buf + table.size() + 1;
+	fin.getline(buf2, bufsize);
+	verify(0 == memcmp(buf2, "======", 6));
+	memcpy(buf, "create ", 7);
+	memcpy(buf + 7, table.buf(), table.size());
+	Loading loading;
+	int n = load1(fin, buf);
+	verify(!alerts);
+	return n;
 	}
 
 static int load1(Istream& fin, gcstring tblspec)

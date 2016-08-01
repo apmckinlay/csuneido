@@ -49,6 +49,7 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 	static Value Final("Final");
 	static Value Kill("Kill");
 	static Value Dump("Dump");
+	static Value Load("Load");
 	static Value Nonce("Nonce");
 	static Value Token("Token");
 	static Value Auth("Auth");
@@ -127,6 +128,18 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 		if (result != SuEmptyString)
 			except("Database.Dump failed: " << result);
 		return Value();
+		}
+	else if (member == Load)
+		{
+		char* what;
+		if (nargs == 1)
+			what = ARG(0).str();
+		else
+			except("usage: Database.Load(table)");
+		int result = dbms()->load(what);
+		if (result < 0)
+			except("Database.Load failed: " << result);
+		return Value(result);
 		}
 	else if (member == Token)
 		{
