@@ -587,10 +587,10 @@ Value DbmsRemote::dump(char* filename)
 	}
 
 int DbmsRemote::load(char* filename)
-{
+	{
 	WRITE("LOAD " << filename);
 	return sc.readint('N');
-}
+	}
 
 void DbmsRemote::copy(char* filename)
 	{

@@ -264,9 +264,9 @@ Value DbmsLocal::dump(char* filename)
 
 #include "load.h"
 int DbmsLocal::load(char* filename)
-{
+	{
 	return ::load_table(filename);
-}
+	}
 
 extern Value run(const char*);
 
