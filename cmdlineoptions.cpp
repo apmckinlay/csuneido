@@ -26,6 +26,7 @@
 #include "alert.h"
 #include "except.h"
 #include "gcstring.h"
+#include "errlog.h"
 
 enum { PORT = AFTER_ACTIONS, NOSPLASH, UNATTENDED, LOCAL_LIBRARY,
 	NO_EXCEPTION_HANDLING, NO_GARBAGE_COLLECTION,
@@ -88,7 +89,7 @@ char* CmdLineOptions::parse(char* str)
 			su_port = strtol(s, &s, 10);
 			break ;
 		case NOSPLASH :
-			splash = false;
+			errlog("-n[osplash] option no longer supported, please remove");
 			break ;
 		case UNATTENDED :
 			unattended = true;
@@ -135,7 +136,6 @@ char* CmdLineOptions::parse(char* str)
 				"	-s[erver][=name]\n"
 				"	-c[lient] ipaddress\n"
 				"	-p[ort] #\n"
-				"	-n[osplash]\n"
 				"	-u[nattended]\n"
 				"	-v[ersion]\n"
 				"	-l[ocal]l[ibrary]\n"

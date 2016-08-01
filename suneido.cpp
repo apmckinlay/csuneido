@@ -51,7 +51,6 @@
 #include "testobalert.h"
 #include "prim.h"
 #include "unhandled.h"
-#include "splash.h"
 #include "msgloop.h"
 #include "port.h" // for fork_rebuild for start_check
 #include "exceptimp.h"
@@ -219,19 +218,12 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 #ifndef __GNUC__
 	sunapp_register_classes();
 #endif
-	HWND hdlg = 0;
-	if (cmdlineoptions.splash)
-		hdlg = splash(hInstance);
-
 	if (cmdlineoptions.check_start)
 		if (0 != fork_rebuild())
 			fatal("Database corrupt, rebuild failed, unable to start");
 
 	if (run("Init()") == SuFalse)
 		exit(EXIT_FAILURE);
-
-	if (hdlg)
-		DestroyWindow(hdlg);
 	}
 
 // called by interp
