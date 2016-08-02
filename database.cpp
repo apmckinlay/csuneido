@@ -218,6 +218,8 @@ void Database::add_table(const gcstring& table)
 
 void Database::add_column(const gcstring& table, const gcstring& col)
 	{
+	if (col.has_suffix("_lower!"))
+		return;
 	Tbl* tbl = ck_get_table(table);
 
 	int fldnum = isupper(col[0]) ? -1 : tbl->nextfield;
@@ -242,6 +244,9 @@ void Database::add_column(const gcstring& table, const gcstring& col)
 void Database::add_index(const gcstring& table, const gcstring& columns, bool key,
 	const gcstring& fktable, const gcstring& fkcolumns, Fkmode fkmode, bool unique)
 	{
+	for (auto cols = commas_to_list(columns); ! nil(cols); ++cols)
+		if (cols->has_suffix("_lower!"))
+			return;
 	Tbl* tbl = ck_get_table(table);
 	short* colnums = comma_to_nums(tbl->cols, columns);
 	if (! colnums)
@@ -1425,6 +1430,8 @@ Record Database::get_record(int tran, const gcstring& table, const gcstring& ind
 #include "tempdb.h"
 #include "btree.h"
 
+class test_database : public Tests
+	{
 #define BEGIN \
 	{ TempDB tempdb;
 #define END \
@@ -1432,8 +1439,6 @@ Record Database::get_record(int tran, const gcstring& table, const gcstring& ind
 	verify(thedb->trans.empty()); \
 	}
 
-class test_database : public Tests
-	{
 	TEST(0, database)
 		{
 		BEGIN
