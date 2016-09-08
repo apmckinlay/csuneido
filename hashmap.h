@@ -125,7 +125,7 @@ template <class K,class T,class H,class E>
 Ostream& operator<<(Ostream& os, const HashMap<K,T,H,E>& map)
 	{
 	os << "{";
-	for (typename HashMap<K,T,H,E>::const_iterator i = map.begin(); i != map.end(); ++i)
+	for (auto i = map.begin(); i != map.end(); ++i)
 		{
 		if (i != map.begin())
 			os << ", ";
