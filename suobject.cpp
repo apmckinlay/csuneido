@@ -607,7 +607,7 @@ Value SuObject::Base(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
 		except("usage: object.Base()");
-	if (SuClass* c = val_cast<SuClass*>(this))
+	if (SuClass* c = dynamic_cast<SuClass*>(this))
 		return globals[c->base];
 	else
 		return myclass;
@@ -760,6 +760,11 @@ Value SuObject::EqualRange(short nargs, short nargnames, ushort* argnames, int e
 Value SuObject::Unique(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	// TODO allow passing equality function
+	return unique();
+	}
+
+Value SuObject::unique()
+	{
 	std::vector<Value>::iterator end = std::unique(vec.begin(), vec.end());
 	vec.erase(end, vec.end());
 	return this;
@@ -965,8 +970,44 @@ Value SuObject::IsReadonly(short nargs, short nargnames, ushort* argnames, int e
 	return readonly ? SuTrue : SuFalse;
 	}
 
+// returns true if ob is a class or an instance
+static bool classy(SuObject* ob)
+	{
+	return dynamic_cast<SuClass*>(ob) || val_cast<SuClass*>(ob->myclass);
+	}
+
+static SuClass* base(SuObject* ob)
+	{
+	if (SuClass* c = dynamic_cast<SuClass*>(ob))
+		return val_cast<SuClass*>(globals[c->base]);
+	else
+		return val_cast<SuClass*>(ob->myclass);
+	}
+
+void SuObject::addMembers(SuObject* list)
+	{
+	for (auto i = map.begin(); i != map.end(); ++i)
+		list->add(i->key);
+	}
+
 Value SuObject::Members(short nargs, short nargnames, ushort* argnames, int each)
 	{
+	argseach(nargs, nargnames, argnames, each);
+	static ushort all = ::symnum("all");
+	if (nargs == 1 && nargnames == 1 && argnames[0] == all && classy(this))
+		{
+		SuObject* mems = new SuObject();
+		SuObject* ob = this;
+		do
+			{
+			ob->addMembers(mems);
+			ob = base(ob);
+			}
+			while (ob);
+		mems->sort();
+		mems->unique();
+		return mems;
+		}
 	bool listq, namedq;
 	list_named(nargs, nargnames, argnames, listq, namedq,
 		"usage: object.Members() or .Members(list:) or .Members(named:)");
@@ -975,6 +1016,7 @@ Value SuObject::Members(short nargs, short nargnames, ushort* argnames, int each
 
 Value SuObject::Values(short nargs, short nargnames, ushort* argnames, int each)
 	{
+	argseach(nargs, nargnames, argnames, each);
 	bool listq, namedq;
 	list_named(nargs, nargnames, argnames, listq, namedq,
 		"usage: object.Values() or .Values(list:) or .Values(named:)");
@@ -983,6 +1025,7 @@ Value SuObject::Values(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuObject::Assocs(short nargs, short nargnames, ushort* argnames, int each)
 	{
+	argseach(nargs, nargnames, argnames, each);
 	bool listq, namedq;
 	list_named(nargs, nargnames, argnames, listq, namedq,
 		"usage: object.Assocs() or .Assocs(list:) or .Assocs(named:)");

@@ -126,6 +126,7 @@ public:
 	void remove1(Value value);
 	void sort();
 	bool hasMethod(Value name);
+	void addMembers(SuObject* list);
 protected:
 	typedef Value (SuObject::*pmfn)(short, short, ushort*, int);
 	static HashMap<Value,pmfn> basic_methods;
@@ -154,6 +155,7 @@ private:
 	Value LowerBound(short nargs, short nargnames, ushort* argnames, int each);
 	Value UpperBound(short nargs, short nargnames, ushort* argnames, int each);
 	Value EqualRange(short nargs, short nargnames, ushort* argnames, int each);
+	Value unique();
 	Value Unique(short nargs, short nargnames, ushort* argnames, int each);
 	Value Slice(short nargs, short nargnames, ushort* argnames, int each);
 	Value Find(short nargs, short nargnames, ushort* argnames, int each);
