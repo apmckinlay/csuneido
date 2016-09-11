@@ -28,6 +28,8 @@
 #include "pack.h"
 #include "cvt.h"
 
+//TODO don't inherit from SuObject
+
 void SuClass::out(Ostream& out)
 	{
 	out << named.name() << " /* ";
@@ -100,6 +102,11 @@ Value SuClass::getdata(Value member)
 		}
 	else
 		return Value();
+	}
+
+bool SuClass::eq(const SuValue& y) const
+	{
+	return this == &y; // a class is only equal to itself
 	}
 
 size_t SuClass::packsize() const
@@ -210,4 +217,3 @@ Value RootClass::notfound(Value self, Value member, short nargs, short nargnames
 	else
 		method_not_found(self.type(), ARG(0));
 	}
-

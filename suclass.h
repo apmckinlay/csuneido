@@ -42,6 +42,7 @@ public:
 	void out(Ostream&);
 	Value call(Value self, Value member, short nargs, short nargnames, ushort *argnames, int each);
 	Value getdata(Value);
+	virtual bool eq(const SuValue& x) const override;
 
 	virtual size_t packsize() const;
 	virtual void pack(char* buf) const;
