@@ -140,45 +140,54 @@ size_t SuObject::hashfn()
 	return hash;
 	}
 
+/** methods are available to Objects (not instances or classes) */
 HashMap<Value,SuObject::pmfn> SuObject::methods;
+
+/** basic_methods are available to Objects, instances, and classes */
 HashMap<Value,SuObject::pmfn> SuObject::basic_methods;
+
+/** instance_methods are available to Objects and instances (not classes) */
+HashMap<Value, SuObject::pmfn> SuObject::instance_methods;
 
 #define METHOD(fn) methods[#fn] = &SuObject::fn
 #define BASIC_METHOD(fn) basic_methods[#fn] = &SuObject::fn
+#define INSTANCE_METHOD(fn) instance_methods[#fn] = &SuObject::fn
 
 void SuObject::setup()
 	{
-	BASIC_METHOD(Add);
 	BASIC_METHOD(Base);
 	basic_methods["Base?"] = &SuObject::HasBase;
-	BASIC_METHOD(Delete);
-	BASIC_METHOD(Erase);
 	BASIC_METHOD(Eval);
 	BASIC_METHOD(Eval2);
 	BASIC_METHOD(Find);
+	BASIC_METHOD(GetDefault);
 	BASIC_METHOD(Iter);
 	BASIC_METHOD(Join);
 	basic_methods["Member?"] = &SuObject::HasMember;
 	basic_methods["Method?"] = &SuObject::HasMethod;
 	BASIC_METHOD(Members);
 	BASIC_METHOD(MethodClass);
-	basic_methods["Reverse!"] = &SuObject::Reverse;
-	BASIC_METHOD(Size);
-	basic_methods["Partition!"] = &SuObject::Partition;
-	BASIC_METHOD(Sort);
-	basic_methods["Sort!"] = &SuObject::Sort;
-	METHOD(Set_default);
-	METHOD(Copy);
 	basic_methods["Readonly?"] = &SuObject::IsReadonly;
-	METHOD(Set_readonly);
-	METHOD(Values);
+	BASIC_METHOD(Size);
+
+	METHOD(Add);
 	METHOD(Assocs);
-	METHOD(GetDefault);
-	METHOD(LowerBound);
-	METHOD(UpperBound);
+	METHOD(Erase);
 	METHOD(EqualRange);
-	methods["Unique!"] = &SuObject::Unique;
+	METHOD(LowerBound);
+	methods["Reverse!"] = &SuObject::Reverse;
+	METHOD(Set_default);
+	METHOD(Set_readonly);
 	METHOD(Slice);
+	methods["Partition!"] = &SuObject::Partition;
+	METHOD(Sort);
+	methods["Sort!"] = &SuObject::Sort;
+	methods["Unique!"] = &SuObject::Unique;
+	METHOD(UpperBound);
+	METHOD(Values);
+
+	INSTANCE_METHOD(Copy);
+	INSTANCE_METHOD(Delete);
 	}
 
 SuObject::SuObject(const SuObject& ob) : myclass(ob.myclass), defval(ob.defval), 
@@ -452,6 +461,7 @@ bool SuObject::erase2(Value m)
 	return map.erase(m);
 	}
 
+/** used for both Objects and instances */
 Value SuObject::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL)
@@ -461,14 +471,14 @@ Value SuObject::call(Value self, Value member, short nargs, short nargnames, ush
 		short super = tls().proc->super; tls().proc->super = 0;
 		return globals[super].call(self, member, nargs, nargnames, argnames, each);
 		}
-//else if (Value fn = myclass.getdata(member))
-//return fn.call(self, CALL, nargs, nargnames, argnames, each);
-	else if (pmfn* p = basic_methods.find(member))
+	if (pmfn* p = basic_methods.find(member))
 		return (this->*(*p))(nargs, nargnames, argnames, each);
-	else if (pmfn* p = methods.find(member))
+	if (pmfn* p = instance_methods.find(member))
 		return (this->*(*p))(nargs, nargnames, argnames, each);
-	else
-		return myclass.call(self, member, nargs, nargnames, argnames, each);
+	if ((void*)myclass == (void*)root_class) // Object (not instance)
+		if (pmfn* p = methods.find(member))
+			return (this->*(*p))(nargs, nargnames, argnames, each);
+	return myclass.call(self, member, nargs, nargnames, argnames, each);
 	}
 
 // suneido methods =======================================================
@@ -1010,7 +1020,7 @@ Value SuObject::Members(short nargs, short nargnames, ushort* argnames, int each
 		}
 	bool listq, namedq;
 	list_named(nargs, nargnames, argnames, listq, namedq,
-		"usage: object.Members() or .Members(list:) or .Members(named:)");
+		"usage: object.Members() or .Members(list: or named: or all:)");
 	return new SuSeq(new SuObjectIter(this, ITER_KEYS, listq, namedq));
 	}
 

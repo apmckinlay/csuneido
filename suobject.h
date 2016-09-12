@@ -132,7 +132,7 @@ protected:
 	static HashMap<Value,pmfn> basic_methods;
 private:
 	static HashMap<Value,pmfn> methods;
-
+	static HashMap<Value, SuObject::pmfn> instance_methods;
 	void setup();
 	Value getdefault(Value member, Value def);
 	Value Size(short nargs, short nargnames, ushort* argnames, int each);
