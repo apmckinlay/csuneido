@@ -158,11 +158,11 @@ Value suSocketClient()
 	char* ipaddr = ARG(0).str();
 	int port = ARG(1).integer();
 	int timeout = ARG(2).integer();
-	int timeoutConnect = (int) (ARG(3).number()->to_double() * 1000);
+	int timeoutConnect = (int) (ARG(3).number()->to_double() * 1000); // milliseconds
 	SuSocketClient* sc = new SuSocketClient(
 		Fibers::current() == Fibers::main()
 			? socketClientSynch(ipaddr, port, timeout, timeoutConnect)
-			: socketClientAsynch(ipaddr, port));
+			: socketClientPoll(ipaddr, port, timeout, timeoutConnect));
 	Value block = ARG(4);
 	if (block == SuFalse)
 		return sc;

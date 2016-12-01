@@ -33,6 +33,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "fatal.h"
+#include <ctime>
 
 //#define LOGGING
 
@@ -673,6 +674,8 @@ int SocketConnectSynch::read(char* dst, int dstsize)
 	FDS(fds, sock);
 	while (nread < dstsize)
 		{
+		// NOTE: this makes timeout on each recv
+		// so the entire read could exceed the timeout
 		if (0 == select(1, &fds, NULL, NULL, &tv))
 			break ; // timeout
 
@@ -725,8 +728,188 @@ void SocketConnectSynch::close()
 	closesocket(sock);
 	}
 
+// SocketConnect ====================================================
+
 void SocketConnect::write(char* s)
 	{ write(s, strlen(s)); }
 
 void SocketConnect::writebuf(char* s)
 	{ writebuf(s, strlen(s)); }
+
+// asynch via polling ===============================================
+
+class SocketConnectPoll : public SocketConnect
+	{
+public:
+	explicit SocketConnectPoll(int s, int to) : sock(s), timeout(to)
+		{
+		}
+	void write(char* buf, int n) override;
+	int read(char* dst, int n) override;
+	bool readline(char* dst, int n) override;
+	void close() override;
+	char* getadr() override
+		{
+		return "";
+		}
+private:
+	int sock;
+	int timeout; // seconds
+	};
+
+SocketConnect* socketClientPoll(char* addr, int port, int timeout, int timeoutConnect)
+	{
+	WSADATA wsadata;
+	verify(0 == WSAStartup(MAKEWORD(2, 0), &wsadata));
+
+	AiFree ai(resolve(addr, port));
+
+	int sock = makeSocket(ai);
+	SocketCloser closer(sock);
+
+	ULONG NonBlocking = 1;
+	if (0 != ioctlsocket(sock, FIONBIO, &NonBlocking))
+		except("socket ioctl error " << WSAGetLastError());
+
+	int ret = connect(sock, ai->ai_addr, ai->ai_addrlen);
+	if (ret == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
+		except("can't connect to " << addr << ":" << port);
+
+	if (timeoutConnect <= 0)
+		timeoutConnect = 60 * 1000; // default of 60 seconds
+	clock_t deadline = clock() + (CLOCKS_PER_SEC * timeoutConnect) / 1000;
+	while (true)
+		{
+		FDS(wfds, sock);
+		FDS(efds, sock);
+		struct timeval tv = { 0, 0 };
+		int result = select(0, nullptr, &wfds, &efds, &tv);
+		if (SOCKET_ERROR == result)
+			except("socket connection error " << WSAGetLastError());
+		if (FD_ISSET(sock, &efds))
+			except("socket connection error\n");
+		if (FD_ISSET(sock, &wfds))
+			break;
+		if (result != 0)
+			except("unexpected! " << result);
+		if (clock() > deadline)
+			except("socket connection timeout");
+		Fibers::sleep();
+		}
+
+	closer.disable();
+	return new SocketConnectPoll(sock, timeout);
+	}
+
+#define POLL(type, op) \
+	int result = 0; \
+	while (true) \
+		{ \
+		result = op; \
+		if (result != SOCKET_ERROR || WSAGetLastError() != WSAEWOULDBLOCK) \
+			break ; \
+		if (clock() > deadline) \
+			except("socket " << type << " timeout"); \
+		Fibers::sleep(); \
+		}
+
+void SocketConnectPoll::write(char* buf, int n)
+	{
+	const int NBUFS = 2;
+	WSABUF bufs[NBUFS];
+	bufs[0].buf = wrbuf.buffer();
+	bufs[0].len = wrbuf.size();
+	wrbuf.clear();
+	bufs[1].buf = buf;
+	bufs[1].len = n;
+
+	clock_t deadline = clock() + (CLOCKS_PER_SEC * timeout);
+	// from MSDN: If the socket is non-blocking and stream-oriented, 
+	// and there is not sufficient space in the transport's buffer, 
+	// WSASend will return with only part of the application's buffers consumed.
+	while (true)
+		{
+		// NOTE: assuming that if WOULDBLOCK then nSent is 0
+		DWORD nSent = 0;
+		POLL("write", WSASend(sock, bufs, NBUFS, &nSent, 0, nullptr, nullptr));
+		if (result != 0)
+			except("SocketClient write failed (" << result << ")");
+		int toSend = 0;
+		for (int i = 0; i < NBUFS; ++i)
+			{
+			if (bufs[i].len > 0)
+				{
+				int amt = min(bufs[i].len, nSent);
+				bufs[i].len -= amt;
+				nSent -= amt;
+				toSend += bufs[i].len;
+				}
+			}
+		verify(nSent == 0);
+		if (toSend <= 0)
+			break;
+		Fibers::sleep();
+		}
+	}
+
+int SocketConnectPoll::read(char* dst, int dstsize)
+	{
+	int nread = min(dstsize, rdbuf.size());
+	if (nread)
+		{
+		memcpy(dst, rdbuf.buffer(), nread);
+		rdbuf.remove(nread);
+		}
+
+	clock_t deadline = clock() + (CLOCKS_PER_SEC * timeout);
+	DWORD flags = 0;
+	while (nread < dstsize)
+		{
+		DWORD nr;
+		POLL("read", nr = recv(sock, dst + nread, dstsize - nread, 0));
+		if (nr == 0)
+			break; // connection closed
+		if (nr < 0)
+			except("SocketClient read failed (" << result << ")");
+		nread += nr;
+		}
+	return nread;
+	}
+
+// returns whether or not it got a newline
+bool SocketConnectPoll::readline(char* dst, int n)
+	{
+	verify(n > 1);
+	*dst = 0;
+	--n; // allow for nul
+	char* eol;
+	DWORD flags = 0;
+	clock_t deadline = clock() + (CLOCKS_PER_SEC * timeout);
+	while (!(eol = (char*)memchr(rdbuf.buffer(), '\n', rdbuf.size())))
+		{
+		const int MINRECVSIZE = 1024;
+		rdbuf.ensure(MINRECVSIZE);
+		int nr;
+		POLL("readline", nr = recv(sock, rdbuf.bufnext(), rdbuf.available(), 0));
+		if (nr == 0)
+			break; // connection closed
+		if (nr < 0)
+			except("SocketClient read failed (" << result << ")");
+		rdbuf.added(nr);
+		}
+	char* buf = rdbuf.buffer();
+	int len = eol ? eol - buf + 1 : rdbuf.size();
+	if (len < n)
+		n = len;
+	memcpy(dst, buf, n);
+	dst[n] = 0;
+	rdbuf.remove(len);
+	LOG("\t=> " << dst << "EOR");
+	return eol != 0;
+	}
+
+void SocketConnectPoll::close()
+	{
+	shutdown(sock, SD_SEND);
+	closesocket(sock);
+	}

@@ -46,6 +46,9 @@ struct Fibers
 	// get main fibers dbms
 	static class Dbms* main_dbms();
 
+	// yield until the next time slice
+	static void sleep();
+
 	// mark the fiber as blocked and yield
 	static void block();
 

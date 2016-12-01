@@ -36,7 +36,7 @@ class SesViews;
 
 struct Fiber
 	{
-	enum Status { READY, BLOCKED, ENDED, REUSE };
+	enum Status { READY, BLOCKED, SLEEPING, ENDED, REUSE };
 	explicit Fiber(void* f, void* arg = 0)
 		: fiber(f), status(READY), priority(0), stack_ptr(0), stack_end(0),
 		arg_ref(arg)
@@ -133,6 +133,13 @@ extern "C"
 		}
 	};
 
+void CALLBACK timerproc(HWND hwnd, UINT message, UINT idTimer, DWORD dwTime)
+	{
+	for (int i = 0; i < fibers.size(); ++i)
+		if (fibers[i].status == Fiber::SLEEPING)
+			fibers[i].status = Fiber::READY;
+	}
+
 void Fibers::init()
 	{
 	main_fiber.fiber = ConvertThreadToFiber(0);
@@ -142,7 +149,7 @@ void Fibers::init()
 	SetTimer(NULL,	// hwnd
 		0,		// id
 		50,		// ms
-		NULL		// no timer proc - just generate messages
+		timerproc
 		);
 
 	GC_set_warn_proc(warn);
@@ -181,6 +188,13 @@ void Fibers::yieldif()
 	// this includes time slice events
 	if (curfiber != &main_fiber && HIWORD(GetQueueStatus(QS_ALLEVENTS)))
 		switchto(MAIN);
+	}
+
+void Fibers::sleep()
+	{
+	verify(current() != main());
+	curfiber->status = Fiber::SLEEPING;
+	yield();
 	}
 
 void Fibers::yield()
@@ -242,6 +256,7 @@ void Fibers::block()
 	yield();
 	}
 
+//TODO change block to return index and unblock to take index, to avoid search
 void Fibers::unblock(void* fiber)
 	{
 	for (int i = 0; i < fibers.size(); ++i)
