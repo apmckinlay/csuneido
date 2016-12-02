@@ -28,6 +28,7 @@
 [[noreturn]] void except_();
 [[noreturn]] void except_err_();
 [[noreturn]] void except_log_stack_();
+char* callStackString();
 
 Ostream& osexcept();
 

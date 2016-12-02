@@ -125,23 +125,30 @@ SuObject* copyCallStack()
 void except_log_stack_()
 	{
 	static bool first = true;
-	OstreamStr stk;
+	char* stk = "";
 	if (first)
 		{
 		first = false;
-		gcstring indent = "";
-		for (Frame* f = tls().proc->fp; f > tls().proc->frames; --f)
-			{
-			stk << endl << indent;
-			if (f->fn)
-				stk << f->fn;
-			else if (f->prim)
-				stk << f->prim;
-			indent += "  ";
-			}
+		stk = callStackString();
 		}
-	errlog(os.str(), stk.str());
+	errlog(os.str(), stk);
 	except_();
+	}
+
+char* callStackString()
+	{
+	OstreamStr stk;
+	gcstring indent = "";
+	for (Frame* f = tls().proc->fp; f > tls().proc->frames; --f)
+		{
+		stk << endl << indent;
+		if (f->fn)
+			stk << f->fn;
+		else if (f->prim)
+			stk << f->prim;
+		indent += "  ";
+		}
+	return stk.str();
 	}
 
 Value Except::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
