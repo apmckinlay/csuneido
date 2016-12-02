@@ -31,6 +31,7 @@
 #include "func.h"
 #include "alert.h"
 #include "suclass.h"
+#include "sublock.h"
 
 class ThreadClass : public SuValue
 	{
@@ -91,6 +92,7 @@ Value ThreadClass::call(Value self, Value member, short nargs, short nargnames, 
 		{
 		if (nargs != 1)
 			except("usage: Thread(callable)");
+		persist_if_block(ARG(0));
 		Fibers::create(thread, new ThreadInfo(ARG(0)));
 		return Value();
 		}

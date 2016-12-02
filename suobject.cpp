@@ -899,6 +899,7 @@ Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
 		{
 		for (int j = 0; j < nargs - nargnames; ++j, ++i)
 			{
+			persist_if_block(ARG(j));
 			vec.insert(vec.begin() + i, ARG(j));
 			// migrate from map to vector if necessary
 			Value num;

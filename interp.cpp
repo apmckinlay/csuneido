@@ -170,7 +170,8 @@ Value cat(Value x, Value y)
 	}
 
 Frame::Frame(BuiltinFunc* p, Value s) :
-	prim(p), fn(0), self(s), rule(tls().proc->fp[-1].rule), blockframe(0)
+	prim(p), fn(0), self(s), local(0), rule(tls().proc->fp[-1].rule), catcher(0), 
+	blockframe(0)
 	{ }
 
 Frame::Frame(SuFunction* f, Value s) :
@@ -382,7 +383,7 @@ Value Frame::run()
 			jump = fetch_jump();
 			i = fetch_local(); // first
 			nargs = fetch1();
-			PUSH(suBlock(tls().proc->fp, ip - fn->code, i, nargs));
+			PUSH(suBlock(this, ip - fn->code, i, nargs));
 			ip += jump - 2;
 			break ;
 		case I_JUMP | UNCOND :
