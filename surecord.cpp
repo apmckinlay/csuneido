@@ -521,8 +521,8 @@ Value SuRecord::getdata(Value m)
 		{
 		if (Value x = get_if_special(i))
 			result = x;
-		else if (x = call_rule(i, result ? "invalid" : "missing"))
-			result = x;
+		else if (Value y = call_rule(i, result ? "invalid" : "missing"))
+			result = y;
 		else if (! result)
 			result = defval;
 		}

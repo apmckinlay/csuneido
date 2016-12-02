@@ -862,7 +862,6 @@ int SocketConnectPoll::read(char* dst, int dstsize)
 		}
 
 	clock_t deadline = clock() + (CLOCKS_PER_SEC * timeout);
-	DWORD flags = 0;
 	while (nread < dstsize)
 		{
 		DWORD nr;
@@ -883,7 +882,6 @@ bool SocketConnectPoll::readline(char* dst, int n)
 	*dst = 0;
 	--n; // allow for nul
 	char* eol;
-	DWORD flags = 0;
 	clock_t deadline = clock() + (CLOCKS_PER_SEC * timeout);
 	while (!(eol = (char*)memchr(rdbuf.buffer(), '\n', rdbuf.size())))
 		{
