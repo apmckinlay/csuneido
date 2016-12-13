@@ -20,6 +20,19 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+/*
+ * Cooperative (not preemptive) multi-tasking.
+ * i.e. fibers must explicitly yield 
+ * Priority is given to the main fiber which runs the UI message loop.
+ * If there are any message on the Windows event queue 
+ * we switch to the main fiber to handle them.
+ * The main fiber yields to the next runnable background fiber.
+ * Background fibers always yield to the main fiber (not each other).
+ * interp and database queries call yieldif regularly.
+ * This will yield if either a message is on the Windows event queue
+ * or if the time slice has expired.
+ */
+
 #include "fibers.h"
 #include "except.h"
 #include "itostr.h" // for gc warn
@@ -36,22 +49,21 @@ class SesViews;
 
 struct Fiber
 	{
-	enum Status { READY, BLOCKED, SLEEPING, ENDED, REUSE };
+	enum Status { READY, BLOCKED, ENDED, REUSE };
 	explicit Fiber(void* f, void* arg = 0)
-		: fiber(f), status(READY), priority(0), stack_ptr(0), stack_end(0),
-		arg_ref(arg)
-		{ }
-	bool operator==(Status s)
+		: fiber(f), status(READY), stack_ptr(0), stack_end(0), arg_ref(arg), sleep_until{0}
+		{
+		}
+	bool operator==(Status s) const
 		{ return status == s; }
 	void* fiber;
 	Status status;
-	char* id;
-	int priority; // 0 = normal, -1 = low (dbcopy)
 	// for garbage collector
 	void* stack_ptr;
 	void* stack_end;
 	void* arg_ref; // prevent it being garbage collected
 	ThreadLocalStorage tls;
+	int64 sleep_until;
 	};
 
 static Fiber main_fiber(0);
@@ -59,6 +71,10 @@ static std::vector<Fiber> fibers;
 const int MAIN = -1;
 static int cur = MAIN;
 #define curfiber (cur < 0 ? &main_fiber : &fibers[cur])
+static int64 last_switch;
+static int64 qpc_freq;
+
+static const int TIME_SLICE_MS = 50;
 
 ThreadLocalStorage::ThreadLocalStorage() 
 	: proc(0), thedbms(0), session_views(0), fiber_id("")
@@ -133,11 +149,18 @@ extern "C"
 		}
 	};
 
-void CALLBACK timerproc(HWND hwnd, UINT message, UINT idTimer, DWORD dwTime)
+inline int64 qpf()
 	{
-	for (int i = 0; i < fibers.size(); ++i)
-		if (fibers[i].status == Fiber::SLEEPING)
-			fibers[i].status = Fiber::READY;
+	LARGE_INTEGER f;
+	verify(QueryPerformanceFrequency(&f));
+	return f.QuadPart;
+	}
+
+inline int64 qpc()
+	{
+	LARGE_INTEGER t;
+	verify(QueryPerformanceCounter(&t));
+	return t.QuadPart;
 	}
 
 void Fibers::init()
@@ -145,12 +168,7 @@ void Fibers::init()
 	main_fiber.fiber = ConvertThreadToFiber(0);
 	verify(main_fiber.fiber);
 
-	// time slice timer
-	SetTimer(NULL,	// hwnd
-		0,		// id
-		50,		// ms
-		timerproc
-		);
+	qpc_freq = qpf();
 
 	GC_set_warn_proc(warn);
 	}
@@ -176,62 +194,82 @@ static void switchto(int i)
 	verify(fiber.status == Fiber::READY);
 	if (i == cur)
 		return ;
+	last_switch = qpc();
 	save_stack();
 	
 	cur = i;
 	SwitchToFiber(fiber.fiber);
 	}
 
-void Fibers::yieldif()
+bool message_on_event_queue()
 	{
-	// only yield if any messages waiting
-	// this includes time slice events
-	if (curfiber != &main_fiber && HIWORD(GetQueueStatus(QS_ALLEVENTS)))
-		switchto(MAIN);
+	return HIWORD(GetQueueStatus(QS_ALLEVENTS));
 	}
 
-void Fibers::sleep()
+bool time_slice_finished()
+	{
+	auto t = qpc();
+	auto d = t - last_switch; // elapsed time in ticks
+	auto ms = (d * 1000) / qpc_freq; // elapsed time in milliseconds
+	return ms > TIME_SLICE_MS;
+	}
+
+void Fibers::yieldif()
+	{
+	if (message_on_event_queue() || time_slice_finished())
+		yield();
+	}
+
+void Fibers::sleep(int ms)
 	{
 	verify(current() != main());
-	curfiber->status = Fiber::SLEEPING;
+	auto t = qpc();
+	curfiber->sleep_until = t + ((ms * qpc_freq) / 1000);
 	yield();
 	}
 
-void Fibers::yield()
+bool runnable(Fiber& f)
+	{
+	if (f.status != Fiber::READY)
+		return false;
+	if (f.sleep_until == 0)
+		return true;
+	auto t = qpc();
+	if (t < f.sleep_until)
+		return false;
+	f.sleep_until = 0;
+	return true;
+	}
+
+bool Fibers::yield()
 	{
 	static int f = -1; // round robin index into fibers
 
-	bool low = false;
+	if (current() != main())
+		{
+		switchto(MAIN);
+		return true;
+		}
+
 	int nfibers = fibers.size();
 	int i;
 	for (i = 0; i < nfibers; ++i)
 		{
 		f = (f + 1) % nfibers;
-		if (fibers[f].priority < 0)
+		if (fibers[f].status == Fiber::ENDED)
 			{
-			low = true;
-			continue ;
+			DeleteFiber(fibers[f].fiber);
+			memset(&fibers[f], 0, sizeof (Fiber));
+			fibers[f].status = Fiber::REUSE;
 			}
-		if (fibers[f].status == Fiber::READY)
+		else if (runnable(fibers[f]))
 			{
 			switchto(f);
-			return ;
+			return true;
 			}
 		}
-	if (low)
-		for (i = 0; i < nfibers; ++i)
-			{
-			f = (f + 1) % nfibers;
-			if (fibers[f].priority >= 0)
-				continue ;
-			if (fibers[f].status == Fiber::READY)
-				{
-				switchto(f);
-				return ;
-				}
-			}
 	// no runnable fibers
-	switchto(MAIN);
+	return false;
 	}
 
 void* Fibers::current()
@@ -269,29 +307,12 @@ void Fibers::unblock(void* fiber)
 	error("unblock didn't find fiber");
 	}
 
-void Fibers::end()
+[[noreturn]] void Fibers::end()
 	{
 	verify(current() != main());
 	curfiber->status = Fiber::ENDED;
 	yield();
 	unreachable();
-	}
-
-// called by main fiber message loop
-void Fibers::cleanup()
-	{
-#ifndef __GNUC__
-	verify(current() == main());
-	for (int i = 0; i < fibers.size(); ++i)
-		{
-		if (i != cur && fibers[i].status == Fiber::ENDED)
-			{
-			DeleteFiber(fibers[i].fiber);
-			memset(&fibers[i], 0, sizeof Fiber);
-			fibers[i].status = Fiber::REUSE;
-			}
-		}
-#endif
 	}
 
 void Fibers::foreach_stack(StackFn fn)
@@ -313,12 +334,6 @@ void Fibers::foreach_proc(ProcFn fn)
 void sleepms(int ms)
 	{
 	Sleep(ms); 
-	}
-
-void Fibers::priority(int p)
-	{
-	verify(p == 0 || p == -1);
-	curfiber->priority = p;
 	}
 
 int Fibers::size()

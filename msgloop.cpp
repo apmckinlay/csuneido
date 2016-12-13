@@ -25,6 +25,7 @@
 #include "awcursor.h"
 #include "fibers.h"
 #include "sunapp.h"
+#include "except.h"
 
 void free_callbacks();
 
@@ -39,12 +40,13 @@ void message_loop(HWND hdlg)
 		if (hdlg && GetWindowLong(hdlg, GWL_USERDATA) == 1)
 			return ;
 		
-		if (! PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+		while (! PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
 			{ 
-			Fibers::cleanup();
-			Fibers::yield();
-			// at this point either message waiting or no runnable fibers
-			GetMessage(&msg, 0, 0, 0);
+			if (! Fibers::yield())
+				// no runnable fibers so wait for event for up to 10 ms
+				// need to wait so we don't poll continuously (20ms gives low cpu usage)
+				// need timeout so yield can wake sleeping fibers
+				MsgWaitForMultipleObjects(0, nullptr, FALSE, 20 /* ms */, QS_ALLINPUT);
 			}
 
 		AutoWaitCursor wc;
@@ -74,7 +76,7 @@ void message_loop(HWND hdlg)
 
 		free_callbacks();
 		}
-	// shouldn't get here
+	unreachable();
 	}
 
 static BOOL CALLBACK destroy_func(HWND hwnd, LPARAM lParam)

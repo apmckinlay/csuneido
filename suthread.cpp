@@ -85,6 +85,7 @@ Value ThreadClass::call(Value self, Value member, short nargs, short nargnames, 
 	static Value Count("Count");
 	static Value List("List");
 	static Value Name("Name");
+	static Value Sleep("Sleep");
 
 	argseach(nargs, nargnames, argnames, each);
 
@@ -116,6 +117,13 @@ Value ThreadClass::call(Value self, Value member, short nargs, short nargnames, 
 			except("usage: Thread.Name(name = false)");
 		//TODO implement Thread.Name()
 		return "";
+		}
+	else if (member == Sleep)
+		{
+		if (nargs != 1)
+			except("usage: Thread.Sleep(milliseconds)");
+		Fibers::sleep(ARG(0).integer());
+		return Value();
 		}
 	else
 		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);

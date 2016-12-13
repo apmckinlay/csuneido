@@ -46,8 +46,8 @@ struct Fibers
 	// get main fibers dbms
 	static class Dbms* main_dbms();
 
-	// yield until the next time slice
-	static void sleep();
+	// yield and don't run again till time has passed
+	static void sleep(int ms = 20);
 
 	// mark the fiber as blocked and yield
 	static void block();
@@ -58,8 +58,8 @@ struct Fibers
 	// if messages queued (including slice timer), switch fibers
 	static void yieldif();
 
-	// yield for sure
-	static void yield();
+	// yield for sure, returns false if no runnable background fibers
+	static bool yield();
 
 	// mark current fiber as done and yield
 	static void end();
@@ -70,9 +70,6 @@ struct Fibers
 	// for garbage collection
 	static void foreach_stack(StackFn fn);
 	static void foreach_proc(ProcFn fn);
-
-	// change priority (for dbcopy)
-	static void priority(int p);
 
 	// current number of fibers
 	static int size();

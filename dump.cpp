@@ -34,13 +34,11 @@ struct Session
 	{
 	Session()
 		{
-		Fibers::priority(-1);
 		tran = theDB()->transaction(READONLY);
 		}
 	~Session()
 		{
 		theDB()->commit(tran);
-		Fibers::priority(0);
 		}
 	int tran;
 	};
