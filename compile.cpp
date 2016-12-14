@@ -28,6 +28,7 @@
 #include <string.h>
 #include "std.h"
 #include <vector>
+#include <memory>
 #include "value.h"
 #include "sunumber.h"
 #include "scanner.h"
@@ -59,14 +60,14 @@ using namespace std;
 template <class T> T* dup(const vector<T>& x)
 	{
 	T* y = new T[x.size()];
-	uninitialized_copy(x.begin(), x.end(), y);
+	std::uninitialized_copy(x.begin(), x.end(), y);
 	return y;
 	}
 
 template <class T> T* dup(const vector<T>& x, NoPtrs)
 	{
 	T* y = new(noptrs) T[x.size()];
-	uninitialized_copy(x.begin(), x.end(), y);
+	std::uninitialized_copy(x.begin(), x.end(), y);
 	return y;
 	}
 
