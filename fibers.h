@@ -89,6 +89,7 @@ struct ThreadLocalStorage
 	Dbms* thedbms;
 	SesViews* session_views;
 	char* fiber_id;
+	int synchronized; // normally 0 (meaning allow yield), set by Synchronized
 	};
 
 extern ThreadLocalStorage& tls();

@@ -186,9 +186,9 @@ PRIM(display, "Display(value)");
 struct Synch
 	{
 	Synch()
-		{ ++tls().proc->synchronized; }
+		{ ++tls().synchronized; }
 	~Synch()
-		{ --tls().proc->synchronized; }
+		{ --tls().synchronized; }
 	};
 
 Value synchronized()

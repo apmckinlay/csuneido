@@ -219,7 +219,6 @@ Value Frame::run()
 				}
 			extern void ckinterrupt();
 			ckinterrupt();
-			if (! tls().proc->synchronized)
 				Fibers::yieldif();
 			break;
 		case I_POP :

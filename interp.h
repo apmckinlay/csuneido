@@ -134,7 +134,7 @@ Value dynamic(ushort);
 // a process (Fibers)
 struct Proc
 	{
-	Proc() : fp(frames), super(0), in_handler(false), synchronized(0)
+	Proc() : fp(frames), super(0), in_handler(false)
 		{ }
 	void clear_unused();
 
@@ -145,7 +145,6 @@ struct Proc
 	short super;
 	bool in_handler;
 	Value block_return_value;
-	int synchronized; // normally 0 (meaning allow yield), incremented by Synchronized
 	};
 
 // push and pop Frame's

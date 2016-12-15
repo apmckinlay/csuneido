@@ -71,13 +71,13 @@ static std::vector<Fiber> fibers;
 const int MAIN = -1;
 static int cur = MAIN;
 #define curfiber (cur < 0 ? &main_fiber : &fibers[cur])
-static int64 last_switch;
 static int64 qpc_freq;
+static int64 run_until;
 
 static const int TIME_SLICE_MS = 50;
 
 ThreadLocalStorage::ThreadLocalStorage() 
-	: proc(0), thedbms(0), session_views(0), fiber_id("")
+	: proc(0), thedbms(0), session_views(0), fiber_id(""), synchronized(0)
 	{ }
 
 ThreadLocalStorage& tls()
@@ -194,29 +194,16 @@ static void switchto(int i)
 	verify(fiber.status == Fiber::READY);
 	if (i == cur)
 		return ;
-	last_switch = qpc();
+	run_until = qpc() + ((TIME_SLICE_MS * qpc_freq) / 1000);
 	save_stack();
 	
 	cur = i;
 	SwitchToFiber(fiber.fiber);
 	}
 
-bool message_on_event_queue()
-	{
-	return HIWORD(GetQueueStatus(QS_ALLEVENTS));
-	}
-
-bool time_slice_finished()
-	{
-	auto t = qpc();
-	auto d = t - last_switch; // elapsed time in ticks
-	auto ms = (d * 1000) / qpc_freq; // elapsed time in milliseconds
-	return ms > TIME_SLICE_MS;
-	}
-
 void Fibers::yieldif()
 	{
-	if (message_on_event_queue() || time_slice_finished())
+	if (tls().synchronized == 0 && qpc() > run_until)
 		yield();
 	}
 
