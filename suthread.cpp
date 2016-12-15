@@ -64,6 +64,17 @@ struct ThreadInfo
 	Value fn;
 	};
 
+HashMap<UINT, const char*> threadErrors;
+
+static void CALLBACK threadError(HWND hwnd, UINT message, UINT id, DWORD dwTime)
+	{
+	KillTimer(nullptr, id);
+	auto msg = threadErrors[id];
+	threadErrors.erase(id);
+	alert("ERROR in Thread: " << msg);
+	}
+
+// this is a wrapper that runs inside the fiber to catch exceptions
 static void _stdcall thread(void* arg)
 	{
 	Proc p; tls().proc = &p;
@@ -76,7 +87,9 @@ static void _stdcall thread(void* arg)
 		}
 	catch (const Except& e)
 		{
-		alert("ERROR in Thread: " << e.str());
+		// use a timer to do the alert from the main fiber
+		auto id = SetTimer(nullptr, 0, 0, threadError);
+		threadErrors[id] = e.str();
 		}
 	}
 
