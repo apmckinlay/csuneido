@@ -29,7 +29,7 @@
 
 #include "hashtbl.h"
 
-// hash map template, similar to STL, derived from Hashtbl
+// hash map template, similar to STL, uses Hashtbl
 template <class Key, class Val, class Hfn = HashFn<Key>, class Keq = KeyEq<Key> >
 class HashMap
 	{
