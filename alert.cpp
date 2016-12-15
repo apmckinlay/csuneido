@@ -25,6 +25,7 @@
 #include "ostreamstr.h"
 #include "cmdlineoptions.h"
 #include "errlog.h"
+#include <string.h>
 
 static OstreamStr os;
 
