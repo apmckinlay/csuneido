@@ -41,9 +41,14 @@ Dbms* dbms()
 		{ // client
 		if (! tls().thedbms)
 			{
-			tls().thedbms = (Fibers::current() == Fibers::main() ? 
-				dbms_remote(server_ip) : dbms_remote_asynch(server_ip));
-			tls().thedbms->auth(Fibers::main_dbms()->token());
+			if (Fibers::current() == Fibers::main())
+				tls().thedbms = dbms_remote(server_ip);
+			else
+				{
+				auto tok = Fibers::main_dbms()->token();
+				tls().thedbms = dbms_remote_asynch(server_ip);
+				tls().thedbms->auth(tok);
+				}
 			}
 		return tls().thedbms;
 		}
