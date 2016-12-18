@@ -67,6 +67,8 @@ inline void write(const char* s)
 	WriteFile(h_file, s, strlen(s), &n, 0);
 	}
 
+extern bool is_client;
+
 inline void log_and_exit(const char* error, const char* extra = "")
 	{
 	static bool exiting = false;
@@ -76,7 +78,6 @@ inline void log_and_exit(const char* error, const char* extra = "")
 
 	// if client, write temporarily to suneido.err
 	// to be picked up when client restarts
-	extern bool is_client;
 	h_file = CreateFile(
 		is_client ? err_filename() : "error.log",
 		GENERIC_WRITE, 0, 0, OPEN_ALWAYS, 0, 0);
