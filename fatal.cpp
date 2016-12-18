@@ -25,17 +25,15 @@
 #include "cmdlineoptions.h"
 #include "errlog.h"
 
+extern bool is_client;
+extern void message(const char*, const char*, unsigned long timeout_ms);
+
 void fatal(const char* error, const char* extra)
 	{
 	if (! cmdlineoptions.unattended)
-		{
-		extern void message(const char*, const char*);
-		message("FATAL: ", error);
-		}
-	extern bool is_client;
+		message("FATAL: ", error, 10 * 1000); // 10 seconds
 	if (is_client)
-		// assume we've lost connection
-		fatal_log(error, extra);
+		fatal_log(error, extra); // assume we've lost connection
 	else
 		errlog("FATAL: ", error, extra);
 	exit(-1);

@@ -243,23 +243,45 @@ void ckinterrupt()
 
 struct St
 	{
-	St(const char* s_, const char* t_) : s(s_), t(t_)
+	St(const char* s_, const char* t_, ulong to) : s(s_), t(t_), timeout(to)
 		{ }
 	const char* s;
 	const char* t;
+	ulong timeout;
 	};
+
+typedef int(__stdcall *MSGBOXAPI)(IN HWND hWnd, IN LPCSTR lpText, IN LPCSTR lpCaption, 
+	IN UINT uType, IN WORD wLanguageId, IN DWORD dwMilliseconds);
+
+MSGBOXAPI getMessageBoxTimeout()
+	{
+	auto hUser32 = LoadLibrary("user32.dll");
+	if (hUser32)
+		{
+		auto fn = (MSGBOXAPI)GetProcAddress(hUser32, "MessageBoxTimeoutA");
+		FreeLibrary(hUser32);
+		return fn;
+		}
+	// fallback to normal MessageBox, ignoring timeout
+	return (MSGBOXAPI) [](HWND hWnd, LPCSTR lpText, LPCSTR lpCaption,
+		UINT uType, WORD wLanguageId, DWORD dwMilliseconds) 
+		{ return MessageBox(hWnd, lpText, lpCaption, uType); };
+	}
 
 DWORD WINAPI message_thread(void* p)
 	{
-	St* st = (St*) p;
-	MessageBox(0, st->t, st->s, MB_OK | MB_TASKMODAL | MB_TOPMOST | MB_SETFOREGROUND);
+	static auto MessageBoxTimeout = getMessageBoxTimeout();
+	St* st = static_cast<St*>(p);
+	MessageBoxTimeout(0, st->t, st->s, 
+		MB_OK | MB_TASKMODAL | MB_TOPMOST | MB_SETFOREGROUND, 0, st->timeout);
 	return 0;
 	}
 
-void message(const char* s, const char* t)
+// timeout is used by fatal
+void message(const char* s, const char* t, ulong timeout_ms = INFINITE)
 	{
-	St st(s, t);
-	HANDLE thread = CreateThread(NULL, 0, message_thread, (void*) &st, 0, NULL);
+	St st(s, t, timeout_ms);
+	HANDLE thread = CreateThread(nullptr, 0, message_thread, (void*) &st, 0, nullptr);
 	WaitForSingleObject(thread, INFINITE);
 	}
 
@@ -267,7 +289,7 @@ void handler(const Except& x)
 	{
 	if (tls().proc->in_handler)
 		{
-		message("Error in Error Handler", x.str());
+		message("Error in Handler", x.str());
 		return ;
 		}
 	tls().proc->in_handler = true;
@@ -284,7 +306,7 @@ void handler(const Except& x)
 		}
 	catch (const Except& e)
 		{
-		message("Error in Debug", e.str());
+		message("Error in Handler", e.str());
 		}
 	tls().proc->in_handler = false;
 	}
