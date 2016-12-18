@@ -29,6 +29,8 @@
 class SocketConnect
 	{
 public:
+	virtual ~SocketConnect()
+		{ }
 	virtual int read(char* buf, int n) = 0;
 	virtual bool readline(char* buf, int n) = 0;
 	virtual void write(char* buf, int n) = 0;

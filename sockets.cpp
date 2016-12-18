@@ -53,6 +53,9 @@
 #define LOG(stuff)
 #endif
 
+#define cantConnect(msg) \
+	except("can't connect to " << addr << ":" << port << " " << msg)
+
 const int WM_SOCKET	= WM_USER + 1;
 
 // protect from garbage collection ==================================
@@ -234,7 +237,7 @@ class SocketConnectAsynch : public SocketConnect
 public:
 	SocketConnectAsynch(HWND h, int s, void* a, char* n) 
 		: hwnd(h), sock(s), arg(a), close_pending(false), 
-		mode(CONNECT), blocked(0), adr(dupstr(n)), connect_error(false)
+		mode(CONNECT), blocked(0), blocked_len(0), adr(dupstr(n)), connect_error(false)
 		{ }
 	bool connect(struct addrinfo* ai);
 	void event(int msg);
@@ -577,7 +580,7 @@ SocketConnect* socketClientAsynch(char* addr, int port)
 	if (! sc->connect(ai))
 		{
 		protsca.release(sc);
-		except("can't connect to " << addr << ":" << port);
+		cantConnect(" (asynch)");
 		}
 	return sc;
 	}
@@ -618,24 +621,24 @@ SocketConnect* socketClientSynch(char* addr, int port, int timeout, int timeoutC
 	if (timeoutConnect == 0) // default timeout
 		{
 		if (0 != connect(sock, ai->ai_addr, ai->ai_addrlen))
-			except("can't connect to " << addr << ":" << port);
-		}
+			cantConnect(" (synch)");
+	}
 	else
 		{
 		ULONG NonBlocking = 1;
 		ioctlsocket(sock, FIONBIO, &NonBlocking);
 		int ret = connect(sock, ai->ai_addr, ai->ai_addrlen);
 		if (ret != 0 && ret != SOCKET_ERROR)
-			except("can't connect to " << addr << ":" << port);
+			cantConnect(" (synch)");
 		FDS(wfds, sock);
 		FDS(efds, sock);
 		struct timeval tv;
 		tv.tv_sec = timeoutConnect / 1000;
 		tv.tv_usec = (timeoutConnect % 1000) * 1000; // ms => us
 		if (0 == select(0, NULL, &wfds, &efds, &tv))
-			except("socket connection timeout\n");
+			except("socket connection timeout");
 		if (FD_ISSET(sock, &efds))
-			except("socket connection error\n");
+			except("socket connection error");
 		ULONG Blocking = 0;
 		ioctlsocket(sock, FIONBIO, &Blocking);
 		}
@@ -769,11 +772,11 @@ SocketConnect* socketClientPoll(char* addr, int port, int timeout, int timeoutCo
 
 	ULONG NonBlocking = 1;
 	if (0 != ioctlsocket(sock, FIONBIO, &NonBlocking))
-		except("socket ioctl error " << WSAGetLastError());
+		cantConnect(WSAGetLastError());
 
 	int ret = connect(sock, ai->ai_addr, ai->ai_addrlen);
 	if (ret == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
-		except("can't connect to " << addr << ":" << port);
+		cantConnect(WSAGetLastError());
 
 	if (timeoutConnect <= 0)
 		timeoutConnect = 60 * 1000; // default of 60 seconds
@@ -785,13 +788,13 @@ SocketConnect* socketClientPoll(char* addr, int port, int timeout, int timeoutCo
 		struct timeval tv = { 0, 0 };
 		int result = select(0, nullptr, &wfds, &efds, &tv);
 		if (SOCKET_ERROR == result)
-			except("socket connection error " << WSAGetLastError());
+			cantConnect(WSAGetLastError());
 		if (FD_ISSET(sock, &efds))
-			except("socket connection error\n");
+			except("socket connection error");
 		if (FD_ISSET(sock, &wfds))
 			break;
 		if (result != 0)
-			except("unexpected! " << result);
+			except("socket connection error");
 		if (clock() > deadline)
 			except("socket connection timeout");
 		Fibers::sleep();
