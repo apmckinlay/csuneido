@@ -82,7 +82,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		SuString* s = new SuString(n);
 		int nr = sc->read(s->buf(), n);
 		if (nr <= 0)
-			except("socket client: lost connection or timeout in Read(" << n << ")");
+			except("socket Read lost connection or timeout");
 		return s->substr(0, nr);
 		}
 	else if (member == Readline)
@@ -94,7 +94,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		char buf[MAX_LINE + 1] = { 0 };
 		sc->readline(buf, sizeof buf);
 		if (! *buf)
-			except("socket client: lost connection or timeout in Readline");
+			except("socket Readline lost connection or timeout");
 		// assumes nul termination (so line may not contain nuls)
 		for (int n = strlen(buf) - 1; n >= 0 && (buf[n] == '\r' || buf[n] == '\n'); --n)
 			buf[n] = 0;

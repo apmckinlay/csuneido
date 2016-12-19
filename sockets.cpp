@@ -159,7 +159,7 @@ void socketServer(char* title, int port, pNewServer newserver, void* arg, bool e
 	addr.sin_port = htons(port);
 	addr.sin_addr.s_addr = INADDR_ANY;
 	if (0 != bind(sock, (LPSOCKADDR) &addr, sizeof addr))
-		except("can't bind to port " << port << " (" << WSAGetLastError() << ")");
+		except("socket server can't bind to port " << port << " (" << WSAGetLastError() << ")");
 	verify(0 == listen(sock, 5));
 
 	RECT rect;
@@ -526,7 +526,8 @@ static struct addrinfo* resolve(char* addr, int port)
 	int status;
 	struct addrinfo* ai;
 	if (0 != (status = getaddrinfo(addr, portstr, &hints, &ai)))
-		except("could not resolve " << addr << ":" << portstr << " " << gai_strerror(status));
+		except("socket open failed could not resolve " << addr << ":" << portstr << 
+			" " << gai_strerror(status));
 	return ai;
 	}
 
@@ -658,11 +659,11 @@ void SocketConnectSynch::write(char* buf, int n)
 
 	FDS(fds, sock);
 	if (0 == select(1, NULL, &fds, NULL, &tv))
-		except("SocketClient write timed out");
+		except("socket Write timeout");
 
 	DWORD nSent;
 	if (0 != WSASend(sock, bufs, 2, &nSent, 0, 0, 0))
-		except("SocketClient write failed (" << WSAGetLastError() << ")");
+		except("socket Write failed (" << WSAGetLastError() << ")");
 	}
 
 int SocketConnectSynch::read(char* dst, int dstsize)
@@ -686,7 +687,7 @@ int SocketConnectSynch::read(char* dst, int dstsize)
 		if (n == 0)
 			break ; // connection closed
 		if (n < 0)
-			except("SocketClient read failed (" << WSAGetLastError() << ")");
+			except("socket Read failed (" << WSAGetLastError() << ")");
 		nread += n;
 		}
 	return nread;
@@ -711,7 +712,7 @@ bool SocketConnectSynch::readline(char* dst, int n)
 		if (nr == 0)
 			break ; // connection closed
 		if (nr < 0)
-			except("SocketClient read failed (" << WSAGetLastError() << ")");
+			except("socket Readline failed (" << WSAGetLastError() << ")");
 		rdbuf.added(nr);
 		}
 	char* buf = rdbuf.buffer();
@@ -834,9 +835,9 @@ void SocketConnectPoll::write(char* buf, int n)
 		{
 		// NOTE: assuming that if WOULDBLOCK then nSent is 0
 		DWORD nSent = 0;
-		POLL("write", WSASend(sock, bufs, NBUFS, &nSent, 0, nullptr, nullptr));
+		POLL("Write", WSASend(sock, bufs, NBUFS, &nSent, 0, nullptr, nullptr));
 		if (result != 0)
-			except("SocketClient write failed (" << result << ")");
+			except("socket Write failed (" << result << ")");
 		int toSend = 0;
 		for (int i = 0; i < NBUFS; ++i)
 			{
@@ -868,11 +869,11 @@ int SocketConnectPoll::read(char* dst, int dstsize)
 	while (nread < dstsize)
 		{
 		DWORD nr;
-		POLL("read", nr = recv(sock, dst + nread, dstsize - nread, 0));
+		POLL("Read", nr = recv(sock, dst + nread, dstsize - nread, 0));
 		if (nr == 0)
 			break; // connection closed
 		if (nr < 0)
-			except("SocketClient read failed (" << result << ")");
+			except("socket Read failed (" << result << ")");
 		nread += nr;
 		}
 	return nread;
@@ -895,7 +896,7 @@ bool SocketConnectPoll::readline(char* dst, int n)
 		if (nr == 0)
 			break; // connection closed
 		if (nr < 0)
-			except("SocketClient read failed (" << result << ")");
+			except("socket Readline failed (" << result << ")");
 		rdbuf.added(nr);
 		}
 	char* buf = rdbuf.buffer();
