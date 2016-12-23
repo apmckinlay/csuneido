@@ -176,7 +176,8 @@ void DbmsLocal::abort(int tran)
 
 bool DbmsLocal::admin(char* s)
 	{
-	return database_admin(s);
+	database_admin(s);
+	return true;
 	}
 
 int DbmsLocal::request(int tran, char* s)

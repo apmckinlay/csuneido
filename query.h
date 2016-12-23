@@ -40,7 +40,7 @@ const double IMPOSSIBLE = DBL_MAX / 10;	// allow for adding impossibles together
 
 bool is_admin(char* s);
 bool is_request(char* s);
-bool database_admin(char* s);
+void database_admin(char* s);
 int database_request(int tran, char* s);
 
 extern Record keymin;

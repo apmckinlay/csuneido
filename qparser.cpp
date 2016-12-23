@@ -91,12 +91,12 @@ class QueryParser
 	{
 public:
 	explicit QueryParser(char*);
-	friend bool database_admin(char* s);
+	friend void database_admin(char* s);
 	friend int database_request(int tran, char* s);
 	friend Query* parse_query(char* s);
 	friend Expr* parse_expr(char* s);
 private:
-	bool admin();
+	void admin();
 	int request(int tran);
 	TableSpec table_spec();
 	Lisp<gcstring> column_list();
@@ -170,11 +170,13 @@ bool is_request(char* s)
 		}
 	}
 
-bool database_admin(char* s)
+void database_admin(char* s)
 	{
 	QueryParser parser(s);
 	try
-		{ return parser.admin(); }
+		{
+		parser.admin();
+		}
 	catch (const Except& e)
 		{
 		if (e.isBlockReturn())
@@ -262,7 +264,7 @@ bool TableSpec::haskey()
 	return false;
 	}
 
-bool QueryParser::admin()
+void QueryParser::admin()
 	{
 	switch (scanner.keyword)
 		{
@@ -296,7 +298,7 @@ bool QueryParser::admin()
 			else
 				throw Except(e, "create: " + e.gcstr());
 			}
-		return true;
+		return;
 		}
 	case K_ENSURE :
 		{
@@ -345,7 +347,7 @@ bool QueryParser::admin()
 				throw Except(e, "ensure: " + e.gcstr());
 			}
 
-		return true;
+		return;
 		}
 	case K_ALTER :
 		{
@@ -370,10 +372,10 @@ bool QueryParser::admin()
 					while (token == ',');
 				if (token != Eof)
 					syntax_error();
-				bool ok = true;
-				for (from.reverse(), to.reverse(); ! nil(from); ++from, ++to)
-					ok = ok && theDB()->rename_column(table, *from, *to);
-				return ok;
+				for (from.reverse(), to.reverse(); !nil(from); ++from, ++to)
+					if (!theDB()->rename_column(table, *from, *to))
+						except("alter failed");
+				return;
 				}
 			int mode = scanner.keyword;
 			if (scanner.keyword != K_CREATE &&
@@ -404,7 +406,7 @@ bool QueryParser::admin()
 			else
 				throw Except(e, "alter: " + e.gcstr());
 			}
-		return true;
+		return;
 		}
 	case K_RENAME :
 		{
@@ -416,7 +418,9 @@ bool QueryParser::admin()
 		match(T_IDENTIFIER);
 		if (token != Eof)
 			syntax_error();
-		return theDB()->rename_table(oldtblname, newtblname);
+		if (!theDB()->rename_table(oldtblname, newtblname))
+			except("rename failed");
+		return;
 		}
 	case K_VIEW :
 		{
@@ -430,7 +434,7 @@ bool QueryParser::admin()
 		if (theDB()->istable(table) || viewdef(table) != "")
 			except("view: '" << table << "' already exists");
 		theDB()->add_view(table, def);
-		return  true;
+		return;
 		}
 	case K_SVIEW :
 		{
@@ -444,7 +448,7 @@ bool QueryParser::admin()
 		if (viewdef(table) != "")
 			except("view: '" << table << "' already exists");
 		set_session_view(table, def);
-		return  true;
+		return;
 		}
 	case K_DROP :
 		{
@@ -461,7 +465,7 @@ bool QueryParser::admin()
 			theDB()->remove_view(table);
 		else
 			theDB()->remove_table(table);
-		return true;
+		return;
 		}
 	default :
 		except("expecting: create, ensure, alter, rename, view, or drop");
@@ -1404,7 +1408,7 @@ class test_qparser : public  Tests
 	{
 	void adm(char* s)
 		{
-		except_if(! database_admin(s), "FAILED: " << s);
+		database_admin(s);
 		}
 	int tran;
 	void req(char* s)
