@@ -118,7 +118,6 @@ private:
 	char* cmd_run(char* s);
 	char* cmd_size(char* s);
 	char* cmd_connections(char* s);
-	char* cmd_recordok(char* s);
 	char* cmd_tempdest(char* s);
 	char* cmd_cursors(char* s);
 	char* cmd_sessionid(char* s);
@@ -321,7 +320,6 @@ void DbServerImp::request(char* buf)
 		CMD(tranlist),
 		CMD(size),
 		CMD(connections),
-		CMD(recordok),
 		CMD(tempdest),
 		CMD(cursors),
 		CMD(sessionid),
@@ -805,13 +803,6 @@ char* DbServerImp::cmd_update(char* s)
 
 	os << 'U' << mmoffset_to_int(dbms()->update(tran, recadr, newrec)) << "\r\n";
 	return os.str();
-	}
-
-char* DbServerImp::cmd_recordok(char* s)
-	{
-	int tran = ck_getnum('T', s);
-	Mmoffset recadr = int_to_mmoffset(ck_getnum('A', s));
-	return bool_result(dbms()->record_ok(tran, recadr));
 	}
 
 char* DbServerImp::cmd_commit(char* s)

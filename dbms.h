@@ -78,7 +78,6 @@ public:
 	virtual Value connections() = 0;
 	virtual void erase(int tran, Mmoffset recadr) = 0;
 	virtual Mmoffset update(int tran, Mmoffset recadr, Record& rec) = 0;
-	virtual bool record_ok(int tran, Mmoffset recadr) = 0;
 	virtual Row get(Dir dir, char* query, bool one, Header& hdr, int tran = 0) = 0;
 	virtual int tempdest() = 0;
 	virtual int cursors() = 0;
