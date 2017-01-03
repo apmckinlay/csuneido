@@ -842,15 +842,11 @@ char* DbServerImp::cmd_timestamp(char* s)
 	return os.str();
 	}
 
-#include "dump.h"
-
 char* DbServerImp::cmd_dump(char* s)
 	{
 	dbms()->dump(s);
 	return value_result("");
 	}
-
-#include "load.h"
 
 char* DbServerImp::cmd_load(char* s)
 	{

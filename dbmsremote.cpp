@@ -315,7 +315,7 @@ bool DbmsQueryRemote::output(const Record& rec)
 	int reclen = rec.cursize();
 	CK(reclen);
 	WRITEBUF("OUTPUT " << this << " R" << reclen);
-	sc.write((char*) rec.dup().ptr(), reclen);
+	sc.write((char*) rec.dup().ptr(), reclen); // dup only required for async ???
 	return sc.readbool();
 	}
 
@@ -640,7 +640,7 @@ Mmoffset DbmsRemote::update(int tran, Mmoffset recadr, Record& rec)
 	int reclen = rec.cursize();
 	CK(reclen);
 	WRITEBUF("UPDATE T" << tran << " A" << mmoffset_to_int(recadr) << " R" << reclen);
-	sc.write((char*) rec.dup().ptr(), reclen);
+	sc.write((char*) rec.dup().ptr(), reclen); // dup only required for async ???
 	return int_to_mmoffset(sc.readint('U'));
 	}
 
@@ -701,7 +701,7 @@ int DbmsRemote::final()
 
 void DbmsRemote::log(char* s)
 	{
-	extern char* stripnl(char* s);
+	extern char* stripnl(char*);
 	WRITE("LOG " << stripnl(s));
 	sc.ck_ok();
 	}
@@ -778,7 +778,7 @@ static char* httpget(char* addr, int port)
 		buf[n] = 0;
 		return _strdup(buf);
 		}
-	catch (const Except& e)
+	catch (const Except&)
 		{
 		return "";
 		}
@@ -790,13 +790,13 @@ Dbms* dbms_remote(char* addr)
 		{
 		return new DbmsRemote(socketClientSynch(addr, su_port));
 		}
-	catch (const Except& e)
+	catch (const Except&)
 		{
 		char* status = httpget(addr, su_port + 1);
 		if (strstr(status, "Checking database ..."))
 			fatal("Can't connect, server is checking the database, please try again later");
 		else if (strstr(status, "Rebuilding database ..."))
 			fatal("Can't connect, server is repairing the database, please try again later");
-		throw e;
+		throw;
 		}
 	}
