@@ -195,7 +195,7 @@ private:
 	void record();
 	ushort literal(Value value, bool reuse = false);
 	short emit_literal();
-	short local(bool init = false);
+	ushort local(bool init = false);
 	PrevLit poplits();
 	short emit(short, short = 0, short = 0, short = 0, vector<ushort>* = 0);
 	void patch(short);
@@ -2030,7 +2030,7 @@ ushort FunctionCompiler::literal(Value x, bool reuse)
 	return literals.size() - 1;
 	}
 
-short FunctionCompiler::local(bool init)
+ushort FunctionCompiler::local(bool init)
 	{
 	ushort num = symnum(scanner.value);
 
