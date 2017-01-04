@@ -59,10 +59,6 @@ Dbms* dbms()
 		}
 	}
 
-Dbms::~Dbms()
-	{
-	}
-
 bool isclient()
 	{ return server_ip != 0; }
 

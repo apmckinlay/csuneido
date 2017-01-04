@@ -38,8 +38,7 @@ class SuValue;
 class DbmsQuery
 	{
 public:
-	virtual ~DbmsQuery()
-		{ }
+	virtual ~DbmsQuery() = default;
 	virtual Header header() = 0;
 	virtual Lisp<gcstring> order() = 0;
 	virtual Lisp<Lisp<gcstring> > keys() = 0;
@@ -56,7 +55,7 @@ class Value;
 class Dbms
 	{
 public:
-	virtual ~Dbms();
+	virtual ~Dbms() = default;
 
 	enum TranType { READONLY, READWRITE };
 	virtual int transaction(TranType type, char* session_id = "") = 0;

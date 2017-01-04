@@ -253,6 +253,12 @@ struct St
 typedef int(__stdcall *MSGBOXAPI)(IN HWND hWnd, IN LPCSTR lpText, IN LPCSTR lpCaption, 
 	IN UINT uType, IN WORD wLanguageId, IN DWORD dwMilliseconds);
 
+int __stdcall fallback(IN HWND hWnd, IN LPCSTR lpText, IN LPCSTR lpCaption,
+	IN UINT uType, IN WORD wLanguageId, IN DWORD dwMilliseconds)
+	{
+	return MessageBox(hWnd, lpText, lpCaption, uType);
+	}
+
 MSGBOXAPI getMessageBoxTimeout()
 	{
 	auto hUser32 = LoadLibrary("user32.dll");
@@ -263,9 +269,7 @@ MSGBOXAPI getMessageBoxTimeout()
 		return fn;
 		}
 	// fallback to normal MessageBox, ignoring timeout
-	return (MSGBOXAPI) [](HWND hWnd, LPCSTR lpText, LPCSTR lpCaption,
-		UINT uType, WORD wLanguageId, DWORD dwMilliseconds) 
-		{ return MessageBox(hWnd, lpText, lpCaption, uType); };
+	return fallback;
 	}
 
 DWORD WINAPI message_thread(void* p)

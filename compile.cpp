@@ -1522,7 +1522,7 @@ void FunctionCompiler::unop()
 		match();
 		unop();
 		if (t != I_ADD)	// should have I_UPLUS
-			emit(t == I_SUB ? I_UMINUS : t);
+			emit(t == I_SUB ? short(I_UMINUS) : t);
 		}
 	else if (scanner.keyword == K_NEW)
 		{

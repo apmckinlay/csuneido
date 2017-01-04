@@ -87,7 +87,7 @@ static void create_job(HANDLE hProcess)
 		alert("Could not create job object");
 		return ;
 		}
-	JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = { 0 };
+	JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = { };
 	// Configure the job to terminate child processes when it's finished
 	jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
 	if (0 == SetInformationJobObject(ghJob, JobObjectExtendedLimitInformation, 

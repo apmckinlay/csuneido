@@ -61,20 +61,24 @@ gcstring tr(const gcstring& srcstr, gcstring from, const gcstring& to)
 	char* buf = new char[srclen + 1];
 	memcpy(buf, src, si);
 	char* dst = buf + si;
+
 	for (; si < srclen; ++si)
 		{
 		int i = xindex(fromset, src[si], allbut, lastto);
-		if (collapse && i >= lastto)
-			{
-			*dst++ = toset[lastto];
-			do
+		// mingw g++ 5.3 gives spurious strict-overflow warning
+		// if the following two lines are combined with &&
+		if (collapse)
+			if (i >= lastto)
 				{
-				if (++si >= srclen)
-					goto finished;
-				i = xindex(fromset, src[si], allbut, lastto);
+				*dst++ = toset[lastto];
+				do
+					{
+					if (++si >= srclen)
+						goto finished;
+					i = xindex(fromset, src[si], allbut, lastto);
+					}
+					while (i >= lastto);
 				}
-				while (i >= lastto);
-			}
 		if (i < 0)
 			*dst++ = src[si];
 		else if (lastto >= 0)
@@ -102,7 +106,7 @@ static gcstring expandRanges(const gcstring& s)
 	{
 	int n = s.size();
 	OstreamStr dst(n);
-	for (int i = 0; i < s.size(); ++i)
+	for (int i = 0; i < n; ++i)
 		if (s[i] == '-' && i > 0 && i + 1 < n)
 			for (uchar c = s[i - 1] + 1; c < (uchar) s[i + 1]; ++c)
 				dst << c;
@@ -115,7 +119,7 @@ static int xindex(const gcstring& fromset, char c, bool allbut, int lastto)
 	{
 	int i = fromset.find(c);
 	if (allbut)
-		return i == -1 ? lastto + 1 : -1;
+		return (i == -1) ? lastto + 1 : -1;
 	else
 		return i;
 	}
@@ -156,6 +160,9 @@ class test_tr : public Tests
 		asserteq(tr("hello", "^\x20-\xff", ""), "hello");
 		asserteq(tr("hello\x7f", "\x70-\x7f", ""), "hello");
 		asserteq(tr("hello\xff", "\x7f-\xff", ""), "hello");
+		
+		asserteq(tr("abc", "abcdefghijklmnop", "abcdefg"), "abc");
+		asserteq(tr("nop", "abcdefghijklmnop", "abcdefg"), "g");
 		}
 	};
 REGISTER(test_tr);

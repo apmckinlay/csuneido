@@ -454,7 +454,7 @@ void QueryParser::admin()
 		{
 		match();
 		gcstring table = scanner.value;
-		match(token == T_IDENTIFIER ? token : T_STRING);
+		match(token == T_IDENTIFIER ? token : short(T_STRING));
 
 		if (token != Eof)
 			syntax_error();

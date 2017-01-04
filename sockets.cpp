@@ -809,7 +809,7 @@ SocketConnect* socketClientPoll(char* addr, int port, int timeout, int timeoutCo
 	int result = 0; \
 	while (true) \
 		{ \
-		result = op; \
+		result = (op); \
 		if (result != SOCKET_ERROR || WSAGetLastError() != WSAEWOULDBLOCK) \
 			break ; \
 		if (clock() > deadline) \
@@ -868,7 +868,7 @@ int SocketConnectPoll::read(char* dst, int dstsize)
 	clock_t deadline = clock() + (CLOCKS_PER_SEC * timeout);
 	while (nread < dstsize)
 		{
-		DWORD nr;
+		int nr;
 		POLL("Read", nr = recv(sock, dst + nread, dstsize - nread, 0));
 		if (nr == 0)
 			break; // connection closed
