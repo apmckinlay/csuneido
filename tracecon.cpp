@@ -31,7 +31,7 @@ class OstreamTrace : public Ostream
 public:
 	OstreamTrace()
 		{ }
-	Ostream& write(const void* buf, int n)
+	Ostream& write(const void* buf, int n) override
 		{
 		if (trace_level & TRACE_CONSOLE)
 			con().write(buf, n);
@@ -39,23 +39,19 @@ public:
 			log().write(buf, n);
 		return *this;
 		}
-	void flush()
+	void flush() override
 		{
 		if (trace_level & TRACE_CONSOLE)
 			con().flush();
 		if (trace_level & TRACE_LOGFILE)
 			log().flush();
 		}
-	operator void*()
-		{
-		return this;
-		}
-	Ostream& con()
+	static Ostream& con()
 		{
 		static OstreamCon con;
 		return con;
 		}
-	Ostream& log()
+	static Ostream& log()
 		{
 		static OstreamFile log("trace.log", "w");
 		return log;

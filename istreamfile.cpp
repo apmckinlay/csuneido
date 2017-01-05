@@ -32,8 +32,8 @@ public:
 		{ if (f) fclose(f); }
 	int get()
 		{ return f ? fgetc(f) : -1; }
-	operator void*()
-		{ return (void*) f; }
+	explicit operator bool() const
+		{ return f; }
 	int tellg()
 		{ return ftell(f); }
 	void seekg(int pos)
@@ -64,9 +64,9 @@ int IstreamFile::get_()
 	return imp->get();
 	}
 
-IstreamFile::operator void*()
+IstreamFile::operator bool() const
 	{
-	return *imp;
+	return bool(*imp);
 	}
 
 int IstreamFile::tellg()

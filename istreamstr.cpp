@@ -30,7 +30,7 @@ public:
 		{ }
 	int get()
 		{ return p < end ? *p++ : -1; }
-	int tellg()
+	int tellg() const
 		{ return p - buf; }
 	void seekg(int pos)
 		{ p = buf + pos; }
@@ -53,8 +53,8 @@ IstreamStr::IstreamStr(char* buf, int n)
 int IstreamStr::get_()
 	{ return imp->get(); }
 
-IstreamStr::operator void*()
-	{ return (void*) 1; }
+IstreamStr::operator bool() const
+	{ return true; }
 
 int IstreamStr::tellg()
 	{ return imp->tellg(); }

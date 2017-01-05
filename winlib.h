@@ -37,7 +37,7 @@ struct WinLib
 		}
 	void* GetProcAddress(char* name)
 		{ return (void*) ::GetProcAddress(lib, name); }
-	operator void*()
+	explicit operator bool() const
 		{ return lib; }
 
 	char* name;

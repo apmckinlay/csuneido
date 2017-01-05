@@ -62,7 +62,7 @@ public:
 
 	SuValue* ptr() const
 		{ return is_int() ? 0 : p; }
-	operator void*() const	// to allow if(val)
+	explicit operator bool() const	// to allow if(val)
 		{ return p; }
 	Value operator-() const; // neg
 
@@ -98,6 +98,8 @@ public:
 		{ return is_int() ? "Number" : p ? VAL->type() : "null"; }
 	Named* get_named()
 		{ return is_int() || ! p ? 0 : VAL->get_named(); }
+	bool sameAs(Value other) const
+		{ return p == other.p; }
 
 	friend bool operator==(Value x, Value y);
 	friend bool operator<(Value x, Value y);

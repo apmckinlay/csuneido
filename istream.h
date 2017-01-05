@@ -35,8 +35,8 @@ public:
 	Istream& getline(char* buf, int n);
 	bool eof()
 		{ return eofbit; }
-	operator void*()
-		{ return (void*) (failbit == false); }
+	explicit operator bool() const
+		{ return !failbit; }
 	void putback(char c)
 		{ next = c; }
 	int peek()

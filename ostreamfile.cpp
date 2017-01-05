@@ -28,13 +28,13 @@ class OstreamFileImp
 public:
 	OstreamFileImp(const char* filename, const char* mode) : f(fopen(filename, mode))
 		{ }
-	void close()
+	void close() const
 		{ if (f) fclose(f); }
-	void add(const void* s, int n)
+	void add(const void* s, int n) const
 		{ if (f) fwrite(s, n, 1, f); }
-	operator void*()
-		{ return (void*) f; }
-	void flush()
+	explicit operator bool() const
+		{ return f; }
+	void flush() const
 		{ if (f) fflush(f); }
 private:
 	FILE* f;
@@ -58,8 +58,8 @@ void OstreamFile::flush()
 	imp->flush();
 	}
 
-OstreamFile::operator void*()
+OstreamFile::operator bool() const
 	{
-	return *imp;
+	return bool(*imp);
 	}
 

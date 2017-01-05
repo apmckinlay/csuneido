@@ -34,7 +34,7 @@ public:
 	OstreamFile(const char* filename, const char* mode = "w");
 	~OstreamFile();
 	Ostream& write(const void* buf, int n);
-	operator void*();
+	explicit operator bool() const;
 	void flush();
 private:
 	OstreamFileImp* imp;
