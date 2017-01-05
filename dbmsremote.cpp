@@ -365,40 +365,39 @@ class DbmsRemote : public Dbms
 public:
 	DbmsRemote(SocketConnect* s);
 	~DbmsRemote();
-	int transaction(TranType type, char* session_id = "");
-	bool commit(int tran, char** conflict);
-	void abort(int tran);
 
-	bool admin(char* s);
-	int request(int tran, char* s);
-	DbmsQuery* cursor(char* s);
-	DbmsQuery* query(int tran, char* s);
-	Lisp<gcstring> libget(char* name);
-	Lisp<gcstring> libraries();
-	Lisp<int> tranlist();
-	Value timestamp();
-	Value dump(char* filename);
-	int load(char* filename);
-	Value run(char* s);
-	int64 size();
-	Value connections();
-	void erase(int tran, Mmoffset recadr);
-	Mmoffset update(int tran, Mmoffset recadr, Record& rec);
-	Row get(Dir dir, char* query, bool one, Header& hdr, int tran = -1);
-	int tempdest();
-	int cursors();
-	Value sessionid(char* s);
-	bool refresh(int tran);
-	int final();
-	void log(char* s);
-	int kill(char* s);
-	Value exec(Value ob);
-	gcstring nonce();
-	gcstring token();
-	bool auth(const gcstring& data);
-	Value check();
-	Value readCount(int tran);
-	Value writeCount(int tran);
+	void abort(int tran) override;
+	void admin(char* s) override;
+	bool auth(const gcstring& data) override;
+	Value check() override;
+	bool commit(int tran, char** conflict) override;
+	Value connections() override;
+	DbmsQuery* cursor(char* s) override;
+	int cursors() override;
+	Value dump(char* filename) override;
+	void erase(int tran, Mmoffset recadr) override;
+	Value exec(Value ob) override;
+	int final() override;
+	Row get(Dir dir, char* query, bool one, Header& hdr, int tran = -1) override;
+	int kill(char* s) override;
+	Lisp<gcstring> libget(char* name) override;
+	Lisp<gcstring> libraries() override;
+	int load(char* filename) override;
+	void log(char* s) override;
+	gcstring nonce() override;
+	DbmsQuery* query(int tran, char* s) override;
+	Value readCount(int tran) override;
+	int request(int tran, char* s) override;
+	Value run(char* s) override;
+	Value sessionid(char* s) override;
+	int64 size() override;
+	int tempdest() override;
+	gcstring token() override;
+	Lisp<int> tranlist() override;
+	int transaction(TranType type, char* session_id = "") override;
+	Value timestamp() override;
+	Mmoffset update(int tran, Mmoffset recadr, Record& rec) override;
+	Value writeCount(int tran) override;
 private:
 	CheckedSocketConnect sc;
 	OstreamStr os;
@@ -476,10 +475,10 @@ static char* nl_to_sp(char* s)
 	return s;
 	}
 
-bool DbmsRemote::admin(char* s)
+void DbmsRemote::admin(char* s)
 	{
 	WRITE("ADMIN " << nl_to_sp(s));
-	return sc.readbool();
+	sc.readbool();
 	}
 
 int DbmsRemote::request(int tran, char* s)
@@ -670,12 +669,6 @@ Value DbmsRemote::sessionid(char* s)
 	SuString* ss = new SuString(stripnl(buf));
 	tls().fiber_id = ss->str();
 	return ss;
-	}
-
-bool DbmsRemote::refresh(int tran)
-	{
-	WRITE("REFRESH T" << tran);
-	return sc.readbool();
 	}
 
 int DbmsRemote::final()

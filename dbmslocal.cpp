@@ -122,39 +122,38 @@ bool DbmsQueryLocal::output(const Record& rec)
 class DbmsLocal : public Dbms
 	{
 public:
-	int transaction(TranType type, char* session_id = "") override;
-	bool commit(int tran, char** conflict) override;
-	void abort(int tran) override;
-	bool admin(char* s) override;
-	int request(int tran, char* s) override;
-	DbmsQuery* cursor(char* s) override;
-	DbmsQuery* query(int tran, char* s) override;
-	Lisp<gcstring> libget(char* name) override;
-	Lisp<gcstring> libraries() override;
-	Lisp<int> tranlist() override;
-	Value timestamp() override;
-	Value dump(char* filename) override;
-	int load(char* filename) override;
-	Value run(char* s) override;
-	int64 size() override;
-	Value connections() override;
-	void erase(int tran, Mmoffset recadr) override;
-	Mmoffset update(int tran, Mmoffset recadr, Record& rec) override;
-	Row get(Dir dir, char* query, bool one, Header& hdr, int tran = 0) override;
-	int tempdest() override;
-	int cursors() override;
-	Value sessionid(char* s) override;
-	bool refresh(int tran) override;
-	int final() override;
-	void log(char* s) override;
-	int kill(char* s) override;
-	Value exec(Value ob) override;
-	gcstring nonce() override;
-	gcstring token() override;
+	void abort(int tn) override;
+	void admin(char* s) override;
 	bool auth(const gcstring& data) override;
 	Value check() override;
-	Value readCount(int tran) override;
-	Value writeCount(int tran) override;
+	bool commit(int tn, char** conflict) override;
+	Value connections() override;
+	DbmsQuery* cursor(char* query) override;
+	int cursors() override;
+	Value dump(char* filename) override;
+	void erase(int tn, Mmoffset recadr) override;
+	Value exec(Value ob) override;
+	int final() override;
+	Row get(Dir dir, char* query, bool one, Header& hdr, int tn = -1) override;
+	int kill(char* sessionid) override;
+	Lisp<gcstring> libget(char* name) override;
+	Lisp<gcstring> libraries() override;
+	int load(char* filename) override;
+	void log(char* s) override;
+	gcstring nonce() override;
+	DbmsQuery* query(int tn, char* query) override;
+	Value readCount(int tn) override;
+	int request(int tn, char* s) override;
+	Value run(char* s) override;
+	Value sessionid(char* s) override;
+	int64 size() override;
+	int tempdest() override;
+	Value timestamp() override;
+	gcstring token() override;
+	Lisp<int> tranlist() override;
+	int transaction(TranType type, char* session_id = "") override;
+	Mmoffset update(int tn, Mmoffset recadr, Record& rec) override;
+	Value writeCount(int tn) override;
 	};
 
 int DbmsLocal::transaction(TranType type, char* session_id)
@@ -172,10 +171,9 @@ void DbmsLocal::abort(int tran)
 	theDB()->abort(tran);
 	}
 
-bool DbmsLocal::admin(char* s)
+void DbmsLocal::admin(char* s)
 	{
 	database_admin(s);
-	return true;
 	}
 
 int DbmsLocal::request(int tran, char* s)
@@ -345,11 +343,6 @@ Value DbmsLocal::sessionid(char* s)
 	if (*s)
 		session_id = dupstr(s);
 	return new SuString(is_server ? tls().fiber_id : session_id);
-	}
-
-bool DbmsLocal::refresh(int tran)
-	{
-	return theDB()->refresh(tran);
 	}
 
 int DbmsLocal::final()

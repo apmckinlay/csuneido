@@ -61,7 +61,8 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 		{
 		if (nargs != 1)
 			except("usage: Database(request)");
-		return dbms()->admin(ARG(0).str()) ? SuTrue : SuFalse;
+		dbms()->admin(ARG(0).str());
+		return SuTrue;
 		}
 	else if (member == Transactions)
 		{
@@ -379,12 +380,6 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 			except("usage: transaction.Rollback()");
 		rollback();
 		return Value();
-		}
-	else if (member == Refresh)
-		{
-		if (nargs != 0)
-			except("usage: transaction.Refresh()");
-		return dbms()->refresh(tran) ? SuTrue : SuFalse;
 		}
 	else if (member == Conflict)
 		{

@@ -323,7 +323,6 @@ void DbServerImp::request(char* buf)
 		CMD(tempdest),
 		CMD(cursors),
 		CMD(sessionid),
-		CMD(refresh),
 		CMD(final),
 		CMD(log),
 		CMD(kill),
@@ -403,7 +402,8 @@ char* DbServerImp::cmd_binary(char* req)
 
 char* DbServerImp::cmd_admin(char* s)
 	{
-	return bool_result(dbms()->admin(s));
+	dbms()->admin(s);
+	return bool_result(true);
 	}
 
 char* DbServerImp::cmd_cursor(char* s)
@@ -554,12 +554,6 @@ char* DbServerImp::cmd_sessionid(char* s)
 		}
 	os << session_id << "\r\n";
 	return os.str();
-	}
-
-char* DbServerImp::cmd_refresh(char* s)
-	{
-	int tran = ck_getnum('T', s);
-	return bool_result(dbms()->refresh(tran));
 	}
 
 char* DbServerImp::cmd_final(char*)

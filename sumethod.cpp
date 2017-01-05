@@ -22,7 +22,6 @@
 
 #include "sumethod.h"
 #include "interp.h"
-#include "symbols.h"
 #include "sufunction.h"
 
 void SuMethod::out(Ostream& os)
