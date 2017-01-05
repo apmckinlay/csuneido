@@ -384,7 +384,6 @@ public:
 	Value connections();
 	void erase(int tran, Mmoffset recadr);
 	Mmoffset update(int tran, Mmoffset recadr, Record& rec);
-	bool record_ok(int tran, Mmoffset recadr);
 	Row get(Dir dir, char* query, bool one, Header& hdr, int tran = -1);
 	int tempdest();
 	int cursors();
@@ -635,12 +634,6 @@ Mmoffset DbmsRemote::update(int tran, Mmoffset recadr, Record& rec)
 	WRITEBUF("UPDATE T" << tran << " A" << mmoffset_to_int(recadr) << " R" << reclen);
 	sc.write((char*) rec.dup().ptr(), reclen); // dup only required for async ???
 	return int_to_mmoffset(sc.readint('U'));
-	}
-
-bool DbmsRemote::record_ok(int tran, Mmoffset recadr)
-	{
-	WRITE("RECORDOK T" << tran << " A" << mmoffset_to_int(recadr));
-	return sc.readbool();
 	}
 
 Row DbmsRemote::get(Dir dir, char* query, bool one, Header& hdr, int tran)

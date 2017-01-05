@@ -31,76 +31,72 @@ class DbmsUnauth : public Dbms
 public:
 	DbmsUnauth(Dbms* d) : dbms(d)
 		{ }
-	virtual int transaction(TranType type, char* session_id = "")
-		{ except(notauth); }
-	bool commit(int tran, char** conflict = 0) 
-		{ except(notauth); }
-	void abort(int tran) 
-		{ except(notauth); }
 
-	bool admin(char* s) 
+	int transaction(TranType type, char* session_id = "") override
 		{ except(notauth); }
-	int request(int tran, char* s) 
+	bool commit(int tran, char** conflict = 0) override
 		{ except(notauth); }
-	DbmsQuery* cursor(char* s) 
+	void abort(int tran) override
 		{ except(notauth); }
-	DbmsQuery* query(int tran, char* s) 
+	bool admin(char* s) override
 		{ except(notauth); }
-	Lisp<gcstring> libget(char* name) 
+	int request(int tran, char* s) override
+		{ except(notauth); }
+	DbmsQuery* cursor(char* s) override
+		{ except(notauth); }
+	DbmsQuery* query(int tran, char* s) override
+		{ except(notauth); }
+	Lisp<gcstring> libget(char* name) override
 		{ return dbms->libget(name); }
-	Lisp<gcstring> libraries() 
+	Lisp<gcstring> libraries() override
 		{ return dbms->libraries(); }
-	Lisp<int> tranlist() 
+	Lisp<int> tranlist() override
 		{ except(notauth); }
-	Value timestamp() 
+	Value timestamp() override
 		{ except(notauth); }
-	Value dump(char* filename) 
+	Value dump(char* filename) override
 		{ except(notauth); }
-	int load(char* filename)
+	int load(char* filename) override
 		{ except(notauth); }
-	void copy(char* filename) 
+	Value run(char* s) override
 		{ except(notauth); }
-	Value run(char* s) 
+	int64 size() override
 		{ except(notauth); }
-	int64 size() 
+	Value connections() override
 		{ except(notauth); }
-	Value connections() 
+	void erase(int tran, Mmoffset recadr) override
 		{ except(notauth); }
-	void erase(int tran, Mmoffset recadr) 
+	Mmoffset update(int tran, Mmoffset recadr, Record& rec) override
 		{ except(notauth); }
-	Mmoffset update(int tran, Mmoffset recadr, Record& rec) 
+	Row get(Dir dir, char* query, bool one, Header& hdr, int tran = 0) override
 		{ except(notauth); }
-	bool record_ok(int tran, Mmoffset recadr) 
+	int tempdest() override
 		{ except(notauth); }
-	Row get(Dir dir, char* query, bool one, Header& hdr, int tran = 0) 
+	int cursors() override
 		{ except(notauth); }
-	int tempdest() 
-		{ except(notauth); }
-	int cursors() 
-		{ except(notauth); }
-	Value sessionid(char* s) 
+	Value sessionid(char* s) override
 		{ return dbms->sessionid(s); }
-	bool refresh(int tran) 
+	bool refresh(int tran) override
 		{ except(notauth); }
-	int final() 
+	int final() override
 		{ except(notauth); }
-	void log(char* s) 
+	void log(char* s) override
 		{ except(notauth); }
-	int kill(char* s) 
+	int kill(char* s) override
 		{ except(notauth); }
-	Value exec(Value ob) 
+	Value exec(Value ob) override
 		{ except(notauth); }
-	gcstring nonce() 
+	gcstring nonce() override
 		{ return dbms->nonce(); }
-	gcstring token() 
+	gcstring token() override
 		{ except(notauth); }
-	bool auth(const gcstring& data) 
+	bool auth(const gcstring& data) override
 		{ return dbms->auth(data); }
-	Value check()
+	Value check() override
 		{ except(notauth); }
-	Value readCount(int tran)
+	Value readCount(int tran) override
 		{ except(notauth); }
-	Value writeCount(int tran)
+	Value writeCount(int tran) override
 		{ except(notauth); }
 private:
 	Dbms* dbms;

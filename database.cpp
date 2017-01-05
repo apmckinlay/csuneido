@@ -578,29 +578,6 @@ Mmoffset Database::update_record(int tran, Tbl* tbl,
 	return newoff;
 	}
 
-bool Database::record_ok(int oldtran, Mmoffset recadr)
-	{
-	Mmfile::iterator iter = mmf->end();
-	const Mmfile::iterator begin = mmf->begin();
-	for (--iter; iter != begin; --iter)
-		{
-		char type = iter.type();
-		if (type == MM_COMMIT)
-			{
-			Commit* commit = (Commit*) *iter;
-			Mmoffset32* deletes = commit->deletes();
-			for (int i = 0; i < commit->ndeletes; ++i)
-				if (deletes[i].unpack() == recadr)
-					return false; // record has been deleted/updated
-			if (commit->tran <= oldtran)
-				break ;
-			}
-		else if (type == MM_SESSION)
-			break ;
-		}
-	return true; // no delete found, record still good
-	}
-
 void Database::remove_table(const gcstring& table)
 	{
 	if (is_system_table(table))
