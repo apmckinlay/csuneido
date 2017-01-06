@@ -46,7 +46,7 @@ public:
 	virtual void rewind() = 0;
 	virtual char* explain() = 0;
 	virtual bool output(const Record& rec) = 0;
-	virtual void set_transaction(int tran) = 0;
+	virtual void set_transaction(int tn) = 0;
 	virtual void close() = 0;
 	};
 
@@ -58,40 +58,38 @@ public:
 	virtual ~Dbms() = default;
 
 	enum TranType { READONLY, READWRITE };
-	virtual int transaction(TranType type, char* session_id = "") = 0;
-	virtual bool commit(int tran, char** conflict = 0) = 0;
-	virtual void abort(int tran) = 0;
-
-	virtual bool admin(char* s) = 0;
-	virtual int request(int tran, char* s) = 0;
-	virtual DbmsQuery* cursor(char* s) = 0;
-	virtual DbmsQuery* query(int tran, char* s) = 0;
-	virtual Lisp<gcstring> libget(char* name) = 0;
-	virtual Lisp<gcstring> libraries() = 0;
-	virtual Lisp<int> tranlist() = 0;
-	virtual Value timestamp() = 0;
-	virtual Value dump(char* filename) = 0;
-	virtual int load(char* filename) = 0;
-	virtual Value run(char* s) = 0;
-	virtual int64 size() = 0;
-	virtual Value connections() = 0;
-	virtual void erase(int tran, Mmoffset recadr) = 0;
-	virtual Mmoffset update(int tran, Mmoffset recadr, Record& rec) = 0;
-	virtual Row get(Dir dir, char* query, bool one, Header& hdr, int tran = 0) = 0;
-	virtual int tempdest() = 0;
-	virtual int cursors() = 0;
-	virtual Value sessionid(char* s) = 0;
-	virtual bool refresh(int tran) = 0;
-	virtual int final() = 0;
-	virtual void log(char* s) = 0;
-	virtual int kill(char* s) = 0;
-	virtual Value exec(Value ob) = 0;
-	virtual gcstring nonce() = 0;
-	virtual gcstring token() = 0;
+	virtual void abort(int tn) = 0;
+	virtual void admin(char* s) = 0;
 	virtual bool auth(const gcstring& data) = 0;
 	virtual Value check() = 0;
-	virtual Value readCount(int tran) = 0;
-	virtual Value writeCount(int tran) = 0;
+	virtual bool commit(int tn, char** conflict = 0) = 0;
+	virtual Value connections() = 0;
+	virtual DbmsQuery* cursor(char* query) = 0;
+	virtual int cursors() = 0;
+	virtual Value dump(char* filename) = 0;
+	virtual void erase(int tn, Mmoffset recadr) = 0;
+	virtual Value exec(Value ob) = 0;
+	virtual int final() = 0;
+	virtual Row get(Dir dir, char* query, bool one, Header& hdr, int tn = 0) = 0;
+	virtual int kill(char* sessionid) = 0;
+	virtual Lisp<gcstring> libget(char* name) = 0;
+	virtual Lisp<gcstring> libraries() = 0;
+	virtual int load(char* filename) = 0;
+	virtual void log(char* s) = 0;
+	virtual gcstring nonce() = 0;
+	virtual DbmsQuery* query(int tn, char* query) = 0;
+	virtual Value readCount(int tn) = 0;
+	virtual int request(int tn, char* s) = 0;
+	virtual Value run(char* s) = 0;
+	virtual Value sessionid(char* s) = 0;
+	virtual int64 size() = 0;
+	virtual int tempdest() = 0;
+	virtual Value timestamp() = 0;
+	virtual gcstring token() = 0;
+	virtual Lisp<int> tranlist() = 0;
+	virtual int transaction(TranType type, char* session_id = "") = 0;
+	virtual Mmoffset update(int tn, Mmoffset recadr, Record& rec) = 0;
+	virtual Value writeCount(int tn) = 0;
 	};
 
 Dbms* dbms();
@@ -105,7 +103,7 @@ bool isclient();
 
 class Query;
 class Expr;
-int delete_request(int tran, Query* q);
-int update_request(int tran, Query* q, const Lisp<gcstring>& c, const Lisp<Expr*>& exprs);
+int delete_request(int tn, Query* q);
+int update_request(int tn, Query* q, const Lisp<gcstring>& c, const Lisp<Expr*>& exprs);
 
 #endif
