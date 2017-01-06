@@ -28,7 +28,7 @@
 
 using namespace std;
 
-// TODO: clean up return types ie. bool & void
+// TODO: replace with std::array
 
 template <class T, int cap> class Array
 	{
