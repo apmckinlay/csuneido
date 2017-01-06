@@ -23,8 +23,6 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// TODO: add an STL type iterator (can simply be a Lisp)
-
 #include "std.h"
 #include "except.h"
 
@@ -67,19 +65,11 @@ public:
 		{ first = _cons(x1, _cons(x2, _cons(x3))); }
 	Lisp(const T& x1, const T& x2, const T& x3, const T& x4)
 		{ first = _cons(x1, _cons(x2, _cons(x3, _cons(x4)))); }
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-	friend Lisp lisp(const T& x1);
-	friend Lisp lisp(const T& x1, const T& x2);
-	friend Lisp lisp(const T& x1, const T& x2, const T& x3);
-	friend Lisp lisp(const T& x1, const T& x2, const T& x3, const T& x4);
-	friend Lisp lispn(const T& x, int n);
-#else
 	friend Lisp lisp<>(const T& x1);
 	friend Lisp lisp<>(const T& x1, const T& x2);
 	friend Lisp lisp<>(const T& x1, const T& x2, const T& x3);
 	friend Lisp lisp<>(const T& x1, const T& x2, const T& x3, const T& x4);
 	friend Lisp lispn<>(const T& x, int n);
-#endif
 	bool operator==(const Lisp& yy) const
 		{
 		if (first == yy.first)
@@ -136,27 +126,19 @@ public:
 		if (first) first = first->next;
 		return ret;
 		}
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-	friend Lisp cons(const T& t);
-	friend Lisp cons(const T& t, const Lisp& list);
-#else
 	friend Lisp cons<>(const T& t);
 	friend Lisp cons<>(const T& t, const Lisp& list);
-#endif
 	friend int size(Lisp list)
 		{
-		int n = 0;
-		for (; ! nil(list); list = cdr(list), ++n)
-			;
-		return n;
+		return list.size();
 		}
 	bool empty() const
 		{ return ! first; }
 	int size() const
 		{
 		int n = 0;
-		for (Cons* p = first; p; p = p->next, ++n)
-			;
+		for (Cons* p = first; p; p = p->next)
+			++n;
 		return n;
 		}
 	T& operator[](int i)
