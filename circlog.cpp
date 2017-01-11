@@ -40,7 +40,7 @@ void circ_log(gcstring s)
 	qi = (qi + 1) % QSIZE;
 	}
 
-static gcstring get()
+gcstring circ_log_get()
 	{
 	Buffer buf;
 	int i = qi;
@@ -57,7 +57,7 @@ Value su_circ_log()
 	{
 	int nargs = 1;
 	if (ARG(0) == SuFalse)
-		return new SuString(get());
+		return new SuString(circ_log_get());
 	circ_log(ARG(0).gcstr());
 	return Value();
 	}
@@ -89,11 +89,11 @@ class test_circlog : public Tests
 	TEST(0, "main")
 		{
 		clear();
-		asserteq(get(), "");
+		asserteq(circ_log_get(), "");
 		circ_log("one");
-		asserteq(get(), "one\n");
+		asserteq(circ_log_get(), "one\n");
 		circ_log("two");
-		asserteq(get(), "one\ntwo\n");
+		asserteq(circ_log_get(), "one\ntwo\n");
 		}
 	};
 REGISTER(test_circlog);

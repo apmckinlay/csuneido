@@ -27,6 +27,7 @@
 #include "ostream.h"
 
 void circ_log(gcstring s);
+gcstring circ_log_get();
 
 Ostream& oscirclog();
 void circlogos_();
