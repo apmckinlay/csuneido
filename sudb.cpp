@@ -209,7 +209,7 @@ static Value queryone(char* which, Dir dir, bool one, SuTransaction* tran, Built
 	TRACE(QUERY, traceTran(tran) <<
 		(one ? "ONE" : dir == NEXT ? "FIRST" : "LAST") << ' ' << query);
 	Header hdr;
-	Row row = dbms()->get(dir, query, one, hdr, tran ? tran->tran : 0);
+	Row row = dbms()->get(dir, query, one, hdr, tran ? tran->tran : -1);
 	return row == Row::Eof ? SuFalse : new SuRecord(row, hdr, tran);
 	}
 

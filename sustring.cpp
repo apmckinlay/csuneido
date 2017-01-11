@@ -523,7 +523,7 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 	int count = (nargs < 3 ? INT_MAX : ARG(2).integer());
 
 	int oldsize = size();
-	Buffer result(oldsize + oldsize / 4); // usually result will be similar size
+	Buffer result(oldsize + oldsize / 4 + 1); // usually result will be similar size
 	char* old = str();
 	int lastm = -1;
 	Rxpart parts[MAXPARTS];

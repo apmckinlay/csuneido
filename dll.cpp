@@ -20,6 +20,8 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#define _CRT_NONSTDC_NO_WARNINGS
+
 #include "dll.h"
 #include "interp.h"
 #include "globals.h"
