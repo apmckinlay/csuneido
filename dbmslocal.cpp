@@ -417,7 +417,7 @@ int delete_request(int tran, Query* q)
 #include "surecord.h"
 #include "qexpr.h"
 
-int update_request(int tran, Query* q, const Fields& c, const Lisp<Expr*>& exprs)
+int update_request(int tran, Query* q, const Lisp<gcstring>& c, const Lisp<Expr*>& exprs)
 	{
 	Lisp<Value> cols;
 	for (Fields f = c; ! nil(f); ++f)
