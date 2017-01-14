@@ -160,9 +160,9 @@ Value suSocketClient()
 	int timeout = ARG(2).integer();
 	int timeoutConnect = (int) (ARG(3).number()->to_double() * 1000); // milliseconds
 	SuSocketClient* sc = new SuSocketClient(
-		Fibers::current() == Fibers::main()
-			? socketClientSynch(ipaddr, port, timeout, timeoutConnect)
-			: socketClientPoll(ipaddr, port, timeout, timeoutConnect));
+		Fibers::inMain()
+			? socketClientSync(ipaddr, port, timeout, timeoutConnect)
+			: socketClientAsync(ipaddr, port, timeout, timeoutConnect));
 	Value block = ARG(4);
 	if (block == SuFalse)
 		return sc;

@@ -24,24 +24,20 @@
  * Cooperative (not preemptive) multi-tasking.
  * i.e. fibers must explicitly yield 
  * Priority is given to the main fiber which runs the UI message loop.
- * If there are any message on the Windows event queue 
- * we switch to the main fiber to handle them.
  * The main fiber yields to the next runnable background fiber.
  * Background fibers always yield to the main fiber (not each other).
  * interp and database queries call yieldif regularly.
- * This will yield if either a message is on the Windows event queue
- * or if the time slice has expired.
+ * This will yield if the time slice has expired or
+ * if an io completion occurs.
  */
 
 #include "fibers.h"
 #include "except.h"
 #include "itostr.h" // for gc warn
 #include "errlog.h" // for gc warn
-#include "gcstring.h"
 #include "win.h"
-#include "winlib.h"
 #include <vector>
-#include <algorithm>
+#include "qpc.h"
 
 struct Proc;
 class Dbms;
@@ -66,12 +62,20 @@ struct Fiber
 	int64 sleep_until;
 	};
 
+inline int64 qpfreq()
+	{
+	LARGE_INTEGER f;
+	verify(QueryPerformanceFrequency(&f));
+	return f.QuadPart;
+	}
+int64 qpf = qpfreq();
+
 static Fiber main_fiber(0);
 static std::vector<Fiber> fibers;
 const int MAIN = -1;
 static int cur = MAIN;
 #define curfiber (cur < 0 ? &main_fiber : &fibers[cur])
-static int64 qpc_freq;
+static int fi = -1; // round robin index into fibers
 static int64 run_until;
 
 static const int TIME_SLICE_MS = 50;
@@ -149,26 +153,10 @@ extern "C"
 		}
 	};
 
-inline int64 qpf()
-	{
-	LARGE_INTEGER f;
-	verify(QueryPerformanceFrequency(&f));
-	return f.QuadPart;
-	}
-
-inline int64 qpc()
-	{
-	LARGE_INTEGER t;
-	verify(QueryPerformanceCounter(&t));
-	return t.QuadPart;
-	}
-
 void Fibers::init()
 	{
 	main_fiber.fiber = ConvertThreadToFiber(0);
 	verify(main_fiber.fiber);
-
-	qpc_freq = qpf();
 
 	GC_set_warn_proc(warn);
 	}
@@ -194,7 +182,7 @@ static void switchto(int i)
 	verify(fiber.status == Fiber::READY);
 	if (i == cur)
 		return ;
-	run_until = qpc() + ((TIME_SLICE_MS * qpc_freq) / 1000);
+	run_until = qpc() + ((TIME_SLICE_MS * qpf) / 1000);
 	save_stack();
 	
 	cur = i;
@@ -209,9 +197,8 @@ void Fibers::yieldif()
 
 void Fibers::sleep(int ms)
 	{
-	verify(current() != main());
-	auto t = qpc();
-	curfiber->sleep_until = t + ((ms * qpc_freq) / 1000);
+	verify(!inMain());
+	curfiber->sleep_until = qpc() + ((ms * qpf) / 1000);
 	yield();
 	}
 
@@ -230,9 +217,7 @@ bool runnable(Fiber& f)
 
 bool Fibers::yield()
 	{
-	static int f = -1; // round robin index into fibers
-
-	if (current() != main())
+	if (!inMain())
 		{
 		switchto(MAIN);
 		return true;
@@ -242,16 +227,16 @@ bool Fibers::yield()
 	int i;
 	for (i = 0; i < nfibers; ++i)
 		{
-		f = (f + 1) % nfibers;
-		if (fibers[f].status == Fiber::ENDED)
+		fi = (fi + 1) % nfibers;
+		if (fibers[fi].status == Fiber::ENDED)
 			{
-			DeleteFiber(fibers[f].fiber);
-			memset(&fibers[f], 0, sizeof (Fiber));
-			fibers[f].status = Fiber::REUSE;
+			DeleteFiber(fibers[fi].fiber);
+			memset(&fibers[fi], 0, sizeof (Fiber));
+			fibers[fi].status = Fiber::REUSE;
 			}
-		else if (runnable(fibers[f]))
+		else if (runnable(fibers[fi]))
 			{
-			switchto(f);
+			switchto(fi);
 			return true;
 			}
 		}
@@ -259,14 +244,9 @@ bool Fibers::yield()
 	return false;
 	}
 
-void* Fibers::current()
+bool Fibers::inMain()
 	{
-	return curfiber->fiber;
-	}
-
-void* Fibers::main()
-	{
-	return main_fiber.fiber;
+	return curfiber == &main_fiber;
 	}
 
 Dbms* Fibers::main_dbms()
@@ -274,29 +254,29 @@ Dbms* Fibers::main_dbms()
 	return main_fiber.tls.thedbms;
 	}
 
+int Fibers::curFiberIndex()
+	{
+	return cur;
+	}
+
 void Fibers::block()
 	{
-	verify(current() != main());
+	verify(!inMain());
 	curfiber->status = Fiber::BLOCKED;
 	yield();
 	}
 
-//TODO change block to return index and unblock to take index, to avoid search
-void Fibers::unblock(void* fiber)
+void Fibers::unblock(int fiberIndex)
 	{
-	for (int i = 0; i < fibers.size(); ++i)
-		if (fibers[i].fiber == fiber)
-			{
-			verify(fibers[i].status == Fiber::BLOCKED);
-			fibers[i].status = Fiber::READY;
-			return ;
-			}
-	error("unblock didn't find fiber");
+	verify(0 <= fiberIndex && fiberIndex <= fibers.size());
+	verify(fibers[fiberIndex].status == Fiber::BLOCKED);
+	fibers[fiberIndex].status = Fiber::READY;
+	fi = fiberIndex - 1; // so it will run next (see yield)
 	}
 
 [[noreturn]] void Fibers::end()
 	{
-	verify(current() != main());
+	verify(!inMain());
 	curfiber->status = Fiber::ENDED;
 	yield();
 	unreachable();

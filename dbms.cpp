@@ -41,7 +41,7 @@ Dbms* dbms()
 		{ // client
 		if (! tls().thedbms)
 			{
-			if (Fibers::current() == Fibers::main())
+			if (Fibers::inMain())
 				tls().thedbms = dbms_remote(server_ip);
 			else
 				{
