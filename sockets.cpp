@@ -21,494 +21,165 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "sockets.h"
-#ifndef WINVER
-#define WINVER 0x600 // needed for mingw for getaddrinfo (0x600 = Vista/2008)
-#endif
 #include "win.h"
 #include "except.h"
 #include "fibers.h"
 #include "minmax.h"
-#include <list>
-#include "resource.h"
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "fatal.h"
 #include <ctime>
+#include "qpc.h"
+#include <unordered_map>
 
-//#define LOGGING
 
-#ifdef LOGGING
-//#include "ostreamfile.h"
-//static OstreamFile& log()
-//	{
-//	extern bool is_server;
-//	static OstreamFile log(is_server ? "server.log" : "client.log");
-//	return log;
-//	}
-//#define LOG(stuff) (log() << stuff << endl), log().flush()
+//#define FILE_LOGGING
+
+#ifdef FILE_LOGGING
+static int t()
+	{
+	static int64 base = qpc();
+	return (qpc() - base) * 1000 / qpf;
+	}
+#include "ostreamfile.h"
+extern bool is_server;
+static OstreamFile& log()
+	{
+	static OstreamFile log(is_server ? "server.log" : "client.log");
+	return log;
+	}
+#define LOG(stuff) (log() << t() << ' ' << stuff << endl), log().flush()
+#elif CONSOLE_LOGGING
 #include "ostreamcon.h"
-#define LOG(stuff) (con() << stuff << endl)
-#include "gcstring.h"
+#define LOG(stuff) (con() << t() << ' ' << stuff << endl)
+#elif CIRC_LOGGING
+#include "circlog.h"
+#define LOG(stuff) CIRCLOG(t() << ' ' << stuff)
 #else
 #define LOG(stuff)
 #endif
 
-#define cantConnect(msg) \
-	except("can't connect to " << addr << ":" << port << " " << msg)
+#define cantConnect() \
+	except("can't connect to " << addr << ":" << port)
 
-const int WM_SOCKET	= WM_USER + 1;
-
-// protect from garbage collection ==================================
-
-template <class T, int N> class Protector
+void startup()
 	{
-public:
-	void* protect(T p)
-		{
-		for (int i = 0; i < N; ++i)
-			if (refs[i] == 0)
-				return refs[i] = p;
-		fatal("protect overflow");
-		}
-	void release(T p)
-		{
-		for (int i = 0; i < N; ++i)
-			if (refs[i] == p)
-				{ refs[i] = 0; return ; }
-		error("release failed");
-		}
-	bool contains(T p) const
-		{
-		for (int i = 0; i < N; ++i)
-			if (refs[i] == p)
-				return true;
-		return false;
-		}
-	int count() const
-		{
-		int n = 0;
-		for (int i = 0; i < N; ++i)
-			if (refs[i] != 0)
-				++n;
-		return n;
-		}
-//private:
-	const int size = N;
-	T refs[N];
-	};
-
-// register a window class ==========================================
-
-static char* socketRegisterClass()
-	{
-	WNDCLASS wc;
-	memset(&wc, 0, sizeof wc);
-	wc.lpszClassName = "socket";
-	wc.lpfnWndProc = DefWindowProc;
-	wc.hbrBackground = (HBRUSH) GetStockObject(WHITE_BRUSH);
-	wc.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_SUNEIDO));
-	verify(RegisterClass(&wc));
-	return "socket";
-	}
-
-// listener =========================================================
-
-static int CALLBACK listenWndProc(HWND hwnd, int msg, int wParam, int lParam);
-
-struct Ldata
-	{
-	Ldata(char* t, int s, pNewServer ns, void* a, bool e) 
-		: title(t), sock(s), newserver(ns), arg(a), exit(e)
-		{ }
-	char* title;
-	int sock;
-	pNewServer newserver;
-	void* arg;
-	bool exit;
-	};
-
-static Protector<Ldata*, 100> protldata;
-
-static char* wndClass = socketRegisterClass();
-
-int getDpi()
-	{
-	HDC dc = GetDC(NULL);
-	int dpi = GetDeviceCaps(dc, LOGPIXELSY);
-	ReleaseDC(NULL, dc);
-	return dpi;
-	}
-
-int scale(int n)
-	{
-	static int dpi = getDpi();
-	return (n * dpi) / 96;
-	}
-
-void socketServer(char* title, int port, pNewServer newserver, void* arg, bool exit)
-	{
-	LOG("socketServer " << title << " " << port);
 	WSADATA wsadata;
-	verify(0 == WSAStartup(MAKEWORD(2,0), &wsadata));
+	verify(0 == WSAStartup(MAKEWORD(2, 0), &wsadata));
+	}
+
+void end(int sock)
+	{
+	shutdown(sock, SD_SEND);
+	closesocket(sock);
+	}
+
+// SocketConnect --------------------------------------------------------------
+
+void SocketConnect::write(char* s)
+	{
+	write(s, strlen(s));
+	}
+
+void SocketConnect::writebuf(char* s)
+	{
+	writebuf(s, strlen(s));
+	}
+
+// socket server --------------------------------------------------------------
+
+DWORD WINAPI acceptor(LPVOID lpParameter);
+
+struct ServerData
+	{
+	ServerData(int s, NewServerConnection ns, void* a) 
+		: sock(s), newServerConn(ns), arg(a), mainThread(currentThreadHandle())
+		{ }
+	static HANDLE currentThreadHandle()
+		{
+		DWORD id = GetCurrentThreadId();
+		HANDLE h = OpenThread(THREAD_SET_CONTEXT, false, id);
+		verify(h != NULL);
+		return h;
+		}
+	int sock;
+	NewServerConnection newServerConn;
+	void* arg;
+	HANDLE mainThread;
+	};
+
+// maps from port to ServerData
+static std::unordered_map<int, ServerData*> serverData;
+
+/// Creates an acceptor thread and returns
+void socketServer(char* title, int port, NewServerConnection newServerConn, void* arg, bool exit)
+	{
+	startup();
+	LOG("socketServer port " << port);
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	verify(sock > 0);
 
-	SOCKADDR_IN addr;
-	memset(&addr, 0, sizeof addr);
-	addr.sin_family =  AF_INET;
+	SOCKADDR_IN addr = {};
+	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
 	addr.sin_addr.s_addr = INADDR_ANY;
-	if (0 != bind(sock, (LPSOCKADDR) &addr, sizeof addr))
+	if (0 != bind(sock, reinterpret_cast<SOCKADDR*>(&addr), sizeof addr))
 		except("socket server can't bind to port " << port << " (" << WSAGetLastError() << ")");
-	verify(0 == listen(sock, 5));
+	verify(0 == listen(sock, 10));
+	LOG("listening socket " << sock);
 
-	RECT rect;
-	GetWindowRect(GetDesktopWindow(), &rect);
-	HWND hwnd = CreateWindow(wndClass, title, WS_OVERLAPPEDWINDOW,
-		rect.right - scale(255), scale(5), scale(250), scale(50),
-		0, 0, 0, 0);
-	verify(hwnd);
-	SetWindowLong(hwnd, GWL_WNDPROC, (int) listenWndProc);
-	if (*title)
-		{
-		ShowWindow(hwnd, SW_SHOWNORMAL);
-		UpdateWindow(hwnd);
-		}
-	
-	Ldata* data = new Ldata(title, sock, newserver, arg, exit);
-	protldata.protect(data);
-	SetWindowLong(hwnd, GWL_USERDATA, (int) data);
-
-	verify(0 == WSAAsyncSelect(sock, hwnd, WM_SOCKET, FD_ACCEPT));
+	serverData[port] = new ServerData(sock, newServerConn, arg);
+	verify(CreateThread(nullptr, 4096, acceptor, 
+		static_cast<void*>(serverData[port]), 0, nullptr));
 	}
 
-class SocketConnectAsynch;
-static SocketConnectAsynch* newSocketConnectAsynch(char* title, int sock, void* arg, char* adr);
-void closeChildConnections(void* arg);
+void CALLBACK finishAccept(ULONG_PTR p);
 
-static int CALLBACK listenWndProc(HWND hwnd, int msg, int wParam, int lParam)
+/// Runs in a separate thread (per socket server)
+/// queues finishAccept calls on the original thread
+// NOTE: should do as little as possible, especially no allocation
+static DWORD WINAPI acceptor(LPVOID p)
 	{
-	Ldata* data = (Ldata*) GetWindowLong(hwnd, GWL_USERDATA);
-	if (msg == WM_SOCKET && LOWORD(lParam) == FD_ACCEPT)
+	int errorCount = 0;
+	ServerData& data = *reinterpret_cast<ServerData*>(p);
+	while (true)
 		{
-		SOCKADDR_IN client;
-		memset(&client, 0, sizeof client);
-		int client_size = sizeof client;
-		int sock = accept(wParam, (LPSOCKADDR) &client, &client_size);
+		SOCKET sock = accept(data.sock, nullptr, nullptr);
 		if (sock == INVALID_SOCKET)
-			return 0;
-		IN_ADDR client_in;
-		memcpy(&client_in, &client.sin_addr.s_addr, sizeof client_in);
-		char adr[20] = "";
-		if (char* s = inet_ntoa(client_in))
-			strcpy(adr, s);
-		char title[512] = "";
-		if (*data->title)
 			{
-			strcpy(title, data->title);
-			strcat(title, " ");
-			strcat(title, adr);
+			if (++errorCount < 100)
+				continue; // ignore
+
+			return 0; // end thread
 			}
-		SocketConnectAsynch* sc = newSocketConnectAsynch(title, sock, data->arg, adr);
-		Fibers::create(data->newserver, sc);
+		QueueUserAPC(finishAccept, data.mainThread, 	static_cast<ULONG_PTR>(sock));
 		}
-	else if (msg == WM_DESTROY)
-		{
-		closesocket(data->sock);
-		WSACleanup();
-		if (data->exit)
-			PostQuitMessage(0);
-		closeChildConnections(data->arg);
-		protldata.release(data);
-		}
-	else if (msg == WM_ENDSESSION)
-		{
-		exit(0);
-		}
+	}
+
+int getport(int sock);
+SocketConnect* newSocketConnectAsync(int sock, void* arg);
+
+void CALLBACK finishAccept(ULONG_PTR p)
+	{
+	SOCKET sock = static_cast<SOCKET>(p);
+	LOG("finishAccept sock " << sock << " port " << getport(sock));
+	ServerData& data = *serverData[getport(sock)];
+	SocketConnect* sc = newSocketConnectAsync(sock, data.arg);
+	if (sc)
+		Fibers::create(data.newServerConn, sc);
 	else
-		return DefWindowProc(hwnd, msg, wParam, lParam);
-	return 0;
+		LOG("newSocketConnectAsync failed");
 	}
 
-// asynch connection - used by server & async client ================
-
-class SocketConnectAsynch : public SocketConnect
+static int getport(int sock)
 	{
-public:
-	SocketConnectAsynch(HWND h, int s, void* a, char* n) 
-		: hwnd(h), sock(s), arg(a), close_pending(false), 
-		mode(CONNECT), blocked(0), blocked_len(0), adr(dupstr(n)), connect_error(false)
-		{ }
-	bool connect(struct addrinfo* ai);
-	void event(int msg);
-	void write(char* s, int n);
-	int read(char* dst, int n);
-	bool tryread(char* dst, int n);
-	bool readline(char* dst, int n);
-	bool tryreadline(char* dst, int n);
-	void close();
-	void* getarg()
-		{ return arg; }
-	char* getadr()
-		{ return adr; }
-private:
-	void block()
-		{
-		blocked = Fibers::current();
-		Fibers::block();
-		}
-	void unblock()
-		{
-		if (! blocked)
-			return ;
-		Fibers::unblock(blocked);
-		blocked = 0;
-		}
-	void close2();
-	void doread(char* dst, int n);
-	
-	HWND hwnd;
-	int sock;
-	void* arg;
-	bool close_pending;
-	enum { CONNECT, SIZE, LINE, CLOSED } mode;
-	void* blocked;
-	int blocked_len;
-	char* adr;
-	bool connect_error;
-	};
-
-static Protector<SocketConnectAsynch*, 200> protsca;
-
-void closeChildConnections(void* arg)
-	{
-	for (auto sca : protsca.refs)
-		if (sca && sca->getarg() == arg)
-			sca->close();
+	SOCKADDR_IN sa;
+	int len = sizeof sa;
+	getsockname(sock, reinterpret_cast<SOCKADDR*>(&sa), &len);
+	return ntohs(sa.sin_port);
 	}
 
-bool SocketConnectAsynch::connect(struct addrinfo* ai)
-	{
-	::connect(sock, ai->ai_addr, ai->ai_addrlen);
-	block();
-	return ! connect_error;
-	}
-
-void SocketConnectAsynch::write(char* s, int n)
-	{
-	if (mode == CLOSED)
-		except("socket Write failed (connection closed)");
-	LOG("write");
-	wrbuf.add(s, n);
-	if (wrbuf.size() > 0)
-		PostMessage(hwnd, WM_SOCKET, sock, FD_WRITE);
-	}
-
-void SocketConnectAsynch::close()
-	{
-	LOG("close");
-	if (close_pending || mode == CLOSED)
-		return ;
-	close_pending = true; 
-	PostMessage(hwnd, WM_SOCKET, sock, FD_WRITE);
-	}
-
-static int CALLBACK connectWndProc(HWND hwnd, int msg, int wParam, int lParam);
-
-int socketConnectionCount()
-	{
-	return protsca.count();
-	}
-
-static SocketConnectAsynch* newSocketConnectAsynch(char* title, int sock, void* arg, char* adr)
-	{
-	LOG("socketConnectAsync " << (title ? title : ""));
-	HWND hwnd = CreateWindow(wndClass, title, WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, 150, 30,
-		0, 0, 0, 0);
-	verify(hwnd);
-	SetWindowLong(hwnd, GWL_WNDPROC, (int) connectWndProc);
-
-	SocketConnectAsynch* sc = new SocketConnectAsynch(hwnd, sock, arg, adr);
-	protsca.protect(sc);
-	SetWindowLong(hwnd, GWL_USERDATA, (long) sc);
-	verify(0 == WSAAsyncSelect(sock, hwnd, WM_SOCKET, 
-		FD_CONNECT | FD_READ | FD_WRITE | FD_CLOSE));
-	return sc;
-	}
-
-static int CALLBACK connectWndProc(HWND hwnd, int msg, int wParam, int lParam)
-	{
-	if (msg != WM_SOCKET)
-		return DefWindowProc(hwnd, msg, wParam, lParam);
-
-	SocketConnectAsynch* sc = (SocketConnectAsynch*) GetWindowLong(hwnd, GWL_USERDATA);
-	if (sc && protsca.contains(sc))
-		sc->event(lParam);
-	return 0;
-	}
-
-void SocketConnectAsynch::event(int lParam)
-	{
-	switch (WSAGETSELECTEVENT(lParam))
-		{
-	case FD_CONNECT :
-		if(WSAGETSELECTERROR(lParam))
-			connect_error = true;
-		if (blocked)
-			{
-			Fibers::unblock(blocked);
-			blocked = 0;
-			}
-	case FD_READ :
-		{
-		LOG("FD_READ");
-		const int MINRECVSIZE = 1024;
-		int n;
-		for (;;)
-			{
-			rdbuf.ensure(MINRECVSIZE);
-			// ensure grows by doubling so available likely > MINRECVSIZE
-			n = recv(sock, rdbuf.bufnext(), rdbuf.available(), 0);
-			if (n <= 0)
-				break ;
-			rdbuf.added(n);
-			LOG("FD_READ recv " << n);
-			}
-		bool closed = (n == 0);
-		if (blocked && 
-			(closed ||
-				((mode == SIZE)
-					? rdbuf.size() >= blocked_len 
-					: nullptr != memchr(rdbuf.buffer(), '\n', rdbuf.size()))))
-			{
-			LOG("FD_READ unblocking " << (closed ? "closed" : "can read"));
-			unblock();
-			}
-		break ;
-		}
-	case FD_WRITE :
-		{
-		int n = wrbuf.size();
-		LOG("FD_WRITE wrbuf.size " << n);
-		if (n > 0)
-			{
-			n = send(sock, wrbuf.buffer(), n, 0);
-			if (n > 0)
-				wrbuf.remove(n);
-			}
-		// once we're finished writing we can close
-		else if (close_pending)
-			close2();
-		break ;
-		}
-	case FD_CLOSE :
-		LOG("FD_CLOSE");
-		close2();
-		break ;
-		}
-	}
-
-void SocketConnectAsynch::close2()
-	{
-	LOG("close2");
-	closesocket(sock);
-	DestroyWindow(hwnd);
-	protsca.release(this);
-	mode = CLOSED;
-	unblock();
-	}
-
-int SocketConnectAsynch::read(char* dst, int n)
-	{
-	verify(n > 0);
-	LOG("read " << n);
-	if (mode == CLOSED && rdbuf.size() > 0 && n > rdbuf.size())
-		n = rdbuf.size();
-	if (tryread(dst, n))
-		return n;
-	if (mode == CLOSED)
-		return 0;
-
-	LOG("read blocking");
-	mode = SIZE;
-	blocked_len = n;
-	block();
-	if (rdbuf.size() == 0)
-		return 0;
-	if (rdbuf.size() < n)
-		// socket has been closed, final partial read
-		n = rdbuf.size();
-	doread(dst, n);
-	return n;
-	}
-
-bool SocketConnectAsynch::tryread(char* dst, int n)
-	{
-	LOG("tryread " << n << " rdbuf.size " << rdbuf.size());
-	if (rdbuf.size() < n)
-		return false;
-	doread(dst, n);
-	LOG("returning " << n);
-	return true;
-	}
-
-void SocketConnectAsynch::doread(char* dst, int n)
-	{
-	verify(n <= rdbuf.size());
-	memcpy(dst, rdbuf.buffer(), n);
-	rdbuf.remove(n);
-	}
-
-bool SocketConnectAsynch::readline(char* dst, int n)
-	{
-	verify(n > 0);
-	LOG("readline");
-	*dst = 0;
-	if (tryreadline(dst, n))
-		return true;
-	if (mode == CLOSED)
-		return false;
-
-	LOG("readline blocking");
-	mode = LINE;
-	block();
-	// either we got a newline or the socket was closed
-	LOG("readline unblocked with " << rdbuf.size());
-	if (rdbuf.size() == 0)
-		return false;
-	if (tryreadline(dst, n))
-		return true;
-	// no newline so socket was closed
-	--n; // allow for nul
-	if (rdbuf.size() < n)
-		n = rdbuf.size();
-	memcpy(dst, rdbuf.buffer(), n);
-	dst[n] = 0;
-	rdbuf.clear(); // remove any excess > n
-	return true;
-	}
-
-bool SocketConnectAsynch::tryreadline(char* dst, int n)
-	{
-	--n; // allow for nul
-	char* buf = rdbuf.buffer();
-	char* eol = (char*) memchr(buf, '\n', rdbuf.size());
-	if (! eol)
-		return false;
-
-	// removes entire line, regardless of length
-	// but only returns as many characters as requested
-	int len = eol - buf + 1; // includes newline
-	if (len < n)
-		n = len;
-	memcpy(dst, buf, n);
-	dst[n] = 0;
-	rdbuf.remove(len);
-	return true;
-	}
-
-// asynch client ====================================================
+//-----------------------------------------------------------------------------
 
 static struct addrinfo* resolve(char* addr, int port)
 	{
@@ -526,7 +197,7 @@ static struct addrinfo* resolve(char* addr, int port)
 	int status;
 	struct addrinfo* ai;
 	if (0 != (status = getaddrinfo(addr, portstr, &hints, &ai)))
-		except("socket open failed could not resolve " << addr << ":" << portstr << 
+		except("socket open failed could not resolve " << addr << ":" << portstr <<
 			" " << gai_strerror(status));
 	return ai;
 	}
@@ -535,9 +206,9 @@ struct AiFree
 	{
 	AiFree(struct addrinfo* a) : ai(a)
 		{ }
-	struct addrinfo* operator->()
+	struct addrinfo* operator->() const
 		{ return ai; }
-	operator addrinfo*()
+	operator addrinfo*() const
 		{ return ai; }
 	~AiFree()
 		{
@@ -550,8 +221,9 @@ int makeSocket(struct addrinfo* ai)
 	{
 	int sock = socket(ai->ai_family, SOCK_STREAM, IPPROTO_TCP);
 	verify(sock > 0);
+	// set TCP_NODELAY to disable Nagle
 	BOOL t = true;
-	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*)&t, sizeof t);
+	verify(0 == setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*)&t, sizeof t));
 	return sock;
 	}
 
@@ -566,42 +238,20 @@ struct SocketCloser
 	int socket;
 	};
 
-SocketConnect* socketClientAsynch(char* addr, int port)
-	{
-	WSADATA wsadata;
-	verify(0 == WSAStartup(MAKEWORD(2,0), &wsadata));
+// SocketConnectSync ------------------------------------------------------------
 
-	AiFree ai(resolve(addr, port));
-
-	int sock = makeSocket(ai);
-	SocketCloser closer(sock);
-
-	SocketConnectAsynch* sc = newSocketConnectAsynch("", sock, 0, "");
-	closer.disable();
-	if (! sc->connect(ai))
-		{
-		protsca.release(sc);
-		cantConnect(" (asynch)");
-		}
-	return sc;
-	}
-
-// synch client =====================================================
-
-class SocketConnectSynch : public SocketConnect
+class SocketConnectSync : public SocketConnect
 	{
 public:
-	explicit SocketConnectSynch(int s, int timeout) : sock(s)
+	explicit SocketConnectSync(int s, int timeout) : sock(s)
 		{
 		tv.tv_sec = timeout;
 		tv.tv_usec = 0;
 		}
-	void write(char* buf, int n);
-	int read(char* dst, int n);
-	bool readline(char* dst, int n);
-	void close();
-	char* getadr()
-		{ return ""; }
+	void write(char* buf, int n) override;
+	int read(char* dst, int required, int bufsize) override;
+	bool readline(char* dst, int n) override;
+	void close() override;
 private:
 	int sock;
 	struct timeval tv;
@@ -609,10 +259,9 @@ private:
 
 #define FDS(fds, sock) struct fd_set fds; FD_ZERO(&fds); FD_SET(sock, &fds);
 
-SocketConnect* socketClientSynch(char* addr, int port, int timeout, int timeoutConnect)
+SocketConnect* socketClientSync(char* addr, int port, int timeout, int timeoutConnect)
 	{
-	WSADATA wsadata;
-	verify(0 == WSAStartup(MAKEWORD(2,0), &wsadata));
+	startup();
 
 	AiFree ai(resolve(addr, port));
 
@@ -622,21 +271,22 @@ SocketConnect* socketClientSynch(char* addr, int port, int timeout, int timeoutC
 	if (timeoutConnect == 0) // default timeout
 		{
 		if (0 != connect(sock, ai->ai_addr, ai->ai_addrlen))
-			cantConnect(" (synch)");
+			cantConnect();
 	}
 	else
 		{
 		ULONG NonBlocking = 1;
 		ioctlsocket(sock, FIONBIO, &NonBlocking);
 		int ret = connect(sock, ai->ai_addr, ai->ai_addrlen);
-		if (ret != 0 && ret != SOCKET_ERROR)
-			cantConnect(" (synch)");
+		if (ret != 0 && 
+			! (ret == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK))
+			cantConnect();
 		FDS(wfds, sock);
 		FDS(efds, sock);
 		struct timeval tv;
 		tv.tv_sec = timeoutConnect / 1000;
 		tv.tv_usec = (timeoutConnect % 1000) * 1000; // ms => us
-		if (0 == select(0, NULL, &wfds, &efds, &tv))
+		if (0 == select(1, nullptr, &wfds, &efds, &tv))
 			except("socket connection timeout");
 		if (FD_ISSET(sock, &efds))
 			except("socket connection error");
@@ -644,12 +294,13 @@ SocketConnect* socketClientSynch(char* addr, int port, int timeout, int timeoutC
 		ioctlsocket(sock, FIONBIO, &Blocking);
 		}
 	closer.disable();
-	return new SocketConnectSynch(sock, timeout);
+	return new SocketConnectSync(sock, timeout);
 	}
 
-void SocketConnectSynch::write(char* buf, int n)
+void SocketConnectSync::write(char* buf, int n)
 	{
-	LOG(gcstring(wrbuf.size(), wrbuf.buffer()) << gcstring(n, buf) << "EOW");
+	if (n == 0 && wrbuf.size() == 0)
+		return; // nothing to write
 	WSABUF bufs[2];
 	bufs[0].buf = wrbuf.buffer();
 	bufs[0].len = wrbuf.size();
@@ -658,7 +309,7 @@ void SocketConnectSynch::write(char* buf, int n)
 	bufs[1].len = n;
 
 	FDS(fds, sock);
-	if (0 == select(1, NULL, &fds, NULL, &tv))
+	if (0 == select(1, nullptr, &fds, nullptr, &tv))
 		except("socket Write timeout");
 
 	DWORD nSent;
@@ -666,24 +317,25 @@ void SocketConnectSynch::write(char* buf, int n)
 		except("socket Write failed (" << WSAGetLastError() << ")");
 	}
 
-int SocketConnectSynch::read(char* dst, int dstsize)
+int SocketConnectSync::read(char* dst, int required, int bufsize)
 	{
-	int nread = min(dstsize, rdbuf.size());
+	int nread = min(required, rdbuf.size());
 	if (nread)
 		{
 		memcpy(dst, rdbuf.buffer(), nread);
 		rdbuf.remove(nread);
 		}
-
+	
+	verify(required <= bufsize);
 	FDS(fds, sock);
-	while (nread < dstsize)
+	while (nread < required)
 		{
 		// NOTE: this makes timeout on each recv
 		// so the entire read could exceed the timeout
-		if (0 == select(1, &fds, NULL, NULL, &tv))
+		if (0 == select(1, &fds, nullptr, nullptr, &tv))
 			break ; // timeout
 
-		int n = recv(sock, dst + nread, dstsize - nread, 0);
+		int n = recv(sock, dst + nread, bufsize - nread, 0);
 		if (n == 0)
 			break ; // connection closed
 		if (n < 0)
@@ -694,21 +346,21 @@ int SocketConnectSynch::read(char* dst, int dstsize)
 	}
 
 // returns whether or not it got a newline
-bool SocketConnectSynch::readline(char* dst, int n)
+bool SocketConnectSync::readline(char* dst, int n)
 	{
 	verify(n > 1);
 	*dst = 0;
 	--n; // allow for nul
 	char* eol;
 	FDS(fds, sock);
-	while (! (eol = (char*) memchr(rdbuf.buffer(), '\n', rdbuf.size())))
+	while (! ((eol = (char*) memchr(rdbuf.buffer(), '\n', rdbuf.size()))))
 		{
-		if (0 == select(1, &fds, NULL, NULL, &tv))
+		if (0 == select(1, &fds, nullptr, nullptr, &tv))
 			break ; // timeout
 
 		const int MINRECVSIZE = 1024;
-		rdbuf.ensure(MINRECVSIZE);
-		int nr = recv(sock, rdbuf.bufnext(), rdbuf.available(), 0);
+		char* buf = rdbuf.ensure(MINRECVSIZE);
+		int nr = recv(sock, buf, rdbuf.available(), 0);
 		if (nr == 0)
 			break ; // connection closed
 		if (nr < 0)
@@ -722,49 +374,64 @@ bool SocketConnectSynch::readline(char* dst, int n)
 	memcpy(dst, buf, n);
 	dst[n] = 0;
 	rdbuf.remove(len);
-	LOG("\t=> " << dst << "EOR");
-	return eol != 0;
+	return eol != nullptr;
 	}
 
-void SocketConnectSynch::close()
+void SocketConnectSync::close()
 	{
-	shutdown(sock, SD_SEND);
-	closesocket(sock);
+	end(sock);
 	}
 
-// SocketConnect ====================================================
+// async via overlapped ----------------------------------------------------------
 
-void SocketConnect::write(char* s)
-	{ write(s, strlen(s)); }
+class SocketConnectAsync;
 
-void SocketConnect::writebuf(char* s)
-	{ writebuf(s, strlen(s)); }
+struct Over
+	{
+	Over(SocketConnectAsync* sc_) : wsaover({}), sc(sc_), size(0)
+		{}
+	WSAOVERLAPPED wsaover;
+	SocketConnectAsync* sc;
+	int size;
+	};
 
-// asynch via polling ===============================================
-
-class SocketConnectPoll : public SocketConnect
+class SocketConnectAsync : public SocketConnect
 	{
 public:
-	explicit SocketConnectPoll(int s, int to) : sock(s), timeout(to)
-		{
-		}
+	explicit SocketConnectAsync(int s, int to = 0) 
+		: sock(s), wrover(this), rdover(this)
+		{ }
+	explicit SocketConnectAsync(int s, void* arg_, char* adr_) 
+		: sock(s), wrover(this), rdover(this), arg(arg_), adr(dupstr(adr_))
+		{ }
 	void write(char* buf, int n) override;
-	int read(char* dst, int n) override;
+	int read(char* dst, int required, int dstsize) override;
 	bool readline(char* dst, int n) override;
 	void close() override;
 	char* getadr() override
-		{
-		return "";
-		}
+		{ return adr; }
+	void* getarg() override
+		{ return arg; }
+	bool recv();
+	void block();
+	void unblock();
+	WSABUF buf {}; 
+	int required = 0; // for read
 private:
+	int read2(char* dst, int required, int dstsize);
+
 	int sock;
-	int timeout; // seconds
+	Over wrover;
+	Over rdover;
+	int blocked = -1; // fiber
+	void* arg = nullptr;
+	char* adr = "";
 	};
 
-SocketConnect* socketClientPoll(char* addr, int port, int timeout, int timeoutConnect)
+SocketConnect* socketClientAsync(char* addr, int port, int timeout, int timeoutConnect)
 	{
-	WSADATA wsadata;
-	verify(0 == WSAStartup(MAKEWORD(2, 0), &wsadata));
+	startup();
+	LOG("async connect");
 
 	AiFree ai(resolve(addr, port));
 
@@ -773,23 +440,23 @@ SocketConnect* socketClientPoll(char* addr, int port, int timeout, int timeoutCo
 
 	ULONG NonBlocking = 1;
 	if (0 != ioctlsocket(sock, FIONBIO, &NonBlocking))
-		cantConnect(WSAGetLastError());
+		cantConnect();
 
 	int ret = connect(sock, ai->ai_addr, ai->ai_addrlen);
 	if (ret == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
-		cantConnect(WSAGetLastError());
+		cantConnect();
 
 	if (timeoutConnect <= 0)
 		timeoutConnect = 60 * 1000; // default of 60 seconds
 	clock_t deadline = clock() + (CLOCKS_PER_SEC * timeoutConnect) / 1000;
+	struct timeval tv = {0, 5000}; // initial 5ms wait
 	while (true)
 		{
 		FDS(wfds, sock);
 		FDS(efds, sock);
-		struct timeval tv = { 0, 0 };
-		int result = select(0, nullptr, &wfds, &efds, &tv);
+		int result = select(1, nullptr, &wfds, &efds, &tv);
 		if (SOCKET_ERROR == result)
-			cantConnect(WSAGetLastError());
+			cantConnect();
 		if (FD_ISSET(sock, &efds))
 			except("socket connection error");
 		if (FD_ISSET(sock, &wfds))
@@ -799,104 +466,170 @@ SocketConnect* socketClientPoll(char* addr, int port, int timeout, int timeoutCo
 		if (clock() > deadline)
 			except("socket connection timeout");
 		Fibers::sleep();
+		tv = {}; // switch to 0 wait
 		}
 
 	closer.disable();
-	return new SocketConnectPoll(sock, timeout);
+	LOG("async connected");
+	return new SocketConnectAsync(sock, timeout);
 	}
 
-#define POLL(type, op) \
-	int result = 0; \
-	while (true) \
-		{ \
-		result = (op); \
-		if (result != SOCKET_ERROR || WSAGetLastError() != WSAEWOULDBLOCK) \
-			break ; \
-		if (clock() > deadline) \
-			except("socket " << type << " timeout"); \
-		Fibers::sleep(); \
-		}
-
-void SocketConnectPoll::write(char* buf, int n)
+/// completion routine
+void CALLBACK afterSend(DWORD Error, DWORD BytesTransferred, 
+	LPWSAOVERLAPPED wsaover, DWORD InFlags)
 	{
+	Over* over = reinterpret_cast<Over*>(wsaover);
+	if (Error != 0 || BytesTransferred != over->size) // error or closed
+		{
+		LOG("async afterSend error " << Error << " BytesTransferred " << BytesTransferred);
+		over->sc->close();
+		over->sc->unblock();
+		return;
+		}
+	LOG("async afterSend size " << over->size << " got " << BytesTransferred);
+	if (over->size != BytesTransferred)
+		fatal("partial send not expected");
+	over->sc->wrbuf.clear();
+	over->sc->unblock();
+	}
+
+void SocketConnectAsync::write(char* buf, int n)
+	{
+	int toSend = n + wrbuf.size();
+	if (toSend == 0)
+		return; // nothing to write
+	LOG("async write buf " << wrbuf.size() << " + n " << n << " = " << (wrbuf.size() + n));
+	if (sock == 0)
+		except("SocketConnectAsync Write socket closed");
 	const int NBUFS = 2;
 	WSABUF bufs[NBUFS];
 	bufs[0].buf = wrbuf.buffer();
 	bufs[0].len = wrbuf.size();
-	wrbuf.clear();
 	bufs[1].buf = buf;
 	bufs[1].len = n;
 
-	clock_t deadline = clock() + (CLOCKS_PER_SEC * timeout);
-	// from MSDN: If the socket is non-blocking and stream-oriented, 
-	// and there is not sufficient space in the transport's buffer, 
-	// WSASend will return with only part of the application's buffers consumed.
-	while (true)
+	wrover.size = toSend;
+	DWORD nSent;
+	int rc = WSASend(sock, bufs, NBUFS, &nSent, 0, 
+		reinterpret_cast<WSAOVERLAPPED*>(&wrover), afterSend);
+	int err;
+	if (rc == 0)
 		{
-		// NOTE: assuming that if WOULDBLOCK then nSent is 0
-		DWORD nSent = 0;
-		POLL("Write", WSASend(sock, bufs, NBUFS, &nSent, 0, nullptr, nullptr));
-		if (result != 0)
-			except("socket Write failed (" << result << ")");
-		int toSend = 0;
-		for (int i = 0; i < NBUFS; ++i)
-			{
-			if (bufs[i].len > 0)
-				{
-				int amt = min(bufs[i].len, nSent);
-				bufs[i].len -= amt;
-				nSent -= amt;
-				toSend += bufs[i].len;
-				}
-			}
-		verify(nSent == 0);
-		if (toSend <= 0)
-			break;
-		Fibers::sleep();
+		verify(nSent == toSend);
+		SleepEx(0, true); // run afterSend
 		}
+	else if (WSA_IO_PENDING != (err = WSAGetLastError()))
+		except("SocketConnectAsync Write failed (" << err << ")");
+	else
+		block();
+	LOG("async write returning");
+	// need to block rather than fire-and-forget
+	// because wrover cannot be used by multiple writes at once
 	}
 
-int SocketConnectPoll::read(char* dst, int dstsize)
+int SocketConnectAsync::read(char* dst, int required, const int dstsize)
 	{
-	int nread = min(dstsize, rdbuf.size());
-	if (nread)
+	LOG("async read " << required << " up to " << dstsize);
+	verify(required <= dstsize);
+	int have = min(required, rdbuf.size());
+	if (have)
 		{
-		memcpy(dst, rdbuf.buffer(), nread);
-		rdbuf.remove(nread);
+		memcpy(dst, rdbuf.buffer(), have);
+		rdbuf.remove(have);
+		required -= have;
 		}
+	if (required == 0)
+		return have; // got data from buffer
+	int result = have + read2(dst + have, required, dstsize - have);
+	LOG("async read returning " << result << endl);
+	return result;
+	}
 
-	clock_t deadline = clock() + (CLOCKS_PER_SEC * timeout);
-	while (nread < dstsize)
+// used by read and readline
+int SocketConnectAsync::read2(char* dst, int required, const int dstsize)
+	{
+	LOG("async read2 " << required << " up to " << dstsize);
+	buf.buf = dst;
+	buf.len = dstsize;
+	this->required = required;
+	if (recv())
+		SleepEx(0, true); // run afterRecv
+	else
 		{
-		int nr;
-		POLL("Read", nr = recv(sock, dst + nread, dstsize - nread, 0));
-		if (nr == 0)
-			break; // connection closed
-		if (nr < 0)
-			except("socket Read failed (" << result << ")");
-		nread += nr;
+		// try to avoid blocking
+		// not SleepEx(1 because min sleep is about 16ms
+		SleepEx(0, true);
+		if (this->required > 0)
+			block();
 		}
-	return nread;
+	LOG("async read2 returning " << (dstsize - buf.len));
+	return dstsize - buf.len;
+	}
+
+/// completion routine
+void CALLBACK afterRecv(DWORD Error, DWORD BytesTransferred,
+	LPWSAOVERLAPPED wsaover, DWORD InFlags)
+	{
+	Over* over = reinterpret_cast<Over*>(wsaover);
+	if (Error != 0 || BytesTransferred == 0) // error or closed
+		{
+		LOG("async afterRecv error " << Error << " BytesTransferred " << BytesTransferred);
+		over->sc->close();
+		over->sc->unblock();
+		return;
+		}
+	LOG("async afterRecv required " << over->sc->required << 
+		" buf.len " << over->sc->buf.len << " got " << BytesTransferred);
+	over->sc->buf.len -= BytesTransferred;
+	over->sc->buf.buf += BytesTransferred;
+	over->sc->required -= BytesTransferred;
+	if (over->sc->required > 0)
+		if (!over->sc->recv())
+			return;
+	over->sc->unblock();
+	}
+
+// returns true if complete (or socket closed), false if pending
+bool SocketConnectAsync::recv()
+	{
+	LOG("async recv buf.len " << buf.len);
+	if (sock == 0)
+		return true; // socket closed
+	DWORD nRcvd = 0, flags = 0;
+	int rc = WSARecv(sock, &buf, 1, &nRcvd, &flags,
+		reinterpret_cast<WSAOVERLAPPED*>(&rdover), afterRecv);
+	int err;
+	if (rc == 0)
+		{
+		LOG("async WSARecv got " << nRcvd);
+		if (nRcvd == 0)
+			return true; // closed
+		return nRcvd == 0 /* closed */ || nRcvd >= required; /* complete */
+		// NOTE: afterRecv will still be called
+		}
+	else if (WSA_IO_PENDING != (err = WSAGetLastError()))
+		except("SocketConnectAsync Read failed (" << err << ")");
+	else
+		{
+		LOG("async recv pending");
+		return false; // not complete
+		}
 	}
 
 // returns whether or not it got a newline
-bool SocketConnectPoll::readline(char* dst, int n)
+bool SocketConnectAsync::readline(char* dst, int n)
 	{
 	verify(n > 1);
 	*dst = 0;
 	--n; // allow for nul
 	char* eol;
-	clock_t deadline = clock() + (CLOCKS_PER_SEC * timeout);
-	while (!(eol = (char*)memchr(rdbuf.buffer(), '\n', rdbuf.size())))
+	while (!((eol = (char*)memchr(rdbuf.buffer(), '\n', rdbuf.size()))))
 		{
-		const int MINRECVSIZE = 1024;
-		rdbuf.ensure(MINRECVSIZE);
-		int nr;
-		POLL("readline", nr = recv(sock, rdbuf.bufnext(), rdbuf.available(), 0));
+		const int UPTO = 1024;
+		char* buf = rdbuf.ensure(UPTO);
+		int nr = read2(buf, 1, UPTO);
 		if (nr == 0)
 			break; // connection closed
-		if (nr < 0)
-			except("socket Readline failed (" << result << ")");
 		rdbuf.added(nr);
 		}
 	char* buf = rdbuf.buffer();
@@ -906,12 +639,52 @@ bool SocketConnectPoll::readline(char* dst, int n)
 	memcpy(dst, buf, n);
 	dst[n] = 0;
 	rdbuf.remove(len);
-	LOG("\t=> " << dst << "EOR");
-	return eol != 0;
+	return eol != nullptr;
 	}
 
-void SocketConnectPoll::close()
+void SocketConnectAsync::block()
 	{
-	shutdown(sock, SD_SEND);
-	closesocket(sock);
+	LOG("async block");
+	blocked = Fibers::curFiberIndex();
+	Fibers::block();
+	}
+
+void SocketConnectAsync::unblock()
+	{
+	if (blocked < 0) 
+		return;
+	LOG("async unblock");
+	Fibers::unblock(blocked);
+	blocked = -1;
+	}
+
+void SocketConnectAsync::close()
+	{
+	LOG("async close");
+	SleepEx(0, true); // run any pending completion routines
+	end(sock);
+	sock = 0;
+	LOG("async closed" << endl);
+	}
+
+char* getadr(SOCKET sock);
+
+// used by socket server
+SocketConnect* newSocketConnectAsync(int sock, void* arg)
+	{
+	ULONG NonBlocking = 1;
+	if (0 != ioctlsocket(sock, FIONBIO, &NonBlocking))
+		return nullptr;
+	return new SocketConnectAsync(sock, arg, getadr(sock));
+	}
+
+static char* getadr(SOCKET sock)
+	{
+	SOCKADDR_IN sa = {};
+	int sa_len = sizeof sa;
+	getpeername(sock, reinterpret_cast<sockaddr*>(&sa), &sa_len);
+	char* adr = "";
+	if (char* s = inet_ntoa(sa.sin_addr))
+		adr = dupstr(s);
+	return adr;
 	}

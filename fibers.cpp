@@ -191,7 +191,8 @@ static void switchto(int i)
 
 void Fibers::yieldif()
 	{
-	if (tls().synchronized == 0 && qpc() > run_until)
+	if (tls().synchronized == 0 && 
+		(qpc() > run_until || SleepEx(0, true) == WAIT_IO_COMPLETION))
 		yield();
 	}
 

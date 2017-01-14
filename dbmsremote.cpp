@@ -315,7 +315,7 @@ bool DbmsQueryRemote::output(const Record& rec)
 	int reclen = rec.cursize();
 	CK(reclen);
 	WRITEBUF("OUTPUT " << this << " R" << reclen);
-	sc.write((char*) rec.dup().ptr(), reclen); // dup only required for async ???
+	sc.write((char*) rec.dup().ptr(), reclen); // dup to squeeze?
 	return sc.readbool();
 	}
 
@@ -740,14 +740,14 @@ extern int su_port;
 
 Dbms* dbms_remote_asynch(char* addr)
 	{
-	return new DbmsRemote(socketClientAsynch(addr, su_port));
+	return new DbmsRemote(socketClientAsync(addr, su_port));
 	}
 
 static char* httpget(char* addr, int port)
 	{
 	try
 		{
-		SocketConnect* sc = socketClientSynch(addr, port);
+		SocketConnect* sc = socketClientSync(addr, port);
 		OstreamStr oss;
 		oss << "GET http://" << addr << "/:" << port << " HTTP/1.0\r\n\r\n";
 		sc->write(oss.str());
@@ -767,7 +767,7 @@ Dbms* dbms_remote(char* addr)
 	{
 	try
 		{
-		return new DbmsRemote(socketClientSynch(addr, su_port));
+		return new DbmsRemote(socketClientSync(addr, su_port));
 		}
 	catch (const Except&)
 		{

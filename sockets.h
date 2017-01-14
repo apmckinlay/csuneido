@@ -31,20 +31,46 @@ class SocketConnect
 public:
 	virtual ~SocketConnect()
 		{ }
-	virtual int read(char* buf, int n) = 0;
+
+	/// Takes/removes data from rdbuf (leftover from readline) 
+	///	and then directly from socket.
+	/// Only reads what's required.
+	/// Subclasses normally implement either read(buf,n) or read(buf, reqd, max)
+	virtual int read(char* buf, int n)
+		{
+		return read(buf, n, n); // bufsize = n, no extra read
+		}
+
+	/// Same as read(buf, n) but reads extra data, up to max.
+	/// This can avoid too many socket read calls, e.g. to read one byte at a time.
+	/// Subclasses normally implement either read(buf, n) or read(buf, reqd, max)
+	virtual int read(char* buf, int required, int bufsize)
+		{
+		return read(buf, required); // bufsize ignored
+		}
+
+	/// Read up to the next newline using read()
+	/// May leave extra data in rdbuf.
 	virtual bool readline(char* buf, int n) = 0;
+
+	/// Gathering write of wrbuf and buf argument
+	/// wrbuf is left empty.
 	virtual void write(char* buf, int n) = 0;
+
+	/// Add to wrbuf
 	void writebuf(char* buf, int n)
 		{ wrbuf.add(buf, n); }
+
 	void write(char* s);
 	void writebuf(char* s);
 	virtual void close() = 0;
 	virtual void* getarg()
-		{ return 0; }
+		{ return nullptr; }
 
 	// used by dbserver and susockets Socket.RemoteUser
 	// only implemented in SocketConnectAsynch
-	virtual char* getadr() = 0;
+	virtual char* getadr()
+		{ return ""; }
 
 	Buffer rdbuf;
 	Buffer wrbuf;
@@ -52,17 +78,13 @@ public:
 
 // start a socket server (to listen)
 // calls supplied newserver function for connections
-typedef void (_stdcall *pNewServer)(void*);
-void socketServer(char* title, int port, pNewServer newserver, void* arg, bool exit);
+typedef void (_stdcall *NewServerConnection)(void*);
+void socketServer(char* title, int port, NewServerConnection newServerConn, void* arg, bool exit);
 
 // create a synchronous (blocks everything) socket connection
-SocketConnect* socketClientSynch(char* addr, int port, int timeout = 9999, int timeoutConnect = 0);
+SocketConnect* socketClientSync(char* addr, int port, int timeout = 9999, int timeoutConnect = 0);
 
 // create an asynch (only blocks calling fiber) socket connection
-SocketConnect* socketClientAsynch(char* addr, int port);
-
-SocketConnect* socketClientPoll(char* addr, int port, int timeout, int timeoutConnect);
-
-int socketConnectionCount();
+SocketConnect* socketClientAsync(char* addr, int port, int timeout = 9999, int timeoutConnect = 10);
 
 #endif

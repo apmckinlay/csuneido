@@ -42,11 +42,13 @@ void message_loop(HWND hdlg)
 		
 		while (! PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
 			{ 
+			SleepEx(0, true); // run completion routines (may unblock fibers)
 			if (! Fibers::yield())
-				// no runnable fibers so wait for event for up to 10 ms
-				// need to wait so we don't poll continuously (20ms gives low cpu usage)
-				// need timeout so yield can wake sleeping fibers
-				MsgWaitForMultipleObjects(0, nullptr, FALSE, 20 /* ms */, QS_ALLINPUT);
+				// no runnable fibers so wait for event for up to 20 ms
+				// need to wait so we don't run continuously
+				// note: timeout accuracy is probably only ~16ms (Windows tick)
+				// MUST be Ex version to be alertable for overlapping socket io
+				MsgWaitForMultipleObjectsEx(0, nullptr, 20, QS_ALLINPUT, MWMO_ALERTABLE);
 			}
 
 		AutoWaitCursor wc;
