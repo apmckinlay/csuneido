@@ -209,7 +209,7 @@ static Value queryone(char* which, Dir dir, bool one, SuTransaction* tran, Built
 	TRACE(QUERY, traceTran(tran) <<
 		(one ? "ONE" : dir == NEXT ? "FIRST" : "LAST") << ' ' << query);
 	Header hdr;
-	Row row = dbms()->get(dir, query, one, hdr, tran ? tran->tran : -1);
+	Row row = dbms()->get(dir, query, one, hdr, tran ? tran->tran : NO_TRAN);
 	return row == Row::Eof ? SuFalse : new SuRecord(row, hdr, tran);
 	}
 
@@ -485,7 +485,7 @@ struct SetTran
 	~SetTran()
 		{
 		cursor->t = 0;
-		cursor->q->set_transaction(-1);
+		cursor->q->set_transaction(NO_TRAN);
 		}
 	SuCursor* cursor;
 	};

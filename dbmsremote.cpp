@@ -335,12 +335,12 @@ void DbmsQueryRemote::close()
 class DbmsCursorRemote : public DbmsQueryRemote
 	{
 public:
-	DbmsCursorRemote(CheckedSocketConnect& s, int i) : DbmsQueryRemote(s, i), tran(-1)
+	DbmsCursorRemote(CheckedSocketConnect& s, int i) : DbmsQueryRemote(s, i)
 		{ }
 	void set_transaction(int t);
 	virtual void out(Ostream& os);
 private:
-	int tran;
+	int tran = NO_TRAN;
 	};
 
 void DbmsCursorRemote::set_transaction(int t)
@@ -350,10 +350,10 @@ void DbmsCursorRemote::set_transaction(int t)
 
 void DbmsCursorRemote::out(Ostream& os)
 	{
-	if (tran >= 0)
+	if (isTran(tran))
 		{
 		os << "T" << tran << " ";
-		tran = -1;
+		tran = NO_TRAN;
 		}
 	os << 'C' << id;
 	}
@@ -378,7 +378,7 @@ public:
 	void erase(int tran, Mmoffset recadr) override;
 	Value exec(Value ob) override;
 	int final() override;
-	Row get(Dir dir, char* query, bool one, Header& hdr, int tran = -1) override;
+	Row get(Dir dir, char* query, bool one, Header& hdr, int tran = NO_TRAN) override;
 	int kill(char* s) override;
 	Lisp<gcstring> libget(char* name) override;
 	Lisp<gcstring> libraries() override;

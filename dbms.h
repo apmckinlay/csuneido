@@ -28,6 +28,10 @@
 
 // Dbms - pure virtual interface class for Database and Query packages
 
+const int NO_TRAN = 0;
+inline bool isTran(int tn)
+	{ return tn > 0; } // handle both -1 and 0
+
 class Record;
 class Row;
 class Header;
@@ -70,7 +74,7 @@ public:
 	virtual void erase(int tn, Mmoffset recadr) = 0;
 	virtual Value exec(Value ob) = 0;
 	virtual int final() = 0;
-	virtual Row get(Dir dir, char* query, bool one, Header& hdr, int tn = 0) = 0;
+	virtual Row get(Dir dir, char* query, bool one, Header& hdr, int tn = NO_TRAN) = 0;
 	virtual int kill(char* sessionid) = 0;
 	virtual Lisp<gcstring> libget(char* name) = 0;
 	virtual Lisp<gcstring> libraries() = 0;
