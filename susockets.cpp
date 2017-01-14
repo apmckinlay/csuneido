@@ -35,19 +35,21 @@
 #include "builtinargs.h"
 #include "exceptimp.h"
 #include "readline.h"
+#include "prim.h"
+
 
 // SuSocketClient ===================================================
 
 class SuSocketClient : public SuFinalize
 	{
 public:
-	SuSocketClient(SocketConnect* s);
-	void out(Ostream& os);
+	explicit SuSocketClient(SocketConnect* s);
+	void out(Ostream& os) override;
 	Value call(Value self, Value member, short nargs, short nargnames,
-		ushort* argnames, int each);
+		ushort* argnames, int each) override;
 	void close();
 private:
-	virtual void finalize();
+	void finalize() override;
 	void ckopen(char* action);
 
 	SocketConnect* sc;
@@ -147,10 +149,8 @@ void SuSocketClient::finalize()
 	{
 	if (sc)
 		sc->close();
-	sc = 0;
+	sc = nullptr;
 	}
-
-#include "prim.h"
 
 Value suSocketClient()
 	{
@@ -179,10 +179,10 @@ PRIM(suSocketClient, "SocketClient(ipaddress, port, timeout=60, timeoutConnect=0
 class SuSocketServer : public RootClass
 	{
 public:
-	void out(Ostream& os);
+	void out(Ostream& os) override;
 	Value call(Value self, Value member, short nargs, short nargnames,
-		ushort* argnames, int each);
-	const char* type() const
+		ushort* argnames, int each) override;
+	const char* type() const override
 		{ return "BuiltinClass"; }
 	};
 
@@ -196,15 +196,16 @@ static void _stdcall suserver(void* sc);
 class SuServerInstance : public SuObject
 	{
 public:
-	SuServerInstance(SocketConnect* c) : sc(c)
+	explicit SuServerInstance(SocketConnect* c) : sc(c)
 		{ } // old way
-	SuServerInstance() : sc(0)
+	SuServerInstance() : sc(nullptr)
 		{ } // master
 	SuServerInstance(SuServerInstance* master, SocketConnect* s) : SuObject(*master), sc(s)
 		{ } // dup
-	void out(Ostream& os);
+	void out(Ostream& os) override;
 	Value call(Value self, Value member, short nargs, short nargnames,
-		ushort* argnames, int each);
+		ushort* argnames, int each) override;
+private:
 	SocketConnect* sc;
 	};
 
@@ -306,7 +307,7 @@ static void _stdcall suserver(void* arg)
 			sc->close();
 
 		delete tls().thedbms;
-		tls().thedbms = 0;
+		tls().thedbms = nullptr;
 
 		Fibers::end();
 		}
@@ -387,11 +388,3 @@ Value SuServerInstance::call(Value self, Value member, short nargs,
 	else
 		return SuObject::call(self, member, nargs, nargnames, argnames, each);
 	}
-
-#include "prim.h"
-
-Value su_SocketConnectionCount()
-	{
-	return socketConnectionCount();
-	}
-PRIM(su_SocketConnectionCount, "SocketConnectionCount()");
