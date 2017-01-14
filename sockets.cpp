@@ -88,7 +88,7 @@ void SocketConnect::writebuf(char* s)
 
 // socket server --------------------------------------------------------------
 
-DWORD WINAPI acceptor(LPVOID lpParameter);
+static DWORD WINAPI acceptor(LPVOID lpParameter);
 
 struct ServerData
 	{
@@ -133,7 +133,7 @@ void socketServer(char* title, int port, NewServerConnection newServerConn, void
 		static_cast<void*>(serverData[port]), 0, nullptr));
 	}
 
-void CALLBACK finishAccept(ULONG_PTR p);
+static void CALLBACK finishAccept(ULONG_PTR p);
 
 /// Runs in a separate thread (per socket server)
 /// queues finishAccept calls on the original thread
@@ -156,10 +156,10 @@ static DWORD WINAPI acceptor(LPVOID p)
 		}
 	}
 
-int getport(int sock);
-SocketConnect* newSocketConnectAsync(int sock, void* arg);
+static int getport(int sock);
+static SocketConnect* newSocketConnectAsync(int sock, void* arg);
 
-void CALLBACK finishAccept(ULONG_PTR p)
+static void CALLBACK finishAccept(ULONG_PTR p)
 	{
 	SOCKET sock = static_cast<SOCKET>(p);
 	LOG("finishAccept sock " << sock << " port " << getport(sock));
@@ -168,7 +168,7 @@ void CALLBACK finishAccept(ULONG_PTR p)
 	if (sc)
 		Fibers::create(data.newServerConn, sc);
 	else
-		LOG("newSocketConnectAsync failed");
+		{ LOG("newSocketConnectAsync failed"); }
 	}
 
 static int getport(int sock)
@@ -217,7 +217,7 @@ struct AiFree
 	struct addrinfo *ai;
 	};
 
-int makeSocket(struct addrinfo* ai)
+static int makeSocket(struct addrinfo* ai)
 	{
 	int sock = socket(ai->ai_family, SOCK_STREAM, IPPROTO_TCP);
 	verify(sock > 0);
@@ -475,7 +475,7 @@ SocketConnect* socketClientAsync(char* addr, int port, int timeout, int timeoutC
 	}
 
 /// completion routine
-void CALLBACK afterSend(DWORD Error, DWORD BytesTransferred, 
+static void CALLBACK afterSend(DWORD Error, DWORD BytesTransferred, 
 	LPWSAOVERLAPPED wsaover, DWORD InFlags)
 	{
 	Over* over = reinterpret_cast<Over*>(wsaover);
@@ -567,7 +567,7 @@ int SocketConnectAsync::read2(char* dst, int required, const int dstsize)
 	}
 
 /// completion routine
-void CALLBACK afterRecv(DWORD Error, DWORD BytesTransferred,
+static void CALLBACK afterRecv(DWORD Error, DWORD BytesTransferred,
 	LPWSAOVERLAPPED wsaover, DWORD InFlags)
 	{
 	Over* over = reinterpret_cast<Over*>(wsaover);
@@ -667,10 +667,10 @@ void SocketConnectAsync::close()
 	LOG("async closed" << endl);
 	}
 
-char* getadr(SOCKET sock);
+static char* getadr(SOCKET sock);
 
 // used by socket server
-SocketConnect* newSocketConnectAsync(int sock, void* arg)
+static SocketConnect* newSocketConnectAsync(int sock, void* arg)
 	{
 	ULONG NonBlocking = 1;
 	if (0 != ioctlsocket(sock, FIONBIO, &NonBlocking))
