@@ -430,7 +430,7 @@ Value DbmsRemote::sessionid(char* sessionid)
 	if (*sessionid || !*tls().fiber_id)
 		{
 		send(Command::SESSIONID, sessionid);
-		tls().fiber_id = io.getStr().str();	
+		tls().fiber_id = io.getStr().str();
 		}
 	return new SuString(tls().fiber_id);
 	}
@@ -594,7 +594,7 @@ void DbmsRemote::getResponse()
 
 extern int su_port;
 
-Dbms* dbms_remote2_asynch(char* addr)
+Dbms* dbms_remote2_async(char* addr)
 	{
 	return new DbmsRemote(socketClientAsync(addr, su_port));
 	}

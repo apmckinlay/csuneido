@@ -412,7 +412,7 @@ static bool builtMatch(char* resp)
 		return false;
 	resp = resp + strlen(prefix);
 	if (!strstr(resp, "Java"))
-		return has_prefix(resp, build_date);	
+		return has_prefix(resp, build_date);
 	else
 		{
 		// just compare date (not time)
@@ -428,7 +428,7 @@ DbmsRemote::DbmsRemote(SocketConnect* s) : sc(s)
 	char buf[80];
 	sc.readline(buf, sizeof buf);
 	if (! builtMatch(buf))
-		except("connect failed\nexpected: Suneido Database Server (" 
+		except("connect failed\nexpected: Suneido Database Server ("
 			<< build_date << ")\ngot: " << buf);
 	sc.write("BINARY\r\n");
 	sc.ck_ok();
@@ -738,7 +738,7 @@ Value DbmsRemote::writeCount(int tran)
 
 extern int su_port;
 
-Dbms* dbms_remote_asynch(char* addr)
+Dbms* dbms_remote_async(char* addr)
 	{
 	return new DbmsRemote(socketClientAsync(addr, su_port));
 	}
