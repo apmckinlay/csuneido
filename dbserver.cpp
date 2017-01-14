@@ -121,7 +121,6 @@ private:
 	char* cmd_tempdest(char* s);
 	char* cmd_cursors(char* s);
 	char* cmd_sessionid(char* s);
-	char* cmd_refresh(char* s);
 	char* cmd_final(char*);
 	char* cmd_log(char*);
 	char* cmd_kill(char*);
@@ -230,10 +229,11 @@ void DbServerImp::timer_proc()
 		}
 	}
 
+extern void dbserver_timer(void (*pfn)());
+
 void start_dbserver(char* name)
 	{
-	socketServer(name, su_port, dbserver, 0, true);
-	extern void dbserver_timer(void (*pfn)());
+	socketServer(name, su_port, dbserver, nullptr, true);
 	dbserver_timer(DbServerImp::timer_proc);
 	}
 
@@ -493,7 +493,7 @@ char* DbServerImp::cmd_libget(char* name)
 		writebuf(s->buf(), s->size());
 		}
 	write("");
-	return 0;
+	return nullptr;
 	}
 
 char* DbServerImp::cmd_libraries(char*)
@@ -536,7 +536,7 @@ char* DbServerImp::value_result(Value x)
 	char* buf = tmpalloc(n);
 	x.pack(buf);
 	write(buf, n);
-	return 0;
+	return nullptr;
 	}
 
 char* DbServerImp::cmd_connections(char*)
@@ -564,7 +564,7 @@ char* DbServerImp::cmd_final(char*)
 
 DbmsQuery* DbServerImp::q_or_c(char*& s)
 	{
-	DbmsQuery* q = 0;
+	DbmsQuery* q = nullptr;
 	int n;
 	if (ERR != (n = getnum('Q', s)))
 		q = data->get_query(n);
@@ -606,7 +606,7 @@ char* DbServerImp::cmd_keys(char* s)
 
 DbmsQuery* DbServerImp::q_or_tc(char*& s)
 	{
-	DbmsQuery* q = 0;
+	DbmsQuery* q = nullptr;
 	int n, t;
 	if (ERR != (n = getnum('Q', s)))
 		q = data->get_query(n);
@@ -727,7 +727,7 @@ char* DbServerImp::row_result(const Row& row, const Header& hdr, bool sendhdr)
 		writebuf(os.str());
 		
 		write((char*) rec.ptr(), rec.bufsize());
-		return 0;
+		return nullptr;
 		}
 	}
 
@@ -913,14 +913,14 @@ char* DbServerImp::cmd_nonce(char* s)
 	gcstring nonce = Auth::nonce();
 	write(nonce.buf(), nonce.size());
 	data->nonce = nonce;
-	return 0;
+	return nullptr;
 	}
 
 char* DbServerImp::cmd_token(char* s)
 	{
 	gcstring token = Auth::token();
 	write(token.buf(), token.size());
-	return 0;
+	return nullptr;
 	}
 
 char* DbServerImp::cmd_auth(char* s)
