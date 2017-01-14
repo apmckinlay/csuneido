@@ -102,6 +102,8 @@ void set_dbms_server_ip(char* s);
 char* get_dbms_server_ip();
 Dbms* dbms_remote(char* server);
 Dbms* dbms_remote_asynch(char* server);
+Dbms* dbms_remote2(char* server);
+Dbms* dbms_remote2_asynch(char* server);
 
 bool isclient();
 

@@ -4,18 +4,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2013 Suneido Software Corp. 
+ *
+ * Copyright (c) 2013 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -25,42 +25,85 @@
 
 class gcstring;
 
+/// Used by circlog, ostreamstr, sockets, sustring
 class Buffer
 	{
 public:
 	explicit Buffer(int n = 128);
 
-	// make sure the buffer has space for n more characters
-	// afterwards, available() will be >= n
-	// NOTE: should be followed by calling added()
-	char* ensure(int n);
-
-	// does ensure(n) and then added(n)
+	/// Ensure there is space for at least n more bytes and update used.
+	/// @return A pointer into the buffer at the start of the space.
 	char* alloc(int n);
 
-	Buffer& add(char c);
-	Buffer& add(const char* s, int n);
-	Buffer& add(const gcstring& s);
+	/// Make sure there is space for at least n more bytes.
+	/// Allocates a larger buffer if required.
+	/// NOTE: This does not advance used,
+	/// it should be followed by calling added()
+	/// @post available() >= n
+	/// @return A pointer into the buffer where data should be added.
+	char* ensure(int n);
 
-	void remove(int n);
-	int size()
-		{ return used; }
-	char* buffer()
-		{ return buf; }
+	/// Call after adding data directly into the buffer. Updates used.
 	void added(int n)
 		{ used += n; }
-	void clear()
-		{ used = 0; }
-	int available()
+
+	/// Adds a single char to the buffer, updating used.
+	Buffer& add(char c);
+
+	/// Copies data into the buffer, updating used.
+	Buffer& add(const char* s, int n);
+
+	/// Copies data into the buffer, updating used.
+	Buffer& add(const gcstring& s);
+
+	/// Remove data from buffer by moving remaining data.
+	/// WARNING: Invalidates previous references.
+	void remove(int n);
+
+	/// @return the number of bytes currently in the buffer.
+	int size() const
+		{ return used; }
+
+	/// @return A pointer to the entire buffer.
+	char* buffer() const
+		{ return buf; }
+
+	/// @return The unused space left in the buffer (capacity - used)
+	int available() const
 		{ return capacity - used; }
-	char* bufnext()
-		{ return buf + used; }
-	char* str(); // no alloc
-	gcstring gcstr(); // no alloc
+
+	/// @return The number of bytes left to read (used - pos)
+	int remaining() const
+		{ return used - pos; }
+
+	/// @return A pointer to the entire buffer, with a nul added at the end.
+	/// References the buffer, does not copy.
+	char* str();
+
+	/// @return The used portion of the buffer.
+	/// References the buffer, does not copy.
+	gcstring gcstr();
+
+	/// @return The next byte at pos. Advances pos, reducing remaining()
+	char get()
+		{ return buf[pos++]; }
+
+	/// @return A copy of n bytes as a gcstring.
+	/// Advances pos by n, reducing remaining()
+	gcstring getStr(int n);
+
+	/// @return A pointer into the buffer. Does *not* copy the data.
+	/// Advances pos by n, reducing remaining()
+	char* getBuf(int n);
+
+	void clear()
+		{ used = pos = 0; }
+
 private:
-	int capacity;
 	char* buf;
-	int used;
+	int capacity; ///< Size of buf
+	int used;     ///< Where to add more at, and the limit for reading
+	int pos;      ///< The position for reading
 	};
 
 #endif

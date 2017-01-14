@@ -116,6 +116,7 @@
     <ClCompile Include="..\codecheck.cpp" />
     <ClCompile Include="..\commalist.cpp" />
     <ClCompile Include="..\compile.cpp" />
+    <ClCompile Include="..\connection.cpp" />
     <ClCompile Include="..\construct.cpp" />
     <ClCompile Include="..\cvt.cpp" />
     <ClCompile Include="..\database.cpp" />
@@ -123,10 +124,12 @@
     <ClCompile Include="..\dbcompact.cpp" />
     <ClCompile Include="..\dbhttp.cpp" />
     <ClCompile Include="..\dbms.cpp" />
+    <ClCompile Include="..\dbmsremote2.cpp" />
     <ClCompile Include="..\dbmslocal.cpp" />
     <ClCompile Include="..\dbmsremote.cpp" />
     <ClCompile Include="..\dbmsunauth.cpp" />
     <ClCompile Include="..\dbserver.cpp" />
+    <ClCompile Include="..\dbserver2.cpp" />
     <ClCompile Include="..\dbserverdata.cpp" />
     <ClCompile Include="..\debug.cpp" />
     <ClCompile Include="..\dll.cpp" />
@@ -194,6 +197,7 @@
     <ClCompile Include="..\row.cpp" />
     <ClCompile Include="..\runpiped.cpp" />
     <ClCompile Include="..\scanner.cpp" />
+    <ClCompile Include="..\serializer.cpp" />
     <ClCompile Include="..\servereval.cpp" />
     <ClCompile Include="..\sesviews.cpp" />
     <ClCompile Include="..\slots.cpp" />
@@ -270,6 +274,7 @@
     <ClInclude Include="..\codevisitor.h" />
     <ClInclude Include="..\commalist.h" />
     <ClInclude Include="..\compile.h" />
+    <ClInclude Include="..\connection.h" />
     <ClInclude Include="..\construct.h" />
     <ClInclude Include="..\cvt.h" />
     <ClInclude Include="..\database.h" />
@@ -335,6 +340,7 @@
     <ClInclude Include="..\qhistable.h" />
     <ClInclude Include="..\qintersect.h" />
     <ClInclude Include="..\qjoin.h" />
+    <ClInclude Include="..\qpc.h" />
     <ClInclude Include="..\qproduct.h" />
     <ClInclude Include="..\qproject.h" />
     <ClInclude Include="..\qrename.h" />
@@ -359,6 +365,7 @@
     <ClInclude Include="..\row.h" />
     <ClInclude Include="..\scanner.h" />
     <ClInclude Include="..\scintilla.h" />
+    <ClInclude Include="..\serializer.h" />
     <ClInclude Include="..\sesviews.h" />
     <ClInclude Include="..\slots.h" />
     <ClInclude Include="..\sockets.h" />
