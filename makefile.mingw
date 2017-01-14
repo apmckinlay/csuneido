@@ -23,12 +23,12 @@ FLAGS += -DCOMPILER=MinGW -Werror -Wall -Wextra -Wno-sign-compare -Wfloat-equal 
 $(OUTPUT)/%.o : %.c
 	@echo $<
 	@$(CC) $(FLAGS) -c -o $@ $<
-	$(call make-depend,$<,$@,$(subst .o,.d,$@),gcc)
+	$(call make-depend,$<,$@,$(subst .o,.d,$@),$(CC))
 
 $(OUTPUT)/%.o : %.cpp
 	@echo $<
 	@$(CXX) $(FLAGS) -c -o $@ $<
-	$(call make-depend,$<,$@,$(subst .o,.d,$@),g++)
+	$(call make-depend,$<,$@,$(subst .o,.d,$@),$(CXX))
 
 SOURCES := $(subst sunapp.cpp ,,$(SOURCES)) # ostreamstd.cpp
 OBJECTS = $(patsubst %.c,$(OUTPUT)/%.o,$(subst .cpp,.c,$(SOURCES)))
