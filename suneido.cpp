@@ -32,11 +32,9 @@
 #include "load.h"
 #include "testing.h"
 #include "catstr.h"
-#include "gcstring.h"
 #include "alert.h"
 #include "dbms.h"
 #include "dbserver.h"
-#include "sufunction.h"
 #include "suobject.h"
 #include "call.h"
 #include "sunapp.h"
@@ -46,10 +44,8 @@
 #include <ctype.h> // for isspace
 #include <stdio.h> // for tmpnam and remove
 #include "fatal.h"
-#include "errlog.h"
 #include "sustring.h"
 #include "testobalert.h"
-#include "prim.h"
 #include "unhandled.h"
 #include "msgloop.h"
 #include "port.h" // for fork_rebuild for start_check
@@ -250,7 +246,7 @@ struct St
 	ulong timeout;
 	};
 
-typedef int(__stdcall *MSGBOXAPI)(IN HWND hWnd, IN LPCSTR lpText, IN LPCSTR lpCaption, 
+typedef int(__stdcall *MSGBOXAPI)(IN HWND hWnd, IN LPCSTR lpText, IN LPCSTR lpCaption,
 	IN UINT uType, IN WORD wLanguageId, IN DWORD dwMilliseconds);
 
 int __stdcall fallback(IN HWND hWnd, IN LPCSTR lpText, IN LPCSTR lpCaption,
@@ -276,7 +272,7 @@ DWORD WINAPI message_thread(void* p)
 	{
 	static auto MessageBoxTimeout = getMessageBoxTimeout();
 	St* st = static_cast<St*>(p);
-	MessageBoxTimeout(0, st->t, st->s, 
+	MessageBoxTimeout(0, st->t, st->s,
 		MB_OK | MB_TASKMODAL | MB_TOPMOST | MB_SETFOREGROUND, 0, st->timeout);
 	return 0;
 	}
