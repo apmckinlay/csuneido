@@ -82,7 +82,7 @@ public:
 	void cmd_REQUEST();
 	void cmd_REWIND();
 	void cmd_RUN();
-	void cmd_session_id();
+	void cmd_SESSIONID();
 	void cmd_SIZE();
 	void cmd_TIMESTAMP();
 	void cmd_TOKEN();
@@ -168,7 +168,7 @@ static CmdFn commands[] {
 	&DbServer::cmd_LOAD, &DbServer::cmd_LOG, &DbServer::cmd_NONCE,
 	&DbServer::cmd_ORDER, &DbServer::cmd_OUTPUT, &DbServer::cmd_QUERY,
 	&DbServer::cmd_READCOUNT, &DbServer::cmd_REQUEST, &DbServer::cmd_REWIND,
-	&DbServer::cmd_RUN, &DbServer::cmd_session_id, &DbServer::cmd_SIZE,
+	&DbServer::cmd_RUN, &DbServer::cmd_SESSIONID, &DbServer::cmd_SIZE,
 	&DbServer::cmd_TIMESTAMP, &DbServer::cmd_TOKEN, &DbServer::cmd_TRANSACTION,
 	&DbServer::cmd_TRANSACTIONS, &DbServer::cmd_UPDATE, &DbServer::cmd_WRITECOUNT };
 
@@ -464,7 +464,7 @@ void DbServer::cmd_RUN()
 	putValue(result);
 	}
 
-void DbServer::cmd_session_id()
+void DbServer::cmd_SESSIONID()
 	{
 	gcstring s = io.getStr();
 	if (s != "")
