@@ -221,14 +221,14 @@ Value SuSocketServer::call(Value self, Value member, short nargs,
 		static int NAME = ::symnum("name");
 		static int PORT = ::symnum("port");
 		static int EXIT = ::symnum("exit");
-	
+
 		SuObject* selfob = self.object();
 		BuiltinArgs args(nargs, nargnames, argnames, each);
 		args.usage("SocketServer(name = .Name, port = .Port, exit = false, ...)");
 		Value name = args.getValue("name", Value());
 		Value port = args.getValue("port", Value());
 		Value exit = args.getValue("exit", Value());
-		
+
 		// convert arguments, make name, port, and exit named
 		int na = 0;
 		Value* a = (Value*) alloca(sizeof (Value) * nargs);
@@ -255,11 +255,11 @@ Value SuSocketServer::call(Value self, Value member, short nargs,
 			{ PUSH(exit); an[nan++] = EXIT; ++na; }
 		else
 			exit = SuFalse;
-		
+
 		// construct a "master" instance, which will be duplicated for each connection
 		SuServerInstance* master = new SuServerInstance();
 		master->myclass = self;
-		master->call(master, NEW, na, nan, an, -1); 
+		master->call(master, NEW, na, nan, an, -1);
 
 		socketServer(name.str(), port.integer(), suserver, master, exit == SuTrue);
 		}

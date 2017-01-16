@@ -1,4 +1,3 @@
-#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
 * This file is part of Suneido - The Integrated Application Platform
 * see: http://www.suneido.com for more information.
@@ -21,14 +20,10 @@
 * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/// Commands for the binary client-server protocol
-
-#include "value.h"
-
-// sequence must match jSuneido
-enum class Command { ABORT, ADMIN, AUTH, CHECK, CLOSE, COMMIT, CONNECTIONS, CURSOR, CURSORS, DUMP,
-	ERASE, EXEC, EXPLAIN, FINAL, GET, GET1, HEADER, KEYS, KILL, LIBGET, LIBRARIES, LOAD, LOG,
-	NONCE, ORDER, OUTPUT, QUERY, READCOUNT, REQUEST, REWIND, RUN, SESSIONID, SIZE, TIMESTAMP,
-	TOKEN, TRANSACTION, TRANSACTIONS, UPDATE, WRITECOUNT };
-
-char* cmdnames[];
+// for debugging
+char* cmdnames[] {
+	"ABORT", "ADMIN", "AUTH", "CHECK", "CLOSE", "COMMIT", "CONNECTIONS", "CURSOR",
+	"CURSORS", "DUMP", "ERASE", "EXEC", "EXPLAIN", "FINAL", "GET", "GET1", "HEADER",
+	"KEYS", "KILL", "LIBGET", "LIBRARIES", "LOAD", "LOG", "NONCE", "ORDER", "OUTPUT",
+	"QUERY", "READCOUNT", "REQUEST", "REWIND", "RUN", "SESSIONID", "SIZE", "TIMESTAMP",
+	"TOKEN", "TRANSACTION", "TRANSACTIONS", "UPDATE", "WRITECOUNT" };

@@ -386,7 +386,7 @@ public:
 	void log(char* s) override;
 	gcstring nonce() override;
 	DbmsQuery* query(int tran, char* s) override;
-	Value readCount(int tran) override;
+	int readCount(int tran) override;
 	int request(int tran, char* s) override;
 	Value run(char* s) override;
 	Value sessionid(char* s) override;
@@ -397,7 +397,7 @@ public:
 	int transaction(TranType type, char* session_id = "") override;
 	Value timestamp() override;
 	Mmoffset update(int tran, Mmoffset recadr, Record& rec) override;
-	Value writeCount(int tran) override;
+	int writeCount(int tran) override;
 private:
 	CheckedSocketConnect sc;
 	OstreamStr os;
@@ -722,13 +722,13 @@ Value DbmsRemote::check()
 	return sc.readvalue();
 	}
 
-Value DbmsRemote::readCount(int tran)
+int DbmsRemote::readCount(int tran)
 	{
 	WRITE("READCOUNT T" << tran);
 	return sc.readint('C');
 	}
 
-Value DbmsRemote::writeCount(int tran)
+int DbmsRemote::writeCount(int tran)
 	{
 	WRITE("WRITECOUNT T" << tran);
 	return sc.readint('C');

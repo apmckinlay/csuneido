@@ -24,6 +24,7 @@
 #include "sockets.h"
 #include <cstring>
 #include <algorithm>
+#include "except.h"
 using std::min;
 using std::max;
 
@@ -44,6 +45,7 @@ void Connection::need(int n)
 	int maxRead = max(toRead, READSIZE);
 	char* buf = rdbuf.ensure(maxRead);
 	int nr = sc.read(buf, toRead, maxRead);
+	except_if(nr == 0, "lost connection");
 	rdbuf.added(nr);
 	}
 
@@ -58,7 +60,8 @@ void Connection::read(char* dst, int n)
 		n -= take;
 		dst += take;
 		}
-	sc.read(dst, n);
+	int nr = sc.read(dst, n);
+	except_if(nr == 0, "lost connection");
 	}
 
 /// Write buffered data

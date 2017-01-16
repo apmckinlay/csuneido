@@ -142,7 +142,7 @@ public:
 	void log(char* s) override;
 	gcstring nonce() override;
 	DbmsQuery* query(int tn, char* query) override;
-	Value readCount(int tn) override;
+	int readCount(int tn) override;
 	int request(int tn, char* s) override;
 	Value run(char* s) override;
 	Value sessionid(char* s) override;
@@ -153,7 +153,7 @@ public:
 	Lisp<int> tranlist() override;
 	int transaction(TranType type, char* session_id = "") override;
 	Mmoffset update(int tn, Mmoffset recadr, Record& rec) override;
-	Value writeCount(int tn) override;
+	int writeCount(int tn) override;
 	};
 
 int DbmsLocal::transaction(TranType type, char* session_id)
@@ -384,12 +384,12 @@ Value DbmsLocal::check()
 	except("check while running only supported with jSuneido server");
 	}
 
-Value DbmsLocal::readCount(int tran)
+int DbmsLocal::readCount(int tran)
 	{
 	except("ReadCount only supported with jSuneido server");
 	}
 
-Value DbmsLocal::writeCount(int tran)
+int DbmsLocal::writeCount(int tran)
 	{
 	except("WriteCount only supported with jSuneido server");
 	}

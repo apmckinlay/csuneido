@@ -28,6 +28,11 @@
 #include "pack.h"
 #include "lisp.h"
 
+#include "clientserver.h"
+#include "ostreamcon.h"
+#define LOG(stuff) con() << stuff << ' '
+#define LOGSTR(s) LOG('"' << s.substr(0, 20) << (s.size() > 20 ? "..." : "") << '"')
+
 Serializer::Serializer(Buffer& r, Buffer& w) : rdbuf(r), wrbuf(w)
 	{ }
 
@@ -37,22 +42,45 @@ void Serializer::clear()
 	wrbuf.clear();
 	}
 
-// writing ----------------------------------------------------------
+// writing -----------------------------------------------------------------------
 
 Serializer& Serializer::put(char c)
 	{
+	LOG("'" << c << "'");
 	wrbuf.add(c);
 	return *this;
 	}
 
+Serializer& Serializer::putCmd(char c)
+	{
+	LOG(endl << "=> " << cmdnames[c]);
+	wrbuf.add(c);
+	return *this;
+	}
+
+Serializer& Serializer::putOk()
+	{
+	LOG(endl << "\tOK");
+	wrbuf.add(1); // true
+	return *this;
+	}
+
+void Serializer::putErr(const char* err)
+	{
+	LOG(endl << "\tERR " << err);
+	wrbuf.add(0); // false
+	}
+
 Serializer& Serializer::putBool(bool b)
 	{
+	LOG((b ? "true" : "false"));
 	wrbuf.add(b ? 1 : 0);
 	return *this;
 	}
 
 Serializer& Serializer::putInt(int64_t i)
 	{
+	LOG(i);
 	char* buf = wrbuf.ensure(10); // 64 bits / 7 bits per byte
 	char* dst = buf;
 	uint64_t n = (i << 1) ^ (i >> 63); // zig zag encoding
@@ -67,17 +95,16 @@ Serializer& Serializer::putInt(int64_t i)
 	return *this;
 	}
 
-Serializer& Serializer::putStr(const char * s)
+Serializer& Serializer::putStr(const char* s)
 	{
-	auto n = strlen(s);
-	putInt(n);
-	wrbuf.add(s, n);
-	return *this;
+	return putStr(gcstring(strlen(s), s)); // no alloc
 	}
 
 Serializer& Serializer::putStr(const gcstring& s)
 	{
 	putInt(s.size());
+	LOG('-');
+	LOGSTR(s);
 	wrbuf.add(s);
 	return *this;
 	}
@@ -86,6 +113,7 @@ Serializer& Serializer::putValue(Value value)
 	{
 	auto n = value.packsize();
 	putInt(n);
+	LOG("- " << value);
 	value.pack(wrbuf.alloc(n));
 	return *this;
 	}
@@ -94,8 +122,10 @@ Serializer & Serializer::putInts(Lisp<int> list)
 	{
 	auto n = list.size();
 	putInt(n);
+	LOG('(');
 	for (; !nil(list); ++list)
 		putInt(*list);
+	LOG(')');
 	return *this;
 	}
 
@@ -103,26 +133,42 @@ Serializer& Serializer::putStrings(Lisp<gcstring> list)
 	{
 	auto n = list.size();
 	putInt(n);
+	LOG('(');
 	for (; ! nil(list); ++list)
 		putStr(*list);
+	LOG(')');
 	return *this;
 	}
 
-// reading ----------------------------------------------------------
+// reading -----------------------------------------------------------------------
 
-char Serializer::get()
+char Serializer::get1()
 	{
 	need(1);
 	return rdbuf.get();
 	}
 
+char Serializer::get()
+	{
+	char c = get1();
+	LOG("'" << c << "'");
+	return c;
+	}
+
+char Serializer::getCmd()
+	{
+	char c = get1();
+	LOG(endl << "<= " << cmdnames[c]);
+	return c;
+	}
+
 bool Serializer::getBool()
 	{
-	switch (get())
+	switch (get1())
 		{
-	case 0: return false;
-	case 1: return true;
-	default: 
+	case 0: LOG("false"); return false;
+	case 1: LOG("true"); return true;
+	default:
 		except("bad boolean value");
 		}
 	}
@@ -134,19 +180,34 @@ int64_t Serializer::getInt()
 	char b;
 	do
 		{
-		b = get();
+		b = get1();
 		n |= int64_t(b & 0x7f) << shift;
 		shift += 7;
 		} while (b & 0x80);
 	int64_t tmp = (((n << 63) >> 63) ^ n) >> 1;
-	return  tmp ^ (n & (int64_t(1) << 63));
+	tmp = tmp ^ (n & (int64_t(1) << 63));
+	LOG(tmp);
+	return tmp;
 	}
 
 gcstring Serializer::getStr()
 	{
 	int n = getInt();
+	LOG('-');
 	need(n);
-	return rdbuf.getStr(n);
+	gcstring s = rdbuf.getStr(n);
+	LOGSTR(s);
+	return s;
+	}
+
+gcstring Serializer::getBuf()
+	{
+	int n = getInt();
+	LOG('-');
+	gcstring s(n);
+	read(s.buf(), n);
+	LOGSTR(s);
+	return s;
 	}
 
 Value Serializer::getValue()
@@ -154,26 +215,33 @@ Value Serializer::getValue()
 	// need to use a separate buffer because unpack assumes it owns the buffer
 	// i.e. strings will just point into the buffer
 	int n = getInt();
+	LOG('-');
 	gcstring v(n);
 	read(v.buf(), n);
-	return unpack(v);
+	Value val = unpack(v);
+	LOG(val);
+	return val;
 	}
 
 Lisp<int> Serializer::getInts()
 	{
 	int n = getInt();
+	LOG('(');
 	Lisp<int> list;
 	for (int i = 0; i < n; ++i)
 		list.push(getInt());
+	LOG(')');
 	return list.reverse();
 	}
 
 Lisp<gcstring> Serializer::getStrings()
 	{
 	int n = getInt();
+	LOG('(');
 	Lisp<gcstring> list;
 	for (int i = 0; i < n; ++i)
 		list.push(getStr());
+	LOG(')');
 	return list.reverse();
 	}
 

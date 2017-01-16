@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -72,7 +72,7 @@ public:
 		{ return dbms->nonce(); }
 	DbmsQuery* query(int tran, char* s) override
 		{ except(notauth); }
-	Value readCount(int tran) override
+	int readCount(int tran) override
 		{ except(notauth); }
 	int request(int tran, char* s) override
 		{ except(notauth); }
@@ -94,7 +94,7 @@ public:
 		{ except(notauth); }
 	Mmoffset update(int tran, Mmoffset recadr, Record& rec) override
 		{ except(notauth); }
-	Value writeCount(int tran) override
+	int writeCount(int tran) override
 		{ except(notauth); }
 private:
 	Dbms* dbms;

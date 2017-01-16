@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -236,6 +236,70 @@ void Row::to_heap()
 	for (Records d = data; ! nil(d); ++d)
 		*d = d->to_heap();
 	}
+
+//--------------------------------------------------------------------------------
+
+static int deletedSize(const Row& row, const Header& hdr)
+	{
+	int deleted = 0;
+	Lisp<Record> data = row.data;
+	Lisp<Fields> flds = hdr.flds;
+	for (; !nil(data); ++data, ++flds)
+		{
+		int i = 0;
+		for (Fields f = *flds; !nil(f); ++f, ++i)
+			if (*f == "-")
+				deleted += data->getraw(i).size();
+		}
+	return deleted;
+	}
+
+const int SMALL_RECORD = 1024;
+const int HUGE_RECORD = 256 * 1024;
+
+static bool shouldRebuild(const Row& row, const Header& hdr, const Record& rec)
+	{
+	if (row.data.size() > 2)
+		return true; // must rebuild
+	if (rec.cursize() < SMALL_RECORD)
+		return false;
+	return deletedSize(row, hdr) > rec.cursize() / 3;
+	}
+
+static bool shouldCompact(const Record& rec)
+	{
+	if (rec.cursize() < SMALL_RECORD)
+		return false;
+	if (rec.cursize() > HUGE_RECORD)
+		return false;
+	return (rec.bufsize() - rec.cursize()) > rec.cursize() / 3;
+	}
+
+Record Row::to_record(const Header& hdr) const
+	{
+	Record rec;
+	if (data.size() == 1)
+		rec = data[0];
+	else if (data.size() == 2)
+		rec = data[1];
+	if (shouldRebuild(*this, hdr, rec))
+		{
+		rec = Record(1000);
+		for (Fields f = hdr.fields(); !nil(f); ++f)
+			rec.addraw(getraw(hdr, *f));
+
+		// strip trailing empty fields
+		int n = rec.size();
+		while (rec.getraw(n - 1).size() == 0)
+			--n;
+		rec.truncate(n);
+		}
+	if (shouldCompact(rec))
+		rec = rec.dup();
+	return rec;
+	}
+
+//--------------------------------------------------------------------------------
 
 #include "testing.h"
 

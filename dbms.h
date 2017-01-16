@@ -82,7 +82,7 @@ public:
 	virtual void log(char* s) = 0;
 	virtual gcstring nonce() = 0;
 	virtual DbmsQuery* query(int tn, char* query) = 0;
-	virtual Value readCount(int tn) = 0;
+	virtual int readCount(int tn) = 0;
 	virtual int request(int tn, char* s) = 0;
 	virtual Value run(char* s) = 0;
 	virtual Value sessionid(char* s) = 0;
@@ -93,7 +93,7 @@ public:
 	virtual Lisp<int> tranlist() = 0;
 	virtual int transaction(TranType type, char* session_id = "") = 0;
 	virtual Mmoffset update(int tn, Mmoffset recadr, Record& rec) = 0;
-	virtual Value writeCount(int tn) = 0;
+	virtual int writeCount(int tn) = 0;
 	};
 
 Dbms* dbms();

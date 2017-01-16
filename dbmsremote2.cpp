@@ -66,7 +66,7 @@ public:
 	void log(char* s) override;
 	gcstring nonce() override;
 	DbmsQuery* query(int tn, char* query) override;
-	Value readCount(int tn) override;
+	int readCount(int tn) override;
 	int request(int tn, char* s) override;
 	Value run(char* s) override;
 	Value sessionid(char* s) override;
@@ -77,7 +77,7 @@ public:
 	Lisp<int> tranlist() override;
 	int transaction(TranType type, char* session_id = "") override;
 	Mmoffset update(int tn, Mmoffset recadr, Record& rec) override;
-	Value writeCount(int tn) override;
+	int writeCount(int tn) override;
 private:
 	void close(int qn, CorQ cq);
 	char* explain(int qn, CorQ cq);
@@ -290,9 +290,7 @@ Row DbmsRemote::getRow(Header* phdr)
 	int64_t recadr = static_cast<unsigned int>(io.getInt());
 	if (phdr)
 		*phdr = getHeader();
-	int reclen = io.getInt();
-	gcstring r(reclen);
-	io.read(r.buf(), reclen);
+	gcstring r = io.getBuf();
 	return Row(Record(static_cast<void*>(r.buf())), recadr);
 	}
 
@@ -402,7 +400,7 @@ DbmsQuery* DbmsRemote::query(int tn, char* query)
 	return new DbmsQueryRemote(*this, qn);
 	}
 
-Value DbmsRemote::readCount(int tn)
+int DbmsRemote::readCount(int tn)
 	{
 	send(Command::READCOUNT);
 	return io.getInt();
@@ -476,7 +474,7 @@ Mmoffset DbmsRemote::update(int tn, Mmoffset recadr, Record& rec)
 	return io.getInt();
 	}
 
-Value DbmsRemote::writeCount(int tn)
+int DbmsRemote::writeCount(int tn)
 	{
 	send(Command::WRITECOUNT);
 	return io.getInt();
@@ -568,7 +566,7 @@ void DbmsRemote::send(Command cmd, Value val)
 Serializer& DbmsRemote::putCmd(Command cmd)
 	{
 	io.clear();
-	return io.put(char(cmd));
+	return io.putCmd(char(cmd));
 	}
 
 void DbmsRemote::doRequest()

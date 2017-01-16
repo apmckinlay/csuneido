@@ -140,7 +140,7 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 		int result = dbms()->load(what);
 		if (result < 0)
 			except("Database.Load failed: " << result);
-		return Value(result);
+		return result;
 		}
 	else if (member == Token)
 		{
@@ -324,7 +324,6 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 	static Value QueryFirst("QueryFirst");
 	static Value QueryLast("QueryLast");
 	static Value Query1("Query1");
-	static Value Refresh("Refresh");
 	static Value Conflict("Conflict");
 	static Value ReadCount("ReadCount");
 	static Value WriteCount("WriteCount");
@@ -443,7 +442,7 @@ void SuTransaction::rollback()
 void SuTransaction::checkNotEnded(char* action)
 	{
 	if (done)
-		except("can't " << action << " ended Transaction" << 
+		except("can't " << action << " ended Transaction" <<
 			(*conflict ? " (" + gcstring(conflict) + ")" : ""));
 	}
 

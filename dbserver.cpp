@@ -60,11 +60,7 @@ extern OstreamFile& dbmslog(); // in dbmsremote
 #define LOG(stuff) TRACE(CLIENTSERVER,  session_id << " " << stuff)
 #endif
 
-SuObject& dbserver_connections()
-	{
-	static SuObject ob(true); // readonly
-	return ob;
-	}
+// ReSharper disable CppMemberFunctionMayBeConst
 
 class DbServer // one instance per connection
 	{
@@ -129,8 +125,6 @@ private:
 	char* cmd_token(char*);
 	char* cmd_auth(char*);
 	char* cmd_check(char*);
-
-	char* get(DbmsQuery* q, Dir dir);
 
 	void write(char* buf, int n)
 		{ sc->write(buf, n); }
@@ -633,50 +627,9 @@ char* DbServer::cmd_get(char* s)
 	s += 2;
 
 	DbmsQuery* q = q_or_tc(s);
-	return get(q, dir);
-	}
-
-char* DbServer::get(DbmsQuery* q, Dir dir)
-	{
 	Row row = q->get(dir);
 	Header hdr = q->header();
 	return row_result(row, hdr);
-	}
-
-static int deletedSize(const Row& row, const Header& hdr)
-	{
-	int deleted = 0;
-	Lisp<Record> data = row.data;
-	Lisp<Fields> flds = hdr.flds;
-	for (; ! nil(data); ++data, ++flds)
-		{
-		int i = 0;
-		for (Fields f = *flds; ! nil(f); ++f, ++i)
-			if (*f == "-")
-				deleted += data->getraw(i).size();
-		}
-	return deleted;
-	}
-
-const int SMALL_RECORD = 1024;
-const int HUGE_RECORD = 256 * 1024; // safe to alloca
-
-static bool shouldRebuild(const Row& row, const Header& hdr, const Record& rec)
-	{
-	if (row.data.size() > 2)
-		return true; // must rebuild
-	if (rec.cursize() < SMALL_RECORD)
-		return false;
-	return deletedSize(row, hdr) > rec.cursize() / 3;
-	}
-
-static bool shouldCompact(const Record& rec)
-	{
-	if (rec.cursize() < SMALL_RECORD)
-		return false;
-	if (rec.cursize() > HUGE_RECORD)
-		return false; // too big to alloca
-	return (rec.bufsize() - rec.cursize()) > rec.cursize() / 3;
 	}
 
 char* DbServer::row_result(const Row& row, const Header& hdr, bool sendhdr)
@@ -699,33 +652,13 @@ char* DbServer::row_result(const Row& row, const Header& hdr, bool sendhdr)
 		}
 	else // binary
 		{
-		Record rec;
-		if (row.data.size() == 1)
-			rec = row.data[0];
-		else if (row.data.size() == 2)
-			rec = row.data[1];
-		if (shouldRebuild(row, hdr, rec))
-			{
-			rec = Record(1000);
-			for (Fields f = hdr.fields(); ! nil(f); ++f)
-				rec.addraw(row.getraw(hdr, *f));
-
-			// strip trailing empty fields
-			int n = rec.size();
-			while (rec.getraw(n - 1).size() == 0)
-				--n;
-			rec.truncate(n);
-			}
-		if (shouldCompact(rec))
-			rec = rec.dup();
-
+		Record rec = row.to_record(hdr);
 		os << 'A' << mmoffset_to_int(row.recadr) << " R" << rec.bufsize();
 		if (sendhdr)
 			os << ' ' << hdr.schema();
 		os << "\r\n";
 		LOG("s> " << os.str());
 		writebuf(os.str());
-
 		write((char*) rec.ptr(), rec.bufsize());
 		return nullptr;
 		}
@@ -747,13 +680,13 @@ char* DbServer::cmd_get1(char* s)
 
 	int tran = ck_getnum('T', s);
 	int qlen = ck_getnum('Q', s);
-	char* buf = tmpalloc(qlen + 1);
-	sc->read(buf, qlen);
-	buf[qlen] = 0;
-	LOG("q: " << buf << endl);
+	char* query = tmpalloc(qlen + 1);
+	sc->read(query, qlen);
+	query[qlen] = 0;
+	LOG("q: " << query << endl);
 
 	Header hdr;
-	Row row = dbms()->get(dir, buf, one, hdr, tran);
+	Row row = dbms()->get(dir, query, one, hdr, tran);
 	return row_result(row, hdr, true);
 	}
 
@@ -884,6 +817,7 @@ static bool matches(int i, char* sid)
 	return false;
 	}
 
+// also called by dbmslocal
 int kill_connections(char* s)
 	{
 	int n_killed = 0;

@@ -24,5 +24,9 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void start_dbserver(char* name);
+int kill_connections(char* s);
+
+void start_dbserver2(char* name);
+int kill_connections2(char* s);
 
 #endif

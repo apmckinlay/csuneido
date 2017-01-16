@@ -36,6 +36,9 @@ public:
 
 	void clear(); ///< Clears rdbuf and wrbuf
 	Serializer& put(char c);
+	Serializer& putCmd(char c);
+	Serializer& putOk();
+	void putErr(const char* err);
 	Serializer& putBool(bool b);
 	Serializer& putInt(int64_t n);
 	Serializer& putStr(const char* s);
@@ -45,12 +48,16 @@ public:
 	Serializer& putStrings(Lisp<gcstring> list);
 
 	char get();
+	char getCmd();
 	bool getBool();
 	int64_t getInt();
 	gcstring getStr();
+	gcstring getBuf(); ///< bypasses rdbuf
 	Value getValue();
 	Lisp<int> getInts();
 	Lisp<gcstring> getStrings();
+private:
+	char get1();
 
 protected:
 	virtual void need(int n) = 0;
