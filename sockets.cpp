@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -29,13 +29,13 @@
 #include <ws2tcpip.h>
 #include "fatal.h"
 #include <ctime>
-#include "qpc.h"
 #include <unordered_map>
 
 
 //#define FILE_LOGGING
 
 #ifdef FILE_LOGGING
+#include "qpc.h"
 static int t()
 	{
 	static int64 base = qpc();
@@ -92,7 +92,7 @@ static DWORD WINAPI acceptor(LPVOID lpParameter);
 
 struct ServerData
 	{
-	ServerData(int s, NewServerConnection ns, void* a) 
+	ServerData(int s, NewServerConnection ns, void* a)
 		: sock(s), newServerConn(ns), arg(a), mainThread(currentThreadHandle())
 		{ }
 	static HANDLE currentThreadHandle()
@@ -129,7 +129,7 @@ void socketServer(char* title, int port, NewServerConnection newServerConn, void
 	LOG("listening socket " << sock);
 
 	serverData[port] = new ServerData(sock, newServerConn, arg);
-	verify(CreateThread(nullptr, 4096, acceptor, 
+	verify(CreateThread(nullptr, 4096, acceptor,
 		static_cast<void*>(serverData[port]), 0, nullptr));
 	}
 
@@ -186,7 +186,7 @@ static struct addrinfo* resolve(char* addr, int port)
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof hints);
 	// specify IPv4 since allowing IPv6 with AF_UNSPEC seems to cause problems
-	// e.g. addr of "" doesn't work and it's giving IPv6 
+	// e.g. addr of "" doesn't work and it's giving IPv6
 	// although 127.0.0.1 gives IPv4
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
@@ -278,7 +278,7 @@ SocketConnect* socketClientSync(char* addr, int port, int timeout, int timeoutCo
 		ULONG NonBlocking = 1;
 		ioctlsocket(sock, FIONBIO, &NonBlocking);
 		int ret = connect(sock, ai->ai_addr, ai->ai_addrlen);
-		if (ret != 0 && 
+		if (ret != 0 &&
 			! (ret == SOCKET_ERROR && WSAGetLastError() == WSAEWOULDBLOCK))
 			cantConnect();
 		FDS(wfds, sock);
@@ -325,7 +325,7 @@ int SocketConnectSync::read(char* dst, int required, int bufsize)
 		memcpy(dst, rdbuf.buffer(), nread);
 		rdbuf.remove(nread);
 		}
-	
+
 	verify(required <= bufsize);
 	FDS(fds, sock);
 	while (nread < required)
@@ -398,10 +398,10 @@ struct Over
 class SocketConnectAsync : public SocketConnect
 	{
 public:
-	explicit SocketConnectAsync(int s, int to = 0) 
+	explicit SocketConnectAsync(int s, int to = 0)
 		: sock(s), wrover(this), rdover(this)
 		{ }
-	explicit SocketConnectAsync(int s, void* arg_, char* adr_) 
+	explicit SocketConnectAsync(int s, void* arg_, char* adr_)
 		: sock(s), wrover(this), rdover(this), arg(arg_), adr(dupstr(adr_))
 		{ }
 	void write(char* buf, int n) override;
@@ -415,7 +415,7 @@ public:
 	bool recv();
 	void block();
 	void unblock();
-	WSABUF buf {}; 
+	WSABUF buf {};
 	int required = 0; // for read
 private:
 	int read2(char* dst, int required, int dstsize);
@@ -475,7 +475,7 @@ SocketConnect* socketClientAsync(char* addr, int port, int timeout, int timeoutC
 	}
 
 /// completion routine
-static void CALLBACK afterSend(DWORD Error, DWORD BytesTransferred, 
+static void CALLBACK afterSend(DWORD Error, DWORD BytesTransferred,
 	LPWSAOVERLAPPED wsaover, DWORD InFlags)
 	{
 	Over* over = reinterpret_cast<Over*>(wsaover);
@@ -510,7 +510,7 @@ void SocketConnectAsync::write(char* buf, int n)
 
 	wrover.size = toSend;
 	DWORD nSent;
-	int rc = WSASend(sock, bufs, NBUFS, &nSent, 0, 
+	int rc = WSASend(sock, bufs, NBUFS, &nSent, 0,
 		reinterpret_cast<WSAOVERLAPPED*>(&wrover), afterSend);
 	int err;
 	if (rc == 0)
@@ -578,7 +578,7 @@ static void CALLBACK afterRecv(DWORD Error, DWORD BytesTransferred,
 		over->sc->unblock();
 		return;
 		}
-	LOG("async afterRecv required " << over->sc->required << 
+	LOG("async afterRecv required " << over->sc->required <<
 		" buf.len " << over->sc->buf.len << " got " << BytesTransferred);
 	over->sc->buf.len -= BytesTransferred;
 	over->sc->buf.buf += BytesTransferred;
@@ -651,7 +651,7 @@ void SocketConnectAsync::block()
 
 void SocketConnectAsync::unblock()
 	{
-	if (blocked < 0) 
+	if (blocked < 0)
 		return;
 	LOG("async unblock");
 	Fibers::unblock(blocked);

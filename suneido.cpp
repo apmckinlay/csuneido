@@ -41,7 +41,6 @@
 #include "dbcompact.h"
 #include "recover.h"
 #include "globals.h"
-#include <ctype.h> // for isspace
 #include <stdio.h> // for tmpnam and remove
 #include "fatal.h"
 #include "sustring.h"
