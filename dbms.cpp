@@ -45,9 +45,8 @@ Dbms* dbms()
 				tls().thedbms = dbms_remote(server_ip);
 			else
 				{
-				auto tok = Fibers::main_dbms()->token();
 				tls().thedbms = dbms_remote_async(server_ip);
-				tls().thedbms->auth(tok);
+				tls().thedbms->auth(Fibers::main_dbms()->token());
 				}
 			}
 		return tls().thedbms;
