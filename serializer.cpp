@@ -69,6 +69,7 @@ void Serializer::putErr(const char* err)
 	{
 	LOG(endl << "\tERR " << err);
 	wrbuf.add(0); // false
+	putStr(err);
 	}
 
 Serializer& Serializer::putBool(bool b)

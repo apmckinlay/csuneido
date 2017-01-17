@@ -512,7 +512,7 @@ void DbServer::cmd_UPDATE()
 	int recadr = io.getInt();
 	Record rec = getRecord();
 	recadr = dbms().update(tn, recadr, rec);
-	io.put(true).put(recadr);
+	io.putOk().putInt(recadr);
 	}
 
 void DbServer::cmd_WRITECOUNT()
