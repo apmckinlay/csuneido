@@ -36,8 +36,9 @@
 class ThreadClass : public SuValue
 	{
 	public:
-		Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
-		void out(Ostream& os)
+		Value call(Value self, Value member,
+			short nargs, short nargnames, ushort* argnames, int each) override;
+		void out(Ostream& os) override
 			{
 			os << "Thread";
 			}
@@ -51,7 +52,7 @@ struct ThreadCloser
 	~ThreadCloser()
 		{
 		delete tls().thedbms;
-		tls().thedbms = 0;
+		tls().thedbms = nullptr;
 
 		Fibers::end();
 		}
@@ -64,14 +65,16 @@ struct ThreadInfo
 	Value fn;
 	};
 
-HashMap<UINT, const char*> threadErrors;
+HashMap<UINT, const Except*> threadErrors;
+
+extern void handler(const Except&);
 
 static void CALLBACK threadError(HWND hwnd, UINT message, UINT id, DWORD dwTime)
 	{
 	KillTimer(nullptr, id);
-	auto msg = threadErrors[id];
+	auto e = threadErrors[id];
 	threadErrors.erase(id);
-	alert("ERROR in Thread: " << msg);
+	handler(*e);
 	}
 
 // this is a wrapper that runs inside the fiber to catch exceptions
@@ -82,14 +85,14 @@ static void _stdcall thread(void* arg)
 	ThreadCloser closer;
 	try
 		{
-		ThreadInfo* ti = (ThreadInfo*)arg;
+		ThreadInfo* ti = static_cast<ThreadInfo*>(arg);
 		ti->fn.call(ti->fn, CALL, 0, 0, 0, -1);
 		}
 	catch (const Except& e)
 		{
 		// use a timer to do the alert from the main fiber
 		auto id = SetTimer(nullptr, 0, 0, threadError);
-		threadErrors[id] = e.str();
+		threadErrors[id] = new Except(e, "ERROR in Thread: " + e.gcstr());
 		}
 	}
 
