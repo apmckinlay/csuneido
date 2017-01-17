@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -22,7 +22,7 @@
 
 /*
  * Cooperative (not preemptive) multi-tasking.
- * i.e. fibers must explicitly yield 
+ * i.e. fibers must explicitly yield
  * Priority is given to the main fiber which runs the UI message loop.
  * The main fiber yields to the next runnable background fiber.
  * Background fibers always yield to the main fiber (not each other).
@@ -39,27 +39,32 @@
 #include <vector>
 #include "qpc.h"
 
+//#include "ostreamcon.h"
+//#define LOG(stuff) con() << stuff << endl
+#define LOG(stuff)
+
 struct Proc;
 class Dbms;
 class SesViews;
 
 struct Fiber
 	{
-	enum Status { READY, BLOCKED, ENDED, REUSE };
-	explicit Fiber(void* f, void* arg = 0)
-		: fiber(f), status(READY), stack_ptr(0), stack_end(0), arg_ref(arg), sleep_until{0}
-		{
-		}
+	enum Status { READY, BLOCKED, ENDED, REUSE }; // NOTE: sequence is significant
+	Fiber()
+		{ }
+	explicit Fiber(void* f, void* arg = nullptr)
+		: fiber(f), status(READY), arg_ref(arg)
+		{ }
 	bool operator==(Status s) const
 		{ return status == s; }
-	void* fiber;
-	Status status;
+	void* fiber = nullptr;
+	Status status = REUSE;
 	// for garbage collector
-	void* stack_ptr;
-	void* stack_end;
-	void* arg_ref; // prevent it being garbage collected
+	void* stack_ptr = nullptr;
+	void* stack_end = nullptr;
+	void* arg_ref = nullptr; // prevent it being garbage collected
+	int64 sleep_until = 0;
 	ThreadLocalStorage tls;
-	int64 sleep_until;
 	};
 
 inline int64 qpfreq()
@@ -70,28 +75,27 @@ inline int64 qpfreq()
 	}
 int64 qpf = qpfreq();
 
-static Fiber main_fiber(0);
-static std::vector<Fiber> fibers;
-const int MAIN = -1;
-static int cur = MAIN;
-#define curfiber (cur < 0 ? &main_fiber : &fibers[cur])
-static int fi = -1; // round robin index into fibers
+const int MAXFIBERS = 32;
+static Fiber fibers[MAXFIBERS];
+const int MAIN = 0;
+static Fiber* cur = &fibers[MAIN];
+static int fi = 0; // round robin index into fibers, used by yield
 static int64 run_until;
 
 static const int TIME_SLICE_MS = 50;
 
-ThreadLocalStorage::ThreadLocalStorage() 
+ThreadLocalStorage::ThreadLocalStorage()
 	: proc(0), thedbms(0), session_views(0), fiber_id(""), synchronized(0)
 	{ }
 
 ThreadLocalStorage& tls()
 	{
-	return curfiber->tls;
+	return cur->tls;
 	}
 
 static void save_stack()
 	{
-	if (curfiber->stack_end == 0)
+	if (cur->stack_end == 0)
 		{
 		void* p;
 #if defined(_MSC_VER)
@@ -105,10 +109,10 @@ static void save_stack()
 #else
 #warning "replacement for inline assembler required"
 #endif
-		curfiber->stack_end = p;
+		cur->stack_end = p;
 		}
 	int junk;
-	curfiber->stack_ptr = &junk;
+	cur->stack_ptr = &junk;
 	}
 
 void clear_unused();
@@ -124,7 +128,7 @@ extern "C"
 	void GC_push_thread_structures()
 		{
 		}
-	
+
 	typedef void (*GC_warn_proc)(char* msg, unsigned long arg);
 	GC_warn_proc GC_set_warn_proc(GC_warn_proc fn);
 	void warn(char* msg, unsigned long arg)
@@ -132,11 +136,11 @@ extern "C"
 		const char* limit = "GC Info: Too close to address space limit: blacklisting ineffective";
 		if (0 == memcmp(msg, limit, strlen(limit)))
 			return ;
-		
+
 		const char* repeat = "GC Warning: Repeated allocation of very large block";
 		static int nrepeats = 0;
 		static int maxarg = 0;
-		
+
 		char extra[32] = "";
 		if (0 == memcmp(msg, repeat, strlen(repeat)))
 			{
@@ -147,7 +151,7 @@ extern "C"
 			extra[0] = '(';
 			utostr(nrepeats, extra + 1);
 			strcat(extra, " repeats)");
-			}	
+			}
 		char buf[32];
 		errlog(msg, utostr(arg, buf), extra);
 		}
@@ -155,43 +159,49 @@ extern "C"
 
 void Fibers::init()
 	{
-	main_fiber.fiber = ConvertThreadToFiber(0);
-	verify(main_fiber.fiber);
+	void* f = ConvertThreadToFiber(nullptr);
+	verify(f);
+
+verify(Fibers::curFiberIndex() == MAIN);
+	cur->fiber = f;
+	cur->status = Fiber::READY;
 
 	GC_set_warn_proc(warn);
 	}
 
-void* Fibers::create(void (_stdcall *fiber_proc)(void* arg), void* arg)
+void Fibers::create(void (_stdcall *fiber_proc)(void* arg), void* arg)
 	{
 	void* f = CreateFiber(0, fiber_proc, arg);
 	verify(f);
-	for (int i = 0; i < fibers.size(); ++i)
+	for (int i = 1; i < MAXFIBERS; ++i)
 		if (fibers[i].status == Fiber::REUSE)
 			{
+			LOG("create " << i);
 			fibers[i] = Fiber(f, arg);
-			return f;
+			return;
 			}
 	// else
-	fibers.push_back(Fiber(f, arg));
-	return f;
+	except("can't create fiber, max is " << MAXFIBERS);
 	}
 
 static void switchto(int i)
 	{
-	Fiber& fiber = (i == MAIN ? main_fiber : fibers[i]);
-	verify(fiber.status == Fiber::READY);
-	if (i == cur)
+	LOG("start switchto " << i);
+	Fiber& fiber = fibers[i];
+	if (&fiber == cur)
 		return ;
-	run_until = qpc() + ((TIME_SLICE_MS * qpf) / 1000);
+	LOG("switching");
+	verify(fiber.status == Fiber::READY);
 	save_stack();
-	
-	cur = i;
+	cur = &fiber;
+verify(Fibers::curFiberIndex() == i);
+	run_until = qpc() + ((TIME_SLICE_MS * qpf) / 1000);
 	SwitchToFiber(fiber.fiber);
 	}
 
 void Fibers::yieldif()
 	{
-	if (tls().synchronized == 0 && 
+	if (tls().synchronized == 0 &&
 		(qpc() > run_until || SleepEx(0, true) == WAIT_IO_COMPLETION))
 		yield();
 	}
@@ -199,21 +209,17 @@ void Fibers::yieldif()
 void Fibers::sleep(int ms)
 	{
 	verify(!inMain());
-	curfiber->sleep_until = qpc() + ((ms * qpf) / 1000);
+	cur->sleep_until = qpc() + ((ms * qpf) / 1000);
 	yield();
 	}
 
-bool runnable(Fiber& f)
+static bool runnable(const Fiber& f)
 	{
 	if (f.status != Fiber::READY)
 		return false;
 	if (f.sleep_until == 0)
 		return true;
-	auto t = qpc();
-	if (t < f.sleep_until)
-		return false;
-	f.sleep_until = 0;
-	return true;
+	return f.sleep_until <= qpc();
 	}
 
 bool Fibers::yield()
@@ -224,13 +230,13 @@ bool Fibers::yield()
 		return true;
 		}
 
-	int nfibers = fibers.size();
-	int i;
-	for (i = 0; i < nfibers; ++i)
+	for (int i = 1; i < MAXFIBERS; ++i)
 		{
-		fi = (fi + 1) % nfibers;
+		fi = fi % (MAXFIBERS - 1) + 1;
+verify(1 <= fi && fi < MAXFIBERS);
 		if (fibers[fi].status == Fiber::ENDED)
 			{
+			// cleanup while we're searching
 			DeleteFiber(fibers[fi].fiber);
 			memset(&fibers[fi], 0, sizeof (Fiber));
 			fibers[fi].status = Fiber::REUSE;
@@ -247,29 +253,29 @@ bool Fibers::yield()
 
 bool Fibers::inMain()
 	{
-	return curfiber == &main_fiber;
+	return cur == &fibers[0];
 	}
 
 Dbms* Fibers::main_dbms()
 	{
-	return main_fiber.tls.thedbms;
+	return fibers[MAIN].tls.thedbms;
 	}
 
 int Fibers::curFiberIndex()
 	{
-	return cur;
+	return cur - &fibers[0];
 	}
 
 void Fibers::block()
 	{
 	verify(!inMain());
-	curfiber->status = Fiber::BLOCKED;
+	cur->status = Fiber::BLOCKED;
 	yield();
 	}
 
 void Fibers::unblock(int fiberIndex)
 	{
-	verify(0 <= fiberIndex && fiberIndex <= fibers.size());
+	verify(1 <= fiberIndex && fiberIndex < MAXFIBERS);
 	verify(fibers[fiberIndex].status == Fiber::BLOCKED);
 	fibers[fiberIndex].status = Fiber::READY;
 	fi = fiberIndex - 1; // so it will run next (see yield)
@@ -277,8 +283,9 @@ void Fibers::unblock(int fiberIndex)
 
 [[noreturn]] void Fibers::end()
 	{
+	LOG("end " << curFiberIndex());
 	verify(!inMain());
-	curfiber->status = Fiber::ENDED;
+	cur->status = Fiber::ENDED;
 	yield();
 	unreachable();
 	}
@@ -286,28 +293,27 @@ void Fibers::unblock(int fiberIndex)
 void Fibers::foreach_stack(StackFn fn)
 	{
 	save_stack();
-	fn(main_fiber.stack_ptr, main_fiber.stack_end);
-	for (int i = 0; i < fibers.size(); ++i)
+	for (int i = 0; i < MAXFIBERS; ++i)
 		if (fibers[i].status < Fiber::ENDED)
 			fn(fibers[i].stack_ptr, fibers[i].stack_end);
 	}
 
 void Fibers::foreach_proc(ProcFn fn)
 	{
-	for (int i = 0; i < fibers.size(); ++i)
+	for (int i = 0; i < MAXFIBERS; ++i)
 		if (fibers[i].status < Fiber::ENDED)
 			fn(fibers[i].tls.proc);
 	}
 
 void sleepms(int ms)
 	{
-	Sleep(ms); 
+	Sleep(ms);
 	}
 
 int Fibers::size()
 	{
 	int n = 0;
-	for (int i = 0; i < fibers.size(); ++i)
+	for (int i = 1; i < MAXFIBERS; ++i)
 		if (fibers[i].status < Fiber::ENDED)
 			++n;
 	return n;
