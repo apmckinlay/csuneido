@@ -28,9 +28,13 @@
 #include "pack.h"
 #include "lisp.h"
 
-#include "clientserver.h"
-#include "ostreamcon.h"
-#define LOG(stuff) con() << stuff << ' '
+// ReSharper disable CppMemberFunctionMayBeConst
+
+//#include "clientserver.h"
+//#include "ostreamcon.h"
+//#define LOG(stuff) con() << stuff << ' '
+#define LOG(stuff)
+
 #define LOGSTR(s) LOG('"' << s.substr(0, 20) << (s.size() > 20 ? "..." : "") << '"')
 
 Serializer::Serializer(Buffer& r, Buffer& w) : rdbuf(r), wrbuf(w)
