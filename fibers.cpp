@@ -38,14 +38,11 @@
 #include "win.h"
 #include <vector>
 #include "qpc.h"
+#include <functional>
 
 //#include "ostreamcon.h"
 //#define LOG(stuff) con() << stuff << endl
 #define LOG(stuff)
-
-struct Proc;
-class Dbms;
-class SesViews;
 
 struct Fiber
 	{
@@ -115,15 +112,22 @@ static void save_stack()
 	cur->stack_ptr = &junk;
 	}
 
-void clear_unused();
+void clear_proc(Proc* proc);
+
+typedef void(*StackFn)(void* org, void* end);
+typedef void(*ProcFn)(Proc* proc);
+
+/// for garbage collection
+static void foreach_stack(StackFn fn);
+static void foreach_proc(ProcFn fn);
 
 extern "C"
 	{
 	void GC_push_all_stack(void* bottom, void* top);
 	void GC_push_all_stacks()
 		{
-		Fibers::foreach_stack(GC_push_all_stack);
-		clear_unused();
+		foreach_stack(GC_push_all_stack);
+		foreach_proc(clear_proc);
 		}
 	void GC_push_thread_structures()
 		{
@@ -194,7 +198,6 @@ static void switchto(int i)
 	verify(fiber.status == Fiber::READY);
 	save_stack();
 	cur = &fiber;
-verify(Fibers::curFiberIndex() == i);
 	run_until = qpc() + ((TIME_SLICE_MS * qpf) / 1000);
 	SwitchToFiber(fiber.fiber);
 	}
@@ -233,7 +236,6 @@ bool Fibers::yield()
 	for (int i = 1; i < MAXFIBERS; ++i)
 		{
 		fi = fi % (MAXFIBERS - 1) + 1;
-verify(1 <= fi && fi < MAXFIBERS);
 		if (fibers[fi].status == Fiber::ENDED)
 			{
 			// cleanup while we're searching
@@ -290,19 +292,29 @@ void Fibers::unblock(int fiberIndex)
 	unreachable();
 	}
 
-void Fibers::foreach_stack(StackFn fn)
+static void foreach_fiber(std::function<void(Fiber&)> f)
 	{
-	save_stack();
 	for (int i = 0; i < MAXFIBERS; ++i)
 		if (fibers[i].status < Fiber::ENDED)
-			fn(fibers[i].stack_ptr, fibers[i].stack_end);
+			f(fibers[i]);
 	}
 
-void Fibers::foreach_proc(ProcFn fn)
+void Fibers::foreach_tls(std::function<void(ThreadLocalStorage&)> f)
 	{
-	for (int i = 0; i < MAXFIBERS; ++i)
-		if (fibers[i].status < Fiber::ENDED)
-			fn(fibers[i].tls.proc);
+	foreach_fiber([f](Fiber& fiber) { f(fiber.tls); });
+	}
+
+static void foreach_stack(StackFn fn)
+	{
+	save_stack();
+	foreach_fiber([fn](Fiber& fiber)
+		{ fn(fiber.stack_ptr, fiber.stack_end); });
+	}
+
+static void foreach_proc(ProcFn fn)
+	{
+	foreach_fiber([fn](Fiber& fiber)
+		{ fn(fiber.tls.proc); });
 	}
 
 void sleepms(int ms)
@@ -313,8 +325,6 @@ void sleepms(int ms)
 int Fibers::size()
 	{
 	int n = 0;
-	for (int i = 1; i < MAXFIBERS; ++i)
-		if (fibers[i].status < Fiber::ENDED)
-			++n;
-	return n;
+	foreach_fiber([&n](Fiber&){ ++n; });
+	return n - 1; // exclude main fiber
 	}

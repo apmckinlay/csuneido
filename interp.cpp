@@ -852,16 +852,10 @@ Value dynamic(ushort name)
 	return Value();
 	}
 
-static void clear_proc(Proc* proc)
+void clear_proc(Proc* proc)
 	{
 	if (proc)
 		proc->clear_unused();
-	}
-
-// clear_unused() is called at the start of garbage collection
-void clear_unused()
-	{
-	Fibers::foreach_proc(clear_proc);
 	}
 
 void Proc::clear_unused()

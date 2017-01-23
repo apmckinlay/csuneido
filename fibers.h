@@ -23,12 +23,24 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "gcstring.h"
+#include <functional>
 
 struct Proc;
+class Dbms;
+class SesViews;
 
-typedef void (*StackFn)(void* org, void* end);
-typedef void (*ProcFn)(Proc* proc);
+struct ThreadLocalStorage
+	{
+	ThreadLocalStorage();
+
+	Proc* proc;
+	Dbms* thedbms;
+	SesViews* session_views;
+	char* fiber_id;
+	int synchronized; // normally 0 (meaning allow yield), set by Synchronized
+	};
+
+extern ThreadLocalStorage& tls();
 
 struct Fibers
 	{
@@ -65,31 +77,12 @@ struct Fibers
 	/// mark current fiber as done and yield
 	static void end();
 
-	/// for garbage collection
-	static void foreach_stack(StackFn fn);
-	static void foreach_proc(ProcFn fn);
+	static void foreach_tls(std::function<void(ThreadLocalStorage&)> f);
 
 	/// current number of fibers
 	static int size();
 	};
 
 void sleepms(int ms);
-
-struct Proc;
-class Dbms;
-class SesViews;
-
-struct ThreadLocalStorage
-	{
-	ThreadLocalStorage();
-
-	Proc* proc;
-	Dbms* thedbms;
-	SesViews* session_views;
-	char* fiber_id;
-	int synchronized; // normally 0 (meaning allow yield), set by Synchronized
-	};
-
-extern ThreadLocalStorage& tls();
 
 #endif

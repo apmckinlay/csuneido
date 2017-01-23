@@ -21,6 +21,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "dbms.h"
+#include "gcstring.h"
 #include "fibers.h"
 
 static char* server_ip = 0; // local
