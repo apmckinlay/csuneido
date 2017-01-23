@@ -35,13 +35,13 @@
 
 class ThreadClass : public SuValue
 	{
-	public:
-		Value call(Value self, Value member,
-			short nargs, short nargnames, ushort* argnames, int each) override;
-		void out(Ostream& os) override
-			{
-			os << "Thread";
-			}
+public:
+	Value call(Value self, Value member,
+		short nargs, short nargnames, ushort* argnames, int each) override;
+	void out(Ostream& os) override
+		{
+		os << "Thread";
+		}
 	};
 
 #pragma warning(disable:4722) // destructor never returns
@@ -90,7 +90,7 @@ static void _stdcall thread(void* arg)
 		}
 	catch (const Except& e)
 		{
-		// use a timer to do the alert from the main fiber
+		// use a timer to call handler from the main fiber
 		auto id = SetTimer(nullptr, 0, 0, threadError);
 		threadErrors[id] = new Except(e, "ERROR in Thread: " + e.gcstr());
 		}
