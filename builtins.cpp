@@ -409,7 +409,7 @@ PRIM(su_exepath, "ExePath()");
 
 Value su_built()
 	{
-	return new SuString(build_date);
+	return new SuString(build);
 	}
 PRIM(su_built, "Built()");
 

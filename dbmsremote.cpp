@@ -412,11 +412,11 @@ static bool builtMatch(char* resp)
 		return false;
 	resp = resp + strlen(prefix);
 	if (!strstr(resp, "Java"))
-		return has_prefix(resp, build_date);
+		return has_prefix(resp, build);
 	else
 		{
 		// just compare date (not time)
-		gcstring bd(build_date, 11); // 11 = MMM dd yyyy
+		gcstring bd(build, 11); // 11 = MMM dd yyyy
 		// squeeze out extra space for single digit dates on cSuneido
 		bd = tr(bd, "  ", " ");
 		return has_prefix(resp, bd.str());
@@ -429,7 +429,7 @@ DbmsRemote::DbmsRemote(SocketConnect* s) : sc(s)
 	sc.readline(buf, sizeof buf);
 	if (! builtMatch(buf))
 		except("connect failed\nexpected: Suneido Database Server ("
-			<< build_date << ")\ngot: " << buf);
+			<< build << ")\ngot: " << buf);
 	sc.write("BINARY\r\n");
 	sc.ck_ok();
 

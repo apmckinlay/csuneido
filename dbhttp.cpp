@@ -80,7 +80,7 @@ void DbHttp::run()
 			<< "</head>\r\n"
 			<< "<body>\r\n"
 			<< "<h1>Suneido Server Monitor</h1>\r\n"
-			<< "<p>Built: " << build_date << "</p>\r\n"
+			<< "<p>Built: " << build << "</p>\r\n"
 			<< "<p>Heap Size: " << MB(GC_get_heap_size()) << "mb</p>\r\n"
 			<< "<p>Temp Dest: " << tempdest_inuse << "</p>\r\n"
 			<< "<p>Transactions: " << theDB()->tranlist().size() << "</p>\r\n"

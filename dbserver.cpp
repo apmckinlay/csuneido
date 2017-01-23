@@ -243,7 +243,7 @@ DbServer::DbServer(SocketConnect* s)
 	dbserver_connections().add(session_id);
 	dbservers.push_back(this);
 
-	os << "Suneido Database Server (" << build_date << ")\r\n";
+	os << "Suneido Database Server (" << build << ")\r\n";
 	write(os.str());
 
 	tls().proc = &proc;
