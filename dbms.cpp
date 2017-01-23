@@ -35,10 +35,15 @@ char* get_dbms_server_ip()
 	return server_ip;
 	}
 
+bool isclient()
+	{
+	return server_ip != nullptr;
+	}
+
 Dbms* dbms()
 	{
-	if (server_ip)
-		{ // client
+	if (isclient())
+		{
 		if (! tls().thedbms)
 			{
 			if (Fibers::inMain())
@@ -57,9 +62,6 @@ Dbms* dbms()
 		return local;
 		}
 	}
-
-bool isclient()
-	{ return server_ip != 0; }
 
 // tests ============================================================
 
