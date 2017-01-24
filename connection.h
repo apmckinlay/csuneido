@@ -38,10 +38,24 @@ public:
 	void need(int n) override;
 	void read(char * buf, int n) override;
 	void write();
-	void write(char * buf, int n);
+	virtual void write(const char * buf, int n);
 	void close();
 
 private:
 	SocketConnect& sc;
 	Buffer rdbuf; // can't use sc.rdbuf because of how sc uses it
 };
+
+/// A wrapper for a Connection that treats io exceptions as fatal
+class ClientConnection : public Connection
+	{
+public:
+	ClientConnection(SocketConnect* sc) : Connection(sc)
+		{ }
+	void need(int n) override;
+	using Connection::write;
+	void write(const char* buf, int n) override;
+	void read(char* dst, int n) override;
+	};
+
+const int HELLO_SIZE = 50; // must match jSuneido

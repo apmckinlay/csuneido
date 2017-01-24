@@ -76,12 +76,12 @@ void end(int sock)
 
 // SocketConnect --------------------------------------------------------------
 
-void SocketConnect::write(char* s)
+void SocketConnect::write(const char* s)
 	{
 	write(s, strlen(s));
 	}
 
-void SocketConnect::writebuf(char* s)
+void SocketConnect::writebuf(const char* s)
 	{
 	writebuf(s, strlen(s));
 	}
@@ -248,7 +248,7 @@ public:
 		tv.tv_sec = timeout;
 		tv.tv_usec = 0;
 		}
-	void write(char* buf, int n) override;
+	void write(const char* buf, int n) override;
 	int read(char* dst, int required, int bufsize) override;
 	bool readline(char* dst, int n) override;
 	void close() override;
@@ -297,7 +297,7 @@ SocketConnect* socketClientSync(char* addr, int port, int timeout, int timeoutCo
 	return new SocketConnectSync(sock, timeout);
 	}
 
-void SocketConnectSync::write(char* buf, int n)
+void SocketConnectSync::write(const char* buf, int n)
 	{
 	if (n == 0 && wrbuf.size() == 0)
 		return; // nothing to write
@@ -305,7 +305,7 @@ void SocketConnectSync::write(char* buf, int n)
 	bufs[0].buf = wrbuf.buffer();
 	bufs[0].len = wrbuf.size();
 	wrbuf.clear();
-	bufs[1].buf = buf;
+	bufs[1].buf = const_cast<char*>(buf);
 	bufs[1].len = n;
 
 	FDS(fds, sock);
@@ -404,7 +404,7 @@ public:
 	explicit SocketConnectAsync(int s, void* arg_, char* adr_)
 		: sock(s), wrover(this), rdover(this), arg(arg_), adr(dupstr(adr_))
 		{ }
-	void write(char* buf, int n) override;
+	void write(const char* buf, int n) override;
 	int read(char* dst, int required, int dstsize) override;
 	bool readline(char* dst, int n) override;
 	void close() override;
@@ -493,7 +493,7 @@ static void CALLBACK afterSend(DWORD Error, DWORD BytesTransferred,
 	over->sc->unblock();
 	}
 
-void SocketConnectAsync::write(char* buf, int n)
+void SocketConnectAsync::write(const char* buf, int n)
 	{
 	int toSend = n + wrbuf.size();
 	if (toSend == 0)
@@ -505,7 +505,7 @@ void SocketConnectAsync::write(char* buf, int n)
 	WSABUF bufs[NBUFS];
 	bufs[0].buf = wrbuf.buffer();
 	bufs[0].len = wrbuf.size();
-	bufs[1].buf = buf;
+	bufs[1].buf = const_cast<char*>(buf);
 	bufs[1].len = n;
 
 	wrover.size = toSend;

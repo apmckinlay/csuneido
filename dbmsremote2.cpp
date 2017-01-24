@@ -30,6 +30,9 @@
 #include "fibers.h"
 #include <cctype>
 #include <vector>
+#include "cmdlineoptions.h"
+#include "build.h"
+#include "tr.h"
 
 // the client side of the *binary* client-server protocol
 
@@ -79,6 +82,7 @@ public:
 	Mmoffset update(int tn, Mmoffset recadr, Record& rec) override;
 	int writeCount(int tn) override;
 private:
+	static bool checkHello(const gcstring& hello);
 	void close(int qn, CorQ cq);
 	char* explain(int qn, CorQ cq);
 	Row get(int tn, int qn, Dir dir);
@@ -107,7 +111,7 @@ private:
 	Header getHeader();
 	Row getRow(Header* phdr = nullptr);
 
-	Connection io;
+	ClientConnection io;
 	};
 
 class DbmsQueryRemote : public DbmsQuery
@@ -180,6 +184,31 @@ private:
 
 DbmsRemote::DbmsRemote(SocketConnect* sc) : io(sc)
 	{
+	gcstring hello(HELLO_SIZE);
+	sc->read(hello.buf(), hello.size());
+	if (!checkHello(hello))
+		except("connect failed\n" <<
+			"client: Suneido " << build << "\n" <<
+			"server: " << hello);
+	}
+
+bool DbmsRemote::checkHello(const gcstring& hello)
+	{
+	if (cmdlineoptions.ignore_version)
+		return true;
+	char* prefix = "Suneido ";
+	if (!hello.has_prefix(prefix) || hello.has_prefix("Suneido Database Server"))
+		return false;
+	gcstring rest = hello.substr(strlen(prefix));
+	if (!rest.has("Java"))
+		return rest.has_prefix(build); // exact match
+	else
+		{
+		// just compare date (not time)
+		gcstring bd(build, 11); // 11 = MMM dd yyyy
+		bd = tr(bd, "  ", " "); // squeeze out extra space for single digit dates
+		return rest.has_prefix(bd.str());
+		}
 	}
 
 DbmsRemote::~DbmsRemote()
@@ -594,7 +623,7 @@ extern int su_port;
 
 Dbms* dbms_remote2_async(char* addr)
 	{
-	return new DbmsRemote(socketClientAsync(addr, su_port));
+	return new DbmsRemote2(socketClientAsync(addr, su_port));
 	}
 
 static char* httpget(char* addr, int port)
@@ -621,7 +650,7 @@ Dbms* dbms_remote2(char* addr)
 	{
 	try
 		{
-		return new DbmsRemote(socketClientSync(addr, su_port));
+		return new DbmsRemote2(socketClientSync(addr, su_port));
 		}
 	catch (const Except&)
 		{

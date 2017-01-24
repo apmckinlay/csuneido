@@ -34,7 +34,6 @@
 //#include "ostreamcon.h"
 //#define LOG(stuff) con() << stuff << ' '
 #define LOG(stuff)
-
 #define LOGSTR(s) LOG('"' << s.substr(0, 20) << (s.size() > 20 ? "..." : "") << '"')
 
 Serializer::Serializer(Buffer& r, Buffer& w) : rdbuf(r), wrbuf(w)
@@ -107,6 +106,7 @@ Serializer& Serializer::putStr(const char* s)
 
 Serializer& Serializer::putStr(const gcstring& s)
 	{
+	LIMIT(s.size());
 	putInt(s.size());
 	LOG('-');
 	LOGSTR(s);
@@ -117,6 +117,7 @@ Serializer& Serializer::putStr(const gcstring& s)
 Serializer& Serializer::putValue(Value value)
 	{
 	auto n = value.packsize();
+	LIMIT(n);
 	putInt(n);
 	LOG("- " << value);
 	value.pack(wrbuf.alloc(n));

@@ -38,6 +38,8 @@
 #include "sesviews.h"
 #include "exceptimp.h"
 #include "errlog.h"
+#include "build.h"
+#include "catstr.h"
 
 // ReSharper disable CppMemberFunctionMayBeConst
 
@@ -113,12 +115,25 @@ public:
 
 static std::vector<DbServer*> dbservers;
 
+static gcstring makeHello()
+	{
+	char* s = CATSTR3("Suneido ", build, "\r\n");
+	verify(strlen(s) < HELLO_SIZE);
+	gcstring h(HELLO_SIZE); // zeroed
+	strcpy(h.buf(), s);
+	verify(h.size() == HELLO_SIZE);
+	return h;
+	}
+static const gcstring hello = makeHello();
+
 DbServer::DbServer(SocketConnect* sc) : io(sc), data(*DbServerData::create())
 	{
 	tls().fiber_id = sc->getadr();
 	session_id = new SuString(sc->getadr());
 	dbserver_connections().add(session_id);
 	dbservers.push_back(this);
+
+	sc->write(hello.buf(), hello.size());
 
 	tls().session_views = &session_views;
 	tls().proc = &proc;

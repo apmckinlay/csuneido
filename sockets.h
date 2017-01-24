@@ -55,14 +55,14 @@ public:
 
 	/// Gathering write of wrbuf and buf argument
 	/// wrbuf is left empty.
-	virtual void write(char* buf, int n) = 0;
+	virtual void write(const char* buf, int n) = 0;
 
 	/// Add to wrbuf
-	void writebuf(char* buf, int n)
+	void writebuf(const char* buf, int n)
 		{ wrbuf.add(buf, n); }
 
-	void write(char* s);
-	void writebuf(char* s);
+	void write(const char* s);
+	void writebuf(const char* s);
 	virtual void close() = 0;
 	virtual void* getarg()
 		{ return nullptr; }

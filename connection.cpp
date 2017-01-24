@@ -22,14 +22,14 @@
 
 #include "connection.h"
 #include "sockets.h"
-#include <cstring>
 #include <algorithm>
 #include "except.h"
+#include "fatal.h"
+#include "exceptimp.h"
 using std::min;
 using std::max;
 
 // NOTE: passes SocketConnect wrbuf to Serializer to access directly
-
 Connection::Connection(SocketConnect* sc_) : Serializer(rdbuf, sc_->wrbuf), sc(*sc_)
 	{ }
 
@@ -71,8 +71,9 @@ void Connection::write()
 	}
 
 /// Write buffered data plus buf
-void Connection::write(char* buf, int n)
+void Connection::write(const char* buf, int n)
 	{
+	LIMIT(n);
 	sc.write(buf, n);
 	rdbuf.clear();
 	// can't clear sc.wrbuf if using async because it doesn't block
@@ -82,3 +83,24 @@ void Connection::close()
 	{
 	sc.close();
 	}
+
+//--------------------------------------------------------------------------------
+
+#define DO(fn) try { fn; } \
+	catch (const Except& e) { fatal("lost connection:", e.str()); }
+
+void ClientConnection::need(int n)
+	{
+	DO(Connection::need(n));
+	}
+
+void ClientConnection::write(const char* buf, int n)
+	{
+	DO(Connection::write(buf, n));
+	}
+
+void ClientConnection::read(char* dst, int n)
+	{
+	DO(Connection::read(dst, n));
+	}
+
