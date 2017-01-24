@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2007 Suneido Software Corp. 
+ *
+ * Copyright (c) 2007 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -26,6 +26,7 @@
 #include "fibers.h"
 #include "sunapp.h"
 #include "except.h"
+#include "dbms.h"
 
 void free_callbacks();
 
@@ -39,9 +40,9 @@ void message_loop(HWND hdlg)
 		{
 		if (hdlg && GetWindowLong(hdlg, GWL_USERDATA) == 1)
 			return ;
-		
+
 		while (! PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-			{ 
+			{
 			SleepEx(0, true); // run completion routines (may unblock fibers)
 			if (! Fibers::yield())
 				// no runnable fibers so wait for event for up to 20 ms
@@ -63,13 +64,13 @@ void message_loop(HWND hdlg)
 			else
 				shutdown(msg.wParam);
 			}
-		
+
 		HWND window = GetAncestor(msg.hwnd, GA_ROOT);
-		
+
 		if (HACCEL haccel = (HACCEL) GetWindowLong(window, GWL_USERDATA))
 			if (TranslateAccelerator(window, haccel, &msg))
 				continue ;
-		
+
 		if (IsDialogMessage(window, &msg))
 			continue ;
 
@@ -101,6 +102,11 @@ static void shutdown(int status)
 #ifndef __GNUC__
 	sunapp_revoke_classes();
 #endif
+	Fibers::foreach_tls([](ThreadLocalStorage& tls)
+		{
+		delete tls.thedbms;
+		tls.thedbms = nullptr;
+		});
 	if (cmdlineoptions.compact_exit)
 		compact();
 	exit(status);
