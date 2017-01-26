@@ -30,7 +30,8 @@
 class SuBlock : public Func
 	{
 public:
-	SuBlock(Frame* f, int p, int i, int n) : frame(f), pc(p), first(i)
+	SuBlock(Frame* f, int p, int i, int n) : frame(f), fn(f->fn), pc(p), first(i), 
+		persisted(false)
 		{
 		verify(frame->fn); // i.e. not a primitive
 		if (n != BLOCK_REST)
@@ -58,8 +59,10 @@ public:
 	friend Value suBlock(Frame* frame, int pc, int first, int nparams);
 private:
 	Frame* frame;
+	SuFunction* fn; // copy of what's in frame, to detect if we missed persist
 	int pc;
 	short first;
+	bool persisted;
 	};
 
 inline bool sameframe(Frame* f1, Frame* f2)
@@ -84,6 +87,8 @@ Value SuBlock::call(Value self, Value member, short nargs, short nargnames, usho
 
 	if (member == CALL)
 		{
+		if (frame->fn != fn)
+			except_err("orphaned block!");
 		args(nargs, nargnames, argnames, each);
 		Framer framer(frame, pc, first, nparams, self.ptr() == this ? frame->self : self);
 		return tls().proc->fp->run();
@@ -99,10 +104,17 @@ void persist_if_block(Value x)
 	}
 
 #define within(ob, p) \
-	((char*) &ob < (char*) p && (char*) p < (char*) &ob + sizeof ob)
+	((char*) &(ob) < (char*) (p) && (char*) (p) < (char*) &(ob) + sizeof ob)
 
 void SuBlock::persist()
 	{
+	if (persisted)
+		return;
+
+	if (frame->fn != fn)
+		except_err("orphaned block!");
+
+	// won't need to copy locals if another block persist has already done so
 	if (within(tls().proc->stack, frame->local))
 		{
 		// save locals on heap - only done once per call/frame
@@ -110,20 +122,17 @@ void SuBlock::persist()
 		int n = frame->fn->nlocals * sizeof (Value);
 		frame->local = (Value*) memcpy(new char[n], frame->local, n);
 
-		verify(within(tls().proc->frames, frame));
-		for (Frame* f = tls().proc->fp; f > tls().proc->frames && 
-			(! within(tls().proc->stack, f->local) || f->local >= old_locals); 
-			--f)
-			{
+		// update any other active frames pointing to the same locals
+		// i.e. nested blocks within one parent frame
+		for (Frame* f = tls().proc->fp; f > tls().proc->frames; --f)
 			if (f->local == old_locals)
 				f->local = frame->local;
-			}
 		}
-	if (within(tls().proc->frames, frame))
-		{
-		// save frame on heap
-		frame = (Frame*) memcpy(new Frame, frame, sizeof (Frame));
-		}
+
+	// save frame on heap
+	frame = (Frame*) memcpy(new Frame, frame, sizeof (Frame));
+		
+	persisted = true;
 	}
 
 #include "testing.h"

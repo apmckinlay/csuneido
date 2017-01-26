@@ -39,6 +39,9 @@ public:
 	virtual void close() = 0;
 	virtual void* getarg()
 		{ return 0; }
+
+	// used by dbserver and susockets Socket.RemoteUser
+	// only implemented in SocketConnectAsynch
 	virtual char* getadr() = 0;
 
 	Buffer rdbuf;
@@ -50,11 +53,13 @@ public:
 typedef void (_stdcall *pNewServer)(void*);
 void socketServer(char* title, int port, pNewServer newserver, void* arg, bool exit);
 
-// create a synchronous (waits) socket connection
+// create a synchronous (blocks everything) socket connection
 SocketConnect* socketClientSynch(char* addr, int port, int timeout = 9999, int timeoutConnect = 0);
 
-// create an asynch (message driven) socket connection
+// create an asynch (only blocks calling fiber) socket connection
 SocketConnect* socketClientAsynch(char* addr, int port);
+
+SocketConnect* socketClientPoll(char* addr, int port, int timeout, int timeoutConnect);
 
 int socketConnectionCount();
 

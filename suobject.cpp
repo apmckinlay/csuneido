@@ -140,45 +140,54 @@ size_t SuObject::hashfn()
 	return hash;
 	}
 
+/** methods are available to Objects (not instances or classes) */
 HashMap<Value,SuObject::pmfn> SuObject::methods;
+
+/** basic_methods are available to Objects, instances, and classes */
 HashMap<Value,SuObject::pmfn> SuObject::basic_methods;
+
+/** instance_methods are available to Objects and instances (not classes) */
+HashMap<Value, SuObject::pmfn> SuObject::instance_methods;
 
 #define METHOD(fn) methods[#fn] = &SuObject::fn
 #define BASIC_METHOD(fn) basic_methods[#fn] = &SuObject::fn
+#define INSTANCE_METHOD(fn) instance_methods[#fn] = &SuObject::fn
 
 void SuObject::setup()
 	{
-	BASIC_METHOD(Add);
 	BASIC_METHOD(Base);
 	basic_methods["Base?"] = &SuObject::HasBase;
-	BASIC_METHOD(Delete);
-	BASIC_METHOD(Erase);
 	BASIC_METHOD(Eval);
 	BASIC_METHOD(Eval2);
 	BASIC_METHOD(Find);
+	BASIC_METHOD(GetDefault);
 	BASIC_METHOD(Iter);
 	BASIC_METHOD(Join);
 	basic_methods["Member?"] = &SuObject::HasMember;
 	basic_methods["Method?"] = &SuObject::HasMethod;
 	BASIC_METHOD(Members);
 	BASIC_METHOD(MethodClass);
-	basic_methods["Reverse!"] = &SuObject::Reverse;
-	BASIC_METHOD(Size);
-	basic_methods["Partition!"] = &SuObject::Partition;
-	BASIC_METHOD(Sort);
-	basic_methods["Sort!"] = &SuObject::Sort;
-	METHOD(Set_default);
-	METHOD(Copy);
 	basic_methods["Readonly?"] = &SuObject::IsReadonly;
-	METHOD(Set_readonly);
-	METHOD(Values);
+	BASIC_METHOD(Size);
+
+	METHOD(Add);
 	METHOD(Assocs);
-	METHOD(GetDefault);
-	METHOD(LowerBound);
-	METHOD(UpperBound);
+	METHOD(Erase);
 	METHOD(EqualRange);
-	methods["Unique!"] = &SuObject::Unique;
+	METHOD(LowerBound);
+	methods["Reverse!"] = &SuObject::Reverse;
+	METHOD(Set_default);
+	METHOD(Set_readonly);
 	METHOD(Slice);
+	methods["Partition!"] = &SuObject::Partition;
+	METHOD(Sort);
+	methods["Sort!"] = &SuObject::Sort;
+	methods["Unique!"] = &SuObject::Unique;
+	METHOD(UpperBound);
+	METHOD(Values);
+
+	INSTANCE_METHOD(Copy);
+	INSTANCE_METHOD(Delete);
 	}
 
 SuObject::SuObject(const SuObject& ob) : myclass(ob.myclass), defval(ob.defval), 
@@ -452,6 +461,7 @@ bool SuObject::erase2(Value m)
 	return map.erase(m);
 	}
 
+/** used for both Objects and instances */
 Value SuObject::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL)
@@ -461,14 +471,14 @@ Value SuObject::call(Value self, Value member, short nargs, short nargnames, ush
 		short super = tls().proc->super; tls().proc->super = 0;
 		return globals[super].call(self, member, nargs, nargnames, argnames, each);
 		}
-//else if (Value fn = myclass.getdata(member))
-//return fn.call(self, CALL, nargs, nargnames, argnames, each);
-	else if (pmfn* p = basic_methods.find(member))
+	if (pmfn* p = basic_methods.find(member))
 		return (this->*(*p))(nargs, nargnames, argnames, each);
-	else if (pmfn* p = methods.find(member))
+	if (pmfn* p = instance_methods.find(member))
 		return (this->*(*p))(nargs, nargnames, argnames, each);
-	else
-		return myclass.call(self, member, nargs, nargnames, argnames, each);
+	if ((void*)myclass == (void*)root_class) // Object (not instance)
+		if (pmfn* p = methods.find(member))
+			return (this->*(*p))(nargs, nargnames, argnames, each);
+	return myclass.call(self, member, nargs, nargnames, argnames, each);
 	}
 
 // suneido methods =======================================================
@@ -607,7 +617,7 @@ Value SuObject::Base(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
 		except("usage: object.Base()");
-	if (SuClass* c = val_cast<SuClass*>(this))
+	if (SuClass* c = dynamic_cast<SuClass*>(this))
 		return globals[c->base];
 	else
 		return myclass;
@@ -760,6 +770,11 @@ Value SuObject::EqualRange(short nargs, short nargnames, ushort* argnames, int e
 Value SuObject::Unique(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	// TODO allow passing equality function
+	return unique();
+	}
+
+Value SuObject::unique()
+	{
 	std::vector<Value>::iterator end = std::unique(vec.begin(), vec.end());
 	vec.erase(end, vec.end());
 	return this;
@@ -884,6 +899,7 @@ Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
 		{
 		for (int j = 0; j < nargs - nargnames; ++j, ++i)
 			{
+			persist_if_block(ARG(j));
 			vec.insert(vec.begin() + i, ARG(j));
 			// migrate from map to vector if necessary
 			Value num;
@@ -965,16 +981,53 @@ Value SuObject::IsReadonly(short nargs, short nargnames, ushort* argnames, int e
 	return readonly ? SuTrue : SuFalse;
 	}
 
+// returns true if ob is a class or an instance
+static bool classy(SuObject* ob)
+	{
+	return dynamic_cast<SuClass*>(ob) || val_cast<SuClass*>(ob->myclass);
+	}
+
+static SuClass* base(SuObject* ob)
+	{
+	if (SuClass* c = dynamic_cast<SuClass*>(ob))
+		return val_cast<SuClass*>(globals[c->base]);
+	else
+		return val_cast<SuClass*>(ob->myclass);
+	}
+
+void SuObject::addMembers(SuObject* list)
+	{
+	for (auto i = map.begin(); i != map.end(); ++i)
+		list->add(i->key);
+	}
+
 Value SuObject::Members(short nargs, short nargnames, ushort* argnames, int each)
 	{
+	argseach(nargs, nargnames, argnames, each);
+	static ushort all = ::symnum("all");
+	if (nargs == 1 && nargnames == 1 && argnames[0] == all && classy(this))
+		{
+		SuObject* mems = new SuObject();
+		SuObject* ob = this;
+		do
+			{
+			ob->addMembers(mems);
+			ob = base(ob);
+			}
+			while (ob);
+		mems->sort();
+		mems->unique();
+		return mems;
+		}
 	bool listq, namedq;
 	list_named(nargs, nargnames, argnames, listq, namedq,
-		"usage: object.Members() or .Members(list:) or .Members(named:)");
+		"usage: object.Members() or .Members(list: or named: or all:)");
 	return new SuSeq(new SuObjectIter(this, ITER_KEYS, listq, namedq));
 	}
 
 Value SuObject::Values(short nargs, short nargnames, ushort* argnames, int each)
 	{
+	argseach(nargs, nargnames, argnames, each);
 	bool listq, namedq;
 	list_named(nargs, nargnames, argnames, listq, namedq,
 		"usage: object.Values() or .Values(list:) or .Values(named:)");
@@ -983,6 +1036,7 @@ Value SuObject::Values(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuObject::Assocs(short nargs, short nargnames, ushort* argnames, int each)
 	{
+	argseach(nargs, nargnames, argnames, each);
 	bool listq, namedq;
 	list_named(nargs, nargnames, argnames, listq, namedq,
 		"usage: object.Assocs() or .Assocs(list:) or .Assocs(named:)");

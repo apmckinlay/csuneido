@@ -133,7 +133,6 @@ richeditio.cpp \
 richeditole.c \
 runpiped.cpp \
 sockets.cpp \
-splash.cpp \
 structure.cpp \
 sucomobject.cpp \
 suimage.cpp \
