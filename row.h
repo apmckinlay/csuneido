@@ -38,7 +38,7 @@ class Header
 public:
 	Header()
 		{ }
-	Header(const Lisp<Fields>& h, const Lisp<gcstring>& c) : flds(h), cols(c), timestamp(0)
+	Header(const Lisp<Fields>& h, const Lisp<gcstring>& c) : flds(h), cols(c)
 		{ }
 	int size() const
 		{ return flds.size(); }
@@ -56,7 +56,7 @@ public:
 	Fields cols;
 private:
 	mutable Lisp<int> fldsyms;
-	mutable int timestamp;
+	mutable int timestamp = 0;
 	};
 
 inline bool nil(const Header& hdr)
@@ -73,11 +73,11 @@ class SuRecord;
 class Row
 	{
 public:
-	Row() : recadr(0), tran(-1), surec(0)
+	Row()
 		{ }
-	explicit Row(Record d, Mmoffset ra = 0) : data(d), recadr(ra), tran(-1), surec(0)
+	explicit Row(Record d, Mmoffset ra = 0) : data(d), recadr(ra)
 		{ verify(ra >= 0); }
-	explicit Row(const Records& d) : data(d), recadr(0), tran(-1), surec(0)
+	explicit Row(const Records& d) : data(d)
 		{ }
 	gcstring getraw(const Header& hdr, const gcstring& colname) const;
 	gcstring getrawval(const Header& hdr, const gcstring& col) const;
@@ -94,9 +94,9 @@ public:
 	class iterator // used by select
 		{
 	public:
-		iterator() : fld(0) // end
+		iterator() // end
 			{ }
-		iterator(const Lisp<Fields>& f, const Records& d) : flds(f), data(d), fld(0), n(0)
+		iterator(const Lisp<Fields>& f, const Records& d) : flds(f), data(d)
 			{
 			if (nil(flds))
 				data = Lisp<Record>();
@@ -131,8 +131,8 @@ public:
 	private:
 		Lisp<Fields> flds;
 		Lisp<Record> data;
-		int fld;
-		int n; // number of fields in current data
+		int fld = 0;
+		int n = 0; // number of fields in current data
 		};
 	iterator begin(const Header& hdr) const
 		{ return iterator(hdr.flds, data); }
@@ -144,7 +144,7 @@ public:
 		{ tran = t; }
 
 	Records data;
-	Mmoffset recadr; // if Row contains single update-able record, this is its address
+	Mmoffset recadr = 0; // if Row contains single update-able record, this is its address
 	static Row Eof;
 private:
 	struct Which
@@ -157,8 +157,8 @@ private:
 	Which find(const Header& hdr, const gcstring& col) const;
 	gcstring getraw(const Which& w) const;
 
-	int tran;
-	mutable SuRecord* surec;
+	int tran = -1;
+	mutable SuRecord* surec = nullptr;
 	};
 
 inline Row operator+(const Row& r1, const Row& r2)
