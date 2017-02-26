@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -115,8 +115,8 @@ enum
 	PATEND,
 	CHAR,
 	ANY,
-	START, END, 
-	START_LINE, END_LINE, 
+	START, END,
+	START_LINE, END_LINE,
 	START_WORD, END_WORD,
 	CCL, NCCL, CCLEND, RANGE,
 	DIGIT, NDIGIT, WORD, NWORD, SPACE, NSPACE,
@@ -176,7 +176,7 @@ class RxCompile
 	{
 public:
 	RxCompile(const char* src, int len) :
-		s(src), lim(s + len), 
+		s(src), lim(s + len),
 		buflen(len * 3 + 8), buf(new char[buflen]), n(0), nl(1),
 		literal(false)
 		{ }
@@ -240,8 +240,8 @@ bool RxCompile::match(char* token)
 
 void RxCompile::regexp()
 	{
-	int start = n; 
-	sequence(); 
+	int start = n;
+	sequence();
 	if (s < lim && *s == '|')
 		{
 		int len = n - start;
@@ -265,7 +265,7 @@ void RxCompile::sequence()
 		element();
 		}
 	}
-		
+
 void RxCompile::element()
 	{
 	if (literal)
@@ -443,7 +443,7 @@ void RxCompile::posix_cclass()
 			break ;
 			}
 	}
-			
+
 void RxCompile::output(int c)
 	{
 	verify(SCHAR_MIN <= c && c <= SCHAR_MAX);
@@ -500,7 +500,7 @@ private:
 	Rxpart* part;
 	Rxpart parts[MAXPARTS];	// used if none passed in
 	bool ignore_case;
-	enum { MAXNEST = 500 };
+	enum { MAXNEST = 1000 };
 	int domatch_nest;
 	};
 
@@ -553,7 +553,7 @@ bool RxMatch::domatch()
 	int offset;
 
 	if (++domatch_nest > MAXNEST)
-		return false;
+		except("regular expression match too long");
 	while (*p != PATEND)
 		{
 		switch (*p)
@@ -641,7 +641,7 @@ bool RxMatch::omatch()
 	case START :
 		return i == 0;
 	case END :
-		return i == n || 
+		return i == n ||
 			(i == n - 1 && s[i] == '\n') ||
 			(i == n - 2 && s[i] == '\r' && s[i+1] == '\n');
 	case START_LINE :
@@ -708,7 +708,7 @@ bool RxMatch::omatch()
 		return true;
 		}
 	default :
-		unreachable();	
+		unreachable();
 		}
 	}
 
@@ -921,7 +921,7 @@ struct Rxtest
 	char* string;
 	char* pattern;
 	bool result;
-	};	
+	};
 static Rxtest rxtests[] =
 	{
 	{ "hello", "hello", true },
