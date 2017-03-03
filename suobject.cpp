@@ -287,7 +287,7 @@ Value SuObject::getdefault(Value member, Value def)
 		else
 			has_getter = false; // avoid future attempts
 		}
-	if ((void*) myclass != (void*) root_class)
+	if (!myclass.sameAs(root_class.ptr()))
 		if (const char* s = member.str_if_str())
 			{
 			Value getter = new SuString(CATSTRA(islower(*s) ? "get_" : "Get_", s));
@@ -475,7 +475,7 @@ Value SuObject::call(Value self, Value member, short nargs, short nargnames, ush
 		return (this->*(*p))(nargs, nargnames, argnames, each);
 	if (pmfn* p = instance_methods.find(member))
 		return (this->*(*p))(nargs, nargnames, argnames, each);
-	if ((void*)myclass == (void*)root_class) // Object (not instance)
+	if (myclass.sameAs(root_class)) // Object (not instance)
 		if (pmfn* p = methods.find(member))
 			return (this->*(*p))(nargs, nargnames, argnames, each);
 	return myclass.call(self, member, nargs, nargnames, argnames, each);
@@ -1127,7 +1127,7 @@ void SuObject::outdelims(Ostream& os, char* delims)
 	Track track(this);
 	if (delims[0] != '[')
 		os << "#";
-	if (myclass && (void*) myclass != (void*) root_class)
+	if (myclass && !myclass.sameAs(root_class))
 		os << "/*" << myclass << "*/";
 	os << delims[0];
 	int i;

@@ -41,16 +41,16 @@ class DbmsQueryLocal : public DbmsQuery
 public:
 	DbmsQueryLocal(Query* query);
 	~DbmsQueryLocal()
-		{ close(); }
-	void set_transaction(int tran);
-	Header header();
-	Lisp<gcstring> order();
-	Lisp<Lisp<gcstring> > keys();
-	Row get(Dir dir);
-    void rewind();
-	void close();
-	char* explain();
-	bool output(const Record& rec);
+		{ DbmsQueryLocal::close(); }
+	void set_transaction(int tran) override;
+	Header header() override;
+	Lisp<gcstring> order() override;
+	Lisp<Lisp<gcstring>> keys() override;
+	Row get(Dir dir) override;
+    void rewind() override;
+	void close() override;
+	char* explain() override;
+	bool output(const Record& rec) override;
 private:
 	Query* q;
 	};
@@ -79,7 +79,7 @@ Lisp<Lisp<gcstring> > DbmsQueryLocal::keys()
 	}
 
 #include "trace.h"
-static Query* last_q = NULL;
+static Query* last_q = nullptr;
 void trace_last_q()
 	{
 	tout() << "IN: " << last_q << endl;
@@ -122,41 +122,38 @@ bool DbmsQueryLocal::output(const Record& rec)
 class DbmsLocal : public Dbms
 	{
 public:
-	int transaction(TranType type, char* session_id = "");
-	bool commit(int tran, char** conflict);
-	void abort(int tran);
-
-	bool admin(char* s);
-	int request(int tran, char* s);
-	DbmsQuery* cursor(char* s);
-	DbmsQuery* query(int tran, char* s);
-	Lisp<gcstring> libget(char* name);
-	Lisp<gcstring> libraries();
-	Lisp<int> tranlist();
-	Value timestamp();
-	Value dump(char* filename);
-	int load(char* filename);
-	Value run(char* s);
-	int64 size();
-	Value connections();
-	void erase(int tran, Mmoffset recadr);
-	Mmoffset update(int tran, Mmoffset recadr, Record& rec);
-	bool record_ok(int tran, Mmoffset recadr);
-	Row get(Dir dir, char* query, bool one, Header& hdr, int tran = 0);
-	int tempdest();
-	int cursors();
-	Value sessionid(char* s);
-	bool refresh(int tran);
-	int final();
-	void log(char* s);
-	int kill(char* s);
-	Value exec(Value ob);
-	gcstring nonce();
-	gcstring token();
-	bool auth(const gcstring& data);
-	Value check();
-	Value readCount(int tran);
-	Value writeCount(int tran);
+	void abort(int tn) override;
+	void admin(char* s) override;
+	bool auth(const gcstring& data) override;
+	Value check() override;
+	bool commit(int tn, char** conflict) override;
+	Value connections() override;
+	DbmsQuery* cursor(char* query) override;
+	int cursors() override;
+	Value dump(char* filename) override;
+	void erase(int tn, Mmoffset recadr) override;
+	Value exec(Value ob) override;
+	int final() override;
+	Row get(Dir dir, char* query, bool one, Header& hdr, int tn = -1) override;
+	int kill(char* sessionid) override;
+	Lisp<gcstring> libget(char* name) override;
+	Lisp<gcstring> libraries() override;
+	int load(char* filename) override;
+	void log(char* s) override;
+	gcstring nonce() override;
+	DbmsQuery* query(int tn, char* query) override;
+	int readCount(int tn) override;
+	int request(int tn, char* s) override;
+	Value run(char* s) override;
+	Value sessionid(char* s) override;
+	int64 size() override;
+	int tempdest() override;
+	Value timestamp() override;
+	gcstring token() override;
+	Lisp<int> tranlist() override;
+	int transaction(TranType type, char* session_id = "") override;
+	Mmoffset update(int tn, Mmoffset recadr, Record& rec) override;
+	int writeCount(int tn) override;
 	};
 
 int DbmsLocal::transaction(TranType type, char* session_id)
@@ -174,9 +171,9 @@ void DbmsLocal::abort(int tran)
 	theDB()->abort(tran);
 	}
 
-bool DbmsLocal::admin(char* s)
+void DbmsLocal::admin(char* s)
 	{
-	return database_admin(s);
+	database_admin(s);
 	}
 
 int DbmsLocal::request(int tran, char* s)
@@ -238,7 +235,7 @@ struct AutoQuery
 		{ }
 	~AutoQuery()
 		{ q->close(); }
-	DbmsQuery* operator ->()
+	DbmsQuery* operator ->() const
 		{ return q; }
 	DbmsQuery* q;
 	};
@@ -263,6 +260,7 @@ Value DbmsLocal::dump(char* filename)
 	}
 
 #include "load.h"
+
 int DbmsLocal::load(char* filename)
 	{
 	return ::load_table(filename);
@@ -287,10 +285,11 @@ int64 DbmsLocal::size()
 	return theDB()->mmf->size();
 	}
 
+extern bool is_server;
+extern SuObject& dbserver_connections();
+
 Value DbmsLocal::connections()
 	{
-	extern bool is_server;
-	extern SuObject& dbserver_connections();
 	if (is_server)
 		return &dbserver_connections();
 	else
@@ -322,35 +321,28 @@ Mmoffset DbmsLocal::update(int tran, Mmoffset recadr, Record& newrec)
 	return theDB()->update_record(tran, tbl, oldrec, newrec);
 	}
 
-bool DbmsLocal::record_ok(int tran, Mmoffset recadr)
-	{
-	return theDB()->record_ok(tran, recadr);
-	}
+extern int tempdest_inuse;
 
 int DbmsLocal::tempdest()
 	{
-	extern int tempdest_inuse;
 	return tempdest_inuse;
 	}
 
+extern int cursors_inuse;
+
 int DbmsLocal::cursors()
 	{
-	extern int cursors_inuse;
 	return cursors_inuse;
 	}
 
+extern bool is_server;
+
 Value DbmsLocal::sessionid(char* s)
 	{
-	static char* session_id = "127.0.0.1";
+	static char* session_id = "127.0.0.1"; // cache
 	if (*s)
 		session_id = dupstr(s);
-	extern bool is_server;
 	return new SuString(is_server ? tls().fiber_id : session_id);
-	}
-
-bool DbmsLocal::refresh(int tran)
-	{
-	return theDB()->refresh(tran);
 	}
 
 int DbmsLocal::final()
@@ -365,10 +357,10 @@ void DbmsLocal::log(char* s)
 	errlog(s);
 	}
 
+extern int kill_connections(char* s); // in dbserver.cpp
+
 int DbmsLocal::kill(char* s)
 	{
-	extern bool is_server;
-	extern int kill_connections(char* s); // in dbserver.cpp
 	return is_server ? kill_connections(s) : 0;
 	}
 
@@ -392,12 +384,12 @@ Value DbmsLocal::check()
 	except("check while running only supported with jSuneido server");
 	}
 
-Value DbmsLocal::readCount(int tran)
+int DbmsLocal::readCount(int tran)
 	{
 	except("ReadCount only supported with jSuneido server");
 	}
 
-Value DbmsLocal::writeCount(int tran)
+int DbmsLocal::writeCount(int tran)
 	{
 	except("WriteCount only supported with jSuneido server");
 	}
@@ -425,11 +417,10 @@ int delete_request(int tran, Query* q)
 #include "surecord.h"
 #include "qexpr.h"
 
-int update_request(int tran, Query* q, const Fields& c, const Lisp<Expr*>& exprs)
+int update_request(int tran, Query* q, const Lisp<gcstring>& c, const Lisp<Expr*>& exprs)
 	{
-	Fields f;
 	Lisp<Value> cols;
-	for (f = c; ! nil(f); ++f)
+	for (Fields f = c; ! nil(f); ++f)
 		cols.push(symbol(*f));
 	cols.reverse();
 

@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -29,36 +29,36 @@ int cursors_inuse = 0;
 
 struct TranQuery
 	{
-	TranQuery() : query(0)
+	TranQuery()
 		{ }
 	TranQuery(int t, DbmsQuery* q) : tran(t), query(q)
 		{ }
 	~TranQuery()
 		{ if (query) query->close(); }
-	int tran;
-	DbmsQuery* query;
+	int tran = 0;
+	DbmsQuery* query = nullptr;
 	};
 
 class DbServerDataImp : public DbServerData
 	{
 public:
 	DbServerDataImp() : nextQnum(0), nextCnum(0)
-		{ 
+		{
 		auth = true; //TEMPORARY  until applications are converted
 		}
 
-	void add_tran(int tran);
-	int add_query(int tran, DbmsQuery* q);
-	DbmsQuery* get_query(int qn);
-	bool erase_query(int qn);
-	Lisp<int> get_trans();
-	void end_transaction(int tran);
+	void add_tran(int tran) override;
+	int add_query(int tran, DbmsQuery* q) override;
+	DbmsQuery* get_query(int qn) override;
+	bool erase_query(int qn) override;
+	Lisp<int> get_trans() override;
+	void end_transaction(int tran) override;
 
-	int add_cursor(DbmsQuery* q);
-	DbmsQuery* get_cursor(int cn);
-	bool erase_cursor(int cn);
+	int add_cursor(DbmsQuery* q) override;
+	DbmsQuery* get_cursor(int cn) override;
+	bool erase_cursor(int cn) override;
 
-	void abort(void (*fn)(int tran));
+	void abort(void (*fn)(int tran)) override;
 private:
 	int nextQnum;
 	int nextCnum;
@@ -126,8 +126,6 @@ bool DbServerDataImp::erase_cursor(int cn)
 	return cursors.erase(cn);
 	}
 
-#include "errlog.h"
-
 void DbServerDataImp::abort(void (*fn)(int tran))
 	{
 	for (HashMap<int,TranQuery>::iterator qi = queries.begin(); qi != queries.end(); ++qi)
@@ -145,3 +143,12 @@ DbServerData* DbServerData::create()
 	{
 	return new DbServerDataImp;
 	}
+
+#include "suobject.h"
+
+SuObject& dbserver_connections()
+	{
+	static SuObject ob(true); // readonly
+	return ob;
+	}
+

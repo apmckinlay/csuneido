@@ -34,7 +34,7 @@ public:
 	OstreamCon();
 	~OstreamCon();
 	Ostream& write(const void* buf, int n);
-	operator void*();
+	explicit operator bool() const;
 private:
 	OstreamConImp* imp;
 	};

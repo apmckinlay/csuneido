@@ -25,6 +25,7 @@
 #include "ostreamstr.h"
 #include "cmdlineoptions.h"
 #include "errlog.h"
+#include <string.h>
 
 static OstreamStr os;
 
@@ -35,9 +36,10 @@ Ostream& osalert()
 
 void alert_()
 	{
+	auto msg = _strdup(os.str());
+	os.clear(); // before alert to allow for nesting
 	if (cmdlineoptions.unattended)
-		errlog("Alert:", os.str());
+		errlog("Alert:", msg);
 	else
-		alertout(os.str());
-	os.clear();
+		alertout(msg);
 	}

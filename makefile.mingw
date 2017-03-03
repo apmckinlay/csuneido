@@ -12,22 +12,23 @@ endif
 
 CC=gcc
 CXX=g++ -std=gnu++11
-FLAGS += -DCOMPILER=MinGW -Werror -Wall -Wno-sign-compare -Wfloat-equal  -Wno-write-strings \
-	-Wno-char-subscripts  -Wno-narrowing -Wno-unknown-pragmas -Wuninitialized \
+FLAGS += -DCOMPILER=MinGW -Werror -Wall -Wextra -Wno-sign-compare -Wfloat-equal \
+	-Wno-write-strings -Wno-char-subscripts  -Wno-narrowing -Wno-unknown-pragmas \
+	-Wuninitialized -Wno-unused-parameter \
 	-D_USE_32BIT_TIME_T -D_WIN32_WINNT=0x0600 \
-	-DJOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE=0x2000
+	-DJOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE=0x2000 
 
 .SUFFIXES:
 
 $(OUTPUT)/%.o : %.c
 	@echo $<
 	@$(CC) $(FLAGS) -c -o $@ $<
-	$(call make-depend,$<,$@,$(subst .o,.d,$@),gcc)
+	$(call make-depend,$<,$@,$(subst .o,.d,$@),$(CC))
 
 $(OUTPUT)/%.o : %.cpp
 	@echo $<
 	@$(CXX) $(FLAGS) -c -o $@ $<
-	$(call make-depend,$<,$@,$(subst .o,.d,$@),g++)
+	$(call make-depend,$<,$@,$(subst .o,.d,$@),$(CXX))
 
 SOURCES := $(subst sunapp.cpp ,,$(SOURCES)) # ostreamstd.cpp
 OBJECTS = $(patsubst %.c,$(OUTPUT)/%.o,$(subst .cpp,.c,$(SOURCES)))

@@ -32,24 +32,19 @@
 #include "load.h"
 #include "testing.h"
 #include "catstr.h"
-#include "gcstring.h"
 #include "alert.h"
 #include "dbms.h"
 #include "dbserver.h"
-#include "sufunction.h"
 #include "suobject.h"
 #include "call.h"
 #include "sunapp.h"
 #include "dbcompact.h"
 #include "recover.h"
 #include "globals.h"
-#include <ctype.h> // for isspace
 #include <stdio.h> // for tmpnam and remove
 #include "fatal.h"
-#include "errlog.h"
 #include "sustring.h"
 #include "testobalert.h"
-#include "prim.h"
 #include "unhandled.h"
 #include "msgloop.h"
 #include "port.h" // for fork_rebuild for start_check
@@ -201,7 +196,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		UnInstallService();
 		exit(EXIT_SUCCESS);
 	case VERSION :
-		alert("Built:  " << build_date << "\n"
+		alert("Built:  " << build << "\n"
 			""
 			"Copyright (C) 2000-2016 Suneido Software Corp.\n"
 			"All rights reserved worldwide.\n"
@@ -243,23 +238,49 @@ void ckinterrupt()
 
 struct St
 	{
-	St(const char* s_, const char* t_) : s(s_), t(t_)
+	St(const char* s_, const char* t_, ulong to) : s(s_), t(t_), timeout(to)
 		{ }
 	const char* s;
 	const char* t;
+	ulong timeout;
 	};
+
+typedef int(__stdcall *MSGBOXAPI)(IN HWND hWnd, IN LPCSTR lpText, IN LPCSTR lpCaption,
+	IN UINT uType, IN WORD wLanguageId, IN DWORD dwMilliseconds);
+
+int __stdcall fallback(IN HWND hWnd, IN LPCSTR lpText, IN LPCSTR lpCaption,
+	IN UINT uType, IN WORD wLanguageId, IN DWORD dwMilliseconds)
+	{
+	return MessageBox(hWnd, lpText, lpCaption, uType);
+	}
+
+MSGBOXAPI getMessageBoxTimeout()
+	{
+	auto hUser32 = LoadLibrary("user32.dll");
+	if (hUser32)
+		{
+		auto fn = (MSGBOXAPI)GetProcAddress(hUser32, "MessageBoxTimeoutA");
+		FreeLibrary(hUser32);
+		return fn;
+		}
+	// fallback to normal MessageBox, ignoring timeout
+	return fallback;
+	}
 
 DWORD WINAPI message_thread(void* p)
 	{
-	St* st = (St*) p;
-	MessageBox(0, st->t, st->s, MB_OK | MB_TASKMODAL | MB_TOPMOST | MB_SETFOREGROUND);
+	static auto MessageBoxTimeout = getMessageBoxTimeout();
+	St* st = static_cast<St*>(p);
+	MessageBoxTimeout(0, st->t, st->s,
+		MB_OK | MB_TASKMODAL | MB_TOPMOST | MB_SETFOREGROUND, 0, st->timeout);
 	return 0;
 	}
 
-void message(const char* s, const char* t)
+// timeout is used by fatal
+void message(const char* s, const char* t, ulong timeout_ms = INFINITE)
 	{
-	St st(s, t);
-	HANDLE thread = CreateThread(NULL, 0, message_thread, (void*) &st, 0, NULL);
+	St st(s, t, timeout_ms);
+	HANDLE thread = CreateThread(nullptr, 0, message_thread, (void*) &st, 0, nullptr);
 	WaitForSingleObject(thread, INFINITE);
 	}
 
@@ -267,7 +288,7 @@ void handler(const Except& x)
 	{
 	if (tls().proc->in_handler)
 		{
-		message("Error in Error Handler", x.str());
+		message("Error in Handler", x.str());
 		return ;
 		}
 	tls().proc->in_handler = true;
@@ -284,7 +305,7 @@ void handler(const Except& x)
 		}
 	catch (const Except& e)
 		{
-		message("Error in Debug", e.str());
+		message("Error in Handler", e.str());
 		}
 	tls().proc->in_handler = false;
 	}

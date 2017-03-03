@@ -35,12 +35,13 @@
 
 class ThreadClass : public SuValue
 	{
-	public:
-		Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
-		void out(Ostream& os)
-			{
-			os << "Thread";
-			}
+public:
+	Value call(Value self, Value member,
+		short nargs, short nargnames, ushort* argnames, int each) override;
+	void out(Ostream& os) override
+		{
+		os << "Thread";
+		}
 	};
 
 #pragma warning(disable:4722) // destructor never returns
@@ -51,7 +52,7 @@ struct ThreadCloser
 	~ThreadCloser()
 		{
 		delete tls().thedbms;
-		tls().thedbms = 0;
+		tls().thedbms = nullptr;
 
 		Fibers::end();
 		}
@@ -64,6 +65,19 @@ struct ThreadInfo
 	Value fn;
 	};
 
+HashMap<UINT, const Except*> threadErrors;
+
+extern void handler(const Except&);
+
+static void CALLBACK threadError(HWND hwnd, UINT message, UINT id, DWORD dwTime)
+	{
+	KillTimer(nullptr, id);
+	auto e = threadErrors[id];
+	threadErrors.erase(id);
+	handler(*e);
+	}
+
+// this is a wrapper that runs inside the fiber to catch exceptions
 static void _stdcall thread(void* arg)
 	{
 	Proc p; tls().proc = &p;
@@ -71,12 +85,14 @@ static void _stdcall thread(void* arg)
 	ThreadCloser closer;
 	try
 		{
-		ThreadInfo* ti = (ThreadInfo*)arg;
+		ThreadInfo* ti = static_cast<ThreadInfo*>(arg);
 		ti->fn.call(ti->fn, CALL, 0, 0, 0, -1);
 		}
 	catch (const Except& e)
 		{
-		alert("ERROR in Thread: " << e.str());
+		// use a timer to call handler from the main fiber
+		auto id = SetTimer(nullptr, 0, 0, threadError);
+		threadErrors[id] = new Except(e, "ERROR in Thread: " + e.gcstr());
 		}
 	}
 
@@ -85,6 +101,7 @@ Value ThreadClass::call(Value self, Value member, short nargs, short nargnames, 
 	static Value Count("Count");
 	static Value List("List");
 	static Value Name("Name");
+	static Value Sleep("Sleep");
 
 	argseach(nargs, nargnames, argnames, each);
 
@@ -116,6 +133,13 @@ Value ThreadClass::call(Value self, Value member, short nargs, short nargnames, 
 			except("usage: Thread.Name(name = false)");
 		//TODO implement Thread.Name()
 		return "";
+		}
+	else if (member == Sleep)
+		{
+		if (nargs != 1)
+			except("usage: Thread.Sleep(milliseconds)");
+		Fibers::sleep(ARG(0).integer());
+		return Value();
 		}
 	else
 		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);

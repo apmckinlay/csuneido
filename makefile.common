@@ -26,6 +26,7 @@ dbms.cpp \
 dbmslocal.cpp \
 dbmsunauth.cpp \
 dbserver.cpp \
+dbserver2.cpp \
 dbserverdata.cpp \
 dump.cpp \
 dupstr.cpp \
@@ -119,8 +120,10 @@ varint.cpp
 WINSOURCES=\
 alertwin.cpp \
 callback.cpp \
+connection.cpp \
 dbhttp.cpp \
 dbmsremote.cpp \
+dbmsremote2.cpp \
 debug.cpp \
 dll.cpp \
 fatal.cpp \
@@ -132,6 +135,7 @@ rebuildgui.cpp \
 richeditio.cpp \
 richeditole.c \
 runpiped.cpp \
+serializer.cpp \
 sockets.cpp \
 structure.cpp \
 sucomobject.cpp \

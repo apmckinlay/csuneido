@@ -81,7 +81,6 @@ DbCopy::DbCopy(char* dest) :
 	newdb(dest, DBCREATE), 
 	tran(thedb.transaction(READONLY))
 	{
-	Fibers::priority(-1);
 	thedb.mmf->set_max_chunks_mapped(MM_MAX_CHUNKS_MAPPED / 2);
 	newdb.mmf->set_max_chunks_mapped(MM_MAX_CHUNKS_MAPPED / 2);
 	}
@@ -89,7 +88,6 @@ DbCopy::DbCopy(char* dest) :
 DbCopy::~DbCopy()
 	{
 	verify(thedb.commit(tran));
-	Fibers::priority(0);
 	}
 
 void DbCopy::copy()

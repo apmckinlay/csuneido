@@ -34,7 +34,7 @@
 #include "keyeq.h"
 #include "hashsize.h"
 
-// base class for HashMap, used by HashMap and SuSymbol
+// used by HashMap and SuSymbol
 template <class Key, class Val, class KofV, class Hfn = HashFn<Key>, class Keq = KeyEq<Key> >
 class Hashtbl
 	{

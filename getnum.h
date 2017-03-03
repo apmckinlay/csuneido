@@ -1,6 +1,5 @@
 #ifndef GETNUM_H
 #define GETNUM_H
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -23,7 +22,9 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-const int ERR = -1;
+#include <climits>
+
+const int ERR = INT_MIN;
 int getnum(char type, char*& s);
 int ck_getnum(char type, char*& s);
 

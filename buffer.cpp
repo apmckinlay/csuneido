@@ -28,8 +28,7 @@
 #include "fatal.h"
 #include <string.h>
 
-Buffer::Buffer(int n) 
-	: capacity(n), buf(new(noptrs) char[capacity]), used(0)
+Buffer::Buffer(int n) : buf(new(noptrs) char[n]), capacity(n), used(0), pos(0)
 	{ }
 
 char* Buffer::ensure(int n)
@@ -70,7 +69,6 @@ Buffer& Buffer::add(const gcstring& s)
 	return *this;
 	}
 
-// WARNING: remove will invalidate previous gcstr
 void Buffer::remove(int n)
 	{
 	verify(n <= used);
@@ -85,6 +83,23 @@ gcstring Buffer::gcstr()
 
 char* Buffer::str()
 	{
+	verify(used < capacity);
 	buf[used] = 0;
 	return buf;
+	}
+
+gcstring Buffer::getStr(int n)
+	{
+	verify(pos + n <= used);
+	gcstring s(buf + pos, n);
+	pos += n;
+	return s;
+	}
+
+char* Buffer::getBuf(int n)
+	{
+	verify(pos + n <= used);
+	int i = pos;
+	pos += n;
+	return buf + i;
 	}

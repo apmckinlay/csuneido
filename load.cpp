@@ -141,7 +141,7 @@ static int load1(Istream& fin, gcstring tblspec)
 		{
 		if (theDB()->istable(table))
 			theDB()->remove_table(table);
-		verify(database_admin(tblspec.str()));
+		database_admin(tblspec.str());
 		}
 	return load_data(fin, table);
 	}

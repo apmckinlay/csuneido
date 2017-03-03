@@ -33,7 +33,7 @@ class IstreamFile : public Istream
 public:
 	IstreamFile(char* filename, char* mode = "r");
 	~IstreamFile();
-	operator void*();
+	explicit operator bool() const;
 	int tellg();
 	Istream& seekg(int pos);
 	int size();

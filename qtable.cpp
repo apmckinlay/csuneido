@@ -441,7 +441,7 @@ class test_qtable : public Tests
 	{
 	void adm(char* s)
 		{
-		except_if(! database_admin(s), "FAILED: " << s);
+		database_admin(s);
 		}
 	int tran;
 	void req(char* s)

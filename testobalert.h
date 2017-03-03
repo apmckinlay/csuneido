@@ -56,10 +56,10 @@ public:
 		OstreamStr os;
 		os << ntests << " test" << (ntests > 1 ? "s" : "") << ' ';
 		if (nfailed == 0)
-			alert(os.str() << "ALL SUCCESSFUL\n\nBuilt: " << build_date);
+			alert(os.str() << "ALL SUCCESSFUL\n\nBuilt: " << build);
 		else
 			alert(errs.str() << os.str() << nfailed << " FAILURE" << (nfailed == 1 ? "" : "S") 
-				<< "\n\nBuilt: " << build_date);
+				<< "\n\nBuilt: " << build);
 		}
 private:
 	int ntests;

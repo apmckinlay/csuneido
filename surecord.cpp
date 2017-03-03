@@ -262,38 +262,20 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 		if (nargs == 0)
 			update();
 		else if (nargs == 1)
-			{
-			if (SuTransaction* st = dynamic_cast<SuTransaction*>(ARG(0).ptr()))
-				{
-				if (! recadr)
-					except("can only Update records read from the database");
-				if (! dbms()->record_ok(st->tran, recadr))
-					except("can't update - record had been modified");
-				trans = st;
-				update();
-				}
-			else
-				update(ARG(0).object());
-			}
-		else if (nargs != 0)
-			except("usage: record.Update() or record.Update(object) or record.Update(transaction)");
+			update(ARG(0).object());
+		else
+			except("usage: record.Update() or record.Update(object))");
 		return SuTrue;
 		}
 	else if (member == Delete)
 		{
-		SuTransaction* st;
-		if (nargs == 1 && (st = dynamic_cast<SuTransaction*>(ARG(0).ptr())))
+		if (nargs == 0)
 			{
-			if (! recadr)
-				except("can only Delete records read from the database");
-			if (! dbms()->record_ok(st->tran, recadr))
-				except("can't delete - record had been modified");
-			trans = st;
+			erase();
+			return SuTrue;
 			}
-		else if (nargs != 0)
+		else
 			return SuObject::call(self, member, nargs, nargnames, argnames, each);
-		erase();
-		return SuTrue;
 		}
 	else if (member == Observer)
 		{

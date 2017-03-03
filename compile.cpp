@@ -28,6 +28,7 @@
 #include <string.h>
 #include "std.h"
 #include <vector>
+#include <memory>
 #include "value.h"
 #include "sunumber.h"
 #include "scanner.h"
@@ -59,14 +60,14 @@ using namespace std;
 template <class T> T* dup(const vector<T>& x)
 	{
 	T* y = new T[x.size()];
-	uninitialized_copy(x.begin(), x.end(), y);
+	std::uninitialized_copy(x.begin(), x.end(), y);
 	return y;
 	}
 
 template <class T> T* dup(const vector<T>& x, NoPtrs)
 	{
 	T* y = new(noptrs) T[x.size()];
-	uninitialized_copy(x.begin(), x.end(), y);
+	std::uninitialized_copy(x.begin(), x.end(), y);
 	return y;
 	}
 
@@ -194,7 +195,7 @@ private:
 	void record();
 	ushort literal(Value value, bool reuse = false);
 	short emit_literal();
-	short local(bool init = false);
+	ushort local(bool init = false);
 	PrevLit poplits();
 	short emit(short, short = 0, short = 0, short = 0, vector<ushort>* = 0);
 	void patch(short);
@@ -1521,7 +1522,7 @@ void FunctionCompiler::unop()
 		match();
 		unop();
 		if (t != I_ADD)	// should have I_UPLUS
-			emit(t == I_SUB ? I_UMINUS : t);
+			emit(t == I_SUB ? short(I_UMINUS) : t);
 		}
 	else if (scanner.keyword == K_NEW)
 		{
@@ -2029,7 +2030,7 @@ ushort FunctionCompiler::literal(Value x, bool reuse)
 	return literals.size() - 1;
 	}
 
-short FunctionCompiler::local(bool init)
+ushort FunctionCompiler::local(bool init)
 	{
 	ushort num = symnum(scanner.value);
 

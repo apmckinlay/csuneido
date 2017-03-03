@@ -33,7 +33,7 @@ class IstreamStr : public Istream
 public:
 	IstreamStr(char* s);
 	IstreamStr(char* buf, int n);
-	operator void*();
+	explicit operator bool() const;
 	int tellg();
 	Istream& seekg(int pos);
 protected:

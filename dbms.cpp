@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -21,6 +21,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "dbms.h"
+#include "gcstring.h"
 #include "fibers.h"
 
 static char* server_ip = 0; // local
@@ -35,15 +36,24 @@ char* get_dbms_server_ip()
 	return server_ip;
 	}
 
+bool isclient()
+	{
+	return server_ip != nullptr;
+	}
+
 Dbms* dbms()
 	{
-	if (server_ip)
-		{ // client
+	if (isclient())
+		{
 		if (! tls().thedbms)
 			{
-			tls().thedbms = (Fibers::current() == Fibers::main() ? 
-				dbms_remote(server_ip) : dbms_remote_asynch(server_ip));
-			tls().thedbms->auth(Fibers::main_dbms()->token());
+			if (Fibers::inMain())
+				tls().thedbms = dbms_remote(server_ip);
+			else
+				{
+				tls().thedbms = dbms_remote_async(server_ip);
+				tls().thedbms->auth(Fibers::main_dbms()->token());
+				}
 			}
 		return tls().thedbms;
 		}
@@ -53,13 +63,6 @@ Dbms* dbms()
 		return local;
 		}
 	}
-
-Dbms::~Dbms()
-	{
-	}
-
-bool isclient()
-	{ return server_ip != 0; }
 
 // tests ============================================================
 

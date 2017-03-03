@@ -25,5 +25,5 @@
 
 void alertout(char* s)
 	{
-	MessageBox(0, s, "Suneido", 0);
+	MessageBox(0, s, "Suneido", MB_TASKMODAL);
 	}

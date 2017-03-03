@@ -20,10 +20,14 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+// NOTE: only for positive numbers (doesn't zigzag encode)
+
 #include "varint.h" 
+#include "except.h"
 
 void push_varint(vector<uchar>& code, int n)
 	{
+	verify(n >= 0);
 	while (n > 0x7f)
 		{
 		code.push_back((n & 0x7f) | 0x80);

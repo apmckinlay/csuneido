@@ -240,7 +240,6 @@ public:
 	void update_record(int tran, const gcstring& table, const gcstring& index, const Record& key, Record newrec);
 	Mmoffset update_record(int tran, Tbl* tbl, const Record& oldrec, Record newrec, bool block = true);
 	void update_any_record(int tran, const gcstring& table, const gcstring& index, const Record& key, Record newrec);
-	bool record_ok(int oldtran, Mmoffset recadr);
 
 	void remove_table(const gcstring& table);
 	void remove_any_table(const gcstring& table);

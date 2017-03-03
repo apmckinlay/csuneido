@@ -23,15 +23,10 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-template <typename T> inline T min(T x, T y)
-	{ return x < y ? x : y; }
-template <typename T> inline T max(T x, T y)
-	{ return x > y ? x : y; }
-#else
+//TODO get rid of this, use algorithm directly
+
 #include <algorithm>
 using std::min;
 using std::max;
-#endif
 
 #endif

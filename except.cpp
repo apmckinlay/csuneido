@@ -31,7 +31,7 @@
 
 SuObject* copyCallStack();
 
-Except::Except(gcstring x) : SuString(x.trim()), 
+Except::Except(gcstring x) : SuString(x.trim()),
 	fp_fn_(tls().proc ? tls().proc->fp->fn : 0), block_return(x == "block return")
 	{
 	if (x.has_prefix("block") &&
@@ -171,4 +171,12 @@ Value Except::call(Value self, Value member, short nargs, short nargnames, ushor
 		}
 	else
 		return SuString::call(self, member, nargs, nargnames, argnames, each);
+	}
+
+char* Except::callstack() const
+	{
+	OstreamStr os;
+	for (int i = 0; i < calls_->size(); ++i)
+		os << endl << calls_->get(i).getdata("fn");
+	return os.str();
 	}

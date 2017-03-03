@@ -35,19 +35,21 @@
 #include "builtinargs.h"
 #include "exceptimp.h"
 #include "readline.h"
+#include "prim.h"
+
 
 // SuSocketClient ===================================================
 
 class SuSocketClient : public SuFinalize
 	{
 public:
-	SuSocketClient(SocketConnect* s);
-	void out(Ostream& os);
+	explicit SuSocketClient(SocketConnect* s);
+	void out(Ostream& os) override;
 	Value call(Value self, Value member, short nargs, short nargnames,
-		ushort* argnames, int each);
+		ushort* argnames, int each) override;
 	void close();
 private:
-	virtual void finalize();
+	void finalize() override;
 	void ckopen(char* action);
 
 	SocketConnect* sc;
@@ -82,7 +84,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		SuString* s = new SuString(n);
 		int nr = sc->read(s->buf(), n);
 		if (nr <= 0)
-			except("socket client: lost connection or timeout in Read(" << n << ")");
+			except("socket Read lost connection or timeout");
 		return s->substr(0, nr);
 		}
 	else if (member == Readline)
@@ -94,7 +96,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		char buf[MAX_LINE + 1] = { 0 };
 		sc->readline(buf, sizeof buf);
 		if (! *buf)
-			except("socket client: lost connection or timeout in Readline");
+			except("socket Readline lost connection or timeout");
 		// assumes nul termination (so line may not contain nuls)
 		for (int n = strlen(buf) - 1; n >= 0 && (buf[n] == '\r' || buf[n] == '\n'); --n)
 			buf[n] = 0;
@@ -147,10 +149,8 @@ void SuSocketClient::finalize()
 	{
 	if (sc)
 		sc->close();
-	sc = 0;
+	sc = nullptr;
 	}
-
-#include "prim.h"
 
 Value suSocketClient()
 	{
@@ -160,9 +160,9 @@ Value suSocketClient()
 	int timeout = ARG(2).integer();
 	int timeoutConnect = (int) (ARG(3).number()->to_double() * 1000); // milliseconds
 	SuSocketClient* sc = new SuSocketClient(
-		Fibers::current() == Fibers::main()
-			? socketClientSynch(ipaddr, port, timeout, timeoutConnect)
-			: socketClientPoll(ipaddr, port, timeout, timeoutConnect));
+		Fibers::inMain()
+			? socketClientSync(ipaddr, port, timeout, timeoutConnect)
+			: socketClientAsync(ipaddr, port, timeout, timeoutConnect));
 	Value block = ARG(4);
 	if (block == SuFalse)
 		return sc;
@@ -179,10 +179,10 @@ PRIM(suSocketClient, "SocketClient(ipaddress, port, timeout=60, timeoutConnect=0
 class SuSocketServer : public RootClass
 	{
 public:
-	void out(Ostream& os);
+	void out(Ostream& os) override;
 	Value call(Value self, Value member, short nargs, short nargnames,
-		ushort* argnames, int each);
-	const char* type() const
+		ushort* argnames, int each) override;
+	const char* type() const override
 		{ return "BuiltinClass"; }
 	};
 
@@ -196,15 +196,16 @@ static void _stdcall suserver(void* sc);
 class SuServerInstance : public SuObject
 	{
 public:
-	SuServerInstance(SocketConnect* c) : sc(c)
+	explicit SuServerInstance(SocketConnect* c) : sc(c)
 		{ } // old way
-	SuServerInstance() : sc(0)
+	SuServerInstance() : sc(nullptr)
 		{ } // master
 	SuServerInstance(SuServerInstance* master, SocketConnect* s) : SuObject(*master), sc(s)
 		{ } // dup
-	void out(Ostream& os);
+	void out(Ostream& os) override;
 	Value call(Value self, Value member, short nargs, short nargnames,
-		ushort* argnames, int each);
+		ushort* argnames, int each) override;
+private:
 	SocketConnect* sc;
 	};
 
@@ -220,14 +221,14 @@ Value SuSocketServer::call(Value self, Value member, short nargs,
 		static int NAME = ::symnum("name");
 		static int PORT = ::symnum("port");
 		static int EXIT = ::symnum("exit");
-	
+
 		SuObject* selfob = self.object();
 		BuiltinArgs args(nargs, nargnames, argnames, each);
 		args.usage("SocketServer(name = .Name, port = .Port, exit = false, ...)");
 		Value name = args.getValue("name", Value());
 		Value port = args.getValue("port", Value());
 		Value exit = args.getValue("exit", Value());
-		
+
 		// convert arguments, make name, port, and exit named
 		int na = 0;
 		Value* a = (Value*) alloca(sizeof (Value) * nargs);
@@ -254,11 +255,11 @@ Value SuSocketServer::call(Value self, Value member, short nargs,
 			{ PUSH(exit); an[nan++] = EXIT; ++na; }
 		else
 			exit = SuFalse;
-		
+
 		// construct a "master" instance, which will be duplicated for each connection
 		SuServerInstance* master = new SuServerInstance();
 		master->myclass = self;
-		master->call(master, NEW, na, nan, an, -1); 
+		master->call(master, NEW, na, nan, an, -1);
 
 		socketServer(name.str(), port.integer(), suserver, master, exit == SuTrue);
 		}
@@ -306,7 +307,7 @@ static void _stdcall suserver(void* arg)
 			sc->close();
 
 		delete tls().thedbms;
-		tls().thedbms = 0;
+		tls().thedbms = nullptr;
 
 		Fibers::end();
 		}
@@ -357,7 +358,7 @@ Value SuServerInstance::call(Value self, Value member, short nargs,
 		char buf[2000];
 		if (! sc->readline(buf, sizeof buf))
 			except("socket server: lost connection");
-		for (int n = strlen(buf) - 1; (n >= 0 && buf[n] == '\r') || buf[n] == '\n'; --n)
+		for (int n = strlen(buf) - 1; n >= 0 && (buf[n] == '\r' || buf[n] == '\n'); --n)
 			buf[n] = 0;
 		return new SuString(buf);
 		}
@@ -387,11 +388,3 @@ Value SuServerInstance::call(Value self, Value member, short nargs,
 	else
 		return SuObject::call(self, member, nargs, nargnames, argnames, each);
 	}
-
-#include "prim.h"
-
-Value su_SocketConnectionCount()
-	{
-	return socketConnectionCount();
-	}
-PRIM(su_SocketConnectionCount, "SocketConnectionCount()");

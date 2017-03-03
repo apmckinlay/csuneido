@@ -38,8 +38,8 @@ public:
 		DWORD nw;
 		WriteFile(con, s, n, &nw, NULL);
 		}
-	operator void*()
-		{ return (void*) con; }
+	explicit operator bool() const
+		{ return con; }
 private:
 	HANDLE con;
 	};
@@ -57,9 +57,9 @@ Ostream& OstreamCon::write(const void* s, int n)
 	return *this;
 	}
 
-OstreamCon::operator void*()
+OstreamCon::operator bool() const
 	{
-	return *imp;
+	return bool(*imp);
 	}
 
 Ostream& con()

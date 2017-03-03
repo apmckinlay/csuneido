@@ -41,6 +41,7 @@ public:
 		{ return fp_fn_; }
 	bool isBlockReturn() const
 		{ return block_return; }
+	char* callstack() const;
 private:
 	SuFunction* fp_fn_;
 	SuObject* calls_;

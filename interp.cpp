@@ -46,7 +46,7 @@ short Frame::fetch_literal()
 	}
 
 Value Frame::fetch_member()
-	{ 
+	{
 	int n = fetch_literal();
 	if (n < 0 || n >= fn->nliterals)
 		except("bad member number " << "0x" << hex << n);
@@ -170,7 +170,7 @@ Value cat(Value x, Value y)
 	}
 
 Frame::Frame(BuiltinFunc* p, Value s) :
-	prim(p), fn(0), self(s), local(0), rule(tls().proc->fp[-1].rule), catcher(0), 
+	prim(p), fn(0), self(s), local(0), rule(tls().proc->fp[-1].rule), catcher(0),
 	blockframe(0)
 	{ }
 
@@ -219,8 +219,7 @@ Value Frame::run()
 				}
 			extern void ckinterrupt();
 			ckinterrupt();
-			if (! tls().proc->synchronized)
-				Fibers::yieldif();
+			Fibers::yieldif();
 			break;
 		case I_POP :
 			POP();
@@ -853,16 +852,10 @@ Value dynamic(ushort name)
 	return Value();
 	}
 
-static void clear_proc(Proc* proc)
+void clear_proc(Proc* proc)
 	{
 	if (proc)
 		proc->clear_unused();
-	}
-
-// clear_unused() is called at the start of garbage collection
-void clear_unused()
-	{
-	Fibers::foreach_proc(clear_proc);
 	}
 
 void Proc::clear_unused()

@@ -22,7 +22,6 @@
 
 #include "sumethod.h"
 #include "interp.h"
-#include "symbols.h"
 #include "sufunction.h"
 
 void SuMethod::out(Ostream& os)
@@ -45,14 +44,15 @@ void SuMethod::out(Ostream& os)
 bool SuMethod::eq(const SuValue& y) const
 	{
 	if (const SuMethod* m = dynamic_cast<const SuMethod*>(&y))
-		return (void*) object == (void*) m->object && method == m->method; 
+		return object.sameAs(m->object) && method == m->method; 
 	else
 		return false;
 	}
 
 size_t SuMethod::hashfn()
 	{
-	return (size_t) (void*) object + method.hash();
+	// can't use object.hash() because it will change if object changes
+	return size_t(object.ptr()) ^ method.hash();
 	}
 
 Value SuMethod::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)

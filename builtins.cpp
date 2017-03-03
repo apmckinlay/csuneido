@@ -186,9 +186,9 @@ PRIM(display, "Display(value)");
 struct Synch
 	{
 	Synch()
-		{ ++tls().proc->synchronized; }
+		{ ++tls().synchronized; }
 	~Synch()
-		{ --tls().proc->synchronized; }
+		{ --tls().synchronized; }
 	};
 
 Value synchronized()
@@ -409,7 +409,7 @@ PRIM(su_exepath, "ExePath()");
 
 Value su_built()
 	{
-	return new SuString(build_date);
+	return new SuString(build);
 	}
 PRIM(su_built, "Built()");
 

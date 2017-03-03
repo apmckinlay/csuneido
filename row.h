@@ -4,18 +4,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -38,7 +38,7 @@ class Header
 public:
 	Header()
 		{ }
-	Header(const Lisp<Fields>& h, const Lisp<gcstring>& c) : flds(h), cols(c), timestamp(0)
+	Header(const Lisp<Fields>& h, const Lisp<gcstring>& c) : flds(h), cols(c)
 		{ }
 	int size() const
 		{ return flds.size(); }
@@ -56,7 +56,7 @@ public:
 	Fields cols;
 private:
 	mutable Lisp<int> fldsyms;
-	mutable int timestamp;
+	mutable int timestamp = 0;
 	};
 
 inline bool nil(const Header& hdr)
@@ -73,11 +73,11 @@ class SuRecord;
 class Row
 	{
 public:
-	Row() : recadr(0), tran(-1), surec(0)
+	Row()
 		{ }
-	explicit Row(Record d, Mmoffset ra = 0) : data(d), recadr(ra), tran(-1), surec(0)
+	explicit Row(Record d, Mmoffset ra = 0) : data(d), recadr(ra)
 		{ verify(ra >= 0); }
-	explicit Row(const Records& d) : data(d), recadr(0), tran(-1), surec(0)
+	explicit Row(const Records& d) : data(d)
 		{ }
 	gcstring getraw(const Header& hdr, const gcstring& colname) const;
 	gcstring getrawval(const Header& hdr, const gcstring& col) const;
@@ -89,13 +89,14 @@ public:
 	friend Row operator+(const Row& r1, const Row& r2);
 	friend Ostream& operator<<(Ostream& os, const Row& row);
 	void to_heap();
+	Record to_record(const Header& hdr) const;
 
 	class iterator // used by select
 		{
 	public:
-		iterator() : fld(0) // end
+		iterator() // end
 			{ }
-		iterator(const Lisp<Fields>& f, const Records& d) : flds(f), data(d), fld(0), n(0)
+		iterator(const Lisp<Fields>& f, const Records& d) : flds(f), data(d)
 			{
 			if (nil(flds))
 				data = Lisp<Record>();
@@ -130,8 +131,8 @@ public:
 	private:
 		Lisp<Fields> flds;
 		Lisp<Record> data;
-		int fld;
-		int n; // number of fields in current data
+		int fld = 0;
+		int n = 0; // number of fields in current data
 		};
 	iterator begin(const Header& hdr) const
 		{ return iterator(hdr.flds, data); }
@@ -143,7 +144,7 @@ public:
 		{ tran = t; }
 
 	Records data;
-	Mmoffset recadr; // if Row contains single update-able record, this is its address
+	Mmoffset recadr = 0; // if Row contains single update-able record, this is its address
 	static Row Eof;
 private:
 	struct Which
@@ -156,8 +157,8 @@ private:
 	Which find(const Header& hdr, const gcstring& col) const;
 	gcstring getraw(const Which& w) const;
 
-	int tran;
-	mutable SuRecord* surec;
+	int tran = -1;
+	mutable SuRecord* surec = nullptr;
 	};
 
 inline Row operator+(const Row& r1, const Row& r2)

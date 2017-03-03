@@ -61,7 +61,8 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 		{
 		if (nargs != 1)
 			except("usage: Database(request)");
-		return dbms()->admin(ARG(0).str()) ? SuTrue : SuFalse;
+		dbms()->admin(ARG(0).str());
+		return SuTrue;
 		}
 	else if (member == Transactions)
 		{
@@ -139,7 +140,7 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 		int result = dbms()->load(what);
 		if (result < 0)
 			except("Database.Load failed: " << result);
-		return Value(result);
+		return result;
 		}
 	else if (member == Token)
 		{
@@ -208,7 +209,7 @@ static Value queryone(char* which, Dir dir, bool one, SuTransaction* tran, Built
 	TRACE(QUERY, traceTran(tran) <<
 		(one ? "ONE" : dir == NEXT ? "FIRST" : "LAST") << ' ' << query);
 	Header hdr;
-	Row row = dbms()->get(dir, query, one, hdr, tran ? tran->tran : 0);
+	Row row = dbms()->get(dir, query, one, hdr, tran ? tran->tran : NO_TRAN);
 	return row == Row::Eof ? SuFalse : new SuRecord(row, hdr, tran);
 	}
 
@@ -323,7 +324,6 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 	static Value QueryFirst("QueryFirst");
 	static Value QueryLast("QueryLast");
 	static Value Query1("Query1");
-	static Value Refresh("Refresh");
 	static Value Conflict("Conflict");
 	static Value ReadCount("ReadCount");
 	static Value WriteCount("WriteCount");
@@ -379,12 +379,6 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 			except("usage: transaction.Rollback()");
 		rollback();
 		return Value();
-		}
-	else if (member == Refresh)
-		{
-		if (nargs != 0)
-			except("usage: transaction.Refresh()");
-		return dbms()->refresh(tran) ? SuTrue : SuFalse;
 		}
 	else if (member == Conflict)
 		{
@@ -448,7 +442,7 @@ void SuTransaction::rollback()
 void SuTransaction::checkNotEnded(char* action)
 	{
 	if (done)
-		except("can't " << action << " ended Transaction" << 
+		except("can't " << action << " ended Transaction" <<
 			(*conflict ? " (" + gcstring(conflict) + ")" : ""));
 	}
 
@@ -490,7 +484,7 @@ struct SetTran
 	~SetTran()
 		{
 		cursor->t = 0;
-		cursor->q->set_transaction(-1);
+		cursor->q->set_transaction(NO_TRAN);
 		}
 	SuCursor* cursor;
 	};
