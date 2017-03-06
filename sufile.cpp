@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -141,22 +141,23 @@ void SuFile::init(char* fn, char* m)
 Value SuFile::Read(BuiltinArgs& args)
 	{
 	args.usage("usage: file.Read(nbytes = all)");
-	long n = args.getint("nbytes", INT_MAX);
+	int64 n = args.getint("nbytes", INT_MAX);
 	args.end();
 
 	ckopen("Read");
 	if (feof(f))
 		return SuFalse;
-	long pos = ftell(f);
-	fseek(f, 0, SEEK_END);
-	long end = ftell(f);
-	fseek(f, pos, SEEK_SET);
+	int64 pos = FTELL64(f);
+	FSEEK64(f, 0, SEEK_END);
+	int64 end = FTELL64(f);
+	FSEEK64(f, pos, SEEK_SET);
 	n = min(n, end - pos);
 	if (n <= 0)
 		return SuFalse;
 	SuString* s = new SuString(n);
-	if (n != fread(s->buf(), 1, n, f))
-		except("File: Read: error reading from: " << filename);
+	auto nr = fread(s->buf(), 1, n, f);
+	if (n != nr)
+		except("File: Read: error reading from: " << filename <<
 	return s;
 	}
 
