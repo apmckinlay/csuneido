@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -48,7 +48,7 @@
 static int ord = ::order("Date");
 
 void* SuDate::operator new(size_t n)
-	{ 
+	{
 	return ::operator new (n, noptrs);
 	}
 
@@ -87,8 +87,8 @@ void SuDate::out(Ostream& out)
 	DateTime dt(date, time);
 	out.fill('0');
 	out << '#'
-		<< setw(4) << dt.year 
-		<< setw(2) << dt.month 
+		<< setw(4) << dt.year
+		<< setw(2) << dt.month
 		<< setw(2) << dt.day;
 	if (dt.hour || dt.minute || dt.second || dt.millisecond)
 		{
@@ -111,7 +111,7 @@ Value SuDate::call(Value self, Value member, short nargs, short nargnames, ushor
 	{
 	typedef Value (SuDate::*pmfn)(short, short, ushort*, int);
 	static HashMap<Value,pmfn> methods;
-	
+
 	static bool first = true;
 	if (first)
 		{
@@ -267,11 +267,22 @@ static bool ampm_ahead(char* s)
 	return (tolower(s[0]) == 'a' || tolower(s[0]) == 'p') && tolower(s[1]) == 'm';
 	}
 
+static int char2digit(char c)
+	{
+	if (!isdigit(c))
+		return -1;
+	return c - '0';
+	}
+
 static int get2digit(const char* s)
-	{ return (s[0] - '0') * 10 + (s[1] - '0'); }
+	{
+	return char2digit(s[0]) * 10 + char2digit(s[1]);
+	}
 
 static int get3digit(const char* s)
-	{ return (s[0] - '0') * 100 + get2digit(s + 1); }
+	{
+	return char2digit(s[0]) * 100 + get2digit(s + 1);
+	}
 
 static int get4digit(const char* s)
 	{ return 100 * get2digit(s) + get2digit(s + 2); }
@@ -452,13 +463,13 @@ Value SuDate::parse(char* s, char* order)
 		for (t = 0; *p && t < ntokens; ++p, ++t)
 			{
 			int part;
-			if (*p == 'y') 
+			if (*p == 'y')
 				part = YEAR;
-			else if (*p == 'm') 
+			else if (*p == 'm')
 				part = MONTH;
-			else if (*p == 'd') 
+			else if (*p == 'd')
 				part = DAY;
-			else 
+			else
 				unreachable();
 			if ((type[t] != UNK && type[t] != part) ||
 				tokens[t] < minval[part] || tokens[t] > maxval[part])
@@ -704,7 +715,7 @@ Value SuDate::MinusSeconds(short nargs, short nargnames, ushort* argnames, int e
 	{
 	if (nargs != 1 || nargnames != 0)
 		except("usage: date.MinusSeconds(date)");
-	
+
 	long long ms = minus_ms(this, force<SuDate*>(ARG(0)));
 
 	char buf[40];
@@ -810,16 +821,16 @@ Value SuDate::WeekDay(short nargs, short nargnames, ushort* argnames, int each)
 		}
 	if (sn != 8 || (tn != 0 && tn != 4 && tn != 6 && tn != 9))
 		return Value();
-	
-	int year = get4digit(s); 
+
+	int year = get4digit(s);
 	int month = get2digit(s + 4);
 	int day = get2digit(s + 6);
-	
+
 	int hour = (tn >= 2 ? get2digit(t) : 0);
 	int minute = (tn >= 4 ? get2digit(t + 2) : 0);
 	int second = (tn >= 6 ? get2digit(t + 4) : 0);
 	int millisecond = (tn >= 9 ? get3digit(t + 6) : 0);
-	
+
 	DateTime dt(year, month, day, hour, minute, second, millisecond);
 	if (! dt.valid())
 		return Value();
@@ -874,7 +885,7 @@ SuDate& SuDate::increment()
 	return ts;
 	}
 
-Value SuDateClass::call(Value self, Value member, 
+Value SuDateClass::call(Value self, Value member,
 	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Begin("Begin");
@@ -902,10 +913,10 @@ Value SuDateClass::call(Value self, Value member,
 	}
 
 void SuDateClass::out(Ostream& os)
-	{ 
+	{
 	os << "Date /* builtin */";
 	}
-	
+
 #include "testing.h"
 
 class test_sudate : public Tests
@@ -944,7 +955,7 @@ class test_sudate : public Tests
 		OstreamStr os;
 		os << x;
 		asserteq(gcstring(s), gcstring(os.str()));
-		
+
 		verify(! SuDate::literal("#200901011"));
 		verify(! SuDate::literal("#20090101.1"));
 		}
