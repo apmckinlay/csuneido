@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2002 Suneido Software Corp. 
+ *
+ * Copyright (c) 2002 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -156,27 +156,27 @@ char* CmdLineOptions::parse(char* str)
 	}
 
 // Note: must put options that are a prefix of other options first e.g. -check before -c
-static struct { char* str; int num; } options[] = { 
+static struct { char* str; int num; } options[] = {
 	{ "-dbdump", DBDUMP },
 	{ "-dump", DUMP }, { "-d", DUMP },
 	{ "-locallibrary", LOCAL_LIBRARY }, { "-ll", LOCAL_LIBRARY },
 	{ "-load", LOAD }, { "-l", LOAD },
-	{ "-service", SERVICE }, 
+	{ "-service", SERVICE },
 	{ "-server", SERVER }, { "-s", SERVER },
-	{ "-compact", COMPACT }, 
+	{ "-compact", COMPACT },
 	{ "-compactexit", COMPACT_EXIT }, { "-ce", COMPACT_EXIT },
-	{ "-check", CHECK }, 
+	{ "-check", CHECK },
 	{ "-checkstart", CHECK_START }, { "-cs", CHECK_START },
 	{ "-client", CLIENT }, { "-c", CLIENT },
 	{ "-eh", NO_EXCEPTION_HANDLING }, { "-exceptionhandling", NO_EXCEPTION_HANDLING },
 	{ "-gc", NO_GARBAGE_COLLECTION }, { "-garbagecollection", NO_GARBAGE_COLLECTION },
 	{ "-rebuild", REBUILD }, { "-r", REBUILD },
 	{ "-timeout", TIMEOUT }, { "-to", TIMEOUT },
-	{ "-tests", TESTS }, 
+	{ "-tests", TESTS },
 	{ "-test", TEST },
 	{ "-t", TESTS },
 	{ "-port", PORT }, { "-p", PORT },
-	{ "-nosplash", NOSPLASH }, { "-n", NOSPLASH }, 
+	{ "-nosplash", NOSPLASH }, { "-n", NOSPLASH },
 	{ "-help", HELP }, { "-?", HELP }, { "-h", HELP },
 	{ "-version", VERSION }, { "-v", VERSION },
 	{ "-is", INSTALL_SERVICE }, { "-installservice", INSTALL_SERVICE },

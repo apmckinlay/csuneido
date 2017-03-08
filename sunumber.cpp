@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -61,10 +61,10 @@ SuNumber::SuNumber(char s, schar e, const short* d) : sign(s), exp(e)
 	}
 
 void* SuNumber::operator new(size_t n)
-	{ 
+	{
 	return ::operator new (n, noptrs);
 	}
-	
+
 void SuNumber::out(Ostream& os)
 	{ os << *this; }
 
@@ -88,7 +88,7 @@ bool SuNumber::int_if_num(int* pn) const
 	}
 
 size_t SuNumber::hashfn()
-	{ 
+	{
 	// have to ensure that hashfn() == integer() for SHRT_MIN -> SHRT_MAX
 	if (is_zero())
 		return 0;
@@ -197,7 +197,7 @@ SuNumber::SuNumber(long sx)
 	}
 
 const uint64 ONE12ZEROS = 1000000000000LL;
-	
+
 SuNumber* SuNumber::from_int64(int64 sx)
 	{
 	SuNumber* n = new SuNumber(0L);
@@ -287,8 +287,8 @@ int64 SuNumber::bigint() const
 	}
 
 SuNumber* neg(Value x)
-	{ 
-	return neg(force<SuNumber*>(x)); 
+	{
+	return neg(force<SuNumber*>(x));
 	}
 
 // add --------------------------------------------------------------
@@ -678,7 +678,7 @@ void SuNumber::product(const SuNumber& x, short y)
 	if (tmp > 9999)
 		{
 		shift_right();
-		digits[0] += tmp / 10000; 
+		digits[0] += tmp / 10000;
 		// += instead of = because shift_right rounding may carry into it
 		}
 	check();
@@ -770,7 +770,7 @@ void muldiv10(short tmp[], int digits)
 	if (digits > 0)
 		{ // multiply
 		for (int d = 0; d < digits; ++d)
-			mul10(tmp); 
+			mul10(tmp);
 		}
 	else if (digits < 0)
 		{
@@ -1161,8 +1161,8 @@ char* SuNumber::mask(char* buf, char* mask) const
 		case '.' :
 		default :
 			*--dst = c;
-			break ;			
-			}	
+			break ;
+			}
 		}
 	verify(dst >= buf);
 
@@ -1563,7 +1563,7 @@ Value SuNumber::call(Value self, Value member, short nargs, short nargnames, ush
 class test_number : public Tests
 	{
 	TEST(1, int_convert)
-		{	
+		{
 		verify(0 == SuNumber(0L).integer());
 		verify(1 == SuNumber(1).integer());
 		verify(-1 == SuNumber(-1).integer());
@@ -1737,7 +1737,7 @@ class test_number2 : public Tests
 		}
 	TEST(1, int64)
 		{
-		int64 x = 1; 
+		int64 x = 1;
 		for (int i = 0; i < 16; ++i, x = x * 10 + 1)
 			{
 			SuNumber* n = SuNumber::from_int64(x);

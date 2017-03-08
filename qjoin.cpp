@@ -171,7 +171,7 @@ double Join::opt(Query* src1, Query* src2, Type type,
 	if (cost1 >= IMPOSSIBLE)
 		return IMPOSSIBLE;
 	double nrecs1 = src1->nrecords();
-	TRACE(JOINOPT, "nrecs1 " << nrecs1 << " cost1 = " << cost1 << " + " << 
+	TRACE(JOINOPT, "nrecs1 " << nrecs1 << " cost1 = " << cost1 << " + " <<
 		(nrecs1 * SELECT_COST) << " = " << (cost1 + nrecs1 * SELECT_COST));
 
 	// for each of source 1, select on source2
@@ -232,7 +232,7 @@ double Join::opt(Query* src1, Query* src2, Type type,
 
 	if (nrecs <= 0)
 		cost2 = 0;
-	TRACE(JOINOPT, "cost = " << cost1 << " + " << cost2 << " = " << 
+	TRACE(JOINOPT, "cost = " << cost1 << " + " << cost2 << " = " <<
 		(cost1 + cost2));
 
 	return cost1 + cost2;

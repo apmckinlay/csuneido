@@ -4,18 +4,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -57,7 +57,7 @@ private:
 	struct LeafNode
 		{
 		LeafNode()
-			{ 
+			{
 			set_next(NIL);
 			set_prev(NIL);
 			}
@@ -88,27 +88,27 @@ private:
 				percent = 25;
 			Mmoffset leftoff = dest->alloc(NODESIZE);
 			LeafNode* left = new(dest->adr(leftoff)) LeafNode;
-			
+
 			//~ int n = slots.size();
 			//~ int nright = (n * percent) / 100;
 			//~ // move first half of right keys to left
 			//~ left->slots.append(slots.begin(), slots.end() - nright);
 			//~ slots.erase(slots.begin(), slots.end() - nright);
-			
+
 			// bool new_one_added = false;
-			int rem = (left->slots.remaining() * percent) / 100;  
+			int rem = (left->slots.remaining() * percent) / 100;
 			while (left->slots.remaining() > rem)
 				{
 				left->slots.push_back(slots.front());
 				slots.erase(slots.begin());
 				}
-			
+
 			// maintain linked list of leaves
 			left->set_prev(prev());
 			left->set_next(off);
-			set_prev(leftoff); 
+			set_prev(leftoff);
 			if (left->prev() != NIL)
-				((LeafNode*) dest->adr(left->prev()))->set_next(leftoff); 
+				((LeafNode*) dest->adr(left->prev()))->set_next(leftoff);
 			return leftoff;
 			}
 		void unlink(Dest* dest)
@@ -120,7 +120,7 @@ private:
 			}
 		bool empty()
 			{ return slots.empty(); }
-		
+
 		Mmoffset next()
 			{ return next_.unpack(); }
 		Mmoffset prev()
@@ -184,7 +184,7 @@ private:
 			}
 		bool empty()
 			{ return slots.empty() && lastoff == NIL; }
-		
+
 		TreeSlots slots;
 		Mmoffset32 lastoff;
 		};
@@ -403,7 +403,7 @@ public:
 
 		// search down the tree
 		Mmoffset off = root();
-		int i; 
+		int i;
 		for (i = 0; i < treelevels; ++i)
 			{
 			nodes[i] = (TreeNode*) dest->adr(off);
@@ -424,7 +424,7 @@ public:
 		++nnodes;
 		verify(OK == (x <= left->slots.back() ? left->insert(x) : leaf->insert(x)));
 		Key key = keydup(left->slots.back().key);
-		off = leftoff; 
+		off = leftoff;
 
 		// insert up the tree as necessary
 		for (--i; i >= 0; --i)
@@ -514,10 +514,10 @@ public:
 		else
 			return false;
 		}
-	
+
 	//---------------------------------------------------------------
-	
-	float rangefrac(const Key& from, const Key& to) 
+
+	float rangefrac(const Key& from, const Key& to)
 		{
 		const float MIN_FRAC = 1e-6f;
 		if (isEmpty())
@@ -530,7 +530,7 @@ public:
 
 		//con() << "rangefrac " << from << " ... " << to << endl;
 		float* rootChildFracs = getChildFracs(rootNode());
-		
+
 		float fromPos = fromMinimal ? 0 : fracPos(from, rootChildFracs);
 		float toPos = toMaximal ? 1 : fracPos(to, rootChildFracs);
 		//con() << "fromPos " << fromPos << " toPos " << toPos << " = " << max(toPos - fromPos, MIN_FRAC) << endl;

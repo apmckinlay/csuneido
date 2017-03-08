@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -148,16 +148,16 @@ SuBuffer::SuBuffer(size_t n, const gcstring& s) : SuString(n)
 size_t SuString::packsize() const
 	{
 	int n = size();
-	return n ? 1 + n : 0; 
+	return n ? 1 + n : 0;
 	}
 
 void SuString::pack(char* dst) const
-	{ 
+	{
 	int n = size();
 	if (n == 0)
 		return ;
 	dst[0] = PACK_STRING;
-	memcpy(dst + 1, buf(), n); 
+	memcpy(dst + 1, buf(), n);
 	}
 
 /*static*/ SuString* SuString::unpack(const gcstring& s)
@@ -364,7 +364,7 @@ Value SuString::Find(short nargs, short nargnames, ushort* argnames, int each)
 	gcstring str = args.getgcstr("string");
 	int pos = args.getint("pos", 0);
 	args.end();
-	
+
 	int i = s.find(str, pos);
 	return i == -1 ? size() : i;
 	}
@@ -376,7 +376,7 @@ Value SuString::FindLast(short nargs, short nargnames, ushort* argnames, int eac
 	char* str = args.getstr("string");
 	int pos = args.getint("pos", size());
 	args.end();
-	
+
 	int i = s.findlast(str, pos);
 	return i == -1 ? SuFalse : i;
 	}
@@ -407,7 +407,7 @@ Value SuString::FindLast1of(short nargs, short nargnames, ushort* argnames, int 
 	gcstring set = args.getgcstr("string");
 	int pos = args.getint("pos", size() - 1);
 	args.end();
-	
+
 	char* buf = s.buf();
 	char* setbuf = set.buf();
 	char* setlim = setbuf + set.size();
@@ -446,7 +446,7 @@ Value SuString::FindLastnot1of(short nargs, short nargnames, ushort* argnames, i
 	gcstring set = args.getgcstr("string");
 	int pos = args.getint("pos", size() - 1);
 	args.end();
-	
+
 	char* buf = s.buf();
 	char* setbuf = set.buf();
 	char* setlim = setbuf + set.size();
@@ -515,7 +515,7 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 	Value reparg = nargs == 1 ? SuEmptyString : ARG(1);
 	// TODO: replacement shouldn't have to be nul terminated
 	const char* rep = reparg.str_if_str();
-	if (! rep && (reparg.is_int() || 
+	if (! rep && (reparg.is_int() ||
 		val_cast<SuNumber*>(reparg) || val_cast<SuBoolean*>(reparg)))
 		rep = reparg.str();
 
@@ -550,7 +550,7 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 				gcstring replace = x ? x.gcstr() : match;
 				result.add(replace.buf(), replace.size());
 				}
-			++nsubs; 
+			++nsubs;
 			lastm = m;
 			}
 		if (m < 0 || m == i)
@@ -610,7 +610,7 @@ Value SuString::Detab(short nargs, short nargnames, ushort* argnames, int each)
 	// set custom tab stops here
 	int nt = 1;
 	const int w = 4;
-	
+
 	int ntabs = 0;
 	for (int j = 0; j < sn; ++j)
 		if (s[j] == '\t')
@@ -632,7 +632,7 @@ Value SuString::Detab(short nargs, short nargnames, ushort* argnames, int each)
 					;
 			while (col < tabs[j])
 				buf[i++] = ' ', ++col;
-			break ;			
+			break ;
 		case '\n' :
 		case '\r' :
 			buf[i++] = s[si], col = 0;

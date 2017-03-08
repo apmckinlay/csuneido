@@ -130,7 +130,7 @@ void SuRecord::dependencies(ushort mem, gcstring s)
 		ushort m = ::symnum(t.str());
 		Lisp<ushort>& d = dependents[m];
 		if (! d.member(mem))
-			d.push(mem); 
+			d.push(mem);
 		if (i == -1)
 			break ;
 		s = s.substr(i + 1);
@@ -341,7 +341,7 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 		{
 		if (nargs != 1)
 			except("usage: record.Base?(class)");
-		return ARG(0) == globals.get("Record") || ARG(0) == globals.get("Object") 
+		return ARG(0) == globals.get("Record") || ARG(0) == globals.get("Object")
 			? SuTrue : SuFalse;
 		}
 	else
@@ -605,7 +605,7 @@ void SuRecord::pack(char* buf) const
 	return r;
 	}
 
-Value SuRecordClass::call(Value self, Value member, 
+Value SuRecordClass::call(Value self, Value member,
 	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL || member == INSTANTIATE)

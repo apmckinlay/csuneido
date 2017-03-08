@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -101,7 +101,7 @@ Mmoffset Mmfile::alloc(size_t n, char t, bool zero)
 	n = align(n);
 
 	// if insufficient room in this chunk, advance to next
-	// (by alloc'ing remainder) 
+	// (by alloc'ing remainder)
 	int chunk = file_size / chunk_size;
 	int remaining = (chunk + 1) * chunk_size - file_size;
 int r = chunk_size - (file_size % chunk_size);
@@ -217,7 +217,7 @@ Mmfile::iterator& Mmfile::iterator::operator++()
 			return *this;
 			}
 		} while (type() == 0); // skip filler blocks
-	return *this; 
+	return *this;
 	}
 
 Mmfile::iterator& Mmfile::iterator::operator--()
@@ -253,7 +253,7 @@ Mmfile::iterator& Mmfile::iterator::operator--()
 			return *this;
 			}
 		} while (type() == 0); // skip filler blocks
-	return *this; 
+	return *this;
 	}
 
 char Mmfile::iterator::type()
@@ -318,7 +318,7 @@ class test_mmfile : public Tests
 		static char* data[] =
 			{ "andrew", "leeann", "ken sparrow", "tracy" };
 		const int ndata = sizeof data / sizeof (char*);
-		
+
 		int i;
 		for (i = 0; i < ndata; ++i)
 			add(m, data[i]);
@@ -334,7 +334,7 @@ class test_mmfile : public Tests
 		for (i = 0, iter = begin; iter != m.end(); ++iter, ++i)
 			verify(0 == strcmp((char*) *iter, data[i]));
 		asserteq(i, ndata);
-		
+
 		for (i = ndata - 1, iter = m.end(); iter != begin; --i)
 			verify(0 == strcmp((char*) *--iter, data[i]));
 		asserteq(i, -1);
@@ -358,7 +358,7 @@ class test_mmfile : public Tests
 		for (n = 0, iter = m.begin(); iter != m.end(); ++iter)
 			++n;
 		asserteq(n, 2);
-		
+
 		for (n = 0, iter = m.end(); iter != m.begin(); --iter)
 			++n;
 		asserteq(n, 2);
@@ -373,33 +373,33 @@ class test_mmfile : public Tests
 		m.set_chunk_size(CHUNK_SIZE);
 		m.set_max_chunks_mapped(2);
 		const int N = CHUNK_SIZE - 500;
-		
+
 		// NOTE: chunk 0 is referenced by every alloc via set_filesize
-		
+
 		void* p = m.adr(m.alloc(N, 1));
 		memset(p, 'a', N);
 		verify(m.base[0]); verify(! m.base[1]); verify(! m.base[2]);
-		
+
 		p = m.adr(m.alloc(N, 1));
 		memset(p, 'b', N);
 		verify(m.base[0]); verify(m.base[1]); verify(! m.base[2]);
-		
+
 		p = m.adr(m.alloc(N, 1));
 		memset(p, 'c', N);
 		verify(m.base[0]); verify(! m.base[1]); verify(m.base[2]);
-		
+
 		char* s = (char*) m.adr(100);
 		verify(*s == 'a');
 		verify(m.base[0]); verify(! m.base[1]); verify(m.base[2]);
-		
+
 		s = (char*) m.adr(CHUNK_SIZE + 100);
 		verify(*s == 'b');
 		verify(m.base[0]); verify(m.base[1]); verify(! m.base[2]);
-		
+
 		s = (char*) m.adr(2 * CHUNK_SIZE + 100);
 		verify(*s == 'c');
 		verify(! m.base[0]); verify(m.base[1]); verify(m.base[2]);
-		
+
 		} verify(0 == remove("testmm"));
 		}
 	};

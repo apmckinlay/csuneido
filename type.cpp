@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -286,7 +286,7 @@ Value TypeBuffer::get(char*& src, Value x)
 	}
 
 void TypeBuffer::out(Ostream& os)
-	{ 
+	{
 	os << "buffer";
 	}
 
@@ -318,7 +318,7 @@ void TypeString::out(Ostream& os)
 	{
 	if (in)
 		os << "[in] ";
-	os << "string"; 
+	os << "string";
 	}
 
 //===================================================================
@@ -353,8 +353,8 @@ Value TypeResource::get(char*& src, Value x)
 	}
 
 void TypeResource::out(Ostream& os)
-	{ 
-	os << "resource"; 
+	{
+	os << "resource";
 	}
 
 TypeString TypeResource::tstr;
@@ -401,7 +401,7 @@ void TypeArray::put(char*& dst, char*& dst2, const char* lim2, Value x)
 			}
 		dst += n;
 		return ;
-		}	
+		}
 	if (! x)
 		x = new SuObject;//(n);
 	SuObject* ob = x.object();
@@ -532,12 +532,12 @@ void TypeParams::out(Ostream& os)
 	}
 
 void TypeParams::put(char*&, char*&, const char*, Value)
-	{ 
-	error("should not be used"); 
+	{
+	error("should not be used");
 	}
 
 Value TypeParams::get(char*&, Value)
-	{ 
+	{
 	error("should not be used");
 	}
 

@@ -4,18 +4,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -44,7 +44,7 @@ public:
 	explicit SuObject(bool readonly);
 	explicit SuObject(const SuObject& ob);
 	void init();
-	SuObject(SuObject* ob, size_t offset); // for slice 
+	SuObject(SuObject* ob, size_t offset); // for slice
 
 	virtual void out(Ostream& os);
 	void outdelims(Ostream& os, char* delim);
@@ -62,7 +62,7 @@ public:
 		{ return vec.size(); }
 	size_t mapsize() const
 		{ return map.size(); }
-	
+
 	void put(Value i, Value x);
 
 	void add(Value x);
@@ -99,7 +99,7 @@ public:
 	class iterator
 		{
 	public:
-		iterator(const Vector& v, const Map& m, bool iv, bool im, int& ver) 
+		iterator(const Vector& v, const Map& m, bool iv, bool im, int& ver)
 			: vec(v), vi(iv ? 0 : v.size()), map(m), mi(im ? m.begin() : m.end()), mend(m.end()),
 			include_vec(iv), include_map(im), object_version(ver), version(ver)
 			{ }

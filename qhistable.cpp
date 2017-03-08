@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2002 Suneido Software Corp. 
+ *
+ * Copyright (c) 2002 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -31,7 +31,7 @@ Query* Query::make_history(const gcstring& table)
 	return new HistoryTable(table);
 	}
 
-HistoryTable::HistoryTable(const gcstring& t) : 
+HistoryTable::HistoryTable(const gcstring& t) :
 	table(t), tblnum(theDB()->ck_get_table(t)->num), rewound(true)
 	{
 	}
@@ -84,14 +84,14 @@ int HistoryTable::keysize(const Fields& index)
 	return 100;
 	}
 
-Header HistoryTable::header() 
+Header HistoryTable::header()
 	{
 	return Header(
 		lisp(
 			Fields(),
 			lisp(gcstring("_date"), gcstring("_action")),
-			Fields(), 
-			theDB()->get_fields(table)), 
+			Fields(),
+			theDB()->get_fields(table)),
 		columns());
 	}
 
@@ -189,7 +189,7 @@ Row HistoryTable::get(Dir dir)
 	Record r1;
 	Commit* commit = (Commit*) *iter;
 	r1.addval(SuDate::parse(ctime(&commit->t)));
-	r1.addval(dir == NEXT 
+	r1.addval(dir == NEXT
 		? 0 <= ic && ic < commit->ncreates ? "create" : "delete"
 		: 0 <= id && id < commit->ndeletes ? "delete" : "create");
 	Record r2(theDB()->mmf, offset);

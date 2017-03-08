@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -80,13 +80,13 @@ private:
 	int mapsize;
 	};
 
-SuObject::SuObject() 
+SuObject::SuObject()
 	: myclass(root_class), readonly(false), has_getter(true), has_setter(true), version(0)
 	{
 	init();
 	}
 
-SuObject::SuObject(bool ro) 
+SuObject::SuObject(bool ro)
 	: myclass(root_class), readonly(ro), has_getter(true), has_setter(true), version(0)
 	{
 	init();
@@ -190,15 +190,15 @@ void SuObject::setup()
 	INSTANCE_METHOD(Delete);
 	}
 
-SuObject::SuObject(const SuObject& ob) : myclass(ob.myclass), defval(ob.defval), 
+SuObject::SuObject(const SuObject& ob) : myclass(ob.myclass), defval(ob.defval),
 	vec(ob.vec), readonly(false), has_getter(true), has_setter(true), version(0)
-	{ 
+	{
 	for (Map::const_iterator it = ob.map.begin(), end = ob.map.end(); it != end; ++it)
 		map[it->key] = it->val;
 	}
 
-SuObject::SuObject(SuObject* ob, size_t offset) 
-	: myclass(ob->myclass), defval(ob->defval), 
+SuObject::SuObject(SuObject* ob, size_t offset)
+	: myclass(ob->myclass), defval(ob->defval),
 	vec(ob->vec.begin() + min(offset, ob->vec.size()), ob->vec.end()),
 	readonly(false), has_getter(true), has_setter(true), version(0)
 	{
@@ -210,7 +210,7 @@ void SuObject::add(Value x)
 	{
 	ModificationCheck mc(this);
 	persist_if_block(x);
-	vec.push_back(x); 
+	vec.push_back(x);
 	// check for migration from map to vec
 	Value num;
 	while (Value* pv = map.find(num = vec.size()))
@@ -335,7 +335,7 @@ pack format is:
 			packed value
 
 */
-	
+
 const int NESTING_LIMIT = 20;
 
 class Nest
@@ -387,7 +387,7 @@ void SuObject::pack(char* buf) const
 
 	int nv = vec.size();
 	cvt_long(buf, nv);
-	buf += sizeof (long); 
+	buf += sizeof (long);
 	for (int i = 0; i < nv; ++i)
 		buf += packvalue(buf, vec[i]);
 
@@ -482,7 +482,7 @@ Value SuObject::call(Value self, Value member, short nargs, short nargnames, ush
 	}
 
 // suneido methods =======================================================
-	
+
 Value SuObject::Set_default(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0 && nargs != 1)
@@ -503,7 +503,7 @@ Value SuObject::Copy(short nargs, short nargnames, ushort* argnames, int each)
 	return new SuObject(*this);
 	}
 
-static void list_named(short nargs, short nargnames, ushort* argnames, 
+static void list_named(short nargs, short nargnames, ushort* argnames,
 	bool& listq, bool& namedq, char* usage)
 	{
 	if (nargs > nargnames || nargs > 2)
@@ -732,7 +732,7 @@ void SuObject::sort()
 	std::stable_sort(vec.begin(), vec.end());
 	}
 
-Value SuObject::LowerBound(short nargs, short nargnames, ushort* argnames, int each) 
+Value SuObject::LowerBound(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs == 1)
 		return std::lower_bound(vec.begin(), vec.end(), ARG(0)) - vec.begin();
@@ -885,7 +885,7 @@ Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
 			return this;
 			}
 		}
-	
+
 	argseach(nargs, nargnames, argnames, each);
 	static ushort at = ::symnum("at");
 	if (nargnames > 1 || (nargnames == 1 && argnames[0] != at))
@@ -1096,7 +1096,7 @@ struct ObOutInKey
 		{ obout_inkey = true; }
 	~ObOutInKey()
 		{ obout_inkey = false; }
-	};	
+	};
 
 void SuObject::outdelims(Ostream& os, char* delims)
 	{
@@ -1187,7 +1187,7 @@ SuObject::Pair SuObject::iterator::operator*()
 	}
 
 bool SuObject::iterator::operator==(const iterator& iter) const
-	{ 
+	{
 	return vi == iter.vi && mi == iter.mi;
 	}
 
@@ -1349,7 +1349,7 @@ class test_object : public Tests
 		verify(s_one == ob.get(new SuNumber(1)));
 		verify(s_big == ob.get("big"));
 		verify(s_zero == ob.get("zero"));
-	
+
 		// slow use
 		ob.put(123456, s_big);
 		ob.put("string", s_str);
@@ -1401,7 +1401,7 @@ class test_object : public Tests
 		char s[2] = "a";
 		for (i = 0; i < 25; ++i, ++*s)
 			ob.put(s, i);
-				
+
 		verify(! ob.get(101));
 		verify(! ob.get("z"));
 		}
@@ -1420,7 +1420,7 @@ class test_object : public Tests
 		char s[2] = "a";
 		for (i = 0; i < 26; ++i, ++*s)
 			ob1.put(s, i);
-				
+
 		verify(! (ob1 == ob2));
 		*s = 'a';
 		for (int j = 0; j < i; ++j, ++*s)
@@ -1476,9 +1476,9 @@ class test_object : public Tests
 		for (i = 0; i < 26; ++i, ++*s)
 			ob.put(s, i);
 		verify(ob.size() == 126);
-		
+
 		// iterate
-		SuObject::iterator iter = ob.begin(); 
+		SuObject::iterator iter = ob.begin();
 		for (i = 0; i < 100; ++i, ++iter)
 			{
 			verify(iter != ob.end());

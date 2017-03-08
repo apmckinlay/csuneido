@@ -4,18 +4,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -83,12 +83,12 @@ public:
 		Vslot operator*()
 			{
 			verify(t);
-			return Vslot((char*) t + t[i]); 
+			return Vslot((char*) t + t[i]);
 			}
 		const Vslot operator*() const
 			{
 			verify(t);
-			return Vslot((char*) t + t[i]); 
+			return Vslot((char*) t + t[i]);
 			}
 		iterator& operator++()
 			{ ++i; return *this; }
@@ -455,7 +455,7 @@ struct VVslot
 	};
 
 // have to round record sizes to multiples of 4 to ensure address's are alligned
-// so that garbage collection sees references (for in-memory temporary indexes) 
+// so that garbage collection sees references (for in-memory temporary indexes)
 inline size_t roundup(size_t n)
 	{ return ((n - 1) | 3) + 1; }
 
@@ -512,9 +512,9 @@ public:
 		{ return iterator(t,sz); }
 	VVslot operator[](int i)
 		{ verify(0 <= i && i < sz); iterator iter(t, i); return *iter; }
-	VVslot front() 
+	VVslot front()
 		{ verify(sz > 0); iterator i(begin()); return *i; }
-	VVslot back() 
+	VVslot back()
 		{ verify(sz > 0); iterator i(end()); return *--i; }
 	void push_back(const VVslot& x)
 		{

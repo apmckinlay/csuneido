@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -67,7 +67,7 @@ void Func::args(short nargs, short nargnames, ushort* argnames, int each)
 	Value* args = GETSP() - nargs + 1;
 	short unamed = nargs - nargnames - (each == -1 ? 0 : 1);
 	short i, j;
-	
+
 	if (! rest && unamed > nparams)
 		except("too many arguments to " << this);
 
@@ -97,10 +97,10 @@ void Func::args(short nargs, short nargnames, ushort* argnames, int each)
 	else if (each != -1)
 		{
 		SuObject* ob = args[0].object();
-		
+
 		if (ob->vecsize() - each > nparams)
 			except("too many arguments to " << this);
-		
+
 		// un-named members
 		for (i = 0; i < nparams; ++i)
 			args[i] = ob->get(i + each);

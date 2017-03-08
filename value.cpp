@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -25,12 +25,12 @@
 #include "ostream.h"
 
 char* Value::str() const
-	{ 
+	{
 	return VAL->gcstr().str();
 	}
 
 gcstring Value::gcstr() const
-	{ 
+	{
 	return VAL->gcstr();
 	}
 
@@ -40,7 +40,7 @@ Ostream& operator<<(Ostream& os, Value x)
 		os << x.im.n;
 	else if (x.p)
 		x.p->out(os);
-	else 
+	else
 		os << "NULL";
 	return os;
 	}
@@ -80,7 +80,7 @@ Value Value::operator-() const
 
 Value operator+(Value x, Value y)
 	{
-	return 
+	return
 		x.is_int()
 			? y.is_int()
 				? Value(x.im.n + y.im.n)
@@ -92,7 +92,7 @@ Value operator+(Value x, Value y)
 
 Value operator-(Value x, Value y)
 	{
-	return 
+	return
 		x.is_int()
 			? y.is_int()
 				? Value(x.im.n - y.im.n)
@@ -104,7 +104,7 @@ Value operator-(Value x, Value y)
 
 Value operator*(Value x, Value y)
 	{
-	return 
+	return
 		x.is_int()
 			? y.is_int()
 				? Value(x.im.n * y.im.n)
@@ -116,7 +116,7 @@ Value operator*(Value x, Value y)
 
 Value operator/(Value x, Value y)
 	{
-	return 
+	return
 		x.is_int()
 			? y.is_int()
 				? y.im.n != 0 && (x.im.n % y.im.n) == 0
@@ -169,11 +169,11 @@ class test_value : public Tests
 		verify(mid == mid);
 		Value big(100000);
 		verify(big == big);
-		Value sym("sym");	
+		Value sym("sym");
 		verify(sym == sym);
 		Value str(new SuString("sym"));
 		verify(str == str);
-		
+
 		verify(zero != one);
 		verify(one != sym);
 		verify(sym == str);

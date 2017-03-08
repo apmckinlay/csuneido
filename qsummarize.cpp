@@ -161,7 +161,7 @@ double Summarize::optimize2(const Fields& index, const Fields& needs,
 		// TODO optimize "summarize max/min field" if field is indexed
 		// to just read next/prev on index
 		// can ignore required index since result is only zero or one record
-		
+
 		if (freeze)
 			via = index;
 		return source->optimize(index, srcneeds, by, is_cursor, freeze);

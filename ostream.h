@@ -4,18 +4,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -67,7 +67,7 @@ public:
 		{ f(*this); return *this; }
 	template <class T> Ostream& operator<<(OstreamManip<T> m)
 		{ m.fn(*this, m.arg); return *this; }
-	
+
 	void base(int n)
 		{ d_base = n; }
 	int base()
@@ -97,7 +97,7 @@ private:
 // output newline
 void endl(Ostream& os);
 
-// output nul (zero byte)			
+// output nul (zero byte)
 void ends(Ostream& os);
 
 // decimal mode

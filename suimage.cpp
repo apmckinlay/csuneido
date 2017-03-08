@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -78,7 +78,7 @@ Value su_image()
 
 template<>
 void BuiltinClass<SuImage>::out(Ostream& os)
-	{ 
+	{
 	os << "Image /* builtin class */";
 	}
 
@@ -144,7 +144,7 @@ bool SuImage::isfilename(const gcstring& arg)
 HGLOBAL SuImage::readfile(const char* filename, DWORD* pdwSize)
 	{
 	// open file
-	HANDLE hFile = CreateFile(filename, GENERIC_READ, 0, NULL, 
+	HANDLE hFile = CreateFile(filename, GENERIC_READ, 0, NULL,
 		OPEN_EXISTING, 0, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 		except("Image: can't open " << filename);

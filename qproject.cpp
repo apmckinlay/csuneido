@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -199,16 +199,16 @@ Query* Project::transform()
 		if (c->disjoint != "" && ! member(flds, c->disjoint))
 			{
 			Fields flds2 = flds.copy().push(c->disjoint);
-			c->source = new Project(c->source,  
+			c->source = new Project(c->source,
 				intersect(flds2, c->source->columns()));
-			c->source2 = new Project(c->source2,  
+			c->source2 = new Project(c->source2,
 				intersect(flds2, c->source2->columns()));
 			}
 		else
 			{
-			c->source = new Project(c->source, 
+			c->source = new Project(c->source,
 				intersect(flds, c->source->columns()));
-			c->source2 = new Project(c->source2, 
+			c->source2 = new Project(c->source2,
 				intersect(flds, c->source2->columns()));
 			return source->transform();
 			}
@@ -291,7 +291,7 @@ Fields Project::withoutFixed(Fields fields, const Lisp<Fixed> fixed)
 bool Project::hasFixed(Fields fields, const Lisp<Fixed> fixed)
 	{
 	for (; ! nil(fields); ++fields)
-		if (isfixed(fixed, *fields)) 
+		if (isfixed(fixed, *fields))
 			return true;
 	return false;
 	}

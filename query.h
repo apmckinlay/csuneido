@@ -178,7 +178,7 @@ public:
 
 	// used to insert TempIndex nodes
 	virtual Query* addindex(); // redefined by Query1 and Query2
-	
+
 private:
 	Fields tempindex;
 	};

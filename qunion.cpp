@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -69,7 +69,7 @@ Indexes Union::keys()
 	{
 	if (disjoint != "")
 		{
-		Indexes kin = intersect_prefix(source->keys(), source2->keys()); 
+		Indexes kin = intersect_prefix(source->keys(), source2->keys());
 		if (! nil(kin))
 			{
 			Indexes kout;
@@ -307,7 +307,7 @@ Row Union::get(Dir dir)
 			if (Eof != (row2 = source2->get(dir)))
 				key2 = row_to_key(hdr2, row2, ki);
 			}
-		else 
+		else
 			{
 			// curkey is required for changing direction
 			if (src1 || before(dir, key1, 1, curkey, 2))
@@ -329,7 +329,7 @@ Row Union::get(Dir dir)
 					: row_to_key(hdr2, row2, ki));
 				}
 			}
-		
+
 		src1 = src2 = false;
 		if (row1 == Eof && row2 == Eof)
 			{

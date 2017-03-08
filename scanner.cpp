@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -323,7 +323,7 @@ int Scanner::nextall()
 				return '.';
 			break ;
 		case '`' :
-			for (dst = buf, lim = dst + buflen; 
+			for (dst = buf, lim = dst + buflen;
 				source[si] && source[si] != '`'; ++si)
 				{
 				if (dst >= lim)
@@ -343,7 +343,7 @@ int Scanner::nextall()
 		case '"' :
 		case '\'' :
 			quote = state;
-			for (dst = buf, lim = dst + buflen; 
+			for (dst = buf, lim = dst + buflen;
 				source[si] && source[si] != quote; ++si)
 				{
 				if (dst >= lim)
@@ -379,7 +379,7 @@ inline bool isodigit(char c)
 	{ return '0' <= c && c <= '7'; }
 
 // should be called with i pointing at backslash
-// 
+//
 /* static */ char Scanner::doesc(const char* src, int& i)
 	{
 	++i; // backslash
@@ -403,7 +403,7 @@ inline bool isodigit(char c)
 	case '"' :
 	case '\'' :
 		return src[i];
-	default : 
+	default :
 		if (isodigit(src[i]) && isodigit(src[i + 1]) && isodigit(src[i + 2]))
 			{
 			i += 2;
@@ -421,24 +421,24 @@ struct Keyword
 	};
 static Keyword words[] =
 	{
-	{ "False", K_FALSE }, { "True", K_TRUE }, 
+	{ "False", K_FALSE }, { "True", K_TRUE },
 	{ "and", T_AND }, { "bool", K_BOOL}, { "break", K_BREAK },
 	{ "buffer", K_BUFFER }, { "callback", K_CALLBACK },
 	{ "case", K_CASE }, { "catch", K_CATCH }, { "char", K_INT8 },
-	{ "class", K_CLASS }, { "continue", K_CONTINUE }, 
-	{ "default", K_DEFAULT }, { "dll", K_DLL }, { "do", K_DO }, 
-	{ "double", K_DOUBLE }, { "else", K_ELSE }, { "false", K_FALSE }, 
-	{ "float", K_FLOAT }, { "for", K_FOR }, 
-	{ "forever", K_FOREVER }, { "function", K_FUNCTION }, { "gdiobj", K_GDIOBJ }, 
-	{ "handle", K_HANDLE }, { "if", K_IF }, 	{ "in", K_IN }, 
-	{ "int16", K_INT16 }, { "int32", K_INT32 }, { "int64", K_INT64 }, { "int8", K_INT8 }, 
+	{ "class", K_CLASS }, { "continue", K_CONTINUE },
+	{ "default", K_DEFAULT }, { "dll", K_DLL }, { "do", K_DO },
+	{ "double", K_DOUBLE }, { "else", K_ELSE }, { "false", K_FALSE },
+	{ "float", K_FLOAT }, { "for", K_FOR },
+	{ "forever", K_FOREVER }, { "function", K_FUNCTION }, { "gdiobj", K_GDIOBJ },
+	{ "handle", K_HANDLE }, { "if", K_IF }, 	{ "in", K_IN },
+	{ "int16", K_INT16 }, { "int32", K_INT32 }, { "int64", K_INT64 }, { "int8", K_INT8 },
 	{ "is", I_IS }, { "isnt", I_ISNT }, { "long", K_INT32 },
 	{ "new", K_NEW }, { "not", I_NOT }, { "or", T_OR }, { "pointer", K_POINTER },
-	{ "resource", K_RESOURCE },	{ "return", K_RETURN }, 
-	{ "short", K_INT16 }, { "string", K_STRING }, { "struct", K_STRUCT }, 
-	{ "super", K_SUPER }, { "switch", K_SWITCH }, { "this", K_THIS }, 
-	{ "throw", K_THROW }, { "true", K_TRUE }, { "try", K_TRY }, 
-	{ "void", K_VOID }, { "while", K_WHILE }, 
+	{ "resource", K_RESOURCE },	{ "return", K_RETURN },
+	{ "short", K_INT16 }, { "string", K_STRING }, { "struct", K_STRUCT },
+	{ "super", K_SUPER }, { "switch", K_SWITCH }, { "this", K_THIS },
+	{ "throw", K_THROW }, { "true", K_TRUE }, { "try", K_TRY },
+	{ "void", K_VOID }, { "while", K_WHILE },
 	{ "xor", I_ISNT }
 	};
 const int nwords = sizeof words / sizeof (Keyword);
@@ -488,32 +488,32 @@ struct Result
 
 static Result results[] =
 	{
-	{ T_AND, 0 }, { K_BREAK, 0 }, { K_CASE, 0 }, { K_CATCH, 0 }, 
-	{ K_CONTINUE, 0 }, { K_CLASS, 0 }, { K_CALLBACK, 0 }, 
-	{ K_DEFAULT, 0 }, { K_DLL, 0 }, { K_DO, 0 }, { K_ELSE, 0 }, 
+	{ T_AND, 0 }, { K_BREAK, 0 }, { K_CASE, 0 }, { K_CATCH, 0 },
+	{ K_CONTINUE, 0 }, { K_CLASS, 0 }, { K_CALLBACK, 0 },
+	{ K_DEFAULT, 0 }, { K_DLL, 0 }, { K_DO, 0 }, { K_ELSE, 0 },
 	{ K_FOR, 0 }, { K_FOREVER, 0 }, { K_FUNCTION, 0 },
 	{ K_IF, 0 }, { I_IS, 0 }, { I_ISNT, 0 }, { T_OR, 0 }, { I_NOT, 0 },
-	{ K_NEW, 0 }, { K_SWITCH, 0 }, { K_STRUCT, 0 }, { K_SUPER, 0 }, 
-	{ K_RETURN, 0 }, { K_THROW, 0 }, { K_TRY, 0 }, { K_WHILE, 0 }, 
-	{ K_TRUE, 0 }, { K_TRUE, 0 }, { K_FALSE, 0 }, { K_FALSE, 0 }, 
-	{ I_IS, 0 }, { I_EQ, 0 }, { I_MATCH, 0 }, { I_BITNOT, 0 }, 
-	{ I_ISNT, 0 }, { I_MATCHNOT, 0 }, { I_NOT, 0 }, 
-	{ I_LSHIFTEQ, 0 }, { I_LSHIFT, 0 },	{ I_ISNT, 0 }, { I_LTE, 0 }, 
-	{ I_LT, 0 }, { I_RSHIFTEQ, 0 }, { I_RSHIFT, 0 }, { I_GTE, 0 }, 
-	{ I_GT, 0 }, { T_OR, 0 }, { I_BITOREQ, 0 }, { I_BITOR, 0 }, 
-	{ T_AND, 0 }, { I_BITANDEQ, 0 }, { I_BITAND, 0 }, { I_BITXOREQ, 0 }, { I_BITXOR, 0 }, { I_PREDEC, 0 }, { I_SUBEQ, 0 }, { I_SUB, 0 }, 
-	{ I_PREINC, 0 }, { I_ADDEQ, 0 }, { I_ADD, 0 }, { I_DIVEQ, 0 }, 
-	{ I_DIV, 0 }, { I_MULEQ, 0 }, { I_MUL, 0 }, { I_MODEQ, 0 }, 
+	{ K_NEW, 0 }, { K_SWITCH, 0 }, { K_STRUCT, 0 }, { K_SUPER, 0 },
+	{ K_RETURN, 0 }, { K_THROW, 0 }, { K_TRY, 0 }, { K_WHILE, 0 },
+	{ K_TRUE, 0 }, { K_TRUE, 0 }, { K_FALSE, 0 }, { K_FALSE, 0 },
+	{ I_IS, 0 }, { I_EQ, 0 }, { I_MATCH, 0 }, { I_BITNOT, 0 },
+	{ I_ISNT, 0 }, { I_MATCHNOT, 0 }, { I_NOT, 0 },
+	{ I_LSHIFTEQ, 0 }, { I_LSHIFT, 0 },	{ I_ISNT, 0 }, { I_LTE, 0 },
+	{ I_LT, 0 }, { I_RSHIFTEQ, 0 }, { I_RSHIFT, 0 }, { I_GTE, 0 },
+	{ I_GT, 0 }, { T_OR, 0 }, { I_BITOREQ, 0 }, { I_BITOR, 0 },
+	{ T_AND, 0 }, { I_BITANDEQ, 0 }, { I_BITAND, 0 }, { I_BITXOREQ, 0 }, { I_BITXOR, 0 }, { I_PREDEC, 0 }, { I_SUBEQ, 0 }, { I_SUB, 0 },
+	{ I_PREINC, 0 }, { I_ADDEQ, 0 }, { I_ADD, 0 }, { I_DIVEQ, 0 },
+	{ I_DIV, 0 }, { I_MULEQ, 0 }, { I_MUL, 0 }, { I_MODEQ, 0 },
 	{ I_MOD, 0 }, { I_CATEQ, 0 }, { I_CAT, 0 }, { T_IDENTIFIER, "name" },
-	{ T_IDENTIFIER, "_name"}, {T_IDENTIFIER, "name123"}, 
-	{ T_STRING, "string" }, { T_STRING, "string"}, 
-	{ T_NUMBER, "123" }, { T_NUMBER, "123" }, 
-	{ T_IDENTIFIER, "name" }, { '.', 0 }, 
+	{ T_IDENTIFIER, "_name"}, {T_IDENTIFIER, "name123"},
+	{ T_STRING, "string" }, { T_STRING, "string"},
+	{ T_NUMBER, "123" }, { T_NUMBER, "123" },
+	{ T_IDENTIFIER, "name" }, { '.', 0 },
 	{ T_IDENTIFIER, "name" }, { T_IDENTIFIER, "Name" },
-	{ T_IDENTIFIER, "Name123" }, { T_IDENTIFIER, "name?" }, 
-	{ T_NUMBER, "1" }, { I_CAT, 0 }, { T_NUMBER, "2" }, { I_ADD, 0 }, 
-	{ T_NUMBER, "1" }, { T_IDENTIFIER, "num" }, { I_EQ, 0 }, { T_NUMBER, "1" }, 
-	{ T_IDENTIFIER, "num" }, { I_ADDEQ, 0 }, { T_NUMBER, "1" }, 
+	{ T_IDENTIFIER, "Name123" }, { T_IDENTIFIER, "name?" },
+	{ T_NUMBER, "1" }, { I_CAT, 0 }, { T_NUMBER, "2" }, { I_ADD, 0 },
+	{ T_NUMBER, "1" }, { T_IDENTIFIER, "num" }, { I_EQ, 0 }, { T_NUMBER, "1" },
+	{ T_IDENTIFIER, "num" }, { I_ADDEQ, 0 }, { T_NUMBER, "1" },
 	{ T_NUMBER, "1" }, { I_MOD, 0 }, {T_NUMBER, "2" },
 	{ T_STRING, "comment" }
 	};

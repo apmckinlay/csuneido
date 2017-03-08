@@ -4,18 +4,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -141,7 +141,7 @@ enum ActType { CREATE_ACT, DELETE_ACT };
 
 struct TranAct
 	{
-	TranAct(ActType typ, TblNum tbl, Mmoffset o, TranTime tim) 
+	TranAct(ActType typ, TblNum tbl, Mmoffset o, TranTime tim)
 		: type(typ), tblnum(tbl), off(o), time(tim)
 		{ }
 	ActType type;
@@ -152,7 +152,7 @@ struct TranAct
 
 struct TranRead
 	{
-	TranRead(TblNum tbl, const char* idx) 
+	TranRead(TblNum tbl, const char* idx)
 		: tblnum(tbl), index(idx), org(keymax)
 		{ }
 	TblNum tblnum;
@@ -160,7 +160,7 @@ struct TranRead
 	Record org;
 	Record end;
 	};
-	
+
 struct TranDelete
 	{
 	TranDelete()
@@ -169,7 +169,7 @@ struct TranDelete
 	TranTime tran;
 	TranTime time;
 	};
-	
+
 class Transaction
 	{
 public:
@@ -288,7 +288,7 @@ public:
 		{ mmf->unalloc(n); }
 	void* adr(Mmoffset offset)
 		{ return mmf->adr(offset); }
-	
+
 	// for use by dbcopy only
 	Mmoffset output_record(int tran, Tbl* tbl, Record& rec);
 	void create_indexes(Tbl* tbl, Mmoffset first, Mmoffset last);
@@ -349,7 +349,7 @@ private:
 	void write_commit_record(int tran, const std::deque<TranAct>& acts, int ncreates, int ndeletes);
 	const Transaction* find_tran(int tran);
 	char* write_conflict(TblNum tblnum, Mmoffset a, TranDelete* p);
-	char* read_conflict(const Transaction* t, int tblnum, const Record& from, 
+	char* read_conflict(const Transaction* t, int tblnum, const Record& from,
 		const Record& to, const char* index, const Record& key, ActType type);
 
 	Tables* tables;
@@ -361,7 +361,7 @@ private:
 	Index* fkey_index;
 	// used by get_view
 	Index* views_index;
-	
+
 	int clock;
 	std::map<int,Transaction> trans;
 	HashMap<Mmoffset,TranTime> created;	// record address -> create time

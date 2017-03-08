@@ -106,7 +106,7 @@ void load(const gcstring& table)
 				except("bad file format");
 			}
 		verify(!alerts);
-		}	
+		}
 	}
 
 int load_table(const gcstring& table)

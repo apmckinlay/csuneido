@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -43,7 +43,7 @@ gcstring::gcstring(size_t nn) : n(nn), p(nn == 0 ? empty_buf : new(noptrs) char[
 	{
 	if (n != 0)
 		p[n] = 0;
-	} 
+	}
 
 char* gcstring::empty_buf = "";
 
@@ -123,7 +123,7 @@ char* gcstring::str()
 	}
 
 bool operator<(const gcstring& x, const gcstring& y)
-	{ 
+	{
 	size_t minlen = x.size() < y.size() ? x.size() : y.size();
 	int r = memcmp(x.buf(), y.buf(), minlen);
 	if (r == 0)
@@ -319,7 +319,7 @@ class test_gcstring : public Tests
 		verify(s.find("lo") == 3);
 		verify(s.find("x") == -1);
 		verify(s.find("o", 5) == 7);
-		
+
 		s = "01234567890123456789012345678901234567890123456789012345678901234567890123456789";
 		gcstring t = "0123456789012345678901234567890123456789";
 		t += "0123456789012345678901234567890123456789";

@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -45,7 +45,7 @@ void Extend::check_dependencies()
 			{
 			Fields eflds = (*e)->fields();
 			if (! subset(avail, eflds))
-				except("extend: invalid column(s) in expressions: " << 
+				except("extend: invalid column(s) in expressions: " <<
 					difference(eflds, avail));
 			}
 		avail.push(*f);
@@ -108,8 +108,8 @@ double Extend::optimize2(const Fields& index, const Fields& needs, const Fields&
 	if (! nil(intersect(index, flds)))
 		return IMPOSSIBLE;
 	// NOTE: optimize1 to bypass tempindex
-	return source->optimize1(index, 
-		set_union(difference(eflds, flds), difference(needs, flds)), 
+	return source->optimize1(index,
+		set_union(difference(eflds, flds), difference(needs, flds)),
 		difference(firstneeds, flds),
 		is_cursor, freeze);
 	}

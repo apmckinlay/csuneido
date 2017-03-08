@@ -4,18 +4,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -57,9 +57,9 @@ class Index
 public:
 	friend class Database;
 	typedef Record Key;
-	Index(Database* d, TblNum tblnum, const char* idxname, 
+	Index(Database* d, TblNum tblnum, const char* idxname,
 		bool k, bool u = false);
-	Index(Database* d, TblNum tblnum, const char* idxname, Mmoffset r, short tl, int nn, 
+	Index(Database* d, TblNum tblnum, const char* idxname, Mmoffset r, short tl, int nn,
 		bool k, bool u = false);
 
 	bool insert(int tran, Vslot x);

@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2003 Suneido Software Corp. 
+ *
+ * Copyright (c) 2003 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -32,28 +32,28 @@
 #include "ostreamstr.h"
 
 void get_exe_path(char* buf, int buflen)
-	{	
+	{
 	GetModuleFileName(NULL, buf, buflen);
 	}
-	
+
 void* mem_committed(int n)
 	{
 	void* p = VirtualAlloc(NULL, n, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 	return p;
 	}
-	
+
 void* mem_uncommitted(int n)
 	{
 	void* p = VirtualAlloc(NULL, n, MEM_RESERVE | MEM_TOP_DOWN, PAGE_READWRITE);
 	verify(p);
 	return p;
 	}
-	
+
 void mem_commit(void* p, int n)
 	{
 	verify(VirtualAlloc(p, n, MEM_COMMIT, PAGE_READWRITE));
 	}
-	
+
 void mem_decommit(void* p, int n)
 	{
 	VirtualFree(p, n, MEM_DECOMMIT);
@@ -122,14 +122,14 @@ void Mmfile::open(char* filename, bool create, bool readonly)
 		}
 	f = CreateFile(filename,
 		GENERIC_READ | (readonly ? 0 : GENERIC_WRITE),
-		FILE_SHARE_READ | (readonly ? FILE_SHARE_WRITE : 0), 
+		FILE_SHARE_READ | (readonly ? FILE_SHARE_WRITE : 0),
 		NULL, // no security attributes
 		create ? OPEN_ALWAYS : OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL,
 		NULL); // no template
 	if (f == INVALID_HANDLE_VALUE)
 		except("can't open: " << filename);
-	
+
 	file_size = getfilesize(f);
 	}
 
@@ -143,11 +143,11 @@ void Mmfile::map(int chunk)
 		{ verify(VirtualFree(unmapped[chunk], 0, MEM_RELEASE)); unmapped[chunk] = 0; }
 #endif
 	verify(! base[chunk]);
-	
+
 	int64 end = (int64) (chunk + 1) * chunk_size;
 	fm[chunk] = CreateFileMapping(f,
 		NULL, // no security attributes
-		readonly ? PAGE_READONLY : PAGE_READWRITE, 
+		readonly ? PAGE_READONLY : PAGE_READWRITE,
 		(unsigned) (end >> 32), (unsigned) (end & 0xffffffff),
 		NULL); // no name for mapping
 	if (! fm[chunk])
@@ -157,11 +157,11 @@ void Mmfile::map(int chunk)
 	base[chunk] = (char*) MapViewOfFile(fm[chunk], readonly ? FILE_MAP_READ : FILE_MAP_WRITE,
 		(unsigned) (offset >> 32), (unsigned) (offset & 0xffffffff), chunk_size);
 //~ mlog << "+ " << chunk << " = " << (void*) base[chunk] << endl;
-		
+
 	if (! base[chunk])
 		{
 		char buf[1000];
-		int dw = GetLastError(); 
+		int dw = GetLastError();
 		FormatMessage(
 			FORMAT_MESSAGE_FROM_SYSTEM,
 			NULL,
@@ -207,16 +207,16 @@ Mmfile::~Mmfile()
 		SetEndOfFile(f);
 		asserteq(file_size, getfilesize(f));
 		}
-	
+
 	CloseHandle(f);
 	}
-	
+
 static Mmfile* mmf;
-	
+
 static VOID CALLBACK SyncTimerProc(
-	HWND hwnd,        
-	UINT uMsg,        
-	UINT_PTR idEvent, 
+	HWND hwnd,
+	UINT uMsg,
+	UINT_PTR idEvent,
 	DWORD dwTime)
 	{
 	mmf->sync();
@@ -225,10 +225,10 @@ static VOID CALLBACK SyncTimerProc(
 void sync_timer(Mmfile* m)
 	{
 	mmf = m;
-	SetTimer(NULL,		// handle to main window 
-		0,				// timer identifier 
-		60000,			// 1-minute interval 
-		(TIMERPROC) SyncTimerProc); 
+	SetTimer(NULL,		// handle to main window
+		0,				// timer identifier
+		60000,			// 1-minute interval
+		(TIMERPROC) SyncTimerProc);
 	}
 
 #include <process.h>
@@ -265,9 +265,9 @@ DateTime::DateTime()
 static void (*dbstp_pfn)();
 
 static VOID CALLBACK DbServerTimerProc(
-	HWND hwnd,        
-	UINT uMsg,        
-	UINT_PTR idEvent, 
+	HWND hwnd,
+	UINT uMsg,
+	UINT_PTR idEvent,
 	DWORD dwTime)
 	{
 	(*dbstp_pfn)();
@@ -276,9 +276,9 @@ static VOID CALLBACK DbServerTimerProc(
 void dbserver_timer(void (*pfn)())
 	{
 	dbstp_pfn = pfn;
-	SetTimer(NULL,		// handle to main window 
-		0,				// timer identifier 
-		60000,			// 1 minute interval 
-		(TIMERPROC) DbServerTimerProc); 
+	SetTimer(NULL,		// handle to main window
+		0,				// timer identifier
+		60000,			// 1 minute interval
+		(TIMERPROC) DbServerTimerProc);
 	}
 

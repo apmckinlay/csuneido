@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -89,10 +89,10 @@ double Rename::optimize2(const Fields& index, const Fields& needs, const Fields&
 	{
 	// NOTE: optimize1 to bypass tempindex
 	return source->optimize1(
-		rename_fields(index, to, from), 
+		rename_fields(index, to, from),
 		rename_fields(needs, to, from),
 		rename_fields(firstneeds, to, from),
-		is_cursor, freeze); 
+		is_cursor, freeze);
 	}
 
 Fields Rename::rename_fields(Fields f, Fields from, Fields to)

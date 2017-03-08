@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -115,7 +115,7 @@ void SuFunction::source(Ostream& out, int ci)
 			for (int i = 0; i < si; ++i)
 				if (src[i] == '\n')
 					++line;
-			out << line << ": "; 
+			out << line << ": ";
 			for (; si < db[di].si && src[si]; ++si)
 				out << (src[si] == '\n' || src[si] == '\r' ? ' ' : src[si]);
 			out << endl;
@@ -197,7 +197,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 		case I_CALL_MEM_SELF :
 			out << mem(ci) << " " << (op & 7);
 			break ;
-		default : 
+		default :
 			break ;
 			}
 		}
@@ -220,7 +220,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 			out << globals(TARGET(ci));
 			ci += 2;
 			break;
-		default : 
+		default :
 			break ;
 			}
 		}
@@ -241,7 +241,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 			out << globals(TARGET(ci));
 			ci += 2;
 			break;
-		default : 
+		default :
 			break ;
 			}
 		out << " " << (short) code[ci++];
@@ -272,7 +272,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 		case MEM_SELF :
 			out << mem(ci);
 			break ;
-		default : 
+		default :
 			break ;
 			}
 		}
@@ -417,7 +417,7 @@ static int namerefs(uchar* code, int nc, char* buf)
 			case I_CALL_MEM_SELF :
 				SYMBOL_REF
 				break ;
-			default : 
+			default :
 				break ;
 				}
 			}
@@ -437,7 +437,7 @@ static int namerefs(uchar* code, int nc, char* buf)
 			case GLOBAL :
 				GLOBAL_REF
 				break;
-			default : 
+			default :
 				break ;
 				}
 			}
@@ -456,7 +456,7 @@ static int namerefs(uchar* code, int nc, char* buf)
 			case GLOBAL :
 				GLOBAL_REF
 				break;
-			default : 
+			default :
 				break ;
 				}
 			++ci;
@@ -482,7 +482,7 @@ static int namerefs(uchar* code, int nc, char* buf)
 			case MEM_SELF :
 				SYMBOL_REF
 				break ;
-			default : 
+			default :
 				break ;
 				}
 			}
@@ -579,7 +579,7 @@ static int fixnames(uchar* code, int nc, const char* buf)
 			case I_CALL_MEM_SELF :
 				FIX_SYMBOL
 				break ;
-			default : 
+			default :
 				break ;
 				}
 			}
@@ -599,7 +599,7 @@ static int fixnames(uchar* code, int nc, const char* buf)
 			case GLOBAL :
 				FIX_GLOBAL
 				break;
-			default : 
+			default :
 				break ;
 				}
 			}
@@ -618,7 +618,7 @@ static int fixnames(uchar* code, int nc, const char* buf)
 			case GLOBAL :
 				FIX_GLOBAL
 				break;
-			default : 
+			default :
 				break ;
 				}
 			++ci;
@@ -644,7 +644,7 @@ static int fixnames(uchar* code, int nc, const char* buf)
 			case MEM_SELF :
 				FIX_SYMBOL
 				break ;
-			default : 
+			default :
 				break ;
 				}
 			}

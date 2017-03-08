@@ -313,20 +313,20 @@ double Table::optimize2(const Fields& index, const Fields& needs,
 
 	double cost;
 	if (cost1 <= cost2 && cost1 <= cost3)
-		{ 
+		{
 		cost = cost1;
 		if (freeze)
-			idx = idx1 ? idx1->index : none; 
+			idx = idx1 ? idx1->index : none;
 		}
 	else if (cost2 <= cost1 && cost2 <= cost3)
-		{ 
-		cost = cost2; 
+		{
+		cost = cost2;
 		if (freeze)
 			idx = idx2->index;
 		}
 	else
-		{ 
-		cost = cost3; 
+		{
+		cost = cost3;
 		if (freeze)
 			idx = idx3->index;
 		}

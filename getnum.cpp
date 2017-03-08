@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2003 Suneido Software Corp. 
+ *
+ * Copyright (c) 2003 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -31,7 +31,7 @@ int getnum(char type, char*& s)
 	{
 	while (isspace(*s))
 		++s;
-	if (toupper(s[0]) != type || 
+	if (toupper(s[0]) != type ||
 		! (isdigit(s[1]) || (s[1] == '-' && isdigit(s[2]))))
 		return ERR;
 	++s;

@@ -133,7 +133,7 @@ public:
 		short b, bool nf, char* gn, char* cn)
 		: Compiler(scanner, token, stmtnest),
 		fn(0), last_adr(-1), nparams(0), ndefaults(0),
-		rest(false), newfn(nf), base(b), gname(gn), className(cn), 
+		rest(false), newfn(nf), base(b), gname(gn), className(cn),
 		inblock(false), expecting_compound(false)
 		{
 		code.reserve(2000);
@@ -1383,7 +1383,7 @@ void FunctionCompiler::andop()
 	patch(a);
 	}
 
-void FunctionCompiler::inop()	
+void FunctionCompiler::inop()
 	{
 	bitorop();
 	int op = token;
@@ -1559,7 +1559,7 @@ void FunctionCompiler::expr0(bool newtype)
 	bool super = false;
 	switch (token)
 		{
-	case T_STRING : 
+	case T_STRING :
 		{
 		SuString* s = (scanner.len == 0)
 			? SuString::empty_string
@@ -1697,7 +1697,7 @@ void FunctionCompiler::expr0(bool newtype)
 	default :
 		syntax_error();
 		}
-	while (token == '.' || token == '[' || token == '(' || 
+	while (token == '.' || token == '[' || token == '(' ||
 		(token == '{' && ! expecting_compound))
 		{
 		if (value && (token == '.' || token == '['))

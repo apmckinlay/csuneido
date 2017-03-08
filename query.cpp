@@ -133,7 +133,7 @@ double Query::optimize(const Fields& index, const Fields& needs, const Fields& f
 	// tempindex
 	double cost2 = IMPOSSIBLE;
 	int keysize = size(index) * columnsize() * 2; // *2 for index overhead
-	Fields tempindex_needs = set_union(needs, index);	
+	Fields tempindex_needs = set_union(needs, index);
 	double no_index_cost = optimize1(none, tempindex_needs, firstneeds, is_cursor, false);
 	double tempindex_cost =
 		nrecords() * keysize * WRITE_FACTOR	// write index
@@ -1037,18 +1037,18 @@ class test_query : public Tests
 		{
 		TempDB tempdb;
 		adm("create cus(cnum, abbrev, name) key(cnum) key(abbrev)");
-		
+
 		tran = theDB()->transaction(READONLY);
 		Query* q = query("history(cus)");
 		q->set_transaction(tran);
 		assert_eq(q->get(NEXT), Query::Eof);
 		q->close(q);
-		verify(theDB()->commit(tran));		
-		
+		verify(theDB()->commit(tran));
+
 		tran = theDB()->transaction(READWRITE);
 		req("insert { cnum: 1, abbrev: 'a', name: 'axon' } into cus");
-		verify(theDB()->commit(tran));		
-		
+		verify(theDB()->commit(tran));
+
 		tran = theDB()->transaction(READONLY);
 		q = query("history(cus)");
 		q->set_transaction(tran);
@@ -1056,7 +1056,7 @@ class test_query : public Tests
 		verify(row != Query::Eof);
 		Header hdr = q->header();
 		q->close(q);
-		verify(theDB()->commit(tran));		
+		verify(theDB()->commit(tran));
 		OstreamStr os;
 		os << "cnum: " << row.getval(hdr, "cnum") <<
 			" abbrev: " << row.getval(hdr, "abbrev") <<

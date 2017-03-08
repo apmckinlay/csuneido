@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -179,7 +179,7 @@ public:
 	Indexes filter;
 protected: // not private so tests can subclass and override
 	Select() : Query1(NULL), // for tests
-		optFirst(true), getFirst(true), rewound(true), newrange(true), conflicting(false), 
+		optFirst(true), getFirst(true), rewound(true), newrange(true), conflicting(false),
 		f(0), tran(-1), n_in(0), n_out(0), fixdone(false)
 		{ }
 	And* expr;
@@ -212,13 +212,13 @@ protected: // not private so tests can subclass and override
 	void calc_field_fracs();
 	double field_frac(const Field& field);
 	void calc_index_fracs();
-	
+
 	double choose_primary(const QIndex& index);
 	double primarycost(const Fields& primary);
 	double choose_filter(double primary_cost);
 	double costwith(const Indexes& filter, double primary_index_cost);
 	double datafrac(Indexes indexes);
-	
+
 	bool matches(Row& row);
 	bool matches(Fields idx, const Record& key);
 	Iselects iselects(const Fields& idx);
@@ -227,7 +227,7 @@ protected: // not private so tests can subclass and override
 	bool distribute(Query2* q2);
 	Expr* project(Query* q);
 	void convert_select(const Fields& index, const Record& from, const Record& to);
-	
+
 	mutable bool fixdone;
 	mutable Lisp<Fixed> fix;
 	Fields required_index;
@@ -242,7 +242,7 @@ Query* Query::make_select(Query* s, Expr* e)
 	}
 
 Select::Select(Query* s, Expr* e) :
-	Query1(s), optFirst(true), getFirst(true), rewound(true), newrange(true), conflicting(false), nrecs(-1), 
+	Query1(s), optFirst(true), getFirst(true), rewound(true), newrange(true), conflicting(false), nrecs(-1),
 	f(0), tran(-1), n_in(0), n_out(0), fixdone(false)
 	{
 	e = e->fold();
@@ -250,7 +250,7 @@ Select::Select(Query* s, Expr* e) :
 	if (! expr)
 		expr = new And(Lisp<Expr*>(e));
 	if (! subset(source->columns(), expr->fields()))
-		except("select: nonexistent columns: " << 
+		except("select: nonexistent columns: " <<
 			difference(expr->fields(), source->columns()));
 	}
 
@@ -293,7 +293,7 @@ Query* Select::transform()
 	// move selects before renames
 	else if (Rename* r = dynamic_cast<Rename*>(source))
 		{
-		Expr* new_expr = expr->rename(r->to, r->from); 
+		Expr* new_expr = expr->rename(r->to, r->from);
 		source = r->source;
 		r->source = (new_expr == expr ? this : new Select(source, new_expr));
 		return r->transform();
@@ -336,7 +336,7 @@ Query* Select::transform()
 			expr = new And(rest.reverse());
 		else
 			moved = true;
-		}	
+		}
 	// distribute select over intersect
 	else if (Intersect* q = dynamic_cast<Intersect*>(source))
 		{
@@ -431,7 +431,7 @@ Expr* Select::project(Query* q)
 
 //===================================================================
 
-double Select::optimize2(const Fields& index, const Fields& needs, 
+double Select::optimize2(const Fields& index, const Fields& needs,
 	const Fields& firstneeds, bool is_cursor, bool freeze)
 	{
 	if (optFirst)
@@ -445,14 +445,14 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 		{
 		optFirst = false;
 		required_index = source_index = index;
-		double cost = source->optimize(index, set_union(needs, select_needs), 
+		double cost = source->optimize(index, set_union(needs, select_needs),
 			set_union(firstneeds, select_needs), is_cursor, freeze);
 		if (cost < IMPOSSIBLE)
 			nrecs = source->nrecords();
 		return cost;
 		}
 
-	LOG("Select::optimize " << tbl->table << (freeze ? " FREEZE" : "") << 
+	LOG("Select::optimize " << tbl->table << (freeze ? " FREEZE" : "") <<
 		" index " << index << ", needs " << needs);
 	LOG("original exprs: " << expr);
 	if (optFirst)
@@ -463,14 +463,14 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 
 	if (conflicting)
 		return 0;
-	
+
 	primary = Fields();
 	filter = Indexes();
 
 	double cost = choose_primary(index);
 	if (nil(primary))
 		return IMPOSSIBLE;
-	
+
 	//~ if (! is_cursor)
 		//~ cost = choose_filter(cost);
 
@@ -480,7 +480,7 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 	required_index = index;
 	source_index = primary;
 	tbl->select_index(source_index);
-	
+
 	return cost;
 	}
 
@@ -489,7 +489,7 @@ Lisp<Fixed> combine(Lisp<Fixed> fixed1, const Lisp<Fixed>& fixed2);
 void Select::optimize_setup()
 	{
 	fixed(); // calc before altering expr
-	
+
 	// the code depends on using the same indexes throughout (compares pointers)
 	theindexes = tbl->indexes();
 
@@ -503,7 +503,7 @@ void Select::optimize_setup()
 	identify_possible();
 	calc_field_fracs();
 	calc_index_fracs();
-	
+
 	// TODO: should be frac of complete select, not just indexes
 	nrecs = datafrac(theindexes) * tbl->nrecords();
 	}
@@ -688,7 +688,7 @@ void Select::calc_index_fracs()
 		}
 	LOG("ifracs " << ifracs);
 	}
-	
+
 double Select::choose_primary(const QIndex& index)
 	{
 	// find index that satisfies required index with least cost
@@ -713,13 +713,13 @@ double Select::choose_primary(const QIndex& index)
 double Select::primarycost(const Fields& primary)
 	{
 	double index_read_cost = ifracs[primary] * tbl->indexsize(primary);
-	
-	double data_frac = subset(primary, select_needs) && subset(primary, prior_needs) 
+
+	double data_frac = subset(primary, select_needs) && subset(primary, prior_needs)
 		? 0 : datafrac(Indexes(primary));
-	
+
 	double data_read_cost = data_frac * tbl->totalsize();
-	
-	LOG("primarycost(" << primary << ") index_read_cost " << index_read_cost << 
+
+	LOG("primarycost(" << primary << ") index_read_cost " << index_read_cost <<
 		", data_frac " << data_frac << ", data_read_cost " << data_read_cost);
 	return index_read_cost + data_read_cost;
 	}
@@ -762,9 +762,9 @@ double Select::costwith(const Indexes& filter, double primary_index_cost)
 	{
 	LOG("cost with: " << primary << " + " << filter);
 	Indexes all(cons(primary, filter));
-	double data_frac = includes(all, select_needs) && subset(primary, prior_needs) 
+	double data_frac = includes(all, select_needs) && subset(primary, prior_needs)
 		? 0 : datafrac(all);
-	
+
 	// approximate filter cost independent of order of filters
 	double filter_cost = 0;
 	for (Indexes f(filter); ! nil(f); ++f)
@@ -774,7 +774,7 @@ double Select::costwith(const Indexes& filter, double primary_index_cost)
 			n * tbl->keysize(*f) +	// read cost
 			n * FILTER_KEYSIZE * WRITE_FACTOR; // write cost
 		}
-	
+
 	LOG(" = " << data_frac << " * " << tbl->totalsize() <<
 		" + " << primary_index_cost << " + " << filter_cost <<
 		" = " << data_frac * tbl->totalsize() + primary_index_cost + filter_cost);
@@ -875,7 +875,7 @@ void Select::convert_select(const Fields& index, const Record& from, const Recor
 			{
 			newfrom.addval(fixval);
 			newto.addval(fixval);
-			++si; 
+			++si;
 			}
 		else if ((fixval = getfixed(fix, *ri)))
 			{
@@ -892,8 +892,8 @@ void Select::convert_select(const Fields& index, const Record& from, const Recor
 			++ri;
 			}
 		else
-			except_err(this << endl << " invalid select " << index << " " << 
-				from << " to " << to); 
+			except_err(this << endl << " invalid select " << index << " " <<
+				from << " to " << to);
 		}
 	if (from.getraw(from.size() - 1) == fieldmax)
 		newfrom.addraw(fieldmax);
@@ -996,7 +996,7 @@ void Select::iterate_setup()
 				}
 			}
 		tbl->set_index(source_index); // restore primary index
-		
+
 		// remove filter isels - no longer needed
 		for (idxs = filter; ! nil(idxs); ++idxs)
 			for (Fields flds(*idxs); ! nil(flds); ++flds)
@@ -1112,7 +1112,7 @@ static Keyrange intersect(const Keyrange& r1, const Keyrange& r2)
 	{
 	Keyrange result(
 		(r1.org < r2.org ? r2.org : r1.org),
-		(r1.end < r2.end ? r1.end : r2.end));	
+		(r1.end < r2.end ? r1.end : r2.end));
 	LOG("intersect " << r1 << " and " << r2 << " => " << result);
 	return result;
 	}
@@ -1210,7 +1210,7 @@ bool Iselect::matches(const gcstring& value)
 
 bool Iselect::inrange(const gcstring& x)
 	{
-	return 
+	return
 		(org.d == 0 ? (org.x <= x) : (org.x < x))
 		&&
 		(end.d == 0 ? (x <= end.x) : (x < end.x));
@@ -1272,10 +1272,10 @@ class test_qselect : public Tests
 		Fields index_a = lisp(gcstring("a"));
 		Fields index_b = lisp(gcstring("b"));
 		Fields index_a_b = lisp(gcstring("a"), gcstring("b"));
-		
+
 		ts.choose_primary(Fields());
 		verify(nil(ts.primary));
-		
+
 		ts.theindexes = lisp(index_a_b);
 		ts.ifracs[index_a_b] = .12;
 		ts.ffracs["a"] = .3;
@@ -1288,7 +1288,7 @@ class test_qselect : public Tests
 		asserteq(index_a_b, ts.primary);
 		ts.choose_primary(index_a_b);
 		asserteq(index_a_b, ts.primary);
-		
+
 		ts.theindexes = lisp(index_a, index_a_b, index_b);
 		ts.ifracs[index_a] = .3;
 		ts.ifracs[index_b] = .4;

@@ -4,18 +4,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2003 Suneido Software Corp. 
+ *
+ * Copyright (c) 2003 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -42,10 +42,10 @@ public:
 		{ data[i >> SHIFT] &= ~(1 << (i & MASK)); }
 	void slowset0(int from, int to);
 	void set0(int from, int to);
-	
+
 	int get(int i)
 		{ return 1 & (data[i >> SHIFT] >> (i & MASK)); }
-	
+
 	// post: returns a position > from
 	int slownext1(int i);
 	int next1(int fromto);
@@ -57,7 +57,7 @@ public:
 
 	// NOTE: limit affects clear/next/prev
 	void set_limit(int n);
-		
+
 	enum { SHIFT = 5, NBITS = 1 << SHIFT, MASK = NBITS -1 };
 	friend class test_bitmap;
 private:
