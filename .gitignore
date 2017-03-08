@@ -37,20 +37,10 @@
 /suneido.exe
 hunspell
 
-vc12suneido/Release/*
-vc12suneido/Debug/*
-vc12gc65/Release/*
-vc12gc65/Debug/*
-
-vs2015suneido/Release/*
-vs2015suneido/Debug/*
-vs2015gc65/Release/*
-vs2015gc65/Debug/*
-
-vs2017suneido/Release/*
-vs2017suneido/Debug/*
-vs2017gc65/Release/*
-vs2017gc65/Debug/*
+# visual studio
+Release/
+Debug/
+.vs/
 
 # /gc6.5/
 /gc6.5/mingw_release
