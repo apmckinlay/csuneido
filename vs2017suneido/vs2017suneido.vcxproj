@@ -109,11 +109,13 @@
     <ClCompile Include="..\catstr.cpp" />
     <ClCompile Include="..\checksum.cpp" />
     <ClCompile Include="..\circlog.cpp" />
+    <ClCompile Include="..\clientserver.cpp" />
     <ClCompile Include="..\cmdlineoptions.cpp" />
     <ClCompile Include="..\cmpic.cpp" />
     <ClCompile Include="..\codecheck.cpp" />
     <ClCompile Include="..\commalist.cpp" />
     <ClCompile Include="..\compile.cpp" />
+    <ClCompile Include="..\connection.cpp" />
     <ClCompile Include="..\construct.cpp" />
     <ClCompile Include="..\cvt.cpp" />
     <ClCompile Include="..\database.cpp" />
@@ -123,8 +125,10 @@
     <ClCompile Include="..\dbms.cpp" />
     <ClCompile Include="..\dbmslocal.cpp" />
     <ClCompile Include="..\dbmsremote.cpp" />
+    <ClCompile Include="..\dbmsremote2.cpp" />
     <ClCompile Include="..\dbmsunauth.cpp" />
     <ClCompile Include="..\dbserver.cpp" />
+    <ClCompile Include="..\dbserver2.cpp" />
     <ClCompile Include="..\dbserverdata.cpp" />
     <ClCompile Include="..\debug.cpp" />
     <ClCompile Include="..\dll.cpp" />
@@ -192,6 +196,7 @@
     <ClCompile Include="..\row.cpp" />
     <ClCompile Include="..\runpiped.cpp" />
     <ClCompile Include="..\scanner.cpp" />
+    <ClCompile Include="..\serializer.cpp" />
     <ClCompile Include="..\servereval.cpp" />
     <ClCompile Include="..\sesviews.cpp" />
     <ClCompile Include="..\slots.cpp" />
