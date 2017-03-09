@@ -65,18 +65,6 @@ struct ThreadInfo
 	Value fn;
 	};
 
-HashMap<UINT, const Except*> threadErrors;
-
-extern void handler(const Except&);
-
-static void CALLBACK threadError(HWND hwnd, UINT message, UINT id, DWORD dwTime)
-	{
-	KillTimer(nullptr, id);
-	auto e = threadErrors[id];
-	threadErrors.erase(id);
-	handler(*e);
-	}
-
 // this is a wrapper that runs inside the fiber to catch exceptions
 static void _stdcall thread(void* arg)
 	{
@@ -90,9 +78,7 @@ static void _stdcall thread(void* arg)
 		}
 	catch (const Except& e)
 		{
-		// use a timer to call handler from the main fiber
-		auto id = SetTimer(nullptr, 0, 0, threadError);
-		threadErrors[id] = new Except(e, "ERROR in Thread: " + e.gcstr());
+		errlog("ERROR in thread:", e.str(), e.callstack());
 		}
 	}
 
