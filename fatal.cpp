@@ -21,6 +21,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "fatal.h"
+#include "unhandled.h"
 #include <stdlib.h>
 #include "cmdlineoptions.h"
 #include "errlog.h"
@@ -31,10 +32,6 @@ extern void message(const char*, const char*, unsigned long timeout_ms);
 void fatal(const char* error, const char* extra)
 	{
 	if (! cmdlineoptions.unattended)
-		message("FATAL: ", error, 10 * 1000); // 10 seconds
-	if (is_client)
-		fatal_log(error, extra); // assume we've lost connection
-	else
-		errlog("FATAL: ", error, extra);
-	exit(-1);
+		message("FATAL ERROR ", error, 10 * 1000); // 10 seconds
+	fatal_log(error, extra); // assume we've lost connection
 	}

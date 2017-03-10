@@ -25,6 +25,4 @@
 
 [[noreturn]] void fatal(const char* error, const char* extra = "");
 
-[[noreturn]] void fatal_log(const char* error, const char* extra = "");
-
 #endif

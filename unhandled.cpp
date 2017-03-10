@@ -89,7 +89,7 @@ inline void log_and_exit(const char* error, const char* extra = "")
 			write(tls().fiber_id);
 			write(": ");
 			}
-		write("fatal error: ");
+		write("FATAL ERROR ");
 		write(error);
 		if (*extra)
 			{
@@ -100,7 +100,7 @@ inline void log_and_exit(const char* error, const char* extra = "")
 		CloseHandle(h_file);
 		}
 	// would be nice to give user a message
-	// but there doesn't seem to ba a safe way to do so
+	// but there doesn't seem to be a safe way to do so
 	// if a stack overflow has occurred
 	exit(-1);
 	}

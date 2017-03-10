@@ -26,4 +26,6 @@
 void unhandled();
 char* err_filename();
 
+[[noreturn]] void fatal_log(const char* error, const char* extra = "");
+
 #endif
