@@ -80,6 +80,13 @@ char* eval(const char* s)
 
 // primitives -------------------------------------------------------
 
+Value su_fatal()
+	{
+	const int nargs = 1;
+	fatal(ARG(0).str());
+}
+PRIM(su_fatal, "Fatal(s = '')");
+
 Value su_msgloop()
 	{
 	int nargs = 1;
