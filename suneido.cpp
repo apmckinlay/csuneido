@@ -106,6 +106,15 @@ static void init(HINSTANCE hInstance, LPSTR lpszCmdLine)
 #endif
 	}
 
+void close_dbms()
+	{
+	Fibers::foreach_tls([](ThreadLocalStorage& tls)
+		{
+		delete tls.thedbms;
+		tls.thedbms = nullptr;
+		});
+	}
+
 static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	{
 	verify(memcmp("\xff", "\x01", 1) > 0); // ensure unsigned cmp
@@ -177,6 +186,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		{
 		is_client = true;
 		set_dbms_server_ip(cmdlineoptions.argstr);
+		atexit(close_dbms);
 		char* filename = err_filename();
 		FILE* f = fopen(filename, "r");
 		if (f)

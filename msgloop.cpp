@@ -26,7 +26,6 @@
 #include "fibers.h"
 #include "sunapp.h"
 #include "except.h"
-#include "dbms.h"
 
 void free_callbacks();
 
@@ -96,17 +95,15 @@ static void destroy_windows()
 #include "cmdlineoptions.h" // for compact_exit
 #include "dbcompact.h" // for compact
 
+extern void close_dbms();
+
 static void shutdown(int status)
 	{
 	destroy_windows(); // so they can do save etc.
 #ifndef __GNUC__
 	sunapp_revoke_classes();
 #endif
-	Fibers::foreach_tls([](ThreadLocalStorage& tls)
-		{
-		delete tls.thedbms;
-		tls.thedbms = nullptr;
-		});
+	close_dbms();
 	if (cmdlineoptions.compact_exit)
 		compact();
 	exit(status);
