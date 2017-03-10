@@ -78,7 +78,7 @@ static void _stdcall thread(void* arg)
 		}
 	catch (const Except& e)
 		{
-		errlog("ERROR in thread:", e.str(), e.callstack());
+		errlog("ERROR uncaught in thread:", e.str(), e.callstack());
 		}
 	}
 
