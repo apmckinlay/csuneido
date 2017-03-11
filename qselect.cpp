@@ -241,6 +241,7 @@ Query* Query::make_select(Query* s, Expr* e)
 	return new Select(s, e);
 	}
 
+
 Select::Select(Query* s, Expr* e) :
 	Query1(s), optFirst(true), getFirst(true), rewound(true), newrange(true), conflicting(false), nrecs(-1),
 	f(0), tran(-1), n_in(0), n_out(0), fixdone(false)
@@ -575,7 +576,7 @@ Lisp<Cmp> Select::extract_cmps()
 			}
 		newexprs.push(*exprs);
 		}
-	expr = new And(newexprs);
+	expr = new And(newexprs.reverse());
 	LOG("exprs: " << *expr);
 	LOG("cmps: " << cmps);
 	return cmps;
@@ -801,7 +802,7 @@ static bool includes(const Indexes& indexes, Fields fields)
 // compute the fraction of data selected by a set of indexes
 double Select::datafrac(Indexes indexes)
 	{
- 	// take the union of all the index fields
+	// take the union of all the index fields
 	// to ensure you don't use a field more than once
 	Fields flds;
 	for (Indexes idxs = indexes; ! nil(idxs); ++idxs)
