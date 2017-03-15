@@ -161,6 +161,7 @@ private:
 	enum { maxtest = 100 };
 	uchar test[maxtest];
 	bool it_used; // for blocks
+	bool inside_try = false;
 
 	void block();
 	void statement(short = -1, short* = NULL);
@@ -1250,11 +1251,15 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 		break ;
 	case K_TRY :
 		{
+		if (inside_try)
+			syntax_error("nested try-catch is not supported on cSuneido");
 		match();
 		a = emit(I_TRY, 0, -1);
 		int catchvalue = literal(0);
 		emit_target(LITERAL, catchvalue);
+		inside_try = true;
 		statement(cont, pbrk);	// try code
+		inside_try = false;
 		mark();
 		b = emit(I_CATCH, 0, -1);
 		patch(a);
