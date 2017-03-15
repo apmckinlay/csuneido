@@ -31,7 +31,6 @@
 #include <ctime>
 #include <unordered_map>
 
-
 //#define FILE_LOGGING
 
 #ifdef FILE_LOGGING
