@@ -39,7 +39,6 @@ int memcmpic(const char* s, const char* t, int n)
 	return 0;
 	}
 
-
 #include "testing.h"
 
 class test_cmpic : public Tests
