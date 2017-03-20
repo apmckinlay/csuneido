@@ -45,7 +45,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <GenerateManifest>false</GenerateManifest>
-    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -89,7 +89,7 @@
       <Message>update Built</Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>copy /y "$(TargetDir)$(TargetFileName)" $(MSBuildProjectDirectory)\..\suneido.exe</Command>
+      <Command>"$(TargetDir)$(TargetFileName)" -t &amp;&amp; copy /y "$(TargetDir)$(TargetFileName)" $(MSBuildProjectDirectory)\..\suneido.exe</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
