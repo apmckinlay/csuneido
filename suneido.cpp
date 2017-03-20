@@ -166,16 +166,16 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	case TESTS :
 		{
 		TestObserverAlert to;
-		TestRegister::runall(to);
+		int nfailed = TestRegister::runall(to);
 		if (! *cmdline)
-			exit(EXIT_SUCCESS);
+			exit(nfailed == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
 		break ;
 		}
 	case TEST :
 		{
 		TestObserverAlert to;
-		TestRegister::runtest(CATSTRA("test_", cmdlineoptions.argstr), to);
-		exit(EXIT_SUCCESS);
+		int nfailed = TestRegister::runtest(CATSTRA("test_", cmdlineoptions.argstr), to);
+		exit(nfailed == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
 		}
 	case SERVER :
 		is_server = true;
