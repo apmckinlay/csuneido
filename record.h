@@ -84,6 +84,7 @@ public:
 	static Record from_int64(Mmoffset n, Mmfile* mmf);
 
 	Record to_heap() const;
+	static const Record empty;
 private:
 	void init(size_t sz);
 	int avail() const;

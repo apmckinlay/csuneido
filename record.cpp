@@ -518,6 +518,8 @@ Record Record::to_heap() const
 	return crep && crep->type == 'd' ? dup() : *this;
 	}
 
+Record const Record::empty;
+
 // test =============================================================
 
 #include "testing.h"
