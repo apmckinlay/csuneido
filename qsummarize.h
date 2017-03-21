@@ -32,14 +32,12 @@ class Summarize : public Query1
 public:
 	Summarize(Query* source, const Fields& p, const Fields& c, const Fields& f, const Fields& o);
 	void out(Ostream& os) const;
-	Fields columns()
-		{ return set_union(by, cols); }
+	Fields columns();
 	Indexes keys();
 	Indexes indexes();
 	double optimize2(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze);
 	// estimated result sizes
-	double nrecords()
-		{ return source->nrecords() / 2; }
+	double nrecords();
 	int recordsize()
 		{
 		return size(by) * source->columnsize() + size(cols) * 8;
@@ -53,21 +51,30 @@ public:
 	friend class Strategy;
 	friend class SeqStrategy;
 	friend class MapStrategy;
+	friend class IdxStrategy;
 private:
-	bool by_contains_key();
+	bool by_contains_key() const;
 	void iterate_setup();
 	bool equal();
+	double idxCost(bool is_cursor, bool freeze);
+	double seqCost(const Fields& index, const Fields& srcneeds,
+		bool is_cursor, bool freeze);
+	double mapCost(const Fields& index, const Fields& srcneeds,
+		bool is_cursor, bool freeze);
+	bool minmax1() const;
+	Indexes sourceIndexes(const Fields& index) const;
 
 	Fields by;
 	Fields cols;
 	Fields funcs;
 	Fields on;
-	enum { NONE, COPY, SEQUENTIAL, MAP } strategy;
+	enum { NONE, SEQ, MAP, IDX } strategy;
 	bool first;
 	bool rewound;
 	Header hdr;
 	Fields via;
 	class Strategy* strategyImp;
+	bool wholeRecord;
 	};
 
 #endif

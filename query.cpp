@@ -596,7 +596,7 @@ Querystruct querytests[] =
 \"eraser\"	150\n\
 \"mouse\"	400\n" },
 
-	{ "trans summarize total cost", "trans^(item) SUMMARIZE-COPY total_cost = total cost",
+	{ "trans summarize total cost", "trans^(item) SUMMARIZE-SEQ total_cost = total cost",
 "total_cost\n\
 650\n" },
 

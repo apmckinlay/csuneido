@@ -28,6 +28,8 @@
 #include <map>
 using namespace std;
 
+#define Eof Query::Eof
+
 class Strategy
 	{
 public:
@@ -50,10 +52,11 @@ protected:
 	Keyrange sel;
 	};
 
+// used when we can read the data in order of "by" (or when "by" is empty)
 class SeqStrategy : public Strategy
 	{
 public:
-	SeqStrategy(Summarize* source);
+	SeqStrategy(Summarize* q);
 	Row get(Dir dir, bool rewound);
 	void select(const Fields& index, const Record& from, const Record& to);
 private:
@@ -64,10 +67,11 @@ private:
 	Row currow;
 	};
 
+// used when data is read unordered
 class MapStrategy : public Strategy
 	{
 public:
-	MapStrategy(Summarize* source);
+	MapStrategy(Summarize* q);
 	Row get(Dir dir, bool rewound);
 	void select(const Fields& index, const Record& from, const Record& to);
 private:
@@ -78,6 +82,21 @@ private:
 	Map::iterator begin, end, iter;
 	bool first;
 	};
+
+// used for "summarize min/max index-field"
+// where we can just read first/last using index
+class IdxStrategy : public Strategy
+{
+public:
+	IdxStrategy(Summarize* q) : Strategy(q)
+		{ }
+	Row get(Dir dir, bool rewound) override;
+	void select(const Fields& index, const Record& from, const Record& to) override;
+private:
+	Fields selIndex;
+};
+
+//===================================================================
 
 const Fields none;
 
@@ -95,24 +114,12 @@ Summarize::Summarize(Query* source, const Fields& p, const Fields& c,
 	if (! subset(source->columns(), by))
 		except("summarize: nonexistent columns: " <<
 			difference(by, source->columns()));
-
-	if (nil(by) || by_contains_key())
-		strategy = COPY;
-	}
-
-bool Summarize::by_contains_key()
-	{
-	// check if project contain candidate key
-	Indexes k = source->keys();
-	for (; ! nil(k); ++k)
-		if (subset(by, *k))
-			break ;
-	return ! nil(k);
+	wholeRecord = minmax1() && source->keys().member(on);
 	}
 
 void Summarize::out(Ostream& os) const
 	{
-	const char* s[] = { "", "-COPY", "-SEQ", "-MAP" };
+	const char* s[] = { "", "-SEQ", "-MAP", "-IDX" };
 	os << *source << " SUMMARIZE" << s[strategy];
 	if (! nil(via))
 		os << " ^" << via;
@@ -127,9 +134,18 @@ void Summarize::out(Ostream& os) const
 		}
 	}
 
+double Summarize::nrecords()
+	{
+	double nr = source->nrecords();
+	return nr == 0 ? 0
+		: nil(by) ? 1
+		: by_contains_key() ? nr
+		: nr / 2;					//TODO review this estimate
+}
+
 Indexes Summarize::indexes()
 	{
-	if (strategy == COPY)
+	if (nil(by) || by_contains_key())
 		return source->indexes();
 	else
 		{
@@ -150,55 +166,110 @@ Indexes Summarize::keys()
 	return nil(keys) ? Indexes(by) : keys;
 	}
 
+//===================================================================
+
 double Summarize::optimize2(const Fields& index, const Fields& needs,
 	const Fields& firstneeds, bool is_cursor, bool freeze)
 	{
 	const Fields srcneeds =
 		set_union(erase(on, gcstring("")), difference(needs, cols));
 
-	if (strategy == COPY)
-		{
-		// TODO optimize "summarize max/min field" if field is indexed
-		// to just read next/prev on index
-		// can ignore required index since result is only zero or one record
+	double seq_cost = seqCost(index, srcneeds, is_cursor, false);
+	double idx_cost = idxCost(is_cursor, false);
+	double map_cost = mapCost(index, srcneeds, is_cursor, false);
 
-		if (freeze)
-			via = index;
-		return source->optimize(index, srcneeds, by, is_cursor, freeze);
-		}
+	if (!freeze)
+		return min(seq_cost, min(idx_cost, map_cost));
 
-	Indexes indexes;
-	if (nil(index))
-		indexes = source->indexes();
+	if (seq_cost <= idx_cost && seq_cost <= map_cost)
+		return seqCost(index, srcneeds, is_cursor, true);
+	else if (idx_cost <= map_cost)
+		return idxCost(is_cursor, true);
+	else
+		return mapCost(index, srcneeds, is_cursor, true);
+	}
+
+double Summarize::seqCost(const Fields& index, const Fields& srcneeds,
+	bool is_cursor, bool freeze) {
+	if (freeze)
+		strategy = SEQ;
+	if (nil(by) || by_contains_key())
+		return source->optimize(nil(by) ? none : index,
+			srcneeds, by, is_cursor, freeze);
 	else
 		{
-		Lisp<Fixed> fixed = source->fixed();
-		for (Indexes idxs = source->indexes(); ! nil(idxs); ++idxs)
-			if (prefixed(*idxs, index, fixed))
-				indexes.push(*idxs);
-		}
-	// NOTE: using optimize1 to bypass tempindex
-	Fields best_index;
-	double best_cost = IMPOSSIBLE;
-	best_prefixed(indexes, by, srcneeds, is_cursor, best_index, best_cost);
-	double mapCost = prefix(by, index)
-			? 1.5 * source->optimize1(none, srcneeds, by, is_cursor, false)
-			: IMPOSSIBLE;
-	if (! freeze)
-		return min(best_cost, mapCost);
-	if (mapCost < best_cost)
-		{
-		strategy = MAP;
-		return source->optimize1(none, srcneeds, by, is_cursor, freeze);
-		}
-	else
-		{
-		if (best_cost >= IMPOSSIBLE)
-			return IMPOSSIBLE;
-		strategy = SEQUENTIAL;
+		Fields best_index;
+		double best_cost = IMPOSSIBLE;
+		best_prefixed(sourceIndexes(index), by, srcneeds, is_cursor, 
+			best_index, best_cost);
+		if (!freeze || best_cost >= IMPOSSIBLE)
+			return best_cost;
 		via = best_index;
 		return source->optimize1(best_index, srcneeds, none, is_cursor, freeze);
 		}
+	}
+Indexes Summarize::sourceIndexes(const Fields& index) const
+	{
+	if (nil(index))
+		return source->indexes();
+	else
+		{
+		Indexes indexes;
+		Lisp<Fixed> fixed = source->fixed();
+		for (Indexes idxs = source->indexes(); !nil(idxs); ++idxs)
+			if (prefixed(*idxs, index, fixed))
+				indexes.push(*idxs);
+		return indexes.reverse();
+		}
+	}
+
+double Summarize::idxCost(bool is_cursor, bool freeze)
+	{ 
+	if (!minmax1())
+		return IMPOSSIBLE;
+	// using optimize1 to bypass tempindex
+	// dividing by nrecords since we're only reading one record
+	auto nr = max(1.0, source->nrecords());
+	double cost = source->optimize1(on, none, none, is_cursor, freeze) / nr;
+	if (freeze)
+		{
+		strategy = IDX;
+		via = on;
+		}
+	return cost;
+	}
+
+bool Summarize::minmax1() const 
+	{
+	if (!nil(by) || funcs.size() != 1)
+		return false;
+	gcstring fn = funcs[0];
+	return fn == "min" || fn == "max";
+	}
+
+bool Summarize::by_contains_key() const
+	{
+	// check if project contain candidate key
+	Indexes k = source->keys();
+	for (; !nil(k); ++k)
+		if (subset(by, *k))
+			break;
+	return !nil(k);
+	}
+
+double Summarize::mapCost(const Fields& index, const Fields& srcneeds,
+	bool is_cursor, bool freeze)
+	{
+	// can only provide 'by' as index
+	if (!prefix(by, index))
+		return IMPOSSIBLE;
+	// using optimize1 to bypass tempindex
+	// add 50% for map overhead
+	double cost = 1.5 *
+		source->optimize1(none, srcneeds, none, is_cursor, freeze);
+	if (freeze)
+		strategy = MAP;
+	return cost;
 	}
 
 // functions ========================================================
@@ -210,8 +281,19 @@ public:
 		{ init(); }
 	virtual void init()
 		{ }
-	virtual void add(Value x) = 0;
+	virtual void add(Value x)
+		{
+		add(Eof, x);
+		}
+	virtual void add(Row row, Value x)
+		{
+		add(x);
+		}
 	virtual Value result() = 0;
+	virtual Row getRow()
+		{
+		return Eof;
+		}
 	};
 
 class Total : public Summary
@@ -264,30 +346,43 @@ private:
 	int count;
 	};
 
-class Max : public Summary
+class MinMax : public Summary
 	{
-public:
 	void init()
-		{ max = Value(); }
-	void add(Value x)
-		{ if (! max || x > max) max = x; }
-	Value result()
-		{ return max; }
-private:
-	Value max;
+		{ val = Value(); }
+	Value result() override
+		{ return val; }
+	Row getRow() override
+		{ return row; }
+protected:
+	Row row;
+	Value val;
 	};
 
-class Min : public Summary
+class Max : public MinMax
 	{
 public:
-	void init()
-		{ min = Value(); }
-	void add(Value x)
-		{ if (! min || x < min) min = x; }
-	Value result()
-		{ return min; }
-private:
-	Value min;
+	void add(Row r, Value x) override
+		{
+		if (! val || x > val)
+			{
+			row = r;
+			val = x;
+			}
+		}
+	};
+
+class Min : public MinMax
+	{
+public:
+	void add(Row r, Value x) override
+		{
+		if (! val || x < val)
+			{
+			row = r;
+			val = x;
+			}
+		}
 	};
 
 class List : public Summary
@@ -326,12 +421,24 @@ Summary* summary(const gcstring& type)
 
 //===================================================================
 
+Fields Summarize::columns()
+	{
+	return wholeRecord
+		? set_union(cols, source->columns())
+		: set_union(by, cols);
+	}
+
 Header Summarize::header()
 	{
 	if (first)
 		iterate_setup();
-	Fields flds = concat(by, cols);
-	return Header(lisp(Fields(), flds), flds);
+	if (wholeRecord)
+		return source->header() + Header(lisp(none, cols), cols);
+	else
+		{
+		Fields flds = concat(by, cols);
+		return Header(lisp(none, flds), flds);
+		}
 	}
 
 Row Summarize::get(Dir dir)
@@ -347,7 +454,9 @@ void Summarize::iterate_setup()
 	{
 	first = false;
 	hdr = source->header();
-	if (strategy == MAP)
+	if (strategy == IDX)
+		strategyImp = new IdxStrategy(this);
+	else if (strategy == MAP)
 		strategyImp = new MapStrategy(this);
 	else
 		strategyImp = new SeqStrategy(this);
@@ -387,13 +496,10 @@ Row Strategy::makeRow(Record r, Lisp<class Summary*> sums)
 	{
 	for (Lisp<class Summary*> s = sums; ! nil(s); ++s)
 		r.addval((*s)->result());
-	static Record emptyrec;
-	return Row(lisp(emptyrec, r));
+	return Row(lisp(Record::empty, r));
 	}
 
 //===================================================================
-
-#define Eof Query::Eof
 
 SeqStrategy::SeqStrategy(Summarize* summarize) : Strategy(summarize)
  	{
@@ -433,14 +539,17 @@ Row SeqStrategy::get(Dir dir, bool rewound)
 			break ;
 		Lisp<Summary*> s = sums;
 		for (Fields o = q->on; ! nil(o); ++o, ++s)
-			(*s)->add(nextrow.getval(q->hdr, *o));
+			(*s)->add(nextrow, nextrow.getval(q->hdr, *o));
 		nextrow = source->get(dir);
 		}
 		while (equal());
 	// output after reading a group
 
 	Record byRec = row_to_key(q->hdr, currow, q->by);
-	return makeRow(byRec, sums);
+	Row row = makeRow(byRec, sums);
+	if (q->wholeRecord)
+		row = Row(sums[0]->getRow()) + row;
+	return row;
 	}
 
 bool SeqStrategy::equal()
@@ -530,6 +639,32 @@ void MapStrategy::process()
 void MapStrategy::select(const Fields& index, const Record& from, const Record& to)
 	{
 	verify(prefix(q->by, index));
-	sel.org = from;
-	sel.end = to;
+	}
+
+//===================================================================
+
+Row IdxStrategy::get(Dir dir, bool rewound)
+	{
+	if (!rewound)
+		return Eof;
+	dir = q->funcs[0] == "min" ? NEXT : PREV;
+	Row row = source->get(dir);
+	if (row == Eof)
+		return Eof;
+	if (! nil(selIndex)) {
+		Record key = row_to_key(q->hdr, row, selIndex);
+		if (key < sel.org || sel.end > key)
+			return Eof;
+	}
+	Record r;
+	r.addraw(row.getraw(q->hdr, q->on[0]));
+	Row result = Row(Record::empty) + Row(r);
+	if (q->wholeRecord)
+		result = row + result;
+	return result;
+	}
+
+void IdxStrategy::select(const Fields& index, const Record& from, const Record& to)
+	{
+    selIndex = index;
 	}
