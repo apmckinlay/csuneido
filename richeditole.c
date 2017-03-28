@@ -27,6 +27,7 @@
 #include "win.h"
 #include <windowsx.h>
 #include <ole2.h>
+#pragma warning(disable:4201;disable:4152)
 #include <richedit.h>
 #include <richole.h>
 
@@ -197,7 +198,7 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 void RichEditOle(HWND hwndRE)
 	{
 	ITPCALL* pitpcall;
-	if (! (pitpcall = (ITPCALL *) GlobalAllocPtr(GHND, sizeof(ITPCALL))))
+	if (0 == ((pitpcall = (ITPCALL *) GlobalAllocPtr(GHND, sizeof(ITPCALL)))))
 		return ; // failed
 	pitpcall->lpVtbl = &ITPCALL_Vtbl;
 	pitpcall->cRef = 1;					// Start with one reference

@@ -1,6 +1,4 @@
-#ifndef MMFILE_H
-#define MMFILE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -25,7 +23,8 @@
 
 #include "std.h"
 #include "mmoffset.h"
-#include <stddef.h>
+// ReSharper disable once CppUnusedIncludeDirective
+#include <stddef.h> // for size_t
 
 //#define MM_KEEPADR
 
@@ -46,11 +45,11 @@ class Mmfile
 	{
 public:
 	friend class test_mmfile;
-	explicit Mmfile(char* filename, bool create = false, bool readonly = false);
+	explicit Mmfile(const char* filename, bool create = false, bool readonly = false);
 	~Mmfile();
 	Mmoffset alloc(size_t n, char type, bool zero = true);
 	void unalloc(size_t n);
-	int64 size()
+	int64 size() const
 		{ return file_size; }
 	void* adr(Mmoffset offset);
 	static char type(void* p);
@@ -74,15 +73,15 @@ public:
 			{ }
 		iterator& operator++();
 		iterator& operator--();
-		void* operator*()
+		void* operator*() const
 			{ return mmf->adr(off); }
 		bool operator==(const iterator& iter) const
 			{ return off == iter.off; }
 		char type();
 		size_t size();
-		bool corrupt()
+		bool corrupt() const
 			{ return err; }
-		Mmoffset offset()
+		Mmoffset offset() const
 			{ return off; }
 	private:
 		Mmoffset off;
@@ -95,7 +94,7 @@ public:
 private:
 	void set_chunk_size(int n) // for tests only
 		{ chunk_size = n; }
-	void open(char* filename, bool create, bool readonly);
+	void open(const char* filename, bool create, bool ro);
 	void map(int chunk);
 	void unmap(int chunk);
 	void set_file_size(Mmoffset fs);
@@ -124,5 +123,3 @@ private:
 #endif
 	bool readonly;
 	};
-
-#endif

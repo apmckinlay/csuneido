@@ -34,7 +34,8 @@ public:
 		{
 		named.num = globals("ServerEval");
 		}
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 	};
 
 Value su_ServerEval()
@@ -42,7 +43,8 @@ Value su_ServerEval()
 	return new ServerEval;
 	}
 
-Value ServerEval::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value ServerEval::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs < 1)
 		except("usage: ServerEval(function_name [, args ...])");

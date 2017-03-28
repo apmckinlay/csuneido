@@ -24,9 +24,10 @@
 #include "gc.h"
 #include "except.h"
 #include "gcstring.h"
-#include "minmax.h"
 #include "fatal.h"
 #include <string.h>
+#include <algorithm>
+using std::max;
 
 Buffer::Buffer(int n) : buf(new(noptrs) char[n]), capacity(n), used(0), pos(0)
 	{ }

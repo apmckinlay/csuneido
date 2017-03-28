@@ -21,11 +21,9 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "dump.h"
-#include "suvalue.h"
 #include "database.h"
 #include "thedb.h"
 #include "ostreamfile.h"
-#include "ostreamstr.h"
 #include "fibers.h" // for yieldif
 
 static int dump1(OstreamFile& fout, int tran, const gcstring& table, bool output_name = true);
@@ -61,14 +59,15 @@ void dump(const gcstring& table)
 		if (! fout)
 			except("can't create database.su");
 		fout << "Suneido dump 1.0" << endl;
-		for (Index::iterator iter = theDB()->get_index("tables", "tablename")->begin(schema_tran);
+		for (Index::iterator iter = 
+				theDB()->get_index("tables", "tablename")->begin(schema_tran);
 			! iter.eof(); ++iter)
 			{
 			Record r(iter.data());
-			gcstring table = r.getstr(T_TABLE);
-			if (theDB()->is_system_table(table))
+			gcstring t = r.getstr(T_TABLE);
+			if (theDB()->is_system_table(t))
 				continue ;
-			dump1(fout, session.tran, table);
+			dump1(fout, session.tran, t);
 			}
 		dump1(fout, session.tran, "views");
 		}

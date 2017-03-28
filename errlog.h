@@ -1,6 +1,4 @@
-#ifndef ERRLOG_H
-#define ERRLOG_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -24,5 +22,3 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void errlog(const char* msg1, const char* msg2 = "", const char* msg3 = "");
-
-#endif

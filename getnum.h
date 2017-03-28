@@ -1,5 +1,4 @@
-#ifndef GETNUM_H
-#define GETNUM_H
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -27,5 +26,3 @@
 const int ERR = INT_MIN;
 int getnum(char type, char*& s);
 int ck_getnum(char type, char*& s);
-
-#endif

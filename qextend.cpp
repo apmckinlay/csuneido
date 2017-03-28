@@ -29,7 +29,7 @@ Query* Query::make_extend(Query* source, const Fields& f, Lisp<Expr*> e)
 	}
 
 Extend::Extend(Query* source, const Fields& f, Lisp<Expr*> e)
-	: Query1(source), flds(f), exprs(e), first(true), srccolnums(0)
+	: Query1(source), flds(f), exprs(e), first(true)
 	{
 	init();
 	check_dependencies();
@@ -43,10 +43,10 @@ void Extend::check_dependencies()
 		{
 		if (*e)
 			{
-			Fields eflds = (*e)->fields();
-			if (! subset(avail, eflds))
+			Fields ef = (*e)->fields();
+			if (! subset(avail, ef))
 				except("extend: invalid column(s) in expressions: " <<
-					difference(eflds, avail));
+					difference(ef, avail));
 			}
 		avail.push(*f);
 		}
@@ -74,7 +74,7 @@ void Extend::init()
 void Extend::out(Ostream& os) const
 	{
 	os << *source << " EXTEND ";
-	char* sep = "";
+	const char* sep = "";
 	Lisp<Expr*> e = exprs;
 	for (Fields f = flds; ! nil(f); ++f, ++e)
 		{
@@ -197,9 +197,9 @@ bool Extend::has_rules()
 	return exprs.member(NULL);
 	}
 
-bool Extend::need_rule(Fields flds)
+bool Extend::need_rule(Fields fields)
 	{
-	for (Fields f = flds; ! nil(f); ++f)
+	for (Fields f = fields; ! nil(f); ++f)
 		if (need_rule(*f))
 			return true;
 	return false;

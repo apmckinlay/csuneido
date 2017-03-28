@@ -41,7 +41,7 @@
 #include "dbcompact.h"
 #include "recover.h"
 #include "globals.h"
-#include <stdio.h> // for tmpnam and remove
+#include <stdio.h> // for remove
 #include "fatal.h"
 #include "sustring.h"
 #include "testobalert.h"
@@ -66,7 +66,7 @@ BOOL CALLBACK splash(HWND, UINT uMsg, WPARAM, LPARAM)
 	return uMsg == WM_INITDIALOG ? TRUE : FALSE;
 	}
 
-char* cmdline = "";
+const char* cmdline = "";
 
 bool is_server = false;
 bool is_client = false;

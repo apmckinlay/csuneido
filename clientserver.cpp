@@ -21,7 +21,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // for debugging
-char* cmdnames[] {
+const char* cmdnames[] {
 	"ABORT", "ADMIN", "AUTH", "CHECK", "CLOSE", "COMMIT", "CONNECTIONS", "CURSOR",
 	"CURSORS", "DUMP", "ERASE", "EXEC", "EXPLAIN", "FINAL", "GET", "GET1", "HEADER",
 	"KEYS", "KILL", "LIBGET", "LIBRARIES", "LOAD", "LOG", "NONCE", "ORDER", "OUTPUT",

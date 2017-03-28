@@ -1,6 +1,4 @@
-#ifndef GCSTRING_H
-#define GCSTRING_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -29,7 +27,9 @@
 class Ostream;
 
 // string class for use with garbage collection
-// assumes strings are immutable
+// defers concatenation by making a linked list of pieces
+// mostly immutable but used as buffers in a few places
+// TODO make fully immutable
 class gcstring
 	{
 	// invariant: if n is 0 then p is empty_buf
@@ -37,14 +37,8 @@ public:
 	gcstring() : n(0), p(empty_buf)
 		{ }
 	explicit gcstring(size_t nn);
-	gcstring(const gcstring& s) : n(s.n), p(s.p)
-		{ }
-	gcstring& operator=(const gcstring& s)
-		{
-		p = s.p;
-		n = s.n;
-		return *this;
-		}
+	gcstring(const gcstring& s) = default;
+	gcstring& operator=(const gcstring& s) = default;
 
 	gcstring(const char* s)
 		{ init(s, s ? strlen(s) : 0); }
@@ -65,20 +59,15 @@ public:
 	size_t size() const
 		{ return n >= 0 ? n : -n; }
 	char* buf()
-		{ ckflat(); return p; }
+		{ ckflat(); return (char*)p; }
 	const char* buf() const
 		{ ckflat(); return p; }
 	// begin is same as buf but STL name
-	char* begin()
-		{ ckflat(); return p; }
 	const char* begin() const
 		{ ckflat(); return p; }
-	char* end()
-		{ ckflat(); return p + n; }
 	const char* end() const
 		{ ckflat(); return p + n; }
 	const char* str() const; // nul terminated
-	char* str();
 
 	const char& operator[](int i) const
 		{ ckflat(); return p[i]; }
@@ -105,11 +94,14 @@ public:
 
 	gcstring to_heap();
 
+	gcstring capitalize() const;
+	gcstring uncapitalize() const;
+
 protected:
 	mutable int n; // mutable because of flatten, negative means concat
 	union
 		{
-		mutable char* p; // mutable because of str()
+		mutable const char* p; // mutable because of str()
 		struct Concat* cc;
 		};
 
@@ -120,7 +112,7 @@ protected:
 	void flatten() const;
 	static void copy(char* s, const gcstring* p);
 private:
-	static char* empty_buf;
+	static const char* empty_buf;
 	};
 
 inline bool operator==(const gcstring& x, const gcstring& y)
@@ -165,11 +157,9 @@ template <class T> struct HashFn;
 
 template <> struct HashFn<gcstring>
 	{
-	size_t operator()(const gcstring& s)
+	size_t operator()(const gcstring& s) const
 		{ return hashfn(s.buf(), s.size()); }
 	};
 
 bool has_prefix(const char* s, const char* pre);
 bool has_suffix(const char* s, const char* pre);
-
-#endif

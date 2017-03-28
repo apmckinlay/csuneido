@@ -32,7 +32,7 @@ Query* Query::make_history(const gcstring& table)
 	}
 
 HistoryTable::HistoryTable(const gcstring& t) :
-	table(t), tblnum(theDB()->ck_get_table(t)->num), rewound(true)
+	table(t), tblnum(theDB()->ck_get_table(t)->num)
 	{
 	}
 
@@ -77,11 +77,6 @@ int HistoryTable::recordsize()
 int HistoryTable::columnsize()
 	{
 	return 10;
-	}
-
-int HistoryTable::keysize(const Fields& index)
-	{
-	return 100;
 	}
 
 Header HistoryTable::header()

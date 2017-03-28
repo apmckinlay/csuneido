@@ -1,6 +1,4 @@
-#ifndef SCANNER_H
-#define SCANNER_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -23,7 +21,6 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "std.h"
 #include "opcodes.h"
 
 class CodeVisitor;
@@ -33,25 +30,26 @@ class CodeVisitor;
 class Scanner
 	{
 public:
-	Scanner(char* = "", int = 0, CodeVisitor* cv = 0);
+	Scanner(const char* s = "", int i = 0, CodeVisitor* cv = nullptr);
+	virtual ~Scanner() = default;
 	int ahead() const;
 	int aheadnl() const;
-	int next();
+	virtual int next();
 	int nextall();
 	const char* rest() const
 		{ return source + si; }
 	static char doesc(const char* source, int& si);
 
-	int prev;
-	char* value;
-	int len;
-	char* err;
+	int prev = 0;
+	const char* value = "";
+	int len = 0;
+	const char* err = "";
 	enum { buflen = 20000 };		// maximum string constant length
 	char buf[buflen];
 	const char* source;
 	int si;
-	int keyword;
-	CodeVisitor* visitor; // not used by Scanner
+	int keyword = 0;
+	CodeVisitor* visitor = nullptr; // not used by Scanner
 	// but placed here to avoid passing around extra argument in compiler
 protected:
 	explicit Scanner(const Scanner*);
@@ -86,5 +84,3 @@ enum // keywords
 	};
 
 const int Eof = -1;
-
-#endif

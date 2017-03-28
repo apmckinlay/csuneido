@@ -1,6 +1,4 @@
-#ifndef ITOSTR_H
-#define ITOSTR_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -28,5 +26,3 @@
 char* itostr(int x, char* buf, int radix = 10);
 char* utostr(unsigned int x, char* buf, int radix = 10);
 char* i64tostr(int64 x, char* buf, int radix = 10);
-
-#endif

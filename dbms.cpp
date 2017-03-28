@@ -24,14 +24,14 @@
 #include "gcstring.h"
 #include "fibers.h"
 
-static char* server_ip = 0; // local
+static const char* server_ip = 0; // local
 
-void set_dbms_server_ip(char* s)
+void set_dbms_server_ip(const char* s)
 	{
 	server_ip = s;
 	}
 
-char* get_dbms_server_ip()
+const char* get_dbms_server_ip()
 	{
 	return server_ip;
 	}

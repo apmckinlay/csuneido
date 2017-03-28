@@ -69,7 +69,7 @@ inline void write(const char* s)
 
 extern bool is_client;
 
-inline void log_and_exit(const char* error, const char* extra = "")
+[[noreturn]] inline void log_and_exit(const char* error, const char* extra = "")
 	{
 	static bool exiting = false;
 	if (exiting)
@@ -110,7 +110,6 @@ inline void log_and_exit(const char* error, const char* extra = "")
 static LONG WINAPI filter(EXCEPTION_POINTERS* p_info)
 	{
 	log_and_exit(exception_name(p_info->ExceptionRecord->ExceptionCode));
-	return 0; // not used
 	}
 
 void fatal_log(const char* error, const char* extra)

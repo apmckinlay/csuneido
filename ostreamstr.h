@@ -1,6 +1,4 @@
-#ifndef OSTREAMSTR_H
-#define OSTREAMSTR_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -32,8 +30,8 @@ class Buffer;
 class OstreamStr : public Ostream
 	{
 public:
-	OstreamStr(int len = 32);
-	Ostream& write(const void* buf, int n);
+	explicit OstreamStr(int len = 32);
+	Ostream& write(const void* buf, int n) override;
 	char* str();
 	gcstring gcstr();
 	void clear();
@@ -41,5 +39,3 @@ public:
 private:
 	Buffer* buf;
 	};
-
-#endif

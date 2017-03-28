@@ -45,12 +45,12 @@ class SuSocketClient : public SuFinalize
 public:
 	explicit SuSocketClient(SocketConnect* s);
 	void out(Ostream& os) override;
-	Value call(Value self, Value member, short nargs, short nargnames,
-		ushort* argnames, int each) override;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 	void close();
 private:
 	void finalize() override;
-	void ckopen(char* action);
+	void ckopen(const char* action);
 
 	SocketConnect* sc;
 	};
@@ -63,8 +63,8 @@ void SuSocketClient::out(Ostream& os)
 	os << "SocketClient /*builtin*/";
 	}
 
-Value SuSocketClient::call(Value self, Value member, short nargs,
-	short nargnames, ushort* argnames, int each)
+Value SuSocketClient::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Read("Read");
 	static Value Readline("Readline");
@@ -108,7 +108,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		gcstring s = args.getgcstr("string");
 		args.end();
 		ckopen("Write");
-		sc->write(s.buf(), s.size());
+		sc->write(s);
 		return Value();
 		}
 	else if (member == Writeline)
@@ -117,8 +117,8 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		gcstring s = args.getgcstr("string");
 		args.end();
 		ckopen("Writeline");
-		sc->writebuf(s.buf(), s.size());
-		sc->write("\r\n", 2);
+		sc->writebuf(s);
+		sc->write("\r\n");
 		return Value();
 		}
 	else if (member == Close)
@@ -133,7 +133,7 @@ Value SuSocketClient::call(Value self, Value member, short nargs,
 		method_not_found("socketClient", member);
 	}
 
-void SuSocketClient::ckopen(char* action)
+void SuSocketClient::ckopen(const char* action)
 	{
 	if (! sc)
 		except("SocketClient: can't " << action << " a closed socket");
@@ -155,7 +155,7 @@ void SuSocketClient::finalize()
 Value suSocketClient()
 	{
 	const int nargs = 5;
-	char* ipaddr = ARG(0).str();
+	auto ipaddr = ARG(0).str();
 	int port = ARG(1).integer();
 	int timeout = ARG(2).integer();
 	int timeoutConnect = (int) (ARG(3).number()->to_double() * 1000); // milliseconds
@@ -180,8 +180,8 @@ class SuSocketServer : public RootClass
 	{
 public:
 	void out(Ostream& os) override;
-	Value call(Value self, Value member, short nargs, short nargnames,
-		ushort* argnames, int each) override;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 	const char* type() const override
 		{ return "BuiltinClass"; }
 	};
@@ -203,14 +203,14 @@ public:
 	SuServerInstance(SuServerInstance* master, SocketConnect* s) : SuObject(*master), sc(s)
 		{ } // dup
 	void out(Ostream& os) override;
-	Value call(Value self, Value member, short nargs, short nargnames,
-		ushort* argnames, int each) override;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 private:
 	SocketConnect* sc;
 	};
 
-Value SuSocketServer::call(Value self, Value member, short nargs,
-	short nargnames, ushort* argnames, int each)
+Value SuSocketServer::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == PARAMS)
 		return new SuString("(name = .Name, port = .Port, exit = false, ...)");
@@ -231,8 +231,8 @@ Value SuSocketServer::call(Value self, Value member, short nargs,
 
 		// convert arguments, make name, port, and exit named
 		int na = 0;
-		Value* a = (Value*) alloca(sizeof (Value) * nargs);
-		ushort* an = (ushort*) alloca(sizeof (short) * (nargnames + 3));
+		Value* a = (Value*) _alloca(sizeof (Value) * nargs);
+		ushort* an = (ushort*) _alloca(sizeof (short) * (nargnames + 3));
 		short nan = 0;
 		while (Value arg = args.getNext())
 			{
@@ -330,8 +330,8 @@ void SuServerInstance::out(Ostream& os)
 	os << "SocketServerConnection";
 	}
 
-Value SuServerInstance::call(Value self, Value member, short nargs,
-	short nargnames, ushort* argnames, int each)
+Value SuServerInstance::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Read("Read");
 	static Value Readline("Readline");
@@ -366,17 +366,15 @@ Value SuServerInstance::call(Value self, Value member, short nargs,
 		{
 		if (nargs != 1)
 			except("usage: socketServer.Write(string)");
-		gcstring s = TOP().gcstr();
-		sc->write(s.buf(), s.size());
+		sc->write(TOP().gcstr());
 		return Value();
 		}
 	else if (member == Writeline)
 		{
 		if (nargs != 1)
 			except("usage: socketServer.Writeline(string)");
-		gcstring s = TOP().gcstr();
-		sc->write(s.buf(), s.size());
-		sc->write("\r\n", 2);
+		sc->write(TOP().gcstr());
+		sc->write("\r\n");
 		return Value();
 		}
 	else if (member == RemoteUser)

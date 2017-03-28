@@ -1,6 +1,4 @@
-#ifndef CVT_H
-#define CVT_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -25,14 +23,22 @@
 
 #include "gcstring.h"
 
+// stores n in p, p must have at least 4 bytes
 char* cvt_long(char* p, long n);
-inline const gcstring cvt_long(gcstring s, long n)
+
+// stores n in s, s must have at least 4 bytes
+inline gcstring cvt_long(const gcstring& s, long n)
 	{ cvt_long(s.buf(), n); return s; }
+
+// p must have at least 4 bytes
 long cvt_long(const char* p);
+
+// s must have at least 4 bytes
 inline long cvt_long(const gcstring& s)
 	{ return cvt_long(s.buf()); }
 
+// stores n in p, p must have at least 2 bytes
 char* cvt_short(char* p, short n);
-short cvt_short(const char* p);
 
-#endif
+// p must have at least 2 bytes
+short cvt_short(const char* p);

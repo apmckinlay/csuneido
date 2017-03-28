@@ -1,6 +1,4 @@
-#ifndef EXCEPTIMP_H
-#define EXCEPTIMP_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -34,18 +32,17 @@ class Except : public SuString
 public:
 	explicit Except(gcstring s);
 	Except(const Except& e, gcstring s);
-	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 	SuObject* calls() const
 		{ return calls_; }
 	SuFunction* fp_fn() const
 		{ return fp_fn_; }
 	bool isBlockReturn() const
-		{ return block_return; }
+		{ return is_block_return; }
 	char* callstack() const;
 private:
 	SuFunction* fp_fn_;
 	SuObject* calls_;
-	bool block_return;
+	bool is_block_return;
 	};
-
-#endif

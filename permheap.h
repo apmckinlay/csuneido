@@ -1,6 +1,4 @@
-#ifndef PERMHEAP_H
-#define PERMHEAP_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -33,17 +31,17 @@ public:
 	PermanentHeap(const char* name, int size);
 	void* alloc(int size);	// grows heap
 	void free(void* p);		// shrinks heap
-	bool contains(const void* p)
+	bool contains(const void* p) const
 		{ return start <= p && p < next; }
-	bool inarea(const void* p)
+	bool inarea(const void* p) const
 		{ return start <= p && p < limit; }
-	void* begin()
+	void* begin() const
 		{ return start; }
-	void* end()
+	void* end() const
 		{ return next; }
-	int size()
+	int size() const
 		{ return next - (char*) start; }
-	int remaining()
+	int remaining() const
 		{ return (char*) limit - next; }
 private:
 	const char* name;
@@ -52,5 +50,3 @@ private:
 	char* commit_end;
 	void* limit;
 	};
-
-#endif

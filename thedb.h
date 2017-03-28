@@ -1,6 +1,4 @@
-#ifndef THEDB_H
-#define THEDB_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -28,7 +26,7 @@ class Database* theDB();
 class TranCloser
 	{
 public:
-	TranCloser(int t_) : t(t_)
+	explicit TranCloser(int t_) : t(t_)
 		{ }
 	operator int() const
 		{ return t; }
@@ -36,5 +34,3 @@ public:
 private:
 	int t;
 	};
-
-#endif

@@ -194,6 +194,7 @@ private:
 		public:
 			Node(int lev) : level_(lev)
 				{ }
+			virtual ~Node() = default;
 			int level() const
 				{ return level_; }
 			virtual int size() const = 0;
@@ -208,17 +209,17 @@ private:
 		public:
 			TNode(int level, TreeNode* n) : Node(level), node(n)
 				{ }
-			int size() const
+			int size() const override
 				{
 				return node->slots.size() + 1;
 				}
-			int findPos(const Key& key) const
+			int findPos(const Key& key) const override
 				{
 				TreeSlots& slots = node->slots;
 				TreeSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), TreeSlot(key));
 				return slot < slots.end() ? slot - slots.begin() : slots.size();
 				}
-			Mmoffset adr(int pos) const
+			Mmoffset adr(int pos) const override
 				{
 				return pos == node->slots.size() ? node->lastoff.unpack() : node->slots[pos].adr;
 				}
@@ -231,17 +232,17 @@ private:
 		public:
 			LNode(int level, LeafNode* n) : Node(level), node(n)
 				{ }
-			int size() const
+			int size() const override
 				{
 				return node->slots.size();
 				}
-			int findPos(const Key& key) const
+			int findPos(const Key& key) const override
 				{
 				LeafSlots& slots = node->slots;
 				LeafSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), LeafSlot(key));
 				return slot - slots.begin();
 				}
-			Mmoffset adr(int pos) const
+			Mmoffset adr(int pos) const override
 				{
 				except("should not be called");
 				}
@@ -258,7 +259,7 @@ public:
 		{
 		friend class Btree<LeafSlot,TreeSlot,LeafSlots,TreeSlots,Dest>;
 	public:
-		iterator() : bt(0), off(NIL)	// end
+		iterator() // end
 			{ }
 		LeafSlot& operator*()
 			{ return cur; }
@@ -306,7 +307,7 @@ public:
 			{
 			return ! (*this == j);
 			}
-		bool eof()
+		bool eof() const
 			{ return off == NIL; }
 		void seteof()
 			{ off = NIL; }
@@ -350,11 +351,11 @@ public:
 			{ cur.copy(t); }
 		iterator(btree* b, const Key& key) : bt(b)
 			{ seek(key); }
-		btree* bt;
-		Mmoffset off;
+		btree* bt = nullptr;
+		Mmoffset off = NIL;
 		LeafSlot cur;
 		// TODO: make slot.copy support a static buffer to reduce allocation
-		ulong valid;
+		ulong valid = 0;
 		};
 	//---------------------------------------------------------------
 	iterator first()
@@ -432,14 +433,14 @@ public:
 			if (nodes[i]->insert(key, off))
 				return true;
 			// else split
-			Mmoffset leftoff = nodes[i]->split(dest, key);
-			TreeNode* left = (TreeNode*) dest->adr(leftoff);
+			Mmoffset tleftoff = nodes[i]->split(dest, key);
+			TreeNode* tleft = (TreeNode*) dest->adr(tleftoff);
 			++nnodes;
-			verify(left->slots.back().key < key ? nodes[i]->insert(key, off) : left->insert(key, off));
-			key = keydup(left->slots.back().key);
-			left->lastoff = left->slots.back().adr;
-			left->slots.pop_back();
-			off = leftoff;
+			verify(tleft->slots.back().key < key ? nodes[i]->insert(key, off) : tleft->insert(key, off));
+			key = keydup(tleft->slots.back().key);
+			tleft->lastoff = tleft->slots.back().adr;
+			tleft->slots.pop_back();
+			off = tleftoff;
 			}
 		// create new root
 		Mmoffset roff = dest->alloc(NODESIZE);
@@ -548,7 +549,7 @@ public:
 		return node->slots.size() == 0;
 		}
 
-	bool isMinimal(const Key& key)
+	static bool isMinimal(const Key& key)
 		{
 		for (int i = 0; i < key.size(); ++i)
 			if (key.getraw(i) != "")
@@ -556,7 +557,7 @@ public:
 		return true;
 		}
 
-	bool isMaximal(const Key& key)
+	static bool isMaximal(const Key& key)
 		{
 		if (key.size() == 0)
 			return false;
@@ -569,7 +570,7 @@ public:
 	float* getChildFracs(Node* node)
 		{
 		int n = node->size();
-		int *childSizes = (int*) alloca(n * sizeof (int));
+		int *childSizes = (int*) _alloca(n * sizeof (int));
 		int total = 0;
 		//con() << "child sizes";
 		for (int i = 0; i < n; ++i)

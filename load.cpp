@@ -24,11 +24,9 @@
 #include "istreamfile.h"
 #include "database.h"
 #include "scanner.h"
-#include "suvalue.h"
 #include "thedb.h"
 #include "record.h"
 #include "query.h"
-#include <stdlib.h>
 #include "port.h"
 #ifdef _WIN32
 #include <io.h> // for access
@@ -67,9 +65,10 @@ struct Loading
 
 static bool fix = false;
 
+extern bool thedb_create;
+
 void load(const gcstring& table)
 	{
-	extern bool thedb_create;
 	thedb_create = true;
 
 	if (table != "")							// load a single table
@@ -190,7 +189,7 @@ static void load_data_record(Istream& fin, const gcstring& table, int tran, int 
 			{
 			Record newrec(rec.cursize());
 			// start at 1 to skip old _deleted field
-			for (int i = 1, n = rec.size(); i < n; ++i)
+			for (int i = 1, rn = rec.size(); i < rn; ++i)
 				{
 				gcstring s = rec.getraw(i);
 				if (s[0] == PACK_MINUS)

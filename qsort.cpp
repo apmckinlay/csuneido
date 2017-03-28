@@ -28,7 +28,8 @@ Query* Query::make_sort(Query* source, bool reverse, const Fields& segs)
 	return new QSort(source, reverse, segs);
 	}
 
-QSort::QSort(Query* source, bool r, const Fields& s) : Query1(source), reverse(r), segs(s)
+QSort::QSort(Query* source, bool r, const Fields& s) 
+	: Query1(source), reverse(r), segs(s)
 	{
 	}
 
@@ -39,7 +40,8 @@ void QSort::out(Ostream& os) const
 		os << " SORT " << (reverse ? "REVERSE " : "") << segs;
 	}
 
-double QSort::optimize2(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze)
+double QSort::optimize2(const Fields& index, const Fields& needs, 
+	const Fields& firstneeds, bool is_cursor, bool freeze)
 	{
 	verify(nil(index));
 	// look for index containing requested index as prefix (using fixed)

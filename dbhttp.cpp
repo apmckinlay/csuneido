@@ -36,10 +36,8 @@ class DbHttp
 public:
 	DbHttp(SocketConnect* s) : sc(s)
 		{ }
-	void run();
+	void run() const;
 private:
-	void request(char* buf);
-
 	SocketConnect* sc;
 	};
 
@@ -50,17 +48,19 @@ static void _stdcall dbhttp(void* sc)
 	Fibers::end();
 	}
 
+extern int su_port;
 void start_dbhttp()
 	{
-	extern int su_port;
 	socketServer("", su_port + 1, dbhttp, 0, false);
 	}
 
 #define MB(n) ((n + 512 * 1024) / (1024*1024))
 
 extern SuObject& dbserver_connections();
+extern int tempdest_inuse;
+extern int cursors_inuse;
 
-void DbHttp::run()
+void DbHttp::run() const
 	{
 	try
 		{
@@ -70,8 +70,6 @@ void DbHttp::run()
 
 		SuObject& conns = dbserver_connections();
 		conns.sort();
-		extern int tempdest_inuse;
-		extern int cursors_inuse;
 		OstreamStr page;
 		page << "<html>\r\n"
 			<< "<head>\r\n"

@@ -20,6 +20,7 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "std.h"
 #include <string.h>
 #include "gc.h"
 

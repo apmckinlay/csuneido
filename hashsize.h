@@ -1,6 +1,4 @@
-#ifndef HASHSIZE_H
-#define HASHSIZE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -29,5 +27,3 @@ const size_t hash_size[] =
 	3001, 4093, 6007, 8191, 12289, 16381, 32749, 65521, 131071,
 	262139, 524287, 1048573 };
 const int n_hash_sizes = sizeof hash_size / sizeof (size_t);
-
-#endif

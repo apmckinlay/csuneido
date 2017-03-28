@@ -1,6 +1,4 @@
-#ifndef OSTREAMCON_H
-#define OSTREAMCON_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -33,12 +31,10 @@ class OstreamCon : public Ostream
 public:
 	OstreamCon();
 	~OstreamCon();
-	Ostream& write(const void* buf, int n);
+	Ostream& write(const void* buf, int n) override;
 	explicit operator bool() const;
 private:
 	OstreamConImp* imp;
 	};
 
 extern Ostream& con();
-
-#endif

@@ -25,7 +25,6 @@
 #include "builtinclass.h"
 #include "suboolean.h"
 #include "gcstring.h"
-#include "checksum.h"
 #include "sufinalize.h"
 #include "sustring.h"
 
@@ -34,13 +33,13 @@ class Md5 : public SuFinalize
 public:
 	Md5()
 		{
-		if (! CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL, 0))
-			if (! CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL, CRYPT_NEWKEYSET))
+		if (! CryptAcquireContext(&hCryptProv, nullptr, nullptr, PROV_RSA_FULL, 0))
+			if (! CryptAcquireContext(&hCryptProv, nullptr, nullptr, PROV_RSA_FULL, CRYPT_NEWKEYSET))
 				except("Md5: CryptAcquireContext failed");
 		if (! CryptCreateHash(hCryptProv, CALG_MD5, 0, 0, &hHash))
 			except("Md5: CryptCreateHash failed");
 		}
-	virtual void out(Ostream& os)
+	void out(Ostream& os) override
 		{ os << "Md5()"; }
 	static Method<Md5>* methods()
 		{
@@ -52,11 +51,11 @@ public:
 			};
 		return methods;
 		}
-	const char* type() const
+	const char* type() const override
 		{ return "Md5"; }
 	void update(gcstring gcstr);
 	gcstring value();
-	virtual void finalize();
+	void finalize() override;
 
 private:
 	Value Update(BuiltinArgs&);

@@ -1,6 +1,4 @@
-#ifndef READLINE_H
-#define READLINE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -45,5 +43,3 @@ const int MAX_LINE = 4000;
 		--i; \
 	buf[i] = 0; \
 	return new SuString(buf, i)
-
-#endif

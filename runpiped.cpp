@@ -36,8 +36,8 @@
 class RunPiped
 	{
 public:
-	RunPiped(char* cmd);
-	void write(char* buf, int len);
+	explicit RunPiped(char* cmd);
+	void write(const char* buf, int len);
 	void write(char* buf)
 		{ write(buf, strlen(buf)); }
 	int read(char* buf, int len);
@@ -103,7 +103,7 @@ RunPiped::RunPiped(char* cmd)
 	CloseHandle(hChildStdoutWr);
 	}
 
-void RunPiped::write(char* buf, int len)
+void RunPiped::write(const char* buf, int len)
 	{
 	DWORD dwWritten;
 
@@ -171,11 +171,13 @@ int RunPiped::exitvalue()
 class SuRunPiped : public SuFinalize
 	{
 public:
-	void init(const gcstring& cmd)
+	void init(const gcstring& c)
 		{
+		cmd = c;
 		rp = new RunPiped(dupstr(cmd.str()));
 		}
-	virtual void out(Ostream& os)
+
+	void out(Ostream& os) override
 		{
 		os << "RunPiped('" << cmd << "')";
 		}
@@ -195,7 +197,7 @@ public:
 			};
 		return methods;
 		}
-	const char* type() const
+	const char* type() const override
 		{ return "RunPiped"; }
 	void close();
 private:
@@ -209,9 +211,9 @@ private:
 	Value ExitValue(BuiltinArgs&);
 
 	void ckopen();
-	virtual void finalize();
+	void finalize() override;
 	void write(BuiltinArgs&);
-	RunPiped* rp;
+	RunPiped* rp = nullptr;
 	gcstring cmd;
 	};
 

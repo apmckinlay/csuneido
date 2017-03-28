@@ -1,6 +1,4 @@
-#ifndef FIBERS_H
-#define FIBERS_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -36,7 +34,7 @@ struct ThreadLocalStorage
 	Proc* proc;
 	Dbms* thedbms;
 	SesViews* session_views;
-	char* fiber_id;
+	const char* fiber_id;
 	int synchronized; // normally 0 (meaning allow yield), set by Synchronized
 	};
 
@@ -84,5 +82,3 @@ struct Fibers
 	};
 
 void sleepms(int ms);
-
-#endif

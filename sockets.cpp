@@ -24,12 +24,14 @@
 #include "win.h"
 #include "except.h"
 #include "fibers.h"
-#include "minmax.h"
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "fatal.h"
+#include "gcstring.h"
 #include <ctime>
 #include <unordered_map>
+#include <algorithm>
+using std::min;
 
 //#define FILE_LOGGING
 
@@ -80,9 +82,19 @@ void SocketConnect::write(const char* s)
 	write(s, strlen(s));
 	}
 
+void SocketConnect::write(const gcstring& s)
+	{
+	write(s.buf(), s.size());
+	}
+
 void SocketConnect::writebuf(const char* s)
 	{
 	writebuf(s, strlen(s));
+	}
+
+void SocketConnect::writebuf(const gcstring& s)
+	{
+	writebuf(s.buf(), s.size());
 	}
 
 // socket server --------------------------------------------------------------
@@ -111,7 +123,7 @@ struct ServerData
 static std::unordered_map<int, ServerData*> serverData;
 
 /// Creates an acceptor thread and returns
-void socketServer(char* title, int port, NewServerConnection newServerConn, void* arg, bool exit)
+void socketServer(const char* title, int port, NewServerConnection newServerConn, void* arg, bool exit)
 	{
 	startup();
 	LOG("socketServer port " << port);
@@ -180,7 +192,7 @@ static int getport(int sock)
 
 //-----------------------------------------------------------------------------
 
-static struct addrinfo* resolve(char* addr, int port)
+static struct addrinfo* resolve(const char* addr, int port)
 	{
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof hints);
@@ -258,7 +270,7 @@ private:
 
 #define FDS(fds, sock) struct fd_set fds; FD_ZERO(&fds); FD_SET(sock, &fds);
 
-SocketConnect* socketClientSync(char* addr, int port, int timeout, int timeoutConnect)
+SocketConnect* socketClientSync(const char* addr, int port, int timeout, int timeoutConnect)
 	{
 	startup();
 
@@ -352,7 +364,7 @@ bool SocketConnectSync::readline(char* dst, int n)
 	--n; // allow for nul
 	char* eol;
 	FDS(fds, sock);
-	while (! ((eol = (char*) memchr(rdbuf.buffer(), '\n', rdbuf.size()))))
+	while (nullptr == (eol = (char*) memchr(rdbuf.buffer(), '\n', rdbuf.size())))
 		{
 		if (0 == select(1, &fds, nullptr, nullptr, &tv))
 			break ; // timeout
@@ -400,14 +412,14 @@ public:
 	explicit SocketConnectAsync(int s, int to = 0)
 		: sock(s), wrover(this), rdover(this)
 		{ }
-	explicit SocketConnectAsync(int s, void* arg_, char* adr_)
+	explicit SocketConnectAsync(int s, void* arg_, const char* adr_)
 		: sock(s), wrover(this), rdover(this), arg(arg_), adr(dupstr(adr_))
 		{ }
 	void write(const char* buf, int n) override;
 	int read(char* dst, int required, int dstsize) override;
 	bool readline(char* dst, int n) override;
 	void close() override;
-	char* getadr() override
+	const char* getadr() override
 		{ return adr; }
 	void* getarg() override
 		{ return arg; }
@@ -424,10 +436,11 @@ private:
 	Over rdover;
 	int blocked = -1; // fiber
 	void* arg = nullptr;
-	char* adr = "";
+	const char* adr = "";
 	};
 
-SocketConnect* socketClientAsync(char* addr, int port, int timeout, int timeoutConnect)
+SocketConnect* socketClientAsync(
+	const char* addr, int port, int timeout, int timeoutConnect)
 	{
 	startup();
 	LOG("async connect");
@@ -492,7 +505,7 @@ static void CALLBACK afterSend(DWORD Error, DWORD BytesTransferred,
 	over->sc->unblock();
 	}
 
-void SocketConnectAsync::write(const char* buf, int n)
+void SocketConnectAsync::write(const char* src, int n)
 	{
 	int toSend = n + wrbuf.size();
 	if (toSend == 0)
@@ -504,7 +517,7 @@ void SocketConnectAsync::write(const char* buf, int n)
 	WSABUF bufs[NBUFS];
 	bufs[0].buf = wrbuf.buffer();
 	bufs[0].len = wrbuf.size();
-	bufs[1].buf = const_cast<char*>(buf);
+	bufs[1].buf = const_cast<char*>(src);
 	bufs[1].len = n;
 
 	wrover.size = toSend;
@@ -526,31 +539,31 @@ void SocketConnectAsync::write(const char* buf, int n)
 	// because wrover cannot be used by multiple writes at once
 	}
 
-int SocketConnectAsync::read(char* dst, int required, const int dstsize)
+int SocketConnectAsync::read(char* dst, int reqd, const int dstsize)
 	{
 	LOG("async read " << required << " up to " << dstsize);
-	verify(required <= dstsize);
-	int have = min(required, rdbuf.size());
+	verify(reqd <= dstsize);
+	int have = min(reqd, rdbuf.size());
 	if (have)
 		{
 		memcpy(dst, rdbuf.buffer(), have);
 		rdbuf.remove(have);
-		required -= have;
+		reqd -= have;
 		}
-	if (required == 0)
+	if (reqd == 0)
 		return have; // got data from buffer
-	int result = have + read2(dst + have, required, dstsize - have);
+	int result = have + read2(dst + have, reqd, dstsize - have);
 	LOG("async read returning " << result << endl);
 	return result;
 	}
 
 // used by read and readline
-int SocketConnectAsync::read2(char* dst, int required, const int dstsize)
+int SocketConnectAsync::read2(char* dst, int reqd, const int dstsize)
 	{
 	LOG("async read2 " << required << " up to " << dstsize);
 	buf.buf = dst;
 	buf.len = dstsize;
-	this->required = required;
+	this->required = reqd;
 	if (recv())
 		SleepEx(0, true); // run afterRecv
 	else
@@ -622,20 +635,19 @@ bool SocketConnectAsync::readline(char* dst, int n)
 	*dst = 0;
 	--n; // allow for nul
 	char* eol;
-	while (!((eol = (char*)memchr(rdbuf.buffer(), '\n', rdbuf.size()))))
+	while (nullptr == (eol = (char*)memchr(rdbuf.buffer(), '\n', rdbuf.size())))
 		{
 		const int UPTO = 1024;
-		char* buf = rdbuf.ensure(UPTO);
-		int nr = read2(buf, 1, UPTO);
+		int nr = read2(rdbuf.ensure(UPTO), 1, UPTO);
 		if (nr == 0)
 			break; // connection closed
 		rdbuf.added(nr);
 		}
-	char* buf = rdbuf.buffer();
-	int len = eol ? eol - buf + 1 : rdbuf.size();
+	char* rb = rdbuf.buffer();
+	int len = eol ? eol - rb + 1 : rdbuf.size();
 	if (len < n)
 		n = len;
-	memcpy(dst, buf, n);
+	memcpy(dst, rb, n);
 	dst[n] = 0;
 	rdbuf.remove(len);
 	return eol != nullptr;
@@ -666,7 +678,7 @@ void SocketConnectAsync::close()
 	LOG("async closed" << endl);
 	}
 
-static char* getadr(SOCKET sock);
+static const char* getadr(SOCKET sock);
 
 // used by socket server
 static SocketConnect* newSocketConnectAsync(int sock, void* arg)
@@ -677,12 +689,12 @@ static SocketConnect* newSocketConnectAsync(int sock, void* arg)
 	return new SocketConnectAsync(sock, arg, getadr(sock));
 	}
 
-static char* getadr(SOCKET sock)
+static const char* getadr(SOCKET sock)
 	{
 	SOCKADDR_IN sa = {};
 	int sa_len = sizeof sa;
 	getpeername(sock, reinterpret_cast<sockaddr*>(&sa), &sa_len);
-	char* adr = "";
+	auto adr = "";
 	if (char* s = inet_ntoa(sa.sin_addr))
 		adr = dupstr(s);
 	return adr;

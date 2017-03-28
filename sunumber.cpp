@@ -31,8 +31,6 @@ using namespace std;
 #include "sustring.h"
 #include "suobject.h"
 #include "globals.h"
-#include "symbols.h"
-#include "minmax.h"
 #include <math.h>
 #include <errno.h>
 #include "itostr.h"
@@ -582,8 +580,8 @@ SuNumber* div(const SuNumber* x, const SuNumber* yy)
 	memset(zd, 0, sizeof zd);
 
 	SuNumber remainder(PLUS, 0, x->digits);
-	short loops = 0;
-	short n = 0;
+	int loops = 0;
+	int n = 0;
 	SuNumber tmp(0L);
 	//dbg("remainder " << remainder);
 	while (! remainder.is_zero() && n <= NDIGITS)
@@ -638,7 +636,6 @@ SuNumber* div(const SuNumber* x, const SuNumber* yy)
 			}
 		//dbg("remainder " << remainder);
 		}
-	n += 2;
 	bool sign = (x->sign == yy->sign);
 	int exp = x->exp - yy->exp + 1;
 	// round zd
@@ -961,7 +958,7 @@ static void put(char*& s, short x)
 static void strmove(char* dst, const char* src)
 	{
 	// not using strcpy because it's undefined for overlapping
-	while ((*dst++ = *src++))
+	while (0 != (*dst++ = *src++))
 		;
 	}
 
@@ -1101,7 +1098,7 @@ SuNumber& SuNumber::tofrac()
 	}
 
 // buf should be as long as mask
-char* SuNumber::mask(char* buf, char* mask) const
+char* SuNumber::mask(char* buf, const char* mask) const
 	{
 	if (is_infinity())
 		return strcpy(buf, "#");
@@ -1111,7 +1108,7 @@ char* SuNumber::mask(char* buf, char* mask) const
 	if (is_zero())
 		{
 		char* dst = num;
-		if (char* d = strchr(mask, '.'))
+		if (auto d = strchr(mask, '.'))
 			for (++d; *d == '#'; ++d)
 				*dst++ = '0';
 		*dst = 0;
@@ -1122,7 +1119,7 @@ char* SuNumber::mask(char* buf, char* mask) const
 		if (exp > NDIGITS)
 			return strcpy(buf, "#");
 		int decimals = 0;
-		if (char* d = strchr(mask, '.'))
+		if (auto d = strchr(mask, '.'))
 			for (++d; *d == '#'; ++d)
 				++decimals;
 		Tmp tmp(digits);
@@ -1379,7 +1376,8 @@ SuNumber* SuNumber::from_double(double x)
 
 #include "interp.h"
 
-Value SuNumber::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuNumber::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value CHR("Chr");
 	static Value INT("Int");
@@ -1407,8 +1405,8 @@ Value SuNumber::call(Value self, Value member, short nargs, short nargnames, ush
 		{
 		if (nargs != 1)
 			except("usage: number.Format(string)");
-		char* format = ARG(0).str();
-		char* buf = (char*) alloca(strlen(format) + 2);
+		auto format = ARG(0).str();
+		char* buf = (char*) _alloca(strlen(format) + 2);
 		return new SuString(mask(buf, format));
 		}
 	else if (member == CHR)
@@ -1549,7 +1547,7 @@ Value SuNumber::call(Value self, Value member, short nargs, short nargnames, ush
 		static ushort G_SuNumbers = globals("Numbers");
 		Value SuNumbers = globals.find(G_SuNumbers);
 		SuObject* ob;
-		if (SuNumbers && (ob = SuNumbers.ob_if_ob()) && ob->has(member))
+		if (SuNumbers && nullptr != (ob = SuNumbers.ob_if_ob()) && ob->has(member))
 			return ob->call(self, member, nargs, nargnames, argnames, each);
 		else
 			method_not_found("number", member);
@@ -1660,8 +1658,8 @@ class test_number : public Tests
 		verify(SuNumber(10000) / SuNumber(10) == SuNumber(1000));
 		asserteq(SuNumber("1e-300") / SuNumber("1e300"), SuNumber::zero);
 		asserteq(SuNumber("1e300") / SuNumber("1e-300"), SuNumber::infinity);
-		SuNumber a(100000000), b(100000001);
-		verify(! close(&a, &b));
+		SuNumber m(100000000), n(100000001);
+		verify(! close(&m, &n));
 		for (long i = 0; i < 1000; ++i)
 			{
 			SuNumber x(randnum);
@@ -1753,7 +1751,7 @@ class test_number2 : public Tests
 		test(".999", "1");
 		test("1e20", "1e20");
 		}
-	void test(char* s, char* expected)
+	void test(const char* s, const char* expected)
 		{
 		SuNumber n(s);
 		assert_eq(round(&n, 2, 'h')->gcstr(), expected);
@@ -1765,28 +1763,28 @@ class test_number3 : public Tests
 	{
 	TEST(0, main)
 		{
-		test1("0");
-		test1("1");
-		test1("-1");
-		test1("65535"); // USHRT_MAX
-		test1("65536");
-		test1("3000000000");
-		test1("4294967295"); // ULONG_MAX
-		test1("5000000000");
+		check1("0");
+		check1("1");
+		check1("-1");
+		check1("65535"); // USHRT_MAX
+		check1("65536");
+		check1("3000000000");
+		check1("4294967295"); // ULONG_MAX
+		check1("5000000000");
 
-		test2("0xffff", "65535");
-		test2("0x10000", "65536");
-		test2("0xffffffff", "-1");
+		check2("0xffff", "65535");
+		check2("0x10000", "65536");
+		check2("0xffffffff", "-1");
 
-		test2("0.123", ".123");
-		test2("00.001", ".001");
+		check2("0.123", ".123");
+		check2("00.001", ".001");
 		}
-	void test1(char* s)
+	static void check1(const char* s)
 		{
 		Value num = SuNumber::literal(s);
 		assert_eq(num.gcstr(), s);
 		}
-	void test2(char* s, char* t)
+	static void check2(const char* s, const char* t)
 		{
 		Value num = SuNumber::literal(s);
 		assert_eq(num.gcstr(), t);

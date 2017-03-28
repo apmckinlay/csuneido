@@ -64,8 +64,8 @@ void scanner_locale_changed()
 			cclass_[c] = 0;
 	}
 
-Scanner::Scanner(char* s, int i, CodeVisitor* v)
-	: prev(0), value(""), err(""), source(s), si(i), keyword(0), visitor(v)
+Scanner::Scanner(const char* s, int i, CodeVisitor* v)
+	: source(s), si(i), visitor(v)
 	{
 	}
 
@@ -251,7 +251,6 @@ int Scanner::nextall()
 			case '=' : ++si; return I_DIVEQ;
 			default : return I_DIV;
 				}
-			break ;
 		case '*' :
 			if ('=' == source[si])
 				{ ++si; return I_MULEQ; }
@@ -416,7 +415,7 @@ inline bool isodigit(char c)
 
 struct Keyword
 	{
-	char* word;
+	const char* word;
 	int id;
 	};
 static Keyword words[] =
@@ -443,10 +442,10 @@ static Keyword words[] =
 	};
 const int nwords = sizeof words / sizeof (Keyword);
 
-inline bool lt(char* ss, char* tt)
+inline bool lt(const char* ss, const char* tt)
 	{
-	unsigned char* s = reinterpret_cast<unsigned char*>(ss);
-	unsigned char* t = reinterpret_cast<unsigned char*>(tt);
+	const unsigned char* s = reinterpret_cast<const unsigned char*>(ss);
+	const unsigned char* t = reinterpret_cast<const unsigned char*>(tt);
 	for (; *s && *s == *t; ++s, ++t)
 		;
 	return *s < *t;
@@ -469,7 +468,7 @@ int Scanner::keywords(char* s)
 
 #include "testing.h"
 
-static char* input = "and break case catch continue class callback default dll do \
+static const char* input = "and break case catch continue class callback default dll do \
 	else for forever function if is isnt or not \
 	new switch struct super return throw try while \
 	true True false False \
@@ -483,7 +482,7 @@ static char* input = "and break case catch continue class callback default dll d
 struct Result
 	{
 	int token;
-	char* value;
+	const char* value;
 	};
 
 static Result results[] =

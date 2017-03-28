@@ -37,7 +37,6 @@
 #include "fibers.h" // for yield
 #include <stdio.h> // for remove
 #include <ctype.h> // for toupper
-#include "sudate.h"
 #include "fatal.h"
 
 struct DbCopy
@@ -61,11 +60,17 @@ void copy(char* tmp)
 	dbcopy.copy();
 	}
 
-void compact()
+char* tmpfilename()
 	{
-	char* tmp = tmpnam(NULL);
+	char* tmp = tmpnam(nullptr);
 	if (*tmp == '\\')
 		++tmp;
+	return dupstr(tmp);
+	}
+
+void compact()
+	{
+	char* tmp = tmpfilename();
 	copy(tmp);
 	extern void close_db();
 	close_db();
@@ -96,8 +101,7 @@ void DbCopy::copy()
 
 	// schema
 	copy_records("views");
-	Index::iterator iter;
-	for (iter = thedb.get_index("tables", "tablename")->begin(schema_tran);
+	for (auto iter = thedb.get_index("tables", "tablename")->begin(schema_tran);
 		! iter.eof(); ++iter)
 		{
 		Record r(iter.data());
@@ -107,7 +111,7 @@ void DbCopy::copy()
 		}
 
 	// data
-	for (iter = thedb.get_index("tables", "tablename")->begin(schema_tran);
+	for (auto iter = thedb.get_index("tables", "tablename")->begin(schema_tran);
 		! iter.eof(); ++iter)
 		{
 		Record r(iter.data());
@@ -128,12 +132,7 @@ void DbCopy::create_table(const gcstring& table)
 			newdb.add_column(table, *f);
 	// rules
 	for (f = thedb.get_rules(table); ! nil(f); ++f)
-		{
-		gcstring str(f->str()); // copy
-		char* s = str.str();
-		*s = toupper(*s);
-		newdb.add_column(table, str);
-		}
+		newdb.add_column(table, f->capitalize());
 	// indexes
 	Tbl* tbl = thedb.get_table(table);
 	for (Lisp<Idx> ix = tbl->idxs; ! nil(ix); ++ix)

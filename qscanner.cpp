@@ -21,9 +21,9 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "qscanner.h"
-#include <string.h>
 #include <algorithm>
 #include "cmpic.h"
+#include "gcstring.h"
 
 int QueryScanner::next()
 	{
@@ -38,7 +38,7 @@ int QueryScanner::next()
 
 struct Keyword
 	{
-	char* word;
+	const char* word;
 	int id;
 	};
 static Keyword words[] =
@@ -93,7 +93,7 @@ void QueryScanner::insert(const gcstring& s)
 #include "testing.h"
 #include "except.h"
 
-static char* qscanner_input = "alter average by count create delete \
+static const char* qscanner_input = "alter average by count create delete \
 		destroy drop ensure extend false history in into index insert intersect join \
 		key leftjoin list max min minus project remove rename reverse set \
 		sort summarize times to total true union unique update view where";
@@ -115,9 +115,8 @@ class test_qscanner : public Tests
 	{
 	TEST(0, qscanner)
 		{
-		short token;
 		QueryScanner sc(qscanner_input);
-		for (int i = 0; Eof != (token = sc.next()); ++i)
+		for (int i = 0; Eof != sc.next(); ++i)
 			asserteq(results[i], sc.keyword);
 		}
 	};

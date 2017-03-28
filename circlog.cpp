@@ -34,7 +34,7 @@ const int QSIZE = 500;
 static gcstring queue[QSIZE];
 static int qi = 0;
 
-void circ_log(gcstring s)
+void circ_log(const gcstring& s)
 	{
 	queue[qi] = s.trim();
 	qi = (qi + 1) % QSIZE;
@@ -72,7 +72,7 @@ Ostream& oscirclog()
 
 void circlogos_()
 	{
-	circ_log(os.str());
+	circ_log(os.gcstr());
 	os.clear();
 	}
 

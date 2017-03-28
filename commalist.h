@@ -1,6 +1,4 @@
-#ifndef COMMALIST_H
-#define COMMALIST_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -31,5 +29,3 @@ Lisp<gcstring> commas_to_list(const gcstring& str);
 
 // convert a list of strings to a comma separated string
 gcstring list_to_commas(Lisp<gcstring> list);
-
-#endif

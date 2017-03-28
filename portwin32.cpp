@@ -25,7 +25,6 @@
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
 #include <windows.h>
-#include <stdio.h> // for tmpnam
 #include "except.h"
 #include "mmfile.h"
 #include "fatal.h"
@@ -112,21 +111,15 @@ int64 getfilesize(void* f)
 	return li.QuadPart;
 	}
 
-void Mmfile::open(char* filename, bool create, bool readonly)
+void Mmfile::open(const char* filename, bool create, bool ro)
 	{
-	if (! *filename)
-		{
-		tmpnam(filename);
-		if (*filename == '\\')
-			memmove(filename, filename + 1, strlen(filename));
-		}
 	f = CreateFile(filename,
-		GENERIC_READ | (readonly ? 0 : GENERIC_WRITE),
-		FILE_SHARE_READ | (readonly ? FILE_SHARE_WRITE : 0),
-		NULL, // no security attributes
+		GENERIC_READ | (ro ? 0 : GENERIC_WRITE),
+		FILE_SHARE_READ | (ro ? FILE_SHARE_WRITE : 0),
+		nullptr, // no security attributes
 		create ? OPEN_ALWAYS : OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL,
-		NULL); // no template
+		nullptr); // no template
 	if (f == INVALID_HANDLE_VALUE)
 		except("can't open: " << filename);
 

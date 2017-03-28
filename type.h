@@ -1,6 +1,4 @@
-#ifndef TYPE_H
-#define TYPE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -24,7 +22,6 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "value.h"
-#include "suwinres.h"
 
 // abstract base class for types for dll interface
 // needs to be SuValue for putting in globals and for Structures
@@ -43,27 +40,27 @@ public:
 class TypeBool : public Type
 	{
 public:
-	int size()
+	int size() override
 		{ return sizeof (int); }
-	void put(char*& dst, char*& dst2, const char* lim2, Value x);
-	Value get(char*& src, Value x);
-	Value result(long, long n)
+	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
+	Value get(char*& src, Value x) override;
+	Value result(long, long n) override
 		{ return n ? SuTrue : SuFalse; }
-	void out(Ostream& os);
+	void out(Ostream& os) override;
 	};
 
 // integer Types
 template <class T> class TypeInt : public Type
 	{
 public:
-	int size()
+	int size() override
 		{ return sizeof (T); }
-	void put(char*& dst, char*&, const char*, Value x)
+	void put(char*& dst, char*&, const char*, Value x) override
 		{
 		*((T*) dst) = x ? (T) x.integer() : 0;
 		dst += sizeof (T);
 		}
-	Value get(char*& src, Value x)
+	Value get(char*& src, Value x) override
 		{
 		T n = *((T*) src);
 		if (! x || n != x.integer())
@@ -71,20 +68,20 @@ public:
 		src += sizeof (T);
 		return x;
 		}
-	void out(Ostream& os);
-	Value result(long, long n)
+	void out(Ostream& os) override;
+	Value result(long, long n) override
 		{ return (T) n; }
 	};
 
 template<> class TypeInt<long long> : public Type
 	{
 public:
-	int size()
+	int size() override
 		{ return sizeof (int64); }
-	void put(char*& dst, char*&, const char*, Value x);
-	Value get(char*& src, Value x);
-	void out(Ostream& os);
-	Value result(long hi, long lo)
+	void put(char*& dst, char*&, const char*, Value x) override;
+	Value get(char*& src, Value x) override;
+	void out(Ostream& os) override;
+	Value result(long hi, long lo) override
 		{
 		int64 n = hi;
 		return (n << 32) + lo;
@@ -94,7 +91,7 @@ public:
 // opaque pointer type (Suneido treats it like a number)
 class TypeOpaquePointer : public TypeInt<long>
 	{
-	void out(Ostream& os);
+	void out(Ostream& os) override;
 	};
 
 // float
@@ -102,31 +99,31 @@ class TypeOpaquePointer : public TypeInt<long>
 class TypeFloat : public Type
 	{
 public:
-	int size()
+	int size() override
 		{ return sizeof (float); }
-	void put(char*& dst, char*&, const char*, Value x);
-	Value get(char*& src, Value x);
-	void out(Ostream& os);
-	Value result(long hi, long lo);
+	void put(char*& dst, char*&, const char*, Value x) override;
+	Value get(char*& src, Value x) override;
+	void out(Ostream& os) override;
+	Value result(long hi, long lo) override;
 	};
 
 class TypeDouble : public Type
 	{
 public:
-	int size()
+	int size() override
 		{ return sizeof (double); }
-	void put(char*& dst, char*&, const char*, Value x);
-	Value get(char*& src, Value x);
-	void out(Ostream& os);
-	Value result(long hi, long lo);
+	void put(char*& dst, char*&, const char*, Value x) override;
+	Value get(char*& src, Value x) override;
+	void out(Ostream& os) override;
+	Value result(long hi, long lo) override;
 	};
 
 // Windows resources - SuHandle, SuGdiObj
 template <class T> class TypeWinRes : public Type
 	{
-	int size()
+	int size() override
 		{ return sizeof (void*); }
-	void put(char*& dst, char*& dst2, const char* lim2, Value x)
+	void put(char*& dst, char*& dst2, const char* lim2, Value x) override
 		{
 		if (T* h = val_cast<T*>(x))
 			*((void**) dst) = h->handle();
@@ -134,7 +131,7 @@ template <class T> class TypeWinRes : public Type
 			*((void**) dst) = x ? (void*) x.integer() : 0;
 		dst += sizeof (void*);
 		}
-	Value get(char*& src, Value x)
+	Value get(char*& src, Value x) override
 		{
 		void* p = *((void**) src);
 		src += sizeof (void*);
@@ -143,8 +140,8 @@ template <class T> class TypeWinRes : public Type
 				return x;
 		return new T(p);
 		}
-	void out(Ostream& os);
-	Value result(long, long n)
+	void out(Ostream& os) override;
+	Value result(long, long n) override
 		{ return new T((void*) n); }
 	};
 
@@ -154,13 +151,13 @@ class TypeBuffer : public Type
 public:
 	TypeBuffer(bool i = false) : in(i)
 		{ }
-	int size()
+	int size() override
 		{ return sizeof (char*); }
-	void put(char*& dst, char*& dst2, const char* lim2, Value x);
-	Value get(char*& src, Value x);
-	void getbyref(char*& src, Value x)
+	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
+	Value get(char*& src, Value x) override;
+	void getbyref(char*& src, Value x) override
 		{ get(src, x); }
-	void out(Ostream& os);
+	void out(Ostream& os) override;
 protected:
 	bool in;
 	};
@@ -171,20 +168,20 @@ class TypeString : public TypeBuffer
 public:
 	TypeString(bool i = false) : TypeBuffer(i)
 		{ }
-	Value get(char*& src, Value x);
-	void out(Ostream& os);
-	Value result(long, long n);
+	Value get(char*& src, Value x) override;
+	void out(Ostream& os) override;
+	Value result(long, long n) override;
 	};
 
 // resource is either string or short
 class TypeResource : public Type
 	{
 public:
-	int size()
+	int size() override
 		{ return sizeof (char*); }
-	void put(char*& dst, char*& dst2, const char* lim2, Value x);
-	Value get(char*& src, Value x);
-	void out(Ostream& os);
+	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
+	Value get(char*& src, Value x) override;
+	void out(Ostream& os) override;
 private:
 	static TypeString tstr;
 	static TypeInt<short> tint;
@@ -216,7 +213,7 @@ class TypeMulti : public Type
 	{
 public:
 	TypeMulti(TypeItem* is, int nitems);
-	int size();
+	int size() override;
 	friend class Dll;
 protected:
 	int nitems;
@@ -230,11 +227,9 @@ class TypeParams : public TypeMulti
 public:
 	TypeParams(TypeItem* it, int n) : TypeMulti(it, n)
 		{ }
-	void put(char*&, char*&, const char*, Value);
-	Value get(char*&, Value);
+	void put(char*&, char*&, const char*, Value) override;
+	Value get(char*&, Value) override;
 	void putall(char*& dst, char*& dst2, const char* lim2, Value* args);
 	void getall(char*& src, Value* args);
-	void out(Ostream& os);
+	void out(Ostream& os) override;
 	};
-
-#endif

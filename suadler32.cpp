@@ -30,7 +30,7 @@ class SuAdler32 : public SuValue
 public:
 	SuAdler32() : value(1)
 		{ }
-	virtual void out(Ostream& os)
+	void out(Ostream& os) override
 		{ os << "Adler32()"; }
 	static Method<SuAdler32>* methods()
 		{
@@ -38,11 +38,11 @@ public:
 			{
 			Method<SuAdler32>("Update", &SuAdler32::Update),
 			Method<SuAdler32>("Value", &SuAdler32::ValueFn),
-			Method<SuAdler32>("", 0)
+			Method<SuAdler32>("", nullptr)
 			};
 		return methods;
 		}
-	const char* type() const
+	const char* type() const override
 		{ return "Adler32"; }
 	void update(gcstring gcstr);
 	ulong value;

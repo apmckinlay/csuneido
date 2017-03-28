@@ -57,7 +57,7 @@ BuiltinArgs::BuiltinArgs(short& nargs_, short& nargnames_, ushort*& argnames_, i
 	unnamed = nargs - nargnames;
 	}
 
-Value BuiltinArgs::getval(char* name)
+Value BuiltinArgs::getval(const char* name)
 	{
 	int arg;
 	if (i < unnamed)
@@ -78,7 +78,7 @@ Value BuiltinArgs::getval(char* name)
 	return ARG(arg);
 	}
 
-Value BuiltinArgs::getValue(char* name)
+Value BuiltinArgs::getValue(const char* name)
 	{
 	Value val = getval(name);
 	if (! val)
@@ -86,7 +86,7 @@ Value BuiltinArgs::getValue(char* name)
 	return val;
 	}
 
-void BuiltinArgs::ckndef()
+void BuiltinArgs::ckndef() const
 	{
 	verify(! def);
 	}
@@ -104,7 +104,7 @@ Value BuiltinArgs::getNext()
 	return i < nargs ? ARG(i++) : Value();
 	}
 
-ushort BuiltinArgs::curName()
+ushort BuiltinArgs::curName() const
 	{
 	int cur = i - 1;
 	return cur < unnamed ? 0 :  argnames[cur - unnamed];
@@ -115,7 +115,7 @@ Value BuiltinArgs::getNextUnnamed()
 	return i < unnamed ? ARG(i++) : Value();
 	}
 
-void BuiltinArgs::exceptUsage()
+void BuiltinArgs::exceptUsage() const
 	{
 	except(msg1 << msg2 << msg3);
 	}

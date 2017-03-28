@@ -1,6 +1,4 @@
-#ifndef INTERP_H
-#define INTERP_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -27,7 +25,6 @@
 #include "value.h"
 #include "except.h"
 #include "fibers.h" // for tls().proc
-#include <new>
 
 class SuValue;
 class Func;
@@ -77,10 +74,8 @@ class SuRecord;
 // store SuRecord and member for currently active rule for a Frame
 struct Rule
 	{
-	Rule() : rec(0), mem(0)
-		{ }
-	SuRecord* rec;
-	ushort mem;
+	SuRecord* rec = nullptr;
+	ushort mem = 0;
 	};
 
 // a function or block activation
@@ -97,19 +92,19 @@ public:
 
 	Value run();
 //private:
-	Func* prim;
-	SuFunction* fn;
+	Func* prim = nullptr;
+	SuFunction* fn = nullptr;
 	Value self;
-	uchar* ip;		// instruction pointer
-	Value* local;	// base pointer to args and autos
+	uchar* ip = nullptr;		// instruction pointer
+	Value* local = nullptr;	// base pointer to args and autos
 	// the rule member currently being evaluated - used to auto-register
 	Rule rule;
 
-	uchar* catcher;
-	Value* catcher_sp;
-	int catcher_x;
+	uchar* catcher = nullptr;
+	Value* catcher_sp = nullptr;
+	int catcher_x = 0;
 
-	Frame* blockframe;
+	Frame* blockframe = nullptr;
 
 	uchar fetch_local()
 		{ return fetch1(); }
@@ -126,7 +121,7 @@ public:
 		{ ushort j = ip[1] * 256 + ip[0]; ip += 2; return j; }
 	Value get(uchar);
 
-	int each;
+	int each = 0;
 	};
 
 Value dynamic(ushort);
@@ -162,7 +157,7 @@ struct Framer
 		{
 		new(nextfp()) Frame(fp, pc, first, nargs, self);
 		}
-	Frame* nextfp()
+	static Frame* nextfp()
 		{
 		if (tls().proc->fp >= tls().proc->frames + Proc::MAXFRAMES - 1)
 			except_log_stack("function call overflow");
@@ -177,7 +172,8 @@ struct Framer
 extern int callnest;
 
 // call a standalone or member function
-Value docall(Value x, Value member, short nargs = 0, short nargnames = 0, ushort* argnames = 0, int each = -1);
+Value docall(Value x, Value member, short nargs = 0, 
+	short nargnames = 0, ushort* argnames = nullptr, int each = -1);
 
 #define ARG(i) tls().proc->stack.getsp()[1 - nargs + i]
 
@@ -192,8 +188,6 @@ inline Value* GETSP()
 inline void SETSP(Value* newsp)
 	{ tls().proc->stack.setsp(newsp); }
 
-extern Value block_return;
-
 // save and restore stack pointer
 struct KeepSp
 	{
@@ -207,5 +201,3 @@ struct KeepSp
 
 // evaluate a string of source code
 Value run(const char* source);
-
-#endif

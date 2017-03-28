@@ -1,6 +1,4 @@
-#ifndef BUILTINARGS_H
-#define BUILTINARGS_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -33,49 +31,49 @@ public:
 	BuiltinArgs(short& n, short& nn, ushort*& an, int& each);
 	BuiltinArgs& usage(const char* s1, const char* s2 = "", const char* s3 = "")
 		{ msg1 = s1; msg2 = s2; msg3 = s3; return *this; }
-	void exceptUsage();
-	Value getValue(char* name);
-	Value getValue(char* name, Value defval)
+	void exceptUsage() const;
+	Value getValue(const char* name);
+	Value getValue(const char* name, Value defval)
 		{
 		def = true;
 		Value val = getval(name);
 		return val ? val : defval;
 		}
-	int getint(char* name)
+	int getint(const char* name)
 		{ ckndef(); return getValue(name).integer(); }
-	int getint(char* name, int defval)
+	int getint(const char* name, int defval)
 		{
 		def = true;
 		Value val = getval(name);
 		return val ? val.integer() : defval;
 		}
-	char* getstr(char* name)
+	const char* getstr(const char* name)
 		{ ckndef(); return getValue(name).str(); }
-	char* getstr(char* name, char* defval)
+	const char* getstr(const char* name, const char* defval)
 		{
 		def = true;
 		Value val = getval(name);
 		return val ? val.str() : defval;
 		}
-	gcstring getgcstr(char* name)
+	gcstring getgcstr(const char* name)
 		{ ckndef(); return getValue(name).gcstr(); }
-	gcstring getgcstr(char* name, gcstring defval)
+	gcstring getgcstr(const char* name, gcstring defval)
 		{
 		def = true;
 		Value val = getval(name);
 		return val ? val.gcstr() : defval;
 		}
-	bool hasNamed()
+	bool hasNamed() const
 		{ return nargnames > 0; }
 	Value getNext();
-	ushort curName();
+	ushort curName() const;
 	Value getNextUnnamed();
 	void end();
-	bool hasUnnamed()
+	bool hasUnnamed() const
 		{ return unnamed > 0; }
 private:
-	Value getval(char* name);
-	void ckndef();
+	Value getval(const char* name);
+	void ckndef() const;
 	Lisp<int> taken;
 
 	short nargs;
@@ -88,5 +86,3 @@ private:
 	int i;
 	bool def;
 	};
-
-#endif

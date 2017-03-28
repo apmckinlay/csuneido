@@ -30,24 +30,23 @@
 
 #define LOG(stuff)	TRACE(TABLE, stuff)
 
-Query* Query::make_table(char* s)
+Query* Query::make_table(const char* s)
 	{
 	return new Table(s);
 	}
 
-Table::Table(char* s) : table(s), first(true),
-	rewound(true), tran(INT_MAX), tbl(theDB()->get_table(table))
+Table::Table(const char* s) : table(s), tbl(theDB()->get_table(table))
 	{
 	if (! theDB()->istable(table))
 		except("nonexistent table: " << table);
-	singleton = nil(*indexes());
+	singleton = nil(*Table::indexes());
 	}
 
 void Table::out(Ostream& os) const
 	{
 	os << table;
-	if (! nil(idx))
-		os << "^" << idx;
+	if (! nil(idxflds))
+		os << "^" << idxflds;
 	}
 
 Fields Table::columns()
@@ -98,18 +97,18 @@ int Table::keysize(const Fields& index)
 	int nrecs = theDB()->nrecords(table);
 	if (nrecs == 0)
 		return 0;
-	Index* idx = theDB()->get_index(table, fields_to_commas(index));
-	verify(idx);
-	int nnodes = idx->get_nnodes();
+	Index* ix = theDB()->get_index(table, fields_to_commas(index));
+	verify(ix);
+	int nnodes = ix->get_nnodes();
 	int nodesize = NODESIZE / (nnodes <= 1 ? 4 : 2);
 	return (nnodes * nodesize) / nrecs;
 	}
 
 int Table::indexsize(const Fields& index)
 	{
-	Index* idx = theDB()->get_index(table, fields_to_commas(index));
-	verify(idx);
-	return idx->get_nnodes() * NODESIZE + index.size();
+	Index* ix = theDB()->get_index(table, fields_to_commas(index));
+	verify(ix);
+	return ix->get_nnodes() * NODESIZE + index.size();
 	}
 
 int Table::totalsize()
@@ -281,7 +280,7 @@ double Table::optimize2(const Fields& index, const Fields& needs,
 		return IMPOSSIBLE;
 	if (singleton)
 		{
-		idx = nil(index) ? *indexes : index;
+		idxflds = nil(index) ? *indexes : index;
 		return recordsize();
 		}
 
@@ -290,17 +289,17 @@ double Table::optimize2(const Fields& index, const Fields& needs,
 	double cost2 = IMPOSSIBLE;
 	double cost3 = IMPOSSIBLE;
 	Fields allneeds = set_union(needs, firstneeds);
-	IdxSize *idx1, *idx2 = 0, *idx3 = 0;
-	if ((idx1 = match(idxs, index, allneeds)))
+	IdxSize *idx1, *idx2 = nullptr, *idx3 = nullptr;
+	if (nullptr != (idx1 = match(idxs, index, allneeds)))
 		// index found that meets all needs
 		cost1 = idx1->size; // cost of reading index
-	if (! nil(firstneeds) && (idx2 = match(idxs, index, firstneeds)))
+	if (! nil(firstneeds) && nullptr != (idx2 = match(idxs, index, firstneeds)))
 		// index found that meets firstneeds
 		// assume this means we only have to read 75% of data
 		cost2 = .75 * totalsize() + // cost of reading data
 			idx2->size; // cost of reading index
 	// if nil(allneeds) then this is unnecessary - same as idx1 case
-	if (! nil(allneeds) && (idx3 = match(idxs, index, none)))
+	if (! nil(allneeds) && nullptr != (idx3 = match(idxs, index, none)))
 		cost3 = totalsize() + // cost of reading data
 			idx3->size; // cost of reading index
 	TRACE(TABLE, "optimize " << table << " index " << index <<
@@ -316,49 +315,49 @@ double Table::optimize2(const Fields& index, const Fields& needs,
 		{
 		cost = cost1;
 		if (freeze)
-			idx = idx1 ? idx1->index : none;
+			idxflds = idx1 ? idx1->index : none;
 		}
 	else if (cost2 <= cost1 && cost2 <= cost3)
 		{
 		cost = cost2;
 		if (freeze)
-			idx = idx2->index;
+			idxflds = idx2->index;
 		}
 	else
 		{
 		cost = cost3;
 		if (freeze)
-			idx = idx3->index;
+			idxflds = idx3->index;
 		}
-	TRACE(TABLE, "\tchose: idx " << idx << " cost " << cost);
+	TRACE(TABLE, "\tchose: idx " << idxflds << " cost " << cost);
 	return cost;
 	}
 
 // used by Select::optimize
 void Table::select_index(const Fields& index)
 	{
-	idx = index;
+	idxflds = index;
 	}
 
 Header Table::header()
 	{
-	return Header(lisp(singleton ? Fields() : idx,
+	return Header(lisp(singleton ? Fields() : idxflds,
 		theDB()->get_fields(table)), theDB()->get_columns(table));
 	}
 
 void Table::set_index(const Fields& index)
 	{
-	idx = index;
-	ix = (nil(idx) || singleton
+	idxflds = index;
+	idx = (nil(idxflds) || singleton
 		? theDB()->first_index(table)
-		: theDB()->get_index(table, fields_to_commas(idx)));
-	verify(ix);
+		: theDB()->get_index(table, fields_to_commas(idxflds)));
+	verify(idx);
 	rewound = true;
 	}
 
 void Table::select(const Fields& index, const Record& from, const Record& to)
 	{
-	if (! prefix(idx, index))
+	if (! prefix(idxflds, index))
 		except_err(this << " invalid select: " << index << " " << from << " to " << to);
 	sel.org = from;
 	sel.end = to;
@@ -373,10 +372,10 @@ void Table::rewind()
 void Table::iterate_setup(Dir dir)
 	{
 	hdr = header();
-	ix = (nil(idx) || singleton
+	idx = (nil(idxflds) || singleton
 		? theDB()->first_index(table)
-		: theDB()->get_index(table, fields_to_commas(idx)));
-	verify(ix);
+		: theDB()->get_index(table, fields_to_commas(idxflds)));
+	verify(idx);
 	}
 
 // TODO: factor out code common to get's in Table, TempIndex1, TempIndexN
@@ -393,8 +392,8 @@ Row Table::get(Dir dir)
 		{
 		rewound = false;
 		iter = singleton
-			? ix->iter(tran)
-			: ix->iter(tran, sel.org, sel.end);
+			? idx->iter(tran)
+			: idx->iter(tran, sel.org, sel.end);
 		}
 	if (dir == NEXT)
 		++iter;
@@ -411,7 +410,7 @@ Row Table::get(Dir dir)
 	Row row = Row(lisp(iter->key, iter.data()));
 	if (singleton)
 		{
-		Record key = row_to_key(hdr, row, idx);
+		Record key = row_to_key(hdr, row, idxflds);
 		if (key < sel.org || sel.end < key)
 			{
 			rewound = true;
@@ -439,12 +438,12 @@ bool Table::output(const Record& r)
 
 class test_qtable : public Tests
 	{
-	void adm(char* s)
+	void adm(const char* s)
 		{
 		database_admin(s);
 		}
-	int tran;
-	void req(char* s)
+	int tran = 0;
+	void req(const char* s)
 		{
 		except_if(! database_request(tran, s), "FAILED: " << s);
 		}

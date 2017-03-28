@@ -42,7 +42,6 @@
 #include "except.h"
 #include "ostreamstr.h"
 #include "alert.h"
-#include "cmdlineoptions.h"
 #include <process.h>
 
 extern int su_port;
@@ -54,25 +53,25 @@ struct ExePath
 	char name[100];
 	};
 
-static void PrintError(char* lpszFunction, char* msg) ;
+static void PrintError(const char* lpszFunction, const char* msg) ;
 static void UpdateSCMStatus (DWORD dwCurrentState, DWORD dwWaitHint = 0);
 static void WINAPI ServiceCtrlHandler (DWORD controlCode);
 static void WINAPI ServiceMain(DWORD argc, LPTSTR* argv);
 static ExePath* exe_path();
 static void StopService();
 
-static char* args; // used to pass from CallServiceDispatcher to ServiceMain
+static const char* args; // used to pass from CallServiceDispatcher to ServiceMain
 static PROCESS_INFORMATION pi;
 static DWORD serviceCurrentStatus = 0;
 static SERVICE_STATUS_HANDLE serviceStatusHandle = 0;
 
-void CallServiceDispatcher(char* a)
+void CallServiceDispatcher(const char* a)
 	{
 	args = a;
 	SERVICE_TABLE_ENTRY serviceTable[] =
 		{
 		{ exe_path()->name, ServiceMain },
-		{ NULL, NULL }
+		{nullptr, nullptr }
 		};
 	StartServiceCtrlDispatcher(serviceTable);
 	}
@@ -175,7 +174,7 @@ struct ServiceHandle
 	SC_HANDLE handle;
 	};
 
-void InstallService(char* args)
+void InstallService(const char* svcargs)
 	{
 	ServiceHandle scm = OpenSCManager(0, 0, SC_MANAGER_CREATE_SERVICE);
 	if (! scm)
@@ -185,7 +184,7 @@ void InstallService(char* args)
 		}
 
 	OstreamStr cmd(200);
-	cmd << exe_path()->path << " -service " << args;
+	cmd << exe_path()->path << " -service " << svcargs;
 
 	ServiceHandle myService = CreateService(scm,
 		exe_path()->name,
@@ -251,7 +250,7 @@ void UnInstallService()
 	alert("Service successfully removed.\n" << exe_path()->name);
 	}
 
-static void PrintError(char * lpszFunction, char * msg)
+static void PrintError(const char* lpszFunction, const char* msg)
 	{
 	LPVOID lpMsgBuf;
 	DWORD dw = GetLastError();
@@ -270,7 +269,7 @@ static void PrintError(char * lpszFunction, char * msg)
 		exe_path()->name);
 	}
 
-static void UpdateSCMStatus (DWORD dwCurrentState, DWORD dwWaitHint)
+static void UpdateSCMStatus(DWORD dwCurrentState, DWORD dwWaitHint)
 	{
 	serviceCurrentStatus = dwCurrentState;
 

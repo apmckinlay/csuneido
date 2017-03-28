@@ -20,10 +20,6 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifdef _MSC_VER
-#pragma warning(disable : 4786)
-#endif
-
 #include "row.h"
 #include <ctype.h>
 #include "symbols.h"
@@ -119,12 +115,7 @@ Fields Header::schema() const
 	Fields schema = fields();
 	for (Fields c = cols; ! nil(c); ++c)
 		if (! inflds(flds, *c))
-			{
-			gcstring str(c->str()); // copy
-			char* s = str.str();
-			*s = toupper(*s);
-			schema.append(str);
-			}
+			schema.append(c->capitalize());
 	return schema;
 	}
 
@@ -368,7 +359,7 @@ class test_row : public Tests
 		verify(! equal(hdr, y, x));
 		verify(! equal(hdr, x, y));
 		}
-	Header mkhdr(char* a, char* b, char* c)
+	Header mkhdr(const char* a, const char* b, const char* c)
 		{
 		Fields f;
 		f.append(a);

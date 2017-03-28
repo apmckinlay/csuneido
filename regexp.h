@@ -1,6 +1,4 @@
-#ifndef REGEXP_H
-#define REGEXP_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -23,12 +21,14 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "gcstring.h"
+
 // specifies a part of a string matched by a part of a regular expression
 struct Rxpart
 	{
-	char* s;
+	const char* s;
 	int n;
-	char* tmp; // used to store tentative "s"
+	const char* tmp; // used to store tentative "s"
 	};
 
 enum { MAXPARTS = 10 };
@@ -39,16 +39,16 @@ class gcstring;
 char* rx_compile(const gcstring& s);
 
 // match a string against a compiled regular expression
-bool rx_match(char* s, int n, int i, char* pat, Rxpart* psubs = 0);
-bool rx_match_reverse(char* s, int n, int i, char* pat, Rxpart* psubs = 0);
+bool rx_match(const char* s, int n, int i, const char* pat, Rxpart* psubs = 0);
+inline bool rx_match(const gcstring& s, const char* pat, Rxpart* psubs = 0)
+	{ return rx_match(s.buf(), s.size(), 0, pat, psubs); }
+bool rx_match_reverse(const char* s, int n, int i, const char* pat, Rxpart* psubs = 0);
 
 // match a specific point in a string against a compiled regular expression
-int rx_amatch(char* s, int i, int n, char* pat, Rxpart* psubs = 0);
+int rx_amatch(const char* s, int i, int n, const char* pat, Rxpart* psubs = 0);
 
 // determine the length of a replacement string
 int rx_replen(const char* rep, Rxpart* subs);
 
 // build a replacement string
 char* rx_mkrep(char* buf, const char* rep, Rxpart* subs);
-
-#endif

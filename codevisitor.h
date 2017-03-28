@@ -1,3 +1,4 @@
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -27,12 +28,11 @@ public:
 		{ }
 	virtual void dynamic(int var)
 		{ }
-	virtual void global(int pos, char* name)
+	virtual void global(int pos, const char* name)
 		{ }
 	virtual void begin_func()
 		{ }
 	virtual void end_func()
 		{ }
-	virtual ~CodeVisitor()
-		{ } // to avoid warnings
+	virtual ~CodeVisitor() = default;
 	};

@@ -33,18 +33,20 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "symbols.h"
-#include "minmax.h"
 #include "range.h"
 #include "buffer.h"
 #include "func.h" // for argseach for call
 #include "scanner.h" // for doesc
+#include <algorithm>
+using std::min;
+using std::max;
 
 SuString* SuString::empty_string = new SuString("");
 
+extern bool obout_inkey;
+
 void SuString::out(Ostream& out)
 	{
-	extern bool obout_inkey;
 	if (obout_inkey && is_identifier())
 		out << s;
 	else if (backquote())
@@ -53,11 +55,8 @@ void SuString::out(Ostream& out)
 		{
 		char quote = (s.find('"') != -1 && s.find('\'') == -1) ? '\'' : '"';
 		out << quote;
-		char* buf = s.buf();
-		size_t n = s.size();
-		for (size_t i = 0; i < n; ++i)
+		for (auto c : s)
 			{
-			uchar c = buf[i];
 			if (c == 0)
 				out << "\\x00";
 			else if (c == quote || c == '\\')
@@ -108,8 +107,8 @@ SuNumber* SuString::number()
 	{
 	if (size() == 0)
 		return &SuNumber::zero;
-	char* s = str();
-	return size() == numlen(s) ? new SuNumber(s, size()) : SuValue::number();
+	auto t = str();
+	return size() == numlen(t) ? new SuNumber(t, size()) : SuValue::number();
 	}
 
 static int ord = ::order("String");
@@ -186,7 +185,8 @@ HashMap<Value,SuString::pmfn> SuString::methods;
 
 #define METHOD(fn) methods[#fn] = &SuString::fn
 
-Value SuString::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuString::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static bool first = true;
 	if (first)
@@ -238,7 +238,7 @@ Value SuString::call(Value self, Value member, short nargs, short nargnames, ush
 		static int G_SuStrings = globals("Strings");
 		Value SuStrings = globals.find(G_SuStrings);
 		SuObject* ob;
-		if (SuStrings && (ob = SuStrings.ob_if_ob()) && ob->has(member))
+		if (SuStrings && nullptr != (ob = SuStrings.ob_if_ob()) && ob->has(member))
 			return ob->call(self, member, nargs, nargnames, argnames, each);
 		else
 			method_not_found("string", member);
@@ -291,7 +291,7 @@ Value SuString::Asc(short nargs, short nargnames, ushort* argnames, int each)
 	return (uchar) *buf();
 	}
 
-bool isGlobal(char* s)
+bool isGlobal(const char* s)
 	{
 	if (! isupper(*s))
 		return false;
@@ -373,7 +373,7 @@ Value SuString::FindLast(short nargs, short nargnames, ushort* argnames, int eac
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("usage: string.FindLast(string, pos = size())");
-	char* str = args.getstr("string");
+	auto str = args.getstr("string");
 	int pos = args.getint("pos", size());
 	args.end();
 
@@ -394,8 +394,8 @@ Value SuString::Find1of(short nargs, short nargnames, ushort* argnames, int each
 	char* setbuf = set.buf();
 	char* setlim = setbuf + set.size();
 	for (int i = max(pos, 0); i < nbuf; ++i)
-		for (char* s = setbuf; s < setlim; ++s)
-			if (buf[i] == *s)
+		for (char* t = setbuf; t < setlim; ++t)
+			if (buf[i] == *t)
 				return i;
 	return size();
 	}
@@ -412,8 +412,8 @@ Value SuString::FindLast1of(short nargs, short nargnames, ushort* argnames, int 
 	char* setbuf = set.buf();
 	char* setlim = setbuf + set.size();
 	for (int i = min(pos, size() - 1); i >= 0; --i)
-		for (char* s = setbuf; s < setlim; ++s)
-			if (buf[i] == *s)
+		for (char* t = setbuf; t < setlim; ++t)
+			if (buf[i] == *t)
 				return i;
 	return SuFalse;
 	}
@@ -431,10 +431,10 @@ Value SuString::Findnot1of(short nargs, short nargnames, ushort* argnames, int e
 	char* setbuf = set.buf();
 	char* setlim = setbuf + set.size();
 	for (int i = max(pos, 0); i < nbuf; ++i)
-		for (char* s = setbuf; ; ++s)
-			if (s >= setlim)
+		for (char* t = setbuf; ; ++t)
+			if (t >= setlim)
 				return i;
-			else if (buf[i] == *s)
+			else if (buf[i] == *t)
 				break ;
 	return size();
 	}
@@ -451,10 +451,10 @@ Value SuString::FindLastnot1of(short nargs, short nargnames, ushort* argnames, i
 	char* setbuf = set.buf();
 	char* setlim = setbuf + set.size();
 	for (int i = min(pos, size() - 1); i >= 0; --i)
-		for (char* s = setbuf; ; ++s)
-			if (s >= setlim)
+		for (char* t = setbuf; ; ++t)
+			if (t >= setlim)
 				return i;
-			else if (buf[i] == *s)
+			else if (buf[i] == *t)
 				break ;
 	return SuFalse;
 	}
@@ -469,9 +469,9 @@ Value SuString::Match(short nargs, short nargnames, ushort* argnames, int each)
 	int pos = (posval == SuFalse) ? (prev ? size() : 0) : posval.integer();
 	args.end();
 	Rxpart parts[MAXPARTS];
-	char* s = buf();
-	bool hasmatch = prev ? rx_match_reverse(s, size(), pos, rx_compile(pat), parts)
-						 : rx_match(s, size(), pos, rx_compile(pat), parts);
+	char* t = buf();
+	bool hasmatch = prev ? rx_match_reverse(t, size(), pos, rx_compile(pat), parts)
+						 : rx_match(t, size(), pos, rx_compile(pat), parts);
 	if (! hasmatch)
 		return SuFalse;
 	SuObject* ob = new SuObject;
@@ -479,7 +479,7 @@ Value SuString::Match(short nargs, short nargnames, ushort* argnames, int each)
 		if (parts[i].n != -1)
 			{
 			SuObject* part = new SuObject;
-			part->add(parts[i].s - s);
+			part->add(parts[i].s - t);
 			part->add(parts[i].n);
 			ob->add(part); //substr(parts[i].s - s, parts[i].n));
 			}
@@ -524,7 +524,7 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 
 	int oldsize = size();
 	Buffer result(oldsize + oldsize / 4 + 1); // usually result will be similar size
-	char* old = str();
+	auto old = str();
 	int lastm = -1;
 	Rxpart parts[MAXPARTS];
 	for (int nsubs = 0, i = 0; i <= oldsize; )
@@ -602,8 +602,8 @@ Value SuString::Detab(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
 		except("usage: string.Detab()");
-	gcstring s = gcstr();
-	int sn = s.size();
+	const char* ss = buf();
+	int sn = size();
 
 	const int MAXTABS = 32;
 	short tabs[MAXTABS] = { 0 };
@@ -613,14 +613,14 @@ Value SuString::Detab(short nargs, short nargnames, ushort* argnames, int each)
 
 	int ntabs = 0;
 	for (int j = 0; j < sn; ++j)
-		if (s[j] == '\t')
+		if (ss[j] == '\t')
 			++ntabs;
 	const int n = sn + ntabs * (w - 1);
-	char* buf = (char*) alloca(n);
+	char* buf = (char*) _alloca(n);
 	int i, si, col;
 	for (si = 0, i = 0, col = 0; si < sn; ++si)
 		{
-		switch (s[si])
+		switch (ss[si])
 			{
 		case '\t' :
 			int j;
@@ -635,10 +635,10 @@ Value SuString::Detab(short nargs, short nargnames, ushort* argnames, int each)
 			break ;
 		case '\n' :
 		case '\r' :
-			buf[i++] = s[si], col = 0;
+			buf[i++] = ss[si], col = 0;
 			break ;
 		default :
-			buf[i++] = s[si], ++col;
+			buf[i++] = ss[si], ++col;
 			break ;
 			}
 		}
@@ -654,15 +654,15 @@ Value SuString::Entab(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
 		except("usage: string.Entab()");
-	char* s = str();
-	char* buf = (char*) alloca(size());
+	auto ss = str();
+	char* buf = (char*) _alloca(size());
 	char* dst = buf;
 	char c;
 	for (;;) // for each line
 		{
 		// convert leading spaces & tabs
 		int col = 0;
-		while (0 != (c = *s++))
+		while (0 != (c = *ss++))
 			{
 			if (c == ' ')
 				++col;
@@ -672,7 +672,7 @@ Value SuString::Entab(short nargs, short nargnames, ushort* argnames, int each)
 			else
 				break ;
 			}
-		--s;
+		--ss;
 		int dstcol = 0;
 		for (int j = 0; j <= col; ++j)
 			if (istab(j))
@@ -684,7 +684,7 @@ Value SuString::Entab(short nargs, short nargnames, ushort* argnames, int each)
 			*dst++ = ' ';
 
 		// copy the rest of the line
-		while ((c = *s++) && c != '\n' && c != '\r')
+		while (0 != (c = *ss++) && c != '\n' && c != '\r')
 			*dst++ = c;
 
 		// strip trailing spaces & tabs
@@ -724,15 +724,15 @@ Value SuString::Unescape(short nargs, short nargnames, ushort* argnames, int eac
 		except("usage: string.Unescape()");
 
 	int n = size();
-	const char* s = buf();
-	char* buf = (char*) alloca(n);
+	const char* ss = buf();
+	char* buf = (char*) _alloca(n);
 	char* dst = buf;
 	for (int i = 0; i < n; ++i)
 		{
-		if (s[i] == '\\')
-			*dst++ = Scanner::doesc(s, i);
+		if (ss[i] == '\\')
+			*dst++ = Scanner::doesc(ss, i);
 		else
-			*dst++ = s[i];
+			*dst++ = ss[i];
 		}
 	return new SuString(buf, dst - buf);
 	}
@@ -742,15 +742,18 @@ class SuStringIter : public SuValue
 public:
 	explicit SuStringIter(gcstring s) : str(s), i(0)
 		{ }
-	virtual void out(Ostream& os)
+
+	void out(Ostream& os) override
 		{ os << "StringIter"; }
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 private:
 	gcstring str;
 	int i;
 	};
 
-Value SuStringIter::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuStringIter::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value NEXT("Next");
 	static Value ITER("Iter");
@@ -784,7 +787,7 @@ Value SuString::Mbstowcs(short nargs, short nargnames, ushort* argnames, int eac
 	{
 	if (nargs != 0)
 		except("usage: string.Mbstowcs()");
-	char* src = str();
+	auto src = str();
 	int n = mbstowcs(NULL, src, 0) + 1;
 	SuString* dst = new SuString(n * 2);
 	mbstowcs((wchar_t*) dst->buf(), src, n);
@@ -808,8 +811,8 @@ Value SuString::Upper(short nargs, short nargnames, ushort* argnames, int each)
 		except("usage: string.Upper()");
 	SuString* dst = new SuString(size());
 	char* t = dst->buf();
-	for (char* s = begin(); s != end(); ++s, ++t)
-		*t = toupper((unsigned int) *s);
+	for (auto src = begin(); src != end(); ++src, ++t)
+		*t = toupper((unsigned int) *src);
 	return dst;
 	}
 
@@ -824,8 +827,8 @@ SuString* SuString::tolower() const
 	{
 	SuString* dst = new SuString(size());
 	char* t = dst->buf();
-	for (auto s = begin(); s != end(); ++s, ++t)
-		*t = ::tolower((unsigned int) *s);
+	for (auto src = begin(); src != end(); ++src, ++t)
+		*t = ::tolower((unsigned int) *src);
 	return dst;
 	}
 
@@ -834,10 +837,10 @@ Value SuString::Upperq(short nargs, short nargnames, ushort* argnames, int each)
 	if (nargs != 0)
 		except("usage: string.Upper?()");
 	bool result = false;
-	for (char* s = begin(); s != end(); ++s)
-		if (islower((unsigned int) *s))
+	for (auto t = begin(); t != end(); ++t)
+		if (islower((unsigned int) *t))
 			return SuFalse;
-		else if (isupper((unsigned int) *s))
+		else if (isupper((unsigned int) *t))
 			result = true;
 	return result ? SuTrue : SuFalse;
 	}
@@ -847,10 +850,10 @@ Value SuString::Lowerq(short nargs, short nargnames, ushort* argnames, int each)
 	if (nargs != 0)
 		except("usage: string.Lower?()");
 	bool result = false;
-	for (char* s = begin(); s != end(); ++s)
-		if (isupper((unsigned int) *s))
+	for (auto t = begin(); t != end(); ++t)
+		if (isupper((unsigned int) *t))
 			return SuFalse;
-		else if (islower((unsigned int) *s))
+		else if (islower((unsigned int) *t))
 			result = true;
 	return result ? SuTrue : SuFalse;
 	}
@@ -861,8 +864,8 @@ Value SuString::Alphaq(short nargs, short nargnames, ushort* argnames, int each)
 		except("usage: string.Alpha?()");
 	if (size() <= 0)
 		return SuFalse;
-	for (char* s = begin(); s != end(); ++s)
-		if (! isalpha((unsigned int) *s))
+	for (auto t = begin(); t != end(); ++t)
+		if (! isalpha((unsigned int) *t))
 			return SuFalse;
 	return SuTrue;
 	}
@@ -873,8 +876,8 @@ Value SuString::Numericq(short nargs, short nargnames, ushort* argnames, int eac
 		except("usage: string.Numeric?()");
 	if (size() <= 0)
 		return SuFalse;
-	for (char* s = begin(); s != end(); ++s)
-		if (! isdigit((unsigned int) *s))
+	for (auto t = begin(); t != end(); ++t)
+		if (! isdigit((unsigned int) *t))
 			return SuFalse;
 	return SuTrue;
 	}
@@ -885,8 +888,8 @@ Value SuString::AlphaNumq(short nargs, short nargnames, ushort* argnames, int ea
 		except("usage: string.AlphaNum?()");
 	if (size() <= 0)
 		return SuFalse;
-	for (char* s = begin(); s != end(); ++s)
-		if (! isalnum((unsigned int) *s))
+	for (auto t = begin(); t != end(); ++t)
+		if (! isalnum((unsigned int) *t))
 			return SuFalse;
 	return SuTrue;
 	}

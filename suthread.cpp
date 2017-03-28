@@ -82,7 +82,8 @@ static void _stdcall thread(void* arg)
 		}
 	}
 
-Value ThreadClass::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value ThreadClass::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Count("Count");
 	static Value List("List");

@@ -102,31 +102,31 @@ class test_btree : public Tests
 		assertfeq(bt.rangefrac(Record(), Record()), 0);
 		assertfeq(bt.rangefrac(key(999), maxkey()), 0);
 		}
-	Record key(int i)
+	static Record key(int i)
 		{
 		Record r;
 		r.addval(Value(i));
 		return r;
 		}
-	Record key(char* s)
+	static Record key(const char* s)
 		{
 		Record r;
 		r.addval(s);
 		return r;
 		}
-	Record endkey(int i)
+	Record endkey(int i) const
 		{
 		Record r = key(i);
 		r.addmax();
 		return r;
 		}
-	Record maxkey()
+	static Record maxkey()
 		{
 		Record r;
 		r.addmax();
 		return r;
 		}
-	Record bigkey(int i)
+	static Record bigkey(int i)
 		{
 		static gcstring filler = make_filler();
 		Record r;
@@ -134,7 +134,7 @@ class test_btree : public Tests
 		r.addval(filler);
 		return r;
 		}
-	gcstring make_filler()
+	static gcstring make_filler()
 		{
 		const int N = 500;
 		gcstring s(N);

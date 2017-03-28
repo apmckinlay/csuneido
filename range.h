@@ -1,6 +1,4 @@
-#ifndef RANGE_H
-#define RANGE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -33,5 +31,3 @@ public:
 	virtual gcstring substr(gcstring s) = 0;
 	virtual SuObject* sublist(SuObject* ob) = 0;
 	};
-
-#endif

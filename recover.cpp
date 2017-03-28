@@ -25,19 +25,19 @@
 
 #include "recover.h"
 #include "database.h"
-#include "suboolean.h"
 #include "ostreamfile.h"
 #include "alert.h"
 #include <vector>
 #include "catstr.h"
 #include <stdio.h>	// for remove
-#include "minmax.h"
 #include "errlog.h"
 #include "checksum.h"
 #include "value.h"
 #include "cmdlineoptions.h"
 #include "ostreamstr.h"
 #include "exceptimp.h"
+#include <algorithm>
+using std::max;
 
 typedef std::vector<bool> BitVector;
 
@@ -74,7 +74,7 @@ inline bool operator<(Mmoffset off, const TrEntry& te)
 class Translate
 	{
 public:
-	Translate(int n)
+	explicit Translate(int n)
 		{ map.reserve(n); }
 	void add(Mmoffset from, Mmoffset to)
 		{ map.push_back(TrEntry(from, to)); }
@@ -98,7 +98,7 @@ static void dbdump1(Ostream& log, Mmfile& mmf, Mmfile::iterator& iter, ulong& ck
 
 static int max_tblnum = 0;
 
-Mmfile* open_mmf(char* file)
+Mmfile* open_mmf(const char* file)
 	{
 	Mmfile* mmf = new Mmfile(file);
 	// old file is set to smaller max chunks mapped
@@ -110,22 +110,22 @@ Mmfile* open_mmf(char* file)
 class DbRecoverImp : public DbRecover
 	{
 public:
-	DbRecoverImp(char* f) : file(f), mmf(open_mmf(file)),
+	explicit DbRecoverImp(const char* f) : file(f), mmf(open_mmf(file)),
 		deletes(mmf->size() / granularity),
 		ndata(0), last_good(0), status_(DBR_UNRECOVERABLE)
 		{ }
 	~DbRecoverImp()
 		{ delete mmf; mmf = 0; }
 	void docheck(bool (*progress)(int));
-	DbrStatus check_indexes(bool (*progress)(int));
-	DbrStatus status()
+	DbrStatus check_indexes(bool (*progress)(int)) override;
+	DbrStatus status() override
 		{ return status_; }
-	virtual char* last_good_commit();
-	virtual bool rebuild(bool (*progress)(int), bool log = true);
+	const char* last_good_commit() override;
+	bool rebuild(bool (*progress)(int), bool log = true) override;
 private:
 	bool rebuild_copy(char* newfile, bool (*progress)(int));
 
-	char* file;
+	const char* file;
 	Mmfile* mmf;
 	BitVector deletes;
 	int ndata;
@@ -134,7 +134,7 @@ private:
 	DbrStatus status_;
 	};
 
-DbRecover* DbRecover::check(char* file, bool (*progress)(int))
+DbRecover* DbRecover::check(const char* file, bool (*progress)(int))
 	{
 	DbRecoverImp* dbr = new DbRecoverImp(file);
 	dbr->docheck(progress);
@@ -251,8 +251,8 @@ DbrStatus DbRecoverImp::check_indexes(bool (*progress)(int))
 	{
 	delete mmf; mmf = 0;
 	Database db(file);
-	Tbl* tbl = db.ck_get_table("tables");
-	int n_tables = tbl->nrecords;
+	Tbl* tables = db.ck_get_table("tables");
+	int n_tables = tables->nrecords;
 	Index* index = db.get_index("tables", "table");
 	verify(index);
 	Index::iterator tbl_iter = index->begin(schema_tran);
@@ -306,7 +306,7 @@ DbrStatus DbRecoverImp::check_indexes(bool (*progress)(int))
 	return status_;
 	}
 
-char* DbRecoverImp::last_good_commit()
+const char* DbRecoverImp::last_good_commit()
 	{
 	char* s = ctime(&last_good);
 	if (! s)
@@ -315,11 +315,13 @@ char* DbRecoverImp::last_good_commit()
 	return dupstr(s); // dup since ctime is static
 	}
 
+extern char* tmpfilename();
+
 bool DbRecoverImp::rebuild(bool (*progress)(int), bool log)
 	{
 	if (! mmf)
 		mmf = open_mmf(file);
-	char newfile[L_tmpnam] = "";
+	char* newfile = tmpfilename();
 	if (! rebuild_copy(newfile, progress))
 		{
 		remove(newfile);
@@ -435,8 +437,7 @@ bool DbRecoverImp::rebuild_copy(char* newfile, bool (*progress)(int))
 				{
 				Commit* commit = (Commit*) p;
 				Mmoffset32* creates = commit->creates();
-				int i = 0;
-				for (i = 0; i < commit->ncreates; ++i)
+				for (int i = 0; i < commit->ncreates; ++i)
 					{
 					Mmoffset oldoff = creates[i].unpack();
 					Mmoffset newoff = tr[oldoff - sizeof (long)] + sizeof (long);
@@ -460,9 +461,9 @@ bool DbRecoverImp::rebuild_copy(char* newfile, bool (*progress)(int))
 							}
 						}
 					}
-				Mmoffset32* deletes = commit->deletes();
-				for (i = 0; i < commit->ndeletes; ++i)
-					deletes[i] = tr[deletes[i].unpack() - sizeof (long)] + sizeof (long);
+				Mmoffset32* dels = commit->deletes();
+				for (int i = 0; i < commit->ndeletes; ++i)
+					dels[i] = tr[dels[i].unpack() - sizeof (long)] + sizeof (long);
 				commit->cksum = checksum(cksum, (char*) commit + sizeof (long),
 					iter.size() - sizeof (long));
 				cksum = checksum(0, 0, 0);
@@ -590,7 +591,7 @@ static void schema_dump(void* p, Ostream& log)
 		}
 	}
 
-void dbdump(char* db, bool append)
+void dbdump(const char* db, bool append)
 	{
 	Mmfile mmf(db, 0);
 	BitVector deletes(mmf.size() / granularity);

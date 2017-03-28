@@ -1,6 +1,4 @@
-#ifndef TESTOBALERT_H
-#define TESTOBALERT_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -36,12 +34,14 @@ public:
 		{
 		OstreamFile os("test.log", "w"); // truncate
 		}
-	virtual void start_test(const char* group, const char* test)
+
+	void start_test(const char* group, const char* test) override
 		{
 		OstreamFile os("test.log", "a");
 		os << group << ' ' << test << endl;
 		}
-	virtual void end_test(const char* group, const char* test, const char* error)
+
+	void end_test(const char* group, const char* test, const char* error) override
 		{
 		if (error)
 			{
@@ -51,7 +51,8 @@ public:
 			}
 		++ntests;
 		}
-	virtual void end_all(int nfailed)
+
+	void end_all(int nfailed) override
 		{
 		OstreamStr os;
 		os << ntests << " test" << (ntests > 1 ? "s" : "") << ' ';
@@ -65,5 +66,3 @@ private:
 	int ntests;
 	OstreamStr errs;
 	};
-
-#endif

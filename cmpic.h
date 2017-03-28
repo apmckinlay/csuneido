@@ -1,6 +1,4 @@
-#ifndef CMPIC_H
-#define CMPIC_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -25,5 +23,3 @@
 
 int strcmpic(const char* s, const char* t);
 int memcmpic(const char* s, const char* t, int n);
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef BLOCK_H
-#define BLOCK_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -31,5 +29,3 @@ Value suBlock(Frame* frame, int pc, int first, int nparams);
 void persist_if_block(Value x);
 
 const int BLOCK_REST = 255;
-
-#endif

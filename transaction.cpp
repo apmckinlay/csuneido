@@ -27,7 +27,6 @@
 #include "except.h"
 #include "exceptimp.h"
 #include "recover.h"
-#include "except.h"
 #include "errlog.h"
 #include "checksum.h"
 #include "ostreamstr.h"
@@ -44,14 +43,14 @@ const TranTime PAST = INT_MIN;
 inline TranDelete::TranDelete(TranTime t) : tran(t), time(t + UNCOMMITTED)
 	{ }
 
-Transaction::Transaction() : session_id(""), conflict(NULL)
+Transaction::Transaction()
 	{ }
 
-Transaction::Transaction(TranType t, TranTime clock, char* sid)
-	: type(t), tran(clock), asof(clock), session_id(sid), conflict(NULL)
+Transaction::Transaction(TranType t, TranTime clock, const char* sid)
+	: type(t), tran(clock), asof(clock), session_id(sid)
 	{ }
 
-int Database::transaction(TranType type, char* session_id)
+int Database::transaction(TranType type, const char* session_id)
 	{
 	if ((clock % 2) != type)
 		++clock;
@@ -190,7 +189,7 @@ TranRead* Database::read_act(int tran, TblNum tblnum, const char* index)
 
 // commit / abort ===================================================
 
-bool Database::commit(int tran, char** conflict)
+bool Database::commit(int tran, const char** conflict)
 	{
 	Transaction* t = get_tran(tran);
 	if (! t)
@@ -542,7 +541,6 @@ void Database::checksum(void* buf, size_t n)
 // tests ============================================================
 
 #include "testing.h"
-#include <stdio.h> // for remove
 #include "tempdb.h"
 
 #define BEGIN \
@@ -714,13 +712,13 @@ private:
 		thedb->add_record(t, "test", record("fred"));
 		verify(thedb->commit(t));
 		}
-	Record record(char* s)
+	Record record(const char* s)
 		{
 		Record r;
 		r.addval(s);
 		return r;
 		}
-	Record key(char* s)
+	Record key(const char* s)
 		{
 		Record r;
 		r.addval(s);

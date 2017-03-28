@@ -55,7 +55,8 @@ size_t SuMethod::hashfn()
 	return size_t(object.ptr()) ^ method.hash();
 	}
 
-Value SuMethod::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuMethod::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL)
 		return object.call(object, method, nargs, nargnames, argnames, each);

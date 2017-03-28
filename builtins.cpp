@@ -41,10 +41,7 @@
 #include "dbms.h"
 #include "construct.h"
 #include <time.h> // for time for srand
-#include "checksum.h"
-#include "susockets.h"
 #include "type.h"
-#include "callback.h"
 #include "prim.h"
 #include "fatal.h"
 #include "gc.h"
@@ -56,15 +53,16 @@
 #include "exceptimp.h"
 #include "trace.h"
 #include "build.h"
+#include "suwinres.h"
 
 Value run(const char* s)
 	{
 	return docall(compile(CATSTR3("function () {\n", s, "\n}")), CALL);
 	}
 
-char* eval(const char* s)
+const char* eval(const char* s)
 	{
-	char* str;
+	const char* str;
 	try
 		{
 		str = run(s).str();
@@ -123,7 +121,9 @@ Value errorlog()
 	}
 PRIM(errorlog, "ErrorLog(string)");
 
-#ifdef _MSC_VER
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Winfinite-recursion"
+#elif defined(_MSC_VER)
 #pragma warning(disable:4717) // stack overflow
 #endif
 Value stackoverflow()
@@ -347,9 +347,9 @@ Value su_string_from()
 	}
 PRIM(su_string_from, "StringFrom(address)");
 
+extern const char* cmdline;
 Value su_cmdline()
 	{
-	extern char* cmdline;
 	return new SuString(cmdline);
 	}
 PRIM(su_cmdline, "Cmdline()");
@@ -385,9 +385,9 @@ Value su_timestamp()
 	}
 PRIM(su_timestamp, "Timestamp()");
 
+extern bool is_server;
 Value su_serverq()
 	{
-	extern bool is_server;
 	return is_server ? SuTrue : SuFalse;
 	}
 PRIM(su_serverq, "Server?()");
@@ -398,10 +398,10 @@ Value su_serverip()
 	}
 PRIM(su_serverip, "ServerIP()");
 
+extern int su_port;
+extern bool is_client, is_server;
 Value su_serverport()
 	{
-	extern int su_port;
-	extern bool is_client, is_server;
 	return (is_client || is_server) ? su_port : SuEmptyString;
 	}
 PRIM(su_serverport, "ServerPort()");
@@ -425,7 +425,7 @@ PRIM(su_built, "Built()");
 Value su_system()
 	{
 	const int nargs = 1;
-	char* cmd = ARG(0) == Value(0) ? NULL : ARG(0).str();
+	const char* cmd = ARG(0) == Value(0) ? nullptr : ARG(0).str();
 	return system(cmd);
 	}
 PRIM(su_system, "System(command)");
@@ -545,15 +545,16 @@ public:
 		locals[1] = ::symnum("command");
 		locals[2] = ::symnum("args");
 		}
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override
 		{
 		if (member != CALL)
 			return Func::call(self, member, nargs, nargnames, argnames, each);
 		BuiltinArgs args(nargs, nargnames, argnames, each);
 		args.usage("usage: mode, command, @args");
 		int mode = args.getint("mode");
-		char* cmd = args.getstr("command");
-		char** argv = new char*[nargs];
+		auto cmd = args.getstr("command");
+		auto argv = new const char*[nargs];
 		int i = 0;
 		argv[i++] = cmd;
 		while (Value arg = args.getNextUnnamed())
@@ -563,7 +564,7 @@ public:
 		argv[i] = nullptr;
 		return _spawnvp(mode, cmd, argv);
 		}
-	const char* type() const
+	const char* type() const override
 		{
 		return "Builtin";
 		}
@@ -576,10 +577,12 @@ class MkRec : public Func
 public:
 	MkRec()
 		{ named.num = globals("MkRec"); }
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 	};
 
-Value MkRec::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value MkRec::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	// pre: last argument is the literal record
 	{
 	Value* args = GETSP() - nargs + 1;
@@ -630,7 +633,7 @@ const int MAXPRIMS = 100;
 int nprims = 0;
 Prim* prims[MAXPRIMS];
 
-Prim::Prim(PrimFn f, char* d) : fn(f), decl(d)
+Prim::Prim(PrimFn f, const char* d) : fn(f), decl(d)
 	{
 	if (nprims >= MAXPRIMS)
 		fatal("too many primitives - increase MAXPRIMS in builtins.cpp");

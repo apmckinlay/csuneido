@@ -1,6 +1,4 @@
-#ifndef SYMBOLS_H
-#define SYMBOLS_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -42,6 +40,4 @@ Value symbol(const char* s);
 Value symbol(int i);
 
 // return the char* string for a symbol index
-char* symstr(int i);
-
-#endif
+const char* symstr(int i);

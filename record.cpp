@@ -27,8 +27,10 @@
 #include "pack.h"
 #include <limits.h>
 #include "gc.h"
-#include "minmax.h"
 #include "mmfile.h"
+#include <algorithm>
+using std::min;
+using std::max;
 
 template <class T> struct RecRep
 	{

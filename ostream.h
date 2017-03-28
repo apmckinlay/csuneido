@@ -1,6 +1,4 @@
-#ifndef OSTREAM_H
-#define OSTREAM_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -41,8 +39,7 @@ class Ostream
 	{
 public:
 	Ostream();
-	virtual ~Ostream()
-		{ }
+	virtual ~Ostream() = default;
 	virtual Ostream& write(const void* buf, int n) = 0;
 	virtual void flush()
 		{ };
@@ -117,5 +114,3 @@ OstreamManip<int> setw(int n);
 
 // fill character
 OstreamManip<char> setfill(char c);
-
-#endif

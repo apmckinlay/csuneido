@@ -26,7 +26,6 @@
 #include "symbols.h"
 #include "sustring.h"
 #include "pack.h"
-#include "cvt.h"
 
 //TODO don't inherit from SuObject
 
@@ -47,7 +46,8 @@ void SuClass::out(Ostream& out)
 	out << " */";
 	}
 
-Value SuClass::call(Value self, Value member, short nargs, short nargnames, ushort *argnames, int each)
+Value SuClass::call(Value self, Value member, 
+	short nargs, short nargnames, ushort *argnames, int each)
 	{
 	static Value BASENAME("BaseName");
 
@@ -145,7 +145,8 @@ SuClass* SuClass::unpack(const gcstring& s)
 // theoretically the "basic" methods should be in here
 // but for speed they are in class SuObject
 
-Value RootClass::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value RootClass::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL || member == INSTANTIATE)
 		{ // only used for Object(...)
@@ -179,7 +180,7 @@ Value RootClass::call(Value self, Value member, short nargs, short nargnames, us
 		static ushort G_Objects = globals("Objects");
 		Value Objects = globals.find(G_Objects);
 		SuObject* ob;
-		if (Objects && (ob = Objects.ob_if_ob()) && ob->has(member))
+		if (Objects && nullptr != (ob = Objects.ob_if_ob()) && ob->has(member))
 			return ob->call(self, member, nargs, nargnames, argnames, each);
 		else
 			return notfound(self, member, nargs, nargnames, argnames, each);
@@ -189,7 +190,8 @@ Value RootClass::call(Value self, Value member, short nargs, short nargnames, us
 #include "func.h"
 
 // this is separate so it can be used by other builtin classes
-Value RootClass::notfound(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value RootClass::notfound(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value DEFAULT("Default");
 

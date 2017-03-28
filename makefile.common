@@ -55,7 +55,6 @@ ostream.cpp \
 ostreamfile.cpp \
 ostreamstr.cpp \
 pack.cpp \
-params.cpp \
 permheap.cpp \
 portwin32.cpp \
 qcompatible.cpp \
@@ -139,7 +138,6 @@ serializer.cpp \
 sockets.cpp \
 structure.cpp \
 sucomobject.cpp \
-suimage.cpp \
 sunapp.cpp \
 suneido.cpp \
 suservice.cpp \

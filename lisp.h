@@ -1,6 +1,4 @@
-#ifndef LISP_H
-#define LISP_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -25,6 +23,8 @@
 
 #include "std.h"
 #include "except.h"
+
+//TODO add begin/end for standard C++ iteration
 
 template <class T> class Lisp;
 
@@ -298,7 +298,8 @@ template <class T> Lisp<T> cons(const T& t)
 template <class T> Lisp<T> cons(const T& t, const Lisp<T>& list)
 	{ return Lisp<T>(new typename Lisp<T>::Cons(t, list.first)); }
 
-#include <cstddef>
+// ReSharper disable once CppUnusedIncludeDirective
+#include <stddef.h> // for size_t
 
 // hash the list pointer NOT the values, used by Select
 template <class T> struct HashFirst
@@ -522,5 +523,3 @@ template <class T> Lisp<T> sort(const Lisp<T>& x)
 	split(x, part1, part2);
 	return merge(sort(part1), sort(part2));
 	}
-
-#endif

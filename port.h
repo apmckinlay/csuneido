@@ -1,6 +1,4 @@
-#ifndef PORT_H
-#define PORT_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -35,5 +33,3 @@ void sync_timer(Mmfile* mmf);
 int fork_rebuild();
 
 void get_exe_path(char* buf, int buflen);
-
-#endif

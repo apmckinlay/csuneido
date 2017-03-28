@@ -1,6 +1,4 @@
-#ifndef TR_H
-#define TR_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -26,6 +24,4 @@
 #include "gcstring.h"
 
 // transliterate characters
-gcstring tr(const gcstring& src, gcstring from, const gcstring& to);
-
-#endif
+gcstring tr(const gcstring& src, const gcstring& from, const gcstring& to);

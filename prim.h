@@ -1,6 +1,4 @@
-#ifndef PRIM_H
-#define PRIM_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -29,12 +27,10 @@ typedef Value (*PrimFn)();
 
 struct Prim
 	{
-	Prim(PrimFn fn, char* decl);
+	Prim(PrimFn fn, const char* decl);
 
 	PrimFn fn;
-	char* decl;
+	const char* decl;
 	};
 
 #define PRIM(fn, decl) static Prim prim##fn(fn, decl)
-
-#endif

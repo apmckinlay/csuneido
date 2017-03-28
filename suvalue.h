@@ -1,6 +1,4 @@
-#ifndef SUVALUE_H
-#define SUVALUE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -24,7 +22,8 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "std.h"
-#include <stdlib.h>
+// ReSharper disable once CppUnusedIncludeDirective
+#include <stddef.h> // for size_t
 
 class Value;
 class gcstring;
@@ -37,8 +36,7 @@ struct Named;
 class SuValue
 	{
 public:
-	virtual ~SuValue()
-		{ }
+	virtual ~SuValue() = default;
 	virtual void out(Ostream&) = 0;
 
 	virtual size_t hashfn();
@@ -67,14 +65,8 @@ public:
 
 	virtual const char* type() const;
 	virtual Named* get_named();
-
-	// defined by value to release resources
-	// called by WinMain message loop
-	virtual void finalize();
 	};
 
-int order(char* name);
+int order(const char* name);
 
 Ostream& operator<<(Ostream& out, SuValue* x);
-
-#endif

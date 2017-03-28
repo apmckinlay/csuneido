@@ -189,7 +189,7 @@ private:
 	void simple();
 	void cclass();
 	void posix_cclass();
-	bool match(char* token);
+	bool match(const char* token);
 	void output(int c);
 	void output(int c1, int c2)
 		{
@@ -197,7 +197,7 @@ private:
 		output(c2);
 		}
 	void insert(int c, int i);
-	char next()
+	char next() const
 		{ return s + 1 < lim ? s[1] : 0; }
 
 	const char* s;		// input
@@ -227,7 +227,7 @@ char* RxCompile::compile()
 	return (char*) buf;
 	}
 
-bool RxCompile::match(char* token)
+bool RxCompile::match(const char* token)
 	// post:	if token was matched, s is advanced past it, and true is returned
 	//			else s is unchanged, and false is returned
 	{
@@ -419,7 +419,7 @@ void RxCompile::cclass()
 
 void RxCompile::posix_cclass()
 	{
-	static struct { char* name; int output; } classes[] = {
+	static struct { const char* name; int output; } classes[] = {
 		{ "[:alnum:]", ALNUM },
 		{ "[:alpha:]", ALPHA },
 		{ "[:blank:]", BLANK },
@@ -475,10 +475,10 @@ inline bool between(unsigned from, unsigned to, unsigned x)
 class RxMatch
 	{
 public:
-	RxMatch(char* str, int len, Rxpart* pts)
+	RxMatch(const char* str, int len, Rxpart* pts)
 		: s(str), n(len), part(pts ? pts : parts)
 		{ }
-	int amatch(int pos, char* pat);
+	int amatch(int pos, const char* pat);
 private:
 	bool domatch();
 	bool omatch();
@@ -494,18 +494,18 @@ private:
 			: between(from, to, c);
 		}
 
-	char* s;	// string
-	int i;		// current position in string
-	int n;		// length of string
-	char* p;	// current position in pattern
+	const char* s;			// string
+	int i = 0;			// current position in string
+	int n;				// length of string
+	const char* p = nullptr;	// current position in pattern
 	Rxpart* part;
 	Rxpart parts[MAXPARTS];	// used if none passed in
-	bool ignore_case;
+	bool ignore_case = false;
 	enum { MAXNEST = 1000 };
-	int domatch_nest;
+	int domatch_nest = 0;
 	};
 
-bool rx_match(char* s, int n, int i, char* pat, Rxpart* psubs)
+bool rx_match(const char* s, int n, int i, const char* pat, Rxpart* psubs)
 	{
 	RxMatch match(s, n, psubs);
 	do
@@ -517,7 +517,7 @@ bool rx_match(char* s, int n, int i, char* pat, Rxpart* psubs)
 		return false;
 	}
 
-bool rx_match_reverse(char* s, int n, int i, char* pat, Rxpart* psubs)
+bool rx_match_reverse(const char* s, int n, int i, const char* pat, Rxpart* psubs)
 	{
 	RxMatch match(s, n, psubs);
 	do
@@ -529,12 +529,12 @@ bool rx_match_reverse(char* s, int n, int i, char* pat, Rxpart* psubs)
 		return false;
 	}
 
-int rx_amatch(char* s, int i, int n, char* pat, Rxpart* psubs)
+int rx_amatch(const char* s, int i, int n, const char* pat, Rxpart* psubs)
 	{
 	return RxMatch(s, n, psubs).amatch(i, pat);
 	}
 
-int RxMatch::amatch(int pos, char* pat)
+int RxMatch::amatch(int pos, const char* pat)
 	{
 	for (int j = 0; j < MAXPARTS; ++j)
 		part[j].n = -1;
@@ -549,7 +549,7 @@ int RxMatch::amatch(int pos, char* pat)
 
 bool RxMatch::domatch()
 	{
-	char* save_p;
+	const char* save_p;
 	int save_i;
 	int offset;
 
@@ -637,6 +637,8 @@ bool RxMatch::domatch()
 	return true;
 	}
 
+#pragma clang diagnostic ignored "-Wchar-subscripts"
+
 bool RxMatch::omatch()
 	{
 	switch (*p++)
@@ -703,7 +705,7 @@ bool RxMatch::omatch()
 		// backreference
 	case PIECE :
 		{
-		char* t = part[*p].s;
+		auto t = part[*p].s;
 		int tn = part[*p].n;
 		++p;
 		for (int ti = 0; ti < tn && i < n; ++ti, ++i)
@@ -872,7 +874,7 @@ inline char* insert(char* dst, Rxpart& part, char& tr)
 	int n = part.n;
 	if (n <= 0)
 		return dst;
-	char* s = part.s;
+	auto s = part.s;
 	for (; n--; ++s)
 		*dst++ = trcase(tr, *s);
 	return dst;
@@ -918,12 +920,11 @@ char* rx_mkrep(char* buf, const char* rep, Rxpart* subs)
 	}
 
 #include "testing.h"
-#include <stdio.h>
 
 struct Rxtest
 	{
-	char* string;
-	char* pattern;
+	const char* string;
+	const char* pattern;
 	bool result;
 	};
 static Rxtest rxtests[] =
@@ -1013,9 +1014,9 @@ class test_regexp : public Tests
 		{
 		for (int i = 0; i < sizeof rxtests / sizeof (Rxtest); ++i)
 			{
-			char* pattern = rxtests[i].pattern;
-			char* pat = rx_compile(pattern);
-			char* string = rxtests[i].string;
+			const char* pattern = rxtests[i].pattern;
+			const char* pat = rx_compile(pattern);
+			const char* string = rxtests[i].string;
 			except_if(rxtests[i].result != rx_match(string, strlen(string), 0, pat, NULL),
 				string << " =~ " << pattern << " should be " << (rxtests[i].result ? "true" : "false"));
 			}
@@ -1024,9 +1025,9 @@ class test_regexp : public Tests
 		{
 		char* pat = rx_compile("(\\w+) (\\w+)");
 		Rxpart parts[MAXPARTS];
-		char* s = "hello WORLD";
+		auto s = "hello WORLD";
 		rx_amatch(s, 0, strlen(s), pat, parts);
-		char* rep = "\\u\\1 \\l\\2 \\U\\1 \\L\\2 \\E\\1 \\2";
+		const char* rep = "\\u\\1 \\l\\2 \\U\\1 \\L\\2 \\E\\1 \\2";
 		size_t replen = rx_replen(rep, parts);
 		char buf[200];
 		rx_mkrep(buf, rep, parts);
@@ -1037,7 +1038,7 @@ class test_regexp : public Tests
 		{
 		char* pat = rx_compile("(\\w+ )+");
 		Rxpart parts[MAXPARTS];
-		char* s = "hello world ";
+		auto s = "hello world ";
 		rx_match(s, strlen(s), 0, pat, parts);
 		asserteq(parts[0].s, s);
 		asserteq(parts[0].n, 12);
@@ -1057,7 +1058,7 @@ class test_regexp2 : public Tests
 		{
 		char* pat = rx_compile(gcstring(6, "[\x00-\xff]+"));
 		Rxpart parts[MAXPARTS];
-		char* s = "axb";
+		auto s = "axb";
 		rx_amatch(s, 0, 3, pat, parts);
 		asserteq(parts[0].s, s);
 		asserteq(parts[0].n, 3);

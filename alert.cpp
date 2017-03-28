@@ -36,7 +36,7 @@ Ostream& osalert()
 
 void alert_()
 	{
-	auto msg = _strdup(os.str());
+	auto msg = dupstr(os.str());
 	os.clear(); // before alert to allow for nesting
 	if (cmdlineoptions.unattended)
 		errlog("Alert:", msg);

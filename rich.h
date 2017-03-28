@@ -1,6 +1,4 @@
-#ifndef RICH_H
-#define RICH_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -30,5 +28,3 @@ extern "C" void RichEditOle(long);
 
 gcstring RichEditGet(HWND hwndRE);
 void RichEditPut(HWND hwndRE, gcstring s);
-
-#endif

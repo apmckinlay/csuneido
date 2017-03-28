@@ -1,6 +1,4 @@
-#ifndef SURECORD_H
-#define SURECORD_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -43,22 +41,23 @@ struct Observe
 class SuRecord : public SuObject
 	{
 public:
-	explicit SuRecord();
+	SuRecord();
 	explicit SuRecord(const SuRecord& rec);
 	SuRecord(const Row& r, const Header& hdr, int t);
 	SuRecord(const Row& r, const Header& hdr, SuTransaction* t = 0);
 	SuRecord(const Record& rec, const Lisp<int>& flds, SuTransaction* t);
 
-	virtual void out(Ostream& os);
-	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	void out(Ostream& os) override;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 
 	// putdata has to notify observers of changes
-	virtual void putdata(Value i, Value x);
+	void putdata(Value i, Value x) override;
 	// getdata has to auto-register a rule as an observer
-	virtual Value getdata(Value);
+	Value getdata(Value) override;
 
-	virtual bool erase(Value x);
-	virtual bool erase2(Value x);
+	bool erase(Value x) override;
+	bool erase2(Value x) override;
 
 
 	Record to_record(const Header& hdr);
@@ -67,17 +66,17 @@ public:
 	friend class TrackRule;
 	friend class TrackObserver;
 
-	void pack(char* buf) const;
+	void pack(char* buf) const override;
 	static SuRecord* unpack(const gcstring& s);
 
 private:
 	void erase();
 	void update();
 	void update(SuObject* rec);
-	void ck_modify(char* op);
+	void ck_modify(const char* op);
 
 	void init(const Row& r);
-	void addfield(char* field, gcstring value);
+	void addfield(const char* field, gcstring value);
 	void dependencies(ushort mem, gcstring s);
 	void call_observer(ushort member, const char* why);
 	void call_observers(ushort member, const char* why);
@@ -104,9 +103,8 @@ private:
 class SuRecordClass : public SuValue
 	{
 public:
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
-	void out(Ostream& os)
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
+	void out(Ostream& os) override
 		{ os << "Record /* builtin */"; }
 	};
-
-#endif

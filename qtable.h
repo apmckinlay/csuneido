@@ -1,6 +1,4 @@
-#ifndef QTABLE_H
-#define QTABLE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -33,54 +31,53 @@ class SuValue;
 class Table : public Query
 	{
 public:
-	explicit Table(char* s);
-	void out(Ostream& os) const;
-	Fields columns();
-	Indexes indexes();
-	Indexes keys();
+	explicit Table(const char* s);
+	void out(Ostream& os) const override;
+	Fields columns() override;
+	Indexes indexes() override;
+	Indexes keys() override;
 	virtual float iselsize(const Fields& index, const Iselects& isels);
-	double optimize2(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze);
+	double optimize2(const Fields& index, const Fields& needs, 
+		const Fields& firstneeds, bool is_cursor, bool freeze) override;
 	void select_index(const Fields& index);
 	// estimated sizes
-	double nrecords();
-	int recordsize();
-	int columnsize();
-	int keysize(const Fields& index);
+	double nrecords() override;
+	int recordsize() override;
+	int columnsize() override;
+	virtual int keysize(const Fields& index); // overridden by select tests
 	virtual int totalsize();
 	virtual int indexsize(const Fields& index);
 	// iteration
-	Header header();
-	void select(const Fields& index, const Record& from, const Record& to);
-	void rewind();
-	Row get(Dir dir);
-	void set_transaction(int t)
+	Header header() override;
+	void select(const Fields& index, const Record& from, const Record& to) override;
+	void rewind() override;
+	Row get(Dir dir) override;
+	void set_transaction(int t) override
 		{ tran = t; iter.set_transaction(t); }
 
-	bool updateable() const
+	bool updateable() const override
 		{ return true; }
-	bool output(const Record& r);
+	bool output(const Record& r) override;
 
 	gcstring table;
 	// used by Select for filters
 	void set_index(const Fields& index);
 	Index::iterator iter;
 
-	void close(Query* q)
+	void close(Query* q) override
 		{ }
 protected:
-	Table()
+	Table() // used for tests
 		{ }
 	void iterate_setup(Dir dir);
 
-	bool first;
-	bool rewound;
+	bool first = true;
+	bool rewound = true;
 	Keyrange sel;
 	Header hdr;
-	Index* ix;
-	int tran;
-	bool singleton; // i.e. key()
-	Fields idx;
-	Tbl* tbl;
+	Index* idx = nullptr;
+	int tran = INT_MAX;
+	bool singleton = false; // i.e. key()
+	Fields idxflds;
+	Tbl* tbl = nullptr;
 	};
-
-#endif

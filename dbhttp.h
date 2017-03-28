@@ -1,6 +1,4 @@
-#ifndef DBHTTP_H
-#define DBHTTP_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -24,5 +22,3 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void start_dbhttp();
-
-#endif

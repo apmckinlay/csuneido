@@ -1,6 +1,4 @@
-#ifndef CATSTR_H
-#define CATSTR_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -29,13 +27,13 @@
 char* catstr(char *dst, ...);
 
 #define CATSTRA(s, t) \
-	catstr((char*) alloca(strlen(s) + strlen(t) + 1), s, t, 0)
+	catstr((char*) _alloca(strlen(s) + strlen(t) + 1), s, t, 0)
 #define CATSTR3(s1, s2, s3) \
-	catstr((char*) alloca(strlen(s1) + strlen(s2) + strlen(s3) + 1), s1, s2, s3, 0)
+	catstr((char*) _alloca(strlen(s1) + strlen(s2) + strlen(s3) + 1), s1, s2, s3, 0)
 #define STRDUPA(s) \
-	strcpy((char*) alloca(strlen(s) + 1), s)
+	strcpy((char*) _alloca(strlen(s) + 1), s)
 #define PREFIXA(s, n) \
-	strcpyn((char*) alloca(n + 1), s, n)
+	strcpyn((char*) _alloca(n + 1), s, n)
 
 inline char* strcpyn(char* dst, const char* src, int n)
 	{
@@ -43,5 +41,3 @@ inline char* strcpyn(char* dst, const char* src, int n)
 	dst[n] = 0;
 	return dst;
 	}
-
-#endif

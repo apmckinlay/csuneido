@@ -1,6 +1,4 @@
-#ifndef VALUE_H
-#define VALUE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -34,7 +32,7 @@ class gcstring;
 class SuObject;
 class Ostream;
 
-#define NUM(n) (new (alloca(sizeof (SuNumber))) SuNumber(n))
+#define NUM(n) (new (_alloca(sizeof (SuNumber))) SuNumber(n))
 
 #define VAL	((SuValue*) (is_int() ? NUM(im.n) : p))
 
@@ -43,7 +41,7 @@ class Ostream;
 class Value
 	{
 public:
-	Value() : p(0)
+	Value() : p(nullptr)
 		{ }
 	Value(SuValue* x) : p(x)
 		{ }
@@ -82,14 +80,15 @@ public:
 		{ return is_int() ? 0 : p ? VAL->ob_if_ob() : 0; }
 	int symnum() const
 		{ return is_int() && im.n > 0 ? im.n : VAL->symnum(); }
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each)
 		{ return VAL->call(self, member, nargs, nargnames, argnames, each); }
 	Value getdata(Value m) const
 		{ return VAL->getdata(m); }
 	void putdata(Value m, Value x)
 		{ VAL->putdata(m, x); }
 	gcstring gcstr() const;
-	char* str() const;
+	const char* str() const;
 	size_t packsize() const
 		{ return VAL->packsize(); }
 	void pack(char* buf) const
@@ -142,7 +141,7 @@ template <class T> struct HashFn;
 
 template <> struct HashFn<Value>
 	{
-	unsigned int operator()(Value x)
+	unsigned int operator()(Value x) const
 		{ return x.hash(); }
 	};
 
@@ -160,5 +159,3 @@ extern Value SuFalse;
 extern Value SuEmptyString;
 
 [[noreturn]] void method_not_found(const char* type, Value member);
-
-#endif

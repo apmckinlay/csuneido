@@ -47,7 +47,7 @@ SuObject* get_mac_addresses()
 
 	ULONG buflen = sizeof (tmp);
 	if (ERROR_BUFFER_OVERFLOW == GetAdaptersInfo(info, &buflen))
-		info = (IP_ADAPTER_INFO*) alloca(buflen);
+		info = (IP_ADAPTER_INFO*) _alloca(buflen);
 	SuObject* list = new SuObject();
 	if (NO_ERROR != GetAdaptersInfo(info, &buflen))
 		return list;
@@ -58,7 +58,6 @@ SuObject* get_mac_addresses()
 	}
 
 #include "prim.h"
-#include "sustring.h"
 
 Value su_get_mac_address()
 	{

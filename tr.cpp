@@ -31,16 +31,14 @@ static gcstring makset(const gcstring&);
 static gcstring expandRanges(const gcstring&);
 static int xindex(const gcstring&, char, bool, int);
 
-gcstring tr(const gcstring& srcstr, gcstring from, const gcstring& to)
+gcstring tr(const gcstring& srcstr, const gcstring& from, const gcstring& to)
 	{
 	const int srclen = srcstr.size();
 	if (srclen == 0 || from.size() == 0)
 		return srcstr;
 
 	bool allbut = (from[0] == '^');
-	if (allbut)
-		from = from.substr(1);
-	gcstring fromset = makset(from);
+	gcstring fromset = makset(allbut ? from.substr(1) : from);
 
 	const char* src = srcstr.buf();
 	int si = 0;

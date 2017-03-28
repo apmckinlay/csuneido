@@ -37,7 +37,8 @@
 
 #define TARGET(i)	(short) ((code[i] + (code[i+1] << 8)))
 
-Value SuFunction::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuFunction::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Disasm("Disasm");
 	static Value Source("Source");
@@ -77,11 +78,12 @@ void SuFunction::dotParams(Value self)
 	for (int i = 0; i < nparams; ++i)
 		if (flags[i] & DOT)
 			{
-			char* name = symstr(locals[i]);
+			auto name = symstr(locals[i]);
 			if (flags[i] & PUB)
 				{
-				name = STRDUPA(name);
-				*name = toupper(*name);
+				char* s = STRDUPA(name);
+				*s = toupper(*s);
+				name = s;
 				}
 			else // private
 				name = CATSTR3(className, "_", name);
@@ -280,7 +282,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 	return ci;
 	}
 
-char* SuFunction::mem(int& ci)
+const char* SuFunction::mem(int& ci)
 	{
 	int n = varint(code, ci);
 	except_if(n >= nliterals, "n " << n << " nliterals " << nliterals);
@@ -370,7 +372,6 @@ void SuFunction::pack(char* buf) const
 	buf += sizeof (short);
 	*buf++ = (char) rest;
 	cvt_short(buf, ndefaults);
-	buf += sizeof (short);
 	}
 
 #define GLOBAL_REF \

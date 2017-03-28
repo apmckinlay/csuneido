@@ -1,3 +1,4 @@
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -20,11 +21,6 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef SUSERVICE_H
-#define SUSERVICE_H
-
-void CallServiceDispatcher(char* args);
-void InstallService(char* args);
+void CallServiceDispatcher(const char* args);
+void InstallService(const char* args);
 void UnInstallService();
-
-#endif	// SUSERVICE_H

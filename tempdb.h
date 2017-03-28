@@ -1,6 +1,4 @@
-#ifndef TEMPDB_H
-#define TEMPDB_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -31,7 +29,7 @@ extern Database* thedb;
 class TempDB // need class to ensure thedb is restored
 	{
 public:
-	TempDB(bool r = true) : rm(r)
+	explicit TempDB(bool r = true) : rm(r)
 		{
 		remove("tempdb");
 		savedb = thedb;
@@ -41,17 +39,19 @@ public:
 			thedb->mmf->alloc(4000000, MM_OTHER, false);
 #endif
 		}
-	void reopen()
+
+	static void reopen()
 		{
 		delete thedb;
 		thedb = new Database("tempdb");
 		}
-	void close()
+	void close() const
 		{
 		delete thedb;
 		thedb = savedb;
 		}
-	void open()
+
+	static void open()
 		{
 		thedb = new Database("tempdb");
 		}
@@ -65,5 +65,3 @@ private:
 	Database* savedb;
 	bool rm;
 	};
-
-#endif

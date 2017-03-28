@@ -1,6 +1,4 @@
-#ifndef CALL_H
-#define CALL_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -28,6 +26,4 @@
 
 Value call(const char* fname, Lisp<Value> args);
 Value method_call(Value ob, const gcstring& method, Lisp<Value> args);
-char* trycall(const char* fn, char* arg, int* plen = 0);
-
-#endif
+const char* trycall(const char* fn, char* arg, int* plen = 0);

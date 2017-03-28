@@ -28,8 +28,7 @@ Query* Query::make_union(Query* s1, Query* s2)
 	return new Union(s1, s2);
 	}
 
-Union::Union(Query* s1, Query* s2) :
-	Compatible(s1, s2), first(true), rewound(true), fixdone(false)
+Union::Union(Query* s1, Query* s2) : Compatible(s1, s2)
 	{
 	}
 

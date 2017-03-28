@@ -1,6 +1,4 @@
-#ifndef NAMED_H
-#define NAMED_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -27,24 +25,22 @@
 
 struct Named
 	{
-	explicit Named(char* c = " ") : parent(0), separator(c), num(0), str(NULL)
+	explicit Named(const char* c = " ") : separator(c)
 		{ }
 	gcstring name();
 	gcstring library();
 	gcstring info(); // for debugging
 
 	gcstring lib;
-	Named* parent;
-	char* separator;
-	ushort num;
-	char* str; // alternative to num to avoid symbol
+	Named* parent = nullptr;
+	const char* separator;
+	ushort num = 0;
+	const char* str = nullptr; // alternative to num to avoid symbol
 	};
 
 // place NAMED in the public portion of a class to implement naming
 
 #define NAMED \
 	Named named; \
-	virtual Named* get_named() \
+	virtual Named* get_named() override \
 		{ return &named; }
-
-#endif

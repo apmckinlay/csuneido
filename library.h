@@ -1,6 +1,4 @@
-#ifndef LIBRARY_H
-#define LIBRARY_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -27,7 +25,5 @@ template <class T> class Lisp;
 class gcstring;
 
 Lisp<gcstring> libraries();
-void libload(unsigned short);
-Lisp<gcstring> libgetall(char* name);
-
-#endif
+void libload(int gnum);
+Lisp<gcstring> libgetall(const char* name);

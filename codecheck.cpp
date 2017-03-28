@@ -56,11 +56,11 @@ class CodeCheck : public CodeVisitor
 public:
 	CodeCheck(SuObject* ob) : results(ob)
 		{ }
-	virtual void local(int pos, int var, bool init);
-	virtual void dynamic(int var);
-	virtual void global(int pos, char* name);
-	virtual void begin_func();
-	virtual void end_func();
+	void local(int pos, int var, bool init) override;
+	void dynamic(int var) override;
+	void global(int pos, const char* name) override;
+	void begin_func() override;
+	void end_func() override;
 private:
 	void process(int pos, int i, bool init);
 	std::stack<Locals> stack;
@@ -147,7 +147,7 @@ void CodeCheck::end_func()
 
 #include "globals.h"
 
-void CodeCheck::global(int pos, char* name)
+void CodeCheck::global(int pos, const char* name)
 	{
 	if (*name == '_')
 		results->add(-pos); // _Name where Name is defined - WARNING

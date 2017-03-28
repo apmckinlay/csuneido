@@ -25,7 +25,6 @@
 #include "awcursor.h"
 #include "fibers.h"
 #include "sunapp.h"
-#include "except.h"
 
 void free_callbacks();
 
@@ -78,7 +77,6 @@ void message_loop(HWND hdlg)
 
 		free_callbacks();
 		}
-	unreachable();
 	}
 
 static BOOL CALLBACK destroy_func(HWND hwnd, LPARAM lParam)

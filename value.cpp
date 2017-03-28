@@ -24,7 +24,7 @@
 #include "gcstring.h"
 #include "ostream.h"
 
-char* Value::str() const
+const char* Value::str() const
 	{
 	return VAL->gcstr().str();
 	}
@@ -49,7 +49,7 @@ bool operator==(Value x, Value y)
 	{
 	if (x.p == y.p)
 		return true;
-	if (x.p == 0 || y.p == 0)
+	if (! x.p || ! y.p)
 		return false;
 	return
 		x.is_int()							//  X    Y

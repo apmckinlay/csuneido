@@ -26,21 +26,26 @@
 class IstreamFileImp
 	{
 public:
-	IstreamFileImp(char* filename, char* mode = "r") : f(fopen(filename, mode))
+	explicit IstreamFileImp(const char* filename, const char* mode = "r")
+		: f(fopen(filename, mode))
 		{ }
 	void close()
-		{ if (f) fclose(f); }
-	int get()
+		{
+		if (f)
+			{
+			fclose(f);
+			f = nullptr;
+			}
+		}
+	int get() const
 		{ return f ? fgetc(f) : -1; }
-	explicit operator bool() const
-		{ return f; }
-	int tellg()
+	int tellg() const
 		{ return ftell(f); }
-	void seekg(int pos)
+	void seekg(int pos) const
 		{ fseek(f, pos, SEEK_SET); }
-	int read(char* buf, int n)
+	int read(char* buf, int n) const
 		{ return fread(buf, 1, n, f); }
-	int size()
+	int size() const
 		{
 		int pos = tellg();
 		fseek(f, 0, SEEK_END);
@@ -52,7 +57,7 @@ private:
 	FILE* f;
 	};
 
-IstreamFile::IstreamFile(char* filename, char* mode)
+IstreamFile::IstreamFile(const char* filename, const char* mode)
 	: imp(new IstreamFileImp(filename, mode))
 	{ }
 
@@ -64,11 +69,6 @@ int IstreamFile::get_()
 	return imp->get();
 	}
 
-IstreamFile::operator bool() const
-	{
-	return bool(*imp);
-	}
-
 int IstreamFile::tellg()
 	{ return imp->tellg(); }
 
@@ -78,8 +78,12 @@ Istream& IstreamFile::seekg(int pos)
 int IstreamFile::read_(char* buf, int n)
 	{ return imp->read(buf, n); }
 
-int IstreamFile::size()
+int IstreamFile::size() const
 	{ return imp->size(); }
+
+void IstreamFile::close() const
+	{ imp->close(); }
+
 
 #include "testing.h"
 #include "except.h"
@@ -97,15 +101,19 @@ class test_istreamfile : public Tests
 		{ IstreamFile isf("test.tmp");
 		const int bufsize = 20;
 		char buf[bufsize];
-		verify(isf.getline(buf, bufsize));
+		isf.getline(buf, bufsize);
+		verify(isf);
 		verify(0 == strcmp("hello", buf));
 		verify('w' == isf.peek());
 		verify('w' == isf.get());
 		isf.putback('W');
-		verify(isf.getline(buf, bufsize));
+		isf.getline(buf, bufsize);
+		verify(isf);
 		verify(0 == strcmp("World", buf));
-		verify(! isf.getline(buf, bufsize));
+		isf.getline(buf, bufsize);
 		verify(isf.eof());
+		isf.close();
+		verify(! isf);
 		}
 
 		{ IstreamFile isf("test.tmp");

@@ -1,6 +1,4 @@
-#ifndef CIRCLOG_H
-#define CIRCLOG_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -26,12 +24,11 @@
 #include "gcstring.h"
 #include "ostream.h"
 
-void circ_log(gcstring s);
+void circ_log(const gcstring& s);
 gcstring circ_log_get();
 
 Ostream& oscirclog();
 void circlogos_();
+
 #define CIRCLOG(stuff) \
 	((oscirclog() << stuff), circlogos_())
-
-#endif

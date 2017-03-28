@@ -24,16 +24,13 @@
 #include "scanner.h"
 #include "suvalue.h"
 #include "interp.h"
-#include "symbols.h"
-#include "suboolean.h"
 #include "sustring.h"
-#include "prim.h"
 
 class SuScanner : public SuValue
 	{
 public:
-	virtual void init(char* s);
-	void out(Ostream& os)
+	virtual void init(const char* s);
+	void out(Ostream& os) override
 		{ os << "Scanner"; }
 	static Method<SuScanner>* methods()
 		{
@@ -66,9 +63,9 @@ public:
 	Value KeywordQ(BuiltinArgs&); //
 	Value Iter(BuiltinArgs&);
 protected:
-	Scanner* scanner;
+	Scanner* scanner = nullptr;
 private:
-	int token;
+	int token = 0;
 	};
 
 Value su_scanner()
@@ -81,14 +78,14 @@ template<>
 Value BuiltinClass<SuScanner>::instantiate(BuiltinArgs& args)
 	{
 	args.usage("usage: Scanner(string)");
-	char* s = args.getstr("string");
+	auto s = args.getstr("string");
 	args.end();
 	SuScanner* scanner = new BuiltinInstance<SuScanner>();
 	scanner->init(s);
 	return scanner;
 	}
 
-void SuScanner::init(char* s)
+void SuScanner::init(const char* s)
 	{
 	scanner = new Scanner(s);
 	}
@@ -232,7 +229,7 @@ Value SuScanner::Iter(BuiltinArgs& args)
 class SuQueryScanner : public SuScanner
 	{
 public:
-	virtual void init(char* s);
+	void init(const char* s) override;
 	static Method<SuQueryScanner>* methods()
 		{
 		return (Method<SuQueryScanner>*) SuScanner::methods();
@@ -249,7 +246,7 @@ template<>
 Value BuiltinClass<SuQueryScanner>::instantiate(BuiltinArgs& args)
 	{
 	args.usage("usage: QueryScanner(string)");
-	char* s = args.getstr("string");
+	auto s = args.getstr("string");
 	args.end();
 	SuQueryScanner* scanner = new BuiltinInstance<SuQueryScanner>();
 	scanner->init(s);
@@ -258,7 +255,7 @@ Value BuiltinClass<SuQueryScanner>::instantiate(BuiltinArgs& args)
 
 #include "qscanner.h"
 
-void SuQueryScanner::init(char* s)
+void SuQueryScanner::init(const char* s)
 	{
 	scanner = new QueryScanner(s);
 	}

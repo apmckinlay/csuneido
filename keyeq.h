@@ -1,6 +1,4 @@
-#ifndef KEYEQ_H
-#define KEYEQ_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -29,20 +27,18 @@
 
 template <class Key> struct KeyEq
 	{
-	bool operator()(const Key& x, const Key& y)
+	bool operator()(const Key& x, const Key& y) const
 		{ return x == y; }
 	};
 
 template <> struct KeyEq<char*>
 	{
-	bool operator()(const char* x, const char* y)
+	bool operator()(const char* x, const char* y) const
 		{ return 0 == strcmp(x, y); }
 	};
 
 template <> struct KeyEq<const char*>
 	{
-	bool operator()(const char* x, const char* y)
+	bool operator()(const char* x, const char* y) const
 		{ return 0 == strcmp(x, y); }
 	};
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef CONSTRUCT_H
-#define CONSTRUCT_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -30,14 +28,14 @@ class Construct : public Func
 	{
 public:
 	Construct();
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 	};
 
 class Instance : public Func
 	{
 public:
 	Instance();
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 	};
-
-#endif

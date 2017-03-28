@@ -1,6 +1,4 @@
-#ifndef SUFINALIZE_H
-#define SUFINALIZE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -32,9 +30,7 @@ public:
 	SuFinalize();
 	// should be called if value is manually finalized
 	void removefinal();
+	virtual void finalize() = 0; 
 private:
 	static void cleanup(void* base, void* data);
 	};
-
-#endif
-

@@ -25,7 +25,6 @@
 #include "builtinclass.h"
 #include "suboolean.h"
 #include "gcstring.h"
-#include "checksum.h"
 #include "sufinalize.h"
 #include "sustring.h"
 #include "except.h"
@@ -41,7 +40,8 @@ public:
 		if (! CryptCreateHash(hCryptProv, CALG_SHA1, 0, 0, &hHash))
 			except("Sha1: CryptCreateHash failed");
 		}
-	virtual void out(Ostream& os)
+
+	void out(Ostream& os) override
 		{ os << "Sha1()"; }
 	static Method<Sha1>* methods()
 		{
@@ -53,11 +53,11 @@ public:
 			};
 		return methods;
 		}
-	const char* type() const
+	const char* type() const override
 		{ return "Sha1"; }
-	void update(gcstring gcstr);
-	gcstring value();
-	virtual void finalize();
+	void update(gcstring gcstr) const;
+	gcstring value() const;
+	void finalize() override;
 
 private:
 	Value Update(BuiltinArgs&);
@@ -107,7 +107,7 @@ Value Sha1::Update(BuiltinArgs& args)
 	return this;
 	}
 
-void Sha1::update(gcstring s)
+void Sha1::update(gcstring s) const
 	{
 	if (! CryptHashData(hHash, (BYTE*) s.buf(), s.size(), 0))
 		except("Sha1: CryptHashData failed");
@@ -115,7 +115,7 @@ void Sha1::update(gcstring s)
 
 const int SHA1_SIZE = 20;
 
-gcstring Sha1::value()
+gcstring Sha1::value() const
 	{
 	DWORD dwHashLen = SHA1_SIZE;
 	gcstring out(dwHashLen);

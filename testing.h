@@ -1,6 +1,4 @@
-#ifndef TESTING_H
-#define TESTING_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -26,8 +24,7 @@
 class TestObserver
 	{
 public:
-	virtual ~TestObserver()
-		{ }
+	virtual ~TestObserver() = default;
 	virtual void start_group(const char* group)
 		{ }
 	virtual void start_test(const char* group, const char* test)
@@ -47,8 +44,7 @@ public:
 class Tests
 	{
 public:
-	virtual ~Tests()
-		{ }
+	virtual ~Tests() = default;
 	int runtests(TestObserver&);
 	BASE(0) BASE(1) BASE(2) BASE(3) BASE(4) BASE(5)
 	BASE(6) BASE(7) BASE(8) BASE(9) BASE(10)
@@ -56,12 +52,12 @@ public:
 	};
 
 #define TEST(i,name) \
-	const char* testname##i() { return #name; } \
-	void test##i()
+	const char* testname##i() override { return #name; } \
+	void test##i() override
 
 #define TESTS(i,name) \
-	const char* testname##i() { return #name; } \
-	void test##i() { name t; t.group = #name; t.run(); }
+	const char* testname##i() override { return #name; } \
+	void test##i() override { name t; t.group = #name; t.run(); }
 
 class TestRegister
 	{
@@ -79,9 +75,11 @@ private:
 	static Tests* make_##name() { name* t = new name; t->group = #name; return t; } \
 	static TestRegister register_##name(#name, make_##name)
 
+// ReSharper disable once CppUnusedIncludeDirective
 #include "except.h"
 
-#define assert_eq(x, y)	except_if((x) != (y), "error: " << #x << " != " << #y << " (" << (x) << " != " << (y) << ")")
+#define assert_eq(x, y) except_if((x) != (y), \
+	"error: " << #x << " != " << #y << " (" << (x) << " != " << (y) << ")")
 
 #define xassert(expr) \
 	{ \
@@ -89,5 +87,3 @@ private:
 	try { expr; } catch (...) { err = true; } \
 	verify(err); \
 	}
-
-#endif

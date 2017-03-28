@@ -30,12 +30,10 @@
 #include "func.h" // for argseach
 #include "exceptimp.h"
 #include "ostreamstr.h"
-#include "suboolean.h"
 #include "dbms.h"
 #include "record.h"
 #include "pack.h"
 #include "catstr.h"
-#include "commalist.h"
 #include "sublock.h"
 #include "trace.h"
 
@@ -93,14 +91,14 @@ SuRecord::SuRecord(const Record& dbrec, const Lisp<int>& fldsyms, SuTransaction*
 			addfield(symstr(*f), rec.getraw(i));
 	}
 
-static ushort basename(char* field)
+static ushort basename(const char* field)
 	{
 	return ::symnum(PREFIXA(field, strlen(field) - 5));
 	}
 
 bool getSystemOption(const char* option, bool def_value);
 
-static bool skipField(char* field, gcstring value)
+static bool skipField(const char* field, gcstring value)
 	{
 	if (value != "")
 		return false;
@@ -110,7 +108,7 @@ static bool skipField(char* field, gcstring value)
 	return true;
 	}
 
-void SuRecord::addfield(char* field, gcstring value)
+void SuRecord::addfield(const char* field, gcstring value)
 	{
 	if (skipField(field, value))
 		return;
@@ -142,10 +140,9 @@ static ushort depsname(ushort m)
 	return ::symnum(CATSTRA(symstr(m), "_deps"));
 	}
 
-// NOTE: hdr argument overrides hdr member
-Record SuRecord::to_record(const Header& hdr)
+Record SuRecord::to_record(const Header& h)
 	{
-	const Lisp<int> fldsyms = hdr.output_fldsyms();
+	const Lisp<int> fldsyms = h.output_fldsyms();
 	// dependencies
 	// - access all the fields to ensure dependencies are created
 	Lisp<int> f;
@@ -168,7 +165,7 @@ Record SuRecord::to_record(const Header& hdr)
 
 	Record rec;
 	OstreamStr oss;
-	int ts = hdr.timestamp_field();
+	int ts = h.timestamp_field();
 	for (f = fldsyms; ! nil(f); ++f)
 		{
 		if (*f == -1)
@@ -203,11 +200,11 @@ void SuRecord::out(Ostream& os)
 		SuObject::outdelims(os, "[]");
 	}
 
-Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuRecord::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Clear("Clear");
 	static Value Transaction("Transaction");
-	static Value Query("Query");
 	static Value Newq("New?");
 	static Value Copy("Copy");
 	static Value Invalidate("Invalidate");
@@ -216,7 +213,6 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 	static Value Observer("Observer");
 	static Value RemoveObserver("RemoveObserver");
 	static Value PreSet("PreSet");
-	static Value Set_default("Set_default");
 	static Value GetDeps("GetDeps");
 	static Value SetDeps("SetDeps");
 	static Value Add("Add");
@@ -350,7 +346,7 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames, ush
 		static ushort gRecords = globals("Records");
 		Value Records = globals.find(gRecords);
 		SuObject* ob;
-		if (Records && (ob = Records.ob_if_ob()) && ob->has(member))
+		if (Records && nullptr != (ob = Records.ob_if_ob()) && ob->has(member))
 			return ob->call(self, member, nargs, nargnames, argnames, each);
 		else
 			return SuObject::call(self, member, nargs, nargnames, argnames, each);
@@ -380,7 +376,7 @@ void SuRecord::update(SuObject* ob)
 	verify(recadr >= 0);
 	}
 
-void SuRecord::ck_modify(char* op)
+void SuRecord::ck_modify(const char* op)
 	{
 	if (! trans)
 		except("record." << op << ": no Transaction");

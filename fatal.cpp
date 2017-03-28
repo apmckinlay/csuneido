@@ -24,7 +24,6 @@
 #include "unhandled.h"
 #include <stdlib.h>
 #include "cmdlineoptions.h"
-#include "errlog.h"
 
 extern bool is_client;
 extern void message(const char*, const char*, unsigned long timeout_ms);

@@ -41,9 +41,9 @@ void SuBoolean::out(Ostream& os)
 
 gcstring SuBoolean::gcstr() const
 	{
-	static gcstring t("true");
-	static gcstring f("false");
-	return val ? t : f;
+	static gcstring ts("true");
+	static gcstring fs("false");
+	return val ? ts : fs;
 	}
 
 size_t SuBoolean::packsize() const
@@ -52,12 +52,12 @@ size_t SuBoolean::packsize() const
 void SuBoolean::pack(char* buf) const
 	{ *buf = val; }
 
-/*static*/ SuBoolean* SuBoolean::unpack(const gcstring& s)
+SuBoolean* SuBoolean::unpack(const gcstring& s)
 	{
 	return s.size() > 0 && s[0] ? t : f;
 	}
 
-/*static*/ SuBoolean* SuBoolean::literal(const char* s)
+SuBoolean* SuBoolean::literal(const char* s)
 	{
 	if (0 == strcmp(s, "True") || 0 == strcmp(s, "true"))
 		return t;

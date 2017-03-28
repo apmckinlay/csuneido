@@ -33,7 +33,8 @@ void SuSeq::out(Ostream& os)
 	ob->out(os);
 	}
 
-Value SuSeq::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuSeq::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value ITER("Iter");
 	static Value NEXT("Next");
@@ -160,7 +161,8 @@ void SuSeqIter::out(Ostream& os)
 	}
 
 
-Value SuSeqIter::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuSeqIter::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value ITER("Iter");
 	static Value COPY("Copy");

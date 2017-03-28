@@ -1,6 +1,4 @@
-#ifndef QDIFFERENCE_H
-#define QDIFFERENCE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -24,36 +22,37 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "qcompatible.h"
+#include <algorithm>
+using std::max;
 
 class Difference : public Compatible
 	{
 public:
 	Difference(Query* s1, Query* s2);
-	void out(Ostream& os) const;
-	Fields columns()
+	void out(Ostream& os) const override;
+	Fields columns() override
 		{ return source->columns(); }
-	Indexes keys()
+	Indexes keys() override
 		{ return source->keys(); }
-	Indexes indexes()
+	Indexes indexes() override
 		{ return source->indexes(); }
-	Query* transform();
-	double optimize2(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze);
-	Lisp<Fixed> fixed() const
+	Query* transform() override;
+	double optimize2(const Fields& index, const Fields& needs, 
+		const Fields& firstneeds, bool is_cursor, bool freeze) override;
+	Lisp<Fixed> fixed() const override
 		{ return source->fixed(); }
-	// estimated result sizes
-	double nrecords()
+
+	double nrecords() override
 		{
 		double n1 = source->nrecords();
 		return (max(0.0, n1 - source2->nrecords()) + n1) / 2;
 		}
-	// iteration
-	Header header()
-		{ return source->header(); }
-	void select(const Fields& index, const Record& from, const Record& to)
-		{ source->select(index, from, to); }
-	void rewind()
-		{ source->rewind(); }
-	Row get(Dir dir);
-	};
 
-#endif
+	Header header() override
+		{ return source->header(); }
+	void select(const Fields& index, const Record& from, const Record& to) override
+		{ source->select(index, from, to); }
+	void rewind() override
+		{ source->rewind(); }
+	Row get(Dir dir) override;
+	};

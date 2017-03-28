@@ -1,6 +1,4 @@
-#ifndef SUMETHOD_H
-#define SUMETHOD_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -35,17 +33,16 @@ public:
 	explicit SuMethod(Value o, Value meth, SuFunction* f)
 		: object(o), method(meth), sufn(f)
 		{ }
-	void out(Ostream& os);
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
-	bool eq(const SuValue& x) const;
-	size_t hashfn();
+	void out(Ostream& os) override;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
+	bool eq(const SuValue& x) const override;
+	size_t hashfn() override;
 
-	SuFunction* fn()
+	SuFunction* fn() const
 		{ return sufn; }
 private:
 	Value object;
 	Value method;
 	SuFunction* sufn;
 	};
-
-#endif

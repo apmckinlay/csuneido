@@ -1,6 +1,4 @@
-#ifndef DATABASE_H
-#define DATABASE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -23,25 +21,16 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifdef _MSC_VER
-#pragma warning(4 : 4786)
-#endif
-
 #include "record.h"
 #include "index.h"
 #include "hashmap.h"
 #include <deque>
 #include <set>
 #include <map>
-#include <limits.h>
 #include "gcstring.h"
 #include "lisp.h"
 #include "mmfile.h"
 #include "mmtypes.h"
-
-#ifdef _MSC_VER
-#pragma warning(disable : 4786)
-#endif
 
 // foreign key modes
 enum Fkmode { BLOCK = 0, CASCADE_UPDATES = 1, CASCADE_DELETES = 2, CASCADE = 3};
@@ -80,32 +69,32 @@ struct Col
 		{ return column == y.column; } // can't use colnum because rule columns are all -1
 	bool operator<(const Col& y) const
 		{ return colnum < y.colnum; }
+
 	gcstring column;
 	int colnum;
 	};
 
 struct Fkey
 	{
-	Fkey()
+	Fkey(const gcstring& t, const gcstring& c, Fkmode m)
+		: table(t), columns(c), mode(m)
 		{ }
-	Fkey(const gcstring& t, const gcstring& c, int m)
-		: table(t), mode(m)
-		{
-		columns = c;
-		}
+
 	gcstring table;
 	gcstring columns;
-	int mode;
+	Fkmode mode;
 	};
 
 class Database;
 
 struct Idx
 	{
-	Idx(const gcstring& table, const Record& r, const gcstring& c, short* n, Index* i, Database* db);
+	Idx(const gcstring& table, const Record& r, const gcstring& c, short* n, 
+		Index* i, Database* db);
 	void update();
 	bool operator==(const Idx& y) const
 		{ return columns == y.columns; }
+
 	Index* index;
 	int nnodes;
 	Record rec;
@@ -166,26 +155,26 @@ struct TranDelete
 	TranDelete()
 		{ }
 	TranDelete(TranTime t);
-	TranTime tran;
-	TranTime time;
+	TranTime tran = 0;
+	TranTime time = 0;
 	};
 
 class Transaction
 	{
 public:
-	Transaction();
-	Transaction(TranType t, TranTime clock, char* session_id = "");
+	Transaction(); // need for trans map
+	Transaction(TranType t, TranTime clock, const char* session_id = "");
 
 	bool operator<(const Transaction& t) const // for set
 		{ return asof < t.asof; }
 
-	TranType type;
-	TranTime tran;
-	TranTime asof;
+	TranType type = READONLY;
+	TranTime tran = 0;
+	TranTime asof = 0;
 	std::deque<TranAct> acts;
 	std::deque<TranRead> reads;
-	char* session_id;
-	char* conflict;
+	const char* session_id = "";
+	const char* conflict = nullptr;
 	};
 
 inline bool operator<(const Transaction& tran, TranTime time)
@@ -211,16 +200,16 @@ class Database
 	friend class test_transaction;
 	friend class DbmsLocal;
 public:
-	explicit Database(char* filename, bool create = false);
+	explicit Database(const char* filename, bool create = false);
 	~Database()
 		{
 		shutdown();
 		delete mmf; mmf = 0;
 		}
 
-	int transaction(TranType type, char* session_id = "");
+	int transaction(TranType type, const char* session_id = "");
 	bool refresh(int tran);
-	bool commit(int tran, char** conflict = 0);
+	bool commit(int tran, const char** conflict = 0);
 	void abort(int tran);
 	Lisp<int> tranlist();
 	int final_size();
@@ -300,7 +289,6 @@ private:
 	void create();
 	Tbl* get_table(const Record& table_rec);
 	Index* get_index(Tbl* tbl, const gcstring& columns);
-	Mmoffset add_record(Index& index, Record r, Record key);
 	void remove_record(int tran, Tbl* tbl, const Record& r);
 	void remove_index_entries(Tbl* tbl, const Record& r);
 	void remove_any_index(const gcstring& table, const gcstring& columns)
@@ -309,24 +297,22 @@ private:
 	static Record record(TblNum tblnum, const gcstring& column, long field);
 	static Record record(TblNum tblnum, const gcstring& columns, Index* index,
 		const gcstring& fktable = "", const gcstring& fkcolumns = "", int fkmode = 0);
-	static Record record(TblNum tblnum, const gcstring& type, const gcstring& params);
 	static Record record(TblNum tblnum, const gcstring& table, long nrows, long nextfield, long totalsize = 100);
 	static Record key(TblNum tblnum);
 	static Record key(const char* table);
 	static Record key(const gcstring& table);
-	static Record key(TblNum tblnum, char* columns);
+	static Record key(TblNum tblnum, const char* columns);
 	static Record key(TblNum tblnum, const gcstring& columns);
-	static Record key(TblNum tblnum, const gcstring& type, const gcstring& params);
-	void table_record(TblNum tblnum, char* tblname, int nrows, int nextfield);
-	void columns_record(TblNum tblnum, char* column, int field);
+	void table_record(TblNum tblnum, const char* tblname, int nrows, int nextfield);
+	void columns_record(TblNum tblnum, const char* column, int field);
 	Mmoffset indexes_record(Index* index);
 	Index* mkindex(const Record& r);
 	static bool is_system_column(const gcstring& table, const gcstring& column);
 	static bool is_system_index(const gcstring& table, const gcstring& columns);
-	char* fkey_source_block(int tran, Tbl* tbl, const Record& r);
+	const char* fkey_source_block(int tran, Tbl* tbl, const Record& r);
 	bool fkey_source_block(int tran, Tbl* fktbl, const gcstring& fkcolumns, const Record& key);
-	char* fkey_target_block(int tran, Tbl* tbl, const Record& r);
-	char* fkey_target_block(int tran, const Idx& idx, const Record& key, const Record newkey = Record());
+	const char* fkey_target_block(int tran, Tbl* tbl, const Record& r);
+	const char* fkey_target_block(int tran, const Idx& idx, const Record& key, const Record newkey = Record());
 	Mmoffset output(TblNum tblnum, Record& record);
 	Record input(Mmoffset off)
 		{ return Record(mmf, off); }
@@ -363,7 +349,7 @@ private:
 	Index* views_index;
 
 	int clock;
-	std::map<int,Transaction> trans;
+	std::map<int,Transaction> trans; //TODO consider Transaction*
 	HashMap<Mmoffset,TranTime> created;	// record address -> create time
 	HashMap<Mmoffset,TranDelete> deleted;	// record address -> delete time
 	HashMap<TblNum,TranTime> table_created;	// table name -> create time
@@ -380,5 +366,3 @@ Record project(const Record& r, short* cols, Mmoffset adr = 0);
 enum { END = -1 }; // for column numbers
 
 const int schema_tran = 0;
-
-#endif

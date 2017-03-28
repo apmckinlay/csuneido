@@ -1,6 +1,4 @@
-#ifndef SESVIEWS_H
-#define SESVIEWS_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -34,5 +32,3 @@ void set_session_view(const gcstring& name, const gcstring& def);
 gcstring get_session_view(const gcstring& name);
 
 void remove_session_view(const gcstring& name);
-
-#endif

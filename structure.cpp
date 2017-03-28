@@ -22,7 +22,6 @@
 
 #include "structure.h"
 #include "interp.h"
-#include "suboolean.h"
 #include "sustring.h"
 #include "suobject.h"
 #include "symbols.h"
@@ -72,7 +71,8 @@ void Structure::out(Ostream& os)
 		}
 	}
 
-Value Structure::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value Structure::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value SIZE("Size");
 	static Value MODIFY("Modify");
@@ -92,7 +92,7 @@ Value Structure::call(Value self, Value member, short nargs, short nargnames, us
 		if (arg.ob_if_ob())
 			{
 			// convert object to structure in string
-			int n = size();
+			n = size();
 			if (n > 512)
 				except("structure too big");
 			char buf[1024];
@@ -127,15 +127,16 @@ Value Structure::call(Value self, Value member, short nargs, short nargnames, us
 		}
 	else if (member == MODIFY)
 		{
-		int nargs = 3;
+		if (nargs != 3)
+			except("usage: struct.Modify(address, member, value)");
 		char* dst = (char*) ARG(0).integer();
-		ushort member = ARG(1).symnum();
+		ushort mem = ARG(1).symnum();
 		int i;
 		for (i = 0; i < nitems; ++i)
 			{
-			if (mems[i] == member)
+			if (mems[i] == mem)
 				{
-				char* dst2 = 0;
+				char* dst2 = nullptr;
 				items[i].type().put(dst, dst2, 0, ARG(2));
 				break ;
 				}

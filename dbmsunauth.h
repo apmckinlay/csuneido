@@ -1,6 +1,4 @@
-#ifndef DBMSUNAUTH_H
-#define DBMSUNAUTH_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -26,5 +24,3 @@
 class Dbms;
 
 Dbms* newDbmsUnauth(Dbms* dbms);
-
-#endif

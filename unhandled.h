@@ -1,6 +1,4 @@
-#ifndef UNHANDLED_H
-#define UNHANDLED_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -27,5 +25,3 @@ void unhandled();
 char* err_filename();
 
 [[noreturn]] void fatal_log(const char* error, const char* extra = "");
-
-#endif

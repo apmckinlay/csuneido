@@ -246,7 +246,7 @@ Record k(ulong recnum)
 	short n = random(keysize) + 2;
 	for (short i = 0; i < n; ++i)
 		*dst++ = 'a' + random(26);
-	*dst++ = 0;
+	*dst = 0;
 	r.addval(buf);
 
 	r.addval(recnum);
@@ -461,39 +461,39 @@ class test_index : public Tests
 		verify(thedb->commit(t));
 		}
 private:
-	Record record(char* s)
+	static Record record(const char* s)
 		{
 		Record r;
 		r.addval(s);
 		return r;
 		}
-	Record record(char* s, char* t)
-		{
-		Record r;
-		r.addval(s);
-		r.addval(t);
-		return r;
-		}
-	Record key(char* s)
-		{
-		Record r;
-		r.addval(s);
-		return r;
-		}
-	Record key(char* s, char* t)
+	static Record record(const char* s, const char* t)
 		{
 		Record r;
 		r.addval(s);
 		r.addval(t);
 		return r;
 		}
-	Record key1(const Record& r)
+	static Record key(const char* s)
+		{
+		Record r;
+		r.addval(s);
+		return r;
+		}
+	static Record key(const char* s, const char* t)
+		{
+		Record r;
+		r.addval(s);
+		r.addval(t);
+		return r;
+		}
+	static Record key1(const Record& r)
 		{
 		Record k;
 		k.addraw(r.getraw(0));
 		return k;
 		}
-	Record key2(const Record& r)
+	static Record key2(const Record& r)
 		{
 		Record k;
 		k.addraw(r.getraw(0));

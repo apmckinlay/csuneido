@@ -38,12 +38,13 @@
 #include "pack.h"
 #include <ctype.h>
 #include "func.h" // for argseach
-#include "minmax.h"
-#include <time.h>
 #include "ostreamstr.h"
 #include "cmpic.h"
 #include "itostr.h"
 #include "gc.h"
+#include <algorithm>
+using std::min;
+using std::max;
 
 static int ord = ::order("Date");
 
@@ -107,7 +108,8 @@ void SuDate::out(Ostream& out)
 
 #define METHOD(fn) methods[#fn] = &SuDate::fn
 
-Value SuDate::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	typedef Value (SuDate::*pmfn)(short, short, ushort*, int);
 	static HashMap<Value,pmfn> methods;
@@ -137,7 +139,7 @@ Value SuDate::call(Value self, Value member, short nargs, short nargnames, ushor
 		static ushort G_Dates = globals("Dates");
 		Value Dates = globals.find(G_Dates);
 		SuObject* ob;
-		if (Dates && (ob = Dates.ob_if_ob()) && ob->has(member))
+		if (Dates && nullptr != (ob = Dates.ob_if_ob()) && ob->has(member))
 			return ob->call(self, member, nargs, nargnames, argnames, each);
 		else
 			method_not_found("date", member);
@@ -197,7 +199,7 @@ Value SuDate::instantiate(short nargs, short nargnames, ushort* argnames, int ea
 			return ARG(0);
 		else
 			{
-			char* s = ARG(0).str();
+			auto s = ARG(0).str();
 			if (*s == '#')
 				{
 				Value x = SuDate::literal(s);
@@ -249,10 +251,10 @@ Value SuDate::instantiate(short nargs, short nargnames, ushort* argnames, int ea
 		except("usage: Date() or Date(string) or Date(year:,month:,day:,hour:,minute:,second:");
 	}
 
-char* month[] =
+const char* monthnames[] =
 	{ "January", "February", "March", "April", "May", "June", "July",
 	"August", "September", "October", "November", "December" };
-char* weekday[] =
+const char* weekday[] =
 	{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
 	"Saturday" };
 
@@ -260,7 +262,7 @@ enum {			 YEAR, MONTH, DAY, HOUR, MINUTE, SECOND, UNK };
 int minval[] = { 0,	   1,	  1,    0,	  0,	  0 };
 int maxval[] = { 3000, 12,	  31,	59,	  59, 59 };
 
-static bool ampm_ahead(char* s)
+static bool ampm_ahead(const char* s)
 	{
 	if (*s == ' ')
 		++s;
@@ -287,12 +289,12 @@ static int get3digit(const char* s)
 static int get4digit(const char* s)
 	{ return 100 * get2digit(s) + get2digit(s + 2); }
 
-Value SuDate::parse(char* s, char* order)
+Value SuDate::parse(const char* s, const char* order)
 	{
 	const int NOTSET = 9999;
 	DateTime dt(9999, 0, 0, NOTSET, NOTSET, NOTSET, 0);
 
-	char* date_patterns[] =
+	const char* date_patterns[] =
 		{
 		"", // set to system default
 		"md",
@@ -306,10 +308,10 @@ Value SuDate::parse(char* s, char* order)
 	{
 	int i = 0;
 	char prev = 0;
-	for (char* s = order; *s && i < 3; prev = *s, ++s)
-		if (*s != prev &&
-			(*s == 'y' || *s == 'M' || *s == 'd'))
-			syspat[i++] = tolower(*s);
+	for (auto o = order; *o && i < 3; prev = *o, ++o)
+		if (*o != prev &&
+			(*o == 'y' || *o == 'M' || *o == 'd'))
+			syspat[i++] = tolower(*o);
 	syspat[i] = 0;
 	if (i != 3)
 		except("invalid date format: '" << order << "'");
@@ -349,7 +351,7 @@ Value SuDate::parse(char* s, char* order)
 			*dst = 0;
 			int i;
 			for (i = 0; i < 12; ++i)
-				if (has_prefix(month[i], buf))
+				if (has_prefix(monthnames[i], buf))
 					break ;
 			if (i < 12)
 				{
@@ -385,8 +387,10 @@ Value SuDate::parse(char* s, char* order)
 		else if ('0' <= *s && *s <= '9')
 		// can't use isdigit because it returns true for non-digits
 			{
-			char* t = s;
-			int n = strtoul(s, &s, 10);
+			auto t = s;
+			char* end;
+			int n = strtoul(s, &end, 10);
+			s = end;
 			verify(s > t);
 			if (s - t == 6 || s - t == 8)
 				{
@@ -405,7 +409,8 @@ Value SuDate::parse(char* s, char* order)
 					{
 					++s;
 					t = s;
-					strtoul(s, &s, 10);
+					strtoul(s, &end, 10);
+					s = end;
 					if (s - t == 4 || s - t == 6 || s - t == 9)
 						{
 						dt.hour = get2digit(t);
@@ -453,12 +458,12 @@ Value SuDate::parse(char* s, char* order)
 		dt.second = 0;
 
 	// search for date match
-	char** pat;
-	char** end = date_patterns + sizeof date_patterns / sizeof (char*);
+	const char** pat;
+	const char** end = date_patterns + sizeof date_patterns / sizeof (char*);
 	for (pat = date_patterns; pat < end; ++pat)
 		{
 		// try one pattern
-		char* p = *pat;
+		auto p = *pat;
 		int t;
 		for (t = 0; *p && t < ntokens; ++p, ++t)
 			{
@@ -486,7 +491,7 @@ Value SuDate::parse(char* s, char* order)
 		{
 		// use match
 		int t = 0;
-		for (char* p = *pat; *p; ++p, ++t)
+		for (auto p = *pat; *p; ++p, ++t)
 			{
 			if (*p == 'y')
 				dt.year = tokens[t];
@@ -539,12 +544,12 @@ inline void add(std::vector<char>& dst, const char* s, int n)
 	dst.insert(dst.end(), s, s + n);
 	}
 
-static SuString* format(int date, int time, char* fmt)
+static SuString* format(int date, int time, const char* fmt)
 	{
 	DateTime dt(date, time);
 	std::vector<char> dst;
 	dst.reserve(strlen(fmt));
-	for (char* f = fmt; *f; ++f)
+	for (auto f = fmt; *f; ++f)
 		{
 		int n = 1;
 		if (isalpha(*f))
@@ -566,9 +571,9 @@ static SuString* format(int date, int time, char* fmt)
 			}
 		case 'M' :
 			if (n > 3)
-				add(dst, month[dt.month - 1]);
+				add(dst, monthnames[dt.month - 1]);
 			else if (n == 3)
-				add(dst, month[dt.month - 1], 3);
+				add(dst, monthnames[dt.month - 1], 3);
 			else
 				{
 				if (n >= 2 || dt.month > 9)
@@ -646,8 +651,7 @@ Value SuDate::FormatEn(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 1)
 		except("usage: date.Format(format)");
-	char* fmt = ARG(0).str();
-	return format(date, time, fmt);
+	return format(date, time, ARG(0).str());
 	}
 
 Value SuDate::Plus(short nargs, short nargnames, ushort* argnames, int each)
@@ -795,7 +799,7 @@ Value SuDate::WeekDay(short nargs, short nargnames, ushort* argnames, int each)
 		{
 		if (! ARG(0).int_if_num(&i))
 			{
-			char* s = ARG(0).str();
+			auto s = ARG(0).str();
 			for (i = 0; i < 7; ++i)
 				if (0 == memcmpic(s, weekday[i], strlen(s)))
 					break ;
@@ -950,7 +954,7 @@ class test_sudate : public Tests
 		}
 	TEST(2, literal)
 		{
-		char* s = "#19990101";
+		auto s = "#19990101";
 		Value x = SuDate::literal(s);
 		OstreamStr os;
 		os << x;

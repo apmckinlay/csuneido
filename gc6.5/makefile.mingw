@@ -1,9 +1,7 @@
 ifdef DEBUG
-  OUTPUT=mingw_debug
   OFLAGS=-g
   LDFLAGS=
 else
-  OUTPUT=mingw_release
   OFLAGS=-O2  -DNDEBUG
   LDFLAGS=-s
 endif

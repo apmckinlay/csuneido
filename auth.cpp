@@ -73,7 +73,7 @@ static gcstring getPassHash(const gcstring& user)
 		return "";
 	Record key;
 	key.addval(user);
-	TranCloser t = theDB()->transaction(READONLY);
+	TranCloser t(theDB()->transaction(READONLY));
 	Index* index = theDB()->get_index("users", "user");
 	Index::iterator iter = index->begin(t, key);
 	if (iter.eof())

@@ -1,6 +1,4 @@
-#ifndef ARRAY_H
-#define ARRAY_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -39,7 +37,7 @@ public:
 		{ verify(i < cap); return t[i]; }
 	typedef T* iterator;
 	typedef const T* const_iterator;
-	int capacity() const
+	static int capacity()
 		{ return cap; }
 	int size() const
 		{ return sz; }
@@ -80,7 +78,7 @@ public:
 	void append(iterator first, iterator last)
 		{ insert(end(), first, last); }
 	T* dup();
-	int remaining()
+	int remaining() const
 		{ return cap - sz; }
 protected:
 	T t[cap];
@@ -119,7 +117,7 @@ void Array<T,cap>::insert(iterator position, int n, const T& x)
 template <class T, int cap>
 void Array<T,cap>::insert(iterator position, iterator first, iterator last)
 	{
-	int n = (int)(last - first);
+	auto n = last - first;
 	verify(sz + n <= cap);
 	std::copy_backward(position, end(), end() + n);
 	std::copy(first, last, position);
@@ -133,5 +131,3 @@ T* Array<T,cap>::dup()
 	std::copy(begin(), end(), a);
 	return a;
 	}
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef QSELECT_H
-#define QSELECT_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -28,10 +26,8 @@
 
 struct Point // only used by Iselect
 	{
-	Point() : d(0)
-		{ }
 	gcstring x;
-	int d;		// 0 if inclusive, +1 or -1 if exclusive
+	int d = 0;		// 0 if inclusive, +1 or -1 if exclusive
 	bool operator<(const Point& q) const
 		{ return x == q.x ? d < q.d : x < q.x; }
 	bool operator==(const Point& q) const
@@ -59,11 +55,11 @@ struct Iselect
 	bool inrange(const gcstring& x);
 	bool matches(const gcstring& value);
 	void and_with(const Iselect& r);
-	bool all()
+	bool all() const
 		{ return org.x == "" && org.d == 0 && end.x == fieldmax; }
-	bool none()
+	bool none() const
 		{ return org > end && size(values) == 0; }
-	bool one()
+	bool one() const
 		{ return org == end || size(values) == 1; }
 	bool operator==(const Iselect& y) const
 		{ return org == y.org && end == y.end; }
@@ -71,5 +67,3 @@ struct Iselect
 	};
 
 typedef Lisp<Iselect> Iselects;
-
-#endif

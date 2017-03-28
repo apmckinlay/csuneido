@@ -1,6 +1,4 @@
-#ifndef FATAL_H
-#define FATAL_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -24,5 +22,3 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 [[noreturn]] void fatal(const char* error, const char* extra = "");
-
-#endif

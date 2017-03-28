@@ -1,6 +1,4 @@
-#ifndef CACHEMAP_H
-#define CACHEMAP_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -44,7 +42,7 @@ private:
 			{ }
 		Slot(ulong l, Key k, Data d) : lru(l), key(k), data(d)
 			{ }
-		ulong lru;
+		ulong lru = 0;
 		Key key;
 		Data data;
 		};
@@ -76,7 +74,5 @@ Data* CacheMap<N,Key,Data>::get(const Key& key)
 			slots[i].lru = clock++;
 			return &slots[i].data;
 			}
-	return 0;
+	return nullptr;
 	}
-
-#endif

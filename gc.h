@@ -1,6 +1,4 @@
-#ifndef GC_H
-#define GC_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -47,16 +45,8 @@ inline bool gc_inheap(void* p)
 	return 0 != GC_base(p);
 	}
 
-#ifdef _MSC_VER
-#pragma warning(4 : 4291)
-void* operator new(size_t n);
-void* operator new[](size_t n);
-#endif
-
 struct NoPtrs { };
 extern NoPtrs noptrs;
 
 void* operator new(size_t n, NoPtrs);
 void* operator new[](size_t n, NoPtrs);
-
-#endif

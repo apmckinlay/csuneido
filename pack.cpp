@@ -115,7 +115,7 @@ int packnamesize(const Named& named)
 	{
 	if (named.num == 0)
 		return 1;
-	char* s = named.num < 0x8000 ? globals(named.num) : symstr(named.num);
+	auto s = named.num < 0x8000 ? globals(named.num) : symstr(named.num);
 	return 1 + strlen(s) + 1;
 	}
 
@@ -127,7 +127,7 @@ int packname(char* buf, const Named& named)
 		named.num < 0x8000 ? NAME_GLOBAL : NAME_SYMBOL;
 	if (named.num == 0)
 		return 1;
-	char* s = named.num < 0x8000 ? globals(named.num) : symstr(named.num);
+	auto s = named.num < 0x8000 ? globals(named.num) : symstr(named.num);
 	return 1 + packstr(buf + 1, s);
 	}
 
@@ -297,7 +297,7 @@ class test_pack : public Tests
 	void testpack(Value x)
 		{
 		size_t n = x.packsize();
-		char* buf = (char*) alloca(n + 1);
+		char* buf = (char*) _alloca(n + 1);
 		buf[n] = '\xc4';
 		x.pack(buf);
 		verify(buf[n] == '\xc4');

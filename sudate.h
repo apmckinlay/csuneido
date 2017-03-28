@@ -1,6 +1,4 @@
-#ifndef SUDATE_H
-#define SUDATE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -37,30 +35,31 @@ public:
 	void* operator new(size_t n, void* p)
 		{ return p; }
 
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 
-	void out(Ostream& out);
+	void out(Ostream& out) override;
 
 	// database packing
-	size_t packsize() const
+	size_t packsize() const override
 		{ return 1 + sizeof (int) + sizeof (int); }
-	void pack(char* buf) const;
+	void pack(char* buf) const override;
 	static SuDate* unpack(const gcstring& s);
 	static Value literal(const char* s);
 
 	// for use as subscript
-	size_t hashfn()
+	size_t hashfn() override
 		{ return date ^ time; }
 
-	int order() const;
-	bool lt(const SuValue& x) const;
-	bool eq(const SuValue& x) const;
+	int order() const override;
+	bool lt(const SuValue& x) const override;
+	bool eq(const SuValue& x) const override;
 
 	bool operator<(const SuDate& d) const;
 
 	SuDate& increment();
 	static SuDate* timestamp();
-	static Value parse(char* s, char* order = "yMd");
+	static Value parse(const char* s, const char* order = "yMd");
 	static long long minus_ms(SuDate* d1, SuDate* d2);
 	static Value instantiate(short nargs, short nargnames, ushort* argnames, int each);
 private:
@@ -84,8 +83,7 @@ private:
 class SuDateClass : public SuValue
 	{
 public:
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
-	void out(Ostream& os);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
+	void out(Ostream& os) override;
 	};
-
-#endif

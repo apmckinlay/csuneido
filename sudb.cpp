@@ -28,8 +28,6 @@
 #include "dbms.h"
 #include "except.h"
 #include "exceptimp.h"
-#include "suboolean.h"
-#include "pack.h"
 #include "symbols.h"
 #include "globals.h"
 #include "query.h" // for is_request
@@ -38,7 +36,8 @@
 #include "builtinargs.h"
 #include "trace.h"
 
-Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value DatabaseClass::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Transactions("Transactions");
 	static Value CurrentSize("CurrentSize");
@@ -97,7 +96,7 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 		}
 	else if (member == SessionId)
 		{
-		char *s = "";
+		auto s = "";
 		if (nargs == 1)
 			s = ARG(0).str();
 		else if (nargs != 0)
@@ -118,7 +117,7 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 		}
 	else if (member == Dump)
 		{
-		char* what;
+		const char* what;
 		if (nargs == 0)
 			what = "";
 		else if (nargs == 1)
@@ -132,12 +131,9 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 		}
 	else if (member == Load)
 		{
-		char* what;
-		if (nargs == 1)
-			what = ARG(0).str();
-		else
+		if (nargs != 1)
 			except("usage: Database.Load(table)");
-		int result = dbms()->load(what);
+		int result = dbms()->load(ARG(0).str());
 		if (result < 0)
 			except("Database.Load failed: " << result);
 		return result;
@@ -170,7 +166,7 @@ Value DatabaseClass::call(Value self, Value member, short nargs, short nargnames
 		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
 	}
 
-static char* query_args(char* query, BuiltinArgs& args)
+static const char* query_args(const char* query, BuiltinArgs& args)
 	{
 	args.end(); // shouldn't be any more un-named args
 	if (! args.hasNamed())
@@ -188,7 +184,7 @@ static char* query_args(char* query, BuiltinArgs& args)
 	return os.str();
 	}
 
-static char* traceTran(SuTransaction* tran)
+static const char* traceTran(SuTransaction* tran)
 	{
 	if (! tran)
 		return "";
@@ -199,12 +195,13 @@ static char* traceTran(SuTransaction* tran)
 
 #define QUERYONE_PARAMS "(query [, field: value ...])"
 
-static Value queryone(char* which, Dir dir, bool one, SuTransaction* tran, BuiltinArgs& args)
+static Value queryone(const char* which, Dir dir, bool one, 
+	SuTransaction* tran, BuiltinArgs& args)
 	{
 	if (tran)
 		tran->checkNotEnded("query");
 	args.usage("usage: ", which, QUERYONE_PARAMS);
-	char* query = args.getstr("query");
+	auto query = args.getstr("query");
 	query = query_args(query, args);
 	TRACE(QUERY, traceTran(tran) <<
 		(one ? "ONE" : dir == NEXT ? "FIRST" : "LAST") << ' ' << query);
@@ -217,12 +214,12 @@ class QueryOne : public SuValue
 	{
 public:
 	NAMED
-	QueryOne(char* w, Dir d, bool o) : which(w), dir(d), one(o)
+	QueryOne(const char* w, Dir d, bool o) : which(w), dir(d), one(o)
 		{
 		named.num = globals("Query1");
 		}
 	Value call(Value self, Value member,
-		short nargs, short nargnames, ushort* argnames, int each)
+		short nargs, short nargnames, ushort* argnames, int each) override
 		{
 		static Value Params("Params");
 
@@ -237,12 +234,12 @@ public:
 		else
 			method_not_found(which, member);
 		}
-	virtual const char* type() const
+	virtual const char* type() const override
 		{ return "Builtin"; }
-	void out(Ostream& os)
+	void out(Ostream& os) override
 		{ os << which << " /* function */"; }
 private:
-	char* which;
+	const char* which;
 	Dir dir;
 	bool one;
 	};
@@ -263,7 +260,8 @@ Value su_transactions()
 
 // SuTransaction ------------------------------------------------------
 
-Value TransactionClass::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value TransactionClass::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL || member == INSTANTIATE)
 		{
@@ -314,7 +312,8 @@ SuTransaction::SuTransaction(TranType type) : done(false), conflict("")
 SuTransaction::SuTransaction(int t) : tran(t), done(false), conflict("")
 	{ verify(t > 0); }
 
-Value SuTransaction::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuTransaction::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Query("Query");
 	static Value Complete("Complete");
@@ -332,7 +331,7 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 	if (member == Query)
 		{
 		args.usage("usage: transaction.Query(value [, block][, field: value...])");
-		char* qstr = args.getstr("query");
+		auto qstr = args.getstr("query");
 		Value block = args.getValue("block", Value());
 		if (block && ! dynamic_cast<Func*>(block.ptr()))
 			args.exceptUsage();
@@ -403,14 +402,14 @@ Value SuTransaction::call(Value self, Value member, short nargs, short nargnames
 		static ushort G_Trans = globals("Transactions");
 		Value Trans = globals.find(G_Trans);
 		SuObject* ob;
-		if (Trans && (ob = Trans.ob_if_ob()) && ob->has(member))
+		if (Trans && nullptr != (ob = Trans.ob_if_ob()) && ob->has(member))
 			return ob->call(self, member, nargs, nargnames, argnames, each);
 		else
 			method_not_found("transaction", member);
 		}
 	}
 
-Value SuTransaction::query(char* s)
+Value SuTransaction::query(const char* s)
 	{
 	checkNotEnded("query");
 	if (is_request(s))
@@ -439,7 +438,7 @@ void SuTransaction::rollback()
 	done = true;
 	}
 
-void SuTransaction::checkNotEnded(char* action)
+void SuTransaction::checkNotEnded(const char* action)
 	{
 	if (done)
 		except("can't " << action << " ended Transaction" <<
@@ -448,7 +447,8 @@ void SuTransaction::checkNotEnded(char* action)
 
 // SuCursor ------------------------------------------------------
 
-Value CursorClass::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value CursorClass::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL || member == INSTANTIATE)
 		{
@@ -489,8 +489,8 @@ struct SetTran
 	SuCursor* cursor;
 	};
 
-Value SuCursor::call(Value self, Value member, short nargs,
-	short nargnames, ushort* argnames, int each)
+Value SuCursor::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Next("Next");
 	static Value Prev("Prev");
@@ -530,7 +530,8 @@ SuQuery::SuQuery(const gcstring& s, DbmsQuery* n, SuTransaction* trans)
 
 // TODO: check if the controlling transaction is done
 
-Value SuQuery::call(Value, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuQuery::call(Value, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value NewRecord("NewRecord");
 	static Value Keys("Keys");
@@ -641,7 +642,7 @@ Value SuQuery::rewind()
 	return 0;
 	}
 
-SuObject* SuQuery::getfields()
+SuObject* SuQuery::getfields() const
 	{
 	SuObject* ob = new SuObject();
 	for (Fields f = hdr.columns(); ! nil(f); ++f)
@@ -650,7 +651,7 @@ SuObject* SuQuery::getfields()
 	return ob;
 	}
 
-SuObject* SuQuery::getRuleColumns()
+SuObject* SuQuery::getRuleColumns() const
 	{
 	SuObject* ob = new SuObject();
 	for (Fields f = hdr.rules(); ! nil(f); ++f)
@@ -658,7 +659,7 @@ SuObject* SuQuery::getRuleColumns()
 	return ob;
 	}
 
-SuObject* SuQuery::getkeys()
+SuObject* SuQuery::getkeys() const
 	{
 	SuObject* ob = new SuObject();
 	for (Lisp<Lisp<gcstring> > idxs = q->keys(); ! nil(idxs); ++idxs)
@@ -671,7 +672,7 @@ SuObject* SuQuery::getkeys()
 	return ob;
 	}
 
-SuObject* SuQuery::getorder()
+SuObject* SuQuery::getorder() const
 	{
 	SuObject* ob = new SuObject();
 	for (Fields f = q->order(); ! nil(f); ++f)
@@ -679,12 +680,12 @@ SuObject* SuQuery::getorder()
 	return ob;
 	}
 
-Value SuQuery::explain()
+Value SuQuery::explain() const
 	{
 	return new SuString(q->explain());
 	}
 
-Value SuQuery::output(SuObject* ob)
+Value SuQuery::output(SuObject* ob) const
 	{
 	Record r = object_to_record(hdr, ob);
 	return q->output(r) ? SuTrue : SuFalse;

@@ -37,6 +37,6 @@ void SuFinalize::removefinal()
 
 void SuFinalize::cleanup(void* base, void* data)
 	{
-	SuValue* ob = (SuValue*)((char*) base + (int) data);
+	auto ob = (SuFinalize*)((char*) base + (int) data);
 	ob->finalize();
 	}

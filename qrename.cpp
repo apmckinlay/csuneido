@@ -21,7 +21,6 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "qrename.h"
-#include "commalist.h"
 
 Query* Query::make_rename(Query* source, const Fields& f, const Fields& t)
 	{

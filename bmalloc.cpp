@@ -22,7 +22,6 @@
 
 #include "gc.h"
 #include "fatal.h"
-#include <memory.h>
 
 NoPtrs noptrs;
 
@@ -57,6 +56,14 @@ void operator delete(void*)
 	{
 	}
 
+void operator delete(void*, unsigned int)
+	{
+	}
+
 void operator delete[](void*)
+	{
+	}
+
+void operator delete[](void*, unsigned int)
 	{
 	}

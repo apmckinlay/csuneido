@@ -1,6 +1,4 @@
-#ifndef STRUCTURE_H
-#define STRUCTURE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -33,14 +31,13 @@ class Structure : public TypeMulti
 public:
 	NAMED
 	Structure(TypeItem* it, ushort* ms, int n);
-	void put(char*& dst, char*& dst2, const char* lim2, Value x);
-	Value get(char*& src, Value x);
-	void getbyref(char*& src, Value x)
+	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
+	Value get(char*& src, Value x) override;
+	void getbyref(char*& src, Value x) override
 		{ get(src, x); }
-	void out(Ostream& os);
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	void out(Ostream& os) override;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 private:
 	ushort* mems;
 	};
-
-#endif

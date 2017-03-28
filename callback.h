@@ -1,6 +1,4 @@
-#ifndef CALLBACK_H
-#define CALLBACK_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -33,16 +31,13 @@ public:
 	NAMED
 	Callback(TypeItem* it, ushort* ns, short n)	: TypeMulti(it, n)
 		{ mems = dup(ns, n); }
-	int size()
+	int size() override
 		{ return sizeof (void*); }
-	void put(char*& dst, char*& dst2, const char* lim2, Value x);
-	Value get(char*& src, Value x)
+	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
+	Value get(char*& src, Value x) override
 		{ src += sizeof (void*); return x; }
-	void out(Ostream& os);
+	void out(Ostream& os) override;
 	long callback(Value, char*);
 private:
 	ushort* mems;
 	};
-
-#endif
-

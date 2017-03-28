@@ -204,9 +204,6 @@
     <ClCompile Include="..\pack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\params.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\permheap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -478,9 +475,6 @@
     <ClInclude Include="..\awcursor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\bitmap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\btree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -646,12 +640,6 @@
     <ClInclude Include="..\load.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\md5.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\minmax.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\mmfile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -683,9 +671,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\pack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\params.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\permheap.h">
@@ -787,9 +772,6 @@
     <ClInclude Include="..\scanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\scintilla.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\sesviews.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -800,9 +782,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\std.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\strdup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\structure.h">
@@ -902,9 +881,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\win.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\winlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\dbmsunauth.h">

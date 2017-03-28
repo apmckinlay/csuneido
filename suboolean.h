@@ -1,6 +1,4 @@
-#ifndef SUBOOLEAN_H
-#define SUBOOLEAN_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -31,20 +29,20 @@ class gcstring;
 class SuBoolean : public SuValue
 	{
 public:
-	virtual int integer() const;
-	virtual void out(Ostream& os);
-	virtual gcstring gcstr() const;
-	virtual SuNumber* number(); // defined by SuNumber & SuString
+	int integer() const override;
+	void out(Ostream& os) override;
+	gcstring gcstr() const override;
+	SuNumber* number() override; // defined by SuNumber & SuString
 
-	virtual size_t packsize() const;
-	virtual void pack(char* buf) const;
+	size_t packsize() const override;
+	void pack(char* buf) const override;
 	static SuBoolean* unpack(const gcstring& s);
 
 	static SuBoolean* literal(const char* s);
 
-	virtual int order() const;
-	virtual bool lt(const SuValue& x) const;
-	virtual bool eq(const SuValue& x) const;
+	int order() const override;
+	bool lt(const SuValue& x) const override;
+	bool eq(const SuValue& x) const override;
 
 	static SuBoolean* t;
 	static SuBoolean* f;
@@ -55,5 +53,3 @@ private:
 
 	bool val;
 	};
-
-#endif

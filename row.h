@@ -1,6 +1,4 @@
-#ifndef ROW_H
-#define ROW_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -27,8 +25,8 @@
 #include "record.h"
 #include "gcstring.h"
 #include <utility> // for pair
-#include "minmax.h"
-#include "dir.h"
+#include <algorithm>
+using std::min;
 
 typedef Lisp<gcstring> Fields;
 typedef Lisp<Record> Records;
@@ -62,7 +60,7 @@ private:
 inline bool nil(const Header& hdr)
 	{ return nil(hdr.flds); }
 
-inline const Header operator+(const Header& x, const Header& y)
+inline Header operator+(const Header& x, const Header& y)
 	{ return Header(concat(x.flds, y.flds), set_union(x.cols, y.cols)); }
 
 inline Ostream& operator<<(Ostream& os, const Header& x)
@@ -126,7 +124,7 @@ public:
 			{ iterator ret = *this; operator++(); return ret; }
 		bool operator==(const iterator& iter) const
 			{ return data == iter.data && fld == iter.fld; }
-		Fields fields()
+		Fields fields() const
 			{ return *flds; }
 	private:
 		Lisp<Fields> flds;
@@ -136,7 +134,7 @@ public:
 		};
 	iterator begin(const Header& hdr) const
 		{ return iterator(hdr.flds, data); }
-	iterator end() const
+	static iterator end()
 		{ return iterator(); }
 	SuRecord* get_surec(const Header& hdr) const;
 
@@ -168,5 +166,3 @@ inline Ostream& operator<<(Ostream& os, const Row& row)
 	{ return os << row.data; }
 
 Record row_to_key(const Header& hdr, const Row& row, const Fields& flds);
-
-#endif

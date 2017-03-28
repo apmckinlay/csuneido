@@ -1,7 +1,4 @@
-#ifndef DATE_H
-#define DATE_H
-#include "auth.h"
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -49,5 +46,3 @@ struct DateTime
 	};
 
 bool operator==(const DateTime&, const DateTime&);
-
-#endif

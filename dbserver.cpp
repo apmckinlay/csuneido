@@ -74,7 +74,7 @@ public:
 		sc->close();
 		}
 	static void timer_proc();
-	char* id()
+	const char* id()
 		{
 		return session_id;
 		}
@@ -85,60 +85,64 @@ private:
 		}
 
 	// commands
-	char* cmd_text(char* s);
-	char* cmd_binary(char* s);
-	char* cmd_admin(char* s);
-	char* cmd_cursor(char* s);
-	char* cmd_close(char* s);
-	char* cmd_transaction(char* s);
-	char* cmd_tranlist(char* s);
-	char* cmd_query(char* s);
-	char* cmd_libget(char* s);
-	char* cmd_libraries(char* s);
-	char* cmd_request(char* s);
-	char* cmd_explain(char* s);
-	char* cmd_header(char* s);
-	char* cmd_order(char* s);
-	char* cmd_keys(char* s);
-	char* cmd_get(char* s);
-	char* cmd_get1(char* s);
-	char* cmd_rewind(char* s);
-	char* cmd_output(char* s);
-	char* cmd_update(char* s);
-	char* cmd_erase(char* s);
-	char* cmd_commit(char* s);
-	char* cmd_abort(char* s);
-	char* cmd_timestamp(char* s);
-	char* cmd_dump(char* s);
-	char* cmd_load(char* s);
-	char* cmd_run(char* s);
-	char* cmd_size(char* s);
-	char* cmd_connections(char* s);
-	char* cmd_tempdest(char* s);
-	char* cmd_cursors(char* s);
-	char* cmd_sessionid(char* s);
-	char* cmd_final(char*);
-	char* cmd_log(char*);
-	char* cmd_kill(char*);
-	char* cmd_exec(char*);
-	char* cmd_nonce(char*);
-	char* cmd_token(char*);
-	char* cmd_auth(char*);
-	char* cmd_check(char*);
+	const char* cmd_text(char* s);
+	const char* cmd_binary(char* s);
+	const char* cmd_admin(char* s);
+	const char* cmd_cursor(char* s);
+	const char* cmd_close(char* s);
+	const char* cmd_transaction(char* s);
+	const char* cmd_tranlist(char* s);
+	const char* cmd_query(char* s);
+	const char* cmd_libget(char* s);
+	const char* cmd_libraries(char* s);
+	const char* cmd_request(char* s);
+	const char* cmd_explain(char* s);
+	const char* cmd_header(char* s);
+	const char* cmd_order(char* s);
+	const char* cmd_keys(char* s);
+	const char* cmd_get(char* s);
+	const char* cmd_get1(char* s);
+	const char* cmd_rewind(char* s);
+	const char* cmd_output(char* s);
+	const char* cmd_update(char* s);
+	const char* cmd_erase(char* s);
+	const char* cmd_commit(char* s);
+	const char* cmd_abort(char* s);
+	const char* cmd_timestamp(char* s);
+	const char* cmd_dump(char* s);
+	const char* cmd_load(char* s);
+	const char* cmd_run(char* s);
+	const char* cmd_size(char* s);
+	const char* cmd_connections(char* s);
+	const char* cmd_tempdest(char* s);
+	const char* cmd_cursors(char* s);
+	const char* cmd_sessionid(char* s);
+	const char* cmd_final(char*);
+	const char* cmd_log(char*);
+	const char* cmd_kill(char*);
+	const char* cmd_exec(char*);
+	const char* cmd_nonce(char*);
+	const char* cmd_token(char*);
+	const char* cmd_auth(char*);
+	const char* cmd_check(char*);
 
 	void write(char* buf, int n)
 		{ sc->write(buf, n); }
-	void write(char* buf)
-		{ sc->write(buf, strlen(buf)); }
+	void write(const char* s)
+		{ sc->write(s, strlen(s)); }
+	void write(const gcstring& s)
+		{ sc->write(s.buf(), s.size()); 	}
 	void writebuf(char* buf, int n)
 		{ sc->writebuf(buf, n); }
-	void writebuf(char* buf)
-		{ sc->writebuf(buf, strlen(buf)); }
+	void writebuf(char* s)
+		{ sc->writebuf(s, strlen(s)); }
+	void writebuf(const gcstring& s)
+		{ sc->writebuf(s.buf(), s.size()); }
 
 	DbmsQuery* q_or_c(char*& s);
 	DbmsQuery* q_or_tc(char*& s);
-	char* value_result(Value x);
-	char* row_result(const Row& row, const Header& hdr, bool sendhdr = false);
+	const char* value_result(Value x);
+	const char* row_result(const Row& row, const Header& hdr, bool sendhdr = false);
 
 	Dbms* dbms()
 		{ return data->auth ? dbms_auth : dbms_unauth; }
@@ -147,7 +151,7 @@ private:
 	bool textmode;
 	OstreamStr os;
 	DbServerData* data;
-	char* session_id;
+	const char* session_id;
 	static Dbms* dbms_auth;
 	static Dbms* dbms_unauth;
 	int last_activity;
@@ -157,8 +161,6 @@ private:
 	};
 
 static std::vector<DbServer*> dbservers;
-
-const bool SEND_FIELDS = true;
 
 Dbms* DbServer::dbms_auth = 0;
 Dbms* DbServer::dbms_unauth = 0;
@@ -181,7 +183,7 @@ static void _stdcall dbserver(void* sc)
 	Fibers::end();
 	}
 
-static void log_once(char* s1, char* s2 = "")
+static void log_once(const char* s1, const char* s2 = "")
 	{
 	static bool first = true;
 	if (first)
@@ -225,7 +227,7 @@ void DbServer::timer_proc()
 
 extern void dbserver_timer(void (*pfn)());
 
-void start_dbserver(char* name)
+void start_dbserver(const char* name)
 	{
 	socketServer(name, su_port, dbserver, nullptr, true);
 	dbserver_timer(DbServer::timer_proc);
@@ -266,7 +268,7 @@ void DbServer::run()
 		request(buf);
 	}
 
-inline bool match(char* s, char* pre)
+inline bool match(const char* s, const char* pre)
 	{
 	const int npre = strlen(pre);
 	return 0 == _memicmp(s, pre, npre) &&
@@ -275,8 +277,8 @@ inline bool match(char* s, char* pre)
 
 struct Cmd
 	{
-	char* cmd;
-	char* (DbServer::*fn)(char* buf);
+	const char* cmd;
+	const char* (DbServer::*fn)(char* buf);
 	};
 
 #define CMD(name)	{ #name, &DbServer::cmd_##name }
@@ -341,7 +343,7 @@ void DbServer::request(char* buf)
 			{
 			try
 				{
-				char* s = (this->*(cmds[i].fn))(buf + strlen(cmds[i].cmd) + 1);
+				const char* s = (this->*(cmds[i].fn))(buf + strlen(cmds[i].cmd) + 1);
 				if (s)
 					{
 					LOG("s> " << s);
@@ -377,30 +379,30 @@ void DbServer::request(char* buf)
 	write(os.str());
 	}
 
-static char* bool_result(bool result)
+static const char* bool_result(bool result)
 	{
-	return (char*) (result ? "t\r\n" : "f\r\n");
+	return result ? "t\r\n" : "f\r\n";
 	}
 
-char* DbServer::cmd_text(char* req)
+const char* DbServer::cmd_text(char* req)
 	{
 	textmode = true;
 	return "OK\r\n";
 	}
 
-char* DbServer::cmd_binary(char* req)
+const char* DbServer::cmd_binary(char* req)
 	{
 	textmode = false;
 	return "OK\r\n";
 	}
 
-char* DbServer::cmd_admin(char* s)
+const char* DbServer::cmd_admin(char* s)
 	{
 	dbms()->admin(s);
 	return bool_result(true);
 	}
 
-char* DbServer::cmd_cursor(char* s)
+const char* DbServer::cmd_cursor(char* s)
 	{
 	int qlen = ck_getnum('Q', s);
 	char* buf = tmpalloc(qlen + 1);
@@ -411,7 +413,7 @@ char* DbServer::cmd_cursor(char* s)
 	return os.str();
 	}
 
-char* DbServer::cmd_close(char* s)
+const char* DbServer::cmd_close(char* s)
 	{
 	int n;
 	bool ok = false;
@@ -419,10 +421,10 @@ char* DbServer::cmd_close(char* s)
 		ok = data->erase_query(n);
 	else if (ERR != (n = getnum('C', s)))
 		ok = data->erase_cursor(n);
-	return (char*) (ok ? "OK\r\n" : "ERR invalid CLOSE\r\n");
+	return ok ? "OK\r\n" : "ERR invalid CLOSE\r\n";
 	}
 
-char* DbServer::cmd_transaction(char* s)
+const char* DbServer::cmd_transaction(char* s)
 	{
 	Dbms::TranType mode;
 	if (match(s, "read"))
@@ -437,7 +439,7 @@ char* DbServer::cmd_transaction(char* s)
 	return os.str();
 	}
 
-char* DbServer::cmd_request(char* s)
+const char* DbServer::cmd_request(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	if (! textmode)
@@ -453,7 +455,7 @@ char* DbServer::cmd_request(char* s)
 	return os.str();
 	}
 
-char* DbServer::cmd_query(char* s)
+const char* DbServer::cmd_query(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	int qlen = ck_getnum('Q', s);
@@ -466,7 +468,7 @@ char* DbServer::cmd_query(char* s)
 	return os.str();
 	}
 
-char* DbServer::cmd_libget(char* name)
+const char* DbServer::cmd_libget(char* name)
 	{
 	Lisp<gcstring> srcs = dbms()->libget(name);
 
@@ -484,43 +486,43 @@ char* DbServer::cmd_libget(char* name)
 		os << *s << "\r\n";
 		++s;
 		writebuf(os.str());
-		writebuf(s->buf(), s->size());
+		writebuf(*s);
 		}
 	write("");
 	return nullptr;
 	}
 
-char* DbServer::cmd_libraries(char*)
+const char* DbServer::cmd_libraries(char*)
 	{
 	os << dbms()->libraries() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_tranlist(char*)
+const char* DbServer::cmd_tranlist(char*)
 	{
 	os << data->get_trans() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_size(char*)
+const char* DbServer::cmd_size(char*)
 	{
 	os << 'S' << mmoffset_to_int(dbms()->size()) << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_tempdest(char*)
+const char* DbServer::cmd_tempdest(char*)
 	{
 	os << 'D' << dbms()->tempdest() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_cursors(char*)
+const char* DbServer::cmd_cursors(char*)
 	{
 	os << 'N' << dbms()->cursors() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::value_result(Value x)
+const char* DbServer::value_result(Value x)
 	{
 	if (! x)
 		return "\r\n";
@@ -533,12 +535,12 @@ char* DbServer::value_result(Value x)
 	return nullptr;
 	}
 
-char* DbServer::cmd_connections(char*)
+const char* DbServer::cmd_connections(char*)
 	{
 	return value_result(&dbserver_connections());
 	}
 
-char* DbServer::cmd_sessionid(char* s)
+const char* DbServer::cmd_sessionid(char* s)
 	{
 	if (*s)
 		{
@@ -550,7 +552,7 @@ char* DbServer::cmd_sessionid(char* s)
 	return os.str();
 	}
 
-char* DbServer::cmd_final(char*)
+const char* DbServer::cmd_final(char*)
 	{
 	os << 'N' << dbms()->final() << "\r\n";
 	return os.str();
@@ -569,28 +571,28 @@ DbmsQuery* DbServer::q_or_c(char*& s)
 	return q;
 	}
 
-char* DbServer::cmd_explain(char* s)
+const char* DbServer::cmd_explain(char* s)
 	{
 	DbmsQuery* q = q_or_c(s);
 	os << q->explain() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_header(char* s)
+const char* DbServer::cmd_header(char* s)
 	{
 	DbmsQuery* q = q_or_c(s);
 	os << q->header().schema() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_order(char* s)
+const char* DbServer::cmd_order(char* s)
 	{
 	DbmsQuery* q = q_or_c(s);
 	os << q->order() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_keys(char* s)
+const char* DbServer::cmd_keys(char* s)
 	{
 	getnum('T', s); // not used
 	DbmsQuery* q = q_or_c(s);
@@ -615,7 +617,7 @@ DbmsQuery* DbServer::q_or_tc(char*& s)
 	return q;
 	}
 
-char* DbServer::cmd_get(char* s)
+const char* DbServer::cmd_get(char* s)
 	{
 	Dir dir;
 	if (*s == '+')
@@ -632,7 +634,7 @@ char* DbServer::cmd_get(char* s)
 	return row_result(row, hdr);
 	}
 
-char* DbServer::row_result(const Row& row, const Header& hdr, bool sendhdr)
+const char* DbServer::row_result(const Row& row, const Header& hdr, bool sendhdr)
 	{
 	if (nil(row.data))
 		return "EOF\r\n";
@@ -664,7 +666,7 @@ char* DbServer::row_result(const Row& row, const Header& hdr, bool sendhdr)
 		}
 	}
 
-char* DbServer::cmd_get1(char* s)
+const char* DbServer::cmd_get1(char* s)
 	{
 	Dir dir = NEXT;
 	bool one = false;
@@ -690,7 +692,7 @@ char* DbServer::cmd_get1(char* s)
 	return row_result(row, hdr, true);
 	}
 
-char* DbServer::cmd_rewind(char* s)
+const char* DbServer::cmd_rewind(char* s)
 	{
 	getnum('T', s); // not used
 	DbmsQuery* q = q_or_c(s);
@@ -698,7 +700,7 @@ char* DbServer::cmd_rewind(char* s)
 	return "OK\r\n";
 	}
 
-char* DbServer::cmd_output(char* s)
+const char* DbServer::cmd_output(char* s)
 	{
 	DbmsQuery* q = q_or_tc(s);
 
@@ -710,7 +712,7 @@ char* DbServer::cmd_output(char* s)
 	return bool_result(q->output(rec));
 	}
 
-char* DbServer::cmd_erase(char* s)
+const char* DbServer::cmd_erase(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	Mmoffset recadr = int_to_mmoffset(ck_getnum('A', s));
@@ -718,7 +720,7 @@ char* DbServer::cmd_erase(char* s)
 	return "OK\r\n";
 	}
 
-char* DbServer::cmd_update(char* s)
+const char* DbServer::cmd_update(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	Mmoffset recadr = int_to_mmoffset(ck_getnum('A', s));
@@ -732,11 +734,11 @@ char* DbServer::cmd_update(char* s)
 	return os.str();
 	}
 
-char* DbServer::cmd_commit(char* s)
+const char* DbServer::cmd_commit(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	data->end_transaction(tran);
-	char* conflict;
+	const char* conflict;
 	if (dbms()->commit(tran, &conflict))
 		return "OK\r\n";
 	else
@@ -746,7 +748,7 @@ char* DbServer::cmd_commit(char* s)
 		}
 	}
 
-char* DbServer::cmd_abort(char* s)
+const char* DbServer::cmd_abort(char* s)
 	{
 	int tran = ck_getnum('T', s);
 	data->end_transaction(tran);
@@ -754,25 +756,25 @@ char* DbServer::cmd_abort(char* s)
 	return "OK\r\n";
 	}
 
-char* DbServer::cmd_timestamp(char* s)
+const char* DbServer::cmd_timestamp(char* s)
 	{
 	os << dbms()->timestamp() << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_dump(char* s)
+const char* DbServer::cmd_dump(char* s)
 	{
 	dbms()->dump(s);
 	return value_result("");
 	}
 
-char* DbServer::cmd_load(char* s)
+const char* DbServer::cmd_load(char* s)
 	{
 	os << 'N' << dbms()->load(s) << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_run(char* s)
+const char* DbServer::cmd_run(char* s)
 	{
 	Value x = dbms()->run(s);
 	if (! x)
@@ -790,21 +792,21 @@ char* DbServer::cmd_run(char* s)
 
 extern Value exec(Value ob);
 
-char* DbServer::cmd_exec(char* s)
+const char* DbServer::cmd_exec(char* s)
 	{
 	int n = ck_getnum('P', s);
 	gcstring buf(n);
-	sc->read(buf.str(), n);
+	sc->read(buf.buf(), n);
 	return value_result(exec(unpack(buf)));
 	}
 
-char* DbServer::cmd_log(char* s)
+const char* DbServer::cmd_log(char* s)
 	{
 	errlog(session_id, s);
 	return "OK\r\n";
 	}
 
-static bool matches(int i, char* sid)
+static bool matches(int i, const char* sid)
 	{
 	try
 		{
@@ -818,7 +820,7 @@ static bool matches(int i, char* sid)
 	}
 
 // also called by dbmslocal
-int kill_connections(char* s)
+int kill_connections(const char* s)
 	{
 	int n_killed = 0;
 	for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
@@ -835,29 +837,28 @@ int kill_connections(char* s)
 	return n_killed;
 	}
 
-char* DbServer::cmd_kill(char* s)
+const char* DbServer::cmd_kill(char* s)
 	{
 	int n_killed = kill_connections(s);
 	os << 'N' << n_killed << "\r\n";
 	return os.str();
 	}
 
-char* DbServer::cmd_nonce(char* s)
+const char* DbServer::cmd_nonce(char* s)
 	{
 	gcstring nonce = Auth::nonce();
-	write(nonce.buf(), nonce.size());
+	write(nonce);
 	data->nonce = nonce;
 	return nullptr;
 	}
 
-char* DbServer::cmd_token(char* s)
+const char* DbServer::cmd_token(char* s)
 	{
-	gcstring token = Auth::token();
-	write(token.buf(), token.size());
+	write(Auth::token());
 	return nullptr;
 	}
 
-char* DbServer::cmd_auth(char* s)
+const char* DbServer::cmd_auth(char* s)
 	{
 	int n = ck_getnum('D', s);
 	gcstring buf(n);
@@ -868,7 +869,7 @@ char* DbServer::cmd_auth(char* s)
 	return  bool_result(result);
 	}
 
-char* DbServer::cmd_check(char* s)
+const char* DbServer::cmd_check(char* s)
 	{
 	return value_result(dbms()->check());
 	}

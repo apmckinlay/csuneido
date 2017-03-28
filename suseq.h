@@ -1,6 +1,4 @@
-#ifndef SUSEQ_H
-#define SUSEQ_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -31,15 +29,16 @@ class SuSeq : public SuValue
 	{
 public:
 	explicit SuSeq(Value iter);
-	virtual void out(Ostream& os);
-	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
-	virtual void putdata(Value i, Value x);
-	virtual Value getdata(Value);
-	virtual size_t packsize() const;
-	virtual void pack(char* buf) const;
-	virtual bool lt(const SuValue& y) const;
-	virtual bool eq(const SuValue& y) const;
-	virtual SuObject* ob_if_ob();
+	void out(Ostream& os) override;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
+	void putdata(Value i, Value x) override;
+	Value getdata(Value) override;
+	size_t packsize() const override;
+	void pack(char* buf) const override;
+	bool lt(const SuValue& y) const override;
+	bool eq(const SuValue& y) const override;
+	SuObject* ob_if_ob() override;
 	SuObject* object() const;
 private:
 	void build() const;
@@ -54,13 +53,12 @@ class SuSeqIter : public SuValue
 	{
 public:
 	SuSeqIter(Value from, Value to, Value by);
-	virtual void out(Ostream& os);
-	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	void out(Ostream& os) override;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 private:
 	Value from;
 	Value to;
 	Value by;
 	Value i;
 	};
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef AWCURSOR_H
-#define AWCURSOR_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -80,7 +78,6 @@ private:
 			if (ticks > 0 && --ticks == 0 && autowaitcursor)
 				prev_cursor = SetCursor(wait_cursor);
 			}
-		return 0;
 		}
 	static LRESULT CALLBACK message_hook(int code, WPARAM wParam, LPARAM lParam)
 		{
@@ -96,5 +93,3 @@ DWORD AutoWaitCursor::main_threadid = 0;
 HHOOK AutoWaitCursor::hook = 0;
 int volatile AutoWaitCursor::ticks = 0;
 HCURSOR volatile AutoWaitCursor::prev_cursor = 0;
-
-#endif

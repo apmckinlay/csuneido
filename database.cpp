@@ -23,7 +23,6 @@
 #include "database.h"
 #include "port.h" // for fork_rebuild
 #include "array.h"
-#include "suboolean.h"
 #include "recover.h"
 #include "commalist.h"
 #include <ctype.h>
@@ -33,7 +32,6 @@
 #else
 #include <unistd.h> // for access
 #endif
-#include "cmdlineoptions.h"
 #include "fatal.h"
 #include "checksum.h"
 #include "value.h"
@@ -72,17 +70,13 @@ static Record key(const gcstring& table, const gcstring& columns)
 	return r;
 	}
 
-Idx::Idx(const gcstring& table, const Record& r, const gcstring& c, short* n, Index* i, Database* db)
-	: index(i), nnodes(i->get_nnodes()), rec(r), colnums(n)
+Idx::Idx(const gcstring& table, const Record& r, const gcstring& c, short* n, 
+	Index* i, Database* db)
+	: index(i), nnodes(i->get_nnodes()), rec(r), columns(c), colnums(n),
+		iskey(SuTrue == r.getval(I_KEY)), 
+		fksrc(r.getstr(I_FKTABLE).to_heap(), r.getstr(I_FKCOLUMNS).to_heap(),
+		      (Fkmode)r.getlong(I_FKMODE))
 	{
-	columns = c;
-
-	iskey = (SuTrue == r.getval(I_KEY));
-
-	fksrc.table = rec.getstr(I_FKTABLE).to_heap();
-	fksrc.columns = rec.getstr(I_FKCOLUMNS).to_heap();
-	fksrc.mode = rec.getlong(I_FKMODE);
-
 	// find foreign keys pointing to this index
 	for (Index::iterator iter = db->fkey_index->begin(schema_tran, key(table, columns));
 		! iter.eof(); ++iter)
@@ -91,7 +85,8 @@ Idx::Idx(const gcstring& table, const Record& r, const gcstring& c, short* n, In
 		verify(ri.getstr(I_FKTABLE) == table);
 		verify(ri.getstr(I_FKCOLUMNS) == columns);
 		gcstring table2 = db->get_table(ri.getlong(I_TBLNUM))->name;
-		fkdsts.push(Fkey(table2, ri.getstr(I_COLUMNS).to_heap(), ri.getlong(I_FKMODE)));
+		fkdsts.push(Fkey(table2, ri.getstr(I_COLUMNS).to_heap(), 
+			(Fkmode) ri.getlong(I_FKMODE)));
 		}
 	}
 
@@ -147,7 +142,7 @@ private:
 
 // Database ======================================================
 
-Database::Database(char* file, bool createmode)
+Database::Database(const char* file, bool createmode)
 	: loading(false),
 	tables(new Tables), tables_index(0), columns_index(0), indexes_index(0),
 	fkey_index(0), views_index(0), clock(1),
@@ -225,8 +220,7 @@ void Database::add_column(const gcstring& table, const gcstring& col)
 	int fldnum = isupper(col[0]) ? -1 : tbl->nextfield;
 	if (col != "-") // addition of deleted field used by dump/load
 		{
-		gcstring column(col.str()); // copy
-		*column.str() = tolower(*column.str());
+		gcstring column(col.uncapitalize());
 		for (Lisp<Col> cols = tbl->cols; ! nil(cols); ++cols)
 			if (cols->column == column)
 				except("add column: column already exists: " << column << " in " << table);
@@ -241,7 +235,7 @@ void Database::add_column(const gcstring& table, const gcstring& col)
 	tables->erase(table);
 	}
 
-void Database::add_index(const gcstring& table, const gcstring& columns, bool key,
+void Database::add_index(const gcstring& table, const gcstring& columns, bool iskey,
 	const gcstring& fktable, const gcstring& fkcolumns, Fkmode fkmode, bool unique)
 	{
 	for (auto cols = commas_to_list(columns); ! nil(cols); ++cols)
@@ -255,7 +249,7 @@ void Database::add_index(const gcstring& table, const gcstring& columns, bool ke
 	for (Lisp<Idx> idxs = tbl->idxs; ! nil(idxs); ++idxs)
 		if (idxs->columns == columns)
 			except("add index: index already exists: " << columns << " in " << table);
-	Index* index = new Index(this, tbl->num, columns.str(), key, unique);
+	Index* index = new Index(this, tbl->num, columns.str(), iskey, unique);
 
 	if (! nil(tbl->idxs) && tbl->nrecords)
 		{
@@ -294,8 +288,8 @@ bool Database::recover_index(Record& idxrec)
 	for (Lisp<Idx> idxs = tbl->idxs; ! nil(idxs); ++idxs)
 		if (idxs->columns == columns)
 			return false; // already exists
-	bool key = idxrec.getval(I_KEY) == SuTrue;
-	Index* index = new Index(this, tbl->num, columns.str(), key, false);
+	bool iskey = idxrec.getval(I_KEY) == SuTrue;
+	Index* index = new Index(this, tbl->num, columns.str(), iskey, false);
 
 	if (! nil(tbl->idxs))
 		{
@@ -356,7 +350,7 @@ void Database::add_any_record(int tran, Tbl* tbl, Record& r)
 	verify(! nil(tbl->idxs));
 
 	if (! loading)
-		if (char* cols = fkey_source_block(tran, tbl, r))
+		if (auto cols = fkey_source_block(tran, tbl, r))
 			except("add record: blocked by foreign key: " << cols << " in " << tbl->name);
 
 	if (tbl->num > TN_VIEWS && r.size() > tbl->nextfield)
@@ -393,8 +387,8 @@ void Database::add_index_entries(int tran, Tbl* tbl, const Record& r)
 			// delete from previous indexes
 			for (Lisp<Idx> j = tbl->idxs; j->index != i->index; ++j)
 				{
-				Record key = project(r, j->colnums, off);
-				verify(j->index->erase(key));
+				Record key2 = project(r, j->colnums, off);
+				verify(j->index->erase(key2));
 				}
 			except("duplicate key: " << i->columns << " = " << key << " in " << tbl->name);
 			}
@@ -406,7 +400,7 @@ void Database::add_index_entries(int tran, Tbl* tbl, const Record& r)
 	tbl->update(); // update tables record
 	}
 
-char* Database::fkey_source_block(int tran, Tbl* tbl, const Record& rec)
+const char* Database::fkey_source_block(int tran, Tbl* tbl, const Record& rec)
 	{
 	for (Lisp<Idx> i = tbl->idxs; ! nil(i); ++i)
 		if (i->fksrc.table != "" && fkey_source_block(tran,
@@ -557,12 +551,12 @@ Mmoffset Database::update_record(int tran, Tbl* tbl,
 				i->index->insert(tran, Vslot(oldkey));
 			for (Lisp<Idx> j = tbl->idxs; j != i; ++j)
 				{
-				Record newkey = project(newrec, j->colnums, newoff);
-				verify(j->index->erase(newkey));
+				Record newkey2 = project(newrec, j->colnums, newoff);
+				verify(j->index->erase(newkey2));
 				if (tran == schema_tran)
 					{
-					Record oldkey = project(oldrec, j->colnums, oldoff);
-					verify(j->index->insert(tran, Vslot(oldkey)));
+					Record oldkey2 = project(oldrec, j->colnums, oldoff);
+					verify(j->index->insert(tran, Vslot(oldkey2)));
 					}
 				}
 			undo_delete_act(tran, tbl->num, oldoff);
@@ -730,7 +724,7 @@ void Database::remove_record(int tran, Tbl* tbl, const Record& r)
 	verify(tbl);
 	verify(! nil(r));
 
-	if (char* fktblname = fkey_target_block(tran, tbl, r))
+	if (auto fktblname = fkey_target_block(tran, tbl, r))
 		except("delete record from " << tbl->name << " blocked by foreign key from " << fktblname);
 
 	if (! delete_act(tran, tbl->num, r.off()))
@@ -764,15 +758,16 @@ void Database::remove_index_entries(Tbl* tbl, const Record& r)
 		}
 	}
 
-char* Database::fkey_target_block(int tran, Tbl* tbl, const Record& r)
+const char* Database::fkey_target_block(int tran, Tbl* tbl, const Record& r)
 	{
 	for (Lisp<Idx> i = tbl->idxs; ! nil(i); ++i)
-		if (char* fktblname = fkey_target_block(tran, *i, project(r, i->colnums)))
+		if (auto fktblname = fkey_target_block(tran, *i, project(r, i->colnums)))
 			return fktblname;
 	return 0;
 	}
 
-char* Database::fkey_target_block(int tran, const Idx& idx, const Record& key, const Record newkey)
+const char* Database::fkey_target_block(
+	int tran, const Idx& idx, const Record& key, const Record newkey)
 	{
 	if (key_empty(key))
 		return 0;
@@ -796,12 +791,12 @@ char* Database::fkey_target_block(int tran, const Idx& idx, const Record& key, c
 			}
 		else if (! nil(newkey) && (fk->mode & CASCADE_UPDATES))
 			{
-			Lisp<Idx> idx;
-			for (idx = fktbl->idxs; ! nil(idx); ++idx)
-				if (idx->columns == fk->columns)
+			Lisp<Idx> fi;
+			for (fi = fktbl->idxs; ! nil(fi); ++fi)
+				if (fi->columns == fk->columns)
 					break ;
-			verify(! nil(idx));
-			short* colnums = idx->colnums;
+			verify(! nil(fi));
+			short* colnums = fi->colnums;
 			for (; ! iter.eof(); ++iter)
 				{
 				Record oldrec(iter.data());
@@ -971,7 +966,7 @@ void Database::create()
 	add_index("views", "view_name", true);
 	}
 
-void Database::table_record(TblNum tblnum, char* tblname, int nrows, int nextfield)
+void Database::table_record(TblNum tblnum, const char* tblname, int nrows, int nextfield)
 	{
 	Record r = record(tblnum, tblname, nrows, nextfield, 100);
 	Mmoffset at = output(TN_TABLES, r);
@@ -985,7 +980,7 @@ void Database::table_record(TblNum tblnum, char* tblname, int nrows, int nextfie
 	verify(tables_index->insert(schema_tran, Vslot(key2)));
 	}
 
-void Database::columns_record(TblNum tblnum, char* column, int field)
+void Database::columns_record(TblNum tblnum, const char* column, int field)
 	{
 	Record r;
 	r.addval(tblnum);
@@ -1079,7 +1074,7 @@ Record Database::key(const char* table)
 	}
 
 // columns and indexes keys
-Record Database::key(TblNum tblnum, char* columns)
+Record Database::key(TblNum tblnum, const char* columns)
 	{
 	Record r;
 	r.addval(tblnum);
@@ -1097,7 +1092,7 @@ Record Database::key(TblNum tblnum, const gcstring& columns)
 Index* Database::mkindex(const Record& r)
 	{
 	verify(! nil(r));
-	char* columns = r.getstr(I_COLUMNS).str();
+	auto columns = r.getstr(I_COLUMNS).str();
 	return new Index(this,
 		r.getlong(I_TBLNUM),
 		columns,
@@ -1168,13 +1163,12 @@ Tbl* Database::get_table(const Record& table_rec)
 		return 0; // table not found
 	gcstring table = table_rec.getstr(T_TABLE).to_heap();
 
-	Index::iterator iter;
 	Record tblkey = key(table_rec.getlong(T_TBLNUM));
 
 	// columns
 	Lisp<Col> cols;
 	verify(columns_index);
-	for (iter = columns_index->begin(schema_tran, tblkey); ! iter.eof(); ++iter)
+	for (auto iter = columns_index->begin(schema_tran, tblkey); ! iter.eof(); ++iter)
 		{
 		Record r(iter.data());
 		gcstring column = r.getstr(C_COLUMN).to_heap();
@@ -1190,7 +1184,7 @@ Tbl* Database::get_table(const Record& table_rec)
 	// indexes
 	Lisp<Idx> idxs;
 	verify(indexes_index);
-	for (iter = indexes_index->begin(schema_tran, tblkey); ! iter.eof(); ++iter)
+	for (auto iter = indexes_index->begin(schema_tran, tblkey); ! iter.eof(); ++iter)
 		{
 		Record r(iter.data());
 		gcstring columns = r.getstr(I_COLUMNS).to_heap();
@@ -1263,12 +1257,7 @@ void Database::schema_out(Ostream& os, const gcstring& table)
 		if (*f != "-")
 			os << (n++ ? "," : "") << *f;
 	for (f = get_rules(table); ! nil(f); ++f)
-		{
-		gcstring str(f->str()); // copy
-		char* s = str.str();
-		*s = toupper(*s);
-		os << (n++ ? "," : "") << s;
-		}
+		os << (n++ ? "," : "") << f->capitalize();
 	os << ")";
 
 	// indexes
@@ -1365,8 +1354,8 @@ bool Database::rename_column(const gcstring& table, const gcstring& oldname, con
 
 		*i = newname;
 		gcstring newcolumns = list_to_commas(cols);
-		Record rec = record(tbl->num, newcolumns, idx->index);
-		add_any_record(schema_tran, "indexes", rec);
+		Record rec2 = record(tbl->num, newcolumns, idx->index);
+		add_any_record(schema_tran, "indexes", rec2);
 		remove_any_record(schema_tran, "indexes", "table,columns", key(tbl->num, idx->columns));
 		}
 
@@ -1442,7 +1431,7 @@ class test_database : public Tests
 		int tran = thedb->transaction(READWRITE);
 
 		// add records
-		int i = 0;
+		int i;
 		for (i = 0; i < nrecs; ++i)
 			thedb->add_record(tran, "test_database", records[i]);
 
@@ -1511,7 +1500,7 @@ class test_database : public Tests
 		END
 		}
 
-	void assertreceq(const Record& r1, const Record& r2)
+	void assertreceq(const Record& r1, const Record& r2) const
 		{
 		if (r1.size() != r2.size())
 			except(r1 << endl << "!=" << endl << r2);
@@ -1520,7 +1509,7 @@ class test_database : public Tests
 				except(r1 << endl << "!=" << endl << r2);
 		}
 
-	Record record(char* s1, char* s2, long n)
+	static Record record(const char* s1, const char* s2, long n)
 		{
 		Record r;
 		r.addval(s1);

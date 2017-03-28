@@ -33,13 +33,12 @@ using namespace std;
 class Strategy
 	{
 public:
-	Strategy(Summarize* s) : q(s), source(s->source)
+	explicit Strategy(Summarize* s) : q(s), source(s->source)
 		{ }
+	virtual ~Strategy() = default;
 	virtual Row get(Dir dir, bool rewound) = 0;
 	virtual void select(const Fields& index,
 			const Record& from, const Record& to) = 0;
-	virtual ~Strategy()
-		{ }
 	friend class Summarize;
 protected:
 	Lisp<class Summary*> funcSums();
@@ -48,7 +47,7 @@ protected:
 
 	Summarize* q;
 	Query* source;
-	Dir curdir;
+	Dir curdir = NEXT;
 	Keyrange sel;
 	};
 
@@ -56,9 +55,9 @@ protected:
 class SeqStrategy : public Strategy
 	{
 public:
-	SeqStrategy(Summarize* q);
-	Row get(Dir dir, bool rewound);
-	void select(const Fields& index, const Record& from, const Record& to);
+	explicit SeqStrategy(Summarize* q);
+	Row get(Dir dir, bool rewound) override;
+	void select(const Fields& index, const Record& from, const Record& to) override;
 private:
 	bool equal();
 
@@ -71,9 +70,9 @@ private:
 class MapStrategy : public Strategy
 	{
 public:
-	MapStrategy(Summarize* q);
-	Row get(Dir dir, bool rewound);
-	void select(const Fields& index, const Record& from, const Record& to);
+	explicit MapStrategy(Summarize* q);
+	Row get(Dir dir, bool rewound) override;
+	void select(const Fields& index, const Record& from, const Record& to) override;
 private:
 	void process();
 
@@ -88,7 +87,7 @@ private:
 class IdxStrategy : public Strategy
 {
 public:
-	IdxStrategy(Summarize* q) : Strategy(q)
+	explicit IdxStrategy(Summarize* q) : Strategy(q)
 		{ }
 	Row get(Dir dir, bool rewound) override;
 	void select(const Fields& index, const Record& from, const Record& to) override;
@@ -137,7 +136,7 @@ void Summarize::out(Ostream& os) const
 double Summarize::nrecords()
 	{
 	double nr = source->nrecords();
-	return nr == 0 ? 0
+	return nr < 1 ? nr
 		: nil(by) ? 1
 		: by_contains_key() ? nr
 		: nr / 2;					//TODO review this estimate
@@ -278,37 +277,32 @@ class Summary
 	{
 public:
 	Summary()
-		{ init(); }
+		{ }
+	virtual ~Summary() = default;
 	virtual void init()
 		{ }
 	virtual void add(Value x)
-		{
-		add(Eof, x);
-		}
+		{ add(Eof, x); }
 	virtual void add(Row row, Value x)
-		{
-		add(x);
-		}
+		{ add(x); }
 	virtual Value result() = 0;
 	virtual Row getRow()
-		{
-		return Eof;
-		}
+		{ return Eof; }
 	};
 
 class Total : public Summary
 	{
 public:
-	void init()
+	void init() override
 		{ total = 0; }
-	void add(Value x)
+	void add(Value x) override
 		{
 		try
 			{ total = total + x; }
 		catch (...)
 			{ }
 		}
-	Value result()
+	Value result() override
 		{ return total; }
 private:
 	Value total;
@@ -317,38 +311,38 @@ private:
 class Average : public Summary
 	{
 public:
-	void init()
+	void init() override
 		{ count = 0; total = 0; }
-	void add(Value x)
+	void add(Value x) override
 		{
 		try
 			{ total = total + x; ++count; }
 		catch (...)
 			{ }
 		}
-	Value result()
+	Value result() override
 		{ return count ? Value(total / count) : Value(SuString::empty_string); }
 private:
-	int count;
+	int count = 0;
 	Value total;
 	};
 
 class Count : public Summary
 	{
 public:
-	void init()
+	void init() override
 		{ count = 0; }
-	void add(Value)
+	void add(Value) override
 		{ ++count; }
-	Value result()
+	Value result() override
 		{ return count; }
 private:
-	int count;
+	int count = 0;
 	};
 
 class MinMax : public Summary
 	{
-	void init()
+	void init() override
 		{ val = Value(); }
 	Value result() override
 		{ return val; }
@@ -388,17 +382,17 @@ public:
 class List : public Summary
 	{
 public:
-	void init()
+	void init() override
 		{ list = new SuObject; }
-	void add(Value x)
+	void add(Value x) override
 		{
 		if (list->find(x) == SuFalse)
 			list->add(x);
 		}
-	Value result()
+	Value result() override
 		{ return list; }
 private:
-	SuObject* list;
+	SuObject* list = nullptr;
 	};
 
 Summary* summary(const gcstring& type)
@@ -416,7 +410,6 @@ Summary* summary(const gcstring& type)
 	else if (type == "list")
 		return new List;
 	error("unknown summary type");
-	return 0;
 	}
 
 //===================================================================
@@ -619,16 +612,16 @@ void MapStrategy::process()
 	while (Eof != (row = source->get(NEXT)))
 		{
 		Record byRec = row_to_key(q->hdr, row, q->by);
-		Map::iterator iter = results.find(byRec);
+		Map::iterator itr = results.find(byRec);
 		Lisp<Summary*> sums;
-		if (iter == results.end())
+		if (itr == results.end())
 			{
 			sums = funcSums();
 			initSums(sums);
 			results[byRec] = sums;
 			}
 		else
-			sums = iter->second;
+			sums = itr->second;
 
 		Lisp<Summary*> s = sums;
 		for (Fields o = q->on; ! nil(o); ++o, ++s)
@@ -643,11 +636,11 @@ void MapStrategy::select(const Fields& index, const Record& from, const Record& 
 
 //===================================================================
 
-Row IdxStrategy::get(Dir dir, bool rewound)
+Row IdxStrategy::get(Dir, bool rewound)
 	{
 	if (!rewound)
 		return Eof;
-	dir = q->funcs[0] == "min" ? NEXT : PREV;
+	Dir dir = q->funcs[0] == "min" ? NEXT : PREV;
 	Row row = source->get(dir);
 	if (row == Eof)
 		return Eof;

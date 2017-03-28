@@ -25,9 +25,6 @@
 #include "interp.h"
 #include "sustring.h"
 #include "prim.h"
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-//#include <locale>
-#endif
 
 void scanner_locale_changed();
 
@@ -35,14 +32,11 @@ Value su_setlocale()
 	{
 	const int nargs = 2;
 	int category = ARG(0).integer();
-	char* locale = ARG(1).str();
+	auto locale = ARG(1).str();
 	if (0 == strcmp(locale, "0"))
-		locale = NULL;
+		locale = nullptr;
 
 	char* s = setlocale(category, locale);
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-//	std::locale::global(std::locale(locale));
-#endif
 
 	scanner_locale_changed();
 

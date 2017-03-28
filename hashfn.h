@@ -1,6 +1,4 @@
-#ifndef HASHFN_H
-#define HASHFN_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -24,18 +22,18 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "std.h"
-#include <stddef.h>
+#include <stddef.h> // for size_t
 
 // function object template for hash functions
 template <class Key> struct HashFn
 	{
-	size_t operator()(Key key)
+	size_t operator()(Key key) const
 		{ return key; }
 	};
 
 template <> struct HashFn<int64>
 	{
-	size_t operator()(int64 key)
+	size_t operator()(int64 key) const
 		{ return static_cast<size_t>(key ^ (key >> 32)); }
 	};
 
@@ -44,17 +42,15 @@ size_t hashfn(const char* s);
 
 template <> struct HashFn<char*>
 	{
-	size_t operator()(char* key)
+	size_t operator()(char* key) const
 		{ return hashfn(key); }
 	};
 
 template <> struct HashFn<const char*>
 	{
-	size_t operator()(const char* key)
+	size_t operator()(const char* key) const
 		{ return hashfn(key); }
 	};
 
 // hash char* given length
 size_t hashfn(const char* s, int n);
-
-#endif

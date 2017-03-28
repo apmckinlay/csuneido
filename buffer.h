@@ -1,6 +1,4 @@
-#ifndef BUFFER_H
-#define BUFFER_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -105,5 +103,3 @@ private:
 	int used;     ///< Where to add more at, and the limit for reading
 	int pos;      ///< The position for reading
 	};
-
-#endif

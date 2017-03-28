@@ -1,6 +1,4 @@
-#ifndef QPRODUCT_H
-#define QPRODUCT_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -29,27 +27,26 @@ class Product : public Query2
 	{
 public:
 	Product(Query* s1, Query* s2);
-	void out(Ostream& os) const;
-	Fields columns()
+	void out(Ostream& os) const override;
+	Fields columns() override
 		{ return set_union(source->columns(), source2->columns()); }
-	Indexes indexes()
+	Indexes indexes() override
 		{ return set_union(source->indexes(), source2->indexes()); }
-	Indexes keys();
-	double optimize2(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze);
+	Indexes keys() override;
+	double optimize2(const Fields& index, const Fields& needs, 
+		const Fields& firstneeds, bool is_cursor, bool freeze) override;
 	// estimated result sizes
-	double nrecords()
+	double nrecords() override
 		{ return source->nrecords() * source2->nrecords(); }
-	int recordsize()
+	int recordsize() override
 		{ return source->recordsize() + source2->recordsize(); }
 
 	// iteration
-	Header header();
-	Row get(Dir dir);
-	void select(const Fields& index, const Record& from, const Record& to);
-	void rewind();
+	Header header() override;
+	Row get(Dir dir) override;
+	void select(const Fields& index, const Record& from, const Record& to) override;
+	void rewind() override;
 private:
 	bool first;
 	Row row1;
 	};
-
-#endif

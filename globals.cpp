@@ -101,7 +101,7 @@ Value Globals::find(ushort j)
 	return get(j); // handles MISSING
 	}
 
-ushort Globals::copy(char* s)	// called by Compiler::suclass for class : _Base
+ushort Globals::copy(const char* s)	// called by Compiler::suclass for class : _Base
 	{
 	Value x(get(s + 1));
 	if (! x)

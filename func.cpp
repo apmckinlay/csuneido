@@ -32,13 +32,13 @@
 #include "fatal.h"
 #include "catstr.h"
 
-Value Func::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value Func::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == PARAMS)
 		return params();
 	else
 		method_not_found("function", member);
-	return Value();
 	}
 
 Value Func::params()
@@ -251,7 +251,7 @@ Primitive::Primitive(PrimFn f, ...)
 #include "globals.h"
 #include "scanner.h"
 
-Primitive::Primitive(char* decl, PrimFn f)
+Primitive::Primitive(const char* decl, PrimFn f)
 	{
 	pfn = f;
 	ndefaults = 0;
@@ -306,7 +306,8 @@ Primitive::Primitive(char* decl, PrimFn f)
 	memcpy(locals, params, nparams * sizeof (ushort));
 	}
 
-Value Primitive::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value Primitive::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member != CALL)
 		return Func::call(self, member, nargs, nargnames, argnames, each);

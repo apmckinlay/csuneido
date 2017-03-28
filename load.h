@@ -1,6 +1,4 @@
-#ifndef LOAD_H
-#define LOAD_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -25,10 +23,6 @@
 
 class gcstring;
 
-extern bool loading;
-
 void load(const gcstring& table);
 
 int load_table(const gcstring& table);
-
-#endif

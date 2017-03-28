@@ -1,3 +1,4 @@
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -22,4 +23,4 @@
 
 #include "win.h"
 
-void message_loop(HWND hdlg = 0);
+void message_loop(HWND hdlg = nullptr);

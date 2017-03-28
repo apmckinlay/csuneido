@@ -49,7 +49,7 @@ public:
 	Row get(Dir dir) override;
     void rewind() override;
 	void close() override;
-	char* explain() override;
+	const char* explain() override;
 	bool output(const Record& rec) override;
 private:
 	Query* q;
@@ -105,7 +105,7 @@ void DbmsQueryLocal::close()
 	q->close(q);
 	}
 
-char* DbmsQueryLocal::explain()
+const char* DbmsQueryLocal::explain()
 	{
 	OstreamStr os;
 	os << q;
@@ -123,45 +123,45 @@ class DbmsLocal : public Dbms
 	{
 public:
 	void abort(int tn) override;
-	void admin(char* s) override;
+	void admin(const char* s) override;
 	bool auth(const gcstring& data) override;
 	Value check() override;
-	bool commit(int tn, char** conflict) override;
+	bool commit(int tn, const char** conflict) override;
 	Value connections() override;
-	DbmsQuery* cursor(char* query) override;
+	DbmsQuery* cursor(const char* query) override;
 	int cursors() override;
-	Value dump(char* filename) override;
+	Value dump(const char* filename) override;
 	void erase(int tn, Mmoffset recadr) override;
 	Value exec(Value ob) override;
 	int final() override;
-	Row get(Dir dir, char* query, bool one, Header& hdr, int tn = -1) override;
-	int kill(char* sessionid) override;
-	Lisp<gcstring> libget(char* name) override;
+	Row get(Dir dir, const char* query, bool one, Header& hdr, int tn = -1) override;
+	int kill(const char* sessionid) override;
+	Lisp<gcstring> libget(const char* name) override;
 	Lisp<gcstring> libraries() override;
-	int load(char* filename) override;
-	void log(char* s) override;
+	int load(const char* filename) override;
+	void log(const char* s) override;
 	gcstring nonce() override;
-	DbmsQuery* query(int tn, char* query) override;
+	DbmsQuery* query(int tn, const char* query) override;
 	int readCount(int tn) override;
-	int request(int tn, char* s) override;
-	Value run(char* s) override;
-	Value sessionid(char* s) override;
+	int request(int tn, const char* s) override;
+	Value run(const char* s) override;
+	Value sessionid(const char* s) override;
 	int64 size() override;
 	int tempdest() override;
 	Value timestamp() override;
 	gcstring token() override;
 	Lisp<int> tranlist() override;
-	int transaction(TranType type, char* session_id = "") override;
+	int transaction(TranType type, const char* session_id = "") override;
 	Mmoffset update(int tn, Mmoffset recadr, Record& rec) override;
 	int writeCount(int tn) override;
 	};
 
-int DbmsLocal::transaction(TranType type, char* session_id)
+int DbmsLocal::transaction(TranType type, const char* session_id)
 	{
 	return theDB()->transaction((::TranType) type, session_id);
 	}
 
-bool DbmsLocal::commit(int tran, char** conflict)
+bool DbmsLocal::commit(int tran, const char** conflict)
 	{
 	return theDB()->commit(tran, conflict);
 	}
@@ -171,30 +171,30 @@ void DbmsLocal::abort(int tran)
 	theDB()->abort(tran);
 	}
 
-void DbmsLocal::admin(char* s)
+void DbmsLocal::admin(const char* s)
 	{
 	database_admin(s);
 	}
 
-int DbmsLocal::request(int tran, char* s)
+int DbmsLocal::request(int tran, const char* s)
 	{
 	return database_request(tran, s);
 	}
 
-DbmsQuery* DbmsLocal::cursor(char* s)
+DbmsQuery* DbmsLocal::cursor(const char* s)
 	{
 	Query* q = ::query(s, IS_CURSOR);
 	return new DbmsQueryLocal(q);
 	}
 
-DbmsQuery* DbmsLocal::query(int tran, char* s)
+DbmsQuery* DbmsLocal::query(int tran, const char* s)
 	{
 	Query* q = ::query(s);
 	q->set_transaction(tran);
 	return new DbmsQueryLocal(q);
 	}
 
-Lisp<gcstring> DbmsLocal::libget(char* name)
+Lisp<gcstring> DbmsLocal::libget(const char* name)
 	{
 	return libgetall(name);
 	}
@@ -240,7 +240,7 @@ struct AutoQuery
 	DbmsQuery* q;
 	};
 
-Row DbmsLocal::get(Dir dir, char* querystr, bool one, Header& hdr, int t)
+Row DbmsLocal::get(Dir dir, const char* querystr, bool one, Header& hdr, int t)
 	{
 	AutoTran tran(t);
 	AutoQuery q(query(tran, querystr));
@@ -253,7 +253,7 @@ Row DbmsLocal::get(Dir dir, char* querystr, bool one, Header& hdr, int t)
 
 #include "dump.h"
 
-Value DbmsLocal::dump(char* filename)
+Value DbmsLocal::dump(const char* filename)
 	{
 	::dump(filename);
 	return SuEmptyString;
@@ -261,14 +261,14 @@ Value DbmsLocal::dump(char* filename)
 
 #include "load.h"
 
-int DbmsLocal::load(char* filename)
+int DbmsLocal::load(const char* filename)
 	{
 	return ::load_table(filename);
 	}
 
 extern Value run(const char*);
 
-Value DbmsLocal::run(char* s)
+Value DbmsLocal::run(const char* s)
 	{
 	return ::run(s);
 	}
@@ -337,9 +337,9 @@ int DbmsLocal::cursors()
 
 extern bool is_server;
 
-Value DbmsLocal::sessionid(char* s)
+Value DbmsLocal::sessionid(const char* s)
 	{
-	static char* session_id = "127.0.0.1"; // cache
+	static const char* session_id = "127.0.0.1"; // cache
 	if (*s)
 		session_id = dupstr(s);
 	return new SuString(is_server ? tls().fiber_id : session_id);
@@ -352,14 +352,14 @@ int DbmsLocal::final()
 
 #include "errlog.h"
 
-void DbmsLocal::log(char* s)
+void DbmsLocal::log(const char* s)
 	{
 	errlog(s);
 	}
 
-extern int kill_connections(char* s); // in dbserver.cpp
+extern int kill_connections(const char* s); // in dbserver.cpp
 
-int DbmsLocal::kill(char* s)
+int DbmsLocal::kill(const char* s)
 	{
 	return is_server ? kill_connections(s) : 0;
 	}

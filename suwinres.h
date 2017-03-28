@@ -1,6 +1,4 @@
-#ifndef SUWINRES_H
-#define SUWINRES_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -29,11 +27,11 @@
 class SuWinRes : public SuFinalize
 	{
 public:
-	SuWinRes(void* handle);
-	virtual Value call(Value self, Value member,
-		short nargs, short nargnames, ushort* argnames, int each);
-	virtual void finalize();
-	void* handle()
+	explicit SuWinRes(void* handle);
+	Value call(Value self, Value member,
+		short nargs, short nargnames, ushort* argnames, int each) override;
+	void finalize() override;
+	void* handle() const
 		{ return h; }
 protected:
 	virtual bool close() = 0;
@@ -44,19 +42,17 @@ protected:
 class SuHandle : public SuWinRes
 	{
 public:
-	SuHandle(void* handle);
-	virtual void out(Ostream& os);
-	virtual bool close();
+	explicit SuHandle(void* handle);
+	void out(Ostream& os) override;
+	bool close() override;
 	};
 
 // a value type to hold Windows GDIOBJ's
 class SuGdiObj : public SuWinRes
 	{
 public:
-	SuGdiObj(void* handle);
-	virtual void out(Ostream& os);
-	virtual int integer() const;
-	virtual bool close();
+	explicit SuGdiObj(void* handle);
+	void out(Ostream& os) override;
+	int integer() const override;
+	bool close() override;
 	};
-
-#endif

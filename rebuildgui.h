@@ -1,6 +1,4 @@
-#ifndef REBUILDGUI_H
-#define REBUILDGUI_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -25,5 +23,3 @@
 
 bool db_check_gui();
 bool db_rebuild_gui();
-
-#endif

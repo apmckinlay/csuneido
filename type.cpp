@@ -26,7 +26,9 @@
 #include "suobject.h"
 #include "except.h"
 #include "globals.h"
-#include "minmax.h"
+#include "suwinres.h"
+#include <algorithm>
+using std::min;
 
 #define check2(n)	if ((dst2) + (n) > lim2) except("conversion overflow")
 
@@ -48,9 +50,9 @@ void TypeBool::put(char*& dst, char*& dst2, const char* lim2, Value x)
 	dst += sizeof (int);
 	}
 
-Value TypeBool::get(char*& src, Value x)
+Value TypeBool::get(char*& src, Value)
 	{
-	x = *((int*) src) ? SuTrue : SuFalse;
+	Value x = *((int*) src) ? SuTrue : SuFalse;
 	src += sizeof (int);
 	return x;
 	}
@@ -181,14 +183,15 @@ void TypeWinRes<SuGdiObj>::out(Ostream& os)
 class TypePointer : public Type
 	{
 public:
-	int size()
+	int size() override
 		{ return sizeof (void*); }
-	void put(char*& dst, char*& dst2, const char* lim2, Value x);
-	Value get(char*& src, Value x);
-	void getbyref(char*& src, Value x);
-	void out(Ostream& os)
+	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
+	Value get(char*& src, Value x) override;
+	void getbyref(char*& src, Value x) override;
+	void out(Ostream& os) override
 		{ os << type << '*'; }
-	Value result(long, long n);
+	Value result(long, long n) override;
+
 	Type* type;
 	};
 
@@ -240,23 +243,23 @@ void TypeBuffer::put(char*& dst, char*& dst2, const char* lim2, Value x)
 	if (! x || x == SuZero)
 		{
 		// missing members
-		*((char**) dst) = 0;
+		*((const char**) dst) = nullptr;
 		}
-	else if (in && (str = val_cast<SuString*>(x)))
+	else if (in && nullptr != (str = val_cast<SuString*>(x)))
 		{
 		// pass pointer to actual string
-		*((char**) dst) = str->str();
+		*((const char**) dst) = str->str();
 		}
 	else if (SuBuffer* buf = val_cast<SuBuffer*>(x))
 		{
 		// pass pointer to actual buffer
-		*((char**) dst) = buf->buf();
+		*((const char**) dst) = buf->buf();
 		}
 	else
 		{
 		// copy string to dst2
 		gcstring s = x.gcstr();
-		*((char**) dst) = dst2;
+		*((const char**) dst) = dst2;
 		int n = s.size();
 		check2(n + 1);
 		memcpy(dst2, s.buf(), n);
@@ -367,14 +370,15 @@ class TypeArray : public Type
 public:
 	explicit TypeArray(int size) : n(size)
 		{ }
-	int size();
-	void put(char*& dst, char*& dst2, const char* lim2, Value x);
-	Value get(char*& src, Value x);
-	void getbyref(char*& src, Value x)
+	int size() override;
+	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
+	Value get(char*& src, Value x) override;
+	void getbyref(char*& src, Value x) override
 		{ get(src, x); }
-	void out(Ostream& os)
+	void out(Ostream& os) override
 		{ os << type << '[' << n << ']'; }
-	Type* type;
+
+	Type* type = nullptr;
 	int n;
 	};
 

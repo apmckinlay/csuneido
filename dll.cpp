@@ -28,17 +28,41 @@
 #include "symbols.h"
 #include "ostreamfile.h"
 #include "win.h"
-#include "winlib.h"
 #include "trace.h"
+#include <string.h> // for _stricmp
+
+#ifdef __GNUC__
+#define _stricmp stricmp
+#endif
+
+struct WinLib
+	{
+	WinLib()
+		{ }
+	explicit WinLib(char* s) : name(dupstr(s)), lib(LoadLibrary(name))
+		{ }
+	~WinLib()
+		{
+		if (lib)
+			FreeLibrary(lib);
+		}
+	void* GetProcAddress(char* procname) const
+		{ return (void*) ::GetProcAddress(lib, procname); }
+	explicit operator bool() const
+		{ return lib; }
+
+	char* name = nullptr;
+	HMODULE lib = nullptr;
+	};
 
 static WinLib& loadlib(char* name)
 	{
 	const int NLIBS = 30;
-	static WinLib libs[NLIBS];
+	static WinLib libs[NLIBS]; // TODO change to vector (or hash map)
 	static int nlibs = 0;
 	int i = 0;
 	for (; i < nlibs; ++i)
-		if (0 == stricmp(libs[i].name, name))
+		if (0 == _stricmp(libs[i].name, name))
 			return libs[i];
 	if (nlibs >= NLIBS)
 		except("can't load " << name << " - too many dll's loaded");
@@ -96,7 +120,8 @@ static OstreamFile& log()
 
 const int maxbuf = 1024;
 
-Value Dll::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value Dll::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Trace("Trace");
 	if (member == Trace)
@@ -150,10 +175,11 @@ Value Dll::call(Value self, Value member, short nargs, short nargnames, ushort* 
 			push dword ptr [ebx]
 			loop NEXT
 			}
-	ulong fn = (ulong) pfn;
+	// ReSharper disable once CppEntityNeverUsed
+	ulong f = (ulong) pfn;
 	__asm
 		{
-		mov eax,fn
+		mov eax,f
 		call eax
 		mov result,eax
 		mov result2,edx

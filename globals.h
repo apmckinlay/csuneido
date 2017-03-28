@@ -1,6 +1,4 @@
-#ifndef GLOBALS_H
-#define GLOBALS_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -31,7 +29,7 @@ typedef unsigned short ushort;
 struct Globals
 	{
 	ushort operator()(const char* s);
-	ushort copy(char* s);	// for class : _Base
+	ushort copy(const char* s);	// for class : _Base
 	char* operator()(ushort j);
 	Value operator[](const char* s);
 	Value operator[](ushort j);
@@ -49,5 +47,3 @@ struct Globals
 	};
 
 extern Globals globals;
-
-#endif

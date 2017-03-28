@@ -1,6 +1,4 @@
-#ifndef SLOTS_H
-#define SLOTS_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -85,7 +83,7 @@ public:
 			verify(t);
 			return Vslot((char*) t + t[i]);
 			}
-		const Vslot operator*() const
+		Vslot operator*() const
 			{
 			verify(t);
 			return Vslot((char*) t + t[i]);
@@ -111,8 +109,8 @@ public:
 	private:
 		iterator(short* _t, short _i) : t(_t), i(_i)
 			{ }
-		short* t;
-		short i;
+		short* t = nullptr;
+		short i = 0;
 		};
 	bool empty() const
 		{ return sz == 0; }
@@ -211,7 +209,7 @@ class VFslot
 public:
 	typedef Record Key;
 	Key key;
-	Mmoffset adr; // points to btree node
+	Mmoffset adr = 0; // points to btree node
 	VFslot()
 		{ }
 	explicit VFslot(const Record& k, Mmoffset a = 0) : key(k), adr(a)
@@ -282,8 +280,8 @@ public:
 	private:
 		iterator(slot* _t, short _i) : t(_t), i(_i)
 			{ }
-		slot* t;
-		short i;
+		slot* t = nullptr;
+		short i = 0;
 		};
 	bool empty() const
 		{ return sz == 0; }
@@ -434,7 +432,7 @@ struct VVslot
 	{
 	typedef Record Key;
 	Key key;
-	Vdata* data;
+	Vdata* data = nullptr;
 	VVslot()
 		{ }
 	explicit VVslot(const Record& k, Vdata* d = 0) : key(k), data(d)
@@ -497,8 +495,8 @@ public:
 	private:
 		iterator(short* _t, short _i) : t(_t), i(_i)
 			{ }
-		short* t;
-		short i;
+		short* t = nullptr;
+		short i = 0;
 		};
 	bool empty() const
 		{ return sz == 0; }
@@ -597,5 +595,3 @@ private:
 	void ck(int n)
 		{ verify((char*) (t + sz) < (char*) t + prev - n); }
 	};
-
-#endif

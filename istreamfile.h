@@ -1,6 +1,4 @@
-#ifndef ISTREAMFILE_H
-#define ISTREAMFILE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -31,17 +29,15 @@ class IstreamFileImp;
 class IstreamFile : public Istream
 	{
 public:
-	IstreamFile(char* filename, char* mode = "r");
+	explicit IstreamFile(const char* filename, const char* mode = "r");
 	~IstreamFile();
-	explicit operator bool() const;
-	int tellg();
-	Istream& seekg(int pos);
-	int size();
+	int tellg() override;
+	Istream& seekg(int pos) override;
+	int size() const;
+	void close() const;
 protected:
-	int get_();
-	int read_(char* buf, int n);
+	int get_() override;
+	int read_(char* buf, int n) override;
 private:
 	IstreamFileImp *imp;
 	};
-
-#endif

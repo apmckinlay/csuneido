@@ -1,6 +1,4 @@
-#ifndef QPROJECT_H
-#define QPROJECT_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -30,27 +28,28 @@ class Project : public Query1
 	{
 public:
 	Project(Query* source, const Fields& f, bool allbut = false);
-	void out(Ostream& os) const;
-	Query* transform();
-	Fields columns()
+	void out(Ostream& os) const override;
+	Query* transform() override;
+	Fields columns() override
 		{ return flds; }
-	Indexes keys();
-	Indexes indexes();
-	double optimize2(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze);
-	Lisp<Fixed> fixed() const;
+	Indexes keys() override;
+	Indexes indexes() override;
+	double optimize2(const Fields& index, const Fields& needs, 
+		const Fields& firstneeds, bool is_cursor, bool freeze) override;
+	Lisp<Fixed> fixed() const override;
 	// estimated result sizes
-	double nrecords()
+	double nrecords() override
 		{ return source->nrecords() / (strategy == COPY ? 1 : 2); }
 	// iteration
-	Header header();
-	void select(const Fields& index, const Record& from, const Record& to);
-	void rewind();
-	Row get(Dir dir);
+	Header header() override;
+	void select(const Fields& index, const Record& from, const Record& to) override;
+	void rewind() override;
+	Row get(Dir dir) override;
 
-	bool updateable() const
+	bool updateable() const override
 		{ return Query1::updateable() && strategy == COPY; }
-	bool output(const Record& r);
-	void close(Query* q);
+	bool output(const Record& r) override;
+	void close(Query* q) override;
 private:
 	Fields flds;
 	enum { NONE, COPY, SEQUENTIAL, LOOKUP } strategy;
@@ -69,9 +68,7 @@ private:
 	Fields via;
 
 	void includeDeps(const Fields& columns);
-	void ckmodify(char* action);
+	void ckmodify(const char* action);
 	static Fields withoutFixed(Fields fields, const Lisp<Fixed> fixed);
 	static bool hasFixed(Fields fields, const Lisp<Fixed> fixed);
 	};
-
-#endif

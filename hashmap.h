@@ -1,6 +1,4 @@
-#ifndef HASHMAP_H
-#define HASHMAP_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -22,10 +20,6 @@
  * Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-#ifdef _MSC_VER
-#pragma warning(disable : 4786)
-#endif
 
 #include "hashtbl.h"
 
@@ -134,5 +128,3 @@ Ostream& operator<<(Ostream& os, const HashMap<K,T,H,E>& map)
 	os << "}";
 	return os;
 	}
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef DLL_H
-#define DLL_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -31,9 +29,10 @@ class Dll : public BuiltinFunc
 	{
 public:
 	Dll(short rtype, char* library, char* name, TypeItem* p, ushort* ns, short n);
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
-	void out(Ostream&);
-	virtual const char* type() const
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
+	void out(Ostream&) override;
+	const char* type() const override
 		{ return "Dll"; }
 private:
 	short dll;
@@ -43,5 +42,3 @@ private:
 	void* pfn;
 	bool trace;
 	};
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef ISTREAMSTR_H
-#define ISTREAMSTR_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -31,16 +29,13 @@ class IstreamStrImp;
 class IstreamStr : public Istream
 	{
 public:
-	IstreamStr(char* s);
-	IstreamStr(char* buf, int n);
-	explicit operator bool() const;
-	int tellg();
-	Istream& seekg(int pos);
+	explicit IstreamStr(const char* s);
+	IstreamStr(const char* buf, int n);
+	int tellg() override;
+	Istream& seekg(int pos) override;
 protected:
-	int get_();
-	int read_(char* buf, int n);
+	int get_() override;
+	int read_(char* buf, int n) override;
 private:
 	IstreamStrImp* imp;
 	};
-
-#endif

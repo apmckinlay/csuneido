@@ -26,7 +26,7 @@
 class IstreamStrImp
 	{
 public:
-	IstreamStrImp(char* b, int n) : buf(b), end(b + n), p(b)
+	IstreamStrImp(const char* b, int n) : buf(b), end(b + n), p(b)
 		{ }
 	int get()
 		{ return p < end ? *p++ : -1; }
@@ -37,24 +37,21 @@ public:
 	int read(char* dst, int n)
 		{ if (n > end - p) n = end - p; memcpy(dst, p, n); p += n; return n; }
 private:
-	char* buf;
-	char* end;
-	char* p;
+	const char* buf;
+	const char* end;
+	const char* p;
 	};
 
-IstreamStr::IstreamStr(char* s)
+IstreamStr::IstreamStr(const char* s)
 	: imp(new IstreamStrImp(s, strlen(s)))
 	{ }
 
-IstreamStr::IstreamStr(char* buf, int n)
+IstreamStr::IstreamStr(const char* buf, int n)
 	: imp(new IstreamStrImp(buf, n))
 	{ }
 
 int IstreamStr::get_()
 	{ return imp->get(); }
-
-IstreamStr::operator bool() const
-	{ return true; }
 
 int IstreamStr::tellg()
 	{ return imp->tellg(); }
@@ -75,14 +72,16 @@ class test_istreamstr : public Tests
 		IstreamStr iss("hello\nworld\n");
 		const int bufsize = 20;
 		char buf[bufsize];
-		verify(iss.getline(buf, bufsize));
+		iss.getline(buf, bufsize);
+		verify(iss);
 		verify(0 == strcmp("hello", buf));
 		verify('w' == iss.peek());
 		verify('w' == iss.get());
 		iss.putback('W');
-		verify(iss.getline(buf, bufsize));
+		iss.getline(buf, bufsize);
+		verify(iss);
 		verify(0 == strcmp("World", buf));
-		verify(! iss.getline(buf, bufsize));
+		iss.getline(buf, bufsize);
 		verify(iss.eof());
 		}
 	};

@@ -1,6 +1,4 @@
-#ifndef PACK_H
-#define PACK_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -23,7 +21,8 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <stddef.h>
+// ReSharper disable once CppUnusedIncludeDirective
+#include <stddef.h> // for size_t
 
 class Value;
 class gcstring;
@@ -59,5 +58,3 @@ enum
 	PACK_FUNCTION,
 	PACK_CLASS
 	};
-
-#endif

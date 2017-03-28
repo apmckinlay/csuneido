@@ -20,7 +20,6 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "std.h"
 #include <ctype.h>
 
 int numlen(const char* s)

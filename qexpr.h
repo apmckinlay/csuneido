@@ -1,6 +1,4 @@
-#ifndef QEXPR_H
-#define QEXPR_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -25,7 +23,6 @@
 
 #include "lisp.h"
 #include "gcstring.h"
-#include "suboolean.h"
 #include "value.h"
 
 class Row;
@@ -36,6 +33,7 @@ typedef Lisp<gcstring> Fields;
 class Expr
 	{
 public:
+	virtual ~Expr() = default;
 	virtual Fields fields() = 0;
 	virtual void out(Ostream& os) const = 0;
 	// used for optimizing select expressions
@@ -57,5 +55,3 @@ inline Ostream& operator<<(Ostream& os, const Expr& x)
 	{ x.out(os); return os; }
 inline Ostream& operator<<(Ostream& os, Expr* x)
 	{ return os << *x; }
-
-#endif

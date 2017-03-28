@@ -1,6 +1,4 @@
-#ifndef STD_H
-#define STD_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -26,15 +24,12 @@
 #include <utility>
 using namespace std::rel_ops;
 
-#ifdef _MSC_VER
-#pragma warning(4 : 4786)
-#endif
-
 template <class T1, class T2> inline void construct(T1* p, const T2& value)
 	{ (void) new (p) T1(value); }
 template <class T> inline void destroy(T* p)
 	{ p->~T(); }
 
+//TODO remove these and use (u)int_(8|16|32|64)_t
 typedef signed char schar;
 typedef unsigned char uchar;
 typedef unsigned short ushort;
@@ -53,4 +48,8 @@ template<class T> struct Closer
 
 char* dupstr(const char* s);
 
+#ifdef __GNUC__
+#define FALLTHROUGH
+#else
+#define FALLTHROUGH [[fallthrough]];
 #endif

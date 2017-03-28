@@ -1,6 +1,4 @@
-#ifndef ISTREAM_H
-#define ISTREAM_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -27,13 +25,11 @@
 class Istream
 	{
 public:
-	Istream();
-	virtual ~Istream()
-		{ }
+	virtual ~Istream() = default;
 	enum { EOFVAL = -1 };
 	int get();
 	Istream& getline(char* buf, int n);
-	bool eof()
+	bool eof() const
 		{ return eofbit; }
 	explicit operator bool() const
 		{ return !failbit; }
@@ -44,7 +40,7 @@ public:
 	void clear()
 		{ eofbit = failbit = false; }
 	Istream& read(char* buf, int n);
-	int gcount()
+	int gcount() const
 		{ return gcnt; }
 	virtual int tellg() = 0;
 	virtual Istream& seekg(int pos) = 0;
@@ -52,10 +48,8 @@ protected:
 	virtual int get_() = 0;
 	virtual int read_(char* buf, int n) = 0;
 private:
-	bool eofbit;
-	bool failbit;
-	int next;
-	int gcnt;
+	bool eofbit = false;
+	bool failbit = false;
+	int next = -1;
+	int gcnt = 0;
 	};
-
-#endif

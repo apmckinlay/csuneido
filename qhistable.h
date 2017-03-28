@@ -1,6 +1,4 @@
-#ifndef QHISTABLE_H
-#define QHISTABLE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -30,23 +28,23 @@ class HistoryTable : public Query
 	{
 public:
 	explicit HistoryTable(const gcstring& table);
-	void out(Ostream& os) const;
-	Fields columns();
-	Indexes indexes();
-	Indexes keys();
-	double optimize2(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze);
+	void out(Ostream& os) const override;
+	Fields columns() override;
+	Indexes indexes() override;
+	Indexes keys() override;
+	double optimize2(const Fields& index, const Fields& needs, 
+		const Fields& firstneeds, bool is_cursor, bool freeze) override;
 	// estimated sizes
-	double nrecords();
-	int recordsize();
-	int columnsize();
-	int keysize(const Fields& index);
+	double nrecords() override;
+	int recordsize() override;
+	int columnsize() override;
 	// iteration
-	Header header();
-	void select(const Fields& index, const Record& from, const Record& to);
-	void rewind();
-	Row get(Dir dir);
-	void set_transaction(int t);
-	void close(Query* q)
+	Header header() override;
+	void select(const Fields& index, const Record& from, const Record& to) override;
+	void rewind() override;
+	Row get(Dir dir) override;
+	void set_transaction(int t) override;
+	void close(Query* q) override
 		{ }
 private:
 	Mmoffset next();
@@ -55,9 +53,7 @@ private:
 	gcstring table;
 	int tblnum;
 	Mmfile::iterator iter;
-	bool rewound;
-	int id;
-	int ic;
+	bool rewound = true;
+	int id = 0;
+	int ic = 0;
 	};
-
-#endif

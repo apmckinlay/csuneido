@@ -1,6 +1,4 @@
-#ifndef CHECKSUM_H
-#define CHECKSUM_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -26,5 +24,3 @@
 typedef unsigned long ulong;
 
 ulong checksum(ulong cksum, void* buf, int n);
-
-#endif

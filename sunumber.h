@@ -1,6 +1,4 @@
-#ifndef SUNUMBER_H
-#define SUNUMBER_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -50,24 +48,26 @@ public:
 		{ return p; }
 	friend Ostream& operator<<(Ostream&, const SuNumber&);
 
-	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 
-	virtual int integer() const;
+	int integer() const override;
 	int64 bigint() const;
-	virtual gcstring gcstr() const;
-	virtual void out(Ostream& os);
-	virtual size_t hashfn();
-	virtual int symnum() const;
-	virtual bool int_if_num(int* pn) const;
-	virtual SuNumber* number()
+	gcstring gcstr() const override;
+	void out(Ostream& os) override;
+	size_t hashfn() override;
+	int symnum() const override;
+	bool int_if_num(int* pn) const override;
+
+	SuNumber* number() override
 		{ return this; }
 
-	virtual int order() const;
-	virtual bool lt(const SuValue& x) const;
-	virtual bool eq(const SuValue& x) const;
+	int order() const override;
+	bool lt(const SuValue& x) const override;
+	bool eq(const SuValue& x) const override;
 
-	virtual size_t packsize() const;
-	virtual void pack(char* buf) const;
+	size_t packsize() const override;
+	void pack(char* buf) const override;
 	static SuNumber* unpack(const gcstring& s);
 
 	static Value literal(const char* s);
@@ -80,7 +80,7 @@ public:
 
 	char* format(char* buf) const;
 
-	char* mask(char* buf, char* mask) const;
+	char* mask(char* buf, const char* mask) const;
 
 	double to_double() const;
 	static SuNumber* from_float(float x);
@@ -119,11 +119,11 @@ private:
 	friend SuNumber* uadd(const SuNumber*, const SuNumber*);
 	friend SuNumber* usub(const SuNumber*, const SuNumber*, SuNumber*);
 	friend SuNumber* round(SuNumber*, int digits, char mode);
-	long first9()
+	long first9() const
 		{ return digits[0] * 100000L + digits[1] * 10L + digits[2] / 1000; }
-	long first8()
+	long first8() const
 		{ return digits[0] * 10000L + digits[1]; }
-	long first5()
+	long first5() const
 		{ return digits[0] * 10L + digits[1] / 1000; }
 	void operator -=(const SuNumber& y)
 		{
@@ -157,5 +157,3 @@ inline SuNumber& operator/(const SuNumber& x, const SuNumber& y)
 int numlen(const char* s);
 
 SuNumber* neg(Value x);
-
-#endif

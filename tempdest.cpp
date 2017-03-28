@@ -23,8 +23,6 @@
 #include "tempdest.h"
 #include "except.h"
 #include <algorithm>
-#include "errlog.h"
-#include "port.h"
 #include "gc.h"
 
 int tempdest_inuse = 0;

@@ -33,8 +33,6 @@ static BOOL CALLBACK rebuild_proc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM);
 static bool check();
 static bool rebuild();
 
-static DbRecover* dbr = 0;
-
 bool db_check_gui()
 	{
 	if (cmdlineoptions.unattended)
@@ -43,7 +41,6 @@ bool db_check_gui()
 		{
 		InitCommonControls();
 		DialogBox((HINSTANCE) GetModuleHandle(NULL), "REBUILD", NULL, (DLGPROC) check_proc);
-		delete dbr;
 		return true;
 		}
 	}
@@ -54,10 +51,15 @@ static bool check()
 	switch (dbr->status())
 		{
 	case DBR_OK :
+		{
 		dbr->check_indexes();
-		return dbr->status() == DBR_OK;
+		bool result = dbr->status() == DBR_OK;
+		delete dbr;
+		return result;
+		}
 	case DBR_ERROR :
 	case DBR_UNRECOVERABLE :
+		delete dbr;
 		return false;
 	default :
 		unreachable();
@@ -71,8 +73,8 @@ bool db_rebuild_gui()
 	else
 		{
 		InitCommonControls();
-		BOOL result = DialogBox((HINSTANCE) GetModuleHandle(NULL), "REBUILD", NULL, (DLGPROC) rebuild_proc);
-		delete dbr;
+		BOOL result = DialogBox((HINSTANCE) GetModuleHandle(NULL), "REBUILD", NULL, 
+			(DLGPROC) rebuild_proc);
 		return result == TRUE;
 		}
 	}
@@ -117,6 +119,8 @@ static bool progress(int pos)
 
 static BOOL CALLBACK check_proc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM)
 	{
+	static DbRecover* dbr;
+
 	switch (uMsg)
 		{
 	case WM_INITDIALOG :
@@ -158,9 +162,12 @@ static BOOL CALLBACK check_proc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM)
 		case IDOK :
 		case IDCANCEL :
 			EndDialog(hDlg, FALSE);
+			delete dbr;
 			return TRUE;
+		default: 
+			;
 			}
-		// fall thru
+		FALLTHROUGH
 	default :
 		return FALSE;
 		}
@@ -216,13 +223,17 @@ static BOOL CALLBACK rebuild_proc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM)
 		case IDOK :
 			EnableWindow(GetDlgItem(hDlg, IDOK), FALSE);
 			EndDialog(hDlg, dbr->rebuild(progress));
+			delete dbr;
 			return TRUE;
 		case IDCANCEL :
 			rebuild_continue = false;
 			EndDialog(hDlg, FALSE);
+			delete dbr;
 			return TRUE;
+		default: 
+			;
 			}
-		// fall thru
+		FALLTHROUGH
 	default :
 		return FALSE;
 		}

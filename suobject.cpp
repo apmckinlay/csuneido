@@ -24,7 +24,6 @@
 #include "interp.h"
 #include "globals.h"
 #include "symbols.h"
-#include "suboolean.h"
 #include "sunumber.h"
 #include "sustring.h"
 #include "sufunction.h"
@@ -38,9 +37,10 @@
 #include "sumethod.h"
 #include "catstr.h"
 #include "ostreamstr.h"
-#include "minmax.h"
 #include "range.h"
 #include "suseq.h"
+#include <algorithm>
+using std::min;
 
 extern Value root_class;
 
@@ -53,9 +53,11 @@ public:
 		: object(ob), iter(ob->begin(iv, im)), end(ob->end()), values(v),
 		include_vec(iv), include_map(im)
 		{ }
-	virtual void out(Ostream& os)
+
+	void out(Ostream& os) override
 		{ os << "ObjectIter"; }
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 private:
 	SuObject* object;
 	SuObject::iterator iter;
@@ -67,7 +69,7 @@ private:
 class ModificationCheck
 	{
 public:
-	ModificationCheck(SuObject* ob) : object(ob), vecsize(ob->vecsize()), mapsize(ob->mapsize())
+	explicit ModificationCheck(SuObject* ob) : object(ob), vecsize(ob->vecsize()), mapsize(ob->mapsize())
 		{ }
 	~ModificationCheck()
 		{
@@ -462,7 +464,8 @@ bool SuObject::erase2(Value m)
 	}
 
 /** used for both Objects and instances */
-Value SuObject::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuObject::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL)
 		member = CALL_INSTANCE;
@@ -504,7 +507,7 @@ Value SuObject::Copy(short nargs, short nargnames, ushort* argnames, int each)
 	}
 
 static void list_named(short nargs, short nargnames, ushort* argnames,
-	bool& listq, bool& namedq, char* usage)
+	bool& listq, bool& namedq, const char* usage)
 	{
 	if (nargs > nargnames || nargs > 2)
 		except(usage);
@@ -560,7 +563,7 @@ struct MemberFinder
 	{
 	MemberFinder(Value m) : member(m)
 		{ }
-	Value operator()(SuClass* c)
+	Value operator()(SuClass* c) const
 		{ return c->get(member); }
 	Value member;
 	};
@@ -1098,7 +1101,7 @@ struct ObOutInKey
 		{ obout_inkey = false; }
 	};
 
-void SuObject::outdelims(Ostream& os, char* delims)
+void SuObject::outdelims(Ostream& os, const char* delims)
 	{
 	static Value ToString("ToString");
 	Value c = lookup(this, MethodFinder(ToString));
@@ -1258,7 +1261,8 @@ void SuObject::set_members(SuObject* ob)
 
 // SuObjectIter -------------------------------------------------------
 
-Value SuObjectIter::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuObjectIter::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value NEXT("Next");
 	static Value ITER("Iter");
@@ -1472,9 +1476,9 @@ class test_object : public Tests
 		SuObject ob;
 		for (i = 0; i < 100; ++i)
 			ob.put(i, i);
-		char s[2] = "a";
-		for (i = 0; i < 26; ++i, ++*s)
-			ob.put(s, i);
+		char c[2] = "a";
+		for (i = 0; i < 26; ++i, ++*c)
+			ob.put(c, i);
 		verify(ob.size() == 126);
 
 		// iterate

@@ -22,9 +22,6 @@
 
 #include "istream.h"
 
-Istream::Istream() : eofbit(false), failbit(false), next(-1)
-	{ }
-
 Istream& Istream::getline(char* s, int n)
 	{
 	if (! s || ! n)

@@ -23,11 +23,11 @@
 #include "mmfile.h"
 #include "ostreamfile.h"
 #include "except.h"
-#include "fatal.h"
-#include "minmax.h"
 #include <memory.h>
 #include <algorithm>
 #include <limits.h>
+
+using std::min;
 
 const char magic[] = { 'S', 'n', 'd', 'o' };
 const int FILESIZE_OFFSET = 4;
@@ -44,7 +44,7 @@ inline void Mmfile::set_file_size(Mmoffset fs)
 	*(static_cast<Mmoffset32*>(adr(FILESIZE_OFFSET))) = fs;
 	}
 
-Mmfile::Mmfile(char* filename, bool create, bool ro)
+Mmfile::Mmfile(const char* filename, bool create, bool ro)
 	: chunk_size(MB_PER_CHUNK * 1024 * 1024), hi_chunk(0),
 	use_t(0), chunks_mapped(0), max_chunks_mapped(MM_MAX_CHUNKS_MAPPED),
 	readonly(ro)
@@ -211,7 +211,7 @@ Mmfile::iterator& Mmfile::iterator::operator++()
 			break ;
 		case MMERR :
 			err = true;
-			// fall thru
+			FALLTHROUGH
 		case MMEOF :
 			off = mmf->end().off; // eof or bad block
 			return *this;
@@ -247,7 +247,7 @@ Mmfile::iterator& Mmfile::iterator::operator--()
 			break ;
 		case MMERR :
 			err = true;
-			// fall thru
+			FALLTHROUGH
 		case MMEOF :
 			off = mmf->begin().off; // eof or bad block
 			return *this;
@@ -302,7 +302,7 @@ int Mmfile::lru_chunk()
 #include <stdio.h> // for remove
 #include <string.h>
 
-void add(Mmfile& m, char* s)
+void add(Mmfile& m, const char* s)
 	{ strcpy(static_cast<char*>(m.adr(m.alloc(strlen(s) + 1, 1))), s); }
 
 class test_mmfile : public Tests
@@ -315,7 +315,7 @@ class test_mmfile : public Tests
 			//~ m.alloc(4000000, 1, false);
 		Mmfile::iterator begin = m.end();
 
-		static char* data[] =
+		static const char* data[] =
 			{ "andrew", "leeann", "ken sparrow", "tracy" };
 		const int ndata = sizeof data / sizeof (char*);
 

@@ -21,15 +21,15 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "builtinclass.h"
-#include "suboolean.h"
 #include "sustring.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <vector> // for Readline
 #include "sufinalize.h"
-#include "minmax.h"
 #include "readline.h"
+#include <algorithm>
+using std::min;
 
 #ifdef _MSC_VER
 #define FTELL64 _ftelli64
@@ -42,8 +42,8 @@
 class SuFile : public SuFinalize
 	{
 public:
-	void init(char* filename, char* mode);
-	virtual void out(Ostream& os)
+	void init(const char* filename, const char* mode);
+	virtual void out(Ostream& os) override
 		{ os << "File('" << filename << "', '" << mode << "')"; }
 	void close();
 	static Method<SuFile>* methods()
@@ -62,7 +62,7 @@ public:
 			};
 		return methods;
 		}
-	const char* type() const
+	const char* type() const override
 		{ return "File"; }
 private:
 	Value Read(BuiltinArgs&);
@@ -74,13 +74,13 @@ private:
 	Value Flush(BuiltinArgs&);
 	Value Close(BuiltinArgs&);
 
-	void ckopen(char* action);
-	virtual void finalize();
+	void ckopen(const char* action);
+	void finalize() override;
 
-	char* filename;
-	const char* mode;
-	FILE* f;
-	char* end_of_line;
+	const char* filename = nullptr;
+	const char* mode = nullptr;
+	FILE* f = nullptr;
+	const char* end_of_line = nullptr;
 	};
 
 Value su_file()
@@ -97,8 +97,8 @@ template<>
 Value BuiltinClass<SuFile>::instantiate(BuiltinArgs& args)
 	{
 	args.usage("usage: new File(filename, mode = 'r'");
-	char* filename = args.getstr("filename");
-	char* mode = args.getstr("mode", "r");
+	auto filename = args.getstr("filename");
+	auto mode = args.getstr("mode", "r");
 	args.end();
 	SuFile* f = new BuiltinInstance<SuFile>();
 	f->init(filename, mode);
@@ -109,8 +109,8 @@ template<>
 Value BuiltinClass<SuFile>::callclass(BuiltinArgs& args)
 	{
 	args.usage("usage: File(filename, mode = 'r', block = false)");
-	char* filename = args.getstr("filename");
-	char* mode = args.getstr("mode", "r");
+	auto filename = args.getstr("filename");
+	auto mode = args.getstr("mode", "r");
 	Value block = args.getValue("block", SuFalse);
 	args.end();
 
@@ -124,17 +124,17 @@ Value BuiltinClass<SuFile>::callclass(BuiltinArgs& args)
 	return block.call(block, CALL, 1, 0, 0, -1);
 	}
 
-void SuFile::init(char* fn, char* m)
+void SuFile::init(const char* fn, const char* m)
 	{
 	filename = fn;
 	mode = m;
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__clang__)
 	_fmode = O_BINARY; // set default mode
 #endif
 
-	end_of_line = (char*) (strchr(mode, 't') ? "\n" : "\r\n");
+	end_of_line = strchr(mode, 't') ? "\n" : "\r\n";
 
-	if (*filename == 0 || ! (f = fopen(filename, mode)))
+	if (*filename == 0 || nullptr == (f = fopen(filename, mode)))
 		except("File: can't open '" << filename << "' in mode '" << mode << "'");
 	}
 
@@ -255,7 +255,7 @@ Value SuFile::Close(BuiltinArgs& args)
 	return Value();
 	}
 
-void SuFile::ckopen(char* action)
+void SuFile::ckopen(const char* action)
 	{
 	if (! f)
 		except("File: can't " << action << " a closed file: " << filename);

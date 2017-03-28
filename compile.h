@@ -1,6 +1,4 @@
-#ifndef COMPILE_H
-#define COMPILE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -25,12 +23,6 @@
 
 class Value;
 class CodeVisitor;
-struct Params;
 
 // compile a string of source code
-Value compile(char* s, char* name = "", CodeVisitor*  visitor = 0);
-
-// compile paramater specifications
-Params* compile_params(char* s);
-
-#endif
+Value compile(const char* s, const char* name = "", CodeVisitor* visitor = nullptr);

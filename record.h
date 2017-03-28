@@ -1,6 +1,4 @@
-#ifndef RECORD_H
-#define RECORD_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -103,5 +101,3 @@ inline bool nil(const Record& r)
 	{ return r.crep == 0; }
 
 Ostream& operator<<(Ostream& os, const Record& r);
-
-#endif

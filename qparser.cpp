@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "std.h"
-#include "suboolean.h"
 #include "sunumber.h"
 #include "sustring.h"
 #include "query.h"
@@ -31,10 +30,8 @@
 #include "suobject.h"
 #include "database.h"
 #include "thedb.h"
-#include "call.h"
 #include "sudate.h"
 #include "surecord.h"
-#include "commalist.h"
 #include "symbols.h"
 #include "dbms.h"
 #include "sesviews.h"
@@ -53,11 +50,9 @@ struct Arg
 
 struct IndexSpec
 	{
-	IndexSpec() : key(false), unique(false)
-		{ }
 	Lisp<gcstring> columns;
-	bool key;
-	bool unique;
+	bool key = false;
+	bool unique = false;
 	gcstring fktable;
 	Lisp<gcstring> fkcols;
 	Fkmode fkmode;
@@ -81,7 +76,7 @@ public:
 		assert(*views == view);
 		++views;
 		}
-	bool inside(const gcstring& view)
+	bool inside(const gcstring& view) const
 		{ return member(views, view); }
 private:
 	Lisp<gcstring> views;
@@ -90,11 +85,11 @@ private:
 class QueryParser
 	{
 public:
-	explicit QueryParser(char*);
-	friend void database_admin(char* s);
-	friend int database_request(int tran, char* s);
-	friend Query* parse_query(char* s);
-	friend Expr* parse_expr(char* s);
+	explicit QueryParser(const char*);
+	friend void database_admin(const char* s);
+	friend int database_request(int tran, const char* s);
+	friend Query* parse_query(const char* s);
+	friend Expr* parse_expr(const char* s);
 private:
 	void admin();
 	int request(int tran);
@@ -105,7 +100,6 @@ private:
 	Value constant();
 	Value object();
 	void member(SuObject* ob, char* gname = 0, short base = -1);
-	ushort memname(char* gname, char* s);
 	Value number();
 	Query* query();
 	Query* source();
@@ -155,7 +149,7 @@ bool is_admin(char* s)
 		}
 	}
 
-bool is_request(char* s)
+bool is_request(const char* s)
 	{
 	QueryScanner scanner(s);
 	scanner.next();
@@ -170,7 +164,7 @@ bool is_request(char* s)
 		}
 	}
 
-void database_admin(char* s)
+void database_admin(const char* s)
 	{
 	QueryParser parser(s);
 	try
@@ -186,7 +180,7 @@ void database_admin(char* s)
 		}
 	}
 
-int database_request(int tran, char* s)
+int database_request(int tran, const char* s)
 	{
 	QueryParser parser(s);
 	try
@@ -200,7 +194,7 @@ int database_request(int tran, char* s)
 		}
 	}
 
-Query* parse_query(char* s)
+Query* parse_query(const char* s)
 	{
 	QueryParser parser(s);
 	try
@@ -219,13 +213,13 @@ Query* parse_query(char* s)
 		}
 	}
 
-Expr* parse_expr(char* s)
+Expr* parse_expr(const char* s)
 	{
 	QueryParser parser(s);
 	return parser.expr();
 	}
 
-QueryParser::QueryParser(char* s) : scanner(s), prevsi(-1)
+QueryParser::QueryParser(const char* s) : scanner(s), prevsi(-1)
 	{
 	token = scanner.next();
 	}
@@ -323,12 +317,8 @@ void QueryParser::admin()
 
 			Lisp<gcstring> cols = theDB()->get_columns(table);
 			for (Lisp<gcstring> c = ts.columns; ! nil(c); ++c)
-				{
-				gcstring col(c->str());
-				*col.buf() = tolower(*col.buf());
-				if (! cols.member(col))
+				if (! cols.member(c->uncapitalize()))
 					theDB()->add_column(table, *c);
-				}
 
 			// TODO: handle changing index e.g. add foreign key
 			Lisp<Fields> indexes = theDB()->get_indexes(table);
@@ -558,12 +548,10 @@ int QueryParser::request(int tran)
 			q->close(q);
 			return n;
 			}
-		break ;
 		}
 	default :
 		except("expecting: insert, update, or delete");
 		}
-	return true;
 	}
 
 TableSpec QueryParser::table_spec()
@@ -596,7 +584,7 @@ TableSpec QueryParser::table_spec()
 			IndexSpec idx;
 			idx.key = (scanner.keyword == K_KEY);
 			match();
-			if ((idx.unique = (scanner.keyword == K_UNIQUE)))
+			if (true == (idx.unique = (scanner.keyword == K_UNIQUE)))
 				match();
 			idx.columns = column_list();
 			idx.fkmode = BLOCK;
@@ -679,13 +667,13 @@ Value QueryParser::constant()
 		break ;
 	case '#' :
 		match();
-		// fall thru
+		FALLTHROUGH
 	case '[' :
 		if (token == '(' || token == '{' || token == '[')
 			x = object();
 		else if (token == T_NUMBER)
 			{
-			if (! (x = SuDate::literal(scanner.value)))
+			if (! ((x = SuDate::literal(scanner.value))))
 				syntax_error();
 			match(T_NUMBER);
 			}
@@ -752,7 +740,6 @@ Value QueryParser::object()
 void QueryParser::member(SuObject* ob, char* gname, short base)
 	{
 	Value mv;
-	int mi = -1;
 	bool minus = false;
 	if (token == I_SUB)
 		{
@@ -767,7 +754,7 @@ void QueryParser::member(SuObject* ob, char* gname, short base)
 		{
 		if (token == T_IDENTIFIER || token == T_STRING)
 			{
-			mv = symbol(mi = symnum(scanner.value));
+			mv = symbol(symnum(scanner.value));
 			match();
 			}
 		else if (token == T_NUMBER)
@@ -1317,12 +1304,11 @@ Expr* QueryParser::term()
 	}
 
 #include "testing.h"
-#include "ostreamstr.h"
 
 struct Qptest
 	{
-	char* query;
-	char* result;
+	const char* query;
+	const char* result;
 	};
 
 static Qptest qptests[] =
@@ -1406,12 +1392,12 @@ static Qptest qptests[] =
 
 class test_qparser : public  Tests
 	{
-	void adm(char* s)
+	static void adm(const char* s)
 		{
 		database_admin(s);
 		}
-	int tran;
-	void req(char* s)
+	int tran = 0;
+	void req(const char* s) const
 		{
 		except_if(! database_request(tran, s), "FAILED: " << s);
 		}
@@ -1475,7 +1461,7 @@ class test_qparser : public  Tests
 		adm("drop inven");
 		adm("drop alias");
 		}
-	void testone(int i, char* query, char* result)
+	void testone(int i, const char* query, const char* result)
 		{
 		Query* q = parse_query(query);
 		OstreamStr out;

@@ -21,7 +21,6 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "errlog.h"
-#include <string.h>
 #include "ostreamfile.h"
 #include "fibers.h" // for tls()
 #include "unhandled.h" // for err_filename()

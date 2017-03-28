@@ -21,9 +21,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "interp.h"
-#include "compile.h"
 #include "opcodes.h"
-#include "suboolean.h"
 #include "sunumber.h"
 #include "sustring.h"
 #include "except.h"
@@ -57,7 +55,8 @@ static bool catch_match(const char*, const char*);
 
 int callnest = 0;
 
-Value docall(Value x, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value docall(Value x, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (trace_level & TRACE_FUNCTIONS)
 		{
@@ -170,13 +169,12 @@ Value cat(Value x, Value y)
 	}
 
 Frame::Frame(BuiltinFunc* p, Value s) :
-	prim(p), fn(0), self(s), local(0), rule(tls().proc->fp[-1].rule), catcher(0),
-	blockframe(0)
+	prim(p), self(s), rule(tls().proc->fp[-1].rule)
 	{ }
 
 Frame::Frame(SuFunction* f, Value s) :
-	prim(0), fn(f), self(s), ip(fn->code), local(1 + GETSP() - fn->nparams),
-	rule(tls().proc->fp[-1].rule), catcher(0), blockframe(0)
+	fn(f), self(s), ip(fn->code), local(1 + GETSP() - fn->nparams),
+	rule(tls().proc->fp[-1].rule)
 	{
 	for (int i = fn->nparams; i < fn->nlocals; ++i)
 		local[i] = Value();
@@ -185,8 +183,8 @@ Frame::Frame(SuFunction* f, Value s) :
 
 // used by SuBlock::call
 Frame::Frame(Frame* fp, int pc, int first, int nargs, Value s) :
-	prim(0), fn(fp->fn), self(s), ip(fn->code + pc),
-	local(fp->local), rule(tls().proc->fp[-1].rule), catcher(0), blockframe(fp)
+	fn(fp->fn), self(s), ip(fn->code + pc),
+	local(fp->local), rule(tls().proc->fp[-1].rule), blockframe(fp)
 	{
 	for (int i = nargs - 1; i >= 0; --i)
 		local[first + i] = POP();
@@ -452,6 +450,7 @@ Value Frame::run()
 		case I_THROW :
 			{
 			static Value block_return("block return");
+
 			arg = POP();
 			if (arg == block_return)
 				tls().proc->block_return_value = POP();
@@ -459,7 +458,6 @@ Value Frame::run()
 				throw *e;
 			else
 				throw Except(arg.gcstr());
-			break ;
 			}
 		case I_ADDEQ | (SUB << 4) : case I_ADDEQ | (SUB_SELF << 4) :
 		case I_ADDEQ | (AUTO << 4) : case I_ADDEQ | (DYNAMIC << 4) :
@@ -533,37 +531,37 @@ Value Frame::run()
 			case SUB :
 				m = POP();
 				ob = POP();
-				if (! eq && ! (x = ob.getdata(m)))
+				if (! eq && ! ((x = ob.getdata(m))))
 					except("uninitialized member: " << m);
 				break ;
 			case SUB_SELF :
 				m = POP();
 				ob = self;
-				if (! eq && ! (x = self.getdata(m)))
+				if (! eq && ! ((x = self.getdata(m))))
 					except("uninitialized member: " << m);
 				break ;
 			case AUTO :
 				i = fetch_local();
-				if (! eq && ! (x = local[i]))
+				if (! eq && ! ((x = local[i])))
 					except("uninitialized variable: " << symstr(fn->locals[i]));
 				break ;
 			case DYNAMIC :
 				i = fetch_local();
 				if (! eq && ! local[i])
 					local[i] = dynamic(fn->locals[i]);
-				if (! eq && ! (x = local[i]))
+				if (! eq && ! ((x = local[i])))
 					except("uninitialized variable: " << symstr(fn->locals[i]));
 				break ;
 			case MEM :
 				ob = POP();
 				m = fetch_member();
-				if (! eq && ! (x = ob.getdata(m)))
+				if (! eq && ! ((x = ob.getdata(m))))
 					except("uninitialized member: " << m);
 				break ;
 			case MEM_SELF :
 				ob = self;
 				m = fetch_member();
-				if (! eq && ! (x = self.getdata(m)))
+				if (! eq && ! ((x = self.getdata(m))))
 					except("uninitialized member: " << m);
 				break ;
 			default :
@@ -576,15 +574,15 @@ Value Frame::run()
 			case I_ADDEQ :		z = x = x + y; break ;
 			case I_SUBEQ :		z = x = x - y; break ;
 			case I_CATEQ :		z = x = cat(x, y); break ;
-			case I_MULEQ :		z = x = x * y; z = x; break ;
-			case I_DIVEQ :		z = x = x / y; z = x; break ;
+			case I_MULEQ :		z = x = x * y; break ;
+			case I_DIVEQ :		z = x = x / y; break ;
 			case I_MODEQ :		z = x = x.integer() % y.integer(); break ;
 			case I_LSHIFTEQ :	z = x = (ulong) x.integer() << y.integer(); break ;
 			case I_RSHIFTEQ :	z = x = (ulong) x.integer() >> y.integer(); break ;
 			case I_BITANDEQ :	z = x = (ulong) x.integer() & (ulong) y.integer(); break ;
 			case I_BITOREQ :	z = x = (ulong) x.integer() | (ulong) y.integer(); break ;
 			case I_BITXOREQ :	z = x = (ulong) x.integer() ^ (ulong) y.integer(); break ;
-			case I_EQ :			z = x = y; z = x; break ;
+			case I_EQ :			z = x = y; break ;
 			case I_PREINC :		z = x = x + SuOne; break ;
 			case I_PREDEC :		z = x = x - SuOne; break ;
 			case I_POSTINC :	z = x; x = x + SuOne; break ;
@@ -614,7 +612,7 @@ Value Frame::run()
 			}
 		case I_RETURN_NIL :
 			PUSH(Value());
-			// fall thru
+			FALLTHROUGH
 		case I_RETURN :
 			goto done;
 		case I_UMINUS :
@@ -678,16 +676,14 @@ Value Frame::run()
 			{
 			gcstring sy = POP().gcstr();
 			gcstring sx = TOP().gcstr();
-			TOP() = rx_match(sx.buf(), sx.size(), 0, rx_compile(sy))
-				? SuTrue : SuFalse;
+			TOP() = rx_match(sx, rx_compile(sy)) ? SuTrue : SuFalse;
 			break ;
 			}
 		case I_MATCHNOT :
 			{
 			gcstring sy = POP().gcstr();
 			gcstring sx = TOP().gcstr();
-			TOP() = rx_match(sx.buf(), sx.size(), 0, rx_compile(sy))
-				? SuFalse : SuTrue;
+			TOP() = rx_match(sx, rx_compile(sy)) ? SuFalse : SuTrue;
 			break ;
 			}
 		case I_BITAND :

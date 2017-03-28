@@ -33,11 +33,11 @@
 class SuSymbol : public SuString
 	{
 public:
-	SuSymbol(const char* s) : SuString(strlen(s), s) // no alloc
+	explicit SuSymbol(const char* s) : SuString(strlen(s), s) // no alloc
 		{ }
-	virtual int symnum() const;
-	virtual bool eq(const SuValue& y) const;
-	virtual void out(Ostream& os);
+	int symnum() const override;
+	bool eq(const SuValue& y) const override;
+	void out(Ostream& os) override;
 	};
 
 const int MAX_SYMBOLS = 32 * 1024;
@@ -47,7 +47,7 @@ static PermanentHeap names("symbol names", NAMES_SPACE);
 
 struct kofv
 	{
-	const char* operator()(SuSymbol* sym)
+	const char* operator()(SuSymbol* sym) const
 		{ return sym->str(); }
 	};
 
@@ -63,9 +63,10 @@ bool SuSymbol::eq(const SuValue& y) const
 	return symbols.contains(&y) ? this == &y : SuString::eq(y);
 	}
 
+extern bool obout_inkey;
+
 void SuSymbol::out(Ostream& os)
 	{
-	extern bool obout_inkey;
 	if (! obout_inkey)
 		os << '#';
 	if (is_identifier())
@@ -112,7 +113,7 @@ Value symbol(int i)
 	return x;
 	}
 
-char* symstr(int i)
+const char* symstr(int i)
 	{
 	return i & 0x8000
 		? symbol(i).str()
@@ -153,7 +154,7 @@ class test_symbols : public Tests
 	{
 	TEST(0, main)
 		{
-		char* syms[] = { "one", "two", "three", "four" };
+		const char* syms[] = { "one", "two", "three", "four" };
 		const int n = sizeof (syms) / sizeof (char*);
 		ushort nums[n];
 		int i;

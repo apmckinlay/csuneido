@@ -42,10 +42,10 @@ static OstreamFile log("sunapp.log");
 class CSuneidoAPP : public IInternetProtocol
 	{
 public:
-	CSuneidoAPP() : m_cRef(1), pos(0), str(0)
+	CSuneidoAPP()
 		{ LOG("construct"); }
 
-	~CSuneidoAPP()
+	virtual ~CSuneidoAPP()
 		{ LOG("destruct"); LocalFree((void*) str); }
 
 	// bypass garbage collection!
@@ -108,11 +108,10 @@ public:
 		{ LOG("UnlockRequest"); return S_OK; }
 
 private:
-	ULONG len;
-	ULONG pos;
-	char* str;
-	// Reference count
-	long m_cRef ;
+	ULONG len = 0;
+	ULONG pos = 0;
+	const char* str = nullptr;
+	long m_cRef = 1; // Reference count
 	} ;
 
 // IUnknown implementation
@@ -227,16 +226,10 @@ public:
 	                                         void** ppv) ;
 	virtual HRESULT __stdcall LockServer(BOOL bLock) ;
 
-	// Constructor
-	CFactory() : m_cRef(1)
-		{ }
-
-	// Destructor
-	~CFactory()
-		{ }
+	virtual ~CFactory() = default;
 
 private:
-	long m_cRef ;
+	long m_cRef = 1;
 	} ;
 
 //

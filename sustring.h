@@ -1,6 +1,4 @@
-#ifndef SUSTRING_H
-#define SUSTRING_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -47,21 +45,24 @@ public:
 	SuString(size_t n, const char* t) : s(n, t)
 		{ }
 
-	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 
-	virtual Value getdata(Value);
+	Value getdata(Value) override;
 
-	virtual int integer() const
-		{ return strtoul(s.str(), NULL, 0); }
-	virtual const char* str_if_str() const
+	int integer() const override
+		{ return strtoul(s.str(), nullptr, 0); }
+
+	const char* str_if_str() const override
 		{ return str(); }
-	virtual SuNumber* number();
+
+	SuNumber* number() override;
 
 	int size() const
 		{ return s.size(); }
 
-	virtual size_t packsize() const;
-	virtual void pack(char* buf) const;
+	size_t packsize() const override;
+	void pack(char* buf) const override;
 	static SuString* unpack(const gcstring& s);
 
 	char* buf()
@@ -69,27 +70,21 @@ public:
 	const char* buf() const
 		{ return s.buf(); }
 
-	char* begin()
-		{ return s.begin(); }
 	const char* begin() const
 		{ return s.begin(); }
 
-	char* end()
-		{ return s.end(); }
 	const char* end() const
 		{ return s.end(); }
 
-	char* str()
-		{ return s.str(); }
 	const char* str() const
 		{ return s.str(); }
 
-	virtual gcstring gcstr() const
+	gcstring gcstr() const override
 		{ return s; }
 
-	virtual int symnum() const;
+	int symnum() const override;
 
-	virtual size_t hashfn()
+	size_t hashfn() override
 		{ return ::hashfn(s.buf(), s.size()); }
 	SuString* substr(size_t i, size_t n)
 		{
@@ -102,13 +97,13 @@ public:
 	void adjust()	 // set length to strlen
 		{ s = s.substr(0, s.find('\0')); }
 
-	virtual void out(Ostream& out);
+	void out(Ostream& out) override;
 
 	static SuString* empty_string;
 
-	virtual int order() const;
-	virtual bool lt(const SuValue& x) const;
-	virtual bool eq(const SuValue& x) const;
+	int order() const override;
+	bool lt(const SuValue& x) const override;
+	bool eq(const SuValue& x) const override;
 
 	bool is_identifier() const;
 
@@ -170,5 +165,3 @@ public:
 	};
 
 bool is_identifier(const char* s, int n = -1);
-
-#endif

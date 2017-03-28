@@ -1,6 +1,4 @@
-#ifndef HEAP_H
-#define HEAP_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -32,8 +30,5 @@ public:
 	void destroy();
 	~Heap();
 private:
-	char* heapname;
 	void* heap;
 	};
-
-#endif

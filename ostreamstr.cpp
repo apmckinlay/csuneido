@@ -23,8 +23,6 @@
 #include "ostreamstr.h"
 #include "gcstring.h"
 #include "buffer.h"
-#include <stdlib.h>
-#include <string.h>
 
 OstreamStr::OstreamStr(int len) : buf(new Buffer(len))
 	{ }

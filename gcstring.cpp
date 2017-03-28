@@ -21,11 +21,12 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "gcstring.h"
-#include "std.h"
 #include "except.h"
-#include "minmax.h"
 #include "ctype.h"
 #include "gc.h"
+#include <algorithm>
+using std::min;
+using std::max;
 
 // defer concatenation by storing left & right parts separately
 struct Concat
@@ -39,13 +40,19 @@ struct Concat
 // always allocate an extra character for a nul
 // this ensures (even for substr's) that p[n] is always a valid address
 
-gcstring::gcstring(size_t nn) : n(nn), p(nn == 0 ? empty_buf : new(noptrs) char[nn + 1])
+gcstring::gcstring(size_t nn) : n(nn)
 	{
-	if (n != 0)
-		p[n] = 0;
+	if (n == 0)
+		p = empty_buf;
+	else
+		{
+		char* buf = new(noptrs) char[nn + 1];
+		buf[n] = 0;
+		p = buf;
+		}
 	}
 
-char* gcstring::empty_buf = "";
+const char* gcstring::empty_buf = "";
 
 void gcstring::init(const char* p2, size_t n2)
 	{
@@ -58,11 +65,12 @@ void gcstring::init(const char* p2, size_t n2)
 		}
 	verify(p2);
 	// note: always nul terminated
-	p = new(noptrs) char[n2 + 1];
+	char* buf = new(noptrs) char[n2 + 1];
 	n = n2;
 	verify(n >= 0);
-	memcpy((void*) p, (void*) p2, n2);
-	p[n2] = 0;
+	memcpy((void*) buf, (void*) p2, n2);
+	buf[n2] = 0;
+	p = buf;
 	}
 
 gcstring& gcstring::operator+=(const gcstring& s)
@@ -104,21 +112,6 @@ const char* gcstring::str() const
 		p = q;
 		}
 	//verify(! gc_inheap(p) || n < gc_size(p));
-	return p;
-	}
-
-char* gcstring::str()
-	{
-	if (n < 0)
-		flatten();
-	else if (p[n] != 0) // caused by substr
-		{
-		verify(n != 0);
-		char* q = new(noptrs) char[n + 1];
-		memcpy((void*) q, (void*) p, n);
-		q[n] = 0;
-		p = q;
-		}
 	return p;
 	}
 
@@ -266,6 +259,24 @@ gcstring gcstring::to_heap()
 	return *this;
 	}
 
+gcstring gcstring::capitalize() const
+	{
+	if (size() == 0 || isupper(*buf()))
+		return *this;
+	gcstring s(buf(), size()); // dup
+	*s.buf() = toupper(s[0]);
+	return s;
+	}
+
+gcstring gcstring::uncapitalize() const
+	{
+	if (size() == 0 || islower(*buf()))
+		return *this;
+	gcstring s(buf(), size()); // dup
+	*s.buf() = tolower(s[0]);
+	return s;
+	}
+
 #include "testing.h"
 
 class test_gcstring : public Tests
@@ -304,7 +315,7 @@ class test_gcstring : public Tests
 
 		s = "";
 		const int N = 10;
-		char* big = "now is the time for all good men to come to the aid of their party.";
+		const char* big = "now is the time for all good men to come to the aid of their party.";
 		int bigsize = strlen(big);
 		int i;
 		for (i = 0; i < N; ++i)
@@ -342,6 +353,20 @@ class test_gcstring : public Tests
 		asserteq(gcstring("  hello").trim(), hello);
 		asserteq(gcstring("hello  ").trim(), hello);
 		asserteq(gcstring(" hello ").trim(), hello);
+		}
+	TEST(8, capitalize)
+		{
+		gcstring s;
+		asserteq(s.capitalize(), "");
+		asserteq(s.uncapitalize(), "");
+		s = "Hello";
+		asserteq(s.capitalize(), "Hello");
+		asserteq(s.uncapitalize(), "hello");
+		asserteq(s[0], 'H');
+		s = "hello";
+		asserteq(s.uncapitalize(), "hello");
+		asserteq(s.capitalize(), "Hello");
+		asserteq(s[0], 'h');
 		}
 	};
 REGISTER(test_gcstring);

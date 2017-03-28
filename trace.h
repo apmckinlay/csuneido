@@ -1,6 +1,4 @@
-#ifndef TRACE_H
-#define TRACE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -60,5 +58,3 @@ extern Ostream& tout();
 #define TRACE(mask, stuff) \
 	if ((trace_level & TRACE_##mask)) \
 		tout() << #mask << ' ' << stuff << endl
-
-#endif

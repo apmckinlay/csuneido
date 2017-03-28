@@ -1,6 +1,4 @@
-#ifndef QRENAME_H
-#define QRENAME_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -29,25 +27,26 @@ class Rename : public Query1
 	{
 public:
 	Rename(Query* source, const Fields& f, const Fields& t);
-	void out(Ostream& os) const;
-	Query* transform();
-	double optimize2(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze);
-	Fields columns()
+	void out(Ostream& os) const override;
+	Query* transform() override;
+	double optimize2(const Fields& index, const Fields& needs, 
+		const Fields& firstneeds, bool is_cursor, bool freeze) override;
+	Fields columns() override
 		{ return rename_fields(source->columns(), from, to); }
-	Indexes indexes()
+	Indexes indexes() override
 		{ return rename_indexes(source->indexes(), from, to); }
-	Indexes keys()
+	Indexes keys() override
 		{ return rename_indexes(source->keys(), from, to); }
 	// iteration
-	Header header();
-	void select(const Fields& index, const Record& f, const Record& t)
+	Header header() override;
+	void select(const Fields& index, const Record& f, const Record& t) override
 		{ source->select(rename_fields(index, to, from), f, t); }
-	void rewind()
+	void rewind() override
 		{ source->rewind(); }
-	Row get(Dir dir)
+	Row get(Dir dir) override
 		{ return source->get(dir); }
 
-	bool output(const Record& r)
+	bool output(const Record& r) override
 		{ return source->output(r); }
 //private:
 	static Fields rename_fields(Fields f, Fields from, Fields to);
@@ -56,5 +55,3 @@ public:
 	Fields from;
 	Fields to;
 	};
-
-#endif

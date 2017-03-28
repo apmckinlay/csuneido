@@ -26,13 +26,14 @@
 #include "ostreamstr.h"
 #include "gcstring.h"
 #include <typeinfo>
-#include "symbols.h"
 #include "ctype.h"
 
-static int ord = ::order("other");
+static int other = ::order("other");
 
 int SuValue::order() const
-	{ return ord; }
+	{
+	return other;
+	}
 
 bool SuValue::lt(const SuValue& y) const
 	{
@@ -98,7 +99,8 @@ Ostream& operator<<(Ostream& out, SuValue* x)
 	return out;
 	}
 
-Value SuValue::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuValue::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL)
 		except("can't call " << type());
@@ -106,9 +108,9 @@ Value SuValue::call(Value self, Value member, short nargs, short nargnames, usho
 		method_not_found(type(), member);
 	}
 
-int order(char* name)
+int order(const char* name)
 	{
-	static char* ord[] =
+	static const char* ord[] =
 		{ "Boolean", "Number", "String", "Date", "Object", "other" };
 	const int nord = sizeof ord / sizeof (char*);
 	for (int i = 0; i < nord; ++i)
@@ -134,8 +136,4 @@ const char* SuValue::type() const
 Named* SuValue::get_named()
 	{
 	return 0;
-	}
-
-void SuValue::finalize()
-	{
 	}

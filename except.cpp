@@ -32,14 +32,14 @@
 SuObject* copyCallStack();
 
 Except::Except(gcstring x) : SuString(x.trim()),
-	fp_fn_(tls().proc ? tls().proc->fp->fn : 0), block_return(x == "block return")
+	fp_fn_(tls().proc ? tls().proc->fp->fn : 0), is_block_return(x == "block return")
 	{
 	if (x.has_prefix("block") &&
-		(x == "block:continue" || x == "block:break" || block_return))
+		(x == "block:continue" || x == "block:break" || is_block_return))
 		{
 		static SuObject* empty = new SuObject;
 		calls_ =  empty;
-		if (block_return)
+		if (is_block_return)
 			verify(fp_fn_);
 		}
 	else
@@ -50,7 +50,7 @@ Except::Except(gcstring x) : SuString(x.trim()),
 	}
 
 Except::Except(const Except& e, gcstring s)
-	: SuString(s), fp_fn_(e.fp_fn_), calls_(e.calls_), block_return(e.block_return)
+	: SuString(s), fp_fn_(e.fp_fn_), calls_(e.calls_), is_block_return(e.is_block_return)
 	{  }
 
 Ostream& operator<<(Ostream& os, const Except& e)
@@ -125,7 +125,7 @@ SuObject* copyCallStack()
 void except_log_stack_()
 	{
 	static bool first = true;
-	char* stk = "";
+	const char* stk = "";
 	if (first)
 		{
 		first = false;
@@ -151,7 +151,8 @@ char* callStackString()
 	return stk.str();
 	}
 
-Value Except::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value Except::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value As("As");
 	static Value Callstack("Callstack");
@@ -175,8 +176,8 @@ Value Except::call(Value self, Value member, short nargs, short nargnames, ushor
 
 char* Except::callstack() const
 	{
-	OstreamStr os;
+	OstreamStr oss;
 	for (int i = 0; i < calls_->size(); ++i)
-		os << endl << calls_->get(i).getdata("fn");
-	return os.str();
+		oss << endl << calls_->get(i).getdata("fn");
+	return oss.str();
 	}

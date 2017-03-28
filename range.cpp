@@ -31,12 +31,10 @@ class RangeTo : public Range
 public:
 	RangeTo(int f, int t) : from(f), to(t)
 		{ }
-	gcstring substr(gcstring s);
-	SuObject* sublist(SuObject* ob);
-	void out(Ostream& os)
-		{
-		os << "Range(" << from << " .. " << to << ")";
-		}
+	gcstring substr(gcstring s) override;
+	SuObject* sublist(SuObject* ob) override;
+	void out(Ostream& os) override
+		{ os << "Range(" << from << " .. " << to << ")"; }
 private:
 	int from;
 	int to;
@@ -47,12 +45,10 @@ class RangeLen : public Range
 public:
 	RangeLen(int f, int n) : from(f), len(n)
 		{ }
-	gcstring substr(gcstring s);
-	SuObject* sublist(SuObject* ob);
-	void out(Ostream& os)
-		{
-		os << "Range(" << from << " :: " << len << ")";
-		}
+	gcstring substr(gcstring s) override;
+	SuObject* sublist(SuObject* ob) override;
+	void out(Ostream& os) override
+		{ os << "Range(" << from << " :: " << len << ")"; }
 private:
 	int from;
 	int len;
@@ -141,7 +137,3 @@ SuObject* RangeLen::sublist(SuObject* ob)
 	int t = f + len;
 	return ::sublist(ob, f, t);
 	}
-
-
-
-

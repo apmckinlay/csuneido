@@ -1,6 +1,4 @@
-#ifndef INDEX_H
-#define INDEX_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -36,7 +34,7 @@ typedef int TblNum;
 
 struct IndexDest
 	{
-	IndexDest(Mmfile* m) : mmf(m)
+	explicit IndexDest(Mmfile* m) : mmf(m)
 		{ }
 	Mmoffset alloc(ulong n) const
 		{ return mmf->alloc(n, MM_OTHER); }
@@ -71,7 +69,7 @@ public:
 		{
 	public:
 		friend class Index;
-		iterator() : ix(0), rewound(true)
+		iterator()
 			{ }
 		iterator(Index* ix, int tran, Key from, Key to, TranRead* trd);
 		void set_transaction(int t)
@@ -90,14 +88,14 @@ public:
 	private:
 		bool visible();
 
-		Index* ix;
+		Index* ix = nullptr;
 		IndexBtree::iterator iter;
-		Mmoffset prevsize;
-		int tran;
+		Mmoffset prevsize = 0;
+		int tran = 0;
 		Key from;
 		Key to;
-		bool rewound;
-		TranRead* tranread;
+		bool rewound = true;
+		TranRead* tranread = nullptr;
 		};
 	friend class iterator;
 	iterator begin(int tran);
@@ -131,5 +129,3 @@ private:
 #include "tempdest.h"
 typedef Btree<VFslot,VFslot,VFslots,VFslots,TempDest> VFtree;
 typedef Btree<VVslot,VFslot,VVslots,VFslots,TempDest> VVtree;
-
-#endif

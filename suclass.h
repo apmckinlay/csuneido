@@ -1,6 +1,4 @@
-#ifndef SUCLASS_H
-#define SUCLASS_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -39,13 +37,14 @@ public:
 	explicit SuClass(const SuClass& c) :
 		SuObject(c), named("."), base(c.base)
 		{ }
-	void out(Ostream&);
-	Value call(Value self, Value member, short nargs, short nargnames, ushort *argnames, int each);
-	Value getdata(Value);
+	void out(Ostream&) override;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort *argnames, int each) override;
+	Value getdata(Value) override;
 	virtual bool eq(const SuValue& x) const override;
 
-	virtual size_t packsize() const;
-	virtual void pack(char* buf) const;
+	size_t packsize() const override;
+	void pack(char* buf) const override;
 	static SuClass* unpack(const gcstring& s);
 
 	short base;
@@ -57,12 +56,12 @@ public:
 class RootClass : public SuValue
 	{
 public :
-	void out(Ostream& os)
+	void out(Ostream& os) override
 		{ os << "Object"; }
-	Value call(Value self, Value member, short nargs, short nargnames, ushort *argnames, int each);
-	Value getdata(Value)
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort *argnames, int each) override;
+	Value getdata(Value) override
 		{ return Value(); }
-	static Value notfound(Value self, Value member, short nargs, short nargnames, ushort *argnames, int each);
+	static Value notfound(Value self, Value member, 
+		short nargs, short nargnames, ushort *argnames, int each);
 	};
-
-#endif

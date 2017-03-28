@@ -1,6 +1,4 @@
-#ifndef SUSOCKETS_H
-#define SUSOCKETS_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -28,5 +26,3 @@ class Value;
 // returns the builtin SocketServer class
 // that is the base class for user defined socket servers
 Value suSocketServer();
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef OSTREAMFILE_H
-#define OSTREAMFILE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -31,13 +29,11 @@ class OstreamFileImp;
 class OstreamFile : public Ostream
 	{
 public:
-	OstreamFile(const char* filename, const char* mode = "w");
+	explicit OstreamFile(const char* filename, const char* mode = "w");
 	~OstreamFile();
-	Ostream& write(const void* buf, int n);
+	Ostream& write(const void* buf, int n) override;
 	explicit operator bool() const;
-	void flush();
+	void flush() override;
 private:
 	OstreamFileImp* imp;
 	};
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef QCOMPATIBLE_H
-#define QCOMPATIBLE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -29,10 +27,10 @@ class Compatible : public Query2
 	{
 public:
 	Compatible(Query* s1, Query* s2);
-	// estimated result sizes
-	int recordsize()
+
+	int recordsize() override
 		{ return (source->recordsize() + source2->recordsize()) / 2; }
-	int columnsize()
+	int columnsize() override
 		{ return (source->columnsize() + source2->columnsize()) / 2; }
 protected:
 	bool isdup(const Row& row);
@@ -44,5 +42,3 @@ protected:
 	gcstring disjoint;
 	friend class Project;
 	};
-
-#endif

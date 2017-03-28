@@ -1,6 +1,4 @@
-#ifndef SUNAPP_H
-#define SUNAPP_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -25,5 +23,3 @@
 
 void sunapp_register_classes();
 void sunapp_revoke_classes();
-
-#endif

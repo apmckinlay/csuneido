@@ -264,7 +264,7 @@ void DbServer::cmd_COMMIT()
 	{
 	int tn = io.getInt();
 	data.end_transaction(tn);
-	char* conflict;
+	const char* conflict;
 	io.putOk();
 	if (dbms().commit(tn, &conflict))
 		io.putBool(true);
@@ -359,7 +359,7 @@ void DbServer::cmd_KEYS()
 	}
 
 // also called by dbmslocal
-int kill_connections2(char* s)
+int kill_connections2(const char* s)
 	{
 	int n_killed = 0;
 	for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
