@@ -110,9 +110,9 @@ public:
 
 	int tran;
 private:
-	bool done;
-	const char* conflict;
-	Value data = SuFalse;
+	bool done = false;
+	const char* conflict = "";
+	Value data;
 	};
 
 // builtin Cursor value

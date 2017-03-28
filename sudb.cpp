@@ -304,7 +304,7 @@ Value TransactionClass::call(Value self, Value member,
 		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
 	}
 
-SuTransaction::SuTransaction(TranType type) : done(false), conflict("")
+SuTransaction::SuTransaction(TranType type)
 	{
 	tran = dbms()->transaction((Dbms::TranType) type);
 	}
@@ -400,10 +400,10 @@ Value SuTransaction::call(Value self, Value member,
 		}
 	else if (member == Data)
 		{
-		args.usage("Data() or Data(value)");
-		if (Value x = args.getValue("value", Value()))
-			data = x;
-		args.end();
+		if (nargs != 0)
+			except("usage: transaction.Data()");
+		if (!data)
+			data = new SuObject();
 		return data;
 		}
 	else
