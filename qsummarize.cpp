@@ -193,8 +193,10 @@ double Summarize::seqCost(const Fields& index, const Fields& srcneeds,
 	if (freeze)
 		strategy = SEQ;
 	if (nil(by) || by_contains_key())
-		return source->optimize(nil(by) ? none : index,
-			srcneeds, by, is_cursor, freeze);
+		{
+		via = nil(by) ? none : index;
+		return source->optimize(via, 	srcneeds, by, is_cursor, freeze);
+		}
 	else
 		{
 		Fields best_index;
