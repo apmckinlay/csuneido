@@ -31,6 +31,7 @@ extern void message(const char*, const char*, unsigned long timeout_ms);
 void fatal(const char* error, const char* extra)
 	{
 	if (! cmdlineoptions.unattended)
-		message("FATAL ERROR ", error, 10 * 1000); // 10 seconds
+		// deliberately not capitalized since usually out of our control
+		message("fatal error ", error, 10 * 1000); // 10 seconds
 	fatal_log(error, extra); // assume we've lost connection
 	}
