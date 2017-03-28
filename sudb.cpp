@@ -326,6 +326,7 @@ Value SuTransaction::call(Value self, Value member,
 	static Value Conflict("Conflict");
 	static Value ReadCount("ReadCount");
 	static Value WriteCount("WriteCount");
+	static Value Data("Data");
 
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	if (member == Query)
@@ -396,6 +397,14 @@ Value SuTransaction::call(Value self, Value member,
 		if (nargs != 0)
 			except("usage: transaction.ReadCount()");
 		return dbms()->writeCount(tran);
+		}
+	else if (member == Data)
+		{
+		args.usage("Data() or Data(value)");
+		if (Value x = args.getValue("value", Value()))
+			data = x;
+		args.end();
+		return data;
 		}
 	else
 		{

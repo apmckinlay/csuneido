@@ -24,7 +24,7 @@
 #include "gcstring.h"
 #include "row.h"
 #include "hashmap.h"
-#include "suvalue.h"
+#include "value.h"
 #include "dir.h"
 
 class DbmsQuery;
@@ -112,6 +112,7 @@ public:
 private:
 	bool done;
 	const char* conflict;
+	Value data = SuFalse;
 	};
 
 // builtin Cursor value
