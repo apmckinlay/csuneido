@@ -39,7 +39,7 @@ public:
 		if (! CryptCreateHash(hCryptProv, CALG_MD5, 0, 0, &hHash))
 			except("Md5: CryptCreateHash failed");
 		}
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "Md5()"; }
 	static Method<Md5>* methods()
 		{
@@ -72,7 +72,7 @@ Value su_md5()
 	}
 
 template<>
-void BuiltinClass<Md5>::out(Ostream& os)
+void BuiltinClass<Md5>::out(Ostream& os) const
 	{ os << "Md5 /* builtin class */"; }
 
 template<>

@@ -33,11 +33,11 @@ public:
 	explicit SuMethod(Value o, Value meth, SuFunction* f)
 		: object(o), method(meth), sufn(f)
 		{ }
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	bool eq(const SuValue& x) const override;
-	size_t hashfn() override;
+	size_t hashfn() const override;
 
 	SuFunction* fn() const
 		{ return sufn; }

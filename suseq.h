@@ -29,7 +29,7 @@ class SuSeq : public SuValue
 	{
 public:
 	explicit SuSeq(Value iter);
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	void putdata(Value i, Value x) override;
@@ -53,7 +53,7 @@ class SuSeqIter : public SuValue
 	{
 public:
 	SuSeqIter(Value from, Value to, Value by);
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 private:

@@ -41,7 +41,7 @@ public:
 			except("Sha1: CryptCreateHash failed");
 		}
 
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "Sha1()"; }
 	static Method<Sha1>* methods()
 		{
@@ -74,7 +74,7 @@ Value su_sha1()
 	}
 
 template<>
-void BuiltinClass<Sha1>::out(Ostream& os)
+void BuiltinClass<Sha1>::out(Ostream& os) const
 	{ os << "Sha1 /* builtin class */"; }
 
 template<>

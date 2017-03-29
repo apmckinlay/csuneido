@@ -27,12 +27,12 @@ struct Named
 	{
 	explicit Named(const char* c = " ") : separator(c)
 		{ }
-	gcstring name();
-	gcstring library();
-	gcstring info(); // for debugging
+	gcstring name() const;
+	gcstring library() const;
+	gcstring info() const; // for debugging
 
 	gcstring lib;
-	Named* parent = nullptr;
+	const Named* parent = nullptr;
 	const char* separator;
 	ushort num = 0;
 	const char* str = nullptr; // alternative to num to avoid symbol
@@ -42,5 +42,5 @@ struct Named
 
 #define NAMED \
 	Named named; \
-	virtual Named* get_named() override \
+	const Named* get_named() const override \
 		{ return &named; }

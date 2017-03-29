@@ -83,7 +83,7 @@ bool SuDate::operator<(const SuDate& d) const
 	return date < d.date || (date == d.date && time < d.time);
 	}
 
-void SuDate::out(Ostream& out)
+void SuDate::out(Ostream& out) const
 	{
 	DateTime dt(date, time);
 	out.fill('0');
@@ -916,7 +916,7 @@ Value SuDateClass::call(Value self, Value member,
 		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
 	}
 
-void SuDateClass::out(Ostream& os)
+void SuDateClass::out(Ostream& os) const
 	{
 	os << "Date /* builtin */";
 	}

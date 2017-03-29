@@ -95,7 +95,7 @@ public:
 		{ VAL->pack(buf); }
 	const char* type() const
 		{ return is_int() ? "Number" : p ? VAL->type() : "null"; }
-	Named* get_named()
+	const Named* get_named() const
 		{ return is_int() || ! p ? 0 : VAL->get_named(); }
 	bool sameAs(Value other) const
 		{ return p == other.p; }

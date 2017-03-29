@@ -24,7 +24,7 @@
 #include "symbols.h"
 #include "globals.h"
 
-gcstring Named::name()
+gcstring Named::name() const
 	{
 	gcstring s;
 	if (parent && parent->name() != "")
@@ -36,7 +36,7 @@ gcstring Named::name()
 	return s;
 	}
 
-gcstring Named::library()
+gcstring Named::library() const
 	{
 	if (lib != "")
 		return lib;
@@ -49,7 +49,7 @@ gcstring Named::library()
 #include "ostreamstr.h"
 
 // for debugging
-gcstring Named::info()
+gcstring Named::info() const
 	{
 	OstreamStr os;
 	os << "Named {";

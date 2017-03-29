@@ -30,7 +30,7 @@ class SuAdler32 : public SuValue
 public:
 	SuAdler32() : value(1)
 		{ }
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "Adler32()"; }
 	static Method<SuAdler32>* methods()
 		{
@@ -58,7 +58,7 @@ Value su_adler32()
 	}
 
 template<>
-void BuiltinClass<SuAdler32>::out(Ostream& os)
+void BuiltinClass<SuAdler32>::out(Ostream& os) const
 	{ os << "Adler32 /* builtin class */"; }
 
 template<>

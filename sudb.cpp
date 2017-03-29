@@ -236,7 +236,7 @@ public:
 		}
 	virtual const char* type() const override
 		{ return "Builtin"; }
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << which << " /* function */"; }
 private:
 	const char* which;

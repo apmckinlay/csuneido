@@ -36,7 +36,7 @@ SuNumber* SuBoolean::number()
 	return val ? &SuNumber::one : &SuNumber::zero;
 	}
 
-void SuBoolean::out(Ostream& os)
+void SuBoolean::out(Ostream& os) const
 	{ os << gcstr(); }
 
 gcstring SuBoolean::gcstr() const

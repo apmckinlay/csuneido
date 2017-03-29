@@ -194,7 +194,7 @@ void argseach(short& nargs, short& nargnames, ushort*& argnames, int& each)
 	each = -1;
 	}
 
-void Func::out(Ostream& out)
+void Func::out(Ostream& out) const
   	{
 	out << named.name() << " /* ";
 	gcstring lib = named.library();

@@ -53,7 +53,7 @@ public:
 			locals[i] = ::symnum(s + 1);
 			}
 		}
-	void out(Ostream& out) override;
+	void out(Ostream& out) const override;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	void persist();
@@ -77,7 +77,7 @@ Value suBlock(Frame* frame, int pc, int first, int nparams)
 	return new SuBlock(frame, pc, first, nparams);
 	}
 
-void SuBlock::out(Ostream& out)
+void SuBlock::out(Ostream& out) const
 	{
 	out << "/* block */";
 	}

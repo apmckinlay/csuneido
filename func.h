@@ -45,7 +45,7 @@ public:
 	char* flags = nullptr; // for dot and dyn params
 	bool isMethod = false;
 
-	void out(Ostream& out) override;
+	void out(Ostream& out) const override;
 	void args(short nargs, short nargnames, ushort* argnames, int each);
 
 private:

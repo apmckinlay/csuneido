@@ -38,7 +38,7 @@ public:
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 
-	void out(Ostream& out) override;
+	void out(Ostream& out) const override;
 
 	// database packing
 	size_t packsize() const override
@@ -48,7 +48,7 @@ public:
 	static Value literal(const char* s);
 
 	// for use as subscript
-	size_t hashfn() override
+	size_t hashfn() const override
 		{ return date ^ time; }
 
 	int order() const override;
@@ -85,5 +85,5 @@ class SuDateClass : public SuValue
 public:
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	};

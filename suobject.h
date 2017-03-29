@@ -40,8 +40,8 @@ public:
 	void init();
 	SuObject(SuObject* ob, size_t offset); // for slice
 
-	void out(Ostream& os) override;
-	void outdelims(Ostream& os, const char* delim);
+	void out(Ostream& os) const override;
+	void outdelims(Ostream& os, const char* delim) const;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	void putdata(Value i, Value x) override;
@@ -74,7 +74,7 @@ public:
 	bool eq(const SuValue& x) const override;
 	bool lt(const SuValue& y) const override;
 	int order() const override;
-	size_t hashfn() override;
+	size_t hashfn() const override;
 
 	size_t packsize() const override;
 	void pack(char* buf) const override;

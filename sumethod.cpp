@@ -24,7 +24,7 @@
 #include "interp.h"
 #include "sufunction.h"
 
-void SuMethod::out(Ostream& os)
+void SuMethod::out(Ostream& os) const
 	{
 	//os << "OBJECT: " << object << endl;
 	//os << "METHOD: " << method << endl;
@@ -49,7 +49,7 @@ bool SuMethod::eq(const SuValue& y) const
 		return false;
 	}
 
-size_t SuMethod::hashfn()
+size_t SuMethod::hashfn() const
 	{
 	// can't use object.hash() because it will change if object changes
 	return size_t(object.ptr()) ^ method.hash();

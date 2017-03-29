@@ -177,7 +177,7 @@ public:
 		rp = new RunPiped(dupstr(cmd.str()));
 		}
 
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{
 		os << "RunPiped('" << cmd << "')";
 		}
@@ -224,7 +224,7 @@ Value su_runpiped()
 	}
 
 template<>
-void BuiltinClass<SuRunPiped>::out(Ostream& os)
+void BuiltinClass<SuRunPiped>::out(Ostream& os) const
 	{
 	os << "RunPiped /* builtin class */";
 	}

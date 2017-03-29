@@ -36,7 +36,7 @@ public:
 	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
 	Value get(char*& src, Value x) override
 		{ src += sizeof (void*); return x; }
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	long callback(Value, char*);
 private:
 	ushort* mems;

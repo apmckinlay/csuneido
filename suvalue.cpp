@@ -46,7 +46,7 @@ bool SuValue::eq(const SuValue& y) const
 	return this == &y;
 	} // default is simply compare addresses
 
-size_t SuValue::hashfn()
+size_t SuValue::hashfn() const
 	{ return ((ulong) this >> 4); } // default function just uses address
 
 int SuValue::integer() const
@@ -133,7 +133,7 @@ const char* SuValue::type() const
 	return s;
 	}
 
-Named* SuValue::get_named()
+const Named* SuValue::get_named() const
 	{
 	return 0;
 	}

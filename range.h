@@ -28,6 +28,6 @@ class SuObject;
 class Range : public SuValue
 	{
 public:
-	virtual gcstring substr(gcstring s) = 0;
-	virtual SuObject* sublist(SuObject* ob) = 0;
+	virtual gcstring substr(gcstring s) const = 0;
+	virtual SuObject* sublist(SuObject* ob) const = 0;
 	};

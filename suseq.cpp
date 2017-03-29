@@ -27,7 +27,7 @@
 SuSeq::SuSeq(Value i) : iter(i), ob(0)
 	{ }
 
-void SuSeq::out(Ostream& os)
+void SuSeq::out(Ostream& os) const
 	{
 	build();
 	ob->out(os);
@@ -155,7 +155,7 @@ SuSeqIter::SuSeqIter(Value f, Value t, Value b) : from(f), to(t), by(b), i(f)
 		}
 	}
 
-void SuSeqIter::out(Ostream& os)
+void SuSeqIter::out(Ostream& os) const
 	{
 	os << "SeqIter";
 	}

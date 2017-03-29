@@ -37,9 +37,9 @@ class SuValue
 	{
 public:
 	virtual ~SuValue() = default;
-	virtual void out(Ostream&) = 0;
+	virtual void out(Ostream&) const = 0;
 
-	virtual size_t hashfn();
+	virtual size_t hashfn() const;
 	virtual int integer() const;
 	virtual gcstring gcstr() const;
 	virtual int symnum() const;				// creates if necessary
@@ -64,7 +64,7 @@ public:
 	virtual bool eq(const SuValue& y) const;
 
 	virtual const char* type() const;
-	virtual Named* get_named();
+	virtual const Named* get_named() const;
 	};
 
 int order(const char* name);

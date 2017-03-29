@@ -55,7 +55,7 @@ Value Structure::get(char*& src, Value x)
 	return x;
 	}
 
-void Structure::out(Ostream& os)
+void Structure::out(Ostream& os) const
 	{
 	if (named.num)
 		os << named.name() << " /* " << named.lib << " struct */";

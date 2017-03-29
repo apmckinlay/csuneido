@@ -312,7 +312,7 @@ PRIM(recordq, "Record?(value)");
 
 Value name()
 	{
-	if (Named* named = TOP().get_named())
+	if (auto named = TOP().get_named())
 		return new SuString(named->name());
 	else
 		return SuString::empty_string;

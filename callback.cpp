@@ -211,7 +211,7 @@ long Callback::callback(Value fn, char* src)
 		}
 	}
 
-void Callback::out(Ostream& os)
+void Callback::out(Ostream& os) const
 	{
 	os << named.name() << " /* callback */";
 /*

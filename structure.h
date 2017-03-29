@@ -35,7 +35,7 @@ public:
 	Value get(char*& src, Value x) override;
 	void getbyref(char*& src, Value x) override
 		{ get(src, x); }
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 private:

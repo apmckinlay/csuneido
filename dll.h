@@ -31,7 +31,7 @@ public:
 	Dll(short rtype, char* library, char* name, TypeItem* p, ushort* ns, short n);
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
-	void out(Ostream&) override;
+	void out(Ostream&) const override;
 	const char* type() const override
 		{ return "Dll"; }
 private:

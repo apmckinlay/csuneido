@@ -43,7 +43,7 @@ class SuFile : public SuFinalize
 	{
 public:
 	void init(const char* filename, const char* mode);
-	virtual void out(Ostream& os) override
+	virtual void out(Ostream& os) const override
 		{ os << "File('" << filename << "', '" << mode << "')"; }
 	void close();
 	static Method<SuFile>* methods()
@@ -90,7 +90,7 @@ Value su_file()
 	}
 
 template<>
-void BuiltinClass<SuFile>::out(Ostream& os)
+void BuiltinClass<SuFile>::out(Ostream& os) const
 	{ os << "File /* builtin class */"; }
 
 template<>

@@ -29,6 +29,7 @@
 #include "sustring.h"
 #include "suclass.h"
 #include "fibers.h"
+// ReSharper disable once CppUnusedIncludeDirective
 #include "dbms.h"
 #include "win.h"
 #include "errlog.h"
@@ -44,7 +45,7 @@ class SuSocketClient : public SuFinalize
 	{
 public:
 	explicit SuSocketClient(SocketConnect* s);
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	void close();
@@ -58,7 +59,7 @@ private:
 SuSocketClient::SuSocketClient(SocketConnect* s) : sc(s)
 	{ }
 
-void SuSocketClient::out(Ostream& os)
+void SuSocketClient::out(Ostream& os) const
 	{
 	os << "SocketClient /*builtin*/";
 	}
@@ -179,14 +180,14 @@ PRIM(suSocketClient, "SocketClient(ipaddress, port, timeout=60, timeoutConnect=0
 class SuSocketServer : public RootClass
 	{
 public:
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	const char* type() const override
 		{ return "BuiltinClass"; }
 	};
 
-void SuSocketServer::out(Ostream& os)
+void SuSocketServer::out(Ostream& os) const
 	{
 	os << "SocketServer /*builtin*/";
 	}
@@ -202,7 +203,7 @@ public:
 		{ } // master
 	SuServerInstance(SuServerInstance* master, SocketConnect* s) : SuObject(*master), sc(s)
 		{ } // dup
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 private:
@@ -325,7 +326,7 @@ static void _stdcall suserver(void* arg)
 		}
 	}
 
-void SuServerInstance::out(Ostream& os)
+void SuServerInstance::out(Ostream& os) const
 	{
 	os << "SocketServerConnection";
 	}

@@ -470,8 +470,8 @@ void Compiler::member(SuObject* ob, const char* gname, const char* className, sh
 	else
 		ob->add(x);
 	if (name)
-		if (Named* nx = x.get_named())
-			if (Named* nob = ob->get_named())
+		if (Named* nx = const_cast<Named*>(x.get_named()))
+			if (auto nob = ob->get_named())
 				{
 				nx->parent = nob;
 				nx->str = mv.str();
@@ -1789,7 +1789,7 @@ void FunctionCompiler::expr0(bool newtype)
 			if (t != I_EQ)
 				syntax_error();
 			Value k = constant();
-			Named* n = k.get_named();
+			Named* n = const_cast<Named*>(k.get_named());
 			verify(n);
 			n->parent = &fn->named;
 			if (option == AUTO || option == DYNAMIC)

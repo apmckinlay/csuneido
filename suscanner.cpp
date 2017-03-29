@@ -30,7 +30,7 @@ class SuScanner : public SuValue
 	{
 public:
 	virtual void init(const char* s);
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "Scanner"; }
 	static Method<SuScanner>* methods()
 		{

@@ -29,7 +29,7 @@
 
 //TODO don't inherit from SuObject
 
-void SuClass::out(Ostream& out)
+void SuClass::out(Ostream& out) const
 	{
 	out << named.name() << " /* ";
 	if (named.lib != "")

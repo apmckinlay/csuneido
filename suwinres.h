@@ -43,7 +43,7 @@ class SuHandle : public SuWinRes
 	{
 public:
 	explicit SuHandle(void* handle);
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	bool close() override;
 	};
 
@@ -52,7 +52,7 @@ class SuGdiObj : public SuWinRes
 	{
 public:
 	explicit SuGdiObj(void* handle);
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	int integer() const override;
 	bool close() override;
 	};

@@ -63,7 +63,7 @@ void* SuNumber::operator new(size_t n)
 	return ::operator new (n, noptrs);
 	}
 
-void SuNumber::out(Ostream& os)
+void SuNumber::out(Ostream& os) const
 	{ os << *this; }
 
 int SuNumber::symnum() const
@@ -85,7 +85,7 @@ bool SuNumber::int_if_num(int* pn) const
 	return true;
 	}
 
-size_t SuNumber::hashfn()
+size_t SuNumber::hashfn() const
 	{
 	// have to ensure that hashfn() == integer() for SHRT_MIN -> SHRT_MAX
 	if (is_zero())

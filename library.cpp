@@ -97,7 +97,7 @@ void libload(int gnum)
 			else
 				src = unpack_gcstr(*srcs).str();
 			Value x = compile(src, gname);
-			if (Named* n = x.get_named())
+			if (Named* n = const_cast<Named*>(x.get_named()))
 				{
 				n->lib = lib;
 				n->num = gnum;

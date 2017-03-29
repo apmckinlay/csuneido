@@ -45,7 +45,7 @@ SuString* SuString::empty_string = new SuString("");
 
 extern bool obout_inkey;
 
-void SuString::out(Ostream& out)
+void SuString::out(Ostream& out) const
 	{
 	if (obout_inkey && is_identifier())
 		out << s;
@@ -743,7 +743,7 @@ public:
 	explicit SuStringIter(gcstring s) : str(s), i(0)
 		{ }
 
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "StringIter"; }
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;

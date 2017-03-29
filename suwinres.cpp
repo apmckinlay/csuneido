@@ -54,7 +54,7 @@ void SuWinRes::finalize()
 SuHandle::SuHandle(void* handle) : SuWinRes(handle)
 	{ }
 
-void SuHandle::out(Ostream& os)
+void SuHandle::out(Ostream& os) const
 	{
 	os << "handle " << h;
 	}
@@ -71,7 +71,7 @@ bool SuHandle::close()
 SuGdiObj::SuGdiObj(void* handle) : SuWinRes(handle)
 	{ }
 
-void SuGdiObj::out(Ostream& os)
+void SuGdiObj::out(Ostream& os) const
 	{
 	os << "gdiobj " << h;
 	}

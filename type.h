@@ -46,7 +46,7 @@ public:
 	Value get(char*& src, Value x) override;
 	Value result(long, long n) override
 		{ return n ? SuTrue : SuFalse; }
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	};
 
 // integer Types
@@ -68,7 +68,7 @@ public:
 		src += sizeof (T);
 		return x;
 		}
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value result(long, long n) override
 		{ return (T) n; }
 	};
@@ -80,7 +80,7 @@ public:
 		{ return sizeof (int64); }
 	void put(char*& dst, char*&, const char*, Value x) override;
 	Value get(char*& src, Value x) override;
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value result(long hi, long lo) override
 		{
 		int64 n = hi;
@@ -91,7 +91,7 @@ public:
 // opaque pointer type (Suneido treats it like a number)
 class TypeOpaquePointer : public TypeInt<long>
 	{
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	};
 
 // float
@@ -103,7 +103,7 @@ public:
 		{ return sizeof (float); }
 	void put(char*& dst, char*&, const char*, Value x) override;
 	Value get(char*& src, Value x) override;
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value result(long hi, long lo) override;
 	};
 
@@ -114,7 +114,7 @@ public:
 		{ return sizeof (double); }
 	void put(char*& dst, char*&, const char*, Value x) override;
 	Value get(char*& src, Value x) override;
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value result(long hi, long lo) override;
 	};
 
@@ -140,7 +140,7 @@ template <class T> class TypeWinRes : public Type
 				return x;
 		return new T(p);
 		}
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value result(long, long n) override
 		{ return new T((void*) n); }
 	};
@@ -157,7 +157,7 @@ public:
 	Value get(char*& src, Value x) override;
 	void getbyref(char*& src, Value x) override
 		{ get(src, x); }
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 protected:
 	bool in;
 	};
@@ -169,7 +169,7 @@ public:
 	TypeString(bool i = false) : TypeBuffer(i)
 		{ }
 	Value get(char*& src, Value x) override;
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value result(long, long n) override;
 	};
 
@@ -181,7 +181,7 @@ public:
 		{ return sizeof (char*); }
 	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
 	Value get(char*& src, Value x) override;
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 private:
 	static TypeString tstr;
 	static TypeInt<short> tint;
@@ -193,7 +193,7 @@ struct TypeItem
 	TypeItem() : n(0), gnum(0), tval(0)
 		{ }
 	Type& type();
-	void out(Ostream& os);
+	void out(Ostream& os) const;
 
 	short n;	// 0 for pointer, >0 for normal value, <0 for array
 	short gnum;
@@ -203,7 +203,7 @@ struct TypeItem
 // used by TypeMulti and Structure constructors
 template <class T> inline T* dup(T* src, int n)
 	{
-	T* dst = new T[n];
+	T* dst = new T[n]; // TODO alloc uninitialized
 	memcpy(dst, src, n * sizeof (T));
 	return dst;
 	}
@@ -231,5 +231,5 @@ public:
 	Value get(char*&, Value) override;
 	void putall(char*& dst, char*& dst2, const char* lim2, Value* args);
 	void getall(char*& src, Value* args);
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	};

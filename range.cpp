@@ -25,15 +25,17 @@
 #include "interp.h"
 #include "suobject.h"
 #include <limits.h>
+#include <algorithm>
+using std::min;
 
 class RangeTo : public Range
 	{
 public:
 	RangeTo(int f, int t) : from(f), to(t)
 		{ }
-	gcstring substr(gcstring s) override;
-	SuObject* sublist(SuObject* ob) override;
-	void out(Ostream& os) override
+	gcstring substr(gcstring s) const override;
+	SuObject* sublist(SuObject* ob) const override;
+	void out(Ostream& os) const override
 		{ os << "Range(" << from << " .. " << to << ")"; }
 private:
 	int from;
@@ -45,9 +47,9 @@ class RangeLen : public Range
 public:
 	RangeLen(int f, int n) : from(f), len(n)
 		{ }
-	gcstring substr(gcstring s) override;
-	SuObject* sublist(SuObject* ob) override;
-	void out(Ostream& os) override
+	gcstring substr(gcstring s) const override;
+	SuObject* sublist(SuObject* ob) const override;
+	void out(Ostream& os) const override
 		{ os << "Range(" << from << " :: " << len << ")"; }
 private:
 	int from;
@@ -94,7 +96,7 @@ static int prepTo(int to, int len)
 	return to;
 	}
 
-gcstring RangeTo::substr(gcstring s)
+gcstring RangeTo::substr(gcstring s) const
 	{
 	int size = s.size();
 	int f = prepFrom(from, size);
@@ -104,7 +106,7 @@ gcstring RangeTo::substr(gcstring s)
 	return s.substr(f, t - f);
 	}
 
-gcstring RangeLen::substr(gcstring s)
+gcstring RangeLen::substr(gcstring s) const
 	{
 	int size = s.size();
 	int f = prepFrom(from, size);
@@ -120,7 +122,7 @@ static SuObject* sublist(SuObject* ob, int from, int to)
 	return result;
 	}
 
-SuObject* RangeTo::sublist(SuObject* ob)
+SuObject* RangeTo::sublist(SuObject* ob) const
 	{
 	int size = ob->vecsize();
 	int f = prepFrom(from, size);
@@ -128,12 +130,10 @@ SuObject* RangeTo::sublist(SuObject* ob)
 	return ::sublist(ob, f, t);
 	}
 
-SuObject* RangeLen::sublist(SuObject* ob)
+SuObject* RangeLen::sublist(SuObject* ob) const
 	{
 	int size = ob->vecsize();
 	int f = prepFrom(from, size);
-	if (len > size - f)
-		len = size - f;
-	int t = f + len;
+	int t = f + min(len, size - f);
 	return ::sublist(ob, f, t);
 	}

@@ -39,7 +39,7 @@ class DatabaseClass : public SuValue
 public:
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "Database"; }
 	};
 
@@ -51,7 +51,7 @@ class SuQuery : public SuValue
 	friend struct SetTran;
 public:
 	SuQuery(const gcstring& s, DbmsQuery* n, SuTransaction* trans = 0);
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "Query(\"" << query << "\")"; }
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
@@ -82,7 +82,7 @@ class TransactionClass : public SuValue
 public:
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "Transaction"; }
 	};
 
@@ -93,7 +93,7 @@ public:
 	enum TranType { READONLY, READWRITE };
 	explicit SuTransaction(TranType type);
 	explicit SuTransaction(int tran);
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "Transaction" << tran; }
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
@@ -120,7 +120,7 @@ class CursorClass : public SuValue
 	{
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "CursorClass"; }
 	};
 
@@ -130,7 +130,7 @@ class SuCursor : public SuQuery
 public:
 	SuCursor(const gcstring& s, DbmsQuery* q) : SuQuery(s, q)
 		{ num = next_num++; }
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "Cursor" << num << "(" << query << ")"; }
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;

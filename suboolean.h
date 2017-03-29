@@ -30,7 +30,7 @@ class SuBoolean : public SuValue
 	{
 public:
 	int integer() const override;
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	gcstring gcstr() const override;
 	SuNumber* number() override; // defined by SuNumber & SuString
 

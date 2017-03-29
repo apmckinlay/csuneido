@@ -53,7 +53,7 @@ public:
 	explicit SuCOMobject(IUnknown* iu, const char* pi = "???") 
 		: iunk(iu), progid(pi), isdisp(false)
 		{ verify(NULL != iunk); }
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	// properties
@@ -88,7 +88,7 @@ void SuCOMobject::require_idispatch() const
 		except("COM: " << progid << " doesn't support IDispatch");
 	}
 
-void SuCOMobject::out(Ostream& os)
+void SuCOMobject::out(Ostream& os) const
 	{
 	os << "COMobject('" << progid << "')";
 	}

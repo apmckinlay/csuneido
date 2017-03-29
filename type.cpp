@@ -57,24 +57,24 @@ Value TypeBool::get(char*& src, Value)
 	return x;
 	}
 
-void TypeBool::out(Ostream& os)
+void TypeBool::out(Ostream& os) const
 	{ os << "bool"; }
 
 //===================================================================
 
 template<>
-void TypeInt<char>::out(Ostream& os)
+void TypeInt<char>::out(Ostream& os) const
 	{ os << "int8"; }
 
 template<>
-void TypeInt<short>::out(Ostream& os)
+void TypeInt<short>::out(Ostream& os) const
 	{ os << "int16"; }
 
 template<>
-void TypeInt<long>::out(Ostream& os)
+void TypeInt<long>::out(Ostream& os) const
 	{ os << "int32"; }
 
-void TypeInt<int64>::out(Ostream& os)
+void TypeInt<int64>::out(Ostream& os) const
 	{ os << "int64"; }
 
 void TypeInt<int64>::put(char*& dst, char*&, const char*, Value x)
@@ -104,7 +104,7 @@ Value TypeInt<int64>::get(char*& src, Value x)
 
 //===================================================================
 
-void TypeOpaquePointer::out(Ostream& os)
+void TypeOpaquePointer::out(Ostream& os) const
 	{ os << "pointer"; }
 
 //===================================================================
@@ -122,7 +122,7 @@ Value TypeFloat::get(char*& src, Value x)
 	return SuNumber::from_float(n);
 	}
 
-void TypeFloat::out(Ostream& os)
+void TypeFloat::out(Ostream& os) const
 	{ os << "float"; }
 
 Value TypeFloat::result(long, long)
@@ -151,7 +151,7 @@ Value TypeDouble::get(char*& src, Value x)
 	return SuNumber::from_double(n);
 	}
 
-void TypeDouble::out(Ostream& os)
+void TypeDouble::out(Ostream& os) const
 	{ os << "double"; }
 
 Value TypeDouble::result(long, long)
@@ -170,11 +170,11 @@ Value TypeDouble::result(long, long)
 //===================================================================
 
 template<>
-void TypeWinRes<SuHandle>::out(Ostream& os)
+void TypeWinRes<SuHandle>::out(Ostream& os) const
 	{ os << "handle"; }
 
 template<>
-void TypeWinRes<SuGdiObj>::out(Ostream& os)
+void TypeWinRes<SuGdiObj>::out(Ostream& os) const
 	{ os << "gdiobj"; }
 
 //===================================================================
@@ -188,7 +188,7 @@ public:
 	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
 	Value get(char*& src, Value x) override;
 	void getbyref(char*& src, Value x) override;
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << type << '*'; }
 	Value result(long, long n) override;
 
@@ -288,7 +288,7 @@ Value TypeBuffer::get(char*& src, Value x)
 	return x;
 	}
 
-void TypeBuffer::out(Ostream& os)
+void TypeBuffer::out(Ostream& os) const
 	{
 	os << "buffer";
 	}
@@ -317,7 +317,7 @@ Value TypeString::result(long, long n)
 		return SuFalse;
 	}
 
-void TypeString::out(Ostream& os)
+void TypeString::out(Ostream& os) const
 	{
 	if (in)
 		os << "[in] ";
@@ -355,7 +355,7 @@ Value TypeResource::get(char*& src, Value x)
 		return tstr.get(src, x);
 	}
 
-void TypeResource::out(Ostream& os)
+void TypeResource::out(Ostream& os) const
 	{
 	os << "resource";
 	}
@@ -375,7 +375,7 @@ public:
 	Value get(char*& src, Value x) override;
 	void getbyref(char*& src, Value x) override
 		{ get(src, x); }
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << type << '[' << n << ']'; }
 
 	Type* type = nullptr;
@@ -483,7 +483,7 @@ Type& TypeItem::type()
 	return *tval;
 	}
 
-void TypeItem::out(Ostream& os)
+void TypeItem::out(Ostream& os) const
 	{
 	os << globals(gnum);
 	if (n == 0)
@@ -523,7 +523,7 @@ void TypeParams::getall(char*& src, Value* args)
 	}
 
 // this isnt really necessary since dll and callback add names
-void TypeParams::out(Ostream& os)
+void TypeParams::out(Ostream& os) const
 	{
 	os << '(';
 	for (int i = 0; i < nitems; ++i)

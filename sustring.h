@@ -80,7 +80,7 @@ public:
 
 	int symnum() const override;
 
-	size_t hashfn() override
+	size_t hashfn() const override
 		{ return ::hashfn(s.begin(), s.size()); }
 
 	SuString* substr(size_t i, size_t n) const
@@ -93,7 +93,7 @@ public:
 	bool operator==(const char* t) const
 		{ return s == t; }
 
-	void out(Ostream& out) override;
+	void out(Ostream& out) const override;
 
 	static SuString* empty_string;
 

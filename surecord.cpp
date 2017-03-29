@@ -192,7 +192,7 @@ Record SuRecord::to_record(const Header& h)
 	return rec;
 	}
 
-void SuRecord::out(Ostream& os)
+void SuRecord::out(Ostream& os) const
 	{
 	if (this == globals["Record"].ptr())
 		os << "Record /* builtin */";

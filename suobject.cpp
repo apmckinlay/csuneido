@@ -54,7 +54,7 @@ public:
 		include_vec(iv), include_map(im)
 		{ }
 
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "ObjectIter"; }
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
@@ -129,7 +129,7 @@ struct HashCount
 		{ --hash_nest; }
 	};
 
-size_t SuObject::hashfn()
+size_t SuObject::hashfn() const
 	{
 	HashCount nest;
 	size_t hash = size();
@@ -137,7 +137,7 @@ size_t SuObject::hashfn()
 		return hash;
 	for (int i = 0; i < vec.size(); ++i)
 		hash += vec[i].hash();
-	for (Map::iterator it = map.begin(); it != map.end(); ++it)
+	for (auto it = map.begin(); it != map.end(); ++it)
 		hash += it->val.hash() + it->key.hash();
 	return hash;
 	}
@@ -563,7 +563,7 @@ struct MemberFinder
 	{
 	MemberFinder(Value m) : member(m)
 		{ }
-	Value operator()(SuClass* c) const
+	Value operator()(const SuClass* c) const
 		{ return c->get(member); }
 	Value member;
 	};
@@ -1076,18 +1076,18 @@ bool SuObject::eq(const SuValue& y) const
 class Track
 	{
 	public:
-		explicit Track(SuObject* ob)
+		explicit Track(const SuObject* ob)
 			{ stack.push(ob); }
 		~Track()
 			{ stack.pop(); }
-		static bool has(SuObject* ob)
+		static bool has(const SuObject* ob)
 			{ return member(stack, ob); }
 	private:
-		static Lisp<SuObject*> stack;
+		static Lisp<const SuObject*> stack;
 	};
-Lisp<SuObject*> Track::stack;
+Lisp<const SuObject*> Track::stack;
 
-void SuObject::out(Ostream& os)
+void SuObject::out(Ostream& os) const
 	{
 	outdelims(os, "()");
 	}
@@ -1101,13 +1101,14 @@ struct ObOutInKey
 		{ obout_inkey = false; }
 	};
 
-void SuObject::outdelims(Ostream& os, const char* delims)
+void SuObject::outdelims(Ostream& os, const char* delims) const
 	{
 	static Value ToString("ToString");
-	Value c = lookup(this, MethodFinder(ToString));
+
+	Value c = lookup(const_cast<SuObject*>(this), MethodFinder(ToString));
 	if (c && c != SuFalse)
 		{
-		Value x = c.call(this, ToString, 0, 0, 0, -1);
+		Value x = c.call(const_cast<SuObject*>(this), ToString, 0, 0, 0, -1);
 		if (! x)
 			except("ToString must return a value");
 		if (const char* s = x.str_if_str())
@@ -1117,7 +1118,7 @@ void SuObject::outdelims(Ostream& os, const char* delims)
 		return ;
 		}
 
-	if (Named* n = myclass.get_named())
+	if (auto n = myclass.get_named())
 		{
 		os << n->name() << "()";
 		return ;
@@ -1137,7 +1138,7 @@ void SuObject::outdelims(Ostream& os, const char* delims)
 	for (i = 0; i < vec.size(); ++i)
 		os << (i > 0 ? ", " : "") << vec[i];
 
-	for (Map::iterator it = map.begin(); it != map.end(); ++it)
+	for (auto it = map.begin(); it != map.end(); ++it)
 		{
 		if (i++ > 0)
 			os << ", ";

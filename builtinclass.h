@@ -33,7 +33,7 @@ public:
 	typedef Value (T::*MemFun)(BuiltinArgs&);
 	BuiltinMethod(T* o, MemFun f) : ob(o), fn(f)
 		{ }
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "/* builtin method */"; }
 	Value call(Value self, Value member,
 		short nargs, short nargnames, ushort *argnames, int each) override
@@ -128,7 +128,7 @@ public:
 		else
 			method_not_found(builtintype<T>(), member);
 		}
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "/* builtin class */"; }
 	static Value instantiate(BuiltinArgs&)
 		{ return new T; }

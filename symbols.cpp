@@ -37,7 +37,7 @@ public:
 		{ }
 	int symnum() const override;
 	bool eq(const SuValue& y) const override;
-	void out(Ostream& os) override;
+	void out(Ostream& os) const override;
 	};
 
 const int MAX_SYMBOLS = 32 * 1024;
@@ -65,7 +65,7 @@ bool SuSymbol::eq(const SuValue& y) const
 
 extern bool obout_inkey;
 
-void SuSymbol::out(Ostream& os)
+void SuSymbol::out(Ostream& os) const
 	{
 	if (! obout_inkey)
 		os << '#';

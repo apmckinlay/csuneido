@@ -92,7 +92,7 @@ Dll::Dll(short rt, char* library, char* name, TypeItem* p, ushort* ns, short n)
 		}
 	}
 
-void Dll::out(Ostream& os)
+void Dll::out(Ostream& os) const
 	{
 	if (named.num)
 		os << named.name() << " /* " << named.lib << " dll " << pfn << " */";

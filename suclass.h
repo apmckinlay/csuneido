@@ -37,7 +37,7 @@ public:
 	explicit SuClass(const SuClass& c) :
 		SuObject(c), named("."), base(c.base)
 		{ }
-	void out(Ostream&) override;
+	void out(Ostream&) const override;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort *argnames, int each) override;
 	Value getdata(Value) override;
@@ -56,7 +56,7 @@ public:
 class RootClass : public SuValue
 	{
 public :
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{ os << "Object"; }
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort *argnames, int each) override;
