@@ -29,6 +29,7 @@
 class SuNumber;
 
 // string values - wraps gcstring
+// immutable
 class SuString : public SuValue
 	{
 public:
@@ -65,11 +66,6 @@ public:
 	void pack(char* buf) const override;
 	static SuString* unpack(const gcstring& s);
 
-	char* buf()
-		{ return s.buf(); }
-	const char* buf() const
-		{ return s.buf(); }
-
 	const char* begin() const
 		{ return s.begin(); }
 
@@ -85,17 +81,17 @@ public:
 	int symnum() const override;
 
 	size_t hashfn() override
-		{ return ::hashfn(s.buf(), s.size()); }
-	SuString* substr(size_t i, size_t n)
+		{ return ::hashfn(s.begin(), s.size()); }
+
+	SuString* substr(size_t i, size_t n) const
 		{
 		return (i == 0 && n >= s.size())
-			? this
+			? (SuString*) this
 			: new SuString(s.substr(i, n));
 		}
+
 	bool operator==(const char* t) const
 		{ return s == t; }
-	void adjust()	 // set length to strlen
-		{ s = s.substr(0, s.find('\0')); }
 
 	void out(Ostream& out) override;
 
@@ -162,6 +158,12 @@ class SuBuffer : public SuString
 	{
 public:
 	SuBuffer(size_t n, const gcstring& s);
+
+	char* buf()
+		{ return s.buf(); }
+
+	void adjust()	 // set length to strlen
+		{ s = s.substr(0, s.find('\0')); }
 	};
 
 bool is_identifier(const char* s, int n = -1);

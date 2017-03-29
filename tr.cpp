@@ -56,7 +56,7 @@ gcstring tr(const gcstring& srcstr, const gcstring& from, const gcstring& to)
 	bool collapse = lastto > 0 && (allbut || lastto < fromset.size());
 	--lastto;
 
-	char* buf = new char[srclen + 1];
+	char* buf = salloc(srclen);
 	memcpy(buf, src, si);
 	char* dst = buf + si;
 

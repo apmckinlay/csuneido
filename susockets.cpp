@@ -81,11 +81,11 @@ Value SuSocketClient::call(Value self, Value member,
 		if (n == 0)
 			return SuEmptyString;
 		ckopen("Read");
-		SuString* s = new SuString(n);
-		int nr = sc->read(s->buf(), n);
+		char* buf = salloc(n);
+		int nr = sc->read(buf, n);
 		if (nr <= 0)
 			except("socket Read lost connection or timeout");
-		return s->substr(0, nr);
+		return new SuString(nr, buf);
 		}
 	else if (member == Readline)
 		{
@@ -346,10 +346,10 @@ Value SuServerInstance::call(Value self, Value member,
 		int n = ARG(0).integer();
 		if (n == 0)
 			return SuEmptyString;
-		SuString* s = new SuString(n);
-		if (0 == sc->read(s->buf(), n))
+		char* buf = salloc(n);
+		if (0 == sc->read(buf, n))
 			except("socket server: lost connection");
-		return s;
+		return new SuString(n, buf);
 		}
 	if (member == Readline)
 		{

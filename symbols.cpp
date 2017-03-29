@@ -117,7 +117,7 @@ const char* symstr(int i)
 	{
 	return i & 0x8000
 		? symbol(i).str()
-		: itostr(i, new char[8], 10);
+		: itostr(i, salloc(8), 10);
 	}
 
 #include "prim.h"

@@ -230,7 +230,7 @@ const char* CmdLineOptions::get_word()
 	while (*s && ! isspace(*s))
 		++s;
 	int n = s - start;
-	char* buf = new char[n + 1];
+	char* buf = salloc(n);
 	memcpy(buf, start, n);
 	buf[n] = 0;
 	return buf;

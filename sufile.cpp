@@ -154,12 +154,12 @@ Value SuFile::Read(BuiltinArgs& args)
 	n = min(n, end - pos);
 	if (n <= 0)
 		return SuFalse;
-	SuString* s = new SuString(n);
-	auto nr = fread(s->buf(), 1, n, f);
+	char* buf = salloc(n);
+	auto nr = fread(buf, 1, n, f);
 	if (n != nr)
 		except("File: Read: error reading from: " << filename <<
 			" (expected " << n << " got " << nr << ")");
-	return s;
+	return new SuString(n, buf);
 	}
 
 // NOTE: Readline should be consistent across file, socket, and runpiped

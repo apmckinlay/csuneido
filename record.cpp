@@ -557,9 +557,10 @@ class test_record : public Tests
 
 		Record big;
 		big.addnil();
-		SuString* s = new SuString(100000);
-		memset(s->buf(), 0x77, 100000);
-		big.addval(Value(s));
+		const int bblen = 100000;
+		char* bigbuf = salloc(bblen);
+		memset(bigbuf, 0x77, bblen);
+		big.addval(new SuString(bblen, bigbuf));
 		int n = big.cursize();
 		verify(100000 <= n && n <= 100050);
 		}

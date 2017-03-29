@@ -133,13 +133,13 @@ bool SuString::lt(const SuValue& y) const
 		return ord < yo;
 	}
 
-SuBuffer::SuBuffer(size_t n, const gcstring& s) : SuString(n)
+SuBuffer::SuBuffer(size_t n, const gcstring& init) : SuString(n)
 	{
-	size_t sn = s.size();
+	size_t sn = init.size();
 	if (n < sn)
 		except("Buffer must be large enough for initial string");
-	memcpy(buf(), s.buf(), sn);
-	memset(buf() + sn, 0, n - sn);
+	memcpy(s.buf(), init.buf(), sn);
+	memset(s.buf() + sn, 0, n - sn);
 	}
 
 // packing ==========================================================
@@ -156,7 +156,7 @@ void SuString::pack(char* dst) const
 	if (n == 0)
 		return ;
 	dst[0] = PACK_STRING;
-	memcpy(dst + 1, buf(), n);
+	memcpy(dst + 1, begin(), n);
 	}
 
 /*static*/ SuString* SuString::unpack(const gcstring& s)
@@ -288,7 +288,7 @@ Value SuString::Asc(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
 		except("usage: string.Asc()");
-	return (uchar) *buf();
+	return (uchar) *begin();
 	}
 
 bool isGlobal(const char* s)
@@ -469,7 +469,7 @@ Value SuString::Match(short nargs, short nargnames, ushort* argnames, int each)
 	int pos = (posval == SuFalse) ? (prev ? size() : 0) : posval.integer();
 	args.end();
 	Rxpart parts[MAXPARTS];
-	char* t = buf();
+	const char* t = begin();
 	bool hasmatch = prev ? rx_match_reverse(t, size(), pos, rx_compile(pat), parts)
 						 : rx_match(t, size(), pos, rx_compile(pat), parts);
 	if (! hasmatch)
@@ -494,7 +494,7 @@ Value SuString::Extract(short nargs, short nargnames, ushort* argnames, int each
 		except("usage: string.Extract(pattern, part = 0/1) -> false or string");
 	gcstring pat = ARG(0).gcstr();
 	Rxpart parts[MAXPARTS];
-	if (! rx_match(buf(), size(), 0, rx_compile(pat), parts))
+	if (! rx_match(begin(), size(), 0, rx_compile(pat), parts))
 		return SuFalse;
 
 	int i = nargs == 2 ? ARG(1).integer() : (parts[1].n >= 0 ? 1 : 0);
@@ -576,7 +576,8 @@ Value SuString::MapN(short nargs, short nargnames, ushort* argnames, int each)
 		{
 		KEEPSP
 		PUSH(new SuString(s.substr(i, n)));
-		dst.add(docall(block, CALL, 1, 0, 0, -1).gcstr());
+		if (auto value = docall(block, CALL, 1, 0, 0, -1))
+			dst.add(value.gcstr());
 		}
 	return new SuString(dst.gcstr());
 	}
@@ -602,7 +603,7 @@ Value SuString::Detab(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
 		except("usage: string.Detab()");
-	const char* ss = buf();
+	const char* ss = begin();
 	int sn = size();
 
 	const int MAXTABS = 32;
@@ -701,14 +702,13 @@ Value SuString::Repeat(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 1 || nargnames != 0)
 		except("usage: string.Repeat(count)");
-	char* src = buf();
 	int len = size();
 	int n = max(0, ARG(0).integer());
-	SuString* t = new SuString(n * len);
-	char* dst = t->buf();
+	char* buf = salloc(n * len);
+	char* dst = buf;
 	for (int i = 0; i < n; ++i, dst += len)
-		memcpy(dst, src, len);
-	return t;
+		memcpy(dst, begin(), len);
+	return new SuString(n * len, buf);
 	}
 
 Value SuString::Numberq(short nargs, short nargnames, ushort* argnames, int each)
@@ -724,7 +724,7 @@ Value SuString::Unescape(short nargs, short nargnames, ushort* argnames, int eac
 		except("usage: string.Unescape()");
 
 	int n = size();
-	const char* ss = buf();
+	const char* ss = begin();
 	char* buf = (char*) _alloca(n);
 	char* dst = buf;
 	for (int i = 0; i < n; ++i)
@@ -789,9 +789,9 @@ Value SuString::Mbstowcs(short nargs, short nargnames, ushort* argnames, int eac
 		except("usage: string.Mbstowcs()");
 	auto src = str();
 	int n = mbstowcs(NULL, src, 0) + 1;
-	SuString* dst = new SuString(n * 2);
-	mbstowcs((wchar_t*) dst->buf(), src, n);
-	return dst;
+	char* buf = salloc(n * 2);
+	mbstowcs((wchar_t*) buf, src, n);
+	return new SuString(n * 2, buf);
 	}
 
 Value SuString::Wcstombs(short nargs, short nargnames, ushort* argnames, int each)
@@ -800,20 +800,20 @@ Value SuString::Wcstombs(short nargs, short nargnames, ushort* argnames, int eac
 		except("usage: string.Wcstombs()");
 	wchar_t* src = (wchar_t*) str();
 	int n = wcstombs(NULL, src, 0);
-	SuString* dst = new SuString(n);
-	wcstombs(dst->buf(), src, n);
-	return dst;
+	char* buf = salloc(n);
+	wcstombs(buf, src, n);
+	return new SuString(n, buf);
 	}
 
 Value SuString::Upper(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0)
 		except("usage: string.Upper()");
-	SuString* dst = new SuString(size());
-	char* t = dst->buf();
-	for (auto src = begin(); src != end(); ++src, ++t)
-		*t = toupper((unsigned int) *src);
-	return dst;
+	char* buf = salloc(size());
+	char* dst = buf;
+	for (auto c : *this)
+		*dst++ = toupper((unsigned int) c);
+	return new SuString(size(), buf);
 	}
 
 Value SuString::Lower(short nargs, short nargnames, ushort* argnames, int each)
@@ -825,11 +825,11 @@ Value SuString::Lower(short nargs, short nargnames, ushort* argnames, int each)
 
 SuString* SuString::tolower() const
 	{
-	SuString* dst = new SuString(size());
-	char* t = dst->buf();
-	for (auto src = begin(); src != end(); ++src, ++t)
-		*t = ::tolower((unsigned int) *src);
-	return dst;
+	char* buf = salloc(size());
+	char* dst = buf;
+	for (auto c : *this)
+		*dst++ = ::tolower((unsigned int)c);
+	return new SuString(size(), buf);
 	}
 
 Value SuString::Upperq(short nargs, short nargnames, ushort* argnames, int each)

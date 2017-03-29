@@ -163,3 +163,5 @@ template <> struct HashFn<gcstring>
 
 bool has_prefix(const char* s, const char* pre);
 bool has_suffix(const char* s, const char* pre);
+
+char* salloc(int n);

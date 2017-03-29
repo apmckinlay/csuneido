@@ -399,7 +399,7 @@ void TypeArray::put(char*& dst, char*& dst2, const char* lim2, Value x)
 			{
 			// string[] is special case for strings
 			int len = min(sx->size(), n);
-			memcpy(dst, sx->buf(), len);
+			memcpy(dst, sx->begin(), len);
 			if (dynamic_cast<TypeString*>(type))
 				dst[min(sx->size(),n-1)] = 0;
 			}
@@ -422,7 +422,7 @@ Value TypeArray::get(char*& src, Value x)
 		src += n;
 		SuString* sx = val_cast<SuString*>(x);
 		int len = strlen(s);
-		if (sx && len == sx->size() && 0 == memcmp(s, sx->buf(), len))
+		if (sx && len == sx->size() && 0 == memcmp(s, sx->begin(), len))
 			return x;
 		return new SuString(s);
 		}
@@ -432,7 +432,7 @@ Value TypeArray::get(char*& src, Value x)
 		char* s = src;
 		src += n;
 		SuString* sx = val_cast<SuString*>(x);
-		if (sx && n == sx->size() && 0 == memcmp(s, sx->buf(), n))
+		if (sx && n == sx->size() && 0 == memcmp(s, sx->begin(), n))
 			return x;
 		return new SuString(s,n);
 		}

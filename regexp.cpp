@@ -177,9 +177,7 @@ class RxCompile
 	{
 public:
 	RxCompile(const char* src, int len) :
-		s(src), lim(s + len),
-		buflen(len * 3 + 8), buf(new char[buflen]), n(0), nl(1),
-		literal(false)
+		s(src), lim(s + len), buflen(len * 3 + 8), buf(salloc(buflen))
 		{ }
 	char* compile();
 private:
@@ -201,12 +199,12 @@ private:
 		{ return s + 1 < lim ? s[1] : 0; }
 
 	const char* s;		// input
-	const char* lim;	// input limit
+	const char* lim;		// input limit
 	int buflen;
 	char* buf;			// output
-	int n;				// output length
-	int nl;				// left parenthesis count
-	bool literal;
+	int n = 0;			// output length
+	int nl = 1;			// left parenthesis count
+	bool literal = false;
 	};
 
 char* rx_compile(const gcstring& s)

@@ -46,7 +46,7 @@ gcstring::gcstring(size_t nn) : n(nn)
 		p = empty_buf;
 	else
 		{
-		char* buf = new(noptrs) char[nn + 1];
+		char* buf = salloc(nn);
 		buf[n] = 0;
 		p = buf;
 		}
@@ -65,7 +65,7 @@ void gcstring::init(const char* p2, size_t n2)
 		}
 	verify(p2);
 	// note: always nul terminated
-	char* buf = new(noptrs) char[n2 + 1];
+	char* buf = salloc(n2);
 	n = n2;
 	verify(n >= 0);
 	memcpy((void*) buf, (void*) p2, n2);
@@ -89,7 +89,7 @@ gcstring& gcstring::operator+=(const gcstring& s)
 		}
 	else
 		{
-		char* q = new(noptrs) char[totsize + 1];
+		char* q = salloc(totsize);
 		memcpy(q, buf(), size());
 		memcpy(q + size(), s.buf(), s.size());
 		n += s.size();
@@ -106,7 +106,7 @@ const char* gcstring::str() const
 	else if (p[n] != 0) // caused by substr
 		{
 		verify(n != 0);
-		char* q = new(noptrs) char[n + 1];
+		char* q = salloc(n);
 		memcpy((void*) q, (void*) p, n);
 		q[n] = 0;
 		p = q;
@@ -215,7 +215,7 @@ void gcstring::flatten() const
 	{
 	verify(n < 0);
 	verify(cc->left.size() + cc->right.size() == -n);
-	char* s = new(noptrs) char[-n + 1];
+	char* s = salloc(-n);
 	copy(s, this);
 	n = -n;
 	s[n] = 0;
@@ -251,7 +251,7 @@ gcstring gcstring::to_heap()
 	{
 	if (! gc_inheap(buf()))
 		{
-		char* q = new(noptrs) char[n + 1];
+		char* q = salloc(n);
 		memcpy((void*) q, (void*) p, n);
 		q[n] = 0;
 		p = q;
@@ -275,6 +275,11 @@ gcstring gcstring::uncapitalize() const
 	gcstring s(buf(), size()); // dup
 	*s.buf() = tolower(s[0]);
 	return s;
+	}
+
+char* salloc(int n)
+	{
+	return new(noptrs) char[n + 1];
 	}
 
 #include "testing.h"
