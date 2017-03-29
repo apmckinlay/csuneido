@@ -20,8 +20,8 @@
 /eta.go
 /getjar.bat
 /makefile.install
-/mingw_debug
-/mingw_release
+*_debug/
+*_release/
 /optimize.bat
 /stdlib.su
 /suneido.db.1
@@ -41,10 +41,6 @@ hunspell
 Release/
 Debug/
 .vs/
-
-# /gc6.5/
-/gc6.5/mingw_release
-/gc6.5/mingw_debug
 
 # /installer/
 /installer/Output
