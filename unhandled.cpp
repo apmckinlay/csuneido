@@ -25,6 +25,7 @@
 #include "except.h"
 #include "fibers.h" // for tls()
 #include <stdlib.h> // for exit
+#include "itostr.h"
 
 #define EXCEPT(x) case EXCEPTION_##x: except("win32 exception: " #x);
 #define EXCEPTION(x) case EXCEPTION_##x: return (#x);
@@ -89,7 +90,7 @@ extern bool is_client;
 			write(tls().fiber_id);
 			write(": ");
 			}
-		write("FATAL ERROR ");
+		write("fatal error: ");
 		write(error);
 		if (*extra)
 			{
@@ -122,15 +123,17 @@ void unhandled()
 	SetUnhandledExceptionFilter(filter);
 	}
 
-#define ERR_BASENAME "suneido.err"
+extern int su_port;
 
 char* err_filename()
 	{
-	static char buf[512];
+	static char buf[512]; // avoid using stack space
 
 	int n = GetTempPath(sizeof buf, buf);
-	if (n == 0 || n > sizeof buf - (strlen(ERR_BASENAME) + 1))
-		return 0;
-	strcat(buf, ERR_BASENAME);
+	if (n == 0 || n > sizeof buf - 32)
+		buf[0] = 0;
+	strcat(buf, "suneido");
+	itostr(su_port, buf + strlen(buf));
+	strcat(buf, ".err");
 	return buf;
 	}
