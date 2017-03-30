@@ -60,6 +60,7 @@ void builtins();
 
 static void init(HINSTANCE hInstance, LPSTR lpszCmdLine);
 static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine);
+static void logPreviousErrors();
 
 BOOL CALLBACK splash(HWND, UINT uMsg, WPARAM, LPARAM)
 	{
@@ -187,16 +188,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		is_client = true;
 		set_dbms_server_ip(cmdlineoptions.argstr);
 		atexit(close_dbms);
-		char* filename = err_filename();
-		FILE* f = fopen(filename, "r");
-		if (f)
-			{
-			char buf[1024] = "PREVIOUS: ";
-			while (fgets(buf + 10, sizeof buf - 10, f))
-				dbms()->log(buf);
-			fclose(f);
-			remove(filename);
-			}
+		logPreviousErrors();
 		break ;
 		}
 	case COMPACT :
@@ -231,7 +223,20 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		exit(EXIT_FAILURE);
 	}
 
-// called by interp
+static void logPreviousErrors()
+	{
+	char* filename = err_filename();
+	if (FILE* f = fopen(filename, "r"))
+		{
+		char buf[1024] = "PREVIOUS: ";
+		while (fgets(buf + 10, sizeof buf - 10, f))
+			dbms()->log(buf);
+		fclose(f);
+		remove(filename);
+		}
+	}
+
+	// called by interp
 void ckinterrupt()
 	{
 	MSG msg;

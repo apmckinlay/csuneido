@@ -32,6 +32,6 @@ void fatal(const char* error, const char* extra)
 	{
 	if (! cmdlineoptions.unattended)
 		// deliberately not capitalized since usually out of our control
-		message("fatal error ", error, 10 * 1000); // 10 seconds
+		message("Fatal Error", error, 10 * 1000); // 10 seconds
 	fatal_log(error, extra); // assume we've lost connection
 	}
