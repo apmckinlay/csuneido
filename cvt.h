@@ -28,14 +28,14 @@ char* cvt_long(char* p, long n);
 
 // stores n in s, s must have at least 4 bytes
 inline gcstring cvt_long(const gcstring& s, long n)
-	{ cvt_long(s.buf(), n); return s; }
+	{ cvt_long(s.ptr(), n); return s; }
 
 // p must have at least 4 bytes
 long cvt_long(const char* p);
 
 // s must have at least 4 bytes
 inline long cvt_long(const gcstring& s)
-	{ return cvt_long(s.buf()); }
+	{ return cvt_long(s.ptr()); }
 
 // stores n in p, p must have at least 2 bytes
 char* cvt_short(char* p, short n);

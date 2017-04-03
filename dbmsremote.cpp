@@ -81,6 +81,8 @@ public:
 		{ DO(sc->writebuf(buf, len)); }
 	void read(char* buf, int len)
 		{ DO(if (len != sc->read(buf, len)) except("socket read timeout in dbmsremote")); }
+	gcstring read(int n)
+		{ DO(return sc->read(n)); }
 	void readline(char* buf, int len)
 		{ DO(if (! sc->readline(buf, len)) except("socket readline timeout in dbmsremote")); }
 	char* ck_readline(char* buf, int len)
@@ -122,9 +124,7 @@ public:
 			return Value();
 		char* s = buf;
 		int n = ck_getnum('P', s);
-		gcstring result(n);
-		read(result.buf(), n);
-		return unpack(result);
+		return unpack(read(n));
 		}
 	void close()
 		{ sc->close(); }
@@ -521,9 +521,7 @@ Lisp<gcstring> DbmsRemote::libget(const char* name)
 		sc.readline(buf2, sizeof buf2);
 		srcs.push(stripnl(buf2)); // library
 
-		gcstring src(n);
-		sc.read(src.buf(), n);
-		srcs.push(src); // text
+		srcs.push(sc.read(n)); // text
 		}
 	return srcs.reverse();
 	}
@@ -694,17 +692,13 @@ int DbmsRemote::kill(const char* s)
 gcstring DbmsRemote::nonce()
 	{
 	sc.write("NONCE\r\n");
-	gcstring buf(Auth::NONCE_SIZE);
-	sc.read(buf.buf(), buf.size());
-	return buf;
+	return sc.read(Auth::NONCE_SIZE);
 	}
 
 gcstring DbmsRemote::token()
 	{
 	sc.write("TOKEN\r\n");
-	gcstring buf(Auth::TOKEN_SIZE);
-	sc.read(buf.buf(), buf.size());
-	return buf;
+	return sc.read(Auth::TOKEN_SIZE);
 	}
 
 bool DbmsRemote::auth(const gcstring& data)
@@ -712,7 +706,7 @@ bool DbmsRemote::auth(const gcstring& data)
 	if (data.size() == 0)
 		return false;
 	WRITEBUF("AUTH D" << data.size());
-	sc.write((char*) data.buf(), data.size());
+	sc.write(data.ptr(), data.size());
 	return sc.readbool();
 	}
 

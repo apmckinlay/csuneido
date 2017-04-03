@@ -31,8 +31,8 @@ public:
 	virtual int size() = 0; // in dst
 	virtual void put(char*& dst, char*& dst2, const char* lim2, Value x) = 0;
 	// WARNING: dst is not checked for overflow - call size first
-	virtual Value get(char*& src, Value x) = 0;
-	virtual void getbyref(char*& src, Value x);
+	virtual Value get(const char*& src, Value x) = 0;
+	virtual void getbyref(const char*& src, Value x);
 	virtual Value result(long, long);
 	};
 
@@ -43,7 +43,7 @@ public:
 	int size() override
 		{ return sizeof (int); }
 	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
-	Value get(char*& src, Value x) override;
+	Value get(const char*& src, Value x) override;
 	Value result(long, long n) override
 		{ return n ? SuTrue : SuFalse; }
 	void out(Ostream& os) const override;
@@ -60,7 +60,7 @@ public:
 		*((T*) dst) = x ? (T) x.integer() : 0;
 		dst += sizeof (T);
 		}
-	Value get(char*& src, Value x) override
+	Value get(const char*& src, Value x) override
 		{
 		T n = *((T*) src);
 		if (! x || n != x.integer())
@@ -79,7 +79,7 @@ public:
 	int size() override
 		{ return sizeof (int64); }
 	void put(char*& dst, char*&, const char*, Value x) override;
-	Value get(char*& src, Value x) override;
+	Value get(const char*& src, Value x) override;
 	void out(Ostream& os) const override;
 	Value result(long hi, long lo) override
 		{
@@ -102,7 +102,7 @@ public:
 	int size() override
 		{ return sizeof (float); }
 	void put(char*& dst, char*&, const char*, Value x) override;
-	Value get(char*& src, Value x) override;
+	Value get(const char*& src, Value x) override;
 	void out(Ostream& os) const override;
 	Value result(long hi, long lo) override;
 	};
@@ -113,7 +113,7 @@ public:
 	int size() override
 		{ return sizeof (double); }
 	void put(char*& dst, char*&, const char*, Value x) override;
-	Value get(char*& src, Value x) override;
+	Value get(const char*& src, Value x) override;
 	void out(Ostream& os) const override;
 	Value result(long hi, long lo) override;
 	};
@@ -131,7 +131,7 @@ template <class T> class TypeWinRes : public Type
 			*((void**) dst) = x ? (void*) x.integer() : 0;
 		dst += sizeof (void*);
 		}
-	Value get(char*& src, Value x) override
+	Value get(const char*& src, Value x) override
 		{
 		void* p = *((void**) src);
 		src += sizeof (void*);
@@ -154,8 +154,8 @@ public:
 	int size() override
 		{ return sizeof (char*); }
 	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
-	Value get(char*& src, Value x) override;
-	void getbyref(char*& src, Value x) override
+	Value get(const char*& src, Value x) override;
+	void getbyref(const char*& src, Value x) override
 		{ get(src, x); }
 	void out(Ostream& os) const override;
 protected:
@@ -168,7 +168,7 @@ class TypeString : public TypeBuffer
 public:
 	TypeString(bool i = false) : TypeBuffer(i)
 		{ }
-	Value get(char*& src, Value x) override;
+	Value get(const char*& src, Value x) override;
 	void out(Ostream& os) const override;
 	Value result(long, long n) override;
 	};
@@ -180,7 +180,7 @@ public:
 	int size() override
 		{ return sizeof (char*); }
 	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
-	Value get(char*& src, Value x) override;
+	Value get(const char*& src, Value x) override;
 	void out(Ostream& os) const override;
 private:
 	static TypeString tstr;
@@ -228,8 +228,8 @@ public:
 	TypeParams(TypeItem* it, int n) : TypeMulti(it, n)
 		{ }
 	void put(char*&, char*&, const char*, Value) override;
-	Value get(char*&, Value) override;
+	Value get(const char*&, Value) override;
 	void putall(char*& dst, char*& dst2, const char* lim2, Value* args);
-	void getall(char*& src, Value* args);
+	void getall(const char*& src, Value* args);
 	void out(Ostream& os) const override;
 	};

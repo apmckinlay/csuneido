@@ -57,6 +57,7 @@ public:
 
 	virtual size_t packsize() const;
 	virtual void pack(char* buf) const;
+	gcstring pack() const;
 
 	// WARNING: order-able types must define both order and lt
 	virtual int order() const;

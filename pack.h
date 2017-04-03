@@ -27,6 +27,7 @@
 class Value;
 class gcstring;
 
+Value unpack(const char* buf, int len);
 Value unpack(const gcstring& s);
 gcstring unpack_gcstr(const gcstring& s);
 

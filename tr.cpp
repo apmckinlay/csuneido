@@ -22,8 +22,8 @@
 
 #include "tr.h"
 #include "except.h"
-#include "ostreamstr.h"
 #include "cachemap.h"
+#include "buffer.h"
 
 using namespace std;
 
@@ -40,7 +40,7 @@ gcstring tr(const gcstring& srcstr, const gcstring& from, const gcstring& to)
 	bool allbut = (from[0] == '^');
 	gcstring fromset = makset(allbut ? from.substr(1) : from);
 
-	const char* src = srcstr.buf();
+	auto src = srcstr.ptr();
 	int si = 0;
 	for (; si < srclen; ++si)
 		{
@@ -86,7 +86,7 @@ gcstring tr(const gcstring& srcstr, const gcstring& from, const gcstring& to)
 		}
 finished:
 	*dst = 0;
-	return gcstring(dst - buf, buf); // no alloc
+	return gcstring::noalloc(buf, dst - buf);
 	}
 
 static gcstring makset(const gcstring& s)
@@ -103,14 +103,14 @@ static gcstring makset(const gcstring& s)
 static gcstring expandRanges(const gcstring& s)
 	{
 	int n = s.size();
-	OstreamStr dst(n);
+	Buffer dst(n);
 	for (int i = 0; i < n; ++i)
 		if (s[i] == '-' && i > 0 && i + 1 < n)
 			for (uchar c = s[i - 1] + 1; c < (uchar) s[i + 1]; ++c)
-				dst << c;
+				dst .add(c);
 		else
-			dst << s[i];
-	return gcstring(dst.size(), dst.str()); // no alloc
+			dst.add(s[i]);
+	return dst.gcstr();
 	}
 
 static int xindex(const gcstring& fromset, char c, bool allbut, int lastto)
@@ -161,6 +161,13 @@ class test_tr : public Tests
 
 		asserteq(tr("abc", "abcdefghijklmnop", "abcdefg"), "abc");
 		asserteq(tr("nop", "abcdefghijklmnop", "abcdefg"), "g");
+		}
+	TEST(1, expandRanges)
+		{
+		gcstring s = expandRanges(gcstring("\x00-\xff", 3));
+		asserteq(s.size(), 256);
+		asserteq(s[0], '\x00');
+		asserteq(s[255], '\xff');
 		}
 	};
 REGISTER(test_tr);

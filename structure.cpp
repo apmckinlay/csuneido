@@ -40,7 +40,7 @@ void Structure::put(char*& dst, char*& dst2, const char* lim2, Value x)
 		items[i].type().put(dst, dst2, lim2, ob->get(symbol(mems[i])));
 	}
 
-Value Structure::get(char*& src, Value x)
+Value Structure::get(const char*& src, Value x)
 	{
 	if (! x)
 		x = new SuObject;//(nitems);
@@ -109,7 +109,7 @@ Value Structure::call(Value self, Value member,
 			if (! n)
 				return SuFalse;
 			// TODO: use VirtualQuery to check if valid
-			char* s = (char*) n;
+			const char* s = (char*) n;
 			return get(s, Value());
 			}
 		else
@@ -121,7 +121,7 @@ Value Structure::call(Value self, Value member,
 			if (s.size() < size())
 				except("string not long enough to convert to this structure");
 			// TODO: get should make sure pointed to data is within s
-			char* src = s.buf();
+			auto src = s.ptr();
 			return get(src, Value());
 			}
 		}

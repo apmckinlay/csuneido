@@ -212,7 +212,7 @@ char* rx_compile(const gcstring& s)
 	static CacheMap<10,gcstring,char*> cache;
 	if (char** p = cache.get(s))
 		return *p;
-	return cache.put(s, RxCompile(s.buf(), s.size()).compile());
+	return cache.put(s, RxCompile(s.ptr(), s.size()).compile());
 	}
 
 char* RxCompile::compile()
@@ -1054,7 +1054,7 @@ class test_regexp2 : public Tests
 	{
 	TEST(0, main)
 		{
-		char* pat = rx_compile(gcstring(6, "[\x00-\xff]+"));
+		char* pat = rx_compile(gcstring("[\x00-\xff]+", 6));
 		Rxpart parts[MAXPARTS];
 		auto s = "axb";
 		rx_amatch(s, 0, 3, pat, parts);

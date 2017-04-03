@@ -90,8 +90,8 @@ gcstring& gcstring::operator+=(const gcstring& s)
 	else
 		{
 		char* q = salloc(totsize);
-		memcpy(q, buf(), size());
-		memcpy(q + size(), s.buf(), s.size());
+		memcpy(q, ptr(), size());
+		memcpy(q + size(), s.ptr(), s.size());
 		n += s.size();
 		q[n] = 0;
 		p = q;
@@ -118,7 +118,7 @@ const char* gcstring::str() const
 bool operator<(const gcstring& x, const gcstring& y)
 	{
 	size_t minlen = x.size() < y.size() ? x.size() : y.size();
-	int r = memcmp(x.buf(), y.buf(), minlen);
+	int r = memcmp(x.ptr(), y.ptr(), minlen);
 	if (r == 0)
 		r = x.size() - y.size();
 	return r < 0;
@@ -133,7 +133,7 @@ gcstring gcstring::substr(size_t i, int len) const
 		i = n;
 	if (len == -1 || len > n - i)
 		len = max(0, (int)(n - i));
-	return gcstring(len, p + i); // no alloc
+	return noalloc(p + i, len);
 	}
 
 gcstring gcstring::trim() const
@@ -243,13 +243,13 @@ void gcstring::copy(char* dst, const gcstring* s)
 
 Ostream& operator<<(Ostream& os, const gcstring& s)
 	{
-	(void) os.write(s.buf(), s.size());
+	(void) os.write(s.ptr(), s.size());
 	return os;
 	}
 
 gcstring gcstring::to_heap()
 	{
-	if (! gc_inheap(buf()))
+	if (! gc_inheap(ptr()))
 		{
 		char* q = salloc(n);
 		memcpy((void*) q, (void*) p, n);
@@ -261,20 +261,22 @@ gcstring gcstring::to_heap()
 
 gcstring gcstring::capitalize() const
 	{
-	if (size() == 0 || isupper(*buf()))
+	if (size() == 0 || isupper(*ptr()))
 		return *this;
-	gcstring s(buf(), size()); // dup
-	*s.buf() = toupper(s[0]);
-	return s;
+	char* buf = salloc(size());
+	memcpy(buf, ptr(), size());
+	*buf = toupper(*buf);
+	return gcstring(buf, size());
 	}
 
 gcstring gcstring::uncapitalize() const
 	{
-	if (size() == 0 || islower(*buf()))
+	if (size() == 0 || islower(*ptr()))
 		return *this;
-	gcstring s(buf(), size()); // dup
-	*s.buf() = tolower(s[0]);
-	return s;
+	char* buf = salloc(size());
+	memcpy(buf, ptr(), size());
+	*buf = tolower(*buf);
+	return gcstring(buf, size());
 	}
 
 char* salloc(int n)
@@ -327,7 +329,7 @@ class test_gcstring : public Tests
 			s += big;
 		asserteq(s.size(), N * bigsize);
 		for (i = 0; i < N; ++i)
-			verify(has_prefix(s.buf() + i * bigsize, big));
+			verify(has_prefix(s.ptr() + i * bigsize, big));
 		}
 	TEST(5, find)
 		{

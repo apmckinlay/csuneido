@@ -48,7 +48,7 @@ int ck_getnum(char type, char*& s)
 	int num = getnum(type, s);
 	if (num == ERR)
 		{
-		gcstring t(strlen(s), s); // no alloc (except copies)
+		gcstring t = gcstring::noalloc(s);
 		if (t.has_suffix("\r\n"))
 			t = t.substr(0, t.size() - 2);
 		except("expecting: " << type << "#, got: " << t);

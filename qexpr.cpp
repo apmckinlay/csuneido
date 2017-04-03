@@ -39,9 +39,8 @@ Expr* Query::make_constant(Value x)
 	return new Constant(x);
 	}
 
-Constant::Constant(Value x) : value(x), packed(x.packsize())
+Constant::Constant(Value x) : value(x), packed(x.pack())
 	{
-	x.pack(packed.buf());
 	}
 
 void Constant::out(Ostream& os) const
@@ -356,9 +355,7 @@ In::In(Expr* e, const Lisp<Value>& v) : expr(e), values(v), isterm(false)
 	for (Lisp<Value> vs = values; ! nil(vs); ++vs)
 		{
 		Value x = *vs;
-		gcstring p(x.packsize());
-		x.pack(p.buf());
-		packed.push(p);
+		packed.push(x.pack());
 		}
 	}
 

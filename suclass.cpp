@@ -130,11 +130,11 @@ void SuClass::pack(char* buf) const
 
 SuClass* SuClass::unpack(const gcstring& s)
 	{
-	const char* buf = s.buf() + 1; // skip PACK_CLASS
+	const char* buf = s.ptr() + 1; // skip PACK_CLASS
 	short base = globals(unpackstr(buf));
 	SuClass* c = new SuClass(base);
 	buf += unpackname(buf, c->named);
-	unpack2(gcstring(s.end() - buf, buf), c);
+	unpack2(gcstring::noalloc(buf, s.ptr() + s.size() - buf), c);
 	return c;
 	}
 

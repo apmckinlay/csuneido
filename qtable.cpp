@@ -470,8 +470,7 @@ class test_qtable : public Tests
 
 		Table table("lines");
 		SuValue* one = new SuNumber(1);
-		gcstring onepacked(one->packsize());
-		one->pack(onepacked.buf());
+		gcstring onepacked = one->pack();
 		Iselect oneisel;
 		oneisel.org.x = oneisel.end.x = onepacked;
 		float f = table.iselsize(lisp(gcstring("linenum")), lisp(oneisel));

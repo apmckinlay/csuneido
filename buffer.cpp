@@ -66,7 +66,7 @@ Buffer& Buffer::add(const char* s, int n)
 Buffer& Buffer::add(const gcstring& s)
 	{
 	int n = s.size();
-	memcpy(alloc(n), s.buf(), n);
+	memcpy(alloc(n), s.ptr(), n);
 	return *this;
 	}
 
@@ -79,7 +79,7 @@ void Buffer::remove(int n)
 
 gcstring Buffer::gcstr()
 	{
-	return gcstring(used, str()); // no alloc
+	return gcstring::noalloc(str(), used);
 	}
 
 char* Buffer::str()

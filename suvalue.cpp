@@ -90,6 +90,14 @@ size_t SuValue::packsize() const
 void SuValue::pack(char* buf) const
 	{ except("can't pack " << type()); }
 
+gcstring SuValue::pack() const
+	{
+	int n = packsize();
+	char* buf = salloc(n);
+	pack(buf);
+	return gcstring::noalloc(buf, n);
+	}
+
 Ostream& operator<<(Ostream& out, SuValue* x)
 	{
 	if (x)

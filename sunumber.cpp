@@ -1292,7 +1292,7 @@ void SuNumber::pack(char* buf) const
 		return &SuNumber::zero;
 	verify(sz == 2 || sz == 4 || sz == 6 || sz == 8 || sz == 10);
 	SuNumber* n = new SuNumber(0L);
-	const uchar* buf = (const uchar*) s.buf();
+	const uchar* buf = (const uchar*) s.ptr();
 	n->sign = buf[0] == PACK_PLUS ? PLUS : MINUS;
 	if (n->sign == PLUS)
 		{

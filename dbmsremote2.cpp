@@ -184,8 +184,7 @@ private:
 
 DbmsRemote::DbmsRemote(SocketConnect* sc) : io(sc)
 	{
-	gcstring hello(HELLO_SIZE);
-	sc->read(hello.buf(), hello.size());
+	gcstring hello = sc->read(HELLO_SIZE);
 	if (!checkHello(hello))
 		except("connect failed\n" <<
 			"client: Suneido " << build << "\n" <<
@@ -320,7 +319,7 @@ Row DbmsRemote::getRow(Header* phdr)
 	if (phdr)
 		*phdr = getHeader();
 	gcstring r = io.getBuf();
-	return Row(Record(static_cast<void*>(r.buf())), recadr);
+	return Row(Record(r.ptr()), recadr);
 	}
 
 int DbmsRemote::kill(const char* sessionid)
@@ -380,8 +379,7 @@ Lisp<gcstring> DbmsRemote::libget(const char* name)
 	for (int i = 0; i < n; ++i)
 		{
 		srcs.push(libs[i]);
-		gcstring src(sizes[i]);
-		io.read(src.buf(), sizes[i]);
+		gcstring src = io.read(sizes[i]);
 		srcs.push(src); // text
 		}
 	return srcs.reverse();

@@ -262,10 +262,9 @@ Value SuRunPiped::Read(BuiltinArgs& args)
 	args.end();
 
 	ckopen();
-	gcstring gcstr(n);
-	n = rp->read(gcstr.buf(), n);
-
-	return n == 0 ? SuFalse : new SuString(gcstr.substr(0, n));
+	char* buf = salloc(n);
+	n = rp->read(buf, n);
+	return n == 0 ? SuFalse : SuString::noalloc(buf, n);
 	}
 
 // NOTE: Readline should be consistent across file, socket, and runpiped
@@ -308,7 +307,7 @@ void SuRunPiped::write(BuiltinArgs& args)
 	args.end();
 
 	ckopen();
-	rp->write(s.buf(), s.size());
+	rp->write(s.ptr(), s.size());
 	}
 
 Value SuRunPiped::CloseWrite(BuiltinArgs& args)

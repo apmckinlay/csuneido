@@ -230,7 +230,7 @@ protected: // not private so tests can subclass and override
 	Fields source_index; // may have extra stuff on the end, or be missing fields that are fixed
 	};
 
-gcstring fieldmax(1, "\x7f");
+gcstring fieldmax = gcstring::noalloc("\x7f");
 
 Query* Query::make_select(Query* s, Expr* e)
 	{

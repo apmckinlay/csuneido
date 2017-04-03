@@ -25,10 +25,10 @@
 #include "sunumber.h"
 #include "symbols.h"
 #include <malloc.h>
-#include <new>
 #include <typeinfo>
 
 class gcstring;
+class SuString;
 class SuObject;
 class Ostream;
 
@@ -44,6 +44,8 @@ public:
 	Value() : p(nullptr)
 		{ }
 	Value(SuValue* x) : p(x)
+		{ }
+	Value(const SuString* x) : p((SuValue*) x)
 		{ }
 	Value(int n)
 		{
@@ -93,6 +95,7 @@ public:
 		{ return VAL->packsize(); }
 	void pack(char* buf) const
 		{ VAL->pack(buf); }
+	gcstring pack() const;
 	const char* type() const
 		{ return is_int() ? "Number" : p ? VAL->type() : "null"; }
 	const Named* get_named() const

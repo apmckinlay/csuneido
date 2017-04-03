@@ -34,6 +34,11 @@ gcstring Value::gcstr() const
 	return VAL->gcstr();
 	}
 
+gcstring Value::pack() const
+	{
+	return VAL->pack();
+	}
+
 Ostream& operator<<(Ostream& os, Value x)
 	{
 	if (x.is_int())

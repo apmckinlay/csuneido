@@ -34,10 +34,10 @@ public:
 	int size() override
 		{ return sizeof (void*); }
 	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
-	Value get(char*& src, Value x) override
+	Value get(const char*& src, Value x) override
 		{ src += sizeof (void*); return x; }
 	void out(Ostream& os) const override;
-	long callback(Value, char*);
+	long callback(Value fn, const char* src);
 private:
 	ushort* mems;
 	};

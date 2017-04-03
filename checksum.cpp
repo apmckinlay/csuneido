@@ -36,7 +36,7 @@ typedef unsigned char uchar;
 #define DO8(buf,i)  DO4(buf,i); DO4(buf,i+4)
 #define DO16(buf)   DO8(buf,0); DO8(buf,8)
 
-ulong checksum(ulong adler, void* p, int len)
+ulong checksum(ulong adler, const void* p, int len)
 	{
 	ulong s1 = adler & 0xffff;
 	ulong s2 = (adler >> 16) & 0xffff;

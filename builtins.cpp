@@ -326,7 +326,7 @@ Value memcopy()
 		{
 		// Memcopy(string, address)
 		char* p = (char*) ARG(1).integer();
-		memcpy(p, s->begin(), s->size());
+		memcpy(p, s->ptr(), s->size());
 		return Value();
 		}
 	else
@@ -436,7 +436,7 @@ Value su_pack()
 	int len = ARG(0).packsize();
 	char* buf = salloc(len);
 	ARG(0).pack(buf);
-	return new SuString(len, buf);
+	return SuString::noalloc(buf, len);
 	}
 PRIM(su_pack, "Pack(value)");
 

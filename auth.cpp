@@ -34,14 +34,13 @@ gcstring rndstr(int size)
 	static bool first = true;
 	if (first)
 		{
-		srand(time(NULL));
+		srand(time(nullptr));
 		first = false;
 		}
-	gcstring s(size);
-	char* dst = s.buf();
+	char* buf = salloc(size);
 	for (int i = 0; i < size; ++i)
-		*dst++ = rand();
-	return s;
+		buf[i] = rand();
+	return gcstring::noalloc(buf, size);
 	}
 
 gcstring Auth::nonce()

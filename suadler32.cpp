@@ -44,7 +44,7 @@ public:
 		}
 	const char* type() const override
 		{ return "Adler32"; }
-	void update(gcstring gcstr);
+	void update(const gcstring& gcstr);
 	ulong value;
 private:
 	Value Update(BuiltinArgs&);
@@ -91,9 +91,9 @@ Value SuAdler32::Update(BuiltinArgs& args)
 	return this;
 	}
 
-void SuAdler32::update(gcstring s)
+void SuAdler32::update(const gcstring& s)
 	{
-	value = checksum(value, s.buf(), s.size());
+	value = checksum(value, s.ptr(), s.size());
 	}
 
 Value SuAdler32::ValueFn(BuiltinArgs& args)

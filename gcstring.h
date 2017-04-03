@@ -26,10 +26,8 @@
 
 class Ostream;
 
-// string class for use with garbage collection
+// immutable string class for use with garbage collection
 // defers concatenation by making a linked list of pieces
-// mostly immutable but used as buffers in a few places
-// TODO make fully immutable
 class gcstring
 	{
 	// invariant: if n is 0 then p is empty_buf
@@ -50,23 +48,24 @@ public:
 		return *this;
 		}
 
-	// CAUTION: constructor that doesn't allocate
-	// WARNING: p2[n2] must be valid, ie. p2 must be one bigger than n2 !!!
-	gcstring(size_t n2, const char* p2)
-		: n(n2), p(n2 == 0 ? empty_buf : const_cast<char*>(p2))
-		{ }
+	// CAUTION: p must be one bigger than n to allow for nul
+	// use salloc() to handle this
+	static gcstring noalloc(const char* p, size_t n)
+		{ return gcstring(n, p); }
+	static gcstring noalloc(const char* s)
+		{ return gcstring(strlen(s), s); }
 
 	size_t size() const
 		{ return n >= 0 ? n : -n; }
-	char* buf()
-		{ ckflat(); return (char*)p; }
-	const char* buf() const
+
+	typedef const char* const_iterator;
+	const_iterator begin() const
 		{ ckflat(); return p; }
-	// begin is same as buf but STL name
-	const char* begin() const
-		{ ckflat(); return p; }
-	const char* end() const
+	const_iterator end() const
 		{ ckflat(); return p + n; }
+
+	const char* ptr() const // not necessarily nul terminated
+		{ ckflat(); return p; }
 	const char* str() const; // nul terminated
 
 	const char& operator[](int i) const
@@ -97,13 +96,22 @@ public:
 	gcstring capitalize() const;
 	gcstring uncapitalize() const;
 
-protected:
+private:
 	mutable int n; // mutable because of flatten, negative means concat
 	union
 		{
 		mutable const char* p; // mutable because of str()
 		struct Concat* cc;
 		};
+	static const char* empty_buf;
+
+	// CAUTION: constructor that doesn't allocate
+	// WARNING: p2[n2] must be valid, ie. p2 must be one bigger than n2 !!!
+	// p2[n2] should be nul if you will use str()
+	gcstring(size_t n2, const char* p2)
+		: n(n2), p(n2 == 0 ? empty_buf : p2)
+		{ }
+	friend class SuString;
 
 	void init(const char* p2, size_t n2);
 
@@ -111,16 +119,17 @@ protected:
 		{ if (n < 0) flatten(); }
 	void flatten() const;
 	static void copy(char* s, const gcstring* p);
-private:
-	static const char* empty_buf;
+	friend class SuBuffer;
+	char* buf()
+		{ ckflat(); return (char*)p; }
 	};
 
 inline bool operator==(const gcstring& x, const gcstring& y)
-	{ return x.size() == y.size() && 0 == memcmp(x.buf(), y.buf(), x.size()); }
+	{ return x.size() == y.size() && 0 == memcmp(x.ptr(), y.ptr(), x.size()); }
 inline bool operator==(const gcstring& x, const char* y)
-	{ return x == gcstring(strlen(y), y); }
+	{ return x == gcstring::noalloc(y); }
 inline bool operator==(const char* x, const gcstring& y)
-	{ return gcstring(strlen(x), x) == y; }
+	{ return gcstring::noalloc(x) == y; }
 
 inline bool operator!=(const gcstring& x, const char* y)
 	{ return ! (x == y); }
@@ -131,13 +140,12 @@ inline bool operator!=(const gcstring& x, const gcstring& y)
 
 inline gcstring operator+(const char* s, const gcstring& t)
 	{
-	gcstring x(strlen(s), s);
-	return x += t;
+	return gcstring::noalloc(s) += t;
 	}
 inline gcstring operator+(const gcstring& s, const char* t)
 	{
 	gcstring x(s);
-	return x += gcstring(strlen(t), t);
+	return x += gcstring::noalloc(t);
 	}
 inline gcstring operator+(const gcstring& s, const gcstring& t)
 	{
@@ -147,9 +155,9 @@ inline gcstring operator+(const gcstring& s, const gcstring& t)
 
 bool operator<(const gcstring& x, const gcstring& y);
 inline bool operator<(const gcstring& x, const char* y)
-	{ return x < gcstring(strlen(y), y); }
+	{ return x < gcstring::noalloc(y); }
 inline bool operator<(const char* x, const gcstring& y)
-	{ return gcstring(strlen(x), x) < y; }
+	{ return gcstring::noalloc(x) < y; }
 
 Ostream& operator<<(Ostream& os, const gcstring& s);
 
@@ -158,7 +166,7 @@ template <class T> struct HashFn;
 template <> struct HashFn<gcstring>
 	{
 	size_t operator()(const gcstring& s) const
-		{ return hashfn(s.buf(), s.size()); }
+		{ return hashfn(s.ptr(), s.size()); }
 	};
 
 bool has_prefix(const char* s, const char* pre);

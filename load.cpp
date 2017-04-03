@@ -23,7 +23,6 @@
 #include "load.h"
 #include "istreamfile.h"
 #include "database.h"
-#include "scanner.h"
 #include "thedb.h"
 #include "record.h"
 #include "query.h"
@@ -33,7 +32,6 @@
 #else
 #include <unistd.h> // for access
 #endif
-#include "pack.h" // for fix
 #include "alert.h"
 #include "errlog.h"
 #include "exceptimp.h"
@@ -63,8 +61,6 @@ struct Loading
 		}
 	};
 
-static bool fix = false;
-
 extern bool thedb_create;
 
 void load(const gcstring& table)
@@ -83,9 +79,8 @@ void load(const gcstring& table)
 		if (! fin)
 			except("can't open database.su");
 		fin.getline(buf, bufsize);
-		if (! has_prefix(buf, "Suneido dump"))
+		if (! has_prefix(buf, "Suneido dump 1"))
 			except("invalid file");
-		fix = has_prefix(buf, "Suneido dump 0.9");
 
 		if (_access("suneido.db", 0) == 0)
 			{
@@ -116,15 +111,14 @@ int load_table(const gcstring& table)
 	if (!fin)
 		except("can't open " << table << ".su");
 	fin.getline(buf, bufsize);
-	if (!has_prefix(buf, "Suneido dump"))
+	if (!has_prefix(buf, "Suneido dump 1"))
 		except("invalid file");
-	fix = has_prefix(buf, "Suneido dump 0.9");
 
 	char* buf2 = buf + table.size() + 1;
 	fin.getline(buf2, bufsize);
 	verify(0 == memcmp(buf2, "======", 6));
 	memcpy(buf, "create ", 7);
-	memcpy(buf + 7, table.buf(), table.size());
+	memcpy(buf + 7, table.ptr(), table.size());
 	Loading loading;
 	int n = load1(fin, buf);
 	verify(!alerts);
@@ -185,19 +179,6 @@ static void load_data_record(Istream& fin, const gcstring& table, int tran, int 
 		Record rec(loadbuf);
 		if (rec.cursize() != n)
 			except_err(table << ": rec size " << rec.cursize() << " not what was read " << n);
-		if (fix && table != "views")
-			{
-			Record newrec(rec.cursize());
-			// start at 1 to skip old _deleted field
-			for (int i = 1, rn = rec.size(); i < rn; ++i)
-				{
-				gcstring s = rec.getraw(i);
-				if (s[0] == PACK_MINUS)
-					s.buf()[1] = ~s[1];
-				newrec.addraw(s);
-				}
-			rec = newrec;
-			}
 		if (table == "views")
 			theDB()->add_any_record(tran, table, rec);
 		else

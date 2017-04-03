@@ -37,9 +37,9 @@ public:
 	Record() : crep(0)
 		{ }
 	explicit Record(size_t sz);
-	explicit Record(void* r);
+	explicit Record(const void* r);
 	Record(Mmfile* mmf, Mmoffset offset);
-	Record(size_t sz, void* buf);
+	Record(size_t sz, const void* buf);
 	int size() const;
 	void addraw(const gcstring& s);
 	void addval(Value x);

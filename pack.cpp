@@ -33,6 +33,11 @@
 #include "cvt.h"
 #include "globals.h"
 
+Value unpack(const char* buf, int len)
+	{
+	return unpack(gcstring::noalloc(buf, len));
+	}
+
 Value unpack(const gcstring& s)
 	{
 	if (s.size() == 0)
@@ -104,7 +109,7 @@ Value unpackvalue(const char*& buf)
 	int n;
 	n = cvt_long(buf);
 	buf += sizeof (long);
-	Value x = ::unpack(gcstring(n, buf));
+	Value x = ::unpack(buf, n);
 	buf += n;
 	return x;
 	}
@@ -237,7 +242,7 @@ long unpacklong(const gcstring& s)
 	int sz = s.size();
 	if (sz <= 2)
 		return 0;
-	const uchar* buf = (const uchar*) s.buf();
+	const uchar* buf = (const uchar*) s.ptr();
 	verify(buf[0] == PACK_PLUS || buf[0] == PACK_MINUS);
 	verify(sz == 2 || sz == 4 || sz == 6 || sz == 8);
 	int n = 0;
@@ -301,7 +306,7 @@ class test_pack : public Tests
 		buf[n] = '\xc4';
 		x.pack(buf);
 		verify(buf[n] == '\xc4');
-		Value y = ::unpack(gcstring(n, buf)); // no alloc
+		Value y = ::unpack(buf, n);
 		asserteq(x, y);
 		}
 	TEST(3, long_pack)
@@ -320,7 +325,7 @@ class test_pack : public Tests
 		{
 		char buf[80];
 		packlong(buf, x);
-		gcstring s(packsize(x), buf); // no alloc
+		gcstring s = gcstring::noalloc(buf, packsize(x));
 		long y = unpacklong(s);
 		asserteq(x, y);
 		Value num = ::unpack(s);

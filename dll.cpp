@@ -218,7 +218,7 @@ Value Dll::call(Value self, Value member,
 		}
 
 	// update SuObject args passed by pointer
-	char* src = buf;
+	const char* src = buf;
 	params.getall(src, args);
 
 	return rtype ? force<Type*>(globals[rtype])->result(result2, result) : Value();

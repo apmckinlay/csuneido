@@ -56,6 +56,7 @@ public:
 	using Connection::write;
 	void write(const char* buf, int n) override;
 	void read(char* dst, int n) override;
+	using Serializer::read;
 	};
 
 const int HELLO_SIZE = 50; // must match jSuneido

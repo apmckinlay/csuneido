@@ -84,7 +84,7 @@ void SocketConnect::write(const char* s)
 
 void SocketConnect::write(const gcstring& s)
 	{
-	write(s.buf(), s.size());
+	write(s.ptr(), s.size());
 	}
 
 void SocketConnect::writebuf(const char* s)
@@ -94,7 +94,7 @@ void SocketConnect::writebuf(const char* s)
 
 void SocketConnect::writebuf(const gcstring& s)
 	{
-	writebuf(s.buf(), s.size());
+	writebuf(s.ptr(), s.size());
 	}
 
 // socket server --------------------------------------------------------------

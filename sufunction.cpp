@@ -501,7 +501,7 @@ static int fixnames(uchar* code, int nc, const char* buf);
 SuFunction* SuFunction::unpack(const gcstring& s)
 	{
 	SuFunction* fn = new SuFunction;
-	const char* buf = s.buf() + 1; // skip PACK_FUNCTION
+	const char* buf = s.ptr() + 1; // skip PACK_FUNCTION
 	int i;
 
 	buf += unpackname(buf, fn->named);
@@ -535,7 +535,7 @@ SuFunction* SuFunction::unpack(const gcstring& s)
 	fn->ndefaults = cvt_short(buf);
 	buf += sizeof (short);
 
-	verify(buf == s.end());
+	verify(buf == s.ptr() + s.size());
 	return fn;
 	}
 
@@ -666,7 +666,7 @@ class test_packfunc : public Tests
 		buf1[n] = '\xc4';
 		fn.pack(buf1);
 		verify(buf1[n] == '\xc4');
-		Value x = unpack(gcstring(n, buf1));
+		Value x = unpack(buf1, n);
 		verify(val_cast<SuFunction*>(x));
 		assert_eq(n, x.packsize());
 		char* buf2 = new char[n + 1];

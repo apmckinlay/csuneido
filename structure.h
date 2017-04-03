@@ -32,8 +32,8 @@ public:
 	NAMED
 	Structure(TypeItem* it, ushort* ms, int n);
 	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
-	Value get(char*& src, Value x) override;
-	void getbyref(char*& src, Value x) override
+	Value get(const char*& src, Value x) override;
+	void getbyref(const char*& src, Value x) override
 		{ get(src, x); }
 	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 

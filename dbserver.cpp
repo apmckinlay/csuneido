@@ -131,13 +131,13 @@ private:
 	void write(const char* s)
 		{ sc->write(s, strlen(s)); }
 	void write(const gcstring& s)
-		{ sc->write(s.buf(), s.size()); 	}
+		{ sc->write(s.ptr(), s.size()); 	}
 	void writebuf(char* buf, int n)
 		{ sc->writebuf(buf, n); }
 	void writebuf(char* s)
 		{ sc->writebuf(s, strlen(s)); }
 	void writebuf(const gcstring& s)
-		{ sc->writebuf(s.buf(), s.size()); }
+		{ sc->writebuf(s.ptr(), s.size()); }
 
 	DbmsQuery* q_or_c(char*& s);
 	DbmsQuery* q_or_tc(char*& s);
@@ -795,8 +795,7 @@ extern Value exec(Value ob);
 const char* DbServer::cmd_exec(char* s)
 	{
 	int n = ck_getnum('P', s);
-	gcstring buf(n);
-	sc->read(buf.buf(), n);
+	gcstring buf = sc->read(n);
 	return value_result(exec(unpack(buf)));
 	}
 
@@ -861,8 +860,7 @@ const char* DbServer::cmd_token(char* s)
 const char* DbServer::cmd_auth(char* s)
 	{
 	int n = ck_getnum('D', s);
-	gcstring buf(n);
-	sc->read(buf.buf(), n);
+	gcstring buf = sc->read(n);
 	bool result = Auth::auth(data->nonce, buf);
 	if (result)
 		data->auth = true;

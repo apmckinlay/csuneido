@@ -172,9 +172,7 @@ gcstring Row::getrawval(const Header& hdr, const gcstring& col) const
 	if (! surec)
 		get_surec(hdr);
 	Value val = surec->getdata(symbol(col));
-	gcstring s(val.packsize());
-	val.pack(s.buf());
-	return s;
+	return val.pack();
 	}
 
 gcstring Row::getstr(const Header& hdr, const gcstring& col) const

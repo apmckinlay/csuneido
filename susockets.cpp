@@ -86,7 +86,7 @@ Value SuSocketClient::call(Value self, Value member,
 		int nr = sc->read(buf, n);
 		if (nr <= 0)
 			except("socket Read lost connection or timeout");
-		return new SuString(nr, buf);
+		return SuString::noalloc(buf, nr);
 		}
 	else if (member == Readline)
 		{
@@ -350,7 +350,7 @@ Value SuServerInstance::call(Value self, Value member,
 		char* buf = salloc(n);
 		if (0 == sc->read(buf, n))
 			except("socket server: lost connection");
-		return new SuString(n, buf);
+		return SuString::noalloc(buf, n);
 		}
 	if (member == Readline)
 		{

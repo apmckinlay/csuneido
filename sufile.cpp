@@ -159,7 +159,7 @@ Value SuFile::Read(BuiltinArgs& args)
 	if (n != nr)
 		except("File: Read: error reading from: " << filename <<
 			" (expected " << n << " got " << nr << ")");
-	return new SuString(n, buf);
+	return SuString::noalloc(buf, n);
 	}
 
 // NOTE: Readline should be consistent across file, socket, and runpiped
@@ -181,7 +181,7 @@ Value SuFile::Write(BuiltinArgs& args)
 	args.end();
 
 	ckopen("Write");
-	if (s.size() != fwrite(s.buf(), 1, s.size(), f))
+	if (s.size() != fwrite(s.ptr(), 1, s.size(), f))
 		except("File: Write: error writing to: " << filename);
 	return arg;
 	}
@@ -194,7 +194,7 @@ Value SuFile::Writeline(BuiltinArgs& args)
 	args.end();
 
 	ckopen("Writeline");
-	if (s.size() != fwrite(s.buf(), 1, s.size(), f) ||
+	if (s.size() != fwrite(s.ptr(), 1, s.size(), f) ||
 		fputs(end_of_line, f) < 0)
 		except("File: Write: error writing to: " << filename);
 	return arg;

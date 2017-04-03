@@ -412,7 +412,7 @@ void SuObject::pack(char* buf) const
 	{
 	if (s.size() <= 1)
 		return ob;
-	const char* buf = s.buf() + 1; // skip PACK_OBJECT
+	const char* buf = s.ptr() + 1; // skip PACK_OBJECT
 
 	int nv = cvt_long(buf);
 	buf += sizeof (long);
@@ -428,7 +428,7 @@ void SuObject::pack(char* buf) const
 		Value value = unpackvalue(buf);
 		ob->put(member, value);
 		}
-	verify(buf == s.end());
+	verify(buf == s.ptr() + s.size());
 	return ob;
 	}
 
@@ -952,7 +952,7 @@ Value SuObject::Join(short nargs, short nargnames, ushort* argnames, int each)
 			break ;
 		oss << separator;
 		}
-	return new SuString(oss.size(), oss.str());
+	return new SuString(oss.gcstr());
 	}
 
 Value SuObject::Set_readonly(short nargs, short nargnames, ushort* argnames, int each)

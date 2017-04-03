@@ -40,9 +40,9 @@ void GC_register_finalizer_ignore_self(void* p, GC_finalization_proc fn, void* d
 	GC_finalization_proc* oldfn, void* olddata);
 };
 
-inline bool gc_inheap(void* p)
+inline bool gc_inheap(const void* p)
 	{
-	return 0 != GC_base(p);
+	return 0 != GC_base(const_cast<void*>(p));
 	}
 
 struct NoPtrs { };

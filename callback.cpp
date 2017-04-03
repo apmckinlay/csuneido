@@ -177,7 +177,7 @@ long callback(Value fn, Callback* cb, char* src)
 
 extern void handler(const Except&);
 
-long Callback::callback(Value fn, char* src)
+long Callback::callback(Value fn, const char* src)
 	{
 	KEEPSP
 	try

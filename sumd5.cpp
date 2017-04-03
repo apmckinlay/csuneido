@@ -107,7 +107,7 @@ Value Md5::Update(BuiltinArgs& args)
 
 void Md5::update(gcstring s)
 	{
-	if (! CryptHashData(hHash, (BYTE*) s.buf(), s.size(), 0))
+	if (! CryptHashData(hHash, (BYTE*) s.ptr(), s.size(), 0))
 		except("Md5: CryptHashData failed");
 	}
 
@@ -117,7 +117,7 @@ gcstring Md5::value()
 	{
 	DWORD dwHashLen = MD5_SIZE;
 	gcstring out(dwHashLen);
-	if (! CryptGetHashParam(hHash, HP_HASHVAL, (unsigned char*) out.buf(), &dwHashLen, 0))
+	if (! CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*) out.ptr(), &dwHashLen, 0))
 		except("Md5: CryptGetHashParam failed");
 	verify(dwHashLen == MD5_SIZE);
 	return out;

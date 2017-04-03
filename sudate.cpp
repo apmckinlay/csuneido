@@ -644,7 +644,7 @@ static SuString* format(int date, int time, const char* fmt)
 			}
 		}
 	dst.push_back(0);
-	return new SuString(dst.size() - 1, &dst[0]);
+	return SuString::noalloc(&dst[0], dst.size() - 1);
 	}
 
 Value SuDate::FormatEn(short nargs, short nargnames, ushort* argnames, int each)
@@ -859,7 +859,7 @@ void SuDate::pack(char* buf) const
 SuDate* SuDate::unpack(const gcstring& s)
 	{
 	verify(s.size() == 9);
-	const unsigned char* p = (unsigned char*) s.buf();
+	auto p = (const unsigned char*) s.ptr();
 	verify(*p == PACK_DATE);
 	++p;
 
@@ -934,7 +934,7 @@ class test_sudate : public Tests
 		buf[9] = 123;
 		date->pack(buf);
 		verify(buf[9] == 123);
-		gcstring s(9, buf);
+		gcstring s = gcstring::noalloc(buf, 9);
 		SuDate* date2 = SuDate::unpack(s);
 		verify(date->eq(*date2));
 		}

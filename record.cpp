@@ -45,7 +45,7 @@ template <class T> struct RecRep
 			return gcstring();
 		size_t size = off[i-1] - off[i];
 		verify(size <= sz - off[i]);
-		return gcstring(size, (char*) this + off[i]);
+		return gcstring::noalloc((char*) this + off[i], size);
 		}
 	size_t cursize() const
 		{
@@ -68,7 +68,7 @@ template <class T> struct RecRep
 		return (char*) this + off[n++];
 		}
 	void add(const gcstring& s)
-		{ memcpy(alloc(s.size()), s.buf(), s.size()); }
+		{ memcpy(alloc(s.size()), s.ptr(), s.size()); }
 	void truncate(int i)
 		{
 		if (i < n)
@@ -94,7 +94,7 @@ Record::Record(size_t sz) : crep((RecRep<unsigned char>*) ::operator new (sz + 1
 	reinterpret_cast<char*>(crep)[sz] = 0;
 	}
 
-Record::Record(size_t sz, void* buf) : crep((RecRep<unsigned char>*) buf)
+Record::Record(size_t sz, const void* buf) : crep((RecRep<unsigned char>*) buf)
 	{
 	init(sz);
 	}
@@ -128,7 +128,7 @@ void Record::reuse(int n)
 		crep->n = n;
 	}
 
-Record::Record(void* r) : crep((RecRep<unsigned char>*) r)
+Record::Record(const void* r) : crep((RecRep<unsigned char>*) r)
 	{
 	verify(crep == 0 ||
 		(crep->type == 'c' || crep->type == 's' || crep->type == 'l'));
@@ -279,7 +279,7 @@ void Record::addmax()
 
 void Record::addraw(const gcstring& s)
 	{
-	memcpy(alloc(s.size()), s.buf(), s.size());
+	memcpy(alloc(s.size()), s.ptr(), s.size());
 	}
 
 void Record::addval(Value x)
@@ -295,8 +295,7 @@ void Record::addval(const gcstring& s)
 
 void Record::addval(const char* s)
 	{
-	SuString str(strlen(s), s); // no alloc
-	addval(&str);
+	addval(gcstring::noalloc(s));
 	}
 
 void Record::addval(long n)
@@ -560,7 +559,7 @@ class test_record : public Tests
 		const int bblen = 100000;
 		char* bigbuf = salloc(bblen);
 		memset(bigbuf, 0x77, bblen);
-		big.addval(new SuString(bblen, bigbuf));
+		big.addval(SuString::noalloc(bigbuf, bblen));
 		int n = big.cursize();
 		verify(100000 <= n && n <= 100050);
 		}

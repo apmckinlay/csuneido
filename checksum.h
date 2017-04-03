@@ -23,4 +23,4 @@
 
 typedef unsigned long ulong;
 
-ulong checksum(ulong cksum, void* buf, int n);
+ulong checksum(ulong cksum, const void* buf, int n);

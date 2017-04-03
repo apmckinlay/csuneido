@@ -25,7 +25,6 @@
 #include "permheap.h"
 #include "hashtbl.h"
 #include "sustring.h"
-#include "sunumber.h"
 #include "itostr.h"
 #include "trace.h"
 
@@ -33,7 +32,7 @@
 class SuSymbol : public SuString
 	{
 public:
-	explicit SuSymbol(const char* s) : SuString(strlen(s), s) // no alloc
+	explicit SuSymbol(const char* s) : SuString(gcstring::noalloc(s))
 		{ }
 	int symnum() const override;
 	bool eq(const SuValue& y) const override;

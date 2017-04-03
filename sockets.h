@@ -22,6 +22,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "buffer.h"
+#include "gcstring.h"
 
 // abstract base class (interface) for socket connections
 class SocketConnect
@@ -44,6 +45,13 @@ public:
 	virtual int read(char* buf, int required, int bufsize)
 		{
 		return read(buf, required); // bufsize ignored
+		}
+
+	gcstring read(int n)
+		{
+		char* buf = salloc(n);
+		read(buf, n);
+		return gcstring::noalloc(buf, n);
 		}
 
 	/// Read up to the next newline using read()

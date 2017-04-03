@@ -137,9 +137,9 @@ class test_btree : public Tests
 	static gcstring make_filler()
 		{
 		const int N = 500;
-		gcstring s(N);
-		memset(s.buf(), ' ', N);
-		return s;
+		char* buf = salloc(N);
+		memset(buf, ' ', N);
+		return gcstring::noalloc(buf, N);
 		}
 	};
 REGISTER(test_btree);

@@ -41,10 +41,11 @@ public:
 		{ }
 	explicit SuString(size_t n) : s(n)
 		{ }
-	// CAUTION: constructor that doesn't allocate
-	// WARNING: t[n] must be valid, ie. t must be one bigger than n !!!
-	SuString(size_t n, const char* t) : s(n, t)
-		{ }
+
+	static SuString* noalloc(const char* t)
+		{ return new SuString(gcstring::noalloc(t)); }
+	static SuString* noalloc(const char* t, size_t n)
+		{ return new SuString(gcstring::noalloc(t, n)); }
 
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
@@ -66,11 +67,8 @@ public:
 	void pack(char* buf) const override;
 	static SuString* unpack(const gcstring& s);
 
-	const char* begin() const
-		{ return s.begin(); }
-
-	const char* end() const
-		{ return s.end(); }
+	const char* ptr() const
+		{ return s.ptr(); }
 
 	const char* str() const
 		{ return s.str(); }
@@ -81,12 +79,12 @@ public:
 	int symnum() const override;
 
 	size_t hashfn() const override
-		{ return ::hashfn(s.begin(), s.size()); }
+		{ return ::hashfn(s.ptr(), s.size()); }
 
-	SuString* substr(size_t i, size_t n) const
+	const SuString* substr(size_t i, size_t n) const
 		{
 		return (i == 0 && n >= s.size())
-			? (SuString*) this
+			? this
 			: new SuString(s.substr(i, n));
 		}
 

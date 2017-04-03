@@ -45,7 +45,7 @@ gcstring RichEditGet(HWND hwndRE)
 	es.dwError = 0;
 	es.pfnCallback = addtostring;
 	SendMessage(hwndRE, EM_STREAMOUT, (WPARAM) SF_RTF, (LPARAM) &es);
-	return gcstring(s.size(), &s[0]); // no alloc constructor
+	return gcstring::noalloc(&s[0], s.size());
 	}
 
 static DWORD CALLBACK takefromstring(DWORD dwCookie, LPBYTE pbBuffer, LONG cb, LONG *pcb)
@@ -53,7 +53,7 @@ static DWORD CALLBACK takefromstring(DWORD dwCookie, LPBYTE pbBuffer, LONG cb, L
 	gcstring* ps = (gcstring*) dwCookie;
 	if (cb > ps->size())
 		cb = ps->size();
-	memcpy(pbBuffer, ps->buf(), cb);
+	memcpy(pbBuffer, ps->ptr(), cb);
 	*ps = ps->substr(cb);
 	*pcb = cb;
 	return NOERROR;

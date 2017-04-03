@@ -117,12 +117,12 @@ static std::vector<DbServer*> dbservers;
 
 static gcstring makeHello()
 	{
-	char* s = CATSTR3("Suneido ", build, "\r\n");
-	verify(strlen(s) < HELLO_SIZE);
-	gcstring h(HELLO_SIZE); // zeroed
-	strcpy(h.buf(), s);
-	verify(h.size() == HELLO_SIZE);
-	return h;
+	char* buf = salloc(HELLO_SIZE);
+	strcpy(buf, "Suneido ");
+	strcat(buf, build);
+	strcat(buf, "\r\n");
+	verify(strlen(buf) < HELLO_SIZE);
+	return gcstring::noalloc(buf, HELLO_SIZE);
 	}
 static const gcstring hello = makeHello();
 
@@ -133,7 +133,7 @@ DbServer::DbServer(SocketConnect* sc) : io(sc), data(*DbServerData::create())
 	dbserver_connections().add(session_id);
 	dbservers.push_back(this);
 
-	sc->write(hello.buf(), hello.size());
+	sc->write(hello.ptr(), hello.size());
 
 	tls().session_views = &session_views;
 	tls().proc = &proc;
@@ -399,7 +399,7 @@ void DbServer::cmd_LIBGET()
 	for (auto src = srcs; !nil(src); ++src)
 		{
 		++src; // skip name
-		io.write(src->buf(), src->size()); // text
+		io.write(src->ptr(), src->size()); // text
 		}
 	// could mean multiple write's which is not ideal
 	// but most of the time only a single definition & write
@@ -584,7 +584,7 @@ void DbServer::putRow(const Row& row, const Header& hdr, bool sendhdr)
 Record DbServer::getRecord()
 	{
 	gcstring r = io.getBuf();
-	return Record(r.buf());
+	return Record(r.ptr());
 	}
 
 void DbServer::putValue(Value val)

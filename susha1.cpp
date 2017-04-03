@@ -109,7 +109,7 @@ Value Sha1::Update(BuiltinArgs& args)
 
 void Sha1::update(gcstring s) const
 	{
-	if (! CryptHashData(hHash, (BYTE*) s.buf(), s.size(), 0))
+	if (! CryptHashData(hHash, (BYTE*) s.ptr(), s.size(), 0))
 		except("Sha1: CryptHashData failed");
 	}
 
@@ -119,7 +119,7 @@ gcstring Sha1::value() const
 	{
 	DWORD dwHashLen = SHA1_SIZE;
 	gcstring out(dwHashLen);
-	if (! CryptGetHashParam(hHash, HP_HASHVAL, (unsigned char*) out.buf(), &dwHashLen, 0))
+	if (! CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*) out.ptr(), &dwHashLen, 0))
 		except("Sha1: CryptGetHashParam failed");
 	verify(dwHashLen == SHA1_SIZE);
 	return out;
