@@ -518,13 +518,12 @@ Value SuString::replace(const gcstring& patarg, Value reparg, int count) const
 	if (count <= 0)
 		return this;
 	const char* pat = rx_compile(patarg);
-	// TODO: replacement shouldn't have to be nul terminated
-	const char* rep = reparg.str_if_str();
-	if (! rep && (reparg.is_int() ||
-		val_cast<SuNumber*>(reparg) || val_cast<SuBoolean*>(reparg)))
-		rep = reparg.str();
+	gcstring rep;
+	if (val_cast<SuString*>(reparg) || val_cast<SuBoolean*>(reparg) || 
+		reparg.is_int() || val_cast<SuNumber*>(reparg))
+		{ rep = reparg.gcstr(); reparg = Value(); }
 	int oldsize = size();
-	Buffer* result = nullptr;
+	Buffer* result = nullptr; // construct only if needed
 	auto old = ptr();
 	int from = 0; // where to copy from the original string next
 	int lastm = -1;
@@ -537,7 +536,7 @@ Value SuString::replace(const gcstring& patarg, Value reparg, int count) const
 			if (!result)
 				result = new Buffer(oldsize + oldsize / 4 + 1);
 			result->add(s.substr(from, i - from));
-			if (rep)
+			if (!reparg)
 				{
 				int replen = rx_replen(rep, parts);
 				rx_mkrep(result->alloc(replen), rep, parts);

@@ -827,29 +827,30 @@ bool RxMatch::cclass()
 
 // replace ==========================================================
 
-int rx_replen(const char* rep, Rxpart* subs)
+int rx_replen(const gcstring& rep, Rxpart* subs)
 	{
+	int nr = rep.size();
 	if (rep[0] == '\\' && rep[1] == '=')
-		return strlen(rep) - 2;
+		return nr - 2;
 
 	int len = 0;
-	for (; *rep; ++rep)
+	for (int i = 0; i < nr; ++i)
 		{
-		if (*rep == '&')
+		char c = rep[i];
+		if (c == '&')
 			{
 			if (subs->n > 0)
 				len += subs[0].n;
 			}
-		else if ('\\' == *rep && rep[1])
+		else if ('\\' == c && i + 1 < nr)
 			{
-			++rep;
-			if (isdigit(*rep))
+			c = rep[++i];
+			if (isdigit(c))
 				{
-				if (subs[*rep - '0'].n > 0)
-					len += subs[*rep - '0'].n;
+				if (subs[c - '0'].n > 0)
+					len += subs[c - '0'].n;
 				}
-			else if (*rep != 'u' && *rep != 'l' &&
-				*rep != 'U' && *rep != 'L' && *rep != 'E')
+			else if (c != 'u' && c != 'l' && c != 'U' && c != 'L' && c != 'E')
 				++len;
 			}
 		else
@@ -878,40 +879,39 @@ inline char* insert(char* dst, Rxpart& part, char& tr)
 	return dst;
 	}
 
-char* rx_mkrep(char* buf, const char* rep, Rxpart* subs)
+char* rx_mkrep(char* buf, const gcstring& rep, Rxpart* subs)
 	{
+	int nr = rep.size();
 	if (rep[0] == '\\' && rep[1] == '=')
-		return strcpy(buf, rep + 2);
+		return (char*) memcpy(buf, rep.ptr() + 2, nr - 2);
 
 	char tr = 'E';
 	char *dst = buf;
-	for (; *rep; ++rep)
+	for (int i = 0; i < nr; ++i)
 		{
-		if (*rep == '&')
+		char c = rep[i];
+		if (c == '&')
 			dst = insert(dst, subs[0], tr);
-		else if ('\\' == *rep && rep[1])
+		else if (c == '\\' && i + 1 < nr)
 			{
-			++rep;
-			if (isdigit(*rep))
-				dst = insert(dst, subs[*rep - '0'], tr);
-			else if (*rep == 'n')
+			c = rep[++i];
+			if (isdigit(c))
+				dst = insert(dst, subs[c - '0'], tr);
+			else if (c == 'n')
 				*dst++ = '\n';
-			else if (*rep == 't')
+			else if (c == 't')
 				*dst++ = '\t';
-			else if (*rep == '\\')
+			else if (c == '\\')
 				*dst++ = '\\';
-			else if (*rep == '&')
+			else if (c == '&')
 				*dst++ = '&';
-			else if (*rep == 'u' || *rep == 'l' ||
-				*rep == 'U' || *rep == 'L' || *rep == 'E')
-				tr = *rep;
+			else if (c == 'u' || c == 'l' || c == 'U' || c == 'L' || c == 'E')
+				tr = c;
 			else
-				*dst++ = *rep;
+				*dst++ = c;
 			}
 		else
-			{
-			*dst++ = trcase(tr, *rep);
-			}
+			*dst++ = trcase(tr, c);
 		}
 	*dst = 0;
 	return buf;

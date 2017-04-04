@@ -49,7 +49,7 @@ bool rx_match_reverse(const char* s, int n, int i, const char* pat, Rxpart* psub
 int rx_amatch(const char* s, int i, int n, const char* pat, Rxpart* psubs = 0);
 
 // determine the length of a replacement string
-int rx_replen(const char* rep, Rxpart* subs);
+int rx_replen(const gcstring& rep, Rxpart* subs);
 
 // build a replacement string
-char* rx_mkrep(char* buf, const char* rep, Rxpart* subs);
+char* rx_mkrep(char* buf, const gcstring& rep, Rxpart* subs);
