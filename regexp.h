@@ -45,6 +45,7 @@ inline bool rx_match(const gcstring& s, const char* pat, Rxpart* psubs = 0)
 bool rx_match_reverse(const char* s, int n, int i, const char* pat, Rxpart* psubs = 0);
 
 // match a specific point in a string against a compiled regular expression
+// returns -1 if no match, else the position past the match
 int rx_amatch(const char* s, int i, int n, const char* pat, Rxpart* psubs = 0);
 
 // determine the length of a replacement string

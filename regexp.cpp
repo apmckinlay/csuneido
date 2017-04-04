@@ -542,7 +542,7 @@ int RxMatch::amatch(int pos, const char* pat)
 	ignore_case = false;
 	if (! domatch())
 		return -1;
-	return (i);
+	return i;
 	}
 
 bool RxMatch::domatch()

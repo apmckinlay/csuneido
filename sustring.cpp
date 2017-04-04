@@ -506,60 +506,64 @@ Value SuString::Replace(short nargs, short nargnames, ushort* argnames, int each
 	{
 	if (nargs < 1 || 3 < nargs)
 		except("usage: string.Replace(pattern, replacement = '', count = false) -> string");
-	// pattern
-	char* pat = rx_compile(ARG(0).gcstr());
 	// replacement
 	Value reparg = nargs == 1 ? SuEmptyString : ARG(1);
+	// count
+	int count = (nargs < 3 ? INT_MAX : ARG(2).integer());
+	return replace(ARG(0).gcstr(), reparg, count);
+	}
+
+Value SuString::replace(const gcstring& patarg, Value reparg, int count) const
+	{
+	if (count <= 0)
+		return this;
+	const char* pat = rx_compile(patarg);
 	// TODO: replacement shouldn't have to be nul terminated
 	const char* rep = reparg.str_if_str();
 	if (! rep && (reparg.is_int() ||
 		val_cast<SuNumber*>(reparg) || val_cast<SuBoolean*>(reparg)))
 		rep = reparg.str();
-
-	// count
-	int count = (nargs < 3 ? INT_MAX : ARG(2).integer());
-
 	int oldsize = size();
-	Buffer result(oldsize + oldsize / 4 + 1); // usually result will be similar size
-	auto old = str();
+	Buffer* result = nullptr;
+	auto old = ptr();
+	int from = 0; // where to copy from the original string next
 	int lastm = -1;
 	Rxpart parts[MAXPARTS];
 	for (int nsubs = 0, i = 0; i <= oldsize; )
 		{
-		int m;
-		if (nsubs < count)
-			m = rx_amatch(old, i, oldsize, pat, parts);
-		else
-			m = -1;
+		int m = rx_amatch(old, i, oldsize, pat, parts);
 		if (m >= 0 && m != lastm)
 			{
+			if (!result)
+				result = new Buffer(oldsize + oldsize / 4 + 1);
+			result->add(s.substr(from, i - from));
 			if (rep)
 				{
 				int replen = rx_replen(rep, parts);
-				rx_mkrep(result.alloc(replen), rep, parts);
+				rx_mkrep(result->alloc(replen), rep, parts);
 				}
 			else // block
 				{
 				KEEPSP
-				gcstring match(parts[0].n, parts[0].s);
+				gcstring match = gcstring::noalloc(parts[0].s, parts[0].n);
 				PUSH(new SuString(match));
-				Value x = docall(reparg, CALL, 1, 0, 0, -1);
+				Value x = docall(reparg, CALL, 1, 0, nullptr, -1);
 				gcstring replace = x ? x.gcstr() : match;
-				result.add(replace.ptr(), replace.size());
+				result->add(replace.ptr(), replace.size());
 				}
-			++nsubs;
-			lastm = m;
+			lastm = from = m;
+			if (++nsubs >= count)
+				break;
 			}
 		if (m < 0 || m == i)
-			{
-			if (i == oldsize)
-				break;
-			result.add(old[i++]);
-			}
+			++i;
 		else
 			i = m;
 		}
-	return new SuString(result.gcstr());
+	if (!result) // no replacements
+		return this;
+	result->add(s.substr(from));
+	return new SuString(result->gcstr());
 	}
 
 Value SuString::MapN(short nargs, short nargnames, ushort* argnames, int each)
@@ -940,10 +944,12 @@ class test_sustring : public Tests
 		}
 	TEST(2, replace)
 		{
-		verify(SuTrue == run("'hello world'.Replace('l', 'L') == 'heLLo worLd'"));
-		verify(SuTrue == run("'hello world'.Replace('.', '<&>', 5) == '<h><e><l><l><o> world'"));
-		verify(SuTrue == run("'world'.Replace('^', 'hello ') == 'hello world'"));
-		verify(SuTrue == run("'hello'.Replace('$', ' world') == 'hello world'"));
+		asserteq(SuString("hello world").replace("x", "X"), "hello world"); // same
+		asserteq(SuString("hello world").replace("l", "L"), "heLLo worLd");
+		asserteq(SuString("hello world").replace("l", "L", 0), "hello world"); // same
+		asserteq(SuString("hello world").replace(".", "<&>", 5), "<h><e><l><l><o> world");
+		asserteq(SuString("world").replace("^", "hello "), "hello world");
+		asserteq(SuString("hello").replace("$", " world"), "hello world");
 		}
 	TEST(3, match)
 		{
