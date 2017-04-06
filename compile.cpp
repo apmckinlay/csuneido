@@ -50,6 +50,7 @@
 #include "codevisitor.h"
 #include "sublock.h" // for BLOCK_REST
 #include "varint.h"
+#include "opcodes.h"
 
 bool getSystemOption(const char* option, bool def_value);
 

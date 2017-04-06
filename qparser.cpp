@@ -37,6 +37,7 @@
 #include "sesviews.h"
 #include "assert.h"
 #include "exceptimp.h"
+#include "opcodes.h"
 
 struct Arg
 	{

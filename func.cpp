@@ -31,6 +31,7 @@
 #include "sustring.h"
 #include "fatal.h"
 #include "catstr.h"
+#include "opcodes.h"
 
 Value Func::call(Value self, Value member, 
 	short nargs, short nargnames, ushort* argnames, int each)

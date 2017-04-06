@@ -54,6 +54,7 @@
 #include "pack.h"
 #include "sustring.h"
 #include <math.h> // for fabs
+#include "opcodes.h"
 
 struct FilterTreeSlot
 	{

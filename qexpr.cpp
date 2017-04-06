@@ -29,6 +29,7 @@
 #include "regexp.h"
 #include "call.h"
 #include "suboolean.h"
+#include "opcodes.h"
 
 extern const char* opcodes[];
 
