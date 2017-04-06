@@ -21,7 +21,7 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "opcodes.h"
+#include "buffer.h"
 
 class CodeVisitor;
 
@@ -44,8 +44,7 @@ public:
 	const char* value = "";
 	int len = 0;
 	const char* err = "";
-	enum { buflen = 20000 };		// maximum string constant length
-	char buf[buflen];
+	Buffer buf;
 	const char* source;
 	int si;
 	int keyword = 0;
@@ -53,7 +52,7 @@ public:
 	// but placed here to avoid passing around extra argument in compiler
 protected:
 	explicit Scanner(const Scanner*);
-	virtual int keywords(char*);
+	virtual int keywords(const char*);
 	};
 
 enum // tokens

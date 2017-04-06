@@ -23,10 +23,9 @@
 #include "scanner.h"
 #include "sunumber.h"
 #include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
 #include <algorithm>
 #include "except.h"
+#include "opcodes.h"
 
 enum { OK = 1, DIG, ID, GO, WHITE, END };
 
@@ -65,7 +64,7 @@ void scanner_locale_changed()
 	}
 
 Scanner::Scanner(const char* s, int i, CodeVisitor* v)
-	: source(s), si(i), visitor(v)
+	: source(s), si(i), visitor(v), buf(1024)
 	{
 	}
 
@@ -116,10 +115,7 @@ int Scanner::next()
 
 int Scanner::nextall()
 	{
-	char* dst;
-	char* lim;
 	int state;
-	char quote;
 
 	prev = si; state = 0; keyword = 0; value = "";
 	for (;;)
@@ -272,16 +268,14 @@ int Scanner::nextall()
 			else
 				return ':';
 		case '_' :
-			for (dst = buf; ID == cclass(source[si]) ||
-				DIG == cclass(source[si]); ++si)
-				{
-				*dst++ = source[si];
-				}
+			buf.clear();
+			while (ID == cclass(source[si]) || DIG == cclass(source[si]))
+				++si;
 			if (source[si] == '?' || source[si] == '!')
-				*dst++ = source[si++];
-			*dst = 0;
-			value = buf;
-			keyword = keywords(buf);
+				++si;
+			buf.add(source + prev, si - prev);
+			value = buf.str();
+			keyword = keywords(value);
 			if (source[si] != ':' ||
 				! (keyword == I_IS || keyword == I_ISNT ||
 					keyword == T_AND || keyword == T_OR || keyword == I_NOT))
@@ -291,27 +285,25 @@ int Scanner::nextall()
 				}
 			return T_IDENTIFIER;
 		case '9' :
+			buf.clear();
 			if (source[si] == '0' && tolower(source[si + 1]) == 'x')
 				{
-				dst = buf;
-				*dst++ = source[si++];
-				*dst++ = source[si++];
+				si += 2;
 				while (isxdigit(source[si]))
-					*dst++ = source[si++];
-				*dst = 0;
-				len = dst - buf;
+					++si;
+				buf.add(source + prev, si - prev);
+				len = buf.size();
 				}
 			else
 				{
 				len = numlen(source + si);
 				verify(len > 0);
-				memcpy(buf, source + si, len);
-				if (buf[len - 1] == '.')
+				if (source[si + len - 1] == '.')
 					--len;
-				buf[len] = 0;
+				buf.add(source + si, len);
 				si += len;
 				}
-			value = buf;
+			value = buf.str();
 			return T_NUMBER;
 		case '.' :
 			if (DIG == cclass(source[si]))
@@ -322,46 +314,34 @@ int Scanner::nextall()
 				return '.';
 			break ;
 		case '`' :
-			for (dst = buf, lim = dst + buflen;
-				source[si] && source[si] != '`'; ++si)
-				{
-				if (dst >= lim)
-					{
-					prev = si;
-					err = "string literal too long";
-					return T_ERROR;
-					}
-				*dst++ = source[si];
-				}
-			*dst = 0;
+			buf.clear();
+			while (source[si] && source[si] != '`')
+				++si;
+			buf.add(source + prev + 1, si - prev - 1);
 			if (source[si])
 				++si;	// skip closing quote
-			value = buf;
-			len = dst - buf;
+			value = buf.str();
+			len = buf.size();
 			return T_STRING;
 		case '"' :
 		case '\'' :
-			quote = state;
-			for (dst = buf, lim = dst + buflen;
-				source[si] && source[si] != quote; ++si)
-				{
-				if (dst >= lim)
+			{
+			buf.clear();
+			int from = si;
+			for (; source[si] && source[si] != state; ++si)
+				if (source[si] == '\\')
 					{
-					prev = si;
-					err = "string literal too long";
-					return T_ERROR;
+					buf.add(source + from, si - from);
+					buf.add(doesc(source, si));
+					from = si + 1;
 					}
-				else if ('\\' == source[si])
-					*dst++ = doesc(source, si);
-				else
-					*dst++ = source[si];
-				}
-			*dst = 0;
+			buf.add(source + from, si - from);
 			if (source[si])
 				++si;	// skip closing quote
-			value = buf;
-			len = dst - buf;
+			value = buf.str();
+			len = buf.size();
 			return T_STRING;
+			}
 		default :
 			unreachable();
 			}
@@ -454,19 +434,20 @@ struct ScannerLt
 	{
 	bool operator()(const Keyword& k1, const Keyword& k2)
 		{ return lt(k1.word, k2.word); }
-	bool operator()(const Keyword& k, char* s)
+	bool operator()(const Keyword& k, const char* s)
 		{ return lt(k.word, s); }
-	bool operator()(char* s, const Keyword& k)
+	bool operator()(const char* s, const Keyword& k)
 		{ return lt(s, k.word); }
 	};
 
-int Scanner::keywords(char* s)
+int Scanner::keywords(const char* s)
 	{
 	std::pair<Keyword*,Keyword*> p = std::equal_range(words, words + nwords, s, ScannerLt());
 	return p.first < p.second ? p.first->id : 0;
 	}
 
 #include "testing.h"
+#include "gcstring.h"
 
 static const char* input = "and break case catch continue class callback default dll do \
 	else for forever function if is isnt or not \
@@ -475,7 +456,7 @@ static const char* input = "and break case catch continue class callback default
 	== = =~ ~ != !~ ! <<= << <> <= < \
 	>>= >> >= > || |= | && &= &  \
 	^= ^ -- -= - ++ += + /= / \
-	*= * %= % $= $ name _name name123 'string' \
+	*= * %= % $= $ name _name name123 '\\Ahello\\'world\\Z' \
 	\"string\" 123 123name .name  Name Name123 name? 1$2 +1 num=1 \
 	num+=1 1%2 /*comments*/ //comments";
 
@@ -505,7 +486,7 @@ static Result results[] =
 	{ I_DIV, 0 }, { I_MULEQ, 0 }, { I_MUL, 0 }, { I_MODEQ, 0 },
 	{ I_MOD, 0 }, { I_CATEQ, 0 }, { I_CAT, 0 }, { T_IDENTIFIER, "name" },
 	{ T_IDENTIFIER, "_name"}, {T_IDENTIFIER, "name123"},
-	{ T_STRING, "string" }, { T_STRING, "string"},
+	{ T_STRING, "\\Ahello'world\\Z" }, { T_STRING, "string"},
 	{ T_NUMBER, "123" }, { T_NUMBER, "123" },
 	{ T_IDENTIFIER, "name" }, { '.', 0 },
 	{ T_IDENTIFIER, "name" }, { T_IDENTIFIER, "Name" },
@@ -528,7 +509,7 @@ class test_scanner : public Tests
 			asserteq(results[i].token,
 				(results[i].token < KEYWORDS ? token : sc.keyword));
 			if (results[i].value)
-				asserteq(0, strcmp(sc.value, results[i].value));
+				asserteq(gcstring(sc.value), gcstring(results[i].value));
 			}
 		}
 	};
