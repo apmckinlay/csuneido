@@ -65,7 +65,12 @@ static HANDLE h_file = 0;
 inline void write(const char* s)
 	{
 	static DWORD n;
-	WriteFile(h_file, s, strlen(s), &n, 0);
+	for (; *s; ++s)
+		{
+		if (*s == '\n')
+			WriteFile(h_file, "\r", 1, &n, nullptr);
+		WriteFile(h_file, s, 1, &n, nullptr);
+		}
 	}
 
 extern bool is_client;
@@ -97,7 +102,7 @@ extern bool is_client;
 			write(" ");
 			write(extra);
 			}
-		write("\r\n");
+		write("\n");
 		CloseHandle(h_file);
 		}
 	// would be nice to give user a message
