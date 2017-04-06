@@ -24,6 +24,7 @@
 #include <algorithm>
 #include "cmpic.h"
 #include "gcstring.h"
+#include "opcodes.h"
 
 int QueryScanner::next()
 	{
@@ -69,13 +70,13 @@ struct QscannerLt
 	{
 	bool operator()(const Keyword& k1, const Keyword& k2)
 		{ return strcmpic(k1.word, k2.word) < 0; }
-	bool operator()(const Keyword& k, char* s)
+	bool operator()(const Keyword& k, const char* s)
 		{ return strcmpic(k.word, s) < 0; }
-	bool operator()(char* s, const Keyword& k)
+	bool operator()(const char* s, const Keyword& k)
 		{ return strcmpic(s, k.word) < 0; }
 	};
 
-int QueryScanner::keywords(char* s)
+int QueryScanner::keywords(const char* s)
 	{
 	std::pair<Keyword*,Keyword*> p = std::equal_range(words, words + nwords, s, QscannerLt());
 	return p.first < p.second ? p.first->id : 0;

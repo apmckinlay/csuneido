@@ -33,7 +33,7 @@ public:
 	int next() override;
 	void insert(const gcstring& s);
 protected:
-	int keywords(char*) override;
+	int keywords(const char*) override;
 	};
 
 enum { K_ALTER = NEXT_KEYWORD, K_AVERAGE, K_BY, K_CASCADE, K_COUNT, K_CREATE,
