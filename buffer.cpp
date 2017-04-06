@@ -46,6 +46,7 @@ char* Buffer::ensure(int n)
 
 char* Buffer::alloc(int n)
 	{
+	verify(n >= 0);
 	char* dst = ensure(n);
 	added(n);
 	return dst;
@@ -59,7 +60,8 @@ Buffer& Buffer::add(char c)
 
 Buffer& Buffer::add(const char* s, int n)
 	{
-	memcpy(alloc(n), s, n);
+	if (n > 0)
+		memcpy(alloc(n), s, n);
 	return *this;
 	}
 

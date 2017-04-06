@@ -94,6 +94,7 @@ public:
 	/// Advances pos by n, reducing remaining()
 	char* getBuf(int n);
 
+	/// Resets used and pos to 0. Does not alter size of buffer.
 	void clear()
 		{ used = pos = 0; }
 
