@@ -92,7 +92,7 @@ static void init(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		}
 	catch (const Except& e)
 		{
-		fatal(e.str());
+		fatal(e.str(), e.callstack());
 		}
 	catch (const std::exception& e)
 		{
