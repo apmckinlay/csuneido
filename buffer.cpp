@@ -79,12 +79,12 @@ void Buffer::remove(int n)
 	used -= n;
 	}
 
-gcstring Buffer::gcstr()
+gcstring Buffer::gcstr() const
 	{
 	return gcstring::noalloc(str(), used);
 	}
 
-char* Buffer::str()
+char* Buffer::str() const
 	{
 	verify(used < capacity);
 	buf[used] = 0;

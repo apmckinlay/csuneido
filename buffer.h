@@ -76,11 +76,11 @@ public:
 
 	/// @return A pointer to the entire buffer, with a nul added at the end.
 	/// References the buffer, does not copy.
-	char* str();
+	char* str() const;
 
 	/// @return The used portion of the buffer.
 	/// References the buffer, does not copy.
-	gcstring gcstr();
+	gcstring gcstr() const;
 
 	/// @return The next byte at pos. Advances pos, reducing remaining()
 	char get()
