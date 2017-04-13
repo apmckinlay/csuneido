@@ -551,7 +551,7 @@ bool RxMatch::domatch()
 	int offset;
 
 	if (++domatch_nest > MAXNEST)
-		except("regular expression match too long", callStackString());
+		except("regular expression match too long");
 	while (*p != PATEND)
 		{
 		switch (*p)
