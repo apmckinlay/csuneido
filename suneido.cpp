@@ -62,11 +62,6 @@ static void init(HINSTANCE hInstance, LPSTR lpszCmdLine);
 static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine);
 static void logPreviousErrors();
 
-BOOL CALLBACK splash(HWND, UINT uMsg, WPARAM, LPARAM)
-	{
-	return uMsg == WM_INITDIALOG ? TRUE : FALSE;
-	}
-
 const char* cmdline = "";
 
 bool is_server = false;
