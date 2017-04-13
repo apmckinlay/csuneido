@@ -25,7 +25,6 @@
 #include "cachemap.h"
 #include "gcstring.h"
 #include "except.h"
-#include "errlog.h"
 
 // use our own definitions instead of ctype
 // to be consistent across all implementations
@@ -552,10 +551,7 @@ bool RxMatch::domatch()
 	int offset;
 
 	if (++domatch_nest > MAXNEST)
-		{
-		errlog("ERROR regular expression match too long", callStackString());
-		return false;
-		}
+		except("regular expression match too long", callStackString());
 	while (*p != PATEND)
 		{
 		switch (*p)
