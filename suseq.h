@@ -41,12 +41,15 @@ public:
 	SuObject* ob_if_ob() override;
 	SuObject* object() const;
 private:
+	Value Join(short nargs) const;
 	void build() const;
-	SuObject* copy() const;
-	Value next() const;
+	static SuObject* copy(Value iter);
+	Value dup() const;
+	static Value next(Value iter);
 
 	mutable Value iter;
-	mutable SuObject* ob;
+	mutable SuObject* ob = nullptr;
+	mutable bool duped = false;
 	};
 
 class SuSeqIter : public SuValue

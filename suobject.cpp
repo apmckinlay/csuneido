@@ -1268,9 +1268,7 @@ Value SuObjectIter::call(Value self, Value member,
 	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value NEXT("Next");
-	static Value ITER("Iter");
-	static Value COPY("Copy");
-	static Value REWIND("Rewind");
+	static Value DUP("Dup");
 
 	if (member == NEXT)
 		{
@@ -1300,22 +1298,9 @@ Value SuObjectIter::call(Value self, Value member,
 			unreachable();
 			}
 		}
-	else if (member == COPY)
+	else if (member == DUP)
 		{
 		return new SuObjectIter(object, values, include_vec, include_map);
-		}
-	else if (member == REWIND)
-		{
-		if (nargs != 0)
-			except("usage: objectiter.Rewind()");
-		iter.rewind();
-		return this;
-		}
-	else if (member == ITER)
-		{
-		if (nargs != 0)
-			except("usage: objectiter.Iter()");
-		return this;
 		}
 	else
 		method_not_found(type(), member);
