@@ -506,27 +506,29 @@ Value SuObject::Copy(short nargs, short nargnames, ushort* argnames, int each)
 	return new SuObject(*this);
 	}
 
-static void list_named(short nargs, short nargnames, ushort* argnames,
+static void list_named(short nargs, short nargnames, ushort* argnames, int each,
 	bool& listq, bool& namedq, const char* usage)
 	{
-	if (nargs > nargnames || nargs > 2)
+	argseach(nargs, nargnames, argnames, each);
+	if (nargs > nargnames) // all args must be named
 		except(usage);
 	static ushort list = ::symnum("list");
 	static ushort named = ::symnum("named");
-	listq = namedq = (nargs == 0 || ! (ARG(0) == SuTrue));
-	for (int i = 0; i < nargs && i < nargnames; ++i)
+	listq = namedq = false;
+	bool specified = false;
+	for (int i = 0; i < nargnames; ++i)
 		if (argnames[i] == list)
-			listq = (ARG(i) == SuTrue);
+			{ listq = (ARG(i) == SuTrue); specified = true; }
 		else if (argnames[i] == named)
-			namedq = (ARG(i) == SuTrue);
-		else
-			except(usage);
+			{ namedq = (ARG(i) == SuTrue); specified = true; }
+	if (!specified)
+		listq = namedq = true;
 	}
 
 Value SuObject::Size(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	bool listq, namedq;
-	list_named(nargs, nargnames, argnames, listq, namedq,
+	list_named(nargs, nargnames, argnames, each, listq, namedq,
 		"usage: object.Size() or .Size(list:) or .Size(named:)");
 	return (listq ? vec.size() : 0) + (namedq ? map.size() : 0);
 	}
@@ -1023,7 +1025,7 @@ Value SuObject::Members(short nargs, short nargnames, ushort* argnames, int each
 		return mems;
 		}
 	bool listq, namedq;
-	list_named(nargs, nargnames, argnames, listq, namedq,
+	list_named(nargs, nargnames, argnames, each, listq, namedq,
 		"usage: object.Members() or .Members(list: or named: or all:)");
 	return new SuSeq(new SuObjectIter(this, ITER_KEYS, listq, namedq));
 	}
@@ -1032,7 +1034,7 @@ Value SuObject::Values(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	argseach(nargs, nargnames, argnames, each);
 	bool listq, namedq;
-	list_named(nargs, nargnames, argnames, listq, namedq,
+	list_named(nargs, nargnames, argnames, each, listq, namedq,
 		"usage: object.Values() or .Values(list:) or .Values(named:)");
 	return new SuSeq(new SuObjectIter(this, ITER_VALUES, listq, namedq));
 	}
@@ -1041,7 +1043,7 @@ Value SuObject::Assocs(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	argseach(nargs, nargnames, argnames, each);
 	bool listq, namedq;
-	list_named(nargs, nargnames, argnames, listq, namedq,
+	list_named(nargs, nargnames, argnames, each, listq, namedq,
 		"usage: object.Assocs() or .Assocs(list:) or .Assocs(named:)");
 	return new SuSeq(new SuObjectIter(this, ITER_ASSOCS, listq, namedq));
 	}
