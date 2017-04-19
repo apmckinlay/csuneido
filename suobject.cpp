@@ -501,8 +501,7 @@ Value SuObject::Set_default(short nargs, short nargnames, ushort* argnames, int 
 
 Value SuObject::Copy(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: object.Copy()");
+	NOARGS("object.Copy()");
 	return new SuObject(*this);
 	}
 
@@ -535,8 +534,7 @@ Value SuObject::Size(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuObject::Iter(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: object.Iter()");
+	NOARGS("object.Iter()");
 	return new SuObjectIter(this, ITER_VALUES);
 	}
 
@@ -620,8 +618,7 @@ Value SuObject::MethodClass(short nargs, short nargnames, ushort* argnames, int 
 // TODO: split Base and Base? into SuClass and SuObject
 Value SuObject::Base(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: object.Base()");
+	NOARGS("object.Base()");
 	if (SuClass* c = dynamic_cast<SuClass*>(this))
 		return globals[c->base];
 	else
@@ -927,8 +924,7 @@ Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuObject::Reverse(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: object.Reverse()");
+	NOARGS("object.Reverse()");
 	if (readonly)
 		except("can't Reverse readonly objects");
 	++version;
@@ -959,8 +955,7 @@ Value SuObject::Join(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuObject::Set_readonly(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: object.Set_readonly()");
+	NOARGS("object.Set_readonly()");
 	setReadonly();
 	return this;
 	}
@@ -981,8 +976,7 @@ void SuObject::setReadonly()
 
 Value SuObject::IsReadonly(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: object.Readonly?()");
+	NOARGS("object.Readonly?()");
 	return readonly ? SuTrue : SuFalse;
 	}
 
@@ -1272,8 +1266,7 @@ Value SuObjectIter::call(Value self, Value member,
 
 	if (member == NEXT)
 		{
-		if (nargs != 0)
-			except("usage: objectiter.Next()");
+		NOARGS("objectiter.Next()");
 		iter.checkForModification();
 		if (iter == end)
 			return this; // eof

@@ -55,8 +55,7 @@ Value SuFunction::call(Value self, Value member,
 		}
 	else if (member == Disasm)
 		{
-		if (nargs != 0)
-			except("usage: function.Disasm()");
+		NOARGS("function.Disasm()");
 		OstreamStr oss;
 		disasm(oss);
 		return new SuString(oss.str());

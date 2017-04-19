@@ -234,8 +234,7 @@ Value SuRecord::call(Value self, Value member,
 		return status == NEW ? SuTrue : SuFalse;
 	else if (member == Copy)
 		{
-		if (nargs != 0)
-			except("usage: record.Copy()");
+		NOARGS("record.Copy()");
 		SuRecord* r = new SuRecord(*this);
 		r->observer = Lisp<Value>();
 		return r;
@@ -329,8 +328,7 @@ Value SuRecord::call(Value self, Value member,
 		}
 	else if (member == Base)
 		{
-		if (nargs != 0)
-			except("usage: record.Base()");
+		NOARGS("record.Base()");
 		return globals.get("Record");
 		}
 	else if (member == BaseQ)

@@ -1411,8 +1411,7 @@ Value SuNumber::call(Value self, Value member,
 		}
 	else if (member == CHR)
 		{
-		if (nargs != 0)
-			except("usage: number.Chr()");
+		NOARGS("number.Chr()");
 		char buf[2];
 		buf[0] = integer();
 		buf[1] = 0;
@@ -1420,78 +1419,66 @@ Value SuNumber::call(Value self, Value member,
 		}
 	else if (member == INT)
 		{
-		if (nargs != 0)
-			except("usage: number.Int()");
+		NOARGS("number.Int()");
 		SuNumber* x = new SuNumber(this);
 		x->toint();
 		return x;
 		}
 	else if (member == FRAC)
 		{
-		if (nargs != 0)
-			except("usage: number.Frac()");
+		NOARGS("number.Frac()");
 		SuNumber* x = new SuNumber(this);
 		x->tofrac();
 		return x;
 		}
 	else if (member == SIN)
 		{
-		if (nargs != 0)
-			except("usage: number.Sin()");
+		NOARGS("number.Sin()");
 		return from_double(sin(to_double()));
 		}
 	else if (member == COS)
 		{
-		if (nargs != 0)
-			except("usage: number.Cos()");
+		NOARGS("number.Cos()");
 		return from_double(cos(to_double()));
 		}
 	else if (member == TAN)
 		{
-		if (nargs != 0)
-			except("usage: number.Tan()");
+		NOARGS("number.Tan()");
 		return from_double(tan(to_double()));
 		}
 	else if (member == ASIN)
 		{
-		if (nargs != 0)
-			except("usage: number.ASin()");
+		NOARGS("number.ASin()");
 		return from_double(asin(to_double()));
 		}
 	else if (member == ACOS)
 		{
-		if (nargs != 0)
-			except("usage: number.ACos()");
+		NOARGS("number.ACos()");
 		return from_double(acos(to_double()));
 		}
 	else if (member == ATAN)
 		{
-		if (nargs != 0)
-			except("usage: number.ATan()");
+		NOARGS("number.ATan()");
 		return from_double(atan(to_double()));
 		}
 	else if (member == EXP)
 		{
-		if (nargs != 0)
-			except("usage: number.Exp()");
+		NOARGS("number.Exp()");
 		return from_double(::exp(to_double()));
 		}
 	else if (member == LOG)
 		{
-		if (nargs != 0)
-			except("usage: number.Log()");
+		NOARGS("number.Log()");
 		return from_double(log(to_double()));
 		}
 	else if (member == LOG10)
 		{
-		if (nargs != 0)
-			except("usage: number.Log10()");
+		NOARGS("number.Log10()");
 		return from_double(log10(to_double()));
 		}
 	else if (member == SQRT)
 		{
-		if (nargs != 0)
-			except("usage: number.Sqrt()");
+		NOARGS("number.Sqrt()");
 		return from_double(sqrt(to_double()));
 		}
 	else if (member == POW)
@@ -1502,24 +1489,21 @@ Value SuNumber::call(Value self, Value member,
 		}
 	else if (member == HEX)
 		{
-		if (nargs != 0)
-			except("usage: number.Hex()");
+		NOARGS("number.Hex()");
 		char buf[40];
 		utostr(integer(), buf, 16);
 		return new SuString(buf);
 		}
 	else if (member == OCTAL)
 		{
-		if (nargs != 0)
-			except("usage: number.Octal()");
+		NOARGS("number.Octal()");
 		char buf[40];
 		utostr(integer(), buf, 8);
 		return new SuString(buf);
 		}
 	else if (member == BINARY)
 		{
-		if (nargs != 0)
-			except("usage: number.Binary()");
+		NOARGS("number.Binary()");
 		char buf[40];
 		utostr(integer(), buf, 2);
 		return new SuString(buf);

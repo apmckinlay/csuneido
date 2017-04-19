@@ -736,56 +736,49 @@ Value SuDate::MinusSeconds(short nargs, short nargnames, ushort* argnames, int e
 
 Value SuDate::Year(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: date.Year()");
+	NOARGS("date.Year()");
 	DateTime dt(date, time);
 	return dt.year;
 	}
 
 Value SuDate::Month(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: date.Month()");
+	NOARGS("date.Month()");
 	DateTime dt(date, time);
 	return dt.month;
 	}
 
 Value SuDate::Day(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: date.Day()");
+	NOARGS("date.Day()");
 	DateTime dt(date, time);
 	return dt.day;
 	}
 
 Value SuDate::Hour(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: date.Hour()");
+	NOARGS("date.Hour()");
 	DateTime dt(date, time);
 	return dt.hour;
 	}
 
 Value SuDate::Minute(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: date.Minute()");
+	NOARGS("date.Minute()");
 	DateTime dt(date, time);
 	return dt.minute;
 	}
 
 Value SuDate::Second(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: date.Second()");
+	NOARGS("date.Second()");
 	DateTime dt(date, time);
 	return dt.second;
 	}
 
 Value SuDate::Millisecond(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: date.Millisecond()");
+	NOARGS("date.Millisecond()");
 	DateTime dt(date, time);
 	return dt.millisecond;
 	}
@@ -901,15 +894,13 @@ Value SuDateClass::call(Value self, Value member,
 	else if (member == Begin)
 		{
 		static Value begin = SuDate::literal("#17000101");
-		if (nargs != 0)
-			except("usage: Date.Begin()");
+		NOARGS("Date.Begin()");
 		return begin;
 		}
 	else if (member == End)
 		{
 		static Value end = SuDate::literal("#30000101");
-		if (nargs != 0)
-			except("usage: Date.End()");
+		NOARGS("Date.End()");
 		return end;
 		}
 	else

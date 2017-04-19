@@ -72,26 +72,22 @@ Value DatabaseClass::call(Value self, Value member,
 		}
 	else if (member == CurrentSize)
 		{
-		if (nargs != 0)
-			except("usage: Database.CurrentSize()");
+		NOARGS("Database.CurrentSize()");
 		return SuNumber::from_int64(dbms()->size());
 		}
 	else if (member == Connections)
 		{
-		if (nargs != 0)
-			except("usage: Database.Connections()");
+		NOARGS("Database.Connections()");
 		return dbms()->connections();
 		}
 	else if (member == TempDest)
 		{
-		if (nargs != 0)
-			except("usage: Database.TempDest()");
+		NOARGS("Database.TempDest()");
 		return dbms()->tempdest();
 		}
 	else if (member == Cursors)
 		{
-		if (nargs != 0)
-			except("usage: Database.Cursors()");
+		NOARGS("Database.Cursors()");
 		return dbms()->cursors();
 		}
 	else if (member == SessionId)
@@ -105,8 +101,7 @@ Value DatabaseClass::call(Value self, Value member,
 		}
 	else if (member == Final)
 		{
-		if (nargs != 0)
-			except("usage: Database.Final()");
+		NOARGS("Database.Final()");
 		return dbms()->final();
 		}
 	else if (member == Kill)
@@ -140,14 +135,12 @@ Value DatabaseClass::call(Value self, Value member,
 		}
 	else if (member == Token)
 		{
-		if (nargs != 0)
-			except("usage: Database.Token()");
+		NOARGS("Database.Token()");
 		return new SuString(dbms()->token());
 		}
 	else if (member == Nonce)
 		{
-		if (nargs != 0)
-			except("usage: Database.Nonce()");
+		NOARGS("Database.Nonce()");
 		return new SuString(dbms()->nonce());
 		}
 	else if (member == Auth)
@@ -158,8 +151,7 @@ Value DatabaseClass::call(Value self, Value member,
 		}
 	else if (member == Check)
 		{
-		if (nargs != 0)
-			except("usage: Database.Check()");
+		NOARGS("Database.Check()");
 		return dbms()->check();
 		}
 	else
@@ -357,51 +349,43 @@ Value SuTransaction::call(Value self, Value member,
 		return queryone("transaction.Query1", NEXT, true, this, args);
 	else if (member == UpdateQ)
 		{
-		if (nargs != 0)
-			except("usage: transaction.Update?()");
+		NOARGS("transaction.Update?()");
 		return tran % 2 ? SuTrue : SuFalse;
 		}
 	else if (member == EndedQ)
 		{
-		if (nargs != 0)
-			except("usage: transaction.Ended?()");
+		NOARGS("transaction.Ended?()");
 		return done ? SuTrue : SuFalse;
 		}
 	else if (member == Complete)
 		{
-		if (nargs != 0)
-			except("usage: transaction.Complete()");
+		NOARGS("transaction.Complete()");
 		return commit() ? SuTrue : SuFalse;
 		}
 	else if (member == Rollback)
 		{
-		if (nargs != 0)
-			except("usage: transaction.Rollback()");
+		NOARGS("transaction.Rollback()");
 		rollback();
 		return Value();
 		}
 	else if (member == Conflict)
 		{
-		if (nargs != 0)
-			except("usage: transaction.Conflict()");
+		NOARGS("transaction.Conflict()");
 		return new SuString(conflict ? conflict : "");
 		}
 	else if (member == ReadCount)
 		{
-		if (nargs != 0)
-			except("usage: transaction.ReadCount()");
+		NOARGS("transaction.ReadCount()");
 		return dbms()->readCount(tran);
 		}
 	else if (member == WriteCount)
 		{
-		if (nargs != 0)
-			except("usage: transaction.ReadCount()");
+		NOARGS("transaction.ReadCount()");
 		return dbms()->writeCount(tran);
 		}
 	else if (member == Data)
 		{
-		if (nargs != 0)
-			except("usage: transaction.Data()");
+		NOARGS("transaction.Data()");
 		if (!data)
 			data = new SuObject();
 		return data;
@@ -564,50 +548,42 @@ Value SuQuery::call(Value, Value member,
 		}
 	else if (member == Keys)
 		{
-		if (nargs != 0)
-			except("usage: query.Keys()");
+		NOARGS("query.Keys()");
 		return getkeys();
 		}
 	else if (member == Next)
 		{
-		if (nargs != 0)
-			except("usage: query.Next()");
+		NOARGS("query.Next()");
 		return get(NEXT);
 		}
 	else if (member == Prev)
 		{
-		if (nargs != 0)
-			except("usage: query.Prev()");
+		NOARGS("query.Prev()");
 		return get(PREV);
 		}
 	else if (member == Rewind)
 		{
-		if (nargs != 0)
-			except("usage: query.Rewind()");
+		NOARGS("query.Rewind()");
 		return rewind();
 		}
 	else if (member == Columns || member == Fields) // Fields is deprecated
 		{
-		if (nargs != 0)
-			except("usage: query.Columns()");
+		NOARGS("query.Columns()");
 		return getfields();
 		}
 	else if (member == RuleColumns)
 		{
-		if (nargs != 0)
-			except("usage: query.RuleColumns()");
+		NOARGS("query.RuleColumns()");
 		return getRuleColumns();
 		}
 	else if (member == Order)
 		{
-		if (nargs != 0)
-			except("usage: query.Order()");
+		NOARGS("query.Order()");
 		return getorder();
 		}
 	else if (member == Explain)
 		{
-		if (nargs != 0)
-			except("usage: query.Explain()");
+		NOARGS("query.Explain()");
 		return explain();
 		}
 	else if (member == Output)
@@ -618,8 +594,7 @@ Value SuQuery::call(Value, Value member,
 		}
 	else if (member == Close)
 		{
-		if (nargs != 0)
-			except("usage: query.Close()");
+		NOARGS("query.Close()");
 		close();
 		return Value();
 		}

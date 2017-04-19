@@ -91,8 +91,7 @@ Value SuSocketClient::call(Value self, Value member,
 	else if (member == Readline)
 		{
 		// NOTE: Readline should be consistent across file, socket, and runpiped
-		if (nargs != 0)
-			except("usage: socketClient.Readline()");
+		NOARGS("socketClient.Readline()");
 		ckopen("Readline");
 		char buf[MAX_LINE + 1] = { 0 };
 		sc->readline(buf, sizeof buf);
@@ -124,8 +123,7 @@ Value SuSocketClient::call(Value self, Value member,
 		}
 	else if (member == Close)
 		{
-		if (nargs != 0)
-			except("usage: socketClient.Close()");
+		NOARGS("socketClient.Close()");
 		ckopen("Close");
 		close();
 		return Value();
@@ -354,8 +352,7 @@ Value SuServerInstance::call(Value self, Value member,
 		}
 	if (member == Readline)
 		{
-		if (nargs != 0)
-			except("usage: socketServer.Readline()");
+		NOARGS("socketServer.Readline()");
 		char buf[2000];
 		if (! sc->readline(buf, sizeof buf))
 			except("socket server: lost connection");
@@ -380,8 +377,7 @@ Value SuServerInstance::call(Value self, Value member,
 		}
 	else if (member == RemoteUser)
 		{
-		if (nargs != 0)
-			except("usage: socketServer.RemoteUser()");
+		NOARGS("socketServer.RemoteUser()");
 		return new SuString(sc->getadr());
 		}
 	else

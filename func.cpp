@@ -171,6 +171,14 @@ void Func::args(short nargs, short nargnames, ushort* argnames, int each)
 			except("missing argument(s) to " << this);
 	}
 
+void noargs(short nargs, short nargnames, ushort* argnames, int each,
+	const char* usage)
+	{
+	argseach(nargs, nargnames, argnames, each);
+	if (nargs > nargnames)
+		except("usage: " << usage);
+	}
+
 // expand @args
 void argseach(short& nargs, short& nargnames, ushort*& argnames, int& each)
 	{

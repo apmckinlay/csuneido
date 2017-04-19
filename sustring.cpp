@@ -280,15 +280,13 @@ Value SuString::Substr(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuString::Size(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Size()");
+	NOARGS("string.Size()");
 	return size();
 	}
 
 Value SuString::Asc(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Asc()");
+	NOARGS("string.Asc()");
 	return (uchar) *ptr();
 	}
 
@@ -304,8 +302,7 @@ bool isGlobal(const char* s)
 
 Value SuString::Eval(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Eval()");
+	NOARGS("string.Eval()");
 	if (isGlobal(str()))
 		return globals[str()];
 	if (Value result = run(str()))
@@ -316,8 +313,7 @@ Value SuString::Eval(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuString::Eval2(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Eval2()");
+	NOARGS("string.Eval2()");
 	Value result = isGlobal(str()) ? globals[str()] : 	run(str());
 	SuObject* ob = new SuObject;
 	if (result)
@@ -343,8 +339,7 @@ Value SuString::Compile(short nargs, short nargnames, ushort* argnames, int each
 
 Value SuString::ServerEval(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.ServerEval()");
+	NOARGS("string.ServerEval()");
 	return dbms()->run(str());
 	}
 
@@ -601,8 +596,7 @@ Value SuString::Split(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuString::Detab(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Detab()");
+	NOARGS("string.Detab()");
 	const char* ss = ptr();
 	int sn = size();
 
@@ -653,8 +647,7 @@ inline bool istab(int col)
 
 Value SuString::Entab(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Entab()");
+	NOARGS("string.Entab()");
 	auto ss = str();
 	char* buf = (char*) _alloca(size());
 	char* dst = buf;
@@ -713,15 +706,13 @@ Value SuString::Repeat(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuString::Numberq(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Number?()");
+	NOARGS("string.Number?()");
 	return size() == numlen(str()) ? SuTrue : SuFalse;
 	}
 
 Value SuString::Unescape(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Unescape()");
+	NOARGS("string.Unescape()");
 
 	int n = size();
 	const char* ss = ptr();
@@ -778,15 +769,13 @@ Value SuStringIter::call(Value self, Value member,
 
 Value SuString::Iter(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Iter()");
+	NOARGS("string.Iter()");
 	return new SuStringIter(s);
 	}
 
 Value SuString::Mbstowcs(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Mbstowcs()");
+	NOARGS("string.Mbstowcs()");
 	auto src = str();
 	int n = mbstowcs(NULL, src, 0) + 1;
 	char* buf = salloc(n * 2);
@@ -796,8 +785,7 @@ Value SuString::Mbstowcs(short nargs, short nargnames, ushort* argnames, int eac
 
 Value SuString::Wcstombs(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Wcstombs()");
+	NOARGS("string.Wcstombs()");
 	wchar_t* src = (wchar_t*) str();
 	int n = wcstombs(NULL, src, 0);
 	char* buf = salloc(n);
@@ -807,8 +795,7 @@ Value SuString::Wcstombs(short nargs, short nargnames, ushort* argnames, int eac
 
 Value SuString::Upper(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Upper()");
+	NOARGS("string.Upper()");
 	char* buf = salloc(size());
 	char* dst = buf;
 	for (auto c : s)
@@ -818,8 +805,7 @@ Value SuString::Upper(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuString::Lower(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Lower()");
+	NOARGS("string.Lower()");
 	return tolower();
 	}
 
@@ -834,8 +820,7 @@ SuString* SuString::tolower() const
 
 Value SuString::Upperq(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Upper?()");
+	NOARGS("string.Upper?()");
 	bool result = false;
 	for (auto c : s)
 		if (islower((unsigned int) c))
@@ -847,8 +832,7 @@ Value SuString::Upperq(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuString::Lowerq(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Lower?()");
+	NOARGS("string.Lower?()");
 	bool result = false;
 	for (auto c : s)
 		if (isupper((unsigned int) c))
@@ -860,8 +844,7 @@ Value SuString::Lowerq(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuString::Alphaq(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Alpha?()");
+	NOARGS("string.Alpha?()");
 	if (size() <= 0)
 		return SuFalse;
 	for (auto c : s)
@@ -872,8 +855,7 @@ Value SuString::Alphaq(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuString::Numericq(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.Numeric?()");
+	NOARGS("string.Numeric?()");
 	if (size() <= 0)
 		return SuFalse;
 	for (auto c : s)
@@ -884,8 +866,7 @@ Value SuString::Numericq(short nargs, short nargnames, ushort* argnames, int eac
 
 Value SuString::AlphaNumq(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs > nargnames)
-		except("usage: string.AlphaNum?()");
+	NOARGS("string.AlphaNum?()");
 	if (size() <= 0)
 		return SuFalse;
 	for (auto c : s)

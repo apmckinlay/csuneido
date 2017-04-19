@@ -166,8 +166,7 @@ Value Except::call(Value self, Value member,
 	if (member == Callstack)
 		{
 		argseach(nargs, nargnames, argnames, each);
-		if (nargs != 0)
-			except("usage: exception.Callstack()");
+		NOARGS("exception.Callstack()");
 		return calls();
 		}
 	else

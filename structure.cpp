@@ -79,8 +79,7 @@ Value Structure::call(Value self, Value member,
 
 	if (member == SIZE)
 		{
-		if (nargs != 0)
-			except("usage: struct.Size()");
+		NOARGS("struct.Size()");
 		return size();
 		}
 	else if (member == CALL)

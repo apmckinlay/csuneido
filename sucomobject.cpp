@@ -333,16 +333,14 @@ Value SuCOMobject::call(Value self, Value member,
 	static Value DISPATCHQ("Dispatch?");
 	if (member == RELEASE)
 		{
-		if (nargs != 0)
-			except("usage: comobject.Release()");
+		NOARGS("comobject.Release()");
 		isdisp ? idisp->Release() : iunk->Release();
 		isalive = nullptr;
 		return 0;
 		}
 	else if (member == DISPATCHQ)
 		{
-		if (nargs != 0)
-			except("usage: comobject.Dispatch?()");
+		NOARGS("comobject.Dispatch?()");
 		return isdisp ? SuTrue : SuFalse;
 		}
 	// else call

@@ -24,6 +24,7 @@
 #include "except.h"
 #include "value.h"
 #include "win.h"
+#include "noargs.h"
 
 SuWinRes::SuWinRes(void* handle) : h(handle)
 	{ }
@@ -35,8 +36,7 @@ Value SuWinRes::call(Value self, Value member,
 
 	if (member == Close)
 		{
-		if (nargs != 0)
-			except("usage: handle.Close()");
+		NOARGS("handle.Close()");
 		removefinal();
 		return close() ? SuTrue : SuFalse;
 		}

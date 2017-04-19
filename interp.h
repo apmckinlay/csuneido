@@ -25,6 +25,7 @@
 #include "value.h"
 #include "except.h"
 #include "fibers.h" // for tls().proc
+#include "noargs.h"
 
 class SuValue;
 class Func;

@@ -102,14 +102,12 @@ Value ThreadClass::call(Value self, Value member,
 		}
 	else if (member == Count)
 		{
-		if (nargs != 0)
-			except("usage: Thread.Count()");
+		NOARGS("Thread.Count()");
 		return Fibers::size();
 		}
 	else if (member == List)
 		{
-		if (nargs != 0)
-			except("usage: Thread.List()");
+		NOARGS("Thread.List()");
 		SuObject* list = new SuObject();
 		//TODO implement Thread.List()
 		return list;
