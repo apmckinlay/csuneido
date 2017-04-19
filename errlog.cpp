@@ -25,11 +25,17 @@
 #include "fibers.h" // for tls()
 #include "unhandled.h" // for err_filename()
 #include <time.h>
+#include "fatal.h"
 
 extern bool is_client;
 
+static int count = 0;
+const int LIMIT = 100;
+
 void errlog(const char* msg1, const char* msg2, const char* msg3)
 	{
+	if (++count > LIMIT)
+		fatal("too many errors");
 	OstreamFile log(is_client ? err_filename() : "error.log", "at");
 	time_t t;
 	time(&t);
