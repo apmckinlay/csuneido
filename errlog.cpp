@@ -35,7 +35,7 @@ const int LIMIT = 100;
 void errlog(const char* msg1, const char* msg2, const char* msg3)
 	{
 	if (++count > LIMIT)
-		fatal("too many errors");
+		fatal("too many errors, exiting");
 	OstreamFile log(is_client ? err_filename() : "error.log", "at");
 	time_t t;
 	time(&t);
