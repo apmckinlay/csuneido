@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -30,7 +30,7 @@
 class SuBlock : public Func
 	{
 public:
-	SuBlock(Frame* f, int p, int i, int n) : frame(f), fn(f->fn), pc(p), first(i), 
+	SuBlock(Frame* f, int p, int fi, int n) : frame(f), fn(f->fn), pc(p), first(fi),
 		persisted(false)
 		{
 		verify(frame->fn); // i.e. not a primitive
@@ -47,14 +47,15 @@ public:
 		// if compile used a different way to hide block params this wouldn't be needed
 		for (int i = 0; i < nparams; ++i)
 			{
-			char* s = symstr(locals[i]);
+			auto s = symstr(locals[i]);
 			if (*s != '_')
 				break ; // already stripped previously
 			locals[i] = ::symnum(s + 1);
 			}
 		}
-	void out(Ostream& out);
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	void out(Ostream& out) const override;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 	void persist();
 	friend Value suBlock(Frame* frame, int pc, int first, int nparams);
 private:
@@ -76,15 +77,14 @@ Value suBlock(Frame* frame, int pc, int first, int nparams)
 	return new SuBlock(frame, pc, first, nparams);
 	}
 
-void SuBlock::out(Ostream& out)
+void SuBlock::out(Ostream& out) const
 	{
 	out << "/* block */";
 	}
 
-Value SuBlock::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuBlock::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
-	static Value Params("Params");
-
 	if (member == CALL)
 		{
 		if (frame->fn != fn)
@@ -131,19 +131,19 @@ void SuBlock::persist()
 
 	// save frame on heap
 	frame = (Frame*) memcpy(new Frame, frame, sizeof (Frame));
-		
+
 	persisted = true;
 	}
 
 #include "testing.h"
 
-char* eval(const char* s);
+const char* eval(const char* s); // in builtins.cpp
 
 class test_block : public Tests
 	{
 	TEST(0, simple)
 		{
-		char* s = eval("\
+		auto s = eval("\
 			s = '';\
 			b = { s $= 'abc' };\
 			b();\
@@ -153,7 +153,7 @@ class test_block : public Tests
 		}
 	TEST(1, persist1)
 		{
-		char* s = eval("\
+		auto s = eval("\
 			s = '';\
 			b = { Object(b); s $= 'abc' };\
 			b();\
@@ -163,7 +163,7 @@ class test_block : public Tests
 		}
 	TEST(2, persist2)
 		{
-		char* s = eval("\
+		auto s = eval("\
 			s = '';\
 			persist = function (b) { Object(b) };\
 			b = { persist(b); s $= 'abc' };\
@@ -174,7 +174,7 @@ class test_block : public Tests
 		}
 	TEST(3, persist3)
 		{
-		char* s = eval("\
+		auto s = eval("\
 			doit = function (block) { block() };\
 			wrap = function (@args) { 'abc' };\
 			s = '';\
@@ -185,7 +185,7 @@ class test_block : public Tests
 		}
 	TEST(4, blockreturn)
 		{
-		char* s = eval("\
+		auto s = eval("\
 			b = { return 'good' };\
 			b();\
 			return 'bad'");

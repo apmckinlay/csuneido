@@ -1,21 +1,19 @@
-#ifndef SUOBJECT_H
-#define SUOBJECT_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -27,10 +25,6 @@
 #include "suvalue.h"
 #include <vector>
 #include "hashmap.h"
-
-#ifdef _MSC_VER
-#pragma warning(disable : 4786)
-#endif
 
 // objects - both generic containers,
 // and instances of user defined classes
@@ -44,14 +38,16 @@ public:
 	explicit SuObject(bool readonly);
 	explicit SuObject(const SuObject& ob);
 	void init();
-	SuObject(SuObject* ob, size_t offset); // for slice 
+	SuObject(SuObject* ob, size_t offset); // for slice
 
-	virtual void out(Ostream& os);
-	void outdelims(Ostream& os, char* delim);
-	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
-	virtual void putdata(Value i, Value x);
-	virtual Value getdata(Value);
-	virtual SuObject* ob_if_ob()
+	void out(Ostream& os) const override;
+	void outdelims(Ostream& os, const char* delim) const;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
+	void putdata(Value i, Value x) override;
+	Value getdata(Value) override;
+
+	SuObject* ob_if_ob() override
 		{ return this; }
 
 	void set_members(SuObject* x);
@@ -62,7 +58,7 @@ public:
 		{ return vec.size(); }
 	size_t mapsize() const
 		{ return map.size(); }
-	
+
 	void put(Value i, Value x);
 
 	void add(Value x);
@@ -75,13 +71,13 @@ public:
 	virtual bool erase2(Value x);
 
 	bool operator==(const SuObject& ob) const;
-	virtual bool eq(const SuValue& x) const;
-	virtual bool lt(const SuValue& y) const;
-	virtual int order() const;
-	virtual size_t hashfn();
+	bool eq(const SuValue& x) const override;
+	bool lt(const SuValue& y) const override;
+	int order() const override;
+	size_t hashfn() const override;
 
-	size_t packsize() const;
-	void pack(char* buf) const;
+	size_t packsize() const override;
+	void pack(char* buf) const override;
 	static SuObject* unpack(const gcstring& s);
 	static SuObject* unpack2(const gcstring& s, SuObject* ob);
 
@@ -89,7 +85,7 @@ public:
 
 	void set_readonly()
 		{ readonly = true; }
-	bool get_readonly()
+	bool get_readonly() const
 		{ return readonly; }
 
 	Value myclass;
@@ -99,7 +95,7 @@ public:
 	class iterator
 		{
 	public:
-		iterator(const Vector& v, const Map& m, bool iv, bool im, int& ver) 
+		iterator(const Vector& v, const Map& m, bool iv, bool im, int& ver)
 			: vec(v), vi(iv ? 0 : v.size()), map(m), mi(im ? m.begin() : m.end()), mend(m.end()),
 			include_vec(iv), include_map(im), object_version(ver), version(ver)
 			{ }
@@ -133,14 +129,11 @@ protected:
 private:
 	static HashMap<Value,pmfn> methods;
 	static HashMap<Value, SuObject::pmfn> instance_methods;
-	void setup();
+	static void setup();
 	Value getdefault(Value member, Value def);
 	Value Size(short nargs, short nargnames, ushort* argnames, int each);
 	Value Members(short nargs, short nargnames, ushort* argnames, int each);
 	Value Iter(short nargs, short nargnames, ushort* argnames, int each);
-	Value IterList(short nargs, short nargnames, ushort* argnames, int each);
-	Value IterKeys(short nargs, short nargnames, ushort* argnames, int each);
-	Value IterListValues(short nargs, short nargnames, ushort* argnames, int each);
 	Value HasMember(short nargs, short nargnames, ushort* argnames, int each);
 	Value HasMethod(short nargs, short nargnames, ushort* argnames, int each);
 	Value MethodClass(short nargs, short nargnames, ushort* argnames, int each);
@@ -183,5 +176,3 @@ private:
 	// used to detect modification during iteration
 	friend class ModificationCheck;
 	};
-
-#endif

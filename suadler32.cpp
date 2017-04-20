@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -30,7 +30,7 @@ class SuAdler32 : public SuValue
 public:
 	SuAdler32() : value(1)
 		{ }
-	virtual void out(Ostream& os)
+	void out(Ostream& os) const override
 		{ os << "Adler32()"; }
 	static Method<SuAdler32>* methods()
 		{
@@ -38,13 +38,13 @@ public:
 			{
 			Method<SuAdler32>("Update", &SuAdler32::Update),
 			Method<SuAdler32>("Value", &SuAdler32::ValueFn),
-			Method<SuAdler32>("", 0)
+			Method<SuAdler32>("", nullptr)
 			};
 		return methods;
 		}
-	const char* type() const
+	const char* type() const override
 		{ return "Adler32"; }
-	void update(gcstring gcstr);
+	void update(const gcstring& gcstr);
 	ulong value;
 private:
 	Value Update(BuiltinArgs&);
@@ -58,7 +58,7 @@ Value su_adler32()
 	}
 
 template<>
-void BuiltinClass<SuAdler32>::out(Ostream& os)
+void BuiltinClass<SuAdler32>::out(Ostream& os) const
 	{ os << "Adler32 /* builtin class */"; }
 
 template<>
@@ -91,9 +91,9 @@ Value SuAdler32::Update(BuiltinArgs& args)
 	return this;
 	}
 
-void SuAdler32::update(gcstring s)
+void SuAdler32::update(const gcstring& s)
 	{
-	value = checksum(value, s.buf(), s.size());
+	value = checksum(value, s.ptr(), s.size());
 	}
 
 Value SuAdler32::ValueFn(BuiltinArgs& args)

@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -26,14 +26,16 @@
 #include "suobject.h"
 #include "except.h"
 #include "globals.h"
-#include "minmax.h"
+#include "suwinres.h"
+#include <algorithm>
+using std::min;
 
 #define check2(n)	if ((dst2) + (n) > lim2) except("conversion overflow")
 
 Value Type::result(long, long)
 	{ error("not a valid return type"); }
 
-void Type::getbyref(char*& src, Value x)
+void Type::getbyref(const char*& src, Value x)
 	{
 	src += size();
 	}
@@ -48,31 +50,31 @@ void TypeBool::put(char*& dst, char*& dst2, const char* lim2, Value x)
 	dst += sizeof (int);
 	}
 
-Value TypeBool::get(char*& src, Value x)
+Value TypeBool::get(const char*& src, Value)
 	{
-	x = *((int*) src) ? SuTrue : SuFalse;
+	Value x = *((int*) src) ? SuTrue : SuFalse;
 	src += sizeof (int);
 	return x;
 	}
 
-void TypeBool::out(Ostream& os)
+void TypeBool::out(Ostream& os) const
 	{ os << "bool"; }
 
 //===================================================================
 
 template<>
-void TypeInt<char>::out(Ostream& os)
+void TypeInt<char>::out(Ostream& os) const
 	{ os << "int8"; }
 
 template<>
-void TypeInt<short>::out(Ostream& os)
+void TypeInt<short>::out(Ostream& os) const
 	{ os << "int16"; }
 
 template<>
-void TypeInt<long>::out(Ostream& os)
+void TypeInt<long>::out(Ostream& os) const
 	{ os << "int32"; }
 
-void TypeInt<int64>::out(Ostream& os)
+void TypeInt<int64>::out(Ostream& os) const
 	{ os << "int64"; }
 
 void TypeInt<int64>::put(char*& dst, char*&, const char*, Value x)
@@ -90,7 +92,7 @@ void TypeInt<int64>::put(char*& dst, char*&, const char*, Value x)
 	dst += sizeof (int64);
 	}
 
-Value TypeInt<int64>::get(char*& src, Value x)
+Value TypeInt<int64>::get(const char*& src, Value x)
 	{
 	int64 n = *((int64*) src);
 	src += sizeof (int64);
@@ -102,7 +104,7 @@ Value TypeInt<int64>::get(char*& src, Value x)
 
 //===================================================================
 
-void TypeOpaquePointer::out(Ostream& os)
+void TypeOpaquePointer::out(Ostream& os) const
 	{ os << "pointer"; }
 
 //===================================================================
@@ -113,14 +115,14 @@ void TypeFloat::put(char*& dst, char*&, const char*, Value x)
 	dst += sizeof (float);
 	}
 
-Value TypeFloat::get(char*& src, Value x)
+Value TypeFloat::get(const char*& src, Value x)
 	{
 	float n = *((float*) src);
 	src += sizeof (float);
 	return SuNumber::from_float(n);
 	}
 
-void TypeFloat::out(Ostream& os)
+void TypeFloat::out(Ostream& os) const
 	{ os << "float"; }
 
 Value TypeFloat::result(long, long)
@@ -142,14 +144,14 @@ void TypeDouble::put(char*& dst, char*&, const char*, Value x)
 	dst += sizeof (double);
 	}
 
-Value TypeDouble::get(char*& src, Value x)
+Value TypeDouble::get(const char*& src, Value x)
 	{
 	double n = *((double*) src);
 	src += sizeof (double);
 	return SuNumber::from_double(n);
 	}
 
-void TypeDouble::out(Ostream& os)
+void TypeDouble::out(Ostream& os) const
 	{ os << "double"; }
 
 Value TypeDouble::result(long, long)
@@ -168,11 +170,11 @@ Value TypeDouble::result(long, long)
 //===================================================================
 
 template<>
-void TypeWinRes<SuHandle>::out(Ostream& os)
+void TypeWinRes<SuHandle>::out(Ostream& os) const
 	{ os << "handle"; }
 
 template<>
-void TypeWinRes<SuGdiObj>::out(Ostream& os)
+void TypeWinRes<SuGdiObj>::out(Ostream& os) const
 	{ os << "gdiobj"; }
 
 //===================================================================
@@ -181,14 +183,15 @@ void TypeWinRes<SuGdiObj>::out(Ostream& os)
 class TypePointer : public Type
 	{
 public:
-	int size()
+	int size() override
 		{ return sizeof (void*); }
-	void put(char*& dst, char*& dst2, const char* lim2, Value x);
-	Value get(char*& src, Value x);
-	void getbyref(char*& src, Value x);
-	void out(Ostream& os)
+	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
+	Value get(const char*& src, Value x) override;
+	void getbyref(const char*& src, Value x) override;
+	void out(Ostream& os) const override
 		{ os << type << '*'; }
-	Value result(long, long n);
+	Value result(long, long n) override;
+
 	Type* type;
 	};
 
@@ -211,24 +214,24 @@ void TypePointer::put(char*& dst, char*& dst2, const char* lim2, Value x)
 		}
 	}
 
-Value TypePointer::get(char*& src, Value x)
+Value TypePointer::get(const char*& src, Value x)
 	{
-	char* src2 = *((char**) src);
+	const char* src2 = *((char**) src);
 	x = src2 ? type->get(src2, x) : Value();
 	src += sizeof (void*);
 	return x;
 	}
 
-void TypePointer::getbyref(char*& src, Value x)
+void TypePointer::getbyref(const char*& src, Value x)
 	{
-	if (char* src2 = *((char**) src))
+	if (const char* src2 = *((char**) src))
 		type->getbyref(src2, x);
 	src += sizeof (void*);
 	}
 
 Value TypePointer::result(long, long n)
 	{
-	char* src = (char*) n;
+	const char* src = (char*) n;
 	return type->get(src, 0);
 	}
 
@@ -240,33 +243,33 @@ void TypeBuffer::put(char*& dst, char*& dst2, const char* lim2, Value x)
 	if (! x || x == SuZero)
 		{
 		// missing members
-		*((char**) dst) = 0;
+		*((const char**) dst) = nullptr;
 		}
-	else if (in && (str = val_cast<SuString*>(x)))
+	else if (in && nullptr != (str = val_cast<SuString*>(x)))
 		{
 		// pass pointer to actual string
-		*((char**) dst) = str->str();
+		*((const char**) dst) = str->str();
 		}
 	else if (SuBuffer* buf = val_cast<SuBuffer*>(x))
 		{
 		// pass pointer to actual buffer
-		*((char**) dst) = buf->buf();
+		*((const char**) dst) = buf->buf();
 		}
 	else
 		{
 		// copy string to dst2
 		gcstring s = x.gcstr();
-		*((char**) dst) = dst2;
+		*((const char**) dst) = dst2;
 		int n = s.size();
 		check2(n + 1);
-		memcpy(dst2, s.buf(), n);
+		memcpy(dst2, s.ptr(), n);
 		dst2 += n;
 		*dst2++ = 0; // ensure nul terminated
 		}
 	dst += sizeof (char*);
 	}
 
-Value TypeBuffer::get(char*& src, Value x)
+Value TypeBuffer::get(const char*& src, Value x)
 	{
 	char* now = *((char**) src);
 	if (! now)
@@ -274,25 +277,25 @@ Value TypeBuffer::get(char*& src, Value x)
 	else if (! x)
 		x = new SuString(now);
 	else if (SuBuffer* buf = val_cast<SuBuffer*>(x))
-		verify(now == buf->buf());
+		verify(now == buf->ptr());
 	else
 		{
 		gcstring s = x.gcstr();
-		if (0 != memcmp(now, s.buf(), s.size()))
+		if (0 != memcmp(now, s.ptr(), s.size()))
 			x = new SuString(now);
 		}
 	src += sizeof (char*);
 	return x;
 	}
 
-void TypeBuffer::out(Ostream& os)
-	{ 
+void TypeBuffer::out(Ostream& os) const
+	{
 	os << "buffer";
 	}
 
 // TypeString inherits from TypeBuffer ==============================
 
-Value TypeString::get(char*& src, Value x)
+Value TypeString::get(const char*& src, Value x)
 	{
 	if (in)
 		{
@@ -314,11 +317,11 @@ Value TypeString::result(long, long n)
 		return SuFalse;
 	}
 
-void TypeString::out(Ostream& os)
+void TypeString::out(Ostream& os) const
 	{
 	if (in)
 		os << "[in] ";
-	os << "string"; 
+	os << "string";
 	}
 
 //===================================================================
@@ -340,7 +343,7 @@ void TypeResource::put(char*& dst, char*& dst2, const char* lim2, Value x)
 		}
 	}
 
-Value TypeResource::get(char*& src, Value x)
+Value TypeResource::get(const char*& src, Value x)
 	{
 	if (src[2] == 0 && src[3] == 0)
 		{
@@ -352,9 +355,9 @@ Value TypeResource::get(char*& src, Value x)
 		return tstr.get(src, x);
 	}
 
-void TypeResource::out(Ostream& os)
-	{ 
-	os << "resource"; 
+void TypeResource::out(Ostream& os) const
+	{
+	os << "resource";
 	}
 
 TypeString TypeResource::tstr;
@@ -367,14 +370,15 @@ class TypeArray : public Type
 public:
 	explicit TypeArray(int size) : n(size)
 		{ }
-	int size();
-	void put(char*& dst, char*& dst2, const char* lim2, Value x);
-	Value get(char*& src, Value x);
-	void getbyref(char*& src, Value x)
+	int size() override;
+	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
+	Value get(const char*& src, Value x) override;
+	void getbyref(const char*& src, Value x) override
 		{ get(src, x); }
-	void out(Ostream& os)
+	void out(Ostream& os) const override
 		{ os << type << '[' << n << ']'; }
-	Type* type;
+
+	Type* type = nullptr;
 	int n;
 	};
 
@@ -395,13 +399,13 @@ void TypeArray::put(char*& dst, char*& dst2, const char* lim2, Value x)
 			{
 			// string[] is special case for strings
 			int len = min(sx->size(), n);
-			memcpy(dst, sx->buf(), len);
+			memcpy(dst, sx->ptr(), len);
 			if (dynamic_cast<TypeString*>(type))
 				dst[min(sx->size(),n-1)] = 0;
 			}
 		dst += n;
 		return ;
-		}	
+		}
 	if (! x)
 		x = new SuObject;//(n);
 	SuObject* ob = x.object();
@@ -409,26 +413,26 @@ void TypeArray::put(char*& dst, char*& dst2, const char* lim2, Value x)
 		type->put(dst, dst2, lim2, ob->get(i));
 	}
 
-Value TypeArray::get(char*& src, Value x)
+Value TypeArray::get(const char*& src, Value x)
 	{
 	if (dynamic_cast<TypeString*>(type))
 		{
 		// string[] is special case for strings
-		char* s = src;
+		auto s = src;
 		src += n;
 		SuString* sx = val_cast<SuString*>(x);
 		int len = strlen(s);
-		if (sx && len == sx->size() && 0 == memcmp(s, sx->buf(), len))
+		if (sx && len == sx->size() && 0 == memcmp(s, sx->ptr(), len))
 			return x;
 		return new SuString(s);
 		}
 	if (dynamic_cast<TypeBuffer*>(type))
 		{
 		// buffer[] is special case for strings
-		char* s = src;
+		auto s = src;
 		src += n;
 		SuString* sx = val_cast<SuString*>(x);
-		if (sx && n == sx->size() && 0 == memcmp(s, sx->buf(), n))
+		if (sx && n == sx->size() && 0 == memcmp(s, sx->ptr(), n))
 			return x;
 		return new SuString(s,n);
 		}
@@ -479,7 +483,7 @@ Type& TypeItem::type()
 	return *tval;
 	}
 
-void TypeItem::out(Ostream& os)
+void TypeItem::out(Ostream& os) const
 	{
 	os << globals(gnum);
 	if (n == 0)
@@ -511,7 +515,7 @@ void TypeParams::putall(char*& dst, char*& dst2, const char* lim2, Value* args)
 		items[i].type().put(dst, dst2, lim2, args[i]);
 	}
 
-void TypeParams::getall(char*& src, Value* args)
+void TypeParams::getall(const char*& src, Value* args)
 	{
 	// NOTE: no need to update args
 	for (int i = 0; i < nitems; ++i)
@@ -519,7 +523,7 @@ void TypeParams::getall(char*& src, Value* args)
 	}
 
 // this isnt really necessary since dll and callback add names
-void TypeParams::out(Ostream& os)
+void TypeParams::out(Ostream& os) const
 	{
 	os << '(';
 	for (int i = 0; i < nitems; ++i)
@@ -532,12 +536,12 @@ void TypeParams::out(Ostream& os)
 	}
 
 void TypeParams::put(char*&, char*&, const char*, Value)
-	{ 
-	error("should not be used"); 
+	{
+	error("should not be used");
 	}
 
-Value TypeParams::get(char*&, Value)
-	{ 
+Value TypeParams::get(const char*&, Value)
+	{
 	error("should not be used");
 	}
 
@@ -577,8 +581,8 @@ class test_types : public Tests
 		type->put(dst, dst2, lim2, x);
 		verify(dst == buf + size);
 		verify(dst2 == buf2 + size2);
-		dst = buf;
-		asserteq(type->get(dst, Value()), x);
+		const char* src = buf;
+		asserteq(type->get(src, Value()), x);
 		}
 	};
 REGISTER(test_types);

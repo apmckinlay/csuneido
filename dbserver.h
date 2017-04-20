@@ -1,6 +1,4 @@
-#ifndef DBSERVER_H
-#define DBSERVER_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -23,10 +21,8 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-void start_dbserver(char* name);
-int kill_connections(char* s);
+void start_dbserver(const char* name);
+int kill_connections(const char* s);
 
-void start_dbserver2(char* name);
-int kill_connections2(char* s);
-
-#endif
+void start_dbserver2(const char* name);
+int kill_connections2(const char* s);

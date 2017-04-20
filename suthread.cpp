@@ -38,7 +38,7 @@ class ThreadClass : public SuValue
 public:
 	Value call(Value self, Value member,
 		short nargs, short nargnames, ushort* argnames, int each) override;
-	void out(Ostream& os) override
+	void out(Ostream& os) const override
 		{
 		os << "Thread";
 		}
@@ -65,18 +65,6 @@ struct ThreadInfo
 	Value fn;
 	};
 
-HashMap<UINT, const Except*> threadErrors;
-
-extern void handler(const Except&);
-
-static void CALLBACK threadError(HWND hwnd, UINT message, UINT id, DWORD dwTime)
-	{
-	KillTimer(nullptr, id);
-	auto e = threadErrors[id];
-	threadErrors.erase(id);
-	handler(*e);
-	}
-
 // this is a wrapper that runs inside the fiber to catch exceptions
 static void _stdcall thread(void* arg)
 	{
@@ -90,13 +78,12 @@ static void _stdcall thread(void* arg)
 		}
 	catch (const Except& e)
 		{
-		// use a timer to call handler from the main fiber
-		auto id = SetTimer(nullptr, 0, 0, threadError);
-		threadErrors[id] = new Except(e, "ERROR in Thread: " + e.gcstr());
+		errlog("ERROR uncaught in thread:", e.str(), e.callstack());
 		}
 	}
 
-Value ThreadClass::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value ThreadClass::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Count("Count");
 	static Value List("List");
@@ -115,14 +102,12 @@ Value ThreadClass::call(Value self, Value member, short nargs, short nargnames, 
 		}
 	else if (member == Count)
 		{
-		if (nargs != 0)
-			except("usage: Thread.Count()");
+		NOARGS("Thread.Count()");
 		return Fibers::size();
 		}
 	else if (member == List)
 		{
-		if (nargs != 0)
-			except("usage: Thread.List()");
+		NOARGS("Thread.List()");
 		SuObject* list = new SuObject();
 		//TODO implement Thread.List()
 		return list;

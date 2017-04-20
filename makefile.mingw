@@ -1,19 +1,17 @@
 include makefile.common
 
 ifdef DEBUG
-  OUTPUT = mingw_debug
   FLAGS = -g
   LDFLAGS =
 else
-  OUTPUT = mingw_release
   FLAGS = -O3 -DNDEBUG
   LDFLAGS = -s
 endif
 
 CC=gcc
-CXX=g++ -std=gnu++11
+CXX=g++ -std=gnu++1z -Wsuggest-override
 FLAGS += -DCOMPILER=MinGW -Werror -Wall -Wextra -Wno-sign-compare -Wfloat-equal \
-	-Wno-write-strings -Wno-char-subscripts  -Wno-narrowing -Wno-unknown-pragmas \
+	-Wno-char-subscripts  -Wno-narrowing -Wno-unknown-pragmas \
 	-Wuninitialized -Wno-unused-parameter \
 	-D_USE_32BIT_TIME_T -D_WIN32_WINNT=0x0600 \
 	-DJOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE=0x2000 

@@ -101,7 +101,7 @@ Serializer& Serializer::putInt(int64_t i)
 
 Serializer& Serializer::putStr(const char* s)
 	{
-	return putStr(gcstring(strlen(s), s)); // no alloc
+	return putStr(gcstring::noalloc(s));
 	}
 
 Serializer& Serializer::putStr(const gcstring& s)
@@ -210,8 +210,7 @@ gcstring Serializer::getBuf()
 	{
 	int n = getInt();
 	LOG('-');
-	gcstring s(n);
-	read(s.buf(), n);
+	gcstring s = read(n);
 	LOGSTR(s);
 	return s;
 	}
@@ -222,9 +221,7 @@ Value Serializer::getValue()
 	// i.e. strings will just point into the buffer
 	int n = getInt();
 	LOG('-');
-	gcstring v(n);
-	read(v.buf(), n);
-	Value val = unpack(v);
+	Value val = unpack(read(n));
 	LOG(val);
 	return val;
 	}
@@ -249,6 +246,13 @@ Lisp<gcstring> Serializer::getStrings()
 		list.push(getStr());
 	LOG(')');
 	return list.reverse();
+	}
+
+gcstring Serializer::read(int n)
+	{
+	char* buf = salloc(n);
+	read(buf, n);
+	return gcstring::noalloc(buf, n);
 	}
 
 // tests ------------------------------------------------------------

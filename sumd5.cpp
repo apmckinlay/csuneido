@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2002 Suneido Software Corp. 
+ *
+ * Copyright (c) 2002 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -25,7 +25,6 @@
 #include "builtinclass.h"
 #include "suboolean.h"
 #include "gcstring.h"
-#include "checksum.h"
 #include "sufinalize.h"
 #include "sustring.h"
 
@@ -34,13 +33,13 @@ class Md5 : public SuFinalize
 public:
 	Md5()
 		{
-		if (! CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL, 0))
-			if (! CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL, CRYPT_NEWKEYSET))
+		if (! CryptAcquireContext(&hCryptProv, nullptr, nullptr, PROV_RSA_FULL, 0))
+			if (! CryptAcquireContext(&hCryptProv, nullptr, nullptr, PROV_RSA_FULL, CRYPT_NEWKEYSET))
 				except("Md5: CryptAcquireContext failed");
 		if (! CryptCreateHash(hCryptProv, CALG_MD5, 0, 0, &hHash))
 			except("Md5: CryptCreateHash failed");
 		}
-	virtual void out(Ostream& os)
+	void out(Ostream& os) const override
 		{ os << "Md5()"; }
 	static Method<Md5>* methods()
 		{
@@ -52,11 +51,11 @@ public:
 			};
 		return methods;
 		}
-	const char* type() const
+	const char* type() const override
 		{ return "Md5"; }
 	void update(gcstring gcstr);
 	gcstring value();
-	virtual void finalize();
+	void finalize() override;
 
 private:
 	Value Update(BuiltinArgs&);
@@ -73,7 +72,7 @@ Value su_md5()
 	}
 
 template<>
-void BuiltinClass<Md5>::out(Ostream& os)
+void BuiltinClass<Md5>::out(Ostream& os) const
 	{ os << "Md5 /* builtin class */"; }
 
 template<>
@@ -108,7 +107,7 @@ Value Md5::Update(BuiltinArgs& args)
 
 void Md5::update(gcstring s)
 	{
-	if (! CryptHashData(hHash, (BYTE*) s.buf(), s.size(), 0)) 
+	if (! CryptHashData(hHash, (BYTE*) s.ptr(), s.size(), 0))
 		except("Md5: CryptHashData failed");
 	}
 
@@ -118,7 +117,7 @@ gcstring Md5::value()
 	{
 	DWORD dwHashLen = MD5_SIZE;
 	gcstring out(dwHashLen);
-	if (! CryptGetHashParam(hHash, HP_HASHVAL, (unsigned char*) out.buf(), &dwHashLen, 0))
+	if (! CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*) out.ptr(), &dwHashLen, 0))
 		except("Md5: CryptGetHashParam failed");
 	verify(dwHashLen == MD5_SIZE);
 	return out;

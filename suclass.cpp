@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -26,11 +26,10 @@
 #include "symbols.h"
 #include "sustring.h"
 #include "pack.h"
-#include "cvt.h"
 
 //TODO don't inherit from SuObject
 
-void SuClass::out(Ostream& out)
+void SuClass::out(Ostream& out) const
 	{
 	out << named.name() << " /* ";
 	if (named.lib != "")
@@ -47,7 +46,8 @@ void SuClass::out(Ostream& out)
 	out << " */";
 	}
 
-Value SuClass::call(Value self, Value member, short nargs, short nargnames, ushort *argnames, int each)
+Value SuClass::call(Value self, Value member, 
+	short nargs, short nargnames, ushort *argnames, int each)
 	{
 	static Value BASENAME("BaseName");
 
@@ -130,11 +130,11 @@ void SuClass::pack(char* buf) const
 
 SuClass* SuClass::unpack(const gcstring& s)
 	{
-	const char* buf = s.buf() + 1; // skip PACK_CLASS
+	const char* buf = s.ptr() + 1; // skip PACK_CLASS
 	short base = globals(unpackstr(buf));
 	SuClass* c = new SuClass(base);
 	buf += unpackname(buf, c->named);
-	unpack2(gcstring(s.end() - buf, buf), c);
+	unpack2(gcstring::noalloc(buf, s.ptr() + s.size() - buf), c);
 	return c;
 	}
 
@@ -145,7 +145,8 @@ SuClass* SuClass::unpack(const gcstring& s)
 // theoretically the "basic" methods should be in here
 // but for speed they are in class SuObject
 
-Value RootClass::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value RootClass::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL || member == INSTANTIATE)
 		{ // only used for Object(...)
@@ -179,7 +180,7 @@ Value RootClass::call(Value self, Value member, short nargs, short nargnames, us
 		static ushort G_Objects = globals("Objects");
 		Value Objects = globals.find(G_Objects);
 		SuObject* ob;
-		if (Objects && (ob = Objects.ob_if_ob()) && ob->has(member))
+		if (Objects && nullptr != (ob = Objects.ob_if_ob()) && ob->has(member))
 			return ob->call(self, member, nargs, nargnames, argnames, each);
 		else
 			return notfound(self, member, nargs, nargnames, argnames, each);
@@ -189,7 +190,8 @@ Value RootClass::call(Value self, Value member, short nargs, short nargnames, us
 #include "func.h"
 
 // this is separate so it can be used by other builtin classes
-Value RootClass::notfound(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value RootClass::notfound(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value DEFAULT("Default");
 

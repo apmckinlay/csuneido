@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -31,14 +31,15 @@
 #include "sustring.h"
 #include "fatal.h"
 #include "catstr.h"
+#include "opcodes.h"
 
-Value Func::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value Func::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == PARAMS)
 		return params();
 	else
 		method_not_found("function", member);
-	return Value();
 	}
 
 Value Func::params()
@@ -67,7 +68,7 @@ void Func::args(short nargs, short nargnames, ushort* argnames, int each)
 	Value* args = GETSP() - nargs + 1;
 	short unamed = nargs - nargnames - (each == -1 ? 0 : 1);
 	short i, j;
-	
+
 	if (! rest && unamed > nparams)
 		except("too many arguments to " << this);
 
@@ -97,10 +98,10 @@ void Func::args(short nargs, short nargnames, ushort* argnames, int each)
 	else if (each != -1)
 		{
 		SuObject* ob = args[0].object();
-		
+
 		if (ob->vecsize() - each > nparams)
 			except("too many arguments to " << this);
-		
+
 		// un-named members
 		for (i = 0; i < nparams; ++i)
 			args[i] = ob->get(i + each);
@@ -170,6 +171,14 @@ void Func::args(short nargs, short nargnames, ushort* argnames, int each)
 			except("missing argument(s) to " << this);
 	}
 
+void noargs(short nargs, short nargnames, ushort* argnames, int each,
+	const char* usage)
+	{
+	argseach(nargs, nargnames, argnames, each);
+	if (nargs > nargnames)
+		except("usage: " << usage);
+	}
+
 // expand @args
 void argseach(short& nargs, short& nargnames, ushort*& argnames, int& each)
 	{
@@ -194,7 +203,7 @@ void argseach(short& nargs, short& nargnames, ushort*& argnames, int& each)
 	each = -1;
 	}
 
-void Func::out(Ostream& out)
+void Func::out(Ostream& out) const
   	{
 	out << named.name() << " /* ";
 	gcstring lib = named.library();
@@ -251,7 +260,7 @@ Primitive::Primitive(PrimFn f, ...)
 #include "globals.h"
 #include "scanner.h"
 
-Primitive::Primitive(char* decl, PrimFn f)
+Primitive::Primitive(const char* decl, PrimFn f)
 	{
 	pfn = f;
 	ndefaults = 0;
@@ -306,7 +315,8 @@ Primitive::Primitive(char* decl, PrimFn f)
 	memcpy(locals, params, nparams * sizeof (ushort));
 	}
 
-Value Primitive::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value Primitive::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member != CALL)
 		return Func::call(self, member, nargs, nargnames, argnames, each);

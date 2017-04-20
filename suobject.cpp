@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -24,7 +24,6 @@
 #include "interp.h"
 #include "globals.h"
 #include "symbols.h"
-#include "suboolean.h"
 #include "sunumber.h"
 #include "sustring.h"
 #include "sufunction.h"
@@ -38,9 +37,10 @@
 #include "sumethod.h"
 #include "catstr.h"
 #include "ostreamstr.h"
-#include "minmax.h"
 #include "range.h"
 #include "suseq.h"
+#include <algorithm>
+using std::min;
 
 extern Value root_class;
 
@@ -53,9 +53,11 @@ public:
 		: object(ob), iter(ob->begin(iv, im)), end(ob->end()), values(v),
 		include_vec(iv), include_map(im)
 		{ }
-	virtual void out(Ostream& os)
+
+	void out(Ostream& os) const override
 		{ os << "ObjectIter"; }
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 private:
 	SuObject* object;
 	SuObject::iterator iter;
@@ -67,7 +69,7 @@ private:
 class ModificationCheck
 	{
 public:
-	ModificationCheck(SuObject* ob) : object(ob), vecsize(ob->vecsize()), mapsize(ob->mapsize())
+	explicit ModificationCheck(SuObject* ob) : object(ob), vecsize(ob->vecsize()), mapsize(ob->mapsize())
 		{ }
 	~ModificationCheck()
 		{
@@ -80,13 +82,13 @@ private:
 	int mapsize;
 	};
 
-SuObject::SuObject() 
+SuObject::SuObject()
 	: myclass(root_class), readonly(false), has_getter(true), has_setter(true), version(0)
 	{
 	init();
 	}
 
-SuObject::SuObject(bool ro) 
+SuObject::SuObject(bool ro)
 	: myclass(root_class), readonly(ro), has_getter(true), has_setter(true), version(0)
 	{
 	init();
@@ -127,7 +129,7 @@ struct HashCount
 		{ --hash_nest; }
 	};
 
-size_t SuObject::hashfn()
+size_t SuObject::hashfn() const
 	{
 	HashCount nest;
 	size_t hash = size();
@@ -135,7 +137,7 @@ size_t SuObject::hashfn()
 		return hash;
 	for (int i = 0; i < vec.size(); ++i)
 		hash += vec[i].hash();
-	for (Map::iterator it = map.begin(); it != map.end(); ++it)
+	for (auto it = map.begin(); it != map.end(); ++it)
 		hash += it->val.hash() + it->key.hash();
 	return hash;
 	}
@@ -190,15 +192,15 @@ void SuObject::setup()
 	INSTANCE_METHOD(Delete);
 	}
 
-SuObject::SuObject(const SuObject& ob) : myclass(ob.myclass), defval(ob.defval), 
+SuObject::SuObject(const SuObject& ob) : myclass(ob.myclass), defval(ob.defval),
 	vec(ob.vec), readonly(false), has_getter(true), has_setter(true), version(0)
-	{ 
+	{
 	for (Map::const_iterator it = ob.map.begin(), end = ob.map.end(); it != end; ++it)
 		map[it->key] = it->val;
 	}
 
-SuObject::SuObject(SuObject* ob, size_t offset) 
-	: myclass(ob->myclass), defval(ob->defval), 
+SuObject::SuObject(SuObject* ob, size_t offset)
+	: myclass(ob->myclass), defval(ob->defval),
 	vec(ob->vec.begin() + min(offset, ob->vec.size()), ob->vec.end()),
 	readonly(false), has_getter(true), has_setter(true), version(0)
 	{
@@ -210,7 +212,7 @@ void SuObject::add(Value x)
 	{
 	ModificationCheck mc(this);
 	persist_if_block(x);
-	vec.push_back(x); 
+	vec.push_back(x);
 	// check for migration from map to vec
 	Value num;
 	while (Value* pv = map.find(num = vec.size()))
@@ -335,7 +337,7 @@ pack format is:
 			packed value
 
 */
-	
+
 const int NESTING_LIMIT = 20;
 
 class Nest
@@ -387,7 +389,7 @@ void SuObject::pack(char* buf) const
 
 	int nv = vec.size();
 	cvt_long(buf, nv);
-	buf += sizeof (long); 
+	buf += sizeof (long);
 	for (int i = 0; i < nv; ++i)
 		buf += packvalue(buf, vec[i]);
 
@@ -410,7 +412,7 @@ void SuObject::pack(char* buf) const
 	{
 	if (s.size() <= 1)
 		return ob;
-	const char* buf = s.buf() + 1; // skip PACK_OBJECT
+	const char* buf = s.ptr() + 1; // skip PACK_OBJECT
 
 	int nv = cvt_long(buf);
 	buf += sizeof (long);
@@ -426,7 +428,7 @@ void SuObject::pack(char* buf) const
 		Value value = unpackvalue(buf);
 		ob->put(member, value);
 		}
-	verify(buf == s.end());
+	verify(buf == s.ptr() + s.size());
 	return ob;
 	}
 
@@ -462,7 +464,8 @@ bool SuObject::erase2(Value m)
 	}
 
 /** used for both Objects and instances */
-Value SuObject::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuObject::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL)
 		member = CALL_INSTANCE;
@@ -482,7 +485,7 @@ Value SuObject::call(Value self, Value member, short nargs, short nargnames, ush
 	}
 
 // suneido methods =======================================================
-	
+
 Value SuObject::Set_default(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 0 && nargs != 1)
@@ -498,40 +501,40 @@ Value SuObject::Set_default(short nargs, short nargnames, ushort* argnames, int 
 
 Value SuObject::Copy(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: object.Copy()");
+	NOARGS("object.Copy()");
 	return new SuObject(*this);
 	}
 
-static void list_named(short nargs, short nargnames, ushort* argnames, 
-	bool& listq, bool& namedq, char* usage)
+static void list_named(short nargs, short nargnames, ushort* argnames, int each,
+	bool& listq, bool& namedq, const char* usage)
 	{
-	if (nargs > nargnames || nargs > 2)
+	argseach(nargs, nargnames, argnames, each);
+	if (nargs > nargnames) // all args must be named
 		except(usage);
 	static ushort list = ::symnum("list");
 	static ushort named = ::symnum("named");
-	listq = namedq = (nargs == 0 || ! (ARG(0) == SuTrue));
-	for (int i = 0; i < nargs && i < nargnames; ++i)
+	listq = namedq = false;
+	bool specified = false;
+	for (int i = 0; i < nargnames; ++i)
 		if (argnames[i] == list)
-			listq = (ARG(i) == SuTrue);
+			{ listq = (ARG(i) == SuTrue); specified = true; }
 		else if (argnames[i] == named)
-			namedq = (ARG(i) == SuTrue);
-		else
-			except(usage);
+			{ namedq = (ARG(i) == SuTrue); specified = true; }
+	if (!specified)
+		listq = namedq = true;
 	}
 
 Value SuObject::Size(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	bool listq, namedq;
-	list_named(nargs, nargnames, argnames, listq, namedq,
+	list_named(nargs, nargnames, argnames, each, listq, namedq,
 		"usage: object.Size() or .Size(list:) or .Size(named:)");
 	return (listq ? vec.size() : 0) + (namedq ? map.size() : 0);
 	}
 
 Value SuObject::Iter(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: object.Iter()");
+	NOARGS("object.Iter()");
 	return new SuObjectIter(this, ITER_VALUES);
 	}
 
@@ -560,7 +563,7 @@ struct MemberFinder
 	{
 	MemberFinder(Value m) : member(m)
 		{ }
-	Value operator()(SuClass* c)
+	Value operator()(const SuClass* c) const
 		{ return c->get(member); }
 	Value member;
 	};
@@ -615,8 +618,7 @@ Value SuObject::MethodClass(short nargs, short nargnames, ushort* argnames, int 
 // TODO: split Base and Base? into SuClass and SuObject
 Value SuObject::Base(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: object.Base()");
+	NOARGS("object.Base()");
 	if (SuClass* c = dynamic_cast<SuClass*>(this))
 		return globals[c->base];
 	else
@@ -732,7 +734,7 @@ void SuObject::sort()
 	std::stable_sort(vec.begin(), vec.end());
 	}
 
-Value SuObject::LowerBound(short nargs, short nargnames, ushort* argnames, int each) 
+Value SuObject::LowerBound(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs == 1)
 		return std::lower_bound(vec.begin(), vec.end(), ARG(0)) - vec.begin();
@@ -885,7 +887,7 @@ Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
 			return this;
 			}
 		}
-	
+
 	argseach(nargs, nargnames, argnames, each);
 	static ushort at = ::symnum("at");
 	if (nargnames > 1 || (nargnames == 1 && argnames[0] != at))
@@ -922,8 +924,7 @@ Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
 
 Value SuObject::Reverse(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: object.Reverse()");
+	NOARGS("object.Reverse()");
 	if (readonly)
 		except("can't Reverse readonly objects");
 	++version;
@@ -949,13 +950,12 @@ Value SuObject::Join(short nargs, short nargnames, ushort* argnames, int each)
 			break ;
 		oss << separator;
 		}
-	return new SuString(oss.size(), oss.str());
+	return new SuString(oss.gcstr());
 	}
 
 Value SuObject::Set_readonly(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: object.Set_readonly()");
+	NOARGS("object.Set_readonly()");
 	setReadonly();
 	return this;
 	}
@@ -976,8 +976,7 @@ void SuObject::setReadonly()
 
 Value SuObject::IsReadonly(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (nargs != 0)
-		except("usage: object.Readonly?()");
+	NOARGS("object.Readonly?()");
 	return readonly ? SuTrue : SuFalse;
 	}
 
@@ -1020,7 +1019,7 @@ Value SuObject::Members(short nargs, short nargnames, ushort* argnames, int each
 		return mems;
 		}
 	bool listq, namedq;
-	list_named(nargs, nargnames, argnames, listq, namedq,
+	list_named(nargs, nargnames, argnames, each, listq, namedq,
 		"usage: object.Members() or .Members(list: or named: or all:)");
 	return new SuSeq(new SuObjectIter(this, ITER_KEYS, listq, namedq));
 	}
@@ -1029,7 +1028,7 @@ Value SuObject::Values(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	argseach(nargs, nargnames, argnames, each);
 	bool listq, namedq;
-	list_named(nargs, nargnames, argnames, listq, namedq,
+	list_named(nargs, nargnames, argnames, each, listq, namedq,
 		"usage: object.Values() or .Values(list:) or .Values(named:)");
 	return new SuSeq(new SuObjectIter(this, ITER_VALUES, listq, namedq));
 	}
@@ -1038,7 +1037,7 @@ Value SuObject::Assocs(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	argseach(nargs, nargnames, argnames, each);
 	bool listq, namedq;
-	list_named(nargs, nargnames, argnames, listq, namedq,
+	list_named(nargs, nargnames, argnames, each, listq, namedq,
 		"usage: object.Assocs() or .Assocs(list:) or .Assocs(named:)");
 	return new SuSeq(new SuObjectIter(this, ITER_ASSOCS, listq, namedq));
 	}
@@ -1073,18 +1072,18 @@ bool SuObject::eq(const SuValue& y) const
 class Track
 	{
 	public:
-		explicit Track(SuObject* ob)
+		explicit Track(const SuObject* ob)
 			{ stack.push(ob); }
 		~Track()
 			{ stack.pop(); }
-		static bool has(SuObject* ob)
+		static bool has(const SuObject* ob)
 			{ return member(stack, ob); }
 	private:
-		static Lisp<SuObject*> stack;
+		static Lisp<const SuObject*> stack;
 	};
-Lisp<SuObject*> Track::stack;
+Lisp<const SuObject*> Track::stack;
 
-void SuObject::out(Ostream& os)
+void SuObject::out(Ostream& os) const
 	{
 	outdelims(os, "()");
 	}
@@ -1096,15 +1095,16 @@ struct ObOutInKey
 		{ obout_inkey = true; }
 	~ObOutInKey()
 		{ obout_inkey = false; }
-	};	
+	};
 
-void SuObject::outdelims(Ostream& os, char* delims)
+void SuObject::outdelims(Ostream& os, const char* delims) const
 	{
 	static Value ToString("ToString");
-	Value c = lookup(this, MethodFinder(ToString));
+
+	Value c = lookup(const_cast<SuObject*>(this), MethodFinder(ToString));
 	if (c && c != SuFalse)
 		{
-		Value x = c.call(this, ToString, 0, 0, 0, -1);
+		Value x = c.call(const_cast<SuObject*>(this), ToString, 0, 0, 0, -1);
 		if (! x)
 			except("ToString must return a value");
 		if (const char* s = x.str_if_str())
@@ -1114,7 +1114,7 @@ void SuObject::outdelims(Ostream& os, char* delims)
 		return ;
 		}
 
-	if (Named* n = myclass.get_named())
+	if (auto n = myclass.get_named())
 		{
 		os << n->name() << "()";
 		return ;
@@ -1134,7 +1134,7 @@ void SuObject::outdelims(Ostream& os, char* delims)
 	for (i = 0; i < vec.size(); ++i)
 		os << (i > 0 ? ", " : "") << vec[i];
 
-	for (Map::iterator it = map.begin(); it != map.end(); ++it)
+	for (auto it = map.begin(); it != map.end(); ++it)
 		{
 		if (i++ > 0)
 			os << ", ";
@@ -1187,7 +1187,7 @@ SuObject::Pair SuObject::iterator::operator*()
 	}
 
 bool SuObject::iterator::operator==(const iterator& iter) const
-	{ 
+	{
 	return vi == iter.vi && mi == iter.mi;
 	}
 
@@ -1258,17 +1258,15 @@ void SuObject::set_members(SuObject* ob)
 
 // SuObjectIter -------------------------------------------------------
 
-Value SuObjectIter::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuObjectIter::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value NEXT("Next");
-	static Value ITER("Iter");
-	static Value COPY("Copy");
-	static Value REWIND("Rewind");
+	static Value DUP("Dup");
 
 	if (member == NEXT)
 		{
-		if (nargs != 0)
-			except("usage: objectiter.Next()");
+		NOARGS("objectiter.Next()");
 		iter.checkForModification();
 		if (iter == end)
 			return this; // eof
@@ -1293,22 +1291,9 @@ Value SuObjectIter::call(Value self, Value member, short nargs, short nargnames,
 			unreachable();
 			}
 		}
-	else if (member == COPY)
+	else if (member == DUP)
 		{
 		return new SuObjectIter(object, values, include_vec, include_map);
-		}
-	else if (member == REWIND)
-		{
-		if (nargs != 0)
-			except("usage: objectiter.Rewind()");
-		iter.rewind();
-		return this;
-		}
-	else if (member == ITER)
-		{
-		if (nargs != 0)
-			except("usage: objectiter.Iter()");
-		return this;
 		}
 	else
 		method_not_found(type(), member);
@@ -1349,7 +1334,7 @@ class test_object : public Tests
 		verify(s_one == ob.get(new SuNumber(1)));
 		verify(s_big == ob.get("big"));
 		verify(s_zero == ob.get("zero"));
-	
+
 		// slow use
 		ob.put(123456, s_big);
 		ob.put("string", s_str);
@@ -1401,7 +1386,7 @@ class test_object : public Tests
 		char s[2] = "a";
 		for (i = 0; i < 25; ++i, ++*s)
 			ob.put(s, i);
-				
+
 		verify(! ob.get(101));
 		verify(! ob.get("z"));
 		}
@@ -1420,7 +1405,7 @@ class test_object : public Tests
 		char s[2] = "a";
 		for (i = 0; i < 26; ++i, ++*s)
 			ob1.put(s, i);
-				
+
 		verify(! (ob1 == ob2));
 		*s = 'a';
 		for (int j = 0; j < i; ++j, ++*s)
@@ -1472,13 +1457,13 @@ class test_object : public Tests
 		SuObject ob;
 		for (i = 0; i < 100; ++i)
 			ob.put(i, i);
-		char s[2] = "a";
-		for (i = 0; i < 26; ++i, ++*s)
-			ob.put(s, i);
+		char c[2] = "a";
+		for (i = 0; i < 26; ++i, ++*c)
+			ob.put(c, i);
 		verify(ob.size() == 126);
-		
+
 		// iterate
-		SuObject::iterator iter = ob.begin(); 
+		SuObject::iterator iter = ob.begin();
 		for (i = 0; i < 100; ++i, ++iter)
 			{
 			verify(iter != ob.end());

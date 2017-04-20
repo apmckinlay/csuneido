@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2002 Suneido Software Corp. 
+ *
+ * Copyright (c) 2002 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -25,7 +25,6 @@
 #include "builtinclass.h"
 #include "suboolean.h"
 #include "gcstring.h"
-#include "checksum.h"
 #include "sufinalize.h"
 #include "sustring.h"
 #include "except.h"
@@ -41,7 +40,8 @@ public:
 		if (! CryptCreateHash(hCryptProv, CALG_SHA1, 0, 0, &hHash))
 			except("Sha1: CryptCreateHash failed");
 		}
-	virtual void out(Ostream& os)
+
+	void out(Ostream& os) const override
 		{ os << "Sha1()"; }
 	static Method<Sha1>* methods()
 		{
@@ -53,11 +53,11 @@ public:
 			};
 		return methods;
 		}
-	const char* type() const
+	const char* type() const override
 		{ return "Sha1"; }
-	void update(gcstring gcstr);
-	gcstring value();
-	virtual void finalize();
+	void update(gcstring gcstr) const;
+	gcstring value() const;
+	void finalize() override;
 
 private:
 	Value Update(BuiltinArgs&);
@@ -74,7 +74,7 @@ Value su_sha1()
 	}
 
 template<>
-void BuiltinClass<Sha1>::out(Ostream& os)
+void BuiltinClass<Sha1>::out(Ostream& os) const
 	{ os << "Sha1 /* builtin class */"; }
 
 template<>
@@ -107,19 +107,19 @@ Value Sha1::Update(BuiltinArgs& args)
 	return this;
 	}
 
-void Sha1::update(gcstring s)
+void Sha1::update(gcstring s) const
 	{
-	if (! CryptHashData(hHash, (BYTE*) s.buf(), s.size(), 0)) 
+	if (! CryptHashData(hHash, (BYTE*) s.ptr(), s.size(), 0))
 		except("Sha1: CryptHashData failed");
 	}
 
 const int SHA1_SIZE = 20;
 
-gcstring Sha1::value()
+gcstring Sha1::value() const
 	{
 	DWORD dwHashLen = SHA1_SIZE;
 	gcstring out(dwHashLen);
-	if (! CryptGetHashParam(hHash, HP_HASHVAL, (unsigned char*) out.buf(), &dwHashLen, 0))
+	if (! CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*) out.ptr(), &dwHashLen, 0))
 		except("Sha1: CryptGetHashParam failed");
 	verify(dwHashLen == SHA1_SIZE);
 	return out;

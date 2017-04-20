@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -21,11 +21,12 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "gcstring.h"
-#include "std.h"
 #include "except.h"
-#include "minmax.h"
 #include "ctype.h"
 #include "gc.h"
+#include <algorithm>
+using std::min;
+using std::max;
 
 // defer concatenation by storing left & right parts separately
 struct Concat
@@ -39,13 +40,19 @@ struct Concat
 // always allocate an extra character for a nul
 // this ensures (even for substr's) that p[n] is always a valid address
 
-gcstring::gcstring(size_t nn) : n(nn), p(nn == 0 ? empty_buf : new(noptrs) char[nn + 1])
+gcstring::gcstring(size_t nn) : n(nn)
 	{
-	if (n != 0)
-		p[n] = 0;
-	} 
+	if (n == 0)
+		p = empty_buf;
+	else
+		{
+		char* buf = salloc(nn);
+		buf[n] = 0;
+		p = buf;
+		}
+	}
 
-char* gcstring::empty_buf = "";
+const char* gcstring::empty_buf = "";
 
 void gcstring::init(const char* p2, size_t n2)
 	{
@@ -58,11 +65,12 @@ void gcstring::init(const char* p2, size_t n2)
 		}
 	verify(p2);
 	// note: always nul terminated
-	p = new(noptrs) char[n2 + 1];
+	char* buf = salloc(n2);
 	n = n2;
 	verify(n >= 0);
-	memcpy((void*) p, (void*) p2, n2);
-	p[n2] = 0;
+	memcpy((void*) buf, (void*) p2, n2);
+	buf[n2] = 0;
+	p = buf;
 	}
 
 gcstring& gcstring::operator+=(const gcstring& s)
@@ -81,9 +89,9 @@ gcstring& gcstring::operator+=(const gcstring& s)
 		}
 	else
 		{
-		char* q = new(noptrs) char[totsize + 1];
-		memcpy(q, buf(), size());
-		memcpy(q + size(), s.buf(), s.size());
+		char* q = salloc(totsize);
+		memcpy(q, ptr(), size());
+		memcpy(q + size(), s.ptr(), s.size());
 		n += s.size();
 		q[n] = 0;
 		p = q;
@@ -98,7 +106,7 @@ const char* gcstring::str() const
 	else if (p[n] != 0) // caused by substr
 		{
 		verify(n != 0);
-		char* q = new(noptrs) char[n + 1];
+		char* q = salloc(n);
 		memcpy((void*) q, (void*) p, n);
 		q[n] = 0;
 		p = q;
@@ -107,25 +115,10 @@ const char* gcstring::str() const
 	return p;
 	}
 
-char* gcstring::str()
-	{
-	if (n < 0)
-		flatten();
-	else if (p[n] != 0) // caused by substr
-		{
-		verify(n != 0);
-		char* q = new(noptrs) char[n + 1];
-		memcpy((void*) q, (void*) p, n);
-		q[n] = 0;
-		p = q;
-		}
-	return p;
-	}
-
 bool operator<(const gcstring& x, const gcstring& y)
-	{ 
+	{
 	size_t minlen = x.size() < y.size() ? x.size() : y.size();
-	int r = memcmp(x.buf(), y.buf(), minlen);
+	int r = memcmp(x.ptr(), y.ptr(), minlen);
 	if (r == 0)
 		r = x.size() - y.size();
 	return r < 0;
@@ -140,7 +133,7 @@ gcstring gcstring::substr(size_t i, int len) const
 		i = n;
 	if (len == -1 || len > n - i)
 		len = max(0, (int)(n - i));
-	return gcstring(len, p + i); // no alloc
+	return noalloc(p + i, len);
 	}
 
 gcstring gcstring::trim() const
@@ -222,7 +215,7 @@ void gcstring::flatten() const
 	{
 	verify(n < 0);
 	verify(cc->left.size() + cc->right.size() == -n);
-	char* s = new(noptrs) char[-n + 1];
+	char* s = salloc(-n);
 	copy(s, this);
 	n = -n;
 	s[n] = 0;
@@ -250,20 +243,45 @@ void gcstring::copy(char* dst, const gcstring* s)
 
 Ostream& operator<<(Ostream& os, const gcstring& s)
 	{
-	(void) os.write(s.buf(), s.size());
+	(void) os.write(s.ptr(), s.size());
 	return os;
 	}
 
 gcstring gcstring::to_heap()
 	{
-	if (! gc_inheap(buf()))
+	if (! gc_inheap(ptr()))
 		{
-		char* q = new(noptrs) char[n + 1];
+		char* q = salloc(n);
 		memcpy((void*) q, (void*) p, n);
 		q[n] = 0;
 		p = q;
 		}
 	return *this;
+	}
+
+gcstring gcstring::capitalize() const
+	{
+	if (size() == 0 || isupper(*ptr()))
+		return *this;
+	char* buf = salloc(size());
+	memcpy(buf, ptr(), size());
+	*buf = toupper(*buf);
+	return gcstring(buf, size());
+	}
+
+gcstring gcstring::uncapitalize() const
+	{
+	if (size() == 0 || islower(*ptr()))
+		return *this;
+	char* buf = salloc(size());
+	memcpy(buf, ptr(), size());
+	*buf = tolower(*buf);
+	return gcstring(buf, size());
+	}
+
+char* salloc(int n)
+	{
+	return new(noptrs) char[n + 1];
 	}
 
 #include "testing.h"
@@ -304,14 +322,14 @@ class test_gcstring : public Tests
 
 		s = "";
 		const int N = 10;
-		char* big = "now is the time for all good men to come to the aid of their party.";
+		const char* big = "now is the time for all good men to come to the aid of their party.";
 		int bigsize = strlen(big);
 		int i;
 		for (i = 0; i < N; ++i)
 			s += big;
 		asserteq(s.size(), N * bigsize);
 		for (i = 0; i < N; ++i)
-			verify(has_prefix(s.buf() + i * bigsize, big));
+			verify(has_prefix(s.ptr() + i * bigsize, big));
 		}
 	TEST(5, find)
 		{
@@ -319,7 +337,7 @@ class test_gcstring : public Tests
 		verify(s.find("lo") == 3);
 		verify(s.find("x") == -1);
 		verify(s.find("o", 5) == 7);
-		
+
 		s = "01234567890123456789012345678901234567890123456789012345678901234567890123456789";
 		gcstring t = "0123456789012345678901234567890123456789";
 		t += "0123456789012345678901234567890123456789";
@@ -342,6 +360,20 @@ class test_gcstring : public Tests
 		asserteq(gcstring("  hello").trim(), hello);
 		asserteq(gcstring("hello  ").trim(), hello);
 		asserteq(gcstring(" hello ").trim(), hello);
+		}
+	TEST(8, capitalize)
+		{
+		gcstring s;
+		asserteq(s.capitalize(), "");
+		asserteq(s.uncapitalize(), "");
+		s = "Hello";
+		asserteq(s.capitalize(), "Hello");
+		asserteq(s.uncapitalize(), "hello");
+		asserteq(s[0], 'H');
+		s = "hello";
+		asserteq(s.uncapitalize(), "hello");
+		asserteq(s.capitalize(), "Hello");
+		asserteq(s[0], 'h');
 		}
 	};
 REGISTER(test_gcstring);

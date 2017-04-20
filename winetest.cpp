@@ -13,7 +13,7 @@ struct Region
 	void* start;
 	void* end;
 	};
-	
+
 Region get_static_region()
 	{
 	char exefile[512];
@@ -40,7 +40,7 @@ Region get_static_region()
 	if ( IsBadReadPtr(pNTHeader, sizeof(IMAGE_NT_HEADERS)) ||
 	     pNTHeader->Signature != IMAGE_NT_SIGNATURE )
 		fatal_log("get_static_region: unknown exe type");
-	
+
 	Region region;
 	region.start = 0;
 	IMAGE_SECTION_HEADER* section = (IMAGE_SECTION_HEADER*)(pNTHeader+1);
@@ -60,7 +60,7 @@ printf("name: %s address: %x size: %d\n", section->Name, (int) section->VirtualA
 	UnmapViewOfFile(lpFileBase);
 	CloseHandle(hFileMapping);
 	CloseHandle(hFile);
-	
+
 	return region;
 	}
 
@@ -103,7 +103,7 @@ void push(void* from, void* to)
 	printf("%p -> %p\n", from, to);
 	}
 
-int big[10000] = { 123 }; 
+int big[10000] = { 123 };
 
 int main(int argc, char** argv)
 	{

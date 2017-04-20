@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -22,8 +22,8 @@
 
 #include "tr.h"
 #include "except.h"
-#include "ostreamstr.h"
 #include "cachemap.h"
+#include "buffer.h"
 
 using namespace std;
 
@@ -31,18 +31,16 @@ static gcstring makset(const gcstring&);
 static gcstring expandRanges(const gcstring&);
 static int xindex(const gcstring&, char, bool, int);
 
-gcstring tr(const gcstring& srcstr, gcstring from, const gcstring& to)
+gcstring tr(const gcstring& srcstr, const gcstring& from, const gcstring& to)
 	{
 	const int srclen = srcstr.size();
 	if (srclen == 0 || from.size() == 0)
 		return srcstr;
 
 	bool allbut = (from[0] == '^');
-	if (allbut)
-		from = from.substr(1);
-	gcstring fromset = makset(from);
+	gcstring fromset = makset(allbut ? from.substr(1) : from);
 
-	const char* src = srcstr.buf();
+	auto src = srcstr.ptr();
 	int si = 0;
 	for (; si < srclen; ++si)
 		{
@@ -58,7 +56,7 @@ gcstring tr(const gcstring& srcstr, gcstring from, const gcstring& to)
 	bool collapse = lastto > 0 && (allbut || lastto < fromset.size());
 	--lastto;
 
-	char* buf = new char[srclen + 1];
+	char* buf = salloc(srclen);
 	memcpy(buf, src, si);
 	char* dst = buf + si;
 
@@ -88,7 +86,7 @@ gcstring tr(const gcstring& srcstr, gcstring from, const gcstring& to)
 		}
 finished:
 	*dst = 0;
-	return gcstring(dst - buf, buf); // no alloc
+	return gcstring::noalloc(buf, dst - buf);
 	}
 
 static gcstring makset(const gcstring& s)
@@ -105,14 +103,14 @@ static gcstring makset(const gcstring& s)
 static gcstring expandRanges(const gcstring& s)
 	{
 	int n = s.size();
-	OstreamStr dst(n);
+	Buffer dst(n);
 	for (int i = 0; i < n; ++i)
 		if (s[i] == '-' && i > 0 && i + 1 < n)
 			for (uchar c = s[i - 1] + 1; c < (uchar) s[i + 1]; ++c)
-				dst << c;
+				dst .add(c);
 		else
-			dst << s[i];
-	return gcstring(dst.size(), dst.str()); // no alloc
+			dst.add(s[i]);
+	return dst.gcstr();
 	}
 
 static int xindex(const gcstring& fromset, char c, bool allbut, int lastto)
@@ -160,9 +158,16 @@ class test_tr : public Tests
 		asserteq(tr("hello", "^\x20-\xff", ""), "hello");
 		asserteq(tr("hello\x7f", "\x70-\x7f", ""), "hello");
 		asserteq(tr("hello\xff", "\x7f-\xff", ""), "hello");
-		
+
 		asserteq(tr("abc", "abcdefghijklmnop", "abcdefg"), "abc");
 		asserteq(tr("nop", "abcdefghijklmnop", "abcdefg"), "g");
+		}
+	TEST(1, expandRanges)
+		{
+		gcstring s = expandRanges(gcstring("\x00-\xff", 3));
+		asserteq(s.size(), 256);
+		asserteq(s[0], '\x00');
+		asserteq(s[255], '\xff');
 		}
 	};
 REGISTER(test_tr);

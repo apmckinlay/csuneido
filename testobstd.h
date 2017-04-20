@@ -1,21 +1,19 @@
-#ifndef TESTOBSTD_H
-#define TESTOBSTD_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2004 Suneido Software Corp. 
+ *
+ * Copyright (c) 2004 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -31,20 +29,25 @@ class TestObserverStd : public TestObserver
 public:
 	TestObserverStd() : ntests(0)
 		{ }
-	virtual void start_group(const char* group)
+
+	void start_group(const char* group) override
 		{ cout << group << endl; }
-	virtual void start_test(const char* group, const char* test)
+
+	void start_test(const char* group, const char* test) override
 		{ cout << "    " << test << " "; cout.flush(); }
-	virtual void end_test(const char* group, const char* test, const char* error)
+
+	void end_test(const char* group, const char* test, const char* error) override
 		{
 		if (error)
 			cout << "FAILED " << error;
 		cout << endl;
 		++ntests;
 		}
-	virtual void end_group(const char* group, int nfailed)
+
+	void end_group(const char* group, int nfailed) override
 		{ }
-	virtual void end_all(int nfailed)
+
+	void end_all(int nfailed) override
 		{
 		cout << ntests << " test" << (ntests > 1 ? "s" : "") << ' ';
 		if (nfailed == 0)
@@ -55,5 +58,3 @@ public:
 private:
 	int ntests;
 	};
-
-#endif

@@ -1,21 +1,19 @@
-#ifndef INDEX_H
-#define INDEX_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -36,7 +34,7 @@ typedef int TblNum;
 
 struct IndexDest
 	{
-	IndexDest(Mmfile* m) : mmf(m)
+	explicit IndexDest(Mmfile* m) : mmf(m)
 		{ }
 	Mmoffset alloc(ulong n) const
 		{ return mmf->alloc(n, MM_OTHER); }
@@ -57,9 +55,9 @@ class Index
 public:
 	friend class Database;
 	typedef Record Key;
-	Index(Database* d, TblNum tblnum, const char* idxname, 
+	Index(Database* d, TblNum tblnum, const char* idxname,
 		bool k, bool u = false);
-	Index(Database* d, TblNum tblnum, const char* idxname, Mmoffset r, short tl, int nn, 
+	Index(Database* d, TblNum tblnum, const char* idxname, Mmoffset r, short tl, int nn,
 		bool k, bool u = false);
 
 	bool insert(int tran, Vslot x);
@@ -71,7 +69,7 @@ public:
 		{
 	public:
 		friend class Index;
-		iterator() : ix(0), rewound(true)
+		iterator()
 			{ }
 		iterator(Index* ix, int tran, Key from, Key to, TranRead* trd);
 		void set_transaction(int t)
@@ -90,14 +88,14 @@ public:
 	private:
 		bool visible();
 
-		Index* ix;
+		Index* ix = nullptr;
 		IndexBtree::iterator iter;
-		Mmoffset prevsize;
-		int tran;
+		Mmoffset prevsize = 0;
+		int tran = 0;
 		Key from;
 		Key to;
-		bool rewound;
-		TranRead* tranread;
+		bool rewound = true;
+		TranRead* tranread = nullptr;
 		};
 	friend class iterator;
 	iterator begin(int tran);
@@ -131,5 +129,3 @@ private:
 #include "tempdest.h"
 typedef Btree<VFslot,VFslot,VFslots,VFslots,TempDest> VFtree;
 typedef Btree<VVslot,VFslot,VVslots,VFslots,TempDest> VVtree;
-
-#endif

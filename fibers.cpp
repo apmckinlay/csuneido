@@ -36,7 +36,6 @@
 #include "itostr.h" // for gc warn
 #include "errlog.h" // for gc warn
 #include "win.h"
-#include <vector>
 #include "qpc.h"
 #include <functional>
 

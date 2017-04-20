@@ -1,21 +1,19 @@
-#ifndef SUDATE_H
-#define SUDATE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -37,30 +35,31 @@ public:
 	void* operator new(size_t n, void* p)
 		{ return p; }
 
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 
-	void out(Ostream& out);
+	void out(Ostream& out) const override;
 
 	// database packing
-	size_t packsize() const
+	size_t packsize() const override
 		{ return 1 + sizeof (int) + sizeof (int); }
-	void pack(char* buf) const;
+	void pack(char* buf) const override;
 	static SuDate* unpack(const gcstring& s);
 	static Value literal(const char* s);
 
 	// for use as subscript
-	size_t hashfn()
+	size_t hashfn() const override
 		{ return date ^ time; }
 
-	int order() const;
-	bool lt(const SuValue& x) const;
-	bool eq(const SuValue& x) const;
-	
+	int order() const override;
+	bool lt(const SuValue& x) const override;
+	bool eq(const SuValue& x) const override;
+
 	bool operator<(const SuDate& d) const;
 
 	SuDate& increment();
 	static SuDate* timestamp();
-	static Value parse(char* s, char* order = "yMd");
+	static Value parse(const char* s, const char* order = "yMd");
 	static long long minus_ms(SuDate* d1, SuDate* d2);
 	static Value instantiate(short nargs, short nargnames, ushort* argnames, int each);
 private:
@@ -84,8 +83,7 @@ private:
 class SuDateClass : public SuValue
 	{
 public:
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
-	void out(Ostream& os);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
+	void out(Ostream& os) const override;
 	};
-
-#endif

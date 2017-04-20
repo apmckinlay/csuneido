@@ -49,9 +49,9 @@ Value method_call(Value ob, const gcstring& method, Lisp<Value> args)
 	}
 
 // used by sunapp
-char* trycall(const char* fn, char* arg, int* plen)
+const char* trycall(const char* fn, char* arg, int* plen)
 	{
-	char* str;
+	const char* str;
 	try
 		{
 		gcstring gcstr;

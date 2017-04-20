@@ -1,6 +1,4 @@
-#ifndef EXCEPT_H
-#define EXCEPT_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -59,5 +57,3 @@ Ostream& osexcept();
 class Except;
 
 Ostream& operator<<(Ostream& os, const Except& e);
-
-#endif

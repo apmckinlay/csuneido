@@ -1,21 +1,19 @@
-#ifndef ISTREAMSTR_H
-#define ISTREAMSTR_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -31,16 +29,13 @@ class IstreamStrImp;
 class IstreamStr : public Istream
 	{
 public:
-	IstreamStr(char* s);
-	IstreamStr(char* buf, int n);
-	explicit operator bool() const;
-	int tellg();
-	Istream& seekg(int pos);
+	explicit IstreamStr(const char* s);
+	IstreamStr(const char* buf, int n);
+	int tellg() override;
+	Istream& seekg(int pos) override;
 protected:
-	int get_();
-	int read_(char* buf, int n);
+	int get_() override;
+	int read_(char* buf, int n) override;
 private:
 	IstreamStrImp* imp;
 	};
-
-#endif

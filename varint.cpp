@@ -22,7 +22,7 @@
 
 // NOTE: only for positive numbers (doesn't zigzag encode)
 
-#include "varint.h" 
+#include "varint.h"
 #include "except.h"
 
 void push_varint(vector<uchar>& code, int n)

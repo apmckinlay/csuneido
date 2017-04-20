@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -21,7 +21,6 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "interp.h"
-#include "symbols.h"
 #include "suboolean.h"
 #include "sunumber.h"
 #include "sustring.h"
@@ -38,7 +37,7 @@ inline LPWSTR WINAPI AtlA2WHelper(LPWSTR lpw, LPCSTR lpa, int nChars)
 	}
 #define USES_CONVERSION \
 	int _convert; (void) _convert;\
-	char* _lpa; (void) _lpa;
+	const char* _lpa; (void) _lpa;
 #define A2OLE(s) \
 	(((_lpa = s) == NULL) ? NULL : ( _convert = (strlen(_lpa)+1), AtlA2WHelper((LPWSTR) _alloca(_convert*2), _lpa, _convert)))
 
@@ -47,50 +46,54 @@ inline LPWSTR WINAPI AtlA2WHelper(LPWSTR lpw, LPCSTR lpa, int nChars)
 class SuCOMobject : public  SuValue
 	{
 public:
-	SuCOMobject(IDispatch* id, char* pi = "???") : idisp(id), progid(pi), isdisp(true)
+	explicit SuCOMobject(IDispatch* id, const char* pi = "???") 
+		: idisp(id), progid(pi), isdisp(true)
 		{ verify(NULL != idisp); }
-	SuCOMobject(IUnknown* iu, char* pi = "???") : iunk(iu), progid(pi), isdisp(false)
+
+	explicit SuCOMobject(IUnknown* iu, const char* pi = "???") 
+		: iunk(iu), progid(pi), isdisp(false)
 		{ verify(NULL != iunk); }
-	void out(Ostream& os);
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	void out(Ostream& os) const override;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 	// properties
-	Value getdata(Value);
-	void putdata(Value, Value);
-	IDispatch* idispatch()
+	Value getdata(Value) override;
+	void putdata(Value, Value) override;
+	IDispatch* idispatch() const
 		{ return isdisp ? idisp : NULL; }
-	IUnknown * iunknown()
+	IUnknown * iunknown() const
 		{ return isdisp ? NULL : iunk; }
 private:
-	void verify_not_released();
-	void require_idispatch();
+	void verify_not_released() const;
+	void require_idispatch() const;
 	union
 		{
 		IUnknown* iunk;
 		IDispatch* idisp;
 		void* isalive;
 		};
-	char* progid;       // never NULL, but might be '???' if progid isn't known
-	bool isdisp;        // indicates whether this is an IDispatch or just an IUnknown
+	const char* progid; // never NULL, but might be '???' if progid isn't known
+	bool isdisp; // indicates whether this is an IDispatch or just an IUnknown
 	};
 
-void SuCOMobject::verify_not_released()
+void SuCOMobject::verify_not_released() const
 	{
 	if (! isalive)
 		except("COM: " << progid << " already released");
 	}
 
-void SuCOMobject::require_idispatch()
+void SuCOMobject::require_idispatch() const
 	{
 	if (! isdisp)
 		except("COM: " << progid << " doesn't support IDispatch");
 	}
 
-void SuCOMobject::out(Ostream& os)
+void SuCOMobject::out(Ostream& os) const
 	{
 	os << "COMobject('" << progid << "')";
 	}
 
-static void check_result(HRESULT hr, char* progid, char* name, char* action)
+static void check_result(HRESULT hr, const char* progid, const char* name, const char* action)
 	{
 	if (hr == DISP_E_BADPARAMCOUNT)
 		except("COM: " << progid << " " << action << " " << name << " bad param count");
@@ -184,7 +187,7 @@ static Value com2su(VARIANT* var)
 		if (nw == 0)
 			return SuString::empty_string;
 		int n = WideCharToMultiByte(CP_ACP, 0, V_BSTR(&varValue), nw, 0, 0, NULL, NULL);
-		char* s = (char*) alloca(n);
+		char* s = (char*) _alloca(n);
 		n = WideCharToMultiByte(CP_ACP, 0, V_BSTR(&varValue), nw, s, n, NULL, NULL);
 		if (n == 0)
 			except("COM: string conversion error");
@@ -199,10 +202,7 @@ static Value com2su(VARIANT* var)
 
 		ret = VariantTimeToSystemTime(wdt, &sdt);
 		if (ret == FALSE)
-			{
 			except("COM: date conversion error");
-			break;
-			}
 		DateTime dat = DateTime(
 			sdt.wYear,
 			sdt.wMonth,
@@ -227,7 +227,7 @@ Value SuCOMobject::getdata(Value member)
 	verify_not_released();
 	require_idispatch();
 	// get id from name
-	char* name = member.str();
+	auto name = member.str();
 	USES_CONVERSION;
 	OLECHAR* wname = A2OLE(name);
 	DISPID dispid;
@@ -268,12 +268,12 @@ static void su2com(Value x, VARIANT* v)
 		V_VT(v) = VT_I4;
 		V_I4(v) = n;
 		}
-	else if (SuNumber* n = val_cast<SuNumber*>(x))
+	else if (SuNumber* num = val_cast<SuNumber*>(x))
 		{
 		V_VT(v) = VT_R8;
-		V_R8(v) = n->to_double();
+		V_R8(v) = num->to_double();
 		}
-	else if ((s = x.str_if_str()))
+	else if (nullptr != (s = x.str_if_str()))
 		{
 		V_VT(v) = VT_BSTR;
 		V_BSTR(v) = A2WBSTR(s); // COM convention is callee will free memory
@@ -306,7 +306,7 @@ void SuCOMobject::putdata(Value member, Value val)
 	verify_not_released();
 	require_idispatch();
 	// get id from name
-	char* name = member.str();
+	auto name = member.str();
 	USES_CONVERSION;
 	OLECHAR* wname = A2OLE(name);
 	DISPID dispid;
@@ -325,29 +325,28 @@ void SuCOMobject::putdata(Value member, Value val)
 	check_result(hr, progid, name, "put");
 	}
 
-Value SuCOMobject::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuCOMobject::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	verify_not_released();
 	static Value RELEASE("Release");
 	static Value DISPATCHQ("Dispatch?");
 	if (member == RELEASE)
 		{
-		if (nargs != 0)
-			except("usage: comobject.Release()");
+		NOARGS("comobject.Release()");
 		isdisp ? idisp->Release() : iunk->Release();
 		isalive = nullptr;
 		return 0;
 		}
 	else if (member == DISPATCHQ)
 		{
-		if (nargs != 0)
-			except("usage: comobject.Dispatch?()");
+		NOARGS("comobject.Dispatch?()");
 		return isdisp ? SuTrue : SuFalse;
 		}
 	// else call
 
 	// get id from name
-	char* name = member.str();
+	auto name = member.str();
 	USES_CONVERSION;
 	OLECHAR* wname = A2OLE(name);
 	DISPID dispid;
@@ -358,7 +357,7 @@ Value SuCOMobject::call(Value self, Value member, short nargs, short nargnames, 
 	// convert args
 	DISPPARAMS args = { NULL, NULL, 0, 0 };
 	args.cArgs = nargs;
-	VARIANT* vargs = (VARIANT*) alloca(nargs * sizeof (VARIANT));
+	VARIANT* vargs = (VARIANT*) _alloca(nargs * sizeof (VARIANT));
 	for (int i = 0; i < nargs; ++i)
 		su2com(ARG(i), &vargs[nargs - i - 1]);
 	args.rgvarg = vargs;
@@ -380,11 +379,11 @@ Value su_COMobject()
 	{
 	const int nargs = 1;
 	HRESULT hr;
-	char* progid = "???";
-	IDispatch* idisp = 0;
-	IUnknown* iunk = 0;
+	auto progid = "???";
+	IDispatch* idisp = nullptr;
+	IUnknown* iunk = nullptr;
 	int n;
-	if (ARG(0).int_if_num(&n) && (iunk = (IUnknown*)n))
+	if (ARG(0).int_if_num(&n) && nullptr != (iunk = (IUnknown*)n))
 		{
 		hr = iunk->QueryInterface(IID_IDispatch, (void**) &idisp);
 		if (SUCCEEDED(hr) && idisp)

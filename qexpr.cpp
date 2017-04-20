@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -28,6 +28,8 @@
 #include "row.h"
 #include "regexp.h"
 #include "call.h"
+#include "suboolean.h"
+#include "opcodes.h"
 
 extern const char* opcodes[];
 
@@ -38,9 +40,8 @@ Expr* Query::make_constant(Value x)
 	return new Constant(x);
 	}
 
-Constant::Constant(Value x) : value(x), packed(x.packsize())
-	{ 
-	x.pack(packed.buf());
+Constant::Constant(Value x) : value(x), packed(x.pack())
+	{
 	}
 
 void Constant::out(Ostream& os) const
@@ -77,7 +78,7 @@ Expr* Identifier::rename(const Fields& from, const Fields& to)
 	}
 
 Expr* Identifier::replace(const Fields& from, const Lisp<Expr*>& to)
-	{ 
+	{
 	int i = search(from, ident);
 	return i == -1 ? this : to[i];
 	}
@@ -104,7 +105,7 @@ void UnOp::out(Ostream& os) const
 
 Expr* UnOp::rename(const Fields& from, const Fields& to)
 	{
-	Expr* new_expr = expr->rename(from, to); 
+	Expr* new_expr = expr->rename(from, to);
 	return new_expr == expr ? this : new UnOp(op, new_expr);
 	}
 
@@ -158,7 +159,7 @@ void BinOp::out(Ostream& os) const
 	}
 
 Expr* BinOp::rename(const Fields& from, const Fields& to)
-	{ 
+	{
 	Expr* new_left = left->rename(from, to);
 	Expr* new_right = right->rename(from, to);
 	return new_left == left && new_right == right ? this :
@@ -166,7 +167,7 @@ Expr* BinOp::rename(const Fields& from, const Fields& to)
 	}
 
 Expr* BinOp::replace(const Fields& from, const Lisp<Expr*>& to)
-	{ 
+	{
 	Expr* new_left = left->replace(from, to);
 	Expr* new_right = right->replace(from, to);
 	return new_left == left && new_right == right ? this :
@@ -208,7 +209,7 @@ bool BinOp::is_term(const Fields& fields)
 		case I_GT : op = I_LT; break ;
 		case I_GTE : op = I_LTE; break ;
 		case I_IS : case I_ISNT : break ;
-		default : 
+		default :
 			unreachable();
 			}
 		return true;
@@ -247,16 +248,26 @@ Value BinOp::eval(const Header& hdr, const Row& row)
 		}
 	}
 
+// make "" < all other values to match packed comparison
+static bool lt(Value x, Value y)
+	{
+	if (y == SuEmptyString)
+		return false;
+	if (x == SuEmptyString)
+		return true;
+	return x < y;
+	}
+
 Value BinOp::eval2(Value x, Value y)
 	{
 	switch (op)
 		{
 	case I_IS :		return x == y ? SuTrue : SuFalse;
 	case I_ISNT :	return x != y ? SuTrue : SuFalse;
-	case I_LT :		return x < y ? SuTrue : SuFalse;
-	case I_LTE :		return x <= y ? SuTrue : SuFalse;
-	case I_GT :		return x > y ? SuTrue : SuFalse;
-	case I_GTE :		return x >= y ? SuTrue : SuFalse;
+	case I_LT :		return lt(x, y) ? SuTrue : SuFalse;
+	case I_LTE :		return ! lt(y, x) ? SuTrue : SuFalse;
+	case I_GT :		return lt(y, x) ? SuTrue : SuFalse;
+	case I_GTE :		return ! lt(x, y) ? SuTrue : SuFalse;
 	case I_ADD :		return x + y;
 	case I_SUB :		return x - y;
 	case I_CAT :		return new SuString(x.gcstr() + y.gcstr());
@@ -269,18 +280,16 @@ Value BinOp::eval2(Value x, Value y)
 	case I_BITOR :	return x.integer() | y.integer();
 	case I_BITXOR :	return x.integer() ^ y.integer();
 	case I_MATCH :
-		{ 
-		gcstring sx = x.gcstr(); 
+		{
+		gcstring sx = x.gcstr();
 		gcstring sy = y.gcstr();
-		return rx_match(sx.buf(), sx.size(), 0, rx_compile(sy))
-			? SuTrue : SuFalse; 
+		return rx_match(sx, rx_compile(sy)) ? SuTrue : SuFalse;
 		}
 	case I_MATCHNOT :
-		{ 
-		gcstring sx = x.gcstr(); 
+		{
+		gcstring sx = x.gcstr();
 		gcstring sy = y.gcstr();
-		return rx_match(sx.buf(), sx.size(), 0, rx_compile(sy))
-			? SuFalse : SuTrue; 
+		return rx_match(sx, rx_compile(sy)) 	? SuFalse : SuTrue;
 		}
 	default :
 		error("invalid BinOp type");
@@ -347,9 +356,7 @@ In::In(Expr* e, const Lisp<Value>& v) : expr(e), values(v), isterm(false)
 	for (Lisp<Value> vs = values; ! nil(vs); ++vs)
 		{
 		Value x = *vs;
-		gcstring p(x.packsize());
-		x.pack(p.buf());
-		packed.push(p);
+		packed.push(x.pack());
 		}
 	}
 
@@ -362,25 +369,25 @@ void In::out(Ostream& os) const
 	os << "(" << *expr << " in " << values << ")";
 	}
 
-bool In::term(const Fields& fields) 
-	{ 
+bool In::term(const Fields& fields)
+	{
 	return isterm = is_term(fields);
 	}
 
-bool In::is_term(const Fields& fields) 
-	{ 
+bool In::is_term(const Fields& fields)
+	{
 	return expr->isfield(fields);
 	}
 
 Expr* In::rename(const Fields& from, const Fields& to)
 	{
-	Expr* new_expr = expr->rename(from, to); 
+	Expr* new_expr = expr->rename(from, to);
 	return new_expr == expr ? this : new In(new_expr, values, packed);
 	}
 
 Expr* In::replace(const Fields& from, const Lisp<Expr*>& to)
 	{
-	Expr* new_expr = expr->replace(from, to); 
+	Expr* new_expr = expr->replace(from, to);
 	return new_expr == expr ? this : new In(new_expr, values, packed);
 	}
 

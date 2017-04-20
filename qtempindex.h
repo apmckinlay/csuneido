@@ -1,21 +1,19 @@
-#ifndef QTEMPINDEX_H
-#define QTEMPINDEX_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -30,20 +28,20 @@
 struct TempIndex1 : public Query1
 	{
 	TempIndex1(Query* s, const Fields& o, bool u);
-	void out(Ostream& os) const;
-	Indexes indexes();
-	Fields columns()
+	void out(Ostream& os) const override;
+	Indexes indexes() override;
+	Fields columns() override
 		{ return source->columns(); }
-	Indexes keys()
+	Indexes keys() override
 		{ return source->keys(); }
 	// iteration
-	Header header();
-	void select(const Fields& index, const Record& from, const Record& to);
-	void rewind();
-	Row get(Dir dir);
-	bool output(const Record& r)
+	Header header() override;
+	void select(const Fields& index, const Record& from, const Record& to) override;
+	void rewind() override;
+	Row get(Dir dir) override;
+	bool output(const Record& r) override
 		{ return source->output(r); }
-	void close(Query* q);
+	void close(Query* q) override;
 private:
 	void iterate_setup(Dir dir);
 
@@ -61,21 +59,21 @@ private:
 struct TempIndexN : public Query1
 	{
 	TempIndexN(Query* s, const Fields& o, bool u);
-	void out(Ostream& os) const;
-	Indexes indexes();
-	Fields columns()
+	void out(Ostream& os) const override;
+	Indexes indexes() override;
+	Fields columns() override
 		{ return source->columns(); }
-	Indexes keys()
+	Indexes keys() override
 		{ return source->keys(); }
 	// iteration
-	Header header()
+	Header header() override
 		{ return source->header(); }
-	void select(const Fields& index, const Record& from, const Record& to);
-	void rewind();
-	Row get(Dir dir);
-	bool output(const Record& r)
+	void select(const Fields& index, const Record& from, const Record& to) override;
+	void rewind() override;
+	Row get(Dir dir) override;
+	bool output(const Record& r) override
 		{ return source->output(r); }
-	void close(Query* q);
+	void close(Query* q) override;
 private:
 	void iterate_setup(Dir dir);
 
@@ -88,5 +86,3 @@ private:
 	Keyrange sel;
 	Header hdr;
 	};
-
-#endif

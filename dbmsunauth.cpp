@@ -29,26 +29,26 @@
 class DbmsUnauth : public Dbms
 	{
 public:
-	DbmsUnauth(Dbms* d) : dbms(d)
+	explicit DbmsUnauth(Dbms* d) : dbms(d)
 		{ }
 
 	void abort(int tran) override
 		{ except(notauth); }
-	void admin(char* s) override
+	void admin(const char* s) override
 		{ except(notauth); }
 	bool auth(const gcstring& data) override
 		{ return dbms->auth(data); }
 	Value check() override
 		{ except(notauth); }
-	bool commit(int tran, char** conflict = 0) override
+	bool commit(int tran, const char** conflict = 0) override
 		{ except(notauth); }
 	Value connections() override
 		{ except(notauth); }
-	DbmsQuery* cursor(char* s) override
+	DbmsQuery* cursor(const char* s) override
 		{ except(notauth); }
 	int cursors() override
 		{ except(notauth); }
-	Value dump(char* filename) override
+	Value dump(const char* filename) override
 		{ except(notauth); }
 	void erase(int tran, Mmoffset recadr) override
 		{ except(notauth); }
@@ -56,29 +56,29 @@ public:
 		{ except(notauth); }
 	int final() override
 		{ except(notauth); }
-	Row get(Dir dir, char* query, bool one, Header& hdr, int tran = 0) override
+	Row get(Dir dir, const char* query, bool one, Header& hdr, int tran = 0) override
 		{ except(notauth); }
-	int kill(char* s) override
+	int kill(const char* s) override
 		{ except(notauth); }
-	Lisp<gcstring> libget(char* name) override
+	Lisp<gcstring> libget(const char* name) override
 		{ return dbms->libget(name); }
 	Lisp<gcstring> libraries() override
 		{ return dbms->libraries(); }
-	int load(char* filename) override
+	int load(const char* filename) override
 		{ except(notauth); }
-	void log(char* s) override
+	void log(const char* s) override
 		{ except(notauth); }
 	gcstring nonce() override
 		{ return dbms->nonce(); }
-	DbmsQuery* query(int tran, char* s) override
+	DbmsQuery* query(int tran, const char* s) override
 		{ except(notauth); }
 	int readCount(int tran) override
 		{ except(notauth); }
-	int request(int tran, char* s) override
+	int request(int tran, const char* s) override
 		{ except(notauth); }
-	Value run(char* s) override
+	Value run(const char* s) override
 		{ except(notauth); }
-	Value sessionid(char* s) override
+	Value sessionid(const char* s) override
 		{ return dbms->sessionid(s); }
 	int64 size() override
 		{ except(notauth); }
@@ -90,7 +90,7 @@ public:
 		{ except(notauth); }
 	Lisp<int> tranlist() override
 		{ except(notauth); }
-	int transaction(TranType type, char* session_id = "") override
+	int transaction(TranType type, const char* session_id = "") override
 		{ except(notauth); }
 	Mmoffset update(int tran, Mmoffset recadr, Record& rec) override
 		{ except(notauth); }

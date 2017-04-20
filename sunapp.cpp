@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -42,15 +42,15 @@ static OstreamFile log("sunapp.log");
 class CSuneidoAPP : public IInternetProtocol
 	{
 public:
-	CSuneidoAPP() : m_cRef(1), pos(0), str(0)
+	CSuneidoAPP()
 		{ LOG("construct"); }
 
-	~CSuneidoAPP()
+	virtual ~CSuneidoAPP()
 		{ LOG("destruct"); LocalFree((void*) str); }
 
 	// bypass garbage collection!
 	void* operator new(size_t n)
-		{ return LocalAlloc(LPTR, n); } 
+		{ return LocalAlloc(LPTR, n); }
 	void operator delete(void* p)
 		{ LocalFree(p); }
 
@@ -61,64 +61,63 @@ public:
 
 	// IInternetProtocolRoot
 
-	HRESULT STDMETHODCALLTYPE Start( 
+	HRESULT STDMETHODCALLTYPE Start(
         /* [in] */ LPCWSTR szUrl,
         /* [in] */ IInternetProtocolSink __RPC_FAR *pOIProtSink,
         /* [in] */ IInternetBindInfo __RPC_FAR *pOIBindInfo,
         /* [in] */ DWORD grfPI,
         /* [in] */ DWORD dwReserved);
-    
-    HRESULT STDMETHODCALLTYPE Continue( 
+
+    HRESULT STDMETHODCALLTYPE Continue(
         /* [in] */ PROTOCOLDATA __RPC_FAR *pProtocolData)
 		{ LOG("Continue"); return S_OK; }
-    
-    HRESULT STDMETHODCALLTYPE Abort( 
+
+    HRESULT STDMETHODCALLTYPE Abort(
         /* [in] */ HRESULT hrReason,
         /* [in] */ DWORD dwOptions)
 		{ LOG("Abort"); return S_OK; }
-    
-    HRESULT STDMETHODCALLTYPE Terminate( 
+
+    HRESULT STDMETHODCALLTYPE Terminate(
         /* [in] */ DWORD dwOptions)
 		{ LOG("Terminate"); return S_OK; }
-    
-	HRESULT STDMETHODCALLTYPE Suspend( void) 
+
+	HRESULT STDMETHODCALLTYPE Suspend( void)
 		{return E_NOTIMPL;}		// Not implemented
 
-    HRESULT STDMETHODCALLTYPE Resume( void) 
+    HRESULT STDMETHODCALLTYPE Resume( void)
 		{return E_NOTIMPL;}		// Not implemented
 
 	// IInternetProtocol based on IInternetProtocolRoot
 
-    HRESULT STDMETHODCALLTYPE Read( 
+    HRESULT STDMETHODCALLTYPE Read(
         /* [length_is][size_is][out][in] */ void __RPC_FAR *pv,
         /* [in] */ ULONG cb,
         /* [out] */ ULONG __RPC_FAR *pcbRead);
-    
-    HRESULT STDMETHODCALLTYPE Seek( 
+
+    HRESULT STDMETHODCALLTYPE Seek(
         /* [in] */ LARGE_INTEGER dlibMove,
         /* [in] */ DWORD dwOrigin,
         /* [out] */ ULARGE_INTEGER __RPC_FAR *plibNewPosition)
 		{ LOG("Seek"); return S_OK; }
-    
-    HRESULT STDMETHODCALLTYPE LockRequest( 
+
+    HRESULT STDMETHODCALLTYPE LockRequest(
         /* [in] */ DWORD dwOptions)
 		{ LOG("LockRequest"); return S_OK; }
-    
+
     HRESULT STDMETHODCALLTYPE UnlockRequest( void)
 		{ LOG("UnlockRequest"); return S_OK; }
 
 private:
-	ULONG len;
-	ULONG pos;
-	char* str;
-	// Reference count
-	long m_cRef ;
+	ULONG len = 0;
+	ULONG pos = 0;
+	const char* str = nullptr;
+	long m_cRef = 1; // Reference count
 	} ;
 
 // IUnknown implementation
 
 HRESULT __stdcall CSuneidoAPP::QueryInterface(const IID& iid, void** ppv)
-	{    
+	{
 	if (iid == IID_IUnknown || iid == IID_IInternetProtocol)
 		{
 		*ppv = static_cast<IInternetProtocol*>(this) ;
@@ -138,7 +137,7 @@ ULONG __stdcall CSuneidoAPP::AddRef()
 	return InterlockedIncrement(&m_cRef) ;
 	}
 
-ULONG __stdcall CSuneidoAPP::Release() 
+ULONG __stdcall CSuneidoAPP::Release()
 	{
 	LOG("Release " << m_cRef);
 	if (InterlockedDecrement(&m_cRef) == 0)
@@ -169,7 +168,7 @@ inline LPSTR WINAPI AtlW2AHelper(LPSTR lpa, LPCWSTR lpw, int nChars)
 	((LPCSTR)(((_lpw = w) == NULL) ? NULL : ( _convert = (lstrlenW(_lpw)+1)*2, AtlW2AHelper((LPSTR) _alloca(_convert), _lpw, _convert))))
 
 HRESULT STDMETHODCALLTYPE CSuneidoAPP::Start(
-	/* [in] */ LPCWSTR szUrl, 
+	/* [in] */ LPCWSTR szUrl,
 	/* [in] */ IInternetProtocolSink __RPC_FAR  *pOIProtSink,
     /* [in] */ IInternetBindInfo __RPC_FAR *pOIBindInfo,
     /* [in] */ DWORD grfPI,
@@ -181,7 +180,7 @@ HRESULT STDMETHODCALLTYPE CSuneidoAPP::Start(
 	char* buf = new char[buflen];
 	InternetCanonicalizeUrl(url, buf, &buflen, ICU_DECODE | ICU_NO_ENCODE);
 	LOG("Start: " << buf);
-	
+
 	int n;
 	str = trycall("SuneidoAPP", buf, &n);
 	if (str == 0)
@@ -196,7 +195,7 @@ HRESULT STDMETHODCALLTYPE CSuneidoAPP::Start(
 	return S_OK;
 	}
 
-HRESULT STDMETHODCALLTYPE CSuneidoAPP::Read( 
+HRESULT STDMETHODCALLTYPE CSuneidoAPP::Read(
     /* [length_is][size_is][out][in] */ void __RPC_FAR *pv,
     /* [in] */ ULONG cb,
     /* [out] */ ULONG __RPC_FAR *pcbRead)
@@ -208,7 +207,7 @@ HRESULT STDMETHODCALLTYPE CSuneidoAPP::Read(
 	if (pos < len)
 		return S_OK;
 	LOG("FALSE");
-	return S_FALSE;	
+	return S_FALSE;
 	}
 
 // Class factory ====================================================
@@ -217,7 +216,7 @@ class CFactory : public IClassFactory
 	{
 public:
 	// IUnknown
-	virtual HRESULT __stdcall QueryInterface(const IID& iid, void** ppv) ;         
+	virtual HRESULT __stdcall QueryInterface(const IID& iid, void** ppv) ;
 	virtual ULONG   __stdcall AddRef() ;
 	virtual ULONG   __stdcall Release() ;
 
@@ -225,28 +224,22 @@ public:
 	virtual HRESULT __stdcall CreateInstance(IUnknown* pUnknownOuter,
 	                                         const IID& iid,
 	                                         void** ppv) ;
-	virtual HRESULT __stdcall LockServer(BOOL bLock) ; 
+	virtual HRESULT __stdcall LockServer(BOOL bLock) ;
 
-	// Constructor
-	CFactory() : m_cRef(1) 
-		{ }
-
-	// Destructor
-	~CFactory()
-		{ }
+	virtual ~CFactory() = default;
 
 private:
-	long m_cRef ;
+	long m_cRef = 1;
 	} ;
 
 //
 // Class factory IUnknown implementation
 //
 HRESULT __stdcall CFactory::QueryInterface(const IID& iid, void** ppv)
-	{    
+	{
 	if ((iid == IID_IUnknown) || (iid == IID_IClassFactory))
 		{
-		*ppv = static_cast<IClassFactory*>(this) ; 
+		*ppv = static_cast<IClassFactory*>(this) ;
 		}
 	else
 		{
@@ -262,7 +255,7 @@ ULONG __stdcall CFactory::AddRef()
 	return InterlockedIncrement(&m_cRef) ;
 	}
 
-ULONG __stdcall CFactory::Release() 
+ULONG __stdcall CFactory::Release()
 	{
 	if (InterlockedDecrement(&m_cRef) == 0)
 		{
@@ -275,7 +268,7 @@ ULONG __stdcall CFactory::Release()
 // IClassFactory implementation
 HRESULT __stdcall CFactory::CreateInstance(IUnknown* pUnknownOuter,
                                            const IID& iid,
-                                           void** ppv) 
+                                           void** ppv)
 	{
 	// Cannot aggregate.
 	if (pUnknownOuter != NULL)
@@ -300,7 +293,7 @@ HRESULT __stdcall CFactory::CreateInstance(IUnknown* pUnknownOuter,
 	}
 
 // LockServer
-HRESULT __stdcall CFactory::LockServer(BOOL bLock) 
+HRESULT __stdcall CFactory::LockServer(BOOL bLock)
 	{
 	return S_OK ;
 	}

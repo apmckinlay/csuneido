@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -27,8 +27,10 @@
 #include "pack.h"
 #include <limits.h>
 #include "gc.h"
-#include "minmax.h"
 #include "mmfile.h"
+#include <algorithm>
+using std::min;
+using std::max;
 
 template <class T> struct RecRep
 	{
@@ -43,7 +45,7 @@ template <class T> struct RecRep
 			return gcstring();
 		size_t size = off[i-1] - off[i];
 		verify(size <= sz - off[i]);
-		return gcstring(size, (char*) this + off[i]); 
+		return gcstring::noalloc((char*) this + off[i], size);
 		}
 	size_t cursize() const
 		{
@@ -66,7 +68,7 @@ template <class T> struct RecRep
 		return (char*) this + off[n++];
 		}
 	void add(const gcstring& s)
-		{ memcpy(alloc(s.size()), s.buf(), s.size()); }
+		{ memcpy(alloc(s.size()), s.ptr(), s.size()); }
 	void truncate(int i)
 		{
 		if (i < n)
@@ -82,7 +84,7 @@ struct DbRep
 	DbRep(Mmfile* m, Mmoffset off) : type('d'), mmf(m), offset(off)
 		{ }
 	Record rec()
-		{ return Record(mmf->adr(offset)); } 
+		{ return Record(mmf->adr(offset)); }
 	};
 
 Record::Record(size_t sz) : crep((RecRep<unsigned char>*) ::operator new (sz + 1, noptrs))
@@ -92,7 +94,7 @@ Record::Record(size_t sz) : crep((RecRep<unsigned char>*) ::operator new (sz + 1
 	reinterpret_cast<char*>(crep)[sz] = 0;
 	}
 
-Record::Record(size_t sz, void* buf) : crep((RecRep<unsigned char>*) buf)
+Record::Record(size_t sz, const void* buf) : crep((RecRep<unsigned char>*) buf)
 	{
 	init(sz);
 	}
@@ -126,7 +128,7 @@ void Record::reuse(int n)
 		crep->n = n;
 	}
 
-Record::Record(void* r) : crep((RecRep<unsigned char>*) r)
+Record::Record(const void* r) : crep((RecRep<unsigned char>*) r)
 	{
 	verify(crep == 0 ||
 		(crep->type == 'c' || crep->type == 's' || crep->type == 'l'));
@@ -277,7 +279,7 @@ void Record::addmax()
 
 void Record::addraw(const gcstring& s)
 	{
-	memcpy(alloc(s.size()), s.buf(), s.size());
+	memcpy(alloc(s.size()), s.ptr(), s.size());
 	}
 
 void Record::addval(Value x)
@@ -293,8 +295,7 @@ void Record::addval(const gcstring& s)
 
 void Record::addval(const char* s)
 	{
-	SuString str(strlen(s), s); // no alloc
-	addval(&str);
+	addval(gcstring::noalloc(s));
 	}
 
 void Record::addval(long n)
@@ -481,7 +482,7 @@ Record Record::from_int64(Mmoffset n, Mmfile* mmf)
 
 inline int mmoffset_to_tagged_int(Mmoffset off)
 	{
-	return (off >> MM_SHIFT) | 1;	
+	return (off >> MM_SHIFT) | 1;
 	}
 
 int Record::to_int() const
@@ -518,6 +519,8 @@ Record Record::to_heap() const
 	return crep && crep->type == 'd' ? dup() : *this;
 	}
 
+Record const Record::empty;
+
 // test =============================================================
 
 #include "testing.h"
@@ -533,17 +536,17 @@ class test_record : public Tests
 		r.addval("world");
 		verify(r.getstr(0) == "hello");
 		verify(r.getstr(1) == "world");
-		
+
 		void* buf = new char[32];
 		r.copyto(buf);
 		Record r2(buf);
 		verify(r2 == r);
 
 		verify(r.dup() == r);
-		
+
 		r.addval(1234);
 		verify(r.getlong(2) == 1234);
-		
+
 		// add enough stuff to use all reps
 		for (int i = 0; i < 1000; ++i)
 			r.addval("1234567890123456789012345678901234567890123456789012345678901234567890");
@@ -553,9 +556,10 @@ class test_record : public Tests
 
 		Record big;
 		big.addnil();
-		SuString* s = new SuString(100000);
-		memset(s->buf(), 0x77, 100000);
-		big.addval(Value(s));
+		const int bblen = 100000;
+		char* bigbuf = salloc(bblen);
+		memset(bigbuf, 0x77, bblen);
+		big.addval(SuString::noalloc(bigbuf, bblen));
 		int n = big.cursize();
 		verify(100000 <= n && n <= 100050);
 		}
@@ -575,15 +579,15 @@ class test_record : public Tests
 		{
 		Record r;
 		r.addval("hello");
-		
+
 		int64 n64 = r.to_int64();
 		Record r2 = Record::from_int64(n64, 0);
 		asserteq(r, r2);
-		
+
 		int n = r.to_int();
 		Record r3 = Record::from_int(n, 0);
 		asserteq(r, r3);
-		
+
 		for (int64 i = 1; i < 16; ++i)
 			{
 			Mmoffset mmo = i * 1024 * 1024 * 1024;

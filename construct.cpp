@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -32,11 +32,12 @@
 // then simply calls the class's constructor with the specified args
 
 Construct::Construct()
-	{ 
-	named.num = globals("Construct"); 
+	{
+	named.num = globals("Construct");
 	}
 
-Value Construct::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value Construct::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if ((nargs != 1 && nargs != 2) || member != CALL)
 		except("usage: Construct(string, suffix='') or Construct(object, suffix='')");
@@ -47,7 +48,7 @@ Value Construct::call(Value self, Value member, short nargs, short nargnames, us
 		{
 		if (val_cast<SuClass*>(c))
 			ob = 0;
-		else if (! (c = ob->get(0)))
+		else if (! ((c = ob->get(0))))
 			except("Construct: object requires member 0");
 		}
 	if (const char* s = c.str_if_str())
@@ -70,15 +71,16 @@ Value Construct::call(Value self, Value member, short nargs, short nargnames, us
 // ==================================================================
 
 Instance::Instance()
-	{ 
-	named.num = globals("Instance"); 
+	{
+	named.num = globals("Instance");
 	}
 
-Value Instance::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value Instance::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 2 || member != CALL)
 		except("usage: Instance(class, suffix)");
-	char* suffix = ARG(1).str();
+	auto suffix = ARG(1).str();
 	Value c = ARG(0);
 	if (const char* s = c.str_if_str())
 		{

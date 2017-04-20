@@ -23,15 +23,16 @@
 #include "dbms.h"
 #include "gcstring.h"
 #include "fibers.h"
+#include "exceptimp.h"
 
-static char* server_ip = 0; // local
+static const char* server_ip = 0; // local
 
-void set_dbms_server_ip(char* s)
+void set_dbms_server_ip(const char* s)
 	{
 	server_ip = s;
 	}
 
-char* get_dbms_server_ip()
+const char* get_dbms_server_ip()
 	{
 	return server_ip;
 	}
@@ -51,7 +52,15 @@ Dbms* dbms()
 				tls().thedbms = dbms_remote(server_ip);
 			else
 				{
-				tls().thedbms = dbms_remote_async(server_ip);
+				try
+					{
+					tls().thedbms = dbms_remote_async(server_ip);
+					}
+				catch (const Except& e)
+					{
+					throw Except(e, 
+						"thread failed to connect to db server: " + e.gcstr());
+					}
 				tls().thedbms->auth(Fibers::main_dbms()->token());
 				}
 			}

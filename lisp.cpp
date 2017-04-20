@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -33,12 +33,12 @@ class test_lisp : public Tests
 		x = cons(2, x);
 		x = cons(3, x);
 		verify(car(x) == 3);
-		verify(cdr(x) == lisp(2, 1)); 
+		verify(cdr(x) == lisp(2, 1));
 		verify(reverse(x) == lisp(1, 2, 3));
 		x = lisp(1, 2, 3);
 		verify(x.size() == 3);
 		verify(x[0] == 1);
-		verify(lisp(1, 2, 3) == lisp(1, 2, 3));		
+		verify(lisp(1, 2, 3) == lisp(1, 2, 3));
 		verify(member(x, 2));
 		verify(!member(x, 4));
 		verify(concat(lisp(1, 2), lisp(3, 4)) == lisp(1, 2, 3, 4));
@@ -59,7 +59,7 @@ class test_lisp : public Tests
 		x = lisp(1, 2, 3, 4);
 		const Lisp<int>& y = x;
 		verify(y.copy() == lisp(1, 2, 3, 4));
-		
+
 		Lisp<int> empty;
 		asserteq(reverse(empty), empty);
 		x = lisp(1, 2, 3);
@@ -67,7 +67,7 @@ class test_lisp : public Tests
 		asserteq(set_union(empty, x), x);
 		asserteq(difference(empty, x), empty);
 		asserteq(difference(x, empty), x);
-		
+
 		x = lisp(11, 22, 33);
 		asserteq(x[0], 11);
 		asserteq(x[1], 22);

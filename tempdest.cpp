@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2002 Suneido Software Corp. 
+ *
+ * Copyright (c) 2002 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -23,8 +23,6 @@
 #include "tempdest.h"
 #include "except.h"
 #include <algorithm>
-#include "errlog.h"
-#include "port.h"
 #include "gc.h"
 
 int tempdest_inuse = 0;
@@ -34,7 +32,7 @@ TempDest::TempDest() : inuse(0)
 	}
 
 void TempDest::addref(void* p)
-	{ 
+	{
 	if (gc_inheap(p))
 		refs.push_back(p);
 	}

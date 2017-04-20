@@ -1,21 +1,19 @@
-#ifndef BUILTINCLASS_H
-#define BUILTINCLASS_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2003 Suneido Software Corp. 
+ *
+ * Copyright (c) 2003 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -23,7 +21,6 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "func.h"
 #include "interp.h"
 #include "sustring.h"
 #include "suobject.h"
@@ -36,10 +33,10 @@ public:
 	typedef Value (T::*MemFun)(BuiltinArgs&);
 	BuiltinMethod(T* o, MemFun f) : ob(o), fn(f)
 		{ }
-	virtual void out(Ostream& os)
+	void out(Ostream& os) const override
 		{ os << "/* builtin method */"; }
-	virtual Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort *argnames, int each)
+	Value call(Value self, Value member,
+		short nargs, short nargnames, ushort *argnames, int each) override
 		{
 		if (member == CALL)
 			{
@@ -77,8 +74,8 @@ template <class T> const char* builtintype()
 template <class T> class BuiltinInstance : public T
 	{
 	typedef Value (T::*MemFun)(BuiltinArgs&);
-	virtual Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort *argnames, int each)
+	virtual Value call(Value self, Value member,
+		short nargs, short nargnames, ushort *argnames, int each) override
 		{
 		if (MemFun m = find(member))
 			{
@@ -87,7 +84,7 @@ template <class T> class BuiltinInstance : public T
 			}
 		method_not_found(builtintype<T>(), member);
 		}
-	virtual Value getdata(Value member)
+	Value getdata(Value member) override
 		{
 		if (MemFun m = find(member))
 			return new BuiltinMethod<T>(this, m);
@@ -98,20 +95,18 @@ template <class T> class BuiltinInstance : public T
 		for (Method<T>* m = T::methods(); m->method; ++m)
 			if (member == m->name)
 				return m->method;
-		return 0;
+		return nullptr;
 		}
 	};
 
 template <class T> class BuiltinClass : public SuValue
 	{
 public:
-	char* params;
-
-	BuiltinClass(char* p) : params(p)
+	explicit BuiltinClass(const char* p) : params(p)
 		{}
 
-	virtual Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort *argnames, int each)
+	Value call(Value self, Value member,
+		short nargs, short nargnames, ushort *argnames, int each) override
 		{
 		BuiltinArgs args(nargs, nargnames, argnames, each);
 		static Value Members("Members");
@@ -133,14 +128,14 @@ public:
 		else
 			method_not_found(builtintype<T>(), member);
 		}
-	virtual void out(Ostream& os)
+	void out(Ostream& os) const override
 		{ os << "/* builtin class */"; }
-	Value instantiate(BuiltinArgs&)
+	static Value instantiate(BuiltinArgs&)
 		{ return new T; }
-	Value callclass(BuiltinArgs& args)
+	static Value callclass(BuiltinArgs& args)
 		{ return instantiate(args); }
-	const char* type() const
+	const char* type() const override
 		{ return "BuiltinClass"; }
-	};
 
-#endif
+	const char* params;
+	};

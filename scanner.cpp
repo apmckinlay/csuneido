@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -23,10 +23,9 @@
 #include "scanner.h"
 #include "sunumber.h"
 #include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
 #include <algorithm>
 #include "except.h"
+#include "opcodes.h"
 
 enum { OK = 1, DIG, ID, GO, WHITE, END };
 
@@ -64,8 +63,8 @@ void scanner_locale_changed()
 			cclass_[c] = 0;
 	}
 
-Scanner::Scanner(char* s, int i, CodeVisitor* v)
-	: prev(0), value(""), err(""), source(s), si(i), keyword(0), visitor(v)
+Scanner::Scanner(const char* s, int i, CodeVisitor* v)
+	: source(s), si(i), visitor(v), buf(1024)
 	{
 	}
 
@@ -116,10 +115,7 @@ int Scanner::next()
 
 int Scanner::nextall()
 	{
-	char* dst;
-	char* lim;
 	int state;
-	char quote;
 
 	prev = si; state = 0; keyword = 0; value = "";
 	for (;;)
@@ -251,7 +247,6 @@ int Scanner::nextall()
 			case '=' : ++si; return I_DIVEQ;
 			default : return I_DIV;
 				}
-			break ;
 		case '*' :
 			if ('=' == source[si])
 				{ ++si; return I_MULEQ; }
@@ -273,16 +268,14 @@ int Scanner::nextall()
 			else
 				return ':';
 		case '_' :
-			for (dst = buf; ID == cclass(source[si]) ||
-				DIG == cclass(source[si]); ++si)
-				{
-				*dst++ = source[si];
-				}
+			buf.clear();
+			while (ID == cclass(source[si]) || DIG == cclass(source[si]))
+				++si;
 			if (source[si] == '?' || source[si] == '!')
-				*dst++ = source[si++];
-			*dst = 0;
-			value = buf;
-			keyword = keywords(buf);
+				++si;
+			buf.add(source + prev, si - prev);
+			value = buf.str();
+			keyword = keywords(value);
 			if (source[si] != ':' ||
 				! (keyword == I_IS || keyword == I_ISNT ||
 					keyword == T_AND || keyword == T_OR || keyword == I_NOT))
@@ -292,27 +285,25 @@ int Scanner::nextall()
 				}
 			return T_IDENTIFIER;
 		case '9' :
+			buf.clear();
 			if (source[si] == '0' && tolower(source[si + 1]) == 'x')
 				{
-				dst = buf;
-				*dst++ = source[si++];
-				*dst++ = source[si++];
+				si += 2;
 				while (isxdigit(source[si]))
-					*dst++ = source[si++];
-				*dst = 0;
-				len = dst - buf;
+					++si;
+				buf.add(source + prev, si - prev);
+				len = buf.size();
 				}
 			else
 				{
 				len = numlen(source + si);
 				verify(len > 0);
-				memcpy(buf, source + si, len);
-				if (buf[len - 1] == '.')
+				if (source[si + len - 1] == '.')
 					--len;
-				buf[len] = 0;
+				buf.add(source + si, len);
 				si += len;
 				}
-			value = buf;
+			value = buf.str();
 			return T_NUMBER;
 		case '.' :
 			if (DIG == cclass(source[si]))
@@ -323,46 +314,34 @@ int Scanner::nextall()
 				return '.';
 			break ;
 		case '`' :
-			for (dst = buf, lim = dst + buflen; 
-				source[si] && source[si] != '`'; ++si)
-				{
-				if (dst >= lim)
-					{
-					prev = si;
-					err = "string literal too long";
-					return T_ERROR;
-					}
-				*dst++ = source[si];
-				}
-			*dst = 0;
+			buf.clear();
+			while (source[si] && source[si] != '`')
+				++si;
+			buf.add(source + prev + 1, si - prev - 1);
 			if (source[si])
 				++si;	// skip closing quote
-			value = buf;
-			len = dst - buf;
+			value = buf.str();
+			len = buf.size();
 			return T_STRING;
 		case '"' :
 		case '\'' :
-			quote = state;
-			for (dst = buf, lim = dst + buflen; 
-				source[si] && source[si] != quote; ++si)
-				{
-				if (dst >= lim)
+			{
+			buf.clear();
+			int from = si;
+			for (; source[si] && source[si] != state; ++si)
+				if (source[si] == '\\')
 					{
-					prev = si;
-					err = "string literal too long";
-					return T_ERROR;
+					buf.add(source + from, si - from);
+					buf.add(doesc(source, si));
+					from = si + 1;
 					}
-				else if ('\\' == source[si])
-					*dst++ = doesc(source, si);
-				else
-					*dst++ = source[si];
-				}
-			*dst = 0;
+			buf.add(source + from, si - from);
 			if (source[si])
 				++si;	// skip closing quote
-			value = buf;
-			len = dst - buf;
+			value = buf.str();
+			len = buf.size();
 			return T_STRING;
+			}
 		default :
 			unreachable();
 			}
@@ -379,7 +358,7 @@ inline bool isodigit(char c)
 	{ return '0' <= c && c <= '7'; }
 
 // should be called with i pointing at backslash
-// 
+//
 /* static */ char Scanner::doesc(const char* src, int& i)
 	{
 	++i; // backslash
@@ -403,7 +382,7 @@ inline bool isodigit(char c)
 	case '"' :
 	case '\'' :
 		return src[i];
-	default : 
+	default :
 		if (isodigit(src[i]) && isodigit(src[i + 1]) && isodigit(src[i + 2]))
 			{
 			i += 2;
@@ -416,37 +395,37 @@ inline bool isodigit(char c)
 
 struct Keyword
 	{
-	char* word;
+	const char* word;
 	int id;
 	};
 static Keyword words[] =
 	{
-	{ "False", K_FALSE }, { "True", K_TRUE }, 
+	{ "False", K_FALSE }, { "True", K_TRUE },
 	{ "and", T_AND }, { "bool", K_BOOL}, { "break", K_BREAK },
 	{ "buffer", K_BUFFER }, { "callback", K_CALLBACK },
 	{ "case", K_CASE }, { "catch", K_CATCH }, { "char", K_INT8 },
-	{ "class", K_CLASS }, { "continue", K_CONTINUE }, 
-	{ "default", K_DEFAULT }, { "dll", K_DLL }, { "do", K_DO }, 
-	{ "double", K_DOUBLE }, { "else", K_ELSE }, { "false", K_FALSE }, 
-	{ "float", K_FLOAT }, { "for", K_FOR }, 
-	{ "forever", K_FOREVER }, { "function", K_FUNCTION }, { "gdiobj", K_GDIOBJ }, 
-	{ "handle", K_HANDLE }, { "if", K_IF }, 	{ "in", K_IN }, 
-	{ "int16", K_INT16 }, { "int32", K_INT32 }, { "int64", K_INT64 }, { "int8", K_INT8 }, 
+	{ "class", K_CLASS }, { "continue", K_CONTINUE },
+	{ "default", K_DEFAULT }, { "dll", K_DLL }, { "do", K_DO },
+	{ "double", K_DOUBLE }, { "else", K_ELSE }, { "false", K_FALSE },
+	{ "float", K_FLOAT }, { "for", K_FOR },
+	{ "forever", K_FOREVER }, { "function", K_FUNCTION }, { "gdiobj", K_GDIOBJ },
+	{ "handle", K_HANDLE }, { "if", K_IF }, 	{ "in", K_IN },
+	{ "int16", K_INT16 }, { "int32", K_INT32 }, { "int64", K_INT64 }, { "int8", K_INT8 },
 	{ "is", I_IS }, { "isnt", I_ISNT }, { "long", K_INT32 },
 	{ "new", K_NEW }, { "not", I_NOT }, { "or", T_OR }, { "pointer", K_POINTER },
-	{ "resource", K_RESOURCE },	{ "return", K_RETURN }, 
-	{ "short", K_INT16 }, { "string", K_STRING }, { "struct", K_STRUCT }, 
-	{ "super", K_SUPER }, { "switch", K_SWITCH }, { "this", K_THIS }, 
-	{ "throw", K_THROW }, { "true", K_TRUE }, { "try", K_TRY }, 
-	{ "void", K_VOID }, { "while", K_WHILE }, 
+	{ "resource", K_RESOURCE },	{ "return", K_RETURN },
+	{ "short", K_INT16 }, { "string", K_STRING }, { "struct", K_STRUCT },
+	{ "super", K_SUPER }, { "switch", K_SWITCH }, { "this", K_THIS },
+	{ "throw", K_THROW }, { "true", K_TRUE }, { "try", K_TRY },
+	{ "void", K_VOID }, { "while", K_WHILE },
 	{ "xor", I_ISNT }
 	};
 const int nwords = sizeof words / sizeof (Keyword);
 
-inline bool lt(char* ss, char* tt)
+inline bool lt(const char* ss, const char* tt)
 	{
-	unsigned char* s = reinterpret_cast<unsigned char*>(ss);
-	unsigned char* t = reinterpret_cast<unsigned char*>(tt);
+	const unsigned char* s = reinterpret_cast<const unsigned char*>(ss);
+	const unsigned char* t = reinterpret_cast<const unsigned char*>(tt);
 	for (; *s && *s == *t; ++s, ++t)
 		;
 	return *s < *t;
@@ -455,65 +434,66 @@ struct ScannerLt
 	{
 	bool operator()(const Keyword& k1, const Keyword& k2)
 		{ return lt(k1.word, k2.word); }
-	bool operator()(const Keyword& k, char* s)
+	bool operator()(const Keyword& k, const char* s)
 		{ return lt(k.word, s); }
-	bool operator()(char* s, const Keyword& k)
+	bool operator()(const char* s, const Keyword& k)
 		{ return lt(s, k.word); }
 	};
 
-int Scanner::keywords(char* s)
+int Scanner::keywords(const char* s)
 	{
 	std::pair<Keyword*,Keyword*> p = std::equal_range(words, words + nwords, s, ScannerLt());
 	return p.first < p.second ? p.first->id : 0;
 	}
 
 #include "testing.h"
+#include "gcstring.h"
 
-static char* input = "and break case catch continue class callback default dll do \
+static const char* input = "and break case catch continue class callback default dll do \
 	else for forever function if is isnt or not \
 	new switch struct super return throw try while \
 	true True false False \
 	== = =~ ~ != !~ ! <<= << <> <= < \
 	>>= >> >= > || |= | && &= &  \
 	^= ^ -- -= - ++ += + /= / \
-	*= * %= % $= $ name _name name123 'string' \
+	*= * %= % $= $ name _name name123 '\\Ahello\\'world\\Z' \
 	\"string\" 123 123name .name  Name Name123 name? 1$2 +1 num=1 \
 	num+=1 1%2 /*comments*/ //comments";
 
 struct Result
 	{
 	int token;
-	char* value;
+	const char* value;
 	};
 
 static Result results[] =
 	{
-	{ T_AND, 0 }, { K_BREAK, 0 }, { K_CASE, 0 }, { K_CATCH, 0 }, 
-	{ K_CONTINUE, 0 }, { K_CLASS, 0 }, { K_CALLBACK, 0 }, 
-	{ K_DEFAULT, 0 }, { K_DLL, 0 }, { K_DO, 0 }, { K_ELSE, 0 }, 
+	{ T_AND, 0 }, { K_BREAK, 0 }, { K_CASE, 0 }, { K_CATCH, 0 },
+	{ K_CONTINUE, 0 }, { K_CLASS, 0 }, { K_CALLBACK, 0 },
+	{ K_DEFAULT, 0 }, { K_DLL, 0 }, { K_DO, 0 }, { K_ELSE, 0 },
 	{ K_FOR, 0 }, { K_FOREVER, 0 }, { K_FUNCTION, 0 },
 	{ K_IF, 0 }, { I_IS, 0 }, { I_ISNT, 0 }, { T_OR, 0 }, { I_NOT, 0 },
-	{ K_NEW, 0 }, { K_SWITCH, 0 }, { K_STRUCT, 0 }, { K_SUPER, 0 }, 
-	{ K_RETURN, 0 }, { K_THROW, 0 }, { K_TRY, 0 }, { K_WHILE, 0 }, 
-	{ K_TRUE, 0 }, { K_TRUE, 0 }, { K_FALSE, 0 }, { K_FALSE, 0 }, 
-	{ I_IS, 0 }, { I_EQ, 0 }, { I_MATCH, 0 }, { I_BITNOT, 0 }, 
-	{ I_ISNT, 0 }, { I_MATCHNOT, 0 }, { I_NOT, 0 }, 
-	{ I_LSHIFTEQ, 0 }, { I_LSHIFT, 0 },	{ I_ISNT, 0 }, { I_LTE, 0 }, 
-	{ I_LT, 0 }, { I_RSHIFTEQ, 0 }, { I_RSHIFT, 0 }, { I_GTE, 0 }, 
-	{ I_GT, 0 }, { T_OR, 0 }, { I_BITOREQ, 0 }, { I_BITOR, 0 }, 
-	{ T_AND, 0 }, { I_BITANDEQ, 0 }, { I_BITAND, 0 }, { I_BITXOREQ, 0 }, { I_BITXOR, 0 }, { I_PREDEC, 0 }, { I_SUBEQ, 0 }, { I_SUB, 0 }, 
-	{ I_PREINC, 0 }, { I_ADDEQ, 0 }, { I_ADD, 0 }, { I_DIVEQ, 0 }, 
-	{ I_DIV, 0 }, { I_MULEQ, 0 }, { I_MUL, 0 }, { I_MODEQ, 0 }, 
+	{ K_NEW, 0 }, { K_SWITCH, 0 }, { K_STRUCT, 0 }, { K_SUPER, 0 },
+	{ K_RETURN, 0 }, { K_THROW, 0 }, { K_TRY, 0 }, { K_WHILE, 0 },
+	{ K_TRUE, 0 }, { K_TRUE, 0 }, { K_FALSE, 0 }, { K_FALSE, 0 },
+	{ I_IS, 0 }, { I_EQ, 0 }, { I_MATCH, 0 }, { I_BITNOT, 0 },
+	{ I_ISNT, 0 }, { I_MATCHNOT, 0 }, { I_NOT, 0 },
+	{ I_LSHIFTEQ, 0 }, { I_LSHIFT, 0 },	{ I_ISNT, 0 }, { I_LTE, 0 },
+	{ I_LT, 0 }, { I_RSHIFTEQ, 0 }, { I_RSHIFT, 0 }, { I_GTE, 0 },
+	{ I_GT, 0 }, { T_OR, 0 }, { I_BITOREQ, 0 }, { I_BITOR, 0 },
+	{ T_AND, 0 }, { I_BITANDEQ, 0 }, { I_BITAND, 0 }, { I_BITXOREQ, 0 }, { I_BITXOR, 0 }, { I_PREDEC, 0 }, { I_SUBEQ, 0 }, { I_SUB, 0 },
+	{ I_PREINC, 0 }, { I_ADDEQ, 0 }, { I_ADD, 0 }, { I_DIVEQ, 0 },
+	{ I_DIV, 0 }, { I_MULEQ, 0 }, { I_MUL, 0 }, { I_MODEQ, 0 },
 	{ I_MOD, 0 }, { I_CATEQ, 0 }, { I_CAT, 0 }, { T_IDENTIFIER, "name" },
-	{ T_IDENTIFIER, "_name"}, {T_IDENTIFIER, "name123"}, 
-	{ T_STRING, "string" }, { T_STRING, "string"}, 
-	{ T_NUMBER, "123" }, { T_NUMBER, "123" }, 
-	{ T_IDENTIFIER, "name" }, { '.', 0 }, 
+	{ T_IDENTIFIER, "_name"}, {T_IDENTIFIER, "name123"},
+	{ T_STRING, "\\Ahello'world\\Z" }, { T_STRING, "string"},
+	{ T_NUMBER, "123" }, { T_NUMBER, "123" },
+	{ T_IDENTIFIER, "name" }, { '.', 0 },
 	{ T_IDENTIFIER, "name" }, { T_IDENTIFIER, "Name" },
-	{ T_IDENTIFIER, "Name123" }, { T_IDENTIFIER, "name?" }, 
-	{ T_NUMBER, "1" }, { I_CAT, 0 }, { T_NUMBER, "2" }, { I_ADD, 0 }, 
-	{ T_NUMBER, "1" }, { T_IDENTIFIER, "num" }, { I_EQ, 0 }, { T_NUMBER, "1" }, 
-	{ T_IDENTIFIER, "num" }, { I_ADDEQ, 0 }, { T_NUMBER, "1" }, 
+	{ T_IDENTIFIER, "Name123" }, { T_IDENTIFIER, "name?" },
+	{ T_NUMBER, "1" }, { I_CAT, 0 }, { T_NUMBER, "2" }, { I_ADD, 0 },
+	{ T_NUMBER, "1" }, { T_IDENTIFIER, "num" }, { I_EQ, 0 }, { T_NUMBER, "1" },
+	{ T_IDENTIFIER, "num" }, { I_ADDEQ, 0 }, { T_NUMBER, "1" },
 	{ T_NUMBER, "1" }, { I_MOD, 0 }, {T_NUMBER, "2" },
 	{ T_STRING, "comment" }
 	};
@@ -529,7 +509,7 @@ class test_scanner : public Tests
 			asserteq(results[i].token,
 				(results[i].token < KEYWORDS ? token : sc.keyword));
 			if (results[i].value)
-				asserteq(0, strcmp(sc.value, results[i].value));
+				asserteq(gcstring(sc.value), gcstring(results[i].value));
 			}
 		}
 	};

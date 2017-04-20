@@ -24,7 +24,6 @@
 #include "qtempindex.h"
 #include "qsort.h"
 #include "database.h"
-#include "commalist.h"
 #include "trace.h"
 #include "ostreamstr.h"
 #include "exceptimp.h"
@@ -33,7 +32,7 @@ Row Query::Eof;
 
 const Fields none;
 
-Query* query(char* s, bool is_cursor)
+Query* query(const char* s, bool is_cursor)
 	{
 	return query_setup(parse_query(s), is_cursor);
 	}
@@ -131,9 +130,9 @@ double Query::optimize(const Fields& index, const Fields& needs, const Fields& f
 	double cost1 = optimize1(index, needs, firstneeds, is_cursor, false);
 
 	// tempindex
-	double cost2 = IMPOSSIBLE;
+	double cost2;
 	int keysize = size(index) * columnsize() * 2; // *2 for index overhead
-	Fields tempindex_needs = set_union(needs, index);	
+	Fields tempindex_needs = set_union(needs, index);
 	double no_index_cost = optimize1(none, tempindex_needs, firstneeds, is_cursor, false);
 	double tempindex_cost =
 		nrecords() * keysize * WRITE_FACTOR	// write index
@@ -234,15 +233,13 @@ void Query1::best_prefixed(Indexes idxs, const Fields& by,
 // tests ============================================================
 
 #include "testing.h"
-#include "suvalue.h"
-#include "ostreamstr.h"
 #include "thedb.h"
 
 struct Querystruct
 	{
-	char* query;
-	char* explain;
-	char* result;
+	const char* query;
+	const char* explain;
+	const char* result;
 	};
 
 Querystruct querytests[] =
@@ -596,7 +593,7 @@ Querystruct querytests[] =
 \"eraser\"	150\n\
 \"mouse\"	400\n" },
 
-	{ "trans summarize total cost", "trans^(item) SUMMARIZE-COPY total_cost = total cost",
+	{ "trans summarize total cost", "trans^(item) SUMMARIZE-SEQ total_cost = total cost",
 "total_cost\n\
 650\n" },
 
@@ -736,15 +733,17 @@ Querystruct querytests2[] =
 #include "sudate.h"
 #include <vector>
 
+extern int tempdest_inuse;
+
 class test_query : public Tests
 	{
 	OstreamStr errs;
-	void adm(char* s)
+	void adm(const char* s)
 		{
 		database_admin(s);
 		}
-	int tran;
-	void req(char* s)
+	int tran = 0;
+	void req(const char* s)
 		{
 		except_if(! database_request(tran, s), "FAILED: " << s);
 		}
@@ -850,10 +849,10 @@ class test_query : public Tests
 
 	void process(int i)
 		{
-		char* s = querytests[i].query;
+		const char* s = querytests[i].query;
 		Query* q = query(s);
-		int tran = theDB()->transaction(READONLY);
-		q->set_transaction(tran);
+		int t = theDB()->transaction(READONLY);
+		q->set_transaction(t);
 
 		OstreamStr exp;
 		exp << *q;
@@ -883,8 +882,8 @@ class test_query : public Tests
 		}
 
 		{ // read prev
-		Query* q = query(s);
-		q->set_transaction(tran);
+		q = query(s);
+		q->set_transaction(t);
 		OstreamStr out;
 		for (Fields f = hdr.columns(); ! nil(f); ++f)
 			out << *f << (nil(cdr(f)) ? "" : "\t");
@@ -906,31 +905,30 @@ class test_query : public Tests
 				"\n\tnot: '" << querytests[i].result << "'" << endl;
 		}
 
-		verify(theDB()->commit(tran));
-		extern int tempdest_inuse;
+		verify(theDB()->commit(t));
 		verify(tempdest_inuse == 0);
 		}
 
 	// query(s) without transform
 	void process2(int i)
 		{
-		char* s = querytests2[i].query;
-		int tran = theDB()->transaction(READONLY);
+		const char* s = querytests2[i].query;
+		int t = theDB()->transaction(READONLY);
 
 		{ // read next
 		Query* q = parse_query(s);
 		Fields order;
-		if (QSort* s = dynamic_cast<QSort*>(q))
+		if (QSort* qs = dynamic_cast<QSort*>(q))
 			{
-			order = s->segs;
-			q = s->source;
+			order = qs->segs;
+			q = qs->source;
 			}
 		// NO TRANSFORM // q = q->transform();
 		if (q->optimize(order, q->columns(), Fields(), false, true) >= IMPOSSIBLE)
 			except("impossible");
 		q = q->addindex();
 
-		q->set_transaction(tran);
+		q->set_transaction(t);
 
 		OstreamStr exp;
 		exp << *q;
@@ -961,17 +959,17 @@ class test_query : public Tests
 		{ // read prev
 		Query* q = parse_query(s);
 		Fields order;
-		if (QSort* s = dynamic_cast<QSort*>(q))
+		if (QSort* qs = dynamic_cast<QSort*>(q))
 			{
-			order = s->segs;
-			q = s->source;
+			order = qs->segs;
+			q = qs->source;
 			}
 		// NO TRANSFORM // q = q->transform();
 		if (q->optimize(order, q->columns(), Fields(), false, true) >= IMPOSSIBLE)
 			except("impossible");
 		q = q->addindex();
 
-		q->set_transaction(tran);
+		q->set_transaction(t);
 
 		Header hdr = q->header();
 
@@ -996,8 +994,7 @@ class test_query : public Tests
 				"\n\tnot: '" << querytests2[i].result << "'" << endl;
 		}
 
-		verify(theDB()->commit(tran));
-		extern int tempdest_inuse;
+		verify(theDB()->commit(t));
 		verify(tempdest_inuse == 0);
 		}
 	TEST(1, order)
@@ -1037,18 +1034,18 @@ class test_query : public Tests
 		{
 		TempDB tempdb;
 		adm("create cus(cnum, abbrev, name) key(cnum) key(abbrev)");
-		
+
 		tran = theDB()->transaction(READONLY);
 		Query* q = query("history(cus)");
 		q->set_transaction(tran);
 		assert_eq(q->get(NEXT), Query::Eof);
 		q->close(q);
-		verify(theDB()->commit(tran));		
-		
+		verify(theDB()->commit(tran));
+
 		tran = theDB()->transaction(READWRITE);
 		req("insert { cnum: 1, abbrev: 'a', name: 'axon' } into cus");
-		verify(theDB()->commit(tran));		
-		
+		verify(theDB()->commit(tran));
+
 		tran = theDB()->transaction(READONLY);
 		q = query("history(cus)");
 		q->set_transaction(tran);
@@ -1056,7 +1053,7 @@ class test_query : public Tests
 		verify(row != Query::Eof);
 		Header hdr = q->header();
 		q->close(q);
-		verify(theDB()->commit(tran));		
+		verify(theDB()->commit(tran));
 		OstreamStr os;
 		os << "cnum: " << row.getval(hdr, "cnum") <<
 			" abbrev: " << row.getval(hdr, "abbrev") <<

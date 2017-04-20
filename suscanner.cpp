@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -24,16 +24,13 @@
 #include "scanner.h"
 #include "suvalue.h"
 #include "interp.h"
-#include "symbols.h"
-#include "suboolean.h"
 #include "sustring.h"
-#include "prim.h"
 
 class SuScanner : public SuValue
 	{
 public:
-	virtual void init(char* s);
-	void out(Ostream& os)
+	virtual void init(const char* s);
+	void out(Ostream& os) const override
 		{ os << "Scanner"; }
 	static Method<SuScanner>* methods()
 		{
@@ -59,16 +56,16 @@ public:
 	Value Position(BuiltinArgs&); // position after current token
 	Value Type(BuiltinArgs&); // token number
 	Value Type2(BuiltinArgs&); // NEW returns token type as string
-	Value Text(BuiltinArgs&); // raw text 
+	Value Text(BuiltinArgs&); // raw text
 	Value Length(BuiltinArgs&); // length of current token
 	Value Valu(BuiltinArgs&); // for strings returns escaped
 	Value Keyword(BuiltinArgs&); // keyword number (else zero)
-	Value KeywordQ(BuiltinArgs&); // 
+	Value KeywordQ(BuiltinArgs&); //
 	Value Iter(BuiltinArgs&);
 protected:
-	Scanner* scanner;
+	Scanner* scanner = nullptr;
 private:
-	int token;
+	int token = 0;
 	};
 
 Value su_scanner()
@@ -81,14 +78,14 @@ template<>
 Value BuiltinClass<SuScanner>::instantiate(BuiltinArgs& args)
 	{
 	args.usage("usage: Scanner(string)");
-	char* s = args.getstr("string");
+	auto s = args.getstr("string");
 	args.end();
 	SuScanner* scanner = new BuiltinInstance<SuScanner>();
 	scanner->init(s);
 	return scanner;
 	}
 
-void SuScanner::init(char* s)
+void SuScanner::init(const char* s)
 	{
 	scanner = new Scanner(s);
 	}
@@ -232,7 +229,7 @@ Value SuScanner::Iter(BuiltinArgs& args)
 class SuQueryScanner : public SuScanner
 	{
 public:
-	virtual void init(char* s);
+	void init(const char* s) override;
 	static Method<SuQueryScanner>* methods()
 		{
 		return (Method<SuQueryScanner>*) SuScanner::methods();
@@ -249,7 +246,7 @@ template<>
 Value BuiltinClass<SuQueryScanner>::instantiate(BuiltinArgs& args)
 	{
 	args.usage("usage: QueryScanner(string)");
-	char* s = args.getstr("string");
+	auto s = args.getstr("string");
 	args.end();
 	SuQueryScanner* scanner = new BuiltinInstance<SuQueryScanner>();
 	scanner->init(s);
@@ -258,7 +255,7 @@ Value BuiltinClass<SuQueryScanner>::instantiate(BuiltinArgs& args)
 
 #include "qscanner.h"
 
-void SuQueryScanner::init(char* s)
+void SuQueryScanner::init(const char* s)
 	{
 	scanner = new QueryScanner(s);
 	}

@@ -1,6 +1,4 @@
-#ifndef SOCKETS_H
-#define SOCKETS_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -24,13 +22,13 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "buffer.h"
+#include "gcstring.h"
 
 // abstract base class (interface) for socket connections
 class SocketConnect
 	{
 public:
-	virtual ~SocketConnect()
-		{ }
+	virtual ~SocketConnect() = default;
 
 	/// Takes/removes data from rdbuf (leftover from readline)
 	///	and then directly from socket.
@@ -49,6 +47,13 @@ public:
 		return read(buf, required); // bufsize ignored
 		}
 
+	gcstring read(int n)
+		{
+		char* buf = salloc(n);
+		read(buf, n);
+		return gcstring::noalloc(buf, n);
+		}
+
 	/// Read up to the next newline using read()
 	/// May leave extra data in rdbuf.
 	virtual bool readline(char* buf, int n) = 0;
@@ -57,19 +62,23 @@ public:
 	/// wrbuf is left empty.
 	virtual void write(const char* buf, int n) = 0;
 
+	void write(const char* s);
+	void write(const gcstring& s);
+
 	/// Add to wrbuf
 	void writebuf(const char* buf, int n)
 		{ wrbuf.add(buf, n); }
 
-	void write(const char* s);
 	void writebuf(const char* s);
+	void writebuf(const gcstring& s);
+
 	virtual void close() = 0;
 	virtual void* getarg()
 		{ return nullptr; }
 
 	// used by dbserver and susockets Socket.RemoteUser
 	// only implemented in SocketConnectAsynch
-	virtual char* getadr()
+	virtual const char* getadr()
 		{ return ""; }
 
 	Buffer rdbuf;
@@ -79,12 +88,13 @@ public:
 // start a socket server (to listen)
 // calls supplied newserver function for connections
 typedef void (_stdcall *NewServerConnection)(void*);
-void socketServer(char* title, int port, NewServerConnection newServerConn, void* arg, bool exit);
+void socketServer(const char* title, int port, NewServerConnection newServerConn,
+	void* arg, bool exit);
 
 // create a synchronous (blocks everything) socket connection
-SocketConnect* socketClientSync(char* addr, int port, int timeout = 9999, int timeoutConnect = 0);
+SocketConnect* socketClientSync(const char* addr, int port, int timeout = 9999,
+	int timeoutConnect = 0);
 
 // create an asynch (only blocks calling fiber) socket connection
-SocketConnect* socketClientAsync(char* addr, int port, int timeout = 9999, int timeoutConnect = 10);
-
-#endif
+SocketConnect* socketClientAsync(const char* addr, int port, int timeout = 9999,
+	int timeoutConnect = 10);

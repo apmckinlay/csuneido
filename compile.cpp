@@ -33,7 +33,6 @@
 #include "sunumber.h"
 #include "scanner.h"
 #include "sustring.h"
-#include "suboolean.h"
 #include "suobject.h"
 #include "sufunction.h"
 #include "type.h"
@@ -46,12 +45,12 @@
 #include "sudate.h"
 #include "symbols.h"
 #include "catstr.h"
-#include "params.h"
 #include "surecord.h"
 #include "gc.h"
 #include "codevisitor.h"
 #include "sublock.h" // for BLOCK_REST
 #include "varint.h"
+#include "opcodes.h"
 
 bool getSystemOption(const char* option, bool def_value);
 
@@ -59,14 +58,14 @@ using namespace std;
 
 template <class T> T* dup(const vector<T>& x)
 	{
-	T* y = new T[x.size()];
+	T* y = reinterpret_cast<T*>(new char[x.size() * sizeof (T)]);
 	std::uninitialized_copy(x.begin(), x.end(), y);
 	return y;
 	}
 
 template <class T> T* dup(const vector<T>& x, NoPtrs)
 	{
-	T* y = new(noptrs) T[x.size()];
+	T* y = reinterpret_cast<T*>(new(noptrs) char[x.size() * sizeof (T)]);
 	std::uninitialized_copy(x.begin(), x.end(), y);
 	return y;
 	}
@@ -74,18 +73,19 @@ template <class T> T* dup(const vector<T>& x, NoPtrs)
 class Compiler
 	{
 public:
-	explicit Compiler(char* s, CodeVisitor* v = 0);
+	explicit Compiler(const char* s, CodeVisitor* v = 0);
 	Compiler(Scanner& sc, int t, int sn) // for FunctionCompiler
 		: scanner(sc), stmtnest(sn), token(t)
 		{ }
-	Value constant(char* gname, char* className);
+	Value constant(const char* gname, const char* className);
 	Value constant()
-		{ return constant(NULL, NULL); }
+		{ return constant(nullptr, nullptr); }
 	Value object();
-	Value suclass(char* gname, char* classNam);
-	Value functionCompiler(short base, bool newfn, char* gname, char* className);
-	Value functionCompiler(char* gname)
-		{ return functionCompiler(-1, false, gname, NULL); }
+	Value suclass(const char* gname, const char* classNam);
+	Value functionCompiler(
+		short base, bool newfn, const char* gname, const char* className);
+	Value functionCompiler(const char* gname)
+		{ return functionCompiler(-1, false, gname, nullptr); }
 	Value dll();
 	Value structure();
 	Value callback();
@@ -102,17 +102,17 @@ public:
 	void matchnew();
 	void matchnew(int t);
 	void ckmatch(int t);
-	[[noreturn]] void syntax_error(char* err = "");
+	[[noreturn]] void syntax_error(const char* err = "") const;
 
-	void member(SuObject* ob, char* gname, char* className, short base);
+	void member(SuObject* ob, const char* gname, const char* className, short base);
 	void member(SuObject* ob)
 		{ member(ob, 0, 0, -1); }
-	Value memname(char* className, char* s);
-	char* ckglobal(char*);
+	Value memname(const char* className, const char* s);
+	const char* ckglobal(const char*);
 private:
 	bool valid_dll_arg_type();
 protected:
-	bool anyName();
+	bool anyName() const;
 	};
 
 struct PrevLit
@@ -121,8 +121,8 @@ struct PrevLit
 		{ }
 	PrevLit(int a, Value l, int i = -99) : adr(a), il(i), lit(l)
 		{ }
-	ushort adr;
-	short il;
+	ushort adr = 0;
+	short il = 0;
 	Value lit;
 	};
 
@@ -130,37 +130,36 @@ class FunctionCompiler : public Compiler
 	{
 public:
 	FunctionCompiler(Scanner& scanner, int token, int stmtnest,
-		short b, bool nf, char* gn, char* cn)
+		short b, bool nf, const char* gn, const char* cn)
 		: Compiler(scanner, token, stmtnest),
-		fn(0), last_adr(-1), nparams(0), ndefaults(0),
-		rest(false), newfn(nf), base(b), gname(gn), className(cn), 
-		inblock(false), expecting_compound(false)
+		newfn(nf), base(b), gname(gn), className(cn)
 		{
 		code.reserve(2000);
 		db.reserve(500);
 		}
 	SuFunction* function();
 private:
-	SuFunction* fn;	// so local functions/classes can set parent
+	SuFunction* fn = nullptr;	// so local functions/classes can set parent
 	vector<uchar> code;
 	vector<Debug> db;
-	short last_adr;
+	short last_adr = -1;
 	vector<PrevLit> prevlits; // for emit const expr optimization
 	vector<Value> literals;
 	vector<ushort> locals;
-	short nparams;
-	short ndefaults;
-	bool rest;
+	short nparams = 0;
+	short ndefaults = 0;
+	bool rest = false;
 	bool newfn;
 	short base;
-	char* gname;
-	char* className;
-	bool inblock;
-	bool expecting_compound;
+	const char* gname;
+	const char* className;
+	bool inblock = false;
+	bool expecting_compound = false;
 	// for loops
 	enum { maxtest = 100 };
 	uchar test[maxtest];
-	bool it_used; // for blocks
+	bool it_used = false; // for blocks
+	bool inside_try = false;
 
 	void block();
 	void statement(short = -1, short* = NULL);
@@ -186,9 +185,9 @@ private:
 	void mulop();
 	void unop();
 	void expr0(bool newtype = false);
-	void args(short&, vector<ushort>&, char* delims = "()");
-	void args_at(short& nargs, char* delims);
-	void args_list(short & nargs, char* delims, vector<ushort>& argnames);
+	void args(short&, vector<ushort>&, const char* delims = "()");
+	void args_at(short& nargs, const char* delims);
+	void args_list(short& nargs, const char* delims, vector<ushort>& argnames);
 	void keywordArgShortcut(vector<ushort>& argnames);
 	bool isKeyword();
 	bool just_name();
@@ -203,10 +202,10 @@ private:
 	void params(vector<char>& flags);
 	bool notAllZero(vector<char>& flags);
 	void emit_target(int option, int target);
-	ushort mem(char* s);
+	ushort mem(const char* s);
 	};
 
-Value compile(char* s, char* gname, CodeVisitor* visitor)
+Value compile(const char* s, const char* gname, CodeVisitor* visitor)
 	{
 	Compiler compiler(s, visitor);
 	Value x = compiler.constant(gname, gname);
@@ -217,14 +216,14 @@ Value compile(char* s, char* gname, CodeVisitor* visitor)
 
 // Compiler ---------------------------------------------------------------
 
-Compiler::Compiler(char* s, CodeVisitor* visitor)
+Compiler::Compiler(const char* s, CodeVisitor* visitor)
 	: scanner(*new Scanner(dupstr(s), 0, visitor ? visitor : new CodeVisitor)),
 		stmtnest(99)
 	{
 	match(); // get first token
 	}
 
-Value Compiler::constant(char* gname, char* className)
+Value Compiler::constant(const char* gname, const char* className)
 	{
 	Value x;
 	switch (token)
@@ -252,7 +251,7 @@ Value Compiler::constant(char* gname, char* className)
 		match();
 		if (token == T_NUMBER)
 			{
-			if (! (x = SuDate::literal(scanner.value)))
+			if (! ((x = SuDate::literal(scanner.value))))
 				syntax_error("bad date literal");
 			match();
 			return x;
@@ -298,6 +297,8 @@ Value Compiler::constant(char* gname, char* className)
 			match();
 			return x;
 			}
+	default:
+		;
 		}
 	if (anyName())
 		{
@@ -306,10 +307,9 @@ Value Compiler::constant(char* gname, char* className)
 		return x;
 		}
 	syntax_error();
-	return Value();
 	}
 
-bool Compiler::anyName()
+bool Compiler::anyName() const
 	{
 	if (token == T_STRING || token == T_IDENTIFIER || token >= KEYWORDS)
 		return true;
@@ -329,8 +329,8 @@ Value Compiler::number()
 
 Value Compiler::object() //=======================================
 	{
-	SuObject* ob = 0;
-	char end = 0;
+	SuObject* ob;
+	char end;
 	if (token == '(')
 		{
 		ob = new SuObject();
@@ -356,14 +356,14 @@ Value Compiler::object() //=======================================
 	return ob;
 	}
 
-char* Compiler::ckglobal(char* s)
+const char* Compiler::ckglobal(const char* s)
 	{
 	if (! (isupper(*s) || (*s == '_' && isupper(s[1]))))
 		syntax_error("base class must be global defined in library");
 	return s;
 	}
 
-Value Compiler::suclass(char* gname, char* className) //===========================
+Value Compiler::suclass(const char* gname, const char* className)
 	{
 	if (! className)
 		{
@@ -407,7 +407,7 @@ Value Compiler::suclass(char* gname, char* className) //========================
 	}
 
 // object constant & class members
-void Compiler::member(SuObject* ob, char* gname, char* className, short base)
+void Compiler::member(SuObject* ob, const char* gname, const char* className, short base)
 	{
 	Value mv;
 	bool name = false;
@@ -471,8 +471,8 @@ void Compiler::member(SuObject* ob, char* gname, char* className, short base)
 	else
 		ob->add(x);
 	if (name)
-		if (Named* nx = x.get_named())
-			if (Named* nob = ob->get_named())
+		if (Named* nx = const_cast<Named*>(x.get_named()))
+			if (auto nob = ob->get_named())
 				{
 				nx->parent = nob;
 				nx->str = mv.str();
@@ -610,8 +610,9 @@ bool Compiler::valid_dll_arg_type()
 	case K_HANDLE : case K_GDIOBJ :
 	case K_RESOURCE :
 		return true;
+	default: 
+		return false;
 		}
-	return false;
 	}
 
 Value Compiler::callback()
@@ -705,7 +706,7 @@ void Compiler::ckmatch(int t)
 		syntax_error();
 	}
 
-void Compiler::syntax_error(char* err)
+void Compiler::syntax_error(const char* err) const
 	{
 	// figure out the line number
 	int line = 1;
@@ -721,7 +722,7 @@ void Compiler::syntax_error(char* err)
 // function ---------------------------------------------------------
 
 Value Compiler::functionCompiler(
-	short base, bool newfn, char* gname, char* className)
+	short base, bool newfn, const char* gname, const char* className)
 	{
 	scanner.visitor->begin_func();
 	FunctionCompiler compiler(scanner, token, stmtnest, base, newfn, gname, className);
@@ -798,7 +799,9 @@ void FunctionCompiler::params(vector<char>& flags)
 				}
 			if ((flags[nparams] & DOT) && isupper(*scanner.value))
 				{
-				*scanner.value = tolower(*scanner.value);
+				char* s = dupstr(scanner.value);
+				*s = tolower(*s);
+				scanner.value = s;
 				flags[nparams] |= PUB;
 				}
 			int i = local(INIT);
@@ -868,7 +871,7 @@ void FunctionCompiler::block()
 	{
 	int first = locals.size();
 	verify(first < BLOCK_REST);
-	int nparams = 0;
+	int np = 0;
 	if (scanner.ahead() == I_BITOR)
 		{ // parameters
 		match('{');
@@ -879,7 +882,7 @@ void FunctionCompiler::block()
 			locals.push_back(symnum(scanner.value)); // ensure new
 			scanner.visitor->local(scanner.prev, locals.size() - 1, true);
 			match(T_IDENTIFIER);
-			nparams = BLOCK_REST;
+			np = BLOCK_REST;
 			}
 		else
 			{
@@ -892,7 +895,7 @@ void FunctionCompiler::block()
 				if (token == ',')
 					match();
 				}
-			nparams = locals.size() - first;
+			np = locals.size() - first;
 			}
 		if (token != I_BITOR) // i.e. |
 			syntax_error();
@@ -900,7 +903,7 @@ void FunctionCompiler::block()
 
 	static int it = symnum("it");
 	bool it_param = false;
-	if (nparams == 0)
+	if (np == 0)
 		{
 		// create an "it" param, remove later if not used
 		it_param = true;
@@ -912,7 +915,7 @@ void FunctionCompiler::block()
 	int a = emit(I_BLOCK, 0, -1);
 	code.push_back(first);
 	int nparams_loc = code.size();
-	code.push_back(nparams); // number of params
+	code.push_back(np); // number of params
 	bool prev_inblock = inblock;
 	inblock = true; // for break & continue
 
@@ -1037,7 +1040,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 		b = -1;
 		match();
 		short skip = emit(I_JUMP, UNCOND, -1);
-		short c = emit(I_JUMP, UNCOND, -1);
+		c = emit(I_JUMP, UNCOND, -1);
 		patch(skip);
 		short body = code.size();
 		statement(c, &b);
@@ -1166,7 +1169,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 			case ';' :
 			case T_NEWLINE :
 				match();
-				// fall thru
+				FALLTHROUGH
 			case '}' :
 				emit(I_PUSH, LITERAL, literal(Value()));
 				break ;
@@ -1183,7 +1186,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 			case ';' :
 			case T_NEWLINE :
 				match();
-				// fall thru
+				FALLTHROUGH
 			case '}' :
 				emit(I_RETURN_NIL);
 				break ;
@@ -1250,11 +1253,15 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 		break ;
 	case K_TRY :
 		{
+		if (inside_try)
+			syntax_error("nested try-catch is not supported on cSuneido");
 		match();
 		a = emit(I_TRY, 0, -1);
 		int catchvalue = literal(0);
 		emit_target(LITERAL, catchvalue);
+		inside_try = true;
 		statement(cont, pbrk);	// try code
+		inside_try = false;
 		mark();
 		b = emit(I_CATCH, 0, -1);
 		patch(a);
@@ -1383,7 +1390,7 @@ void FunctionCompiler::andop()
 	patch(a);
 	}
 
-void FunctionCompiler::inop()	
+void FunctionCompiler::inop()
 	{
 	bitorop();
 	int op = token;
@@ -1547,7 +1554,7 @@ void FunctionCompiler::expr0(bool newtype)
 	{
 	bool lvalue = true;
 	bool value = true;
-	short option = -1;
+	short option;
 	short id = -1;
 	short incdec = 0;
 	int local_pos = -1;
@@ -1559,7 +1566,7 @@ void FunctionCompiler::expr0(bool newtype)
 	bool super = false;
 	switch (token)
 		{
-	case T_STRING : 
+	case T_STRING :
 		{
 		SuString* s = (scanner.len == 0)
 			? SuString::empty_string
@@ -1697,7 +1704,7 @@ void FunctionCompiler::expr0(bool newtype)
 	default :
 		syntax_error();
 		}
-	while (token == '.' || token == '[' || token == '(' || 
+	while (token == '.' || token == '[' || token == '(' ||
 		(token == '{' && ! expecting_compound))
 		{
 		if (value && (token == '.' || token == '['))
@@ -1783,7 +1790,7 @@ void FunctionCompiler::expr0(bool newtype)
 			if (t != I_EQ)
 				syntax_error();
 			Value k = constant();
-			Named* n = k.get_named();
+			Named* n = const_cast<Named*>(k.get_named());
 			verify(n);
 			n->parent = &fn->named;
 			if (option == AUTO || option == DYNAMIC)
@@ -1809,7 +1816,7 @@ void FunctionCompiler::expr0(bool newtype)
 		}
 	}
 
-void FunctionCompiler::args(short& nargs, vector<ushort>& argnames, char* delims)
+void FunctionCompiler::args(short& nargs, vector<ushort>& argnames, const char* delims)
 	{
 	nargs = 0;
 	bool just_block = (token == '{');
@@ -1833,7 +1840,7 @@ void FunctionCompiler::args(short& nargs, vector<ushort>& argnames, char* delims
 		}
 	}
 
-void FunctionCompiler::args_at(short& nargs, char* delims)
+void FunctionCompiler::args_at(short& nargs, const char* delims)
 	{
 	match();
 	short each = 0;
@@ -1856,7 +1863,7 @@ static void add_argname(vector<ushort>& argnames, int id)
 	argnames.push_back(id);
 	}
 
-void FunctionCompiler::args_list(short & nargs, char* delims, vector<ushort>& argnames)
+void FunctionCompiler::args_list(short& nargs, const char* delims, vector<ushort>& argnames)
 	{
 	bool key = false;
 	for (nargs = 0; token != delims[1]; ++nargs)
@@ -1926,15 +1933,16 @@ bool FunctionCompiler::just_name()
 		case '[':
 		case '{':
 			return false;
+		default:
+			return true;
 		}
-	return true;
 	}
 
 void FunctionCompiler::record()
 	{
 	SuRecord* rec = 0;
 	vector<ushort> argnames;
-	short nargs = 0;
+	short nargs;
 	match('[');
 	bool key = false;
 	int argi = 0;
@@ -2007,13 +2015,13 @@ void FunctionCompiler::record()
 		}
 	}
 
-static Value symbolOrString(char* s)
+static Value symbolOrString(const char* s)
 	{
 	Value m = symbol_existing(s);
 	return m ? m : new SuString(s);
 	}
 
-ushort FunctionCompiler::mem(char* s)
+ushort FunctionCompiler::mem(const char* s)
 	{
 	return literal(symbolOrString(s));
 	}
@@ -2248,7 +2256,7 @@ void FunctionCompiler::patch(short i)
 	}
 
 // make lower case member names private by prefixing with class name
-Value Compiler::memname(char* className, char* s)
+Value Compiler::memname(const char* className, const char* s)
 	{
 	if (className && islower(s[0]))
 		{
@@ -2265,13 +2273,10 @@ Value Compiler::memname(char* className, char* s)
 #include "except.h"
 #include "exceptimp.h"
 
-const int BUFLEN = 10000;
-char *buf = new char[BUFLEN];
-
 struct Cmpltest
 	{
-	char* query;
-	char* result;
+	const char* query;
+	const char* result;
 	};
 
 static Cmpltest cmpltests[] =
@@ -3694,10 +3699,10 @@ class test_compile : public Tests
 			process(i, cmpltests[i].query, cmpltests[i].result);
 		}
 
-	void process(int i, char* code, char* result);
+	void process(int i, const char* code, const char* result);
 	TEST(1, function)
 		{
-		char* s = "function (a, b = 0, c = False, d = 123, e = 'hello') { }";
+		const char* s = "function (a, b = 0, c = False, d = 123, e = 'hello') { }";
 		SuFunction* fn = force<SuFunction*>(compile(s));
 		verify(fn->nparams == 5);
 		verify(fn->ndefaults == 4);
@@ -3714,7 +3719,7 @@ class test_compile : public Tests
 	};
 REGISTER(test_compile);
 
-void test_compile::process(int i, char* code, char* result)
+void test_compile::process(int i, const char* code, const char* result)
 	{
 	char buf[4000];
 	strcpy(buf, "function () {\n");
@@ -3735,44 +3740,7 @@ void test_compile::process(int i, char* code, char* result)
 	if (0 != strcmp(result, output))
 		except(i << ": " << code << "\n\t=> " << result << "\n\t!= '" << output << "'");
 	}
-/*
-class test_compile_params : public Tests
-	{
-	TEST(0, main)
-		{
-		Params* p;
 
-		p = compile_params("");
-		asserteq(p->nrequired, 0);
-		asserteq(p->ndefaults, 0);
-		asserteq(p->rest, 0);
-		verify(p->names == 0);
-		verify(p->defaults == 0);
-
-		p = compile_params("a,b,c");
-		asserteq(p->nrequired, 3);
-		asserteq(p->ndefaults, 0);
-		asserteq(p->rest, 0);
-		asserteq(p->names[0], symnum("a"));
-		asserteq(p->names[1], symnum("b"));
-		asserteq(p->names[2], symnum("c"));
-		verify(p->defaults == 0);
-
-		p = compile_params("a,b,c=12,d='D',@e");
-		asserteq(p->nrequired, 2);
-		asserteq(p->ndefaults, 2);
-		asserteq(p->rest, 1);
-		asserteq(p->names[0], symnum("a"));
-		asserteq(p->names[1], symnum("b"));
-		asserteq(p->names[2], symnum("c"));
-		asserteq(p->names[3], symnum("d"));
-		asserteq(p->names[4], symnum("e"));
-		asserteq(p->defaults[0], 12);
-		asserteq(p->defaults[1].gcstr(), "D");
-		}
-	};
-REGISTER(test_compile_params);
-*/
 class test_compile2 : public Tests
 	{
 	TEST(0, main)

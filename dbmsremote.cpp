@@ -61,7 +61,7 @@ OstreamFile& dbmslog()
 #define LOG(stuff) TRACE(CLIENTSERVER, stuff)
 #endif
 
-#define DO(fn) try { fn; } catch (const Except& e) { fatal("lost connection:", e.str()); exit(0); }
+#define DO(fn) try { fn; } catch (const Except& e) { fatal("lost connection:", e.str()); }
 
 #define WRITE_LIMIT	(1024 * 1024) // 1 mb
 #define CK(n) except_if(n > WRITE_LIMIT, "client write of " << n << " exceeds limit of " << WRITE_LIMIT)
@@ -71,16 +71,18 @@ class CheckedSocketConnect
 public:
 	CheckedSocketConnect(SocketConnect* s) : sc(s)
 		{ }
-	void write(char* s)
+	void write(const char* s)
 		{ DO(sc->write(s)); }
-	void write(char* buf, int len)
+	void write(const char* buf, int len)
 		{ DO(sc->write(buf, len)); }
-	void writebuf(char* s)
+	void writebuf(const char* s)
 		{ DO(sc->writebuf(s)); }
-	void writebuf(char* buf, int len)
+	void writebuf(const char* buf, int len)
 		{ DO(sc->writebuf(buf, len)); }
 	void read(char* buf, int len)
 		{ DO(if (len != sc->read(buf, len)) except("socket read timeout in dbmsremote")); }
+	gcstring read(int n)
+		{ DO(return sc->read(n)); }
 	void readline(char* buf, int len)
 		{ DO(if (! sc->readline(buf, len)) except("socket readline timeout in dbmsremote")); }
 	char* ck_readline(char* buf, int len)
@@ -122,9 +124,7 @@ public:
 			return Value();
 		char* s = buf;
 		int n = ck_getnum('P', s);
-		gcstring result(n);
-		read(result.str(), n);
-		return unpack(result);
+		return unpack(read(n));
 		}
 	void close()
 		{ sc->close(); }
@@ -152,15 +152,15 @@ class DbmsQueryRemote : public DbmsQuery
 	{
 public:
 	DbmsQueryRemote(CheckedSocketConnect& sc, int q);
-	void set_transaction(int tran);
-	Header header();
-	Lisp<gcstring> order();
-	Lisp<Lisp<gcstring> > keys();
-	Row get(Dir dir);
-	void rewind();
-	void close();
-	char* explain();
-	bool output(const Record& rec);
+	void set_transaction(int tran) override;
+	Header header() override;
+	Lisp<gcstring> order() override;
+	Lisp<Lisp<gcstring> > keys() override;
+	Row get(Dir dir) override;
+	void rewind() override;
+	void close() override;
+	const char* explain() override;
+	bool output(const Record& rec) override;
 	virtual void out(Ostream& os);
 protected:
 	CheckedSocketConnect& sc;
@@ -302,7 +302,7 @@ static char* stripnl(char* s)
 	return s;
 	}
 
-char* DbmsQueryRemote::explain()
+const char* DbmsQueryRemote::explain()
 	{
 	WRITE("EXPLAIN " << this);
 	char buf[16000];
@@ -319,9 +319,9 @@ bool DbmsQueryRemote::output(const Record& rec)
 	return sc.readbool();
 	}
 
-void DbmsQueryRemote::out(Ostream& os)
+void DbmsQueryRemote::out(Ostream& ostream)
 	{
-	os << 'Q' << id;
+	ostream << 'Q' << id;
 	}
 
 void DbmsQueryRemote::close()
@@ -337,8 +337,8 @@ class DbmsCursorRemote : public DbmsQueryRemote
 public:
 	DbmsCursorRemote(CheckedSocketConnect& s, int i) : DbmsQueryRemote(s, i)
 		{ }
-	void set_transaction(int t);
-	virtual void out(Ostream& os);
+	void set_transaction(int t) override;
+	void out(Ostream& os) override;
 private:
 	int tran = NO_TRAN;
 	};
@@ -348,14 +348,14 @@ void DbmsCursorRemote::set_transaction(int t)
 	tran = t;
 	}
 
-void DbmsCursorRemote::out(Ostream& os)
+void DbmsCursorRemote::out(Ostream& ostream)
 	{
 	if (isTran(tran))
 		{
-		os << "T" << tran << " ";
+		ostream << "T" << tran << " ";
 		tran = NO_TRAN;
 		}
-	os << 'C' << id;
+	ostream << 'C' << id;
 	}
 
 // DbmsRemote ========================================================
@@ -363,38 +363,38 @@ void DbmsCursorRemote::out(Ostream& os)
 class DbmsRemote : public Dbms
 	{
 public:
-	DbmsRemote(SocketConnect* s);
+	explicit DbmsRemote(SocketConnect* s);
 	~DbmsRemote();
 
 	void abort(int tran) override;
-	void admin(char* s) override;
+	void admin(const char* s) override;
 	bool auth(const gcstring& data) override;
 	Value check() override;
-	bool commit(int tran, char** conflict) override;
+	bool commit(int tran, const char** conflict) override;
 	Value connections() override;
-	DbmsQuery* cursor(char* s) override;
+	DbmsQuery* cursor(const char* s) override;
 	int cursors() override;
-	Value dump(char* filename) override;
+	Value dump(const char* filename) override;
 	void erase(int tran, Mmoffset recadr) override;
 	Value exec(Value ob) override;
 	int final() override;
-	Row get(Dir dir, char* query, bool one, Header& hdr, int tran = NO_TRAN) override;
-	int kill(char* s) override;
-	Lisp<gcstring> libget(char* name) override;
+	Row get(Dir dir, const char* query, bool one, Header& hdr, int tran = NO_TRAN) override;
+	int kill(const char* s) override;
+	Lisp<gcstring> libget(const char* name) override;
 	Lisp<gcstring> libraries() override;
-	int load(char* filename) override;
-	void log(char* s) override;
+	int load(const char* filename) override;
+	void log(const char* s) override;
 	gcstring nonce() override;
-	DbmsQuery* query(int tran, char* s) override;
+	DbmsQuery* query(int tran, const char* s) override;
 	int readCount(int tran) override;
-	int request(int tran, char* s) override;
-	Value run(char* s) override;
-	Value sessionid(char* s) override;
+	int request(int tran, const char* s) override;
+	Value run(const char* s) override;
+	Value sessionid(const char* s) override;
 	int64 size() override;
 	int tempdest() override;
 	gcstring token() override;
 	Lisp<int> tranlist() override;
-	int transaction(TranType type, char* session_id = "") override;
+	int transaction(TranType type, const char* session_id = "") override;
 	Value timestamp() override;
 	Mmoffset update(int tran, Mmoffset recadr, Record& rec) override;
 	int writeCount(int tran) override;
@@ -407,7 +407,7 @@ static bool builtMatch(char* resp)
 	{
 	if (cmdlineoptions.ignore_version)
 		return true;
-	char* prefix = "Suneido Database Server (";
+	const char* prefix = "Suneido Database Server (";
 	if (!has_prefix(resp, prefix))
 		return false;
 	resp = resp + strlen(prefix);
@@ -443,13 +443,13 @@ DbmsRemote::~DbmsRemote()
 	sc.close();
 	}
 
-int DbmsRemote::transaction(TranType type, char* session_id)
+int DbmsRemote::transaction(TranType type, const char* session_id)
 	{
 	WRITE("TRANSACTION " << (type == READONLY ? "read" : "update"));
 	return sc.readint('T');
 	}
 
-bool DbmsRemote::commit(int tran, char** conflict)
+bool DbmsRemote::commit(int tran, const char** conflict)
 	{
 	WRITE("COMMIT T" << tran);
 	char buf[256];
@@ -467,21 +467,22 @@ void DbmsRemote::abort(int tran)
 	sc.ck_ok();
 	}
 
-static char* nl_to_sp(char* s)
+static const char* nl_to_sp(const char* s)
 	{
-	for (char* t = s; *t; ++t)
+	char* copy = dupstr(s);
+	for (auto t = copy; *t; ++t)
 		if (*t == '\r' || *t == '\n')
 			*t = ' ';
-	return s;
+	return copy;
 	}
 
-void DbmsRemote::admin(char* s)
+void DbmsRemote::admin(const char* s)
 	{
 	WRITE("ADMIN " << nl_to_sp(s));
 	sc.readbool();
 	}
 
-int DbmsRemote::request(int tran, char* s)
+int DbmsRemote::request(int tran, const char* s)
 	{
 	CK(strlen(s));
 	WRITEBUF("REQUEST T" << tran << " Q" << strlen(s));
@@ -489,7 +490,7 @@ int DbmsRemote::request(int tran, char* s)
 	return sc.readint('R');
 	}
 
-DbmsQuery* DbmsRemote::cursor(char* s)
+DbmsQuery* DbmsRemote::cursor(const char* s)
 	{
 	CK(strlen(s));
 	WRITEBUF("CURSOR Q" << strlen(s));
@@ -497,7 +498,7 @@ DbmsQuery* DbmsRemote::cursor(char* s)
 	return new DbmsCursorRemote(sc, sc.readint('C'));
 	}
 
-DbmsQuery* DbmsRemote::query(int tran, char* s)
+DbmsQuery* DbmsRemote::query(int tran, const char* s)
 	{
 	CK(strlen(s));
 	WRITEBUF("QUERY T" << tran << " Q" << strlen(s));
@@ -506,7 +507,7 @@ DbmsQuery* DbmsRemote::query(int tran, char* s)
 	return new DbmsQueryRemote(sc, sc.readint('Q'));
 	}
 
-Lisp<gcstring> DbmsRemote::libget(char* name)
+Lisp<gcstring> DbmsRemote::libget(const char* name)
 	{
 	WRITE("LIBGET " << name);
 	char buf[80];
@@ -520,9 +521,7 @@ Lisp<gcstring> DbmsRemote::libget(char* name)
 		sc.readline(buf2, sizeof buf2);
 		srcs.push(stripnl(buf2)); // library
 
-		gcstring src(n);
-		sc.read(src.buf(), n);
-		srcs.push(src); // text
+		srcs.push(sc.read(n)); // text
 		}
 	return srcs.reverse();
 	}
@@ -577,19 +576,19 @@ Value DbmsRemote::timestamp()
 	return x;
 	}
 
-Value DbmsRemote::dump(char* filename)
+Value DbmsRemote::dump(const char* filename)
 	{
 	WRITE("DUMP " << filename);
 	return sc.readvalue();
 	}
 
-int DbmsRemote::load(char* filename)
+int DbmsRemote::load(const char* filename)
 	{
 	WRITE("LOAD " << filename);
 	return sc.readint('N');
 	}
 
-Value DbmsRemote::run(char* s)
+Value DbmsRemote::run(const char* s)
 	{
 	WRITE("RUN " << nl_to_sp(s));
 	return sc.readvalue();
@@ -635,7 +634,7 @@ Mmoffset DbmsRemote::update(int tran, Mmoffset recadr, Record& rec)
 	return int_to_mmoffset(sc.readint('U'));
 	}
 
-Row DbmsRemote::get(Dir dir, char* query, bool one, Header& hdr, int tran)
+Row DbmsRemote::get(Dir dir, const char* query, bool one, Header& hdr, int tran)
 	{
 	CK(strlen(query));
 	WRITEBUF("GET1 " << (dir == PREV ? "- " : (one ? "1 " : "+ "))
@@ -659,7 +658,7 @@ int DbmsRemote::cursors()
 	return sc.readint('N');
 	}
 
-Value DbmsRemote::sessionid(char* s)
+Value DbmsRemote::sessionid(const char* s)
 	{
 	if (! *s)
 		return new SuString(tls().fiber_id);
@@ -678,14 +677,13 @@ int DbmsRemote::final()
 	return sc.readint('N');
 	}
 
-void DbmsRemote::log(char* s)
+void DbmsRemote::log(const char* s)
 	{
-	extern char* stripnl(char*);
-	WRITE("LOG " << stripnl(s));
+	WRITE("LOG " << stripnl(dupstr(s)));
 	sc.ck_ok();
 	}
 
-int DbmsRemote::kill(char* s)
+int DbmsRemote::kill(const char* s)
 	{
 	WRITE("KILL " << s);
 	return sc.readint('N');
@@ -694,17 +692,13 @@ int DbmsRemote::kill(char* s)
 gcstring DbmsRemote::nonce()
 	{
 	sc.write("NONCE\r\n");
-	gcstring buf(Auth::NONCE_SIZE);
-	sc.read(buf.buf(), buf.size());
-	return buf;
+	return sc.read(Auth::NONCE_SIZE);
 	}
 
 gcstring DbmsRemote::token()
 	{
 	sc.write("TOKEN\r\n");
-	gcstring buf(Auth::TOKEN_SIZE);
-	sc.read(buf.buf(), buf.size());
-	return buf;
+	return sc.read(Auth::TOKEN_SIZE);
 	}
 
 bool DbmsRemote::auth(const gcstring& data)
@@ -712,7 +706,7 @@ bool DbmsRemote::auth(const gcstring& data)
 	if (data.size() == 0)
 		return false;
 	WRITEBUF("AUTH D" << data.size());
-	sc.write((char*) data.buf(), data.size());
+	sc.write(data.ptr(), data.size());
 	return sc.readbool();
 	}
 
@@ -738,12 +732,12 @@ int DbmsRemote::writeCount(int tran)
 
 extern int su_port;
 
-Dbms* dbms_remote_async(char* addr)
+Dbms* dbms_remote_async(const char* addr)
 	{
 	return new DbmsRemote(socketClientAsync(addr, su_port));
 	}
 
-static char* httpget(char* addr, int port)
+static const char* httpget(const char* addr, int port)
 	{
 	try
 		{
@@ -755,7 +749,7 @@ static char* httpget(char* addr, int port)
 		int n = sc->read(buf, sizeof buf);
 		sc->close();
 		buf[n] = 0;
-		return _strdup(buf);
+		return dupstr(buf);
 		}
 	catch (const Except&)
 		{
@@ -763,7 +757,7 @@ static char* httpget(char* addr, int port)
 		}
 	}
 
-Dbms* dbms_remote(char* addr)
+Dbms* dbms_remote(const char* addr)
 	{
 	try
 		{
@@ -771,7 +765,7 @@ Dbms* dbms_remote(char* addr)
 		}
 	catch (const Except&)
 		{
-		char* status = httpget(addr, su_port + 1);
+		const char* status = httpget(addr, su_port + 1);
 		if (strstr(status, "Checking database ..."))
 			fatal("Can't connect, server is checking the database, please try again later");
 		else if (strstr(status, "Rebuilding database ..."))

@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -46,7 +46,7 @@ Record row_to_key(const Header& hdr, const Row& row, const Fields& flds, int num
 
 TempIndex1::TempIndex1(Query* s, const Fields& ci, bool u)
 	: Query1(s), unique(u), first(true), rewound(true), index(0)
-	{ 
+	{
 	order = ci;
 	}
 
@@ -87,9 +87,9 @@ void TempIndex1::iterate_setup(Dir dir)
 	iter = (dir == NEXT ? index->first() : index->last());
 	}
 
-void TempIndex1::select(const Fields& index, const Record& from, const Record& to)
+void TempIndex1::select(const Fields& selindex, const Record& from, const Record& to)
 	{
-	verify(prefix(order, index));
+	verify(prefix(order, selindex));
 	sel.org = from;
 	sel.end = to;
 	rewound = true;
@@ -137,7 +137,7 @@ Row TempIndex1::get(Dir dir)
 
 	// TODO: put iter->key into row
 	Row row(lisp(Record(), Record::from_int64(iter->adr, theDB()->mmf)));
-	
+
 	// TODO: should be able to keydup iter->key
 	Record key = row_to_key(hdr, row, order);
 	if (dir == NEXT)
@@ -157,8 +157,8 @@ Row TempIndex1::get(Dir dir)
 	}
 
 void TempIndex1::close(Query* q)
-	{ 
-	if (index) 
+	{
+	if (index)
 		index->free();
 	Query1::close(q);
 	}
@@ -201,9 +201,9 @@ void TempIndexN::iterate_setup(Dir dir)
 	iter = (dir == NEXT ? index->first() : index->last());
 	}
 
-void TempIndexN::select(const Fields& index, const Record& from, const Record& to)
+void TempIndexN::select(const Fields& selindex, const Record& from, const Record& to)
 	{
-	verify(prefix(order, index));
+	verify(prefix(order, selindex));
 	sel.org = from;
 	sel.end = to;
 	rewound = true;
@@ -254,7 +254,7 @@ Row TempIndexN::get(Dir dir)
 	for (int i = d->n - 1; i >= 0; --i)
 		rs.push(Record::from_int(d->r[i], theDB()->mmf));
 	Row row(rs);
-	
+
 	Record key = row_to_key(hdr, row, order);
 
 	if (dir == NEXT)
@@ -274,7 +274,7 @@ Row TempIndexN::get(Dir dir)
 	}
 
 void TempIndexN::close(Query* q)
-	{ 
+	{
 	if (index)
 		index->free();
 	Query1::close(q);

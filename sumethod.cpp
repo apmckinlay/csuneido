@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -24,7 +24,7 @@
 #include "interp.h"
 #include "sufunction.h"
 
-void SuMethod::out(Ostream& os)
+void SuMethod::out(Ostream& os) const
 	{
 	//os << "OBJECT: " << object << endl;
 	//os << "METHOD: " << method << endl;
@@ -44,18 +44,19 @@ void SuMethod::out(Ostream& os)
 bool SuMethod::eq(const SuValue& y) const
 	{
 	if (const SuMethod* m = dynamic_cast<const SuMethod*>(&y))
-		return object.sameAs(m->object) && method == m->method; 
+		return object.sameAs(m->object) && method == m->method;
 	else
 		return false;
 	}
 
-size_t SuMethod::hashfn()
+size_t SuMethod::hashfn() const
 	{
 	// can't use object.hash() because it will change if object changes
 	return size_t(object.ptr()) ^ method.hash();
 	}
 
-Value SuMethod::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuMethod::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL)
 		return object.call(object, method, nargs, nargnames, argnames, each);

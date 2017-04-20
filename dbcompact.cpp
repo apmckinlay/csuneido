@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -37,7 +37,6 @@
 #include "fibers.h" // for yield
 #include <stdio.h> // for remove
 #include <ctype.h> // for toupper
-#include "sudate.h"
 #include "fatal.h"
 
 struct DbCopy
@@ -48,7 +47,7 @@ struct DbCopy
 	void copy();
 	void create_table(const gcstring& table);
 	void copy_records(const gcstring& table);
-	
+
 	Database& thedb;
 	Database newdb;
 	int tran;
@@ -61,11 +60,17 @@ void copy(char* tmp)
 	dbcopy.copy();
 	}
 
-void compact()
+char* tmpfilename()
 	{
-	char* tmp = tmpnam(NULL);
+	char* tmp = tmpnam(nullptr);
 	if (*tmp == '\\')
 		++tmp;
+	return dupstr(tmp);
+	}
+
+void compact()
+	{
+	char* tmp = tmpfilename();
 	copy(tmp);
 	extern void close_db();
 	close_db();
@@ -75,10 +80,10 @@ void compact()
 	if (0 != rename(tmp, "suneido.db"))
 		fatal("can't rename temp file to suneido.db");
 	}
-	
-DbCopy::DbCopy(char* dest) : 
+
+DbCopy::DbCopy(char* dest) :
 	thedb(*theDB()),
-	newdb(dest, DBCREATE), 
+	newdb(dest, DBCREATE),
 	tran(thedb.transaction(READONLY))
 	{
 	thedb.mmf->set_max_chunks_mapped(MM_MAX_CHUNKS_MAPPED / 2);
@@ -93,11 +98,10 @@ DbCopy::~DbCopy()
 void DbCopy::copy()
 	{
 	newdb.loading = true;
-	
+
 	// schema
 	copy_records("views");
-	Index::iterator iter;
-	for (iter = thedb.get_index("tables", "tablename")->begin(schema_tran);
+	for (auto iter = thedb.get_index("tables", "tablename")->begin(schema_tran);
 		! iter.eof(); ++iter)
 		{
 		Record r(iter.data());
@@ -105,9 +109,9 @@ void DbCopy::copy()
 		if (! thedb.is_system_table(table))
 			create_table(table);
 		}
-	
+
 	// data
-	for (iter = thedb.get_index("tables", "tablename")->begin(schema_tran);
+	for (auto iter = thedb.get_index("tables", "tablename")->begin(schema_tran);
 		! iter.eof(); ++iter)
 		{
 		Record r(iter.data());
@@ -128,16 +132,11 @@ void DbCopy::create_table(const gcstring& table)
 			newdb.add_column(table, *f);
 	// rules
 	for (f = thedb.get_rules(table); ! nil(f); ++f)
-		{
-		gcstring str(f->str()); // copy
-		char* s = str.str();
-		*s = toupper(*s);
-		newdb.add_column(table, str);
-		}
+		newdb.add_column(table, f->capitalize());
 	// indexes
 	Tbl* tbl = thedb.get_table(table);
 	for (Lisp<Idx> ix = tbl->idxs; ! nil(ix); ++ix)
-		newdb.add_index(table, ix->columns, ix->iskey, 
+		newdb.add_index(table, ix->columns, ix->iskey,
 			ix->fksrc.table, ix->fksrc.columns, (Fkmode) ix->fksrc.mode,
 			ix->index->is_unique());
 	}

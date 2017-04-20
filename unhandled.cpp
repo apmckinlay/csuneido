@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2005 Suneido Software Corp. 
+ *
+ * Copyright (c) 2005 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -25,6 +25,7 @@
 #include "except.h"
 #include "fibers.h" // for tls()
 #include <stdlib.h> // for exit
+#include "itostr.h"
 
 #define EXCEPT(x) case EXCEPTION_##x: except("win32 exception: " #x);
 #define EXCEPTION(x) case EXCEPTION_##x: return (#x);
@@ -58,18 +59,23 @@ inline const char* exception_name(DWORD dw_code)
 	default: return "???";
 		}
 	}
-	
+
 static HANDLE h_file = 0;
 
 inline void write(const char* s)
 	{
 	static DWORD n;
-	WriteFile(h_file, s, strlen(s), &n, 0);
+	for (; *s; ++s)
+		{
+		if (*s == '\n')
+			WriteFile(h_file, "\r", 1, &n, nullptr);
+		WriteFile(h_file, s, 1, &n, nullptr);
+		}
 	}
 
 extern bool is_client;
 
-inline void log_and_exit(const char* error, const char* extra = "")
+[[noreturn]] inline void log_and_exit(const char* error, const char* extra = "")
 	{
 	static bool exiting = false;
 	if (exiting)
@@ -96,11 +102,11 @@ inline void log_and_exit(const char* error, const char* extra = "")
 			write(" ");
 			write(extra);
 			}
-		write("\r\n");
+		write("\n");
 		CloseHandle(h_file);
 		}
 	// would be nice to give user a message
-	// but there doesn't seem to ba a safe way to do so
+	// but there doesn't seem to be a safe way to do so
 	// if a stack overflow has occurred
 	exit(-1);
 	}
@@ -110,7 +116,6 @@ inline void log_and_exit(const char* error, const char* extra = "")
 static LONG WINAPI filter(EXCEPTION_POINTERS* p_info)
 	{
 	log_and_exit(exception_name(p_info->ExceptionRecord->ExceptionCode));
-	return 0; // not used
 	}
 
 void fatal_log(const char* error, const char* extra)
@@ -123,15 +128,17 @@ void unhandled()
 	SetUnhandledExceptionFilter(filter);
 	}
 
-#define ERR_BASENAME "suneido.err"
+extern int su_port;
 
 char* err_filename()
 	{
-	static char buf[512];
-	
+	static char buf[512]; // avoid using stack space
+
 	int n = GetTempPath(sizeof buf, buf);
-	if (n == 0 || n > sizeof buf - (strlen(ERR_BASENAME) + 1))
-		return 0;
-	strcat(buf, ERR_BASENAME);
+	if (n == 0 || n > sizeof buf - 32)
+		buf[0] = 0;
+	strcat(buf, "suneido");
+	itostr(su_port, buf + strlen(buf));
+	strcat(buf, ".err");
 	return buf;
 	}

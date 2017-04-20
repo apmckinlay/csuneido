@@ -27,7 +27,6 @@
 #include "surecord.h"
 #include "sudb.h"
 #include "catstr.h"
-#include "suboolean.h"
 #include "exceptimp.h"
 
 extern bool is_client;
@@ -107,7 +106,7 @@ Value su_do_without_triggers()
 	DisabledTriggers dt;
 	for (int i = 0; ob->has(i); ++i)
 		{
-		char* table = ob->get(i).str();
+		auto table = ob->get(i).str();
 		int trigger = globals(CATSTRA("Trigger_", table));
 		dt.push(trigger);
 		}

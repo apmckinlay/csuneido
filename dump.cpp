@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -21,11 +21,9 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "dump.h"
-#include "suvalue.h"
 #include "database.h"
 #include "thedb.h"
 #include "ostreamfile.h"
-#include "ostreamstr.h"
 #include "fibers.h" // for yieldif
 
 static int dump1(OstreamFile& fout, int tran, const gcstring& table, bool output_name = true);
@@ -46,7 +44,7 @@ struct Session
 void dump(const gcstring& table)
 	{
 	Session session;
-	
+
 	if (table != "")
 		{
 		OstreamFile fout((table + ".su").str(), "wb");
@@ -61,14 +59,15 @@ void dump(const gcstring& table)
 		if (! fout)
 			except("can't create database.su");
 		fout << "Suneido dump 1.0" << endl;
-		for (Index::iterator iter = theDB()->get_index("tables", "tablename")->begin(schema_tran);
+		for (Index::iterator iter = 
+				theDB()->get_index("tables", "tablename")->begin(schema_tran);
 			! iter.eof(); ++iter)
 			{
 			Record r(iter.data());
-			gcstring table = r.getstr(T_TABLE);
-			if (theDB()->is_system_table(table))
+			gcstring t = r.getstr(T_TABLE);
+			if (theDB()->is_system_table(t))
 				continue ;
-			dump1(fout, session.tran, table);
+			dump1(fout, session.tran, t);
 			}
 		dump1(fout, session.tran, "views");
 		}

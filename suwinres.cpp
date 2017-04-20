@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -24,19 +24,19 @@
 #include "except.h"
 #include "value.h"
 #include "win.h"
+#include "noargs.h"
 
 SuWinRes::SuWinRes(void* handle) : h(handle)
 	{ }
 
-Value SuWinRes::call(Value self, Value member, 
+Value SuWinRes::call(Value self, Value member,
 	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Close("Close");
 
 	if (member == Close)
 		{
-		if (nargs != 0)
-			except("usage: handle.Close()");
+		NOARGS("handle.Close()");
 		removefinal();
 		return close() ? SuTrue : SuFalse;
 		}
@@ -54,9 +54,9 @@ void SuWinRes::finalize()
 SuHandle::SuHandle(void* handle) : SuWinRes(handle)
 	{ }
 
-void SuHandle::out(Ostream& os)
-	{ 
-	os << "handle " << h; 
+void SuHandle::out(Ostream& os) const
+	{
+	os << "handle " << h;
 	}
 
 bool SuHandle::close()
@@ -71,13 +71,13 @@ bool SuHandle::close()
 SuGdiObj::SuGdiObj(void* handle) : SuWinRes(handle)
 	{ }
 
-void SuGdiObj::out(Ostream& os)
-	{ 
-	os << "gdiobj " << h; 
+void SuGdiObj::out(Ostream& os) const
+	{
+	os << "gdiobj " << h;
 	}
 
 int SuGdiObj::integer() const
-	{ 
+	{
 	return (int) h;
 	}
 

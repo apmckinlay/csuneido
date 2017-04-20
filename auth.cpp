@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -34,14 +34,13 @@ gcstring rndstr(int size)
 	static bool first = true;
 	if (first)
 		{
-		srand(time(NULL));
+		srand(time(nullptr));
 		first = false;
 		}
-	gcstring s(size);
-	char* dst = s.buf();
+	char* buf = salloc(size);
 	for (int i = 0; i < size; ++i)
-		*dst++ = rand();
-	return s;
+		buf[i] = rand();
+	return gcstring::noalloc(buf, size);
 	}
 
 gcstring Auth::nonce()
@@ -73,7 +72,7 @@ static gcstring getPassHash(const gcstring& user)
 		return "";
 	Record key;
 	key.addval(user);
-	TranCloser t = theDB()->transaction(READONLY);
+	TranCloser t(theDB()->transaction(READONLY));
 	Index* index = theDB()->get_index("users", "user");
 	Index::iterator iter = index->begin(t, key);
 	if (iter.eof())

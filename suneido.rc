@@ -42,7 +42,7 @@ IDR_MANIFEST            24      MOVEABLE PURE   "res\\suneido.exe.manifest"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_SUNEIDO             ICON    DISCARDABLE     "res\\axon.ico"
+IDI_SUNEIDO             ICON    DISCARDABLE     "res\\suneido.ico"
 IDI_FOLDER              ICON    DISCARDABLE     "res\\folder.ico"
 IDI_DOCUMENT            ICON    DISCARDABLE     "res\\document.ico"
 IDI_OPENFOLDER          ICON    DISCARDABLE     "res\\openfolder.ico"

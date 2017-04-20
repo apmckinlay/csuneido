@@ -1,21 +1,19 @@
-#ifndef SURECORD_H
-#define SURECORD_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -35,7 +33,7 @@ struct Observe
 	{
 	Observe(Value f, ushort m) : fn(f), mem(m)
 		{ }
-	Value fn; 
+	Value fn;
 	ushort mem;
 	};
 
@@ -43,22 +41,23 @@ struct Observe
 class SuRecord : public SuObject
 	{
 public:
-	explicit SuRecord();
+	SuRecord();
 	explicit SuRecord(const SuRecord& rec);
 	SuRecord(const Row& r, const Header& hdr, int t);
 	SuRecord(const Row& r, const Header& hdr, SuTransaction* t = 0);
 	SuRecord(const Record& rec, const Lisp<int>& flds, SuTransaction* t);
 
-	virtual void out(Ostream& os);
-	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	void out(Ostream& os) const override;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 
 	// putdata has to notify observers of changes
-	virtual void putdata(Value i, Value x);
+	void putdata(Value i, Value x) override;
 	// getdata has to auto-register a rule as an observer
-	virtual Value getdata(Value);
+	Value getdata(Value) override;
 
-	virtual bool erase(Value x);
-	virtual bool erase2(Value x);
+	bool erase(Value x) override;
+	bool erase2(Value x) override;
 
 
 	Record to_record(const Header& hdr);
@@ -67,17 +66,17 @@ public:
 	friend class TrackRule;
 	friend class TrackObserver;
 
-	void pack(char* buf) const;
+	void pack(char* buf) const override;
 	static SuRecord* unpack(const gcstring& s);
 
 private:
 	void erase();
 	void update();
 	void update(SuObject* rec);
-	void ck_modify(char* op);
+	void ck_modify(const char* op);
 
 	void init(const Row& r);
-	void addfield(char* field, gcstring value);
+	void addfield(const char* field, gcstring value);
 	void dependencies(ushort mem, gcstring s);
 	void call_observer(ushort member, const char* why);
 	void call_observers(ushort member, const char* why);
@@ -104,9 +103,8 @@ private:
 class SuRecordClass : public SuValue
 	{
 public:
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
-	void out(Ostream& os)
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
+	void out(Ostream& os) const override
 		{ os << "Record /* builtin */"; }
 	};
-
-#endif

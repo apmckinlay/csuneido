@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -25,7 +25,6 @@
 #include "permheap.h"
 #include "hashtbl.h"
 #include "sustring.h"
-#include "sunumber.h"
 #include "itostr.h"
 #include "trace.h"
 
@@ -33,11 +32,11 @@
 class SuSymbol : public SuString
 	{
 public:
-	SuSymbol(const char* s) : SuString(strlen(s), s) // no alloc
+	explicit SuSymbol(const char* s) : SuString(gcstring::noalloc(s))
 		{ }
-	virtual int symnum() const;
-	virtual bool eq(const SuValue& y) const;
-	virtual void out(Ostream& os);
+	int symnum() const override;
+	bool eq(const SuValue& y) const override;
+	void out(Ostream& os) const override;
 	};
 
 const int MAX_SYMBOLS = 32 * 1024;
@@ -47,14 +46,14 @@ static PermanentHeap names("symbol names", NAMES_SPACE);
 
 struct kofv
 	{
-	const char* operator()(SuSymbol* sym)
+	const char* operator()(SuSymbol* sym) const
 		{ return sym->str(); }
 	};
 
 static Hashtbl<const char*,SuSymbol*,kofv> symtbl;
 
 int SuSymbol::symnum() const
-	{ 
+	{
 	return 0x8000 | (this - (SuSymbol*) symbols.begin());
 	}
 
@@ -63,9 +62,10 @@ bool SuSymbol::eq(const SuValue& y) const
 	return symbols.contains(&y) ? this == &y : SuString::eq(y);
 	}
 
-void SuSymbol::out(Ostream& os)
+extern bool obout_inkey;
+
+void SuSymbol::out(Ostream& os) const
 	{
-	extern bool obout_inkey;
 	if (! obout_inkey)
 		os << '#';
 	if (is_identifier())
@@ -112,11 +112,11 @@ Value symbol(int i)
 	return x;
 	}
 
-char* symstr(int i)
+const char* symstr(int i)
 	{
 	return i & 0x8000
 		? symbol(i).str()
-		: itostr(i, new char[8], 10);
+		: itostr(i, salloc(8), 10);
 	}
 
 #include "prim.h"
@@ -138,7 +138,7 @@ PRIM(su_syminfo, "SymbolsInfo()");
 Value su_symdump()
 	{
 	OstreamFile f("symbols.txt");
-	for (SuSymbol* ss = (SuSymbol*) symbols.begin(); 
+	for (SuSymbol* ss = (SuSymbol*) symbols.begin();
 		ss < (SuSymbol*) symbols.end(); ++ss)
 		f << ss->gcstr() << endl;
 	return Value();
@@ -153,7 +153,7 @@ class test_symbols : public Tests
 	{
 	TEST(0, main)
 		{
-		char* syms[] = { "one", "two", "three", "four" };
+		const char* syms[] = { "one", "two", "three", "four" };
 		const int n = sizeof (syms) / sizeof (char*);
 		ushort nums[n];
 		int i;

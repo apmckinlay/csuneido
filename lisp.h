@@ -1,21 +1,19 @@
-#ifndef LISP_H
-#define LISP_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -26,6 +24,8 @@
 #include "std.h"
 #include "except.h"
 
+//TODO add begin/end for standard C++ iteration
+
 template <class T> class Lisp;
 
 template <class T> Lisp<T>  lisp(const T& x1);
@@ -34,16 +34,16 @@ template <class T> Lisp<T>  lisp(const T& x1, const T& x2, const T& x3);
 template <class T> Lisp<T>  lisp(const T& x1, const T& x2, const T& x3, const T& x4);
 
 template <class T> Lisp<T> lispn(const T& x, int n);
-	
+
 template <class T> Lisp<T> cons(const T& t);
 template <class T> Lisp<T> cons(const T& t, const Lisp<T>& list);
-	
+
 // single linked homogenous list template
 template <class T> class Lisp
 	{
 private:
 	// value + next pointer
-	struct Cons 
+	struct Cons
 		{
 		T value;
 		Cons* next;
@@ -233,7 +233,7 @@ public:
 			{
 			*y = new Cons(p->value, 0);
 			y = &((*y)->next);
-			}	
+			}
 		return copy;
 		}
 private:
@@ -284,7 +284,7 @@ template <class T> Lisp<T>  lisp(const T& x1, const T& x2, const T& x3)
 	{ return  Lisp<T>(Lisp<T>::_cons(x1, Lisp<T>::_cons(x2, Lisp<T>::_cons(x3)))); }
 template <class T> Lisp<T>  lisp(const T& x1, const T& x2, const T& x3, const T& x4)
 	{ return  Lisp<T>(Lisp<T>::_cons(x1, Lisp<T>::_cons(x2, Lisp<T>::_cons(x3, Lisp<T>::_cons(x4))))); }
-	
+
 template <class T> Lisp<T> lispn(const T& x, int n)
 	{
 	Lisp<T> list;
@@ -292,13 +292,14 @@ template <class T> Lisp<T> lispn(const T& x, int n)
 		list.push(x);
 	return list;
 	}
-	
+
 template <class T> Lisp<T> cons(const T& t)
 	{ return Lisp<T>(new typename Lisp<T>::Cons(t, 0)); }
 template <class T> Lisp<T> cons(const T& t, const Lisp<T>& list)
 	{ return Lisp<T>(new typename Lisp<T>::Cons(t, list.first)); }
 
-#include <cstddef>
+// ReSharper disable once CppUnusedIncludeDirective
+#include <stddef.h> // for size_t
 
 // hash the list pointer NOT the values, used by Select
 template <class T> struct HashFirst
@@ -522,5 +523,3 @@ template <class T> Lisp<T> sort(const Lisp<T>& x)
 	split(x, part1, part2);
 	return merge(sort(part1), sort(part2));
 	}
-
-#endif

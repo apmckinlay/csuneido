@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -27,7 +27,6 @@
 #include "qextend.h"
 #include "qdifference.h"
 #include "qunion.h"
-#include "qintersect.h"
 #include "qproduct.h"
 #include "qjoin.h"
 #include "database.h"
@@ -149,15 +148,13 @@ Query* Project::transform()
 		// remove portions of extend not included in project
 		Fields new_flds;
 		Lisp<Expr*> new_exprs;
-		Fields f = e->flds;
 		Lisp<Expr*> ex = e->exprs;
-		for (; ! nil(f); ++f, ++ex)
+		for (Fields f = e->flds; ! nil(f); ++f, ++ex)
 			if (member(flds, *f))
 				{
 				new_flds.push(*f);
 				new_exprs.push(*ex);
 				}
-		Fields new_rules;
 		Fields orig_flds = e->flds;
 		e->flds = new_flds;
 		Lisp<Expr*> orig_exprs = e->exprs;
@@ -175,8 +172,7 @@ Query* Project::transform()
 				{
 				// remove extend fields from project
 				Fields new_fields;
-				Fields f = flds;
-				for (; ! nil(f); ++f)
+				for (Fields f = flds; ! nil(f); ++f)
 					if (! member(e->flds, *f))
 						new_fields.push(*f);
 				flds = new_fields.reverse();
@@ -199,16 +195,16 @@ Query* Project::transform()
 		if (c->disjoint != "" && ! member(flds, c->disjoint))
 			{
 			Fields flds2 = flds.copy().push(c->disjoint);
-			c->source = new Project(c->source,  
+			c->source = new Project(c->source,
 				intersect(flds2, c->source->columns()));
-			c->source2 = new Project(c->source2,  
+			c->source2 = new Project(c->source2,
 				intersect(flds2, c->source2->columns()));
 			}
 		else
 			{
-			c->source = new Project(c->source, 
+			c->source = new Project(c->source,
 				intersect(flds, c->source->columns()));
-			c->source2 = new Project(c->source2, 
+			c->source2 = new Project(c->source2,
 				intersect(flds, c->source2->columns()));
 			return source->transform();
 			}
@@ -291,7 +287,7 @@ Fields Project::withoutFixed(Fields fields, const Lisp<Fixed> fixed)
 bool Project::hasFixed(Fields fields, const Lisp<Fixed> fixed)
 	{
 	for (; ! nil(fields); ++fields)
-		if (isfixed(fixed, *fields)) 
+		if (isfixed(fixed, *fields))
 			return true;
 	return false;
 	}
@@ -451,7 +447,7 @@ bool Project::output(const Record& r)
 	return source->output(r);
 	}
 
-void Project::ckmodify(char* action)
+void Project::ckmodify(const char* action)
 	{
 	if (strategy != COPY)
 		except("project: can't " << action << ": key required");
@@ -466,6 +462,8 @@ void Project::close(Query* q)
 
 #include "testing.h"
 #include "tempdb.h"
+
+extern int tempdest_inuse;
 
 class test_project : public Tests
 	{
@@ -485,7 +483,6 @@ class test_project : public Tests
 			++n;
 		q->close(q);
 		verify(thedb->commit(tran));
-		extern int tempdest_inuse;
 		verify(tempdest_inuse == 0);
 		return n;
 		}
@@ -513,7 +510,6 @@ class test_project : public Tests
 			}
 		q->close(q);
 		verify(thedb->commit(tran));
-		extern int tempdest_inuse;
 		verify(tempdest_inuse == 0);
 		}
 	};

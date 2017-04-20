@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -27,6 +27,7 @@
 #include "win.h"
 #include <windowsx.h>
 #include <ole2.h>
+#pragma warning(disable:4201;disable:4152)
 #include <richedit.h>
 #include <richole.h>
 
@@ -49,7 +50,7 @@ STDMETHODIMP ITPCALL_QueryInterface(LPUNKNOWN punk, REFIID riid,
 STDMETHODIMP_(ULONG) ITPCALL_AddRef(LPUNKNOWN punk);
 STDMETHODIMP_(ULONG) ITPCALL_Release(LPUNKNOWN punk);
 STDMETHODIMP ITPCALL_GetNewStorage(ITPCALL * pitpcall, LPSTORAGE FAR * ppstg);
-STDMETHODIMP ITPCALL_GetInPlaceContext(ITPCALL * pitpcall, 
+STDMETHODIMP ITPCALL_GetInPlaceContext(ITPCALL * pitpcall,
 									   LPOLEINPLACEFRAME FAR * ppipframe,
 									   LPOLEINPLACEUIWINDOW FAR* ppipuiDoc,
 									   LPOLEINPLACEFRAMEINFO pipfinfo);
@@ -85,7 +86,7 @@ IRichEditOleCallbackVtbl ITPCALL_Vtbl =
 	(LPVOID) ITPCALL_GetContextMenu
 	};
 
-STDMETHODIMP ITPCALL_QueryInterface(LPUNKNOWN punk, REFIID riid, 
+STDMETHODIMP ITPCALL_QueryInterface(LPUNKNOWN punk, REFIID riid,
 	LPUNKNOWN * ppvObj)
 	{
 	if(IsEqualIID(riid, &IID_IUnknown))
@@ -126,7 +127,7 @@ STDMETHODIMP ITPCALL_GetNewStorage(ITPCALL * pitpcall, LPSTORAGE FAR * ppstg)
 	return S_OK;
 	}
 
-STDMETHODIMP ITPCALL_GetInPlaceContext(ITPCALL * pitpcall, 
+STDMETHODIMP ITPCALL_GetInPlaceContext(ITPCALL * pitpcall,
 	LPOLEINPLACEFRAME FAR * ppipframe,
 	LPOLEINPLACEUIWINDOW FAR* ppipuiDoc,
 	LPOLEINPLACEFRAMEINFO pipfinfo)
@@ -197,7 +198,7 @@ LRESULT CALLBACK wndproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 void RichEditOle(HWND hwndRE)
 	{
 	ITPCALL* pitpcall;
-	if (! (pitpcall = (ITPCALL *) GlobalAllocPtr(GHND, sizeof(ITPCALL))))
+	if (0 == ((pitpcall = (ITPCALL *) GlobalAllocPtr(GHND, sizeof(ITPCALL)))))
 		return ; // failed
 	pitpcall->lpVtbl = &ITPCALL_Vtbl;
 	pitpcall->cRef = 1;					// Start with one reference

@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -31,34 +31,34 @@ Ostream::Ostream() : d_base(10), d_fill(' '), d_width(0), d_adjust(RIGHT)
 // manipulators
 
 void endl(Ostream& os)
-	{ 
+	{
 	os.write("\n", 1);
 	os.flush();
 	}
 
 void ends(Ostream& os)
-	{ 
-	os.write("\0", 1); 
+	{
+	os.write("\0", 1);
 	}
 
 void dec(Ostream& os)
-	{ 
-	os.base(10); 
+	{
+	os.base(10);
 	}
 
 void hex(Ostream& os)
-	{ 
-	os.base(16); 
+	{
+	os.base(16);
 	}
 
 void left(Ostream& os)
-	{ 
-	os.adjust(Ostream::LEFT); 
+	{
+	os.adjust(Ostream::LEFT);
 	}
 
 void right(Ostream& os)
-	{ 
-	os.adjust(Ostream::RIGHT); 
+	{
+	os.adjust(Ostream::RIGHT);
 	}
 
 static void setfill_(Ostream& os, char c)
@@ -85,7 +85,7 @@ Ostream& Ostream::write_padded(const char* buf, int n)
 	{
 	if (adjust() == Ostream::RIGHT)
 		pad(*this, n);
-	write(buf, n); 
+	write(buf, n);
 	if (adjust() == Ostream::LEFT)
 		pad(*this, n);
 	return *this;
@@ -102,74 +102,74 @@ Ostream& Ostream::operator<<(unsigned char c)
 	}
 
 Ostream& Ostream::operator<<(char* s)
-	{ 
-	return write_padded(s, strlen(s)); 
+	{
+	return write_padded(s, strlen(s));
 	}
 
 Ostream& Ostream::operator<<(const char* s)
-	{ 
-	return write_padded(s, strlen(s)); 
+	{
+	return write_padded(s, strlen(s));
 	}
 
 Ostream& Ostream::operator<<(short i)
-	{ 
-	char buf[32]; 
+	{
+	char buf[32];
 	itostr(i, buf, base());
 	return write_padded(buf, strlen(buf));
 	}
 
 Ostream& Ostream::operator<<(unsigned short i)
-	{ 
-	char buf[32]; 
+	{
+	char buf[32];
 	itostr(i, buf, base());
 	return write_padded(buf, strlen(buf));
 	}
 
 Ostream& Ostream::operator<<(int i)
-	{ 
-	char buf[32]; 
+	{
+	char buf[32];
 	itostr(i, buf, base());
 	return write_padded(buf, strlen(buf));
 	}
 
 Ostream& Ostream::operator<<(unsigned int i)
-	{ 
-	char buf[32]; 
+	{
+	char buf[32];
 	utostr(i, buf, base());
 	return write_padded(buf, strlen(buf));
 	}
 
 Ostream& Ostream::operator<<(long i)
-	{ 
-	char buf[32]; 
+	{
+	char buf[32];
 	itostr(i, buf, base());
 	return write_padded(buf, strlen(buf));
 	}
 
 Ostream& Ostream::operator<<(unsigned long i)
-	{ 
-	char buf[32]; 
+	{
+	char buf[32];
 	utostr(i, buf, base());
 	return write_padded(buf, strlen(buf));
 	}
 
 Ostream& Ostream::operator<<(int64 i)
-	{ 
-	char buf[32]; 
+	{
+	char buf[32];
 	i64tostr(i, buf, base());
 	return write_padded(buf, strlen(buf));
 	}
 
 Ostream& Ostream::operator<<(double d)
-	{ 
-	char buf[32]; 
+	{
+	char buf[32];
 	_gcvt(d, 6, buf);
 	return write_padded(buf, strlen(buf));
 	}
 
 Ostream& Ostream::operator<<(void* p)
-	{ 
-	char buf[32]; 
+	{
+	char buf[32];
 	strcpy(buf, "0x");
 	utostr((unsigned long) p, buf + 2, 16);
 	return write_padded(buf, strlen(buf));

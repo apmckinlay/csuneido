@@ -1,21 +1,19 @@
-#ifndef QCOMPATIBLE_H
-#define QCOMPATIBLE_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -29,10 +27,10 @@ class Compatible : public Query2
 	{
 public:
 	Compatible(Query* s1, Query* s2);
-	// estimated result sizes
-	int recordsize()
+
+	int recordsize() override
 		{ return (source->recordsize() + source2->recordsize()) / 2; }
-	int columnsize()
+	int columnsize() override
 		{ return (source->columnsize() + source2->columnsize()) / 2; }
 protected:
 	bool isdup(const Row& row);
@@ -44,5 +42,3 @@ protected:
 	gcstring disjoint;
 	friend class Project;
 	};
-
-#endif

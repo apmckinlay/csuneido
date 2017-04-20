@@ -1,21 +1,19 @@
-#ifndef RECOVERY_H
-#define RECOVERY_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -39,14 +37,13 @@ enum DbrStatus { DBR_OK, DBR_ERROR, DBR_UNRECOVERABLE };
 class DbRecover
 	{
 public:
-	virtual ~DbRecover()
-		{ }
-	static DbRecover* check(char* file, 
+	virtual ~DbRecover() = default;
+	static DbRecover* check(const char* file,
 		bool (*progress)(int) = null_progress);
 	virtual DbrStatus check_indexes(
 		bool (*progress)(int) = null_progress) = 0;
 	virtual DbrStatus status() = 0;
-	virtual char* last_good_commit() = 0;
+	virtual const char* last_good_commit() = 0;
 	virtual bool rebuild(bool (*progress)(int) = null_progress, bool log = true) = 0;
 	};
 
@@ -59,7 +56,7 @@ struct Commit
 		{ return reinterpret_cast<Mmoffset32*>((char*) this + sizeof (Commit)); }
 	Mmoffset32* deletes()
 		{ return reinterpret_cast<Mmoffset32*>((char*) this + sizeof (Commit) + ncreates * sizeof (Mmoffset32)); }
-	size_t size()
+	size_t size() const
 		{ return sizeof (Commit) + (ncreates + ndeletes) * sizeof (Mmoffset32); }
 
 	ulong cksum;
@@ -80,6 +77,4 @@ struct Session
 	time_t t;
 	};
 
-void dbdump(char* db = "suneido.db", bool append = false);
-
-#endif
+void dbdump(const char* db = "suneido.db", bool append = false);

@@ -1,6 +1,4 @@
-#ifndef QUERY_H
-#define QUERY_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -28,6 +26,7 @@
 #include "row.h"
 #include <float.h>
 #include "value.h"
+#include "dir.h"
 
 typedef gcstring Field;
 typedef Lisp<Field> Fields;
@@ -38,10 +37,10 @@ const int WRITE_FACTOR = 4;	// cost of writing index relative to reading data
 const int OUT_OF_ORDER = 10;	// minimal penalty for changing order of operations
 const double IMPOSSIBLE = DBL_MAX / 10;	// allow for adding impossibles together
 
-bool is_admin(char* s);
-bool is_request(char* s);
-void database_admin(char* s);
-int database_request(int tran, char* s);
+bool is_admin(const char* s);
+bool is_request(const char* s);
+void database_admin(const char* s);
+int database_request(int tran, const char* s);
 
 extern Record keymin;
 extern Record keymax;
@@ -71,7 +70,7 @@ public:
 		entries.push(CacheEntry(index, needs, firstneeds, is_cursor, cost));
 		}
 	double get(const Fields& index, const Fields& needs, const Fields& firstneeds,
-		bool is_cursor)
+		bool is_cursor) const
 		{
 		for (Lisp<CacheEntry> i = entries; ! nil(i); ++i)
 			if (i->index == index && i->needs == needs && i->firstneeds == firstneeds &&
@@ -116,7 +115,7 @@ public:
 	static Query* make_intersect(Query* s1, Query* s2);
 	static Query* make_difference(Query* s1, Query* s2);
 	static Query* make_select(Query* s, Expr* e);
-	static Query* make_table(char* s);
+	static Query* make_table(const char* s);
 	static Query* make_history(const gcstring& table);
 
 	static Expr* make_constant(Value x);
@@ -129,9 +128,8 @@ public:
 	static Expr* make_or(const Lisp<Expr*>& e);
 	static Expr* make_and(const Lisp<Expr*>& e);
 
-	static int update(int tran, Query* qq, const Fields& c, const Lisp<Expr*>& e);
-
 	Query();
+	virtual ~Query() = default;
 
 	virtual void set_transaction(int tran) = 0;
 
@@ -146,7 +144,7 @@ public:
 	void select(const Fields& index, const Record& key);
 	virtual void rewind() = 0;
 	virtual Row get(Dir)
-		{ error("not implemented yet"); return Row(); }
+		{ error("not implemented yet"); }
 	virtual Lisp<Fixed> fixed() const
 		{ return Lisp<Fixed>(); }
 
@@ -178,16 +176,16 @@ public:
 
 	// used to insert TempIndex nodes
 	virtual Query* addindex(); // redefined by Query1 and Query2
-	
+
 private:
 	Fields tempindex;
 	};
 
 enum { IS_CURSOR = true };
 
-Query* query(char* s, bool is_cursor = false);
-Query* parse_query(char* s);
-Expr* parse_expr(char* s);
+Query* query(const char* s, bool is_cursor = false);
+Query* parse_query(const char* s);
+Expr* parse_expr(const char* s);
 Query* query_setup(Query* q, bool is_cursor = false);
 void trace_tempindex(Query* q);
 
@@ -196,5 +194,3 @@ inline Ostream& operator<<(Ostream& os, Query* query)
 	{ return os << *query; }
 
 gcstring fields_to_commas(Fields list);
-
-#endif

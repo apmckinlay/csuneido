@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -31,8 +31,6 @@ using namespace std;
 #include "sustring.h"
 #include "suobject.h"
 #include "globals.h"
-#include "symbols.h"
-#include "minmax.h"
 #include <math.h>
 #include <errno.h>
 #include "itostr.h"
@@ -61,11 +59,11 @@ SuNumber::SuNumber(char s, schar e, const short* d) : sign(s), exp(e)
 	}
 
 void* SuNumber::operator new(size_t n)
-	{ 
+	{
 	return ::operator new (n, noptrs);
 	}
-	
-void SuNumber::out(Ostream& os)
+
+void SuNumber::out(Ostream& os) const
 	{ os << *this; }
 
 int SuNumber::symnum() const
@@ -87,8 +85,8 @@ bool SuNumber::int_if_num(int* pn) const
 	return true;
 	}
 
-size_t SuNumber::hashfn()
-	{ 
+size_t SuNumber::hashfn() const
+	{
 	// have to ensure that hashfn() == integer() for SHRT_MIN -> SHRT_MAX
 	if (is_zero())
 		return 0;
@@ -197,7 +195,7 @@ SuNumber::SuNumber(long sx)
 	}
 
 const uint64 ONE12ZEROS = 1000000000000LL;
-	
+
 SuNumber* SuNumber::from_int64(int64 sx)
 	{
 	SuNumber* n = new SuNumber(0L);
@@ -287,8 +285,8 @@ int64 SuNumber::bigint() const
 	}
 
 SuNumber* neg(Value x)
-	{ 
-	return neg(force<SuNumber*>(x)); 
+	{
+	return neg(force<SuNumber*>(x));
 	}
 
 // add --------------------------------------------------------------
@@ -582,8 +580,8 @@ SuNumber* div(const SuNumber* x, const SuNumber* yy)
 	memset(zd, 0, sizeof zd);
 
 	SuNumber remainder(PLUS, 0, x->digits);
-	short loops = 0;
-	short n = 0;
+	int loops = 0;
+	int n = 0;
 	SuNumber tmp(0L);
 	//dbg("remainder " << remainder);
 	while (! remainder.is_zero() && n <= NDIGITS)
@@ -638,7 +636,6 @@ SuNumber* div(const SuNumber* x, const SuNumber* yy)
 			}
 		//dbg("remainder " << remainder);
 		}
-	n += 2;
 	bool sign = (x->sign == yy->sign);
 	int exp = x->exp - yy->exp + 1;
 	// round zd
@@ -678,7 +675,7 @@ void SuNumber::product(const SuNumber& x, short y)
 	if (tmp > 9999)
 		{
 		shift_right();
-		digits[0] += tmp / 10000; 
+		digits[0] += tmp / 10000;
 		// += instead of = because shift_right rounding may carry into it
 		}
 	check();
@@ -770,7 +767,7 @@ void muldiv10(short tmp[], int digits)
 	if (digits > 0)
 		{ // multiply
 		for (int d = 0; d < digits; ++d)
-			mul10(tmp); 
+			mul10(tmp);
 		}
 	else if (digits < 0)
 		{
@@ -961,7 +958,7 @@ static void put(char*& s, short x)
 static void strmove(char* dst, const char* src)
 	{
 	// not using strcpy because it's undefined for overlapping
-	while ((*dst++ = *src++))
+	while (0 != (*dst++ = *src++))
 		;
 	}
 
@@ -1101,7 +1098,7 @@ SuNumber& SuNumber::tofrac()
 	}
 
 // buf should be as long as mask
-char* SuNumber::mask(char* buf, char* mask) const
+char* SuNumber::mask(char* buf, const char* mask) const
 	{
 	if (is_infinity())
 		return strcpy(buf, "#");
@@ -1111,7 +1108,7 @@ char* SuNumber::mask(char* buf, char* mask) const
 	if (is_zero())
 		{
 		char* dst = num;
-		if (char* d = strchr(mask, '.'))
+		if (auto d = strchr(mask, '.'))
 			for (++d; *d == '#'; ++d)
 				*dst++ = '0';
 		*dst = 0;
@@ -1122,7 +1119,7 @@ char* SuNumber::mask(char* buf, char* mask) const
 		if (exp > NDIGITS)
 			return strcpy(buf, "#");
 		int decimals = 0;
-		if (char* d = strchr(mask, '.'))
+		if (auto d = strchr(mask, '.'))
 			for (++d; *d == '#'; ++d)
 				++decimals;
 		Tmp tmp(digits);
@@ -1161,8 +1158,8 @@ char* SuNumber::mask(char* buf, char* mask) const
 		case '.' :
 		default :
 			*--dst = c;
-			break ;			
-			}	
+			break ;
+			}
 		}
 	verify(dst >= buf);
 
@@ -1295,7 +1292,7 @@ void SuNumber::pack(char* buf) const
 		return &SuNumber::zero;
 	verify(sz == 2 || sz == 4 || sz == 6 || sz == 8 || sz == 10);
 	SuNumber* n = new SuNumber(0L);
-	const uchar* buf = (const uchar*) s.buf();
+	const uchar* buf = (const uchar*) s.ptr();
 	n->sign = buf[0] == PACK_PLUS ? PLUS : MINUS;
 	if (n->sign == PLUS)
 		{
@@ -1379,7 +1376,8 @@ SuNumber* SuNumber::from_double(double x)
 
 #include "interp.h"
 
-Value SuNumber::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuNumber::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value CHR("Chr");
 	static Value INT("Int");
@@ -1407,14 +1405,13 @@ Value SuNumber::call(Value self, Value member, short nargs, short nargnames, ush
 		{
 		if (nargs != 1)
 			except("usage: number.Format(string)");
-		char* format = ARG(0).str();
-		char* buf = (char*) alloca(strlen(format) + 2);
+		auto format = ARG(0).str();
+		char* buf = (char*) _alloca(strlen(format) + 2);
 		return new SuString(mask(buf, format));
 		}
 	else if (member == CHR)
 		{
-		if (nargs != 0)
-			except("usage: number.Chr()");
+		NOARGS("number.Chr()");
 		char buf[2];
 		buf[0] = integer();
 		buf[1] = 0;
@@ -1422,78 +1419,66 @@ Value SuNumber::call(Value self, Value member, short nargs, short nargnames, ush
 		}
 	else if (member == INT)
 		{
-		if (nargs != 0)
-			except("usage: number.Int()");
+		NOARGS("number.Int()");
 		SuNumber* x = new SuNumber(this);
 		x->toint();
 		return x;
 		}
 	else if (member == FRAC)
 		{
-		if (nargs != 0)
-			except("usage: number.Frac()");
+		NOARGS("number.Frac()");
 		SuNumber* x = new SuNumber(this);
 		x->tofrac();
 		return x;
 		}
 	else if (member == SIN)
 		{
-		if (nargs != 0)
-			except("usage: number.Sin()");
+		NOARGS("number.Sin()");
 		return from_double(sin(to_double()));
 		}
 	else if (member == COS)
 		{
-		if (nargs != 0)
-			except("usage: number.Cos()");
+		NOARGS("number.Cos()");
 		return from_double(cos(to_double()));
 		}
 	else if (member == TAN)
 		{
-		if (nargs != 0)
-			except("usage: number.Tan()");
+		NOARGS("number.Tan()");
 		return from_double(tan(to_double()));
 		}
 	else if (member == ASIN)
 		{
-		if (nargs != 0)
-			except("usage: number.ASin()");
+		NOARGS("number.ASin()");
 		return from_double(asin(to_double()));
 		}
 	else if (member == ACOS)
 		{
-		if (nargs != 0)
-			except("usage: number.ACos()");
+		NOARGS("number.ACos()");
 		return from_double(acos(to_double()));
 		}
 	else if (member == ATAN)
 		{
-		if (nargs != 0)
-			except("usage: number.ATan()");
+		NOARGS("number.ATan()");
 		return from_double(atan(to_double()));
 		}
 	else if (member == EXP)
 		{
-		if (nargs != 0)
-			except("usage: number.Exp()");
+		NOARGS("number.Exp()");
 		return from_double(::exp(to_double()));
 		}
 	else if (member == LOG)
 		{
-		if (nargs != 0)
-			except("usage: number.Log()");
+		NOARGS("number.Log()");
 		return from_double(log(to_double()));
 		}
 	else if (member == LOG10)
 		{
-		if (nargs != 0)
-			except("usage: number.Log10()");
+		NOARGS("number.Log10()");
 		return from_double(log10(to_double()));
 		}
 	else if (member == SQRT)
 		{
-		if (nargs != 0)
-			except("usage: number.Sqrt()");
+		NOARGS("number.Sqrt()");
 		return from_double(sqrt(to_double()));
 		}
 	else if (member == POW)
@@ -1504,24 +1489,21 @@ Value SuNumber::call(Value self, Value member, short nargs, short nargnames, ush
 		}
 	else if (member == HEX)
 		{
-		if (nargs != 0)
-			except("usage: number.Hex()");
+		NOARGS("number.Hex()");
 		char buf[40];
 		utostr(integer(), buf, 16);
 		return new SuString(buf);
 		}
 	else if (member == OCTAL)
 		{
-		if (nargs != 0)
-			except("usage: number.Octal()");
+		NOARGS("number.Octal()");
 		char buf[40];
 		utostr(integer(), buf, 8);
 		return new SuString(buf);
 		}
 	else if (member == BINARY)
 		{
-		if (nargs != 0)
-			except("usage: number.Binary()");
+		NOARGS("number.Binary()");
 		char buf[40];
 		utostr(integer(), buf, 2);
 		return new SuString(buf);
@@ -1549,7 +1531,7 @@ Value SuNumber::call(Value self, Value member, short nargs, short nargnames, ush
 		static ushort G_SuNumbers = globals("Numbers");
 		Value SuNumbers = globals.find(G_SuNumbers);
 		SuObject* ob;
-		if (SuNumbers && (ob = SuNumbers.ob_if_ob()) && ob->has(member))
+		if (SuNumbers && nullptr != (ob = SuNumbers.ob_if_ob()) && ob->has(member))
 			return ob->call(self, member, nargs, nargnames, argnames, each);
 		else
 			method_not_found("number", member);
@@ -1563,7 +1545,7 @@ Value SuNumber::call(Value self, Value member, short nargs, short nargnames, ush
 class test_number : public Tests
 	{
 	TEST(1, int_convert)
-		{	
+		{
 		verify(0 == SuNumber(0L).integer());
 		verify(1 == SuNumber(1).integer());
 		verify(-1 == SuNumber(-1).integer());
@@ -1660,8 +1642,8 @@ class test_number : public Tests
 		verify(SuNumber(10000) / SuNumber(10) == SuNumber(1000));
 		asserteq(SuNumber("1e-300") / SuNumber("1e300"), SuNumber::zero);
 		asserteq(SuNumber("1e300") / SuNumber("1e-300"), SuNumber::infinity);
-		SuNumber a(100000000), b(100000001);
-		verify(! close(&a, &b));
+		SuNumber m(100000000), n(100000001);
+		verify(! close(&m, &n));
 		for (long i = 0; i < 1000; ++i)
 			{
 			SuNumber x(randnum);
@@ -1737,7 +1719,7 @@ class test_number2 : public Tests
 		}
 	TEST(1, int64)
 		{
-		int64 x = 1; 
+		int64 x = 1;
 		for (int i = 0; i < 16; ++i, x = x * 10 + 1)
 			{
 			SuNumber* n = SuNumber::from_int64(x);
@@ -1753,7 +1735,7 @@ class test_number2 : public Tests
 		test(".999", "1");
 		test("1e20", "1e20");
 		}
-	void test(char* s, char* expected)
+	void test(const char* s, const char* expected)
 		{
 		SuNumber n(s);
 		assert_eq(round(&n, 2, 'h')->gcstr(), expected);
@@ -1765,28 +1747,28 @@ class test_number3 : public Tests
 	{
 	TEST(0, main)
 		{
-		test1("0");
-		test1("1");
-		test1("-1");
-		test1("65535"); // USHRT_MAX
-		test1("65536");
-		test1("3000000000");
-		test1("4294967295"); // ULONG_MAX
-		test1("5000000000");
+		check1("0");
+		check1("1");
+		check1("-1");
+		check1("65535"); // USHRT_MAX
+		check1("65536");
+		check1("3000000000");
+		check1("4294967295"); // ULONG_MAX
+		check1("5000000000");
 
-		test2("0xffff", "65535");
-		test2("0x10000", "65536");
-		test2("0xffffffff", "-1");
+		check2("0xffff", "65535");
+		check2("0x10000", "65536");
+		check2("0xffffffff", "-1");
 
-		test2("0.123", ".123");
-		test2("00.001", ".001");
+		check2("0.123", ".123");
+		check2("00.001", ".001");
 		}
-	void test1(char* s)
+	static void check1(const char* s)
 		{
 		Value num = SuNumber::literal(s);
 		assert_eq(num.gcstr(), s);
 		}
-	void test2(char* s, char* t)
+	static void check2(const char* s, const char* t)
 		{
 		Value num = SuNumber::literal(s);
 		assert_eq(num.gcstr(), t);

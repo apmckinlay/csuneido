@@ -1,31 +1,25 @@
-#ifndef HASHTBL_H
-#define HASHTBL_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
  * Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-#ifdef _MSC_VER
-#pragma warning(disable : 4786)
-#endif
 
 #include "std.h"
 #include <algorithm>
@@ -41,7 +35,7 @@ class Hashtbl
 private:
 	struct Node;
 public:
-	Hashtbl(int n = 0)
+	explicit Hashtbl(int n = 0)
 		{ init(n); }
 	void init(int n);
 	void clear();
@@ -117,8 +111,6 @@ public:
 				;
 			node = i >= 0 ? tbl[i] : 0;
 			}
-//		const_iterator(const iterator& it) : tbl(it.tbl), node(it.node), i(it.i)
-//			{ }
 		Val& operator*()
 			{ verify(node); return node->val; }
 		Val* operator->()
@@ -166,8 +158,8 @@ private:
 	void freenode(Node* node)
 		{ node->next = free; free = node; }
 	void resize(int ci);
-	void swap(Hashtbl<Key,Val,KofV,Hfn,Keq>& x);
-	int memsize()
+	void swap(Hashtbl<Key,Val,KofV,Hfn,Keq>& x) noexcept;
+	int memsize() const
 		{ return cap * sizeof (Node**) + 2 * cap * sizeof (Node); }
 	};
 
@@ -329,7 +321,7 @@ void Hashtbl<Key,Val,KofV,Hfn,Keq>::resize(int ci)
 	}
 
 template <class Key, class Val, class KofV, class Hfn, class Keq>
-void Hashtbl<Key,Val,KofV,Hfn,Keq>::swap(Hashtbl<Key,Val,KofV,Hfn,Keq>& x)
+void Hashtbl<Key,Val,KofV,Hfn,Keq>::swap(Hashtbl<Key,Val,KofV,Hfn,Keq>& x) noexcept
 	{
 	std::swap(sz, x.sz);
 	std::swap(cap, x.cap);
@@ -338,5 +330,3 @@ void Hashtbl<Key,Val,KofV,Hfn,Keq>::swap(Hashtbl<Key,Val,KofV,Hfn,Keq>& x)
 	std::swap(nodes, x.nodes);
 	std::swap(free, x.free);
 	}
-
-#endif

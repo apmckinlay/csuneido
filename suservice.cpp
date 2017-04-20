@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2002 Suneido Software Corp. 
+ *
+ * Copyright (c) 2002 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -42,7 +42,6 @@
 #include "except.h"
 #include "ostreamstr.h"
 #include "alert.h"
-#include "cmdlineoptions.h"
 #include <process.h>
 
 extern int su_port;
@@ -54,25 +53,25 @@ struct ExePath
 	char name[100];
 	};
 
-static void PrintError(char* lpszFunction, char* msg) ;
+static void PrintError(const char* lpszFunction, const char* msg) ;
 static void UpdateSCMStatus (DWORD dwCurrentState, DWORD dwWaitHint = 0);
 static void WINAPI ServiceCtrlHandler (DWORD controlCode);
 static void WINAPI ServiceMain(DWORD argc, LPTSTR* argv);
 static ExePath* exe_path();
 static void StopService();
 
-static char* args; // used to pass from CallServiceDispatcher to ServiceMain
+static const char* args; // used to pass from CallServiceDispatcher to ServiceMain
 static PROCESS_INFORMATION pi;
 static DWORD serviceCurrentStatus = 0;
 static SERVICE_STATUS_HANDLE serviceStatusHandle = 0;
 
-void CallServiceDispatcher(char* a)
+void CallServiceDispatcher(const char* a)
 	{
 	args = a;
 	SERVICE_TABLE_ENTRY serviceTable[] =
 		{
 		{ exe_path()->name, ServiceMain },
-		{ NULL, NULL }
+		{nullptr, nullptr }
 		};
 	StartServiceCtrlDispatcher(serviceTable);
 	}
@@ -90,7 +89,7 @@ static void create_job(HANDLE hProcess)
 	JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = { };
 	// Configure the job to terminate child processes when it's finished
 	jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-	if (0 == SetInformationJobObject(ghJob, JobObjectExtendedLimitInformation, 
+	if (0 == SetInformationJobObject(ghJob, JobObjectExtendedLimitInformation,
 		&jeli, sizeof(jeli)))
 		alert("Could not SetInformationJobObject");
 	if (0 == AssignProcessToJobObject(ghJob, hProcess))
@@ -130,18 +129,18 @@ static void WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
 	STARTUPINFO si;
 	ZeroMemory(&si, sizeof(si));
 	si.cb = sizeof(si);
-	
+
 	ZeroMemory(&pi, sizeof(pi));
-	
+
 	OstreamStr cmd(200);
 	cmd << exe_path()->path << " -n -u " << args;
-	if (! CreateProcess(NULL,   // No module name (use command line). 
-		cmd.str(),			// Command line. 
-		NULL,			// Process handle not inheritable. 
-		NULL,			// Thread handle not inheritable. 
-		FALSE,		// Set handle inheritance to FALSE. 
-		0,			// No creation flags. 
-		NULL,			// Use parent's environment block. 
+	if (! CreateProcess(NULL,   // No module name (use command line).
+		cmd.str(),			// Command line.
+		NULL,			// Process handle not inheritable.
+		NULL,			// Thread handle not inheritable.
+		FALSE,		// Set handle inheritance to FALSE.
+		0,			// No creation flags.
+		NULL,			// Use parent's environment block.
 		exe_path()->dir,	// Use exe directory
 		&si,			// Pointer to STARTUPINFO structure.
 		&pi))			// Pointer to PROCESS_INFORMATION structure.
@@ -175,7 +174,7 @@ struct ServiceHandle
 	SC_HANDLE handle;
 	};
 
-void InstallService(char* args)
+void InstallService(const char* svcargs)
 	{
 	ServiceHandle scm = OpenSCManager(0, 0, SC_MANAGER_CREATE_SERVICE);
 	if (! scm)
@@ -183,17 +182,17 @@ void InstallService(char* args)
 		PrintError("InstallService", "Open SCM Manager");
 		return ;
 		}
-	
+
 	OstreamStr cmd(200);
-	cmd << exe_path()->path << " -service " << args;
+	cmd << exe_path()->path << " -service " << svcargs;
 
 	ServiceHandle myService = CreateService(scm,
 		exe_path()->name,
 		exe_path()->name,
 		SERVICE_ALL_ACCESS,
-		SERVICE_WIN32_OWN_PROCESS, 
+		SERVICE_WIN32_OWN_PROCESS,
 		SERVICE_AUTO_START,
-		SERVICE_ERROR_IGNORE, 
+		SERVICE_ERROR_IGNORE,
 		cmd.str(),
 		0, 0, 0, 0, 0);
 	if (! myService)
@@ -208,7 +207,7 @@ void InstallService(char* args)
 void UnInstallService()
 	{
 	BOOL success;
-	
+
 	ServiceHandle scm = OpenSCManager(0, 0, SC_MANAGER_CREATE_SERVICE);
 	if (! scm)
 		{
@@ -251,29 +250,29 @@ void UnInstallService()
 	alert("Service successfully removed.\n" << exe_path()->name);
 	}
 
-static void PrintError(char * lpszFunction, char * msg) 
-	{ 
+static void PrintError(const char* lpszFunction, const char* msg)
+	{
 	LPVOID lpMsgBuf;
-	DWORD dw = GetLastError(); 
+	DWORD dw = GetLastError();
 
 	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
 		FORMAT_MESSAGE_FROM_SYSTEM,
 		NULL,
 		dw,
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		(char *) &lpMsgBuf,
 		0, NULL );
-	
-	alert("Error in function:" << lpszFunction << " Step: " << msg << 
-		".\nFailed with error " << dw << ":\n" << lpMsgBuf << "\n" << 
+
+	alert("Error in function:" << lpszFunction << " Step: " << msg <<
+		".\nFailed with error " << dw << ":\n" << lpMsgBuf << "\n" <<
 		exe_path()->name);
 	}
 
-static void UpdateSCMStatus (DWORD dwCurrentState, DWORD dwWaitHint)
+static void UpdateSCMStatus(DWORD dwCurrentState, DWORD dwWaitHint)
 	{
 	serviceCurrentStatus = dwCurrentState;
-	
+
 	SERVICE_STATUS serviceStatus;
 	ZeroMemory(&serviceStatus, sizeof(serviceStatus));
 	serviceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
@@ -306,7 +305,7 @@ static void WINAPI ServiceCtrlHandler(DWORD controlCode)
 static ExePath* exe_path()
 	{
 	static ExePath exe_path;
-	
+
 	if (! exe_path.path[0])
 		{
 		char buf[MAX_PATH];
@@ -314,14 +313,14 @@ static ExePath* exe_path()
 		char *filepart;
 		int n = GetFullPathName(buf, MAX_PATH, exe_path.dir, &filepart);
 		verify(0 <= n && n < MAX_PATH && filepart);
-		
+
 		strcpy(exe_path.path, exe_path.dir);
-		
+
 		int i = 0;
 		for (; i < sizeof exe_path.name - 1 && filepart[i] && filepart[i] != '.'; ++i)
 			exe_path.name[i] = filepart[i];
 		exe_path.name[i] = 0;
-		
+
 		*filepart = 0; // truncate dir after copying file part to name
 		}
 	return &exe_path;

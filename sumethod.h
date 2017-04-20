@@ -1,21 +1,19 @@
-#ifndef SUMETHOD_H
-#define SUMETHOD_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -35,17 +33,16 @@ public:
 	explicit SuMethod(Value o, Value meth, SuFunction* f)
 		: object(o), method(meth), sufn(f)
 		{ }
-	void out(Ostream& os);
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
-	bool eq(const SuValue& x) const;
-	size_t hashfn();
+	void out(Ostream& os) const override;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
+	bool eq(const SuValue& x) const override;
+	size_t hashfn() const override;
 
-	SuFunction* fn()
+	SuFunction* fn() const
 		{ return sufn; }
 private:
 	Value object;
 	Value method;
 	SuFunction* sufn;
 	};
-
-#endif

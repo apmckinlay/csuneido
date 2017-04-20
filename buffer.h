@@ -1,6 +1,4 @@
-#ifndef BUFFER_H
-#define BUFFER_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
@@ -78,11 +76,11 @@ public:
 
 	/// @return A pointer to the entire buffer, with a nul added at the end.
 	/// References the buffer, does not copy.
-	char* str();
+	char* str() const;
 
 	/// @return The used portion of the buffer.
 	/// References the buffer, does not copy.
-	gcstring gcstr();
+	gcstring gcstr() const;
 
 	/// @return The next byte at pos. Advances pos, reducing remaining()
 	char get()
@@ -96,6 +94,7 @@ public:
 	/// Advances pos by n, reducing remaining()
 	char* getBuf(int n);
 
+	/// Resets used and pos to 0. Does not alter size of buffer.
 	void clear()
 		{ used = pos = 0; }
 
@@ -105,5 +104,3 @@ private:
 	int used;     ///< Where to add more at, and the limit for reading
 	int pos;      ///< The position for reading
 	};
-
-#endif

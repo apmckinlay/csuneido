@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -32,6 +32,11 @@
 #include "suclass.h"
 #include "cvt.h"
 #include "globals.h"
+
+Value unpack(const char* buf, int len)
+	{
+	return unpack(gcstring::noalloc(buf, len));
+	}
 
 Value unpack(const gcstring& s)
 	{
@@ -104,7 +109,7 @@ Value unpackvalue(const char*& buf)
 	int n;
 	n = cvt_long(buf);
 	buf += sizeof (long);
-	Value x = ::unpack(gcstring(n, buf));
+	Value x = ::unpack(buf, n);
 	buf += n;
 	return x;
 	}
@@ -115,7 +120,7 @@ int packnamesize(const Named& named)
 	{
 	if (named.num == 0)
 		return 1;
-	char* s = named.num < 0x8000 ? globals(named.num) : symstr(named.num);
+	auto s = named.num < 0x8000 ? globals(named.num) : symstr(named.num);
 	return 1 + strlen(s) + 1;
 	}
 
@@ -127,7 +132,7 @@ int packname(char* buf, const Named& named)
 		named.num < 0x8000 ? NAME_GLOBAL : NAME_SYMBOL;
 	if (named.num == 0)
 		return 1;
-	char* s = named.num < 0x8000 ? globals(named.num) : symstr(named.num);
+	auto s = named.num < 0x8000 ? globals(named.num) : symstr(named.num);
 	return 1 + packstr(buf + 1, s);
 	}
 
@@ -237,7 +242,7 @@ long unpacklong(const gcstring& s)
 	int sz = s.size();
 	if (sz <= 2)
 		return 0;
-	const uchar* buf = (const uchar*) s.buf();
+	const uchar* buf = (const uchar*) s.ptr();
 	verify(buf[0] == PACK_PLUS || buf[0] == PACK_MINUS);
 	verify(sz == 2 || sz == 4 || sz == 6 || sz == 8);
 	int n = 0;
@@ -297,11 +302,11 @@ class test_pack : public Tests
 	void testpack(Value x)
 		{
 		size_t n = x.packsize();
-		char* buf = (char*) alloca(n + 1);
+		char* buf = (char*) _alloca(n + 1);
 		buf[n] = '\xc4';
 		x.pack(buf);
 		verify(buf[n] == '\xc4');
-		Value y = ::unpack(gcstring(n, buf)); // no alloc
+		Value y = ::unpack(buf, n);
 		asserteq(x, y);
 		}
 	TEST(3, long_pack)
@@ -320,7 +325,7 @@ class test_pack : public Tests
 		{
 		char buf[80];
 		packlong(buf, x);
-		gcstring s(packsize(x), buf); // no alloc
+		gcstring s = gcstring::noalloc(buf, packsize(x));
 		long y = unpacklong(s);
 		asserteq(x, y);
 		Value num = ::unpack(s);

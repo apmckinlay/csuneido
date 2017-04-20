@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2002 Suneido Software Corp. 
+ *
+ * Copyright (c) 2002 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -23,76 +23,117 @@
 #include "suseq.h"
 #include "suobject.h"
 #include "interp.h"
+#include "globals.h"
+#include "sustring.h"
+#include "ostreamstr.h"
 
-SuSeq::SuSeq(Value i) : iter(i), ob(0)
+SuSeq::SuSeq(Value i) : iter(i)
 	{ }
 
-void SuSeq::out(Ostream& os)
-	{ 
+void SuSeq::out(Ostream& os) const
+	{
 	build();
 	ob->out(os);
 	}
 
-Value SuSeq::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuSeq::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value ITER("Iter");
-	static Value NEXT("Next");
 	static Value COPY("Copy");
-	static Value REWIND("Rewind");
+	static Value JOIN("Join");
+	static Value Instantiated("Instantiated?");
 
-	if (member == ITER)
+	if (member == Instantiated)
 		{
-		if (ob)
-			return ob->call(self, member, nargs, nargnames, argnames, each);
-		Value newiter = iter.call(iter, COPY, 0, 0, 0, -1);
-		newiter.call(newiter, REWIND, 0, 0, 0, -1);
-		return newiter;
+		return ob ? SuTrue : SuFalse;
 		}
-	else if (member == NEXT)
+	if (! ob && ! duped) // instantiate rather than dup again
 		{
-		return iter.call(iter, NEXT, 0, 0, 0, -1);
+		if (member == ITER)
+			{
+			return dup();
+			}
+		else if (member == JOIN)
+			{
+			return Join(nargs);
+			}
+		else if (member == COPY)
+			{
+			// avoid two copies (build & copy)
+			// for common usage: for m in ob.Members().Copy()
+			return copy(dup());
+			}
+
+		static ushort G_Objects = globals("Sequences");
+		Value Objects = globals.find(G_Objects);
+		SuObject* obs;
+		if (Objects && nullptr != (obs = Objects.ob_if_ob()) && obs->has(member))
+			return obs->call(self, member, nargs, nargnames, argnames, each);
 		}
-	else if (member == COPY && ! ob)
+	build();
+	return ob->call(self, member, nargs, nargnames, argnames, each);
+	}
+
+Value SuSeq::Join(short nargs) const
+	{
+	gcstring separator;
+	if (nargs == 1)
+		separator = ARG(0).gcstr();
+	else if (nargs != 0)
+		except("usage: object.Join(separator = '')");
+	OstreamStr oss;
+	Value x;
+	bool first = true;
+	Value newiter = dup();
+	while (newiter != (x = next(newiter)))
 		{
-		// avoid two copies (build & copy)
-		// for common usage: for m in ob.Members().Copy()
-		return copy();
+		if (first)
+			first = false;
+		else
+			oss << separator;
+		if (SuString* ss = val_cast<SuString*>(x))
+			oss << ss->gcstr();
+		else
+			oss << x;
 		}
-	else
-		{
-		if (SuObject* x = val_cast<SuObject*>(iter))
-			if (x->hasMethod(member))
-				return iter.call(iter, member, nargs, nargnames, argnames, each);
-		build();
-		return ob->call(self, member, nargs, nargnames, argnames, each);
-		}
+	return new SuString(oss.gcstr());
 	}
 
 void SuSeq::build() const
 	{
 	if (ob)
 		return ;
-	ob = copy();
+	ob = copy(iter);
 	}
 
-SuObject* SuSeq::copy() const
+SuObject* SuSeq::copy(Value it)
 	{
-	static Value REWIND("Rewind");
-
 	SuObject* copy = new SuObject;
-	iter.call(iter, REWIND, 0, 0, 0, -1);
 	Value x;
-	while (iter != (x = next()))
+	while (it != (x = next(it)))
 		copy->add(x);
 	return copy;
 	}
 
-Value SuSeq::next() const
+Value SuSeq::dup() const
+	{
+	static Value DUP("Dup");
+
+	duped = true;
+	KEEPSP
+	return iter.call(iter, DUP, 0, 0, 0, -1);
+	}
+
+Value SuSeq::next(Value it)
 	{
 	static Value NEXT("Next");
 
 	KEEPSP
-	return iter.call(iter, NEXT, 0, 0, 0, -1);
+	Value x = it.call(it, NEXT, 0, 0, 0, -1);
+	if (!x)
+		except("no return value from sequence.Next");
+	return x;
 	}
 
 void SuSeq::putdata(Value i, Value x)
@@ -143,74 +184,65 @@ SuObject* SuSeq::ob_if_ob()
 	return ob;
 	}
 
-// SuSeqIter ========================================================
+// SuSeqIter - implements Seq() ===============================================
 
-SuSeqIter::SuSeqIter(Value f, Value t, Value b) : from(f), to(t), by(b), i(f)
+SuSeqIter::SuSeqIter(Value f, Value t, Value b) : from(f), to(t), by(b)
 	{
-	if (to == SuFalse)
-		{
-		to = from;
-		i = from = 0;
-		}
+	i = from;
 	}
 
-void SuSeqIter::out(Ostream& os)
+void SuSeqIter::out(Ostream& os) const
 	{
 	os << "SeqIter";
 	}
 
-
-Value SuSeqIter::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuSeqIter::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
-	static Value ITER("Iter");
-	static Value COPY("Copy");
 	static Value NEXT("Next");
-	static Value REWIND("Rewind");
+	static Value DUP("Dup");
 
-	if (member == ITER)
+	if (member == NEXT)
 		{
-		return this;
-		}
-	else if (member == NEXT)
-		{
-		// TODO: handle negative by
 		if (i >= to)
 			return this;
 		Value val = i;
 		i = i + by;
 		return val;
 		}
-	else if (member == COPY)
-		{
+	else if (member == DUP)
 		return new SuSeqIter(from, to, by);
-		}
-	else if (member == REWIND)
-		{
-		i = from;
-		return Value();
-		}
 	else
 		method_not_found(type(), member);
 	}
 
-#include "interp.h"
 #include "prim.h"
 
 Value su_seq()
 	{
 	const int nargs = 3;
-	return new SuSeq(new SuSeqIter(ARG(0), ARG(1), ARG(2)));
+	Value from = ARG(0);
+	Value to = ARG(1);
+	Value by = ARG(2);
+	if (from == SuFalse)
+		{
+		from = 0;
+		to = INT_MAX;
+		}
+	else if (to == SuFalse)
+		{
+		to = from;
+		from = 0;
+		}
+	return new SuSeq(new SuSeqIter(from, to, by));
 	}
-PRIM(su_seq, "Seq(from, to = false, by = 1)");
+PRIM(su_seq, "Seq(from = false, to = false, by = 1)");
 
 // Sequence =========================================================
 
 Value su_sequence()
 	{
 	const int nargs = 1;
-	if (SuObject* ob = val_cast<SuObject*>(ARG(0)))
-		return new SuSeq(ob);
-	else
-		except("usage: Sequence(object)");
+	return new SuSeq(ARG(0));
 	}
-PRIM(su_sequence, "Sequence(object)");
+PRIM(su_sequence, "Sequence(iter)");

@@ -1,21 +1,19 @@
-#ifndef FUNC_H
-#define FUNC_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -35,22 +33,21 @@ class Func : public SuValue
 	{
 public:
 	NAMED
-	Func() : nparams(0), rest(false), locals(0), ndefaults(0), literals(0), 
-				flags(0), isMethod(false)
-		{ }
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
 
-	short nparams;
-	bool rest;
-	ushort* locals;
-	short ndefaults;
-	Value* literals;
-	char* flags; // for dot and dyn params
-	bool isMethod;
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 
-	void out(Ostream& out);
+	short nparams = 0;
+	bool rest = false;
+	ushort* locals = nullptr;
+	short ndefaults = 0;
+	Value* literals = nullptr;
+	char* flags = nullptr; // for dot and dyn params
+	bool isMethod = false;
+
+	void out(Ostream& out) const override;
 	void args(short nargs, short nargnames, ushort* argnames, int each);
-	
+
 private:
 	Value params();
 	};
@@ -58,7 +55,7 @@ private:
 // abstract base class for Primitive and Dll
 class BuiltinFunc : public Func
 	{
-	virtual const char* type() const
+	const char* type() const override
 		{ return "Builtin"; }
 	};
 
@@ -68,14 +65,13 @@ typedef Value (*PrimFn)();
 class Primitive : public BuiltinFunc
 	{
 public:
-	Primitive(PrimFn f, ...);
-	Primitive(char* decl, PrimFn f);
-	Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	explicit Primitive(PrimFn f, ...);
+	Primitive(const char* decl, PrimFn f);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 private:
 	Value (*pfn)();
 	};
 
 // expand arguments onto stack for fn(@args)
 void argseach(short& nargs, short& nargnames, ushort*& argnames, int& each);
-
-#endif

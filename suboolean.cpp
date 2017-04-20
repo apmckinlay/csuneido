@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -36,14 +36,14 @@ SuNumber* SuBoolean::number()
 	return val ? &SuNumber::one : &SuNumber::zero;
 	}
 
-void SuBoolean::out(Ostream& os)
+void SuBoolean::out(Ostream& os) const
 	{ os << gcstr(); }
 
 gcstring SuBoolean::gcstr() const
 	{
-	static gcstring t("true");
-	static gcstring f("false");
-	return val ? t : f; 
+	static gcstring ts("true");
+	static gcstring fs("false");
+	return val ? ts : fs;
 	}
 
 size_t SuBoolean::packsize() const
@@ -52,12 +52,12 @@ size_t SuBoolean::packsize() const
 void SuBoolean::pack(char* buf) const
 	{ *buf = val; }
 
-/*static*/ SuBoolean* SuBoolean::unpack(const gcstring& s)
+SuBoolean* SuBoolean::unpack(const gcstring& s)
 	{
 	return s.size() > 0 && s[0] ? t : f;
 	}
 
-/*static*/ SuBoolean* SuBoolean::literal(const char* s)
+SuBoolean* SuBoolean::literal(const char* s)
 	{
 	if (0 == strcmp(s, "True") || 0 == strcmp(s, "true"))
 		return t;

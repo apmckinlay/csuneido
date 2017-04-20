@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -26,18 +26,19 @@
 #include "ostreamstr.h"
 #include "gcstring.h"
 #include <typeinfo>
-#include "symbols.h"
 #include "ctype.h"
 
-static int ord = ::order("other");
+static int other = ::order("other");
 
 int SuValue::order() const
-	{ return ord; }
+	{
+	return other;
+	}
 
 bool SuValue::lt(const SuValue& y) const
 	{
 	// this has no lt so it must be other
-	return order() == y.order() && this < &y; 
+	return order() == y.order() && this < &y;
 	} // default is simply compare addresses
 
 bool SuValue::eq(const SuValue& y) const
@@ -45,7 +46,7 @@ bool SuValue::eq(const SuValue& y) const
 	return this == &y;
 	} // default is simply compare addresses
 
-size_t SuValue::hashfn()
+size_t SuValue::hashfn() const
 	{ return ((ulong) this >> 4); } // default function just uses address
 
 int SuValue::integer() const
@@ -89,6 +90,14 @@ size_t SuValue::packsize() const
 void SuValue::pack(char* buf) const
 	{ except("can't pack " << type()); }
 
+gcstring SuValue::pack() const
+	{
+	int n = packsize();
+	char* buf = salloc(n);
+	pack(buf);
+	return gcstring::noalloc(buf, n);
+	}
+
 Ostream& operator<<(Ostream& out, SuValue* x)
 	{
 	if (x)
@@ -98,7 +107,8 @@ Ostream& operator<<(Ostream& out, SuValue* x)
 	return out;
 	}
 
-Value SuValue::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuValue::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL)
 		except("can't call " << type());
@@ -106,9 +116,9 @@ Value SuValue::call(Value self, Value member, short nargs, short nargnames, usho
 		method_not_found(type(), member);
 	}
 
-int order(char* name)
+int order(const char* name)
 	{
-	static char* ord[] = 
+	static const char* ord[] =
 		{ "Boolean", "Number", "String", "Date", "Object", "other" };
 	const int nord = sizeof ord / sizeof (char*);
 	for (int i = 0; i < nord; ++i)
@@ -131,11 +141,7 @@ const char* SuValue::type() const
 	return s;
 	}
 
-Named* SuValue::get_named()
+const Named* SuValue::get_named() const
 	{
 	return 0;
-	}
-
-void SuValue::finalize()
-	{
 	}

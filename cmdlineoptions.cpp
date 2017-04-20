@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2002 Suneido Software Corp. 
+ *
+ * Copyright (c) 2002 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -28,14 +28,19 @@
 #include "gcstring.h"
 #include "errlog.h"
 
-enum { PORT = AFTER_ACTIONS, NOSPLASH, UNATTENDED, LOCAL_LIBRARY,
+extern int su_port;
+extern int dbserver_timeout;
+
+enum { PORT = AFTER_ACTIONS, UNATTENDED, LOCAL_LIBRARY,
 	NO_EXCEPTION_HANDLING, NO_GARBAGE_COLLECTION,
 	INSTALL_SERVICE, SERVICE,
 	CHECK_START, COMPACT_EXIT, IGNORE_VERSION, IGNORE_CHECK,
 	TIMEOUT, USE_JOB, END_OF_OPTIONS };
 
-char* CmdLineOptions::parse(char* str)
+const char* CmdLineOptions::parse(const char* str)
 	{
+	char* end = nullptr; // used for strtol
+
 	s = str;
 	while (int opt = get_option())
 		{
@@ -45,14 +50,14 @@ char* CmdLineOptions::parse(char* str)
 		case DUMP :
 		case LOAD :
 			if (0 != (argstr = get_word()))
-				strip_su(argstr);
+				argstr = strip_su(argstr);
 			else
 				argstr = "";
 			break ;
 		case TEST :
 			if (*s == '_')
 				++s;
-			if (! (argstr = get_word()))
+			if (nullptr == (argstr = get_word()))
 				action = TESTS;
 			break ;
 		case SERVER :
@@ -66,7 +71,7 @@ char* CmdLineOptions::parse(char* str)
 			unattended = true;
 			break ;
 		case CLIENT :
-			if (! (argstr = get_word()))
+			if (nullptr == (argstr = get_word()))
 				argstr = "127.0.0.1";
 			break ;
 		case INSTALL_SERVICE :
@@ -85,11 +90,8 @@ char* CmdLineOptions::parse(char* str)
 			break ;
 		// options
 		case PORT :
-			extern int su_port;
-			su_port = strtol(s, &s, 10);
-			break ;
-		case NOSPLASH :
-			errlog("-n[osplash] option no longer supported, please remove");
+			su_port = strtol(s, &end, 10);
+			s = end;
 			break ;
 		case UNATTENDED :
 			unattended = true;
@@ -116,8 +118,8 @@ char* CmdLineOptions::parse(char* str)
 			break ;
 		case TIMEOUT :
 			{
-			extern int dbserver_timeout;
-			int minutes = strtol(s, &s, 10);
+			int minutes = strtol(s, &end, 10);
+			s = end;
 			if (minutes > 0)
 				dbserver_timeout = minutes;
 			break ;
@@ -156,27 +158,26 @@ char* CmdLineOptions::parse(char* str)
 	}
 
 // Note: must put options that are a prefix of other options first e.g. -check before -c
-static struct { char* str; int num; } options[] = { 
+static struct { const char* str; int num; } options[] = {
 	{ "-dbdump", DBDUMP },
 	{ "-dump", DUMP }, { "-d", DUMP },
 	{ "-locallibrary", LOCAL_LIBRARY }, { "-ll", LOCAL_LIBRARY },
 	{ "-load", LOAD }, { "-l", LOAD },
-	{ "-service", SERVICE }, 
+	{ "-service", SERVICE },
 	{ "-server", SERVER }, { "-s", SERVER },
-	{ "-compact", COMPACT }, 
+	{ "-compact", COMPACT },
 	{ "-compactexit", COMPACT_EXIT }, { "-ce", COMPACT_EXIT },
-	{ "-check", CHECK }, 
+	{ "-check", CHECK },
 	{ "-checkstart", CHECK_START }, { "-cs", CHECK_START },
 	{ "-client", CLIENT }, { "-c", CLIENT },
 	{ "-eh", NO_EXCEPTION_HANDLING }, { "-exceptionhandling", NO_EXCEPTION_HANDLING },
 	{ "-gc", NO_GARBAGE_COLLECTION }, { "-garbagecollection", NO_GARBAGE_COLLECTION },
 	{ "-rebuild", REBUILD }, { "-r", REBUILD },
 	{ "-timeout", TIMEOUT }, { "-to", TIMEOUT },
-	{ "-tests", TESTS }, 
+	{ "-tests", TESTS },
 	{ "-test", TEST },
 	{ "-t", TESTS },
 	{ "-port", PORT }, { "-p", PORT },
-	{ "-nosplash", NOSPLASH }, { "-n", NOSPLASH }, 
 	{ "-help", HELP }, { "-?", HELP }, { "-h", HELP },
 	{ "-version", VERSION }, { "-v", VERSION },
 	{ "-is", INSTALL_SERVICE }, { "-installservice", INSTALL_SERVICE },
@@ -216,36 +217,27 @@ void CmdLineOptions::set_action(int a)
 	action = a;
 	}
 
-char* CmdLineOptions::get_word()
+const char* CmdLineOptions::get_word()
 	{
 	skip_white();
-	if (*s == 0 || *s == '-' || *s == '+')
-		return 0;
-	char* word = s;
+	if (*s == 0 || *s == '-' || *s == '+' || isspace(*s))
+		return nullptr;
+	auto start = s;
 	while (*s && ! isspace(*s))
 		++s;
-	if (*s) // && isspace(*s)
-		*s++ = 0;
-	return *word ? word : 0;
+	int n = s - start;
+	char* buf = salloc(n);
+	memcpy(buf, start, n);
+	buf[n] = 0;
+	return buf;
 	}
 
-char* CmdLineOptions::get_string()
+const char* CmdLineOptions::strip_su(const char* file)
 	{
-	char end = ' ';
-	if (*s == '"' || *s == '\'')
-		end = *s++;
-	char* str = s;
-	while (*s && *s != end)
-		++s;
-	if (*s)
-		*s++ = 0;
-	return *str ? str : 0;
-	}
-
-char* CmdLineOptions::strip_su(char* file)
-	{
-	if (has_suffix(file, ".su"))
-		file[strlen(file) - 3] = 0;
-	return file;
+	if (! has_suffix(file, ".su"))
+		return file;
+	char* s = dupstr(file);
+	s[strlen(file) - 3] = 0;
+	return s;
 	}
 

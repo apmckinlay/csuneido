@@ -34,10 +34,6 @@
 #include "heap.h"
 #include "lisp.h"
 
-#ifdef _MSC_VER
-#pragma warning(disable:4309) // truncation of constant value
-#endif
-
 long callback(Value fn, Callback* cb, char* src);
 
 static Heap heap(true); // true = executable
@@ -66,7 +62,7 @@ uchar master[32] = {
 	0xB8, 0x77, 0x77, 0x77, 0x77,		// mov eax, 77777777h
 	0xFF, 0xD0,							// call eax
 	0x83, 0xC4, 0x0C,					// add esp,0Ch
-	0xC2, 0x44, 0x44					// ret 4444h
+	0xC2, 0x44, 0x44						// ret 4444h
 	};
 const int CALL_OFFSET = 16;
 #endif
@@ -93,10 +89,8 @@ void* make_callback(Value fn, Callback* cb, short nargs)
 	verify(*((short*) (p + ARGS_OFFSET)) == 0x4444);
 	*((Value*) (p + FN_OFFSET)) = fn;
 	*((Callback**) (p + CB_OFFSET)) = cb;
-#ifndef X_MSC_VER
 	verify(*((int*) (p + CALL_OFFSET)) == 0x77777777);
 	*((void**) (p + CALL_OFFSET)) = (void*) &callback;
-#endif
 	*((short*) (p + ARGS_OFFSET)) = nargs;
 	return p;
 	}
@@ -107,8 +101,8 @@ struct Cb
 		{ }
 	Cb(void* f, Callback* c) : fn(f), cb(c)
 		{ }
-	void* fn;
-	Callback* cb;
+	void* fn = nullptr;
+	Callback* cb = nullptr;
 	};
 struct CbHashFn
 	{
@@ -183,7 +177,7 @@ long callback(Value fn, Callback* cb, char* src)
 
 extern void handler(const Except&);
 
-long Callback::callback(Value fn, char* src)
+long Callback::callback(Value fn, const char* src)
 	{
 	KEEPSP
 	try
@@ -217,7 +211,7 @@ long Callback::callback(Value fn, char* src)
 		}
 	}
 
-void Callback::out(Ostream& os)
+void Callback::out(Ostream& os) const
 	{
 	os << named.name() << " /* callback */";
 /*
@@ -231,8 +225,6 @@ void Callback::out(Ostream& os)
 	os << ')';
 */
 	}
-
-#include "suobject.h"
 
 Value su_callbacks()
 	{

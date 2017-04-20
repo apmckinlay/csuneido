@@ -62,6 +62,7 @@ public:
 	Value getValue();
 	Lisp<int> getInts();
 	Lisp<gcstring> getStrings();
+	gcstring read(int n);
 private:
 	char get1();
 

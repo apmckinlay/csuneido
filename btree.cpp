@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2005 Suneido Software Corp. 
+ *
+ * Copyright (c) 2005 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -102,31 +102,31 @@ class test_btree : public Tests
 		assertfeq(bt.rangefrac(Record(), Record()), 0);
 		assertfeq(bt.rangefrac(key(999), maxkey()), 0);
 		}
-	Record key(int i)
+	static Record key(int i)
 		{
 		Record r;
 		r.addval(Value(i));
 		return r;
 		}
-	Record key(char* s)
+	static Record key(const char* s)
 		{
 		Record r;
 		r.addval(s);
 		return r;
 		}
-	Record endkey(int i)
+	Record endkey(int i) const
 		{
 		Record r = key(i);
 		r.addmax();
 		return r;
 		}
-	Record maxkey()
+	static Record maxkey()
 		{
 		Record r;
 		r.addmax();
 		return r;
 		}
-	Record bigkey(int i)
+	static Record bigkey(int i)
 		{
 		static gcstring filler = make_filler();
 		Record r;
@@ -134,12 +134,12 @@ class test_btree : public Tests
 		r.addval(filler);
 		return r;
 		}
-	gcstring make_filler()
+	static gcstring make_filler()
 		{
 		const int N = 500;
-		gcstring s(N);
-		memset(s.buf(), ' ', N);
-		return s;
+		char* buf = salloc(N);
+		memset(buf, ' ', N);
+		return gcstring::noalloc(buf, N);
 		}
 	};
 REGISTER(test_btree);

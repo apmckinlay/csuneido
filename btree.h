@@ -4,18 +4,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -57,7 +57,7 @@ private:
 	struct LeafNode
 		{
 		LeafNode()
-			{ 
+			{
 			set_next(NIL);
 			set_prev(NIL);
 			}
@@ -88,27 +88,27 @@ private:
 				percent = 25;
 			Mmoffset leftoff = dest->alloc(NODESIZE);
 			LeafNode* left = new(dest->adr(leftoff)) LeafNode;
-			
+
 			//~ int n = slots.size();
 			//~ int nright = (n * percent) / 100;
 			//~ // move first half of right keys to left
 			//~ left->slots.append(slots.begin(), slots.end() - nright);
 			//~ slots.erase(slots.begin(), slots.end() - nright);
-			
+
 			// bool new_one_added = false;
-			int rem = (left->slots.remaining() * percent) / 100;  
+			int rem = (left->slots.remaining() * percent) / 100;
 			while (left->slots.remaining() > rem)
 				{
 				left->slots.push_back(slots.front());
 				slots.erase(slots.begin());
 				}
-			
+
 			// maintain linked list of leaves
 			left->set_prev(prev());
 			left->set_next(off);
-			set_prev(leftoff); 
+			set_prev(leftoff);
 			if (left->prev() != NIL)
-				((LeafNode*) dest->adr(left->prev()))->set_next(leftoff); 
+				((LeafNode*) dest->adr(left->prev()))->set_next(leftoff);
 			return leftoff;
 			}
 		void unlink(Dest* dest)
@@ -120,7 +120,7 @@ private:
 			}
 		bool empty()
 			{ return slots.empty(); }
-		
+
 		Mmoffset next()
 			{ return next_.unpack(); }
 		Mmoffset prev()
@@ -184,7 +184,7 @@ private:
 			}
 		bool empty()
 			{ return slots.empty() && lastoff == NIL; }
-		
+
 		TreeSlots slots;
 		Mmoffset32 lastoff;
 		};
@@ -194,6 +194,7 @@ private:
 		public:
 			Node(int lev) : level_(lev)
 				{ }
+			virtual ~Node() = default;
 			int level() const
 				{ return level_; }
 			virtual int size() const = 0;
@@ -208,17 +209,17 @@ private:
 		public:
 			TNode(int level, TreeNode* n) : Node(level), node(n)
 				{ }
-			int size() const
+			int size() const override
 				{
 				return node->slots.size() + 1;
 				}
-			int findPos(const Key& key) const
+			int findPos(const Key& key) const override
 				{
 				TreeSlots& slots = node->slots;
 				TreeSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), TreeSlot(key));
 				return slot < slots.end() ? slot - slots.begin() : slots.size();
 				}
-			Mmoffset adr(int pos) const
+			Mmoffset adr(int pos) const override
 				{
 				return pos == node->slots.size() ? node->lastoff.unpack() : node->slots[pos].adr;
 				}
@@ -231,17 +232,17 @@ private:
 		public:
 			LNode(int level, LeafNode* n) : Node(level), node(n)
 				{ }
-			int size() const
+			int size() const override
 				{
 				return node->slots.size();
 				}
-			int findPos(const Key& key) const
+			int findPos(const Key& key) const override
 				{
 				LeafSlots& slots = node->slots;
 				LeafSlotsIterator slot = std::lower_bound(slots.begin(), slots.end(), LeafSlot(key));
 				return slot - slots.begin();
 				}
-			Mmoffset adr(int pos) const
+			Mmoffset adr(int pos) const override
 				{
 				except("should not be called");
 				}
@@ -258,7 +259,7 @@ public:
 		{
 		friend class Btree<LeafSlot,TreeSlot,LeafSlots,TreeSlots,Dest>;
 	public:
-		iterator() : bt(0), off(NIL)	// end
+		iterator() // end
 			{ }
 		LeafSlot& operator*()
 			{ return cur; }
@@ -306,7 +307,7 @@ public:
 			{
 			return ! (*this == j);
 			}
-		bool eof()
+		bool eof() const
 			{ return off == NIL; }
 		void seteof()
 			{ off = NIL; }
@@ -350,11 +351,11 @@ public:
 			{ cur.copy(t); }
 		iterator(btree* b, const Key& key) : bt(b)
 			{ seek(key); }
-		btree* bt;
-		Mmoffset off;
+		btree* bt = nullptr;
+		Mmoffset off = NIL;
 		LeafSlot cur;
 		// TODO: make slot.copy support a static buffer to reduce allocation
-		ulong valid;
+		ulong valid = 0;
 		};
 	//---------------------------------------------------------------
 	iterator first()
@@ -403,7 +404,7 @@ public:
 
 		// search down the tree
 		Mmoffset off = root();
-		int i; 
+		int i;
 		for (i = 0; i < treelevels; ++i)
 			{
 			nodes[i] = (TreeNode*) dest->adr(off);
@@ -424,7 +425,7 @@ public:
 		++nnodes;
 		verify(OK == (x <= left->slots.back() ? left->insert(x) : leaf->insert(x)));
 		Key key = keydup(left->slots.back().key);
-		off = leftoff; 
+		off = leftoff;
 
 		// insert up the tree as necessary
 		for (--i; i >= 0; --i)
@@ -432,14 +433,14 @@ public:
 			if (nodes[i]->insert(key, off))
 				return true;
 			// else split
-			Mmoffset leftoff = nodes[i]->split(dest, key);
-			TreeNode* left = (TreeNode*) dest->adr(leftoff);
+			Mmoffset tleftoff = nodes[i]->split(dest, key);
+			TreeNode* tleft = (TreeNode*) dest->adr(tleftoff);
 			++nnodes;
-			verify(left->slots.back().key < key ? nodes[i]->insert(key, off) : left->insert(key, off));
-			key = keydup(left->slots.back().key);
-			left->lastoff = left->slots.back().adr;
-			left->slots.pop_back();
-			off = leftoff;
+			verify(tleft->slots.back().key < key ? nodes[i]->insert(key, off) : tleft->insert(key, off));
+			key = keydup(tleft->slots.back().key);
+			tleft->lastoff = tleft->slots.back().adr;
+			tleft->slots.pop_back();
+			off = tleftoff;
 			}
 		// create new root
 		Mmoffset roff = dest->alloc(NODESIZE);
@@ -514,10 +515,10 @@ public:
 		else
 			return false;
 		}
-	
+
 	//---------------------------------------------------------------
-	
-	float rangefrac(const Key& from, const Key& to) 
+
+	float rangefrac(const Key& from, const Key& to)
 		{
 		const float MIN_FRAC = 1e-6f;
 		if (isEmpty())
@@ -530,7 +531,7 @@ public:
 
 		//con() << "rangefrac " << from << " ... " << to << endl;
 		float* rootChildFracs = getChildFracs(rootNode());
-		
+
 		float fromPos = fromMinimal ? 0 : fracPos(from, rootChildFracs);
 		float toPos = toMaximal ? 1 : fracPos(to, rootChildFracs);
 		//con() << "fromPos " << fromPos << " toPos " << toPos << " = " << max(toPos - fromPos, MIN_FRAC) << endl;
@@ -548,7 +549,7 @@ public:
 		return node->slots.size() == 0;
 		}
 
-	bool isMinimal(const Key& key)
+	static bool isMinimal(const Key& key)
 		{
 		for (int i = 0; i < key.size(); ++i)
 			if (key.getraw(i) != "")
@@ -556,7 +557,7 @@ public:
 		return true;
 		}
 
-	bool isMaximal(const Key& key)
+	static bool isMaximal(const Key& key)
 		{
 		if (key.size() == 0)
 			return false;
@@ -569,7 +570,7 @@ public:
 	float* getChildFracs(Node* node)
 		{
 		int n = node->size();
-		int *childSizes = (int*) alloca(n * sizeof (int));
+		int *childSizes = (int*) _alloca(n * sizeof (int));
 		int total = 0;
 		//con() << "child sizes";
 		for (int i = 0; i < n; ++i)

@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -22,7 +22,6 @@
 
 #include "structure.h"
 #include "interp.h"
-#include "suboolean.h"
 #include "sustring.h"
 #include "suobject.h"
 #include "symbols.h"
@@ -41,7 +40,7 @@ void Structure::put(char*& dst, char*& dst2, const char* lim2, Value x)
 		items[i].type().put(dst, dst2, lim2, ob->get(symbol(mems[i])));
 	}
 
-Value Structure::get(char*& src, Value x)
+Value Structure::get(const char*& src, Value x)
 	{
 	if (! x)
 		x = new SuObject;//(nitems);
@@ -56,7 +55,7 @@ Value Structure::get(char*& src, Value x)
 	return x;
 	}
 
-void Structure::out(Ostream& os)
+void Structure::out(Ostream& os) const
 	{
 	if (named.num)
 		os << named.name() << " /* " << named.lib << " struct */";
@@ -72,15 +71,15 @@ void Structure::out(Ostream& os)
 		}
 	}
 
-Value Structure::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value Structure::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value SIZE("Size");
 	static Value MODIFY("Modify");
 
 	if (member == SIZE)
 		{
-		if (nargs != 0)
-			except("usage: struct.Size()");
+		NOARGS("struct.Size()");
 		return size();
 		}
 	else if (member == CALL)
@@ -92,7 +91,7 @@ Value Structure::call(Value self, Value member, short nargs, short nargnames, us
 		if (arg.ob_if_ob())
 			{
 			// convert object to structure in string
-			int n = size();
+			n = size();
 			if (n > 512)
 				except("structure too big");
 			char buf[1024];
@@ -109,7 +108,7 @@ Value Structure::call(Value self, Value member, short nargs, short nargnames, us
 			if (! n)
 				return SuFalse;
 			// TODO: use VirtualQuery to check if valid
-			char* s = (char*) n;
+			const char* s = (char*) n;
 			return get(s, Value());
 			}
 		else
@@ -121,24 +120,25 @@ Value Structure::call(Value self, Value member, short nargs, short nargnames, us
 			if (s.size() < size())
 				except("string not long enough to convert to this structure");
 			// TODO: get should make sure pointed to data is within s
-			char* src = s.buf();
+			auto src = s.ptr();
 			return get(src, Value());
 			}
 		}
 	else if (member == MODIFY)
 		{
-		int nargs = 3;
+		if (nargs != 3)
+			except("usage: struct.Modify(address, member, value)");
 		char* dst = (char*) ARG(0).integer();
-		ushort member = ARG(1).symnum();
+		ushort mem = ARG(1).symnum();
 		int i;
 		for (i = 0; i < nitems; ++i)
 			{
-			if (mems[i] == member)
+			if (mems[i] == mem)
 				{
-				char* dst2 = 0;
+				char* dst2 = nullptr;
 				items[i].type().put(dst, dst2, 0, ARG(2));
 				break ;
-				}	
+				}
 			else
 				dst +=  items[i].type().size();
 			}

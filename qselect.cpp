@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -41,7 +41,6 @@
 #include "qexprimp.h"
 #include "qscanner.h"
 #include "thedb.h"
-#include "suboolean.h"
 // these are needed by transform
 #include "qrename.h"
 #include "qextend.h"
@@ -54,15 +53,14 @@
 #include "qjoin.h"
 #include "pack.h"
 #include "sustring.h"
-#include "trace.h" // for slowqueries
-#include "ostreamfile.h" // for slowqueries
 #include <math.h> // for fabs
+#include "opcodes.h"
 
 struct FilterTreeSlot
 	{
 	typedef long Key;
-	Key key;
-	long adr;
+	Key key = 0;
+	long adr = 0;
 	FilterTreeSlot()
 		{ }
 	explicit FilterTreeSlot(Key k, long a = 0) : key(k), adr(a)
@@ -82,8 +80,8 @@ typedef Array<FilterTreeSlot,4000/sizeof(FilterTreeSlot)> FilterTreeSlots;
 struct FilterLeafSlot
 	{
 	typedef long Key;
-	Key key;
-	short count;
+	Key key = 0;
+	short count = 0;
 	FilterLeafSlot()
 		{ }
 	explicit FilterLeafSlot(Key k, short c = 0) : key(k), count(c)
@@ -104,7 +102,7 @@ typedef Btree<FilterLeafSlot,FilterTreeSlot,FilterLeafSlots,FilterTreeSlots,Temp
 struct Cmp
 	{
 	gcstring ident;
-	int op;
+	int op = 0;
 	gcstring value;
 	Lisp<gcstring> values;
 	Cmp()
@@ -139,38 +137,39 @@ class Select : public Query1
 	{
 public:
 	Select(Query* s, Expr* e);
-	void out(Ostream& os) const;
-	Fields columns()
+	void out(Ostream& os) const override;
+	Fields columns() override
 		{ return source->columns(); }
-	Indexes keys()
+	Indexes keys() override
 		{ return source->keys(); }
-	Indexes indexes()
+	Indexes indexes() override
 		{ return source->indexes(); }
-	Query* transform();
-	double optimize2(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze);
-	Lisp<Fixed> fixed() const;
+	Query* transform() override;
+	double optimize2(const Fields& index, const Fields& needs, 
+		const Fields& firstneeds, bool is_cursor, bool freeze) override;
+	Lisp<Fixed> fixed() const override;
 	// estimated result sizes
-	double nrecords()
+	double nrecords() override
 		{ verify(nrecs >= 0); return nrecs; }
 	// iteration
-	Header header()
+	Header header() override
 		{ return source->header(); }
-	void select(const Fields& index, const Record& from, const Record& to);
-	void rewind();
-	Row get(Dir dir);
+	void select(const Fields& index, const Record& from, const Record& to) override;
+	void rewind() override;
+	Row get(Dir dir) override;
 
-	void set_transaction(int t)
+	void set_transaction(int t) override
 		{ tran = t; Query1::set_transaction(t); }
 
-	bool output(const Record& r)
+	bool output(const Record& r) override
 		{ return source->output(r); }
 
-	void close(Query* q)
+	void close(Query* q) override
 		{
 		if (n_in > 100 && n_in > 100 * n_out)
 			TRACE(SLOWQUERY, n_in << "->" << n_out << "  " << this << endl << "IN: " << q);
-		if (f)
-			f->free();
+		if (fltr)
+			fltr->free();
 		Query1::close(q);
 		}
 
@@ -178,32 +177,30 @@ public:
 	HashMap<Field,Iselect> isels;
 	Indexes filter;
 protected: // not private so tests can subclass and override
-	Select() : Query1(NULL), // for tests
-		optFirst(true), getFirst(true), rewound(true), newrange(true), conflicting(false), 
-		f(0), tran(-1), n_in(0), n_out(0), fixdone(false)
+	Select() : Query1(nullptr) // for tests
 		{ }
-	And* expr;
-	bool optFirst;
-	bool getFirst;
-	bool rewound;
-	bool newrange;
-	bool conflicting;
-	Table* tbl;
+	And* expr = nullptr;
+	bool optFirst = true;
+	bool getFirst = true;
+	bool rewound = true;
+	bool newrange = true;
+	bool conflicting = false;
+	Table* tbl = nullptr;
 	Indexes theindexes; // const
-	double nrecs;
+	double nrecs = 0;
 	HashMap<Field,double> ffracs;
 	Ifracs ifracs;
 	Fields prior_needs;
 	Fields select_needs;
 	QIndex primary;
 	Lisp<Keyrange> ranges;
-	int range_i;
+	int range_i = 0;
 	Keyrange sel;
-	Filter *f;
+	Filter* fltr = nullptr;
 	Header hdr;
-	int tran;
-	int n_in;
-	int n_out;
+	int tran = -1;
+	int n_in = 0;
+	int n_out = 0;
 
 	void optimize_setup();
 	Lisp<Cmp> extract_cmps();
@@ -212,13 +209,13 @@ protected: // not private so tests can subclass and override
 	void calc_field_fracs();
 	double field_frac(const Field& field);
 	void calc_index_fracs();
-	
+
 	double choose_primary(const QIndex& index);
 	double primarycost(const Fields& primary);
 	double choose_filter(double primary_cost);
 	double costwith(const Indexes& filter, double primary_index_cost);
 	double datafrac(Indexes indexes);
-	
+
 	bool matches(Row& row);
 	bool matches(Fields idx, const Record& key);
 	Iselects iselects(const Fields& idx);
@@ -227,14 +224,14 @@ protected: // not private so tests can subclass and override
 	bool distribute(Query2* q2);
 	Expr* project(Query* q);
 	void convert_select(const Fields& index, const Record& from, const Record& to);
-	
-	mutable bool fixdone;
+
+	mutable bool fixdone = false;
 	mutable Lisp<Fixed> fix;
 	Fields required_index;
 	Fields source_index; // may have extra stuff on the end, or be missing fields that are fixed
 	};
 
-gcstring fieldmax(1, "\x7f");
+gcstring fieldmax = gcstring::noalloc("\x7f");
 
 Query* Query::make_select(Query* s, Expr* e)
 	{
@@ -242,15 +239,15 @@ Query* Query::make_select(Query* s, Expr* e)
 	}
 
 Select::Select(Query* s, Expr* e) :
-	Query1(s), optFirst(true), getFirst(true), rewound(true), newrange(true), conflicting(false), nrecs(-1), 
-	f(0), tran(-1), n_in(0), n_out(0), fixdone(false)
+	Query1(s), optFirst(true), getFirst(true), rewound(true), newrange(true), conflicting(false), nrecs(-1),
+	fltr(0), tran(-1), n_in(0), n_out(0), fixdone(false)
 	{
 	e = e->fold();
 	expr = dynamic_cast<And*>(e);
 	if (! expr)
 		expr = new And(Lisp<Expr*>(e));
 	if (! subset(source->columns(), expr->fields()))
-		except("select: nonexistent columns: " << 
+		except("select: nonexistent columns: " <<
 			difference(expr->fields(), source->columns()));
 	}
 
@@ -293,7 +290,7 @@ Query* Select::transform()
 	// move selects before renames
 	else if (Rename* r = dynamic_cast<Rename*>(source))
 		{
-		Expr* new_expr = expr->rename(r->to, r->from); 
+		Expr* new_expr = expr->rename(r->to, r->from);
 		source = r->source;
 		r->source = (new_expr == expr ? this : new Select(source, new_expr));
 		return r->transform();
@@ -336,26 +333,26 @@ Query* Select::transform()
 			expr = new And(rest.reverse());
 		else
 			moved = true;
-		}	
+		}
 	// distribute select over intersect
-	else if (Intersect* q = dynamic_cast<Intersect*>(source))
+	else if (Intersect* qi = dynamic_cast<Intersect*>(source))
 		{
-		q->source = new Select(q->source, expr);
-		q->source2 = new Select(q->source2, expr);
+		qi->source = new Select(qi->source, expr);
+		qi->source2 = new Select(qi->source2, expr);
 		moved = true;
 		}
 	// distribute select over difference
-	else if (Difference* q = dynamic_cast<Difference*>(source))
+	else if (Difference* qd = dynamic_cast<Difference*>(source))
 		{
-		q->source = new Select(q->source, expr);
-		q->source2 = new Select(q->source2, project(q->source2));
+		qd->source = new Select(qd->source, expr);
+		qd->source2 = new Select(qd->source2, project(qd->source2));
 		moved = true;
 		}
 	// distribute select over union
-	else if (Union* q = dynamic_cast<Union*>(source))
+	else if (Union* qu = dynamic_cast<Union*>(source))
 		{
-		q->source = new Select(q->source, project(q->source));
-		q->source2 = new Select(q->source2, project(q->source2));
+		qu->source = new Select(qu->source, project(qu->source));
+		qu->source2 = new Select(qu->source2, project(qu->source2));
 		moved = true;
 		}
 	// split select over product
@@ -364,9 +361,9 @@ Query* Select::transform()
 		moved = distribute(x);
 		}
 	// split select over leftjoin (left side only)
-	else if (LeftJoin* j = dynamic_cast<LeftJoin*>(source))
+	else if (LeftJoin* lj = dynamic_cast<LeftJoin*>(source))
 		{
-		Fields flds1 = j->source->columns();
+		Fields flds1 = lj->source->columns();
 		Lisp<Expr*> common, src1;
 		for (Lisp<Expr*> e(expr->exprs); ! nil(e); ++e)
 			{
@@ -377,7 +374,7 @@ Query* Select::transform()
 				common.push(n);
 			}
 		if (! nil(src1))
-			j->source = new Select(j->source, new And(src1.reverse()));
+			lj->source = new Select(lj->source, new And(src1.reverse()));
 		if (! nil(common))
 			expr = new And(common.reverse());
 		else
@@ -431,7 +428,7 @@ Expr* Select::project(Query* q)
 
 //===================================================================
 
-double Select::optimize2(const Fields& index, const Fields& needs, 
+double Select::optimize2(const Fields& index, const Fields& needs,
 	const Fields& firstneeds, bool is_cursor, bool freeze)
 	{
 	if (optFirst)
@@ -445,14 +442,14 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 		{
 		optFirst = false;
 		required_index = source_index = index;
-		double cost = source->optimize(index, set_union(needs, select_needs), 
+		double cost = source->optimize(index, set_union(needs, select_needs),
 			set_union(firstneeds, select_needs), is_cursor, freeze);
 		if (cost < IMPOSSIBLE)
 			nrecs = source->nrecords();
 		return cost;
 		}
 
-	LOG("Select::optimize " << tbl->table << (freeze ? " FREEZE" : "") << 
+	LOG("Select::optimize " << tbl->table << (freeze ? " FREEZE" : "") <<
 		" index " << index << ", needs " << needs);
 	LOG("original exprs: " << expr);
 	if (optFirst)
@@ -463,14 +460,14 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 
 	if (conflicting)
 		return 0;
-	
+
 	primary = Fields();
 	filter = Indexes();
 
 	double cost = choose_primary(index);
 	if (nil(primary))
 		return IMPOSSIBLE;
-	
+
 	//~ if (! is_cursor)
 		//~ cost = choose_filter(cost);
 
@@ -480,7 +477,7 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 	required_index = index;
 	source_index = primary;
 	tbl->select_index(source_index);
-	
+
 	return cost;
 	}
 
@@ -489,7 +486,7 @@ Lisp<Fixed> combine(Lisp<Fixed> fixed1, const Lisp<Fixed>& fixed2);
 void Select::optimize_setup()
 	{
 	fixed(); // calc before altering expr
-	
+
 	// the code depends on using the same indexes throughout (compares pointers)
 	theindexes = tbl->indexes();
 
@@ -503,7 +500,7 @@ void Select::optimize_setup()
 	identify_possible();
 	calc_field_fracs();
 	calc_index_fracs();
-	
+
 	// TODO: should be frac of complete select, not just indexes
 	nrecs = datafrac(theindexes) * tbl->nrecords();
 	}
@@ -575,7 +572,7 @@ Lisp<Cmp> Select::extract_cmps()
 			}
 		newexprs.push(*exprs);
 		}
-	expr = new And(newexprs);
+	expr = new And(newexprs.reverse());
 	LOG("exprs: " << *expr);
 	LOG("cmps: " << cmps);
 	return cmps;
@@ -688,7 +685,7 @@ void Select::calc_index_fracs()
 		}
 	LOG("ifracs " << ifracs);
 	}
-	
+
 double Select::choose_primary(const QIndex& index)
 	{
 	// find index that satisfies required index with least cost
@@ -710,16 +707,16 @@ double Select::choose_primary(const QIndex& index)
 	return best_cost;
 	}
 
-double Select::primarycost(const Fields& primary)
+double Select::primarycost(const Fields& index)
 	{
-	double index_read_cost = ifracs[primary] * tbl->indexsize(primary);
-	
-	double data_frac = subset(primary, select_needs) && subset(primary, prior_needs) 
-		? 0 : datafrac(Indexes(primary));
-	
+	double index_read_cost = ifracs[index] * tbl->indexsize(index);
+
+	double data_frac = subset(index, select_needs) && subset(index, prior_needs)
+		? 0 : datafrac(Indexes(index));
+
 	double data_read_cost = data_frac * tbl->totalsize();
-	
-	LOG("primarycost(" << primary << ") index_read_cost " << index_read_cost << 
+
+	LOG("primarycost(" << index << ") index_read_cost " << index_read_cost <<
 		", data_frac " << data_frac << ", data_read_cost " << data_read_cost);
 	return index_read_cost + data_read_cost;
 	}
@@ -758,23 +755,23 @@ const int FILTER_KEYSIZE = 10;
 static bool includes(const Indexes& indexes, Fields fields);
 
 // compute the cost of using the current primary with this filter
-double Select::costwith(const Indexes& filter, double primary_index_cost)
+double Select::costwith(const Indexes& afilter, double primary_index_cost)
 	{
-	LOG("cost with: " << primary << " + " << filter);
-	Indexes all(cons(primary, filter));
-	double data_frac = includes(all, select_needs) && subset(primary, prior_needs) 
+	LOG("cost with: " << primary << " + " << afilter);
+	Indexes all(cons(primary, afilter));
+	double data_frac = includes(all, select_needs) && subset(primary, prior_needs)
 		? 0 : datafrac(all);
-	
+
 	// approximate filter cost independent of order of filters
 	double filter_cost = 0;
-	for (Indexes f(filter); ! nil(f); ++f)
+	for (Indexes f(afilter); ! nil(f); ++f)
 		{
 		double n = tbl->nrecords() * ifracs[*f];
 		filter_cost +=
 			n * tbl->keysize(*f) +	// read cost
 			n * FILTER_KEYSIZE * WRITE_FACTOR; // write cost
 		}
-	
+
 	LOG(" = " << data_frac << " * " << tbl->totalsize() <<
 		" + " << primary_index_cost << " + " << filter_cost <<
 		" = " << data_frac * tbl->totalsize() + primary_index_cost + filter_cost);
@@ -801,7 +798,7 @@ static bool includes(const Indexes& indexes, Fields fields)
 // compute the fraction of data selected by a set of indexes
 double Select::datafrac(Indexes indexes)
 	{
- 	// take the union of all the index fields
+	// take the union of all the index fields
 	// to ensure you don't use a field more than once
 	Fields flds;
 	for (Indexes idxs = indexes; ! nil(idxs); ++idxs)
@@ -871,11 +868,11 @@ void Select::convert_select(const Fields& index, const Record& from, const Recor
 			++si;
 			++ri;
 			}
-		else if (! nil(si) && (fixval = getfixed(fix, *si)))
+		else if (! nil(si) && ((fixval = getfixed(fix, *si))))
 			{
 			newfrom.addval(fixval);
 			newto.addval(fixval);
-			++si; 
+			++si;
 			}
 		else if ((fixval = getfixed(fix, *ri)))
 			{
@@ -892,8 +889,8 @@ void Select::convert_select(const Fields& index, const Record& from, const Recor
 			++ri;
 			}
 		else
-			except_err(this << endl << " invalid select " << index << " " << 
-				from << " to " << to); 
+			except_err(this << endl << " invalid select " << index << " " <<
+				from << " to " << to);
 		}
 	if (from.getraw(from.size() - 1) == fieldmax)
 		newfrom.addraw(fieldmax);
@@ -966,37 +963,37 @@ void Select::iterate_setup()
 	// process filters
 	if (! nil(filter))
 		{
-		f = new Filter(new TempDest);
+		fltr = new Filter(new TempDest);
 		Indexes idxs = filter;
 		// process first filter
 		Fields ix = *idxs++;
 		tbl->set_index(ix);
-		Lisp<Keyrange> ranges = selects(ix, iselects(ix));
-		while (! nil(ranges))
+		Lisp<Keyrange> rs = selects(ix, iselects(ix));
+		while (! nil(rs))
 			{
-			Keyrange& range = *ranges++;
+			Keyrange& range = *rs++;
 			LOG("filter range: " << range.org << " => " << range.end);
 			for (source->select(ix, range.org, range.end); Eof != source->get(NEXT); )
 				if (matches(ix, tbl->iter->key))
-					f->insert(FilterLeafSlot(tbl->iter->adr(), 1));
+					fltr->insert(FilterLeafSlot(tbl->iter->adr(), 1));
 			}
 		// process additional filters
 		while (! nil(idxs))
 			{
-			Fields ix = *idxs++;
+			ix = *idxs++;
 			tbl->set_index(ix);
-			Lisp<Keyrange> ranges = selects(ix, iselects(ix));
-			while (! nil(ranges))
+			rs = selects(ix, iselects(ix));
+			while (! nil(rs))
 				{
-				Keyrange& range = *ranges++;
+				Keyrange& range = *rs++;
 				LOG("filter range: " << range.org << " => " << range.end);
 				for (source->select(ix, range.org, range.end); Eof != source->get(NEXT); )
 					if (matches(ix, tbl->iter->key))
-						f->increment(tbl->iter->adr());
+						fltr->increment(tbl->iter->adr());
 				}
 			}
 		tbl->set_index(source_index); // restore primary index
-		
+
 		// remove filter isels - no longer needed
 		for (idxs = filter; ! nil(idxs); ++idxs)
 			for (Fields flds(*idxs); ! nil(flds); ++flds)
@@ -1112,7 +1109,7 @@ static Keyrange intersect(const Keyrange& r1, const Keyrange& r2)
 	{
 	Keyrange result(
 		(r1.org < r2.org ? r2.org : r1.org),
-		(r1.end < r2.end ? r1.end : r2.end));	
+		(r1.end < r2.end ? r1.end : r2.end));
 	LOG("intersect " << r1 << " and " << r2 << " => " << result);
 	return result;
 	}
@@ -1136,10 +1133,10 @@ Iselects Select::iselects(const Fields& idx)
 bool Select::matches(Row& row)
 	{
 	// first check against filter
-	if (f)
+	if (fltr)
 		{
-		Filter::iterator iter = f->find(tbl->iter->adr());
-		if (iter == f->end() || iter->count != size(filter))
+		Filter::iterator iter = fltr->find(tbl->iter->adr());
+		if (iter == fltr->end() || iter->count != size(filter))
 			return false;
 		}
 	// then check against isels
@@ -1210,7 +1207,7 @@ bool Iselect::matches(const gcstring& value)
 
 bool Iselect::inrange(const gcstring& x)
 	{
-	return 
+	return
 		(org.d == 0 ? (org.x <= x) : (org.x < x))
 		&&
 		(end.d == 0 ? (x <= end.x) : (x < end.x));
@@ -1241,17 +1238,17 @@ class TestTable : public Table
 	{
 	friend class test_qselect;
 public:
-	double nrecords()
+	double nrecords() override
 		{ return 1000; }
-	Fields columns()
+	Fields columns() override
 		{ return lisp(gcstring("a"), gcstring("b"), gcstring("c")); }
-	int keysize(const Fields& index)
+	int keysize(const Fields& index) override
 		{ return size(index) * 10; }
-	int indexsize(const Fields& index)
+	int indexsize(const Fields& index) override
 		{ return size(index) * 10000; }
-	int totalsize()
+	int totalsize() override
 		{ return 100000; }
-	float iselsize(const Fields& index, const Iselects& isels)
+	float iselsize(const Fields& index, const Iselects& isels) override
 		{
 		iselsize_index = index;
 		return (float) .1;
@@ -1272,10 +1269,10 @@ class test_qselect : public Tests
 		Fields index_a = lisp(gcstring("a"));
 		Fields index_b = lisp(gcstring("b"));
 		Fields index_a_b = lisp(gcstring("a"), gcstring("b"));
-		
+
 		ts.choose_primary(Fields());
 		verify(nil(ts.primary));
-		
+
 		ts.theindexes = lisp(index_a_b);
 		ts.ifracs[index_a_b] = .12;
 		ts.ffracs["a"] = .3;
@@ -1288,7 +1285,7 @@ class test_qselect : public Tests
 		asserteq(index_a_b, ts.primary);
 		ts.choose_primary(index_a_b);
 		asserteq(index_a_b, ts.primary);
-		
+
 		ts.theindexes = lisp(index_a, index_a_b, index_b);
 		ts.ifracs[index_a] = .3;
 		ts.ifracs[index_b] = .4;

@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -45,7 +45,7 @@ gcstring RichEditGet(HWND hwndRE)
 	es.dwError = 0;
 	es.pfnCallback = addtostring;
 	SendMessage(hwndRE, EM_STREAMOUT, (WPARAM) SF_RTF, (LPARAM) &es);
-	return gcstring(s.size(), &s[0]); // no alloc constructor
+	return gcstring::noalloc(&s[0], s.size());
 	}
 
 static DWORD CALLBACK takefromstring(DWORD dwCookie, LPBYTE pbBuffer, LONG cb, LONG *pcb)
@@ -53,7 +53,7 @@ static DWORD CALLBACK takefromstring(DWORD dwCookie, LPBYTE pbBuffer, LONG cb, L
 	gcstring* ps = (gcstring*) dwCookie;
 	if (cb > ps->size())
 		cb = ps->size();
-	memcpy(pbBuffer, ps->buf(), cb);
+	memcpy(pbBuffer, ps->ptr(), cb);
 	*ps = ps->substr(cb);
 	*pcb = cb;
 	return NOERROR;

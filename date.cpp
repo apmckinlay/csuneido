@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2003 Suneido Software Corp. 
+ *
+ * Copyright (c) 2003 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it &&/||
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY || FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -61,7 +61,7 @@ int DateTime::date() const
 
 int DateTime::time() const
 	{
-	// 5 bits for hour, 6 bits for minute, 6 bits for second, 
+	// 5 bits for hour, 6 bits for minute, 6 bits for second,
 	// 10 bits for millisecond
 	return (hour << 22) | (minute << 16) | (second << 10) | millisecond;
 	}
@@ -168,7 +168,7 @@ static void DateCalc_Normalize_Signs(int *Dd, int *Dh, int *Dm, int *Ds)
 		}
     *Dh = 0L;
     *Dm = 0L;
-    if (*Ds != 0L) 
+    if (*Ds != 0L)
 		DateCalc_Normalize_Time(Dd,Dh,Dm,Ds);
 	}
 
@@ -299,7 +299,7 @@ static bool DateCalc_add_delta_dhms(
             *min  = Dm;
             *sec  = Ds;
 			}
-        else 
+        else
 			*hour = *min = *sec = 0;
 		return( DateCalc_add_delta_days(year,month,day,Dd) );
 		}

@@ -14,6 +14,7 @@
     <ProjectGuid>{CE3F57F1-8E48-498D-BDBC-3F46D19331DC}</ProjectGuid>
     <RootNamespace>vs2017suneido</RootNamespace>
     <ProjectName>vs2017suneido</ProjectName>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -45,17 +46,19 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <GenerateManifest>false</GenerateManifest>
-    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level2</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_SCL_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;_USE_32BIT_TIME_T;COMPILER=vs2017;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>/Zc:throwingNew %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:throwingNew /Zc:strictStrings %(AdditionalOptions)</AdditionalOptions>
+      <DisableSpecificWarnings>4244;4018;4267;4100;4310;4389;4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -65,7 +68,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level2</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -73,7 +76,9 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <SDLCheck>false</SDLCheck>
-      <AdditionalOptions>/Zc:throwingNew %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:throwingNew /Zc:strictStrings %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <DisableSpecificWarnings>4244;4018;4267;4100;4310;4389;4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -89,7 +94,7 @@
       <Message>update Built</Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>copy /y "$(TargetDir)$(TargetFileName)" $(MSBuildProjectDirectory)\..\suneido.exe</Command>
+      <Command>"$(TargetDir)$(TargetFileName)" -t &amp;&amp; copy /y "$(TargetDir)$(TargetFileName)" $(MSBuildProjectDirectory)\..\suneido.exe</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -109,11 +114,13 @@
     <ClCompile Include="..\catstr.cpp" />
     <ClCompile Include="..\checksum.cpp" />
     <ClCompile Include="..\circlog.cpp" />
+    <ClCompile Include="..\clientserver.cpp" />
     <ClCompile Include="..\cmdlineoptions.cpp" />
     <ClCompile Include="..\cmpic.cpp" />
     <ClCompile Include="..\codecheck.cpp" />
     <ClCompile Include="..\commalist.cpp" />
     <ClCompile Include="..\compile.cpp" />
+    <ClCompile Include="..\connection.cpp" />
     <ClCompile Include="..\construct.cpp" />
     <ClCompile Include="..\cvt.cpp" />
     <ClCompile Include="..\database.cpp" />
@@ -123,8 +130,10 @@
     <ClCompile Include="..\dbms.cpp" />
     <ClCompile Include="..\dbmslocal.cpp" />
     <ClCompile Include="..\dbmsremote.cpp" />
+    <ClCompile Include="..\dbmsremote2.cpp" />
     <ClCompile Include="..\dbmsunauth.cpp" />
     <ClCompile Include="..\dbserver.cpp" />
+    <ClCompile Include="..\dbserver2.cpp" />
     <ClCompile Include="..\dbserverdata.cpp" />
     <ClCompile Include="..\debug.cpp" />
     <ClCompile Include="..\dll.cpp" />
@@ -160,7 +169,6 @@
     <ClCompile Include="..\ostreamfile.cpp" />
     <ClCompile Include="..\ostreamstr.cpp" />
     <ClCompile Include="..\pack.cpp" />
-    <ClCompile Include="..\params.cpp" />
     <ClCompile Include="..\permheap.cpp" />
     <ClCompile Include="..\portwin32.cpp" />
     <ClCompile Include="..\qcompatible.cpp" />
@@ -192,6 +200,7 @@
     <ClCompile Include="..\row.cpp" />
     <ClCompile Include="..\runpiped.cpp" />
     <ClCompile Include="..\scanner.cpp" />
+    <ClCompile Include="..\serializer.cpp" />
     <ClCompile Include="..\servereval.cpp" />
     <ClCompile Include="..\sesviews.cpp" />
     <ClCompile Include="..\slots.cpp" />
@@ -250,7 +259,6 @@
     <ClInclude Include="..\alertout.h" />
     <ClInclude Include="..\array.h" />
     <ClInclude Include="..\awcursor.h" />
-    <ClInclude Include="..\bitmap.h" />
     <ClInclude Include="..\btree.h" />
     <ClInclude Include="..\buffer.h" />
     <ClInclude Include="..\build.h" />
@@ -308,8 +316,6 @@
     <ClInclude Include="..\library.h" />
     <ClInclude Include="..\lisp.h" />
     <ClInclude Include="..\load.h" />
-    <ClInclude Include="..\md5.h" />
-    <ClInclude Include="..\minmax.h" />
     <ClInclude Include="..\mmfile.h" />
     <ClInclude Include="..\mmoffset.h" />
     <ClInclude Include="..\mmtypes.h" />
@@ -321,7 +327,6 @@
     <ClInclude Include="..\ostreamfile.h" />
     <ClInclude Include="..\ostreamstr.h" />
     <ClInclude Include="..\pack.h" />
-    <ClInclude Include="..\params.h" />
     <ClInclude Include="..\permheap.h" />
     <ClInclude Include="..\port.h" />
     <ClInclude Include="..\prim.h" />
@@ -356,12 +361,10 @@
     <ClInclude Include="..\rich.h" />
     <ClInclude Include="..\row.h" />
     <ClInclude Include="..\scanner.h" />
-    <ClInclude Include="..\scintilla.h" />
     <ClInclude Include="..\sesviews.h" />
     <ClInclude Include="..\slots.h" />
     <ClInclude Include="..\sockets.h" />
     <ClInclude Include="..\std.h" />
-    <ClInclude Include="..\strdup.h" />
     <ClInclude Include="..\structure.h" />
     <ClInclude Include="..\sublock.h" />
     <ClInclude Include="..\suboolean.h" />
@@ -395,7 +398,6 @@
     <ClInclude Include="..\value.h" />
     <ClInclude Include="..\varint.h" />
     <ClInclude Include="..\win.h" />
-    <ClInclude Include="..\winlib.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

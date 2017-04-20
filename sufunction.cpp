@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -37,7 +37,8 @@
 
 #define TARGET(i)	(short) ((code[i] + (code[i+1] << 8)))
 
-Value SuFunction::call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each)
+Value SuFunction::call(Value self, Value member, 
+	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Disasm("Disasm");
 	static Value Source("Source");
@@ -54,8 +55,7 @@ Value SuFunction::call(Value self, Value member, short nargs, short nargnames, u
 		}
 	else if (member == Disasm)
 		{
-		if (nargs != 0)
-			except("usage: function.Disasm()");
+		NOARGS("function.Disasm()");
 		OstreamStr oss;
 		disasm(oss);
 		return new SuString(oss.str());
@@ -77,11 +77,12 @@ void SuFunction::dotParams(Value self)
 	for (int i = 0; i < nparams; ++i)
 		if (flags[i] & DOT)
 			{
-			char* name = symstr(locals[i]);
+			auto name = symstr(locals[i]);
 			if (flags[i] & PUB)
 				{
-				name = STRDUPA(name);
-				*name = toupper(*name);
+				char* s = STRDUPA(name);
+				*s = toupper(*s);
+				name = s;
 				}
 			else // private
 				name = CATSTR3(className, "_", name);
@@ -115,7 +116,7 @@ void SuFunction::source(Ostream& out, int ci)
 			for (int i = 0; i < si; ++i)
 				if (src[i] == '\n')
 					++line;
-			out << line << ": "; 
+			out << line << ": ";
 			for (; si < db[di].si && src[si]; ++si)
 				out << (src[si] == '\n' || src[si] == '\r' ? ' ' : src[si]);
 			out << endl;
@@ -197,7 +198,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 		case I_CALL_MEM_SELF :
 			out << mem(ci) << " " << (op & 7);
 			break ;
-		default : 
+		default :
 			break ;
 			}
 		}
@@ -220,7 +221,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 			out << globals(TARGET(ci));
 			ci += 2;
 			break;
-		default : 
+		default :
 			break ;
 			}
 		}
@@ -241,7 +242,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 			out << globals(TARGET(ci));
 			ci += 2;
 			break;
-		default : 
+		default :
 			break ;
 			}
 		out << " " << (short) code[ci++];
@@ -272,7 +273,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 		case MEM_SELF :
 			out << mem(ci);
 			break ;
-		default : 
+		default :
 			break ;
 			}
 		}
@@ -280,7 +281,7 @@ int SuFunction::disasm1(Ostream& out, int ci)
 	return ci;
 	}
 
-char* SuFunction::mem(int& ci)
+const char* SuFunction::mem(int& ci)
 	{
 	int n = varint(code, ci);
 	except_if(n >= nliterals, "n " << n << " nliterals " << nliterals);
@@ -370,7 +371,6 @@ void SuFunction::pack(char* buf) const
 	buf += sizeof (short);
 	*buf++ = (char) rest;
 	cvt_short(buf, ndefaults);
-	buf += sizeof (short);
 	}
 
 #define GLOBAL_REF \
@@ -417,7 +417,7 @@ static int namerefs(uchar* code, int nc, char* buf)
 			case I_CALL_MEM_SELF :
 				SYMBOL_REF
 				break ;
-			default : 
+			default :
 				break ;
 				}
 			}
@@ -437,7 +437,7 @@ static int namerefs(uchar* code, int nc, char* buf)
 			case GLOBAL :
 				GLOBAL_REF
 				break;
-			default : 
+			default :
 				break ;
 				}
 			}
@@ -456,7 +456,7 @@ static int namerefs(uchar* code, int nc, char* buf)
 			case GLOBAL :
 				GLOBAL_REF
 				break;
-			default : 
+			default :
 				break ;
 				}
 			++ci;
@@ -482,7 +482,7 @@ static int namerefs(uchar* code, int nc, char* buf)
 			case MEM_SELF :
 				SYMBOL_REF
 				break ;
-			default : 
+			default :
 				break ;
 				}
 			}
@@ -500,7 +500,7 @@ static int fixnames(uchar* code, int nc, const char* buf);
 SuFunction* SuFunction::unpack(const gcstring& s)
 	{
 	SuFunction* fn = new SuFunction;
-	const char* buf = s.buf() + 1; // skip PACK_FUNCTION
+	const char* buf = s.ptr() + 1; // skip PACK_FUNCTION
 	int i;
 
 	buf += unpackname(buf, fn->named);
@@ -534,7 +534,7 @@ SuFunction* SuFunction::unpack(const gcstring& s)
 	fn->ndefaults = cvt_short(buf);
 	buf += sizeof (short);
 
-	verify(buf == s.end());
+	verify(buf == s.ptr() + s.size());
 	return fn;
 	}
 
@@ -579,7 +579,7 @@ static int fixnames(uchar* code, int nc, const char* buf)
 			case I_CALL_MEM_SELF :
 				FIX_SYMBOL
 				break ;
-			default : 
+			default :
 				break ;
 				}
 			}
@@ -599,7 +599,7 @@ static int fixnames(uchar* code, int nc, const char* buf)
 			case GLOBAL :
 				FIX_GLOBAL
 				break;
-			default : 
+			default :
 				break ;
 				}
 			}
@@ -618,7 +618,7 @@ static int fixnames(uchar* code, int nc, const char* buf)
 			case GLOBAL :
 				FIX_GLOBAL
 				break;
-			default : 
+			default :
 				break ;
 				}
 			++ci;
@@ -644,7 +644,7 @@ static int fixnames(uchar* code, int nc, const char* buf)
 			case MEM_SELF :
 				FIX_SYMBOL
 				break ;
-			default : 
+			default :
 				break ;
 				}
 			}
@@ -665,7 +665,7 @@ class test_packfunc : public Tests
 		buf1[n] = '\xc4';
 		fn.pack(buf1);
 		verify(buf1[n] == '\xc4');
-		Value x = unpack(gcstring(n, buf1));
+		Value x = unpack(buf1, n);
 		verify(val_cast<SuFunction*>(x));
 		assert_eq(n, x.packsize());
 		char* buf2 = new char[n + 1];

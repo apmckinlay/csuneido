@@ -30,7 +30,7 @@ Query* Query::make_join(Query* s1, Query* s2, Fields by)
 	}
 
 Join::Join(Query* s1, Query* s2, Fields by)
-	: Query2(s1, s2),  type(NONE), nrecs(-1), first(true), cols1(0), cols2(0)
+	: Query2(s1, s2),  type(NONE), nrecs(-1), first(true)
 	{
 	joincols = intersect(source->columns(), source2->columns());
 	if (nil(joincols))
@@ -157,10 +157,10 @@ double Join::optimize2(const Fields& index, const Fields& needs, const Fields& /
 	return cost;
 	}
 
-double Join::opt(Query* src1, Query* src2, Type type,
+double Join::opt(Query* src1, Query* src2, Type typ,
 	const Fields& index, const Fields& needs1, const Fields& needs2, bool is_cursor, bool freeze)
 	{
-	TRACE(JOINOPT, "JOIN " << typestr[type] << " =====================");
+	TRACE(JOINOPT, "JOIN " << typestr[typ] << " =====================");
 	TRACE(JOINOPT, "SRC1 " << src1);
 	TRACE(JOINOPT, "SRC2 " << src2);
 	// SELECT_COST needs to be high to discourage N to 1 when N is large
@@ -171,7 +171,7 @@ double Join::opt(Query* src1, Query* src2, Type type,
 	if (cost1 >= IMPOSSIBLE)
 		return IMPOSSIBLE;
 	double nrecs1 = src1->nrecords();
-	TRACE(JOINOPT, "nrecs1 " << nrecs1 << " cost1 = " << cost1 << " + " << 
+	TRACE(JOINOPT, "nrecs1 " << nrecs1 << " cost1 = " << cost1 << " + " <<
 		(nrecs1 * SELECT_COST) << " = " << (cost1 + nrecs1 * SELECT_COST));
 
 	// for each of source 1, select on source2
@@ -185,7 +185,7 @@ double Join::opt(Query* src1, Query* src2, Type type,
 	bool is_cursor2 = is_cursor;
 	TRACE(JOINOPT, "nrecs2 " << nrecs2 << " cost2 " << cost2);
 
-	if ((type == N_ONE || type == ONE_ONE) && nrecs1 >= 0 && nrecs2 > 0)
+	if ((typ == N_ONE || typ == ONE_ONE) && nrecs1 >= 0 && nrecs2 > 0)
 		{
 		// can't read any more records from right side than left side
 		// if right side is bigger, try passing is_cursor = true to avoid temp indexes
@@ -209,7 +209,7 @@ double Join::opt(Query* src1, Query* src2, Type type,
 	if (freeze)
 		src2->optimize(joincols, needs2, Fields(), is_cursor2, true);
 
-	switch (type)
+	switch (typ)
 		{
 	case ONE_ONE :
 		nrecs = min(nrecs1, nrecs2);
@@ -232,7 +232,7 @@ double Join::opt(Query* src1, Query* src2, Type type,
 
 	if (nrecs <= 0)
 		cost2 = 0;
-	TRACE(JOINOPT, "cost = " << cost1 << " + " << cost2 << " = " << 
+	TRACE(JOINOPT, "cost = " << cost1 << " + " << cost2 << " = " <<
 		(cost1 + cost2));
 
 	return cost1 + cost2;

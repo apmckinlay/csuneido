@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -115,8 +115,8 @@ enum
 	PATEND,
 	CHAR,
 	ANY,
-	START, END, 
-	START_LINE, END_LINE, 
+	START, END,
+	START_LINE, END_LINE,
 	START_WORD, END_WORD,
 	CCL, NCCL, CCLEND, RANGE,
 	DIGIT, NDIGIT, WORD, NWORD, SPACE, NSPACE,
@@ -176,9 +176,7 @@ class RxCompile
 	{
 public:
 	RxCompile(const char* src, int len) :
-		s(src), lim(s + len), 
-		buflen(len * 3 + 8), buf(new char[buflen]), n(0), nl(1),
-		literal(false)
+		s(src), lim(s + len), buflen(len * 3 + 8), buf(salloc(buflen))
 		{ }
 	char* compile();
 private:
@@ -188,7 +186,7 @@ private:
 	void simple();
 	void cclass();
 	void posix_cclass();
-	bool match(char* token);
+	bool match(const char* token);
 	void output(int c);
 	void output(int c1, int c2)
 		{
@@ -196,16 +194,16 @@ private:
 		output(c2);
 		}
 	void insert(int c, int i);
-	char next()
+	char next() const
 		{ return s + 1 < lim ? s[1] : 0; }
 
 	const char* s;		// input
-	const char* lim;	// input limit
+	const char* lim;		// input limit
 	int buflen;
 	char* buf;			// output
-	int n;				// output length
-	int nl;				// left parenthesis count
-	bool literal;
+	int n = 0;			// output length
+	int nl = 1;			// left parenthesis count
+	bool literal = false;
 	};
 
 char* rx_compile(const gcstring& s)
@@ -213,7 +211,7 @@ char* rx_compile(const gcstring& s)
 	static CacheMap<10,gcstring,char*> cache;
 	if (char** p = cache.get(s))
 		return *p;
-	return cache.put(s, RxCompile(s.buf(), s.size()).compile());
+	return cache.put(s, RxCompile(s.ptr(), s.size()).compile());
 	}
 
 char* RxCompile::compile()
@@ -226,7 +224,7 @@ char* RxCompile::compile()
 	return (char*) buf;
 	}
 
-bool RxCompile::match(char* token)
+bool RxCompile::match(const char* token)
 	// post:	if token was matched, s is advanced past it, and true is returned
 	//			else s is unchanged, and false is returned
 	{
@@ -240,8 +238,8 @@ bool RxCompile::match(char* token)
 
 void RxCompile::regexp()
 	{
-	int start = n; 
-	sequence(); 
+	int start = n;
+	sequence();
 	if (s < lim && *s == '|')
 		{
 		int len = n - start;
@@ -265,7 +263,7 @@ void RxCompile::sequence()
 		element();
 		}
 	}
-		
+
 void RxCompile::element()
 	{
 	if (literal)
@@ -418,7 +416,7 @@ void RxCompile::cclass()
 
 void RxCompile::posix_cclass()
 	{
-	static struct { char* name; int output; } classes[] = {
+	static struct { const char* name; int output; } classes[] = {
 		{ "[:alnum:]", ALNUM },
 		{ "[:alpha:]", ALPHA },
 		{ "[:blank:]", BLANK },
@@ -443,7 +441,7 @@ void RxCompile::posix_cclass()
 			break ;
 			}
 	}
-			
+
 void RxCompile::output(int c)
 	{
 	verify(SCHAR_MIN <= c && c <= SCHAR_MAX);
@@ -474,10 +472,10 @@ inline bool between(unsigned from, unsigned to, unsigned x)
 class RxMatch
 	{
 public:
-	RxMatch(char* str, int len, Rxpart* pts)
+	RxMatch(const char* str, int len, Rxpart* pts)
 		: s(str), n(len), part(pts ? pts : parts)
 		{ }
-	int amatch(int pos, char* pat);
+	int amatch(int pos, const char* pat);
 private:
 	bool domatch();
 	bool omatch();
@@ -493,18 +491,18 @@ private:
 			: between(from, to, c);
 		}
 
-	char* s;	// string
-	int i;		// current position in string
-	int n;		// length of string
-	char* p;	// current position in pattern
+	const char* s;			// string
+	int i = 0;			// current position in string
+	int n;				// length of string
+	const char* p = nullptr;	// current position in pattern
 	Rxpart* part;
 	Rxpart parts[MAXPARTS];	// used if none passed in
-	bool ignore_case;
-	enum { MAXNEST = 500 };
-	int domatch_nest;
+	bool ignore_case = false;
+	enum { MAXNEST = 1000 };
+	int domatch_nest = 0;
 	};
 
-bool rx_match(char* s, int n, int i, char* pat, Rxpart* psubs)
+bool rx_match(const char* s, int n, int i, const char* pat, Rxpart* psubs)
 	{
 	RxMatch match(s, n, psubs);
 	do
@@ -516,7 +514,7 @@ bool rx_match(char* s, int n, int i, char* pat, Rxpart* psubs)
 		return false;
 	}
 
-bool rx_match_reverse(char* s, int n, int i, char* pat, Rxpart* psubs)
+bool rx_match_reverse(const char* s, int n, int i, const char* pat, Rxpart* psubs)
 	{
 	RxMatch match(s, n, psubs);
 	do
@@ -528,12 +526,12 @@ bool rx_match_reverse(char* s, int n, int i, char* pat, Rxpart* psubs)
 		return false;
 	}
 
-int rx_amatch(char* s, int i, int n, char* pat, Rxpart* psubs)
+int rx_amatch(const char* s, int i, int n, const char* pat, Rxpart* psubs)
 	{
 	return RxMatch(s, n, psubs).amatch(i, pat);
 	}
 
-int RxMatch::amatch(int pos, char* pat)
+int RxMatch::amatch(int pos, const char* pat)
 	{
 	for (int j = 0; j < MAXPARTS; ++j)
 		part[j].n = -1;
@@ -543,17 +541,17 @@ int RxMatch::amatch(int pos, char* pat)
 	ignore_case = false;
 	if (! domatch())
 		return -1;
-	return (i);
+	return i;
 	}
 
 bool RxMatch::domatch()
 	{
-	char* save_p;
+	const char* save_p;
 	int save_i;
 	int offset;
 
 	if (++domatch_nest > MAXNEST)
-		return false;
+		except("regular expression match too long");
 	while (*p != PATEND)
 		{
 		switch (*p)
@@ -633,6 +631,8 @@ bool RxMatch::domatch()
 	return true;
 	}
 
+#pragma clang diagnostic ignored "-Wchar-subscripts"
+
 bool RxMatch::omatch()
 	{
 	switch (*p++)
@@ -641,7 +641,7 @@ bool RxMatch::omatch()
 	case START :
 		return i == 0;
 	case END :
-		return i == n || 
+		return i == n ||
 			(i == n - 1 && s[i] == '\n') ||
 			(i == n - 2 && s[i] == '\r' && s[i+1] == '\n');
 	case START_LINE :
@@ -699,7 +699,7 @@ bool RxMatch::omatch()
 		// backreference
 	case PIECE :
 		{
-		char* t = part[*p].s;
+		auto t = part[*p].s;
 		int tn = part[*p].n;
 		++p;
 		for (int ti = 0; ti < tn && i < n; ++ti, ++i)
@@ -708,7 +708,7 @@ bool RxMatch::omatch()
 		return true;
 		}
 	default :
-		unreachable();	
+		unreachable();
 		}
 	}
 
@@ -823,29 +823,30 @@ bool RxMatch::cclass()
 
 // replace ==========================================================
 
-int rx_replen(const char* rep, Rxpart* subs)
+int rx_replen(const gcstring& rep, Rxpart* subs)
 	{
+	int nr = rep.size();
 	if (rep[0] == '\\' && rep[1] == '=')
-		return strlen(rep) - 2;
+		return nr - 2;
 
 	int len = 0;
-	for (; *rep; ++rep)
+	for (int i = 0; i < nr; ++i)
 		{
-		if (*rep == '&')
+		char c = rep[i];
+		if (c == '&')
 			{
 			if (subs->n > 0)
 				len += subs[0].n;
 			}
-		else if ('\\' == *rep && rep[1])
+		else if ('\\' == c && i + 1 < nr)
 			{
-			++rep;
-			if (isdigit(*rep))
+			c = rep[++i];
+			if (isdigit(c))
 				{
-				if (subs[*rep - '0'].n > 0)
-					len += subs[*rep - '0'].n;
+				if (subs[c - '0'].n > 0)
+					len += subs[c - '0'].n;
 				}
-			else if (*rep != 'u' && *rep != 'l' &&
-				*rep != 'U' && *rep != 'L' && *rep != 'E')
+			else if (c != 'u' && c != 'l' && c != 'U' && c != 'L' && c != 'E')
 				++len;
 			}
 		else
@@ -868,60 +869,58 @@ inline char* insert(char* dst, Rxpart& part, char& tr)
 	int n = part.n;
 	if (n <= 0)
 		return dst;
-	char* s = part.s;
+	auto s = part.s;
 	for (; n--; ++s)
 		*dst++ = trcase(tr, *s);
 	return dst;
 	}
 
-char* rx_mkrep(char* buf, const char* rep, Rxpart* subs)
+char* rx_mkrep(char* buf, const gcstring& rep, Rxpart* subs)
 	{
+	int nr = rep.size();
 	if (rep[0] == '\\' && rep[1] == '=')
-		return strcpy(buf, rep + 2);
+		return (char*) memcpy(buf, rep.ptr() + 2, nr - 2);
 
 	char tr = 'E';
 	char *dst = buf;
-	for (; *rep; ++rep)
+	for (int i = 0; i < nr; ++i)
 		{
-		if (*rep == '&')
+		char c = rep[i];
+		if (c == '&')
 			dst = insert(dst, subs[0], tr);
-		else if ('\\' == *rep && rep[1])
+		else if (c == '\\' && i + 1 < nr)
 			{
-			++rep;
-			if (isdigit(*rep))
-				dst = insert(dst, subs[*rep - '0'], tr);
-			else if (*rep == 'n')
+			c = rep[++i];
+			if (isdigit(c))
+				dst = insert(dst, subs[c - '0'], tr);
+			else if (c == 'n')
 				*dst++ = '\n';
-			else if (*rep == 't')
+			else if (c == 't')
 				*dst++ = '\t';
-			else if (*rep == '\\')
+			else if (c == '\\')
 				*dst++ = '\\';
-			else if (*rep == '&')
+			else if (c == '&')
 				*dst++ = '&';
-			else if (*rep == 'u' || *rep == 'l' ||
-				*rep == 'U' || *rep == 'L' || *rep == 'E')
-				tr = *rep;
+			else if (c == 'u' || c == 'l' || c == 'U' || c == 'L' || c == 'E')
+				tr = c;
 			else
-				*dst++ = *rep;
+				*dst++ = c;
 			}
 		else
-			{
-			*dst++ = trcase(tr, *rep);
-			}
+			*dst++ = trcase(tr, c);
 		}
 	*dst = 0;
 	return buf;
 	}
 
 #include "testing.h"
-#include <stdio.h>
 
 struct Rxtest
 	{
-	char* string;
-	char* pattern;
+	const char* string;
+	const char* pattern;
 	bool result;
-	};	
+	};
 static Rxtest rxtests[] =
 	{
 	{ "hello", "hello", true },
@@ -1009,9 +1008,9 @@ class test_regexp : public Tests
 		{
 		for (int i = 0; i < sizeof rxtests / sizeof (Rxtest); ++i)
 			{
-			char* pattern = rxtests[i].pattern;
-			char* pat = rx_compile(pattern);
-			char* string = rxtests[i].string;
+			const char* pattern = rxtests[i].pattern;
+			const char* pat = rx_compile(pattern);
+			const char* string = rxtests[i].string;
 			except_if(rxtests[i].result != rx_match(string, strlen(string), 0, pat, NULL),
 				string << " =~ " << pattern << " should be " << (rxtests[i].result ? "true" : "false"));
 			}
@@ -1020,9 +1019,9 @@ class test_regexp : public Tests
 		{
 		char* pat = rx_compile("(\\w+) (\\w+)");
 		Rxpart parts[MAXPARTS];
-		char* s = "hello WORLD";
+		auto s = "hello WORLD";
 		rx_amatch(s, 0, strlen(s), pat, parts);
-		char* rep = "\\u\\1 \\l\\2 \\U\\1 \\L\\2 \\E\\1 \\2";
+		const char* rep = "\\u\\1 \\l\\2 \\U\\1 \\L\\2 \\E\\1 \\2";
 		size_t replen = rx_replen(rep, parts);
 		char buf[200];
 		rx_mkrep(buf, rep, parts);
@@ -1033,7 +1032,7 @@ class test_regexp : public Tests
 		{
 		char* pat = rx_compile("(\\w+ )+");
 		Rxpart parts[MAXPARTS];
-		char* s = "hello world ";
+		auto s = "hello world ";
 		rx_match(s, strlen(s), 0, pat, parts);
 		asserteq(parts[0].s, s);
 		asserteq(parts[0].n, 12);
@@ -1051,9 +1050,9 @@ class test_regexp2 : public Tests
 	{
 	TEST(0, main)
 		{
-		char* pat = rx_compile(gcstring(6, "[\x00-\xff]+"));
+		char* pat = rx_compile(gcstring("[\x00-\xff]+", 6));
 		Rxpart parts[MAXPARTS];
-		char* s = "axb";
+		auto s = "axb";
 		rx_amatch(s, 0, 3, pat, parts);
 		asserteq(parts[0].s, s);
 		asserteq(parts[0].n, 3);

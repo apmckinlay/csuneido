@@ -1,21 +1,19 @@
-#ifndef TEMPDB_H
-#define TEMPDB_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -31,27 +29,29 @@ extern Database* thedb;
 class TempDB // need class to ensure thedb is restored
 	{
 public:
-	TempDB(bool r = true) : rm(r)
+	explicit TempDB(bool r = true) : rm(r)
 		{
 		remove("tempdb");
-		savedb = thedb; 
+		savedb = thedb;
 		thedb = new Database("tempdb", DBCREATE);
 #ifdef BIGDB
 		for (int i = 0; i < 1100; ++i)
 			thedb->mmf->alloc(4000000, MM_OTHER, false);
 #endif
 		}
-	void reopen()
+
+	static void reopen()
 		{
 		delete thedb;
 		thedb = new Database("tempdb");
 		}
-	void close()
+	void close() const
 		{
 		delete thedb;
 		thedb = savedb;
 		}
-	void open()
+
+	static void open()
 		{
 		thedb = new Database("tempdb");
 		}
@@ -65,5 +65,3 @@ private:
 	Database* savedb;
 	bool rm;
 	};
-
-#endif

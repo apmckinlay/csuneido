@@ -1,21 +1,19 @@
-#ifndef SUSTRING_H
-#define SUSTRING_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -31,6 +29,7 @@
 class SuNumber;
 
 // string values - wraps gcstring
+// immutable
 class SuString : public SuValue
 	{
 public:
@@ -42,73 +41,63 @@ public:
 		{ }
 	explicit SuString(size_t n) : s(n)
 		{ }
-	// CAUTION: constructor that doesn't allocate
-	// WARNING: t[n] must be valid, ie. t must be one bigger than n !!!
-	SuString(size_t n, const char* t) : s(n, t)
-		{ }
 
-	virtual Value call(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	static SuString* noalloc(const char* t)
+		{ return new SuString(gcstring::noalloc(t)); }
+	static SuString* noalloc(const char* t, size_t n)
+		{ return new SuString(gcstring::noalloc(t, n)); }
 
-	virtual Value getdata(Value);
+	Value call(Value self, Value member, 
+		short nargs, short nargnames, ushort* argnames, int each) override;
 
-	virtual int integer() const
-		{ return strtoul(s.str(), NULL, 0); }
-	virtual const char* str_if_str() const
+	Value getdata(Value) override;
+
+	int integer() const override
+		{ return strtoul(s.str(), nullptr, 0); }
+
+	const char* str_if_str() const override
 		{ return str(); }
-	virtual SuNumber* number();
+
+	SuNumber* number() override;
 
 	int size() const
 		{ return s.size(); }
 
-	virtual size_t packsize() const;
-	virtual void pack(char* buf) const;
+	size_t packsize() const override;
+	void pack(char* buf) const override;
 	static SuString* unpack(const gcstring& s);
 
-	char* buf()
-		{ return s.buf(); }
-	const char* buf() const
-		{ return s.buf(); }
+	const char* ptr() const
+		{ return s.ptr(); }
 
-	char* begin()
-		{ return s.begin(); }
-	const char* begin() const
-		{ return s.begin(); }
-
-	char* end()
-		{ return s.end(); }
-	const char* end() const
-		{ return s.end(); }
-
-	char* str()
-		{ return s.str(); }
 	const char* str() const
 		{ return s.str(); }
 
-	virtual gcstring gcstr() const
+	gcstring gcstr() const override
 		{ return s; }
 
-	virtual int symnum() const;
+	int symnum() const override;
 
-	virtual size_t hashfn()
-		{ return ::hashfn(s.buf(), s.size()); }
-	SuString* substr(size_t i, size_t n)
-		{ 
+	size_t hashfn() const override
+		{ return ::hashfn(s.ptr(), s.size()); }
+
+	const SuString* substr(size_t i, size_t n) const
+		{
 		return (i == 0 && n >= s.size())
-			? this 
-			: new SuString(s.substr(i, n)); 
+			? this
+			: new SuString(s.substr(i, n));
 		}
+
 	bool operator==(const char* t) const
 		{ return s == t; }
-	void adjust()	 // set length to strlen
-		{ s = s.substr(0, s.find('\0')); }
 
-	virtual void out(Ostream& out);
+	void out(Ostream& out) const override;
 
 	static SuString* empty_string;
-	
-	virtual int order() const;
-	virtual bool lt(const SuValue& x) const;
-	virtual bool eq(const SuValue& x) const;
+
+	int order() const override;
+	bool lt(const SuValue& x) const override;
+	bool eq(const SuValue& x) const override;
 
 	bool is_identifier() const;
 
@@ -149,6 +138,7 @@ private:
 	Value Prefixq(short nargs, short nargnames, ushort* argnames, int each);
 	Value Repeat(short nargs, short nargnames, ushort* argnames, int each);
 	Value Replace(short nargs, short nargnames, ushort* argnames, int each);
+	Value replace(const gcstring& pat, Value rep, int count = INT_MAX) const;
 	Value ServerEval(short nargs, short nargnames, ushort* argnames, int each);
 	Value Size(short nargs, short nargnames, ushort* argnames, int each);
 	Value Split(short nargs, short nargnames, ushort* argnames, int each);
@@ -161,14 +151,19 @@ private:
 	Value Wcstombs(short nargs, short nargnames, ushort* argnames, int each);
 
 	bool backquote() const;
+	friend class test_sustring;
 	};
 
 class SuBuffer : public SuString
 	{
 public:
 	SuBuffer(size_t n, const gcstring& s);
+
+	char* buf()
+		{ return s.buf(); }
+
+	void adjust()	 // set length to strlen
+		{ s = s.substr(0, s.find('\0')); }
 	};
 
 bool is_identifier(const char* s, int n = -1);
-
-#endif

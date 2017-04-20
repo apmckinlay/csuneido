@@ -41,7 +41,7 @@
 #include "dbcompact.h"
 #include "recover.h"
 #include "globals.h"
-#include <stdio.h> // for tmpnam and remove
+#include <stdio.h> // for remove
 #include "fatal.h"
 #include "sustring.h"
 #include "testobalert.h"
@@ -60,13 +60,9 @@ void builtins();
 
 static void init(HINSTANCE hInstance, LPSTR lpszCmdLine);
 static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine);
+static void logPreviousErrors();
 
-BOOL CALLBACK splash(HWND, UINT uMsg, WPARAM, LPARAM)
-	{
-	return uMsg == WM_INITDIALOG ? TRUE : FALSE;
-	}
-
-char* cmdline = "";
+const char* cmdline = "";
 
 bool is_server = false;
 bool is_client = false;
@@ -91,7 +87,7 @@ static void init(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		}
 	catch (const Except& e)
 		{
-		fatal(e.str());
+		fatal(e.str(), e.callstack());
 		}
 	catch (const std::exception& e)
 		{
@@ -104,6 +100,15 @@ static void init(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		fatal("unknown exception");
 		}
 #endif
+	}
+
+void close_dbms()
+	{
+	Fibers::foreach_tls([](ThreadLocalStorage& tls)
+		{
+		delete tls.thedbms;
+		tls.thedbms = nullptr;
+		});
 	}
 
 static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
@@ -157,16 +162,16 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	case TESTS :
 		{
 		TestObserverAlert to;
-		TestRegister::runall(to);
+		int nfailed = TestRegister::runall(to);
 		if (! *cmdline)
-			exit(EXIT_SUCCESS);
+			exit(nfailed == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
 		break ;
 		}
 	case TEST :
 		{
 		TestObserverAlert to;
-		TestRegister::runtest(CATSTRA("test_", cmdlineoptions.argstr), to);
-		exit(EXIT_SUCCESS);
+		int nfailed = TestRegister::runtest(CATSTRA("test_", cmdlineoptions.argstr), to);
+		exit(nfailed == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
 		}
 	case SERVER :
 		is_server = true;
@@ -177,16 +182,8 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		{
 		is_client = true;
 		set_dbms_server_ip(cmdlineoptions.argstr);
-		char* filename = err_filename();
-		FILE* f = fopen(filename, "r");
-		if (f)
-			{
-			char buf[1024] = "PREVIOUS: ";
-			while (fgets(buf + 10, sizeof buf - 10, f))
-				dbms()->log(buf);
-			fclose(f);
-			remove(filename);
-			}
+		atexit(close_dbms);
+		logPreviousErrors();
 		break ;
 		}
 	case COMPACT :
@@ -221,7 +218,20 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		exit(EXIT_FAILURE);
 	}
 
-// called by interp
+static void logPreviousErrors()
+	{
+	char* filename = err_filename();
+	if (FILE* f = fopen(filename, "r"))
+		{
+		char buf[1024] = "PREVIOUS: ";
+		while (fgets(buf + 10, sizeof buf - 10, f))
+			dbms()->log(buf);
+		fclose(f);
+		remove(filename);
+		}
+	}
+
+	// called by interp
 void ckinterrupt()
 	{
 	MSG msg;

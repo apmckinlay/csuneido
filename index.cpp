@@ -1,18 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -37,29 +37,29 @@ Index::Index(Database* d, TblNum t, const char* idx, Mmoffset r, short tl, int n
 	{ }
 
 Index::iterator Index::begin(int tran)
-	{ 
+	{
 	iterator it = iter(tran, keymin, keymax);
-	++it; 
-	return it; 
+	++it;
+	return it;
 	}
 
 Index::iterator Index::begin(int tran, const Key& key)
-	{ 
+	{
 	iterator it = iter(tran, key, key);
-	++it; 
+	++it;
 	return it;
 	}
 
 Index::iterator Index::begin(int tran, const Key& from, const Key& to)
-	{ 
+	{
 	iterator it = iter(tran, from, to);
-	++it; 
+	++it;
 	return it;
 	}
 
 TranRead* Index::read_act(int tran)
-	{ 
-	return db->read_act(tran, tblnum, idxname.str()); 
+	{
+	return db->read_act(tran, tblnum, idxname.str());
 	}
 
 static bool empty(Record& key)
@@ -98,12 +98,12 @@ Vslot Index::find(int tran, const Key& key)
 
 Index::iterator::iterator(Index* i, int tr, Key f, Key t, TranRead* trd)
 	: ix(i), prevsize(_I64_MAX), tran(tr), from(f), to(t), rewound(true), tranread(trd)
-	{ 
+	{
 	}
 
 Record Index::iterator::data()
-	{ 
-	verify(! rewound); 
+	{
+	verify(! rewound);
 	return ix->db->input(iter->adr());
 	}
 
@@ -143,7 +143,7 @@ void Index::iterator::operator++()
 		first = false;
 		++iter;
 		}
-	while (! iter.eof() && 
+	while (! iter.eof() &&
 		(iter->adr() >= prevsize || ! visible()))
 		++iter;
 	if (! iter.eof() && iter->key.prefixgt(to))
@@ -185,7 +185,7 @@ void Index::iterator::operator--()
 		rewound = false;
 		if (tranread)
 			tranread->end = to;
-		}	
+		}
 	else if (! iter.eof())
 		--iter;
 	while (! iter.eof() && ! visible())
@@ -246,11 +246,11 @@ Record k(ulong recnum)
 	short n = random(keysize) + 2;
 	for (short i = 0; i < n; ++i)
 		*dst++ = 'a' + random(26);
-	*dst++ = 0;
+	*dst = 0;
 	r.addval(buf);
 
 	r.addval(recnum);
-	const Mmoffset offset = 
+	const Mmoffset offset =
 #ifdef BIGDB
 		((Mmoffset) 1 << 30);
 #else
@@ -318,9 +318,9 @@ class test_index : public Tests
 		//find
 		srand(1234);
 		for (i = 0; i < N; i += 2)
-			{ 
-			verify(nil(f.find(tran, k(i)))); 
-			verify(! nil(f.find(tran, k(i+1)))); 
+			{
+			verify(nil(f.find(tran, k(i))));
+			verify(! nil(f.find(tran, k(i+1))));
 			}
 		//erase
 		srand(1234);
@@ -332,7 +332,7 @@ class test_index : public Tests
 	TEST(1, single)
 		{
 		TempDB tempdb;
-		
+
 		thedb->add_table("test");
 		thedb->add_column("test", "name");
 		thedb->add_index("test", "name", false);
@@ -398,7 +398,7 @@ class test_index : public Tests
 	TEST(2, multi)
 		{
 		TempDB tempdb;
-		
+
 		thedb->add_table("test");
 		thedb->add_column("test", "city");
 		thedb->add_column("test", "name");
@@ -461,39 +461,39 @@ class test_index : public Tests
 		verify(thedb->commit(t));
 		}
 private:
-	Record record(char* s)
+	static Record record(const char* s)
 		{
 		Record r;
 		r.addval(s);
 		return r;
 		}
-	Record record(char* s, char* t)
-		{
-		Record r;
-		r.addval(s);
-		r.addval(t);
-		return r;
-		}
-	Record key(char* s)
-		{
-		Record r;
-		r.addval(s);
-		return r;
-		}
-	Record key(char* s, char* t)
+	static Record record(const char* s, const char* t)
 		{
 		Record r;
 		r.addval(s);
 		r.addval(t);
 		return r;
 		}
-	Record key1(const Record& r)
+	static Record key(const char* s)
+		{
+		Record r;
+		r.addval(s);
+		return r;
+		}
+	static Record key(const char* s, const char* t)
+		{
+		Record r;
+		r.addval(s);
+		r.addval(t);
+		return r;
+		}
+	static Record key1(const Record& r)
 		{
 		Record k;
 		k.addraw(r.getraw(0));
 		return k;
 		}
-	Record key2(const Record& r)
+	static Record key2(const Record& r)
 		{
 		Record k;
 		k.addraw(r.getraw(0));

@@ -1,21 +1,19 @@
-#ifndef SUBOOLEAN_H
-#define SUBOOLEAN_H
-
+#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
- * 
- * Copyright (c) 2000 Suneido Software Corp. 
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2. 
+ * as published by the Free Software Foundation - version 2.
  *
  * This program is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details. 
+ * for more details.
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the Free
@@ -31,20 +29,20 @@ class gcstring;
 class SuBoolean : public SuValue
 	{
 public:
-	virtual int integer() const;
-	virtual void out(Ostream& os);
-	virtual gcstring gcstr() const;
-	virtual SuNumber* number(); // defined by SuNumber & SuString
-	
-	virtual size_t packsize() const;
-	virtual void pack(char* buf) const;
+	int integer() const override;
+	void out(Ostream& os) const override;
+	gcstring gcstr() const override;
+	SuNumber* number() override; // defined by SuNumber & SuString
+
+	size_t packsize() const override;
+	void pack(char* buf) const override;
 	static SuBoolean* unpack(const gcstring& s);
 
 	static SuBoolean* literal(const char* s);
 
-	virtual int order() const;
-	virtual bool lt(const SuValue& x) const;
-	virtual bool eq(const SuValue& x) const;
+	int order() const override;
+	bool lt(const SuValue& x) const override;
+	bool eq(const SuValue& x) const override;
 
 	static SuBoolean* t;
 	static SuBoolean* f;
@@ -55,5 +53,3 @@ private:
 
 	bool val;
 	};
-
-#endif

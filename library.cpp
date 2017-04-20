@@ -29,7 +29,6 @@
 #include "exceptimp.h"
 #include "sudb.h"
 #include "dbms.h"
-#include "suboolean.h"
 #include "sustring.h"
 #include "catstr.h"
 #include "pack.h"
@@ -69,7 +68,7 @@ HashMap<gcstring,gcstring> override;
 
 // load on demand - called by globals
 
-void libload(ushort gnum)
+void libload(int gnum)
 	{
 	if (Value* pv = builtins.find(gnum))
 		{
@@ -92,13 +91,13 @@ void libload(ushort gnum)
 			}
 		try
 			{
-			char* src;
+			const char* src;
 			if (gcstring* ps = override.find(lib + ":" + gname))
 				src = ps->str();
 			else
 				src = unpack_gcstr(*srcs).str();
 			Value x = compile(src, gname);
-			if (Named* n = x.get_named())
+			if (Named* n = const_cast<Named*>(x.get_named()))
 				{
 				n->lib = lib;
 				n->num = gnum;
@@ -113,13 +112,13 @@ void libload(ushort gnum)
 		}
 	}
 
-static Lisp<gcstring> libs;
+static Lisp<gcstring> thelibs;
 
 Lisp<gcstring> libraries()
 	{
-	if (nil(libs))
-		libs.append("stdlib");
-	return libs;
+	if (nil(thelibs))
+		thelibs.append("stdlib");
+	return thelibs;
 	}
 
 // builtin functions for libraries
@@ -148,7 +147,7 @@ Value su_use()
 		{
 		return SuFalse;
 		}
-	libs.append(lib);
+	thelibs.append(lib);
 	globals.clear();
 	return SuTrue;
 	}
@@ -162,7 +161,7 @@ Value su_unuse()
 	if (is_client && ! cmdlineoptions.local_library)
 		except("can't Unuse('" << lib << "')\nWhen client-server, only the server can Unuse");
 	TRACE(LIBRARIES, "Unuse " << lib);
-	libs.erase(lib);
+	thelibs.erase(lib);
 	globals.clear();
 	return SuTrue;
 	}
@@ -258,7 +257,7 @@ PRIM(builtinNames, "BuiltinNames()");
 #include "database.h"
 #include "thedb.h"
 
-Lisp<gcstring> libgetall(char* name)
+Lisp<gcstring> libgetall(const char* name)
 	// pre: name is a global you want to lookup in the libraries
 	// post: returns a list of alternating library names and values
 	{
@@ -266,7 +265,7 @@ Lisp<gcstring> libgetall(char* name)
 	key.addval(name);
 	key.addval(Value(-1));
 	Lisp<gcstring> srcs;
-	TranCloser t = theDB()->transaction(READONLY);
+	TranCloser t(theDB()->transaction(READONLY));
 	for (Lisp<gcstring> libs = reverse(libraries()); ! nil(libs); ++libs)
 		{
 		Fields flds = theDB()->get_fields(*libs);
@@ -274,7 +273,7 @@ Lisp<gcstring> libgetall(char* name)
 		int text_fld = search(flds, "text");
 		int compiled_fld = search(flds, "compiled");
 		Index* index = theDB()->get_index(*libs, "name,group");
-		if (group_fld < 0 || text_fld < 0 || index == NULL)
+		if (group_fld < 0 || text_fld < 0 || index == nullptr)
 			continue ; // library is invalid, ignore it
 		Index::iterator iter = index->begin(t, key);
 		if (! iter.eof())
