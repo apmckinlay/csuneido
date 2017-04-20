@@ -23,6 +23,19 @@
 #include "value.h"
 #include "gcstring.h"
 #include "ostream.h"
+#include "suboolean.h"
+#include "except.h"
+
+bool Value::toBool() const
+	{
+	if (p == SuBoolean::t)
+		return true;
+	else if (p == SuBoolean::f)
+		return false;
+	else
+		except("expected boolean, got " << type());
+	}
+
 
 const char* Value::str() const
 	{

@@ -263,7 +263,7 @@ Value TransactionClass::call(Value self, Value member,
 			(argnames[0] != read && argnames[0] != update))
 			except("usage: Transaction(read: [, block ]) or Transaction(update: [, block ])");
 		SuTransaction* t = new SuTransaction(
-			argnames[0] == update && ARG(0) == SuTrue
+			argnames[0] == update && ARG(0).toBool()
 				? SuTransaction::READWRITE : SuTransaction::READONLY);
 		if (nargs == 1)
 			return t;

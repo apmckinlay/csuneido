@@ -457,7 +457,7 @@ Value SuString::Match(short nargs, short nargnames, ushort* argnames, int each)
 	args.usage("usage: string.Match(pattern, pos = false, prev = false) => object");
 	gcstring pat = args.getgcstr("pattern");
 	Value posval = args.getValue("pos", SuFalse);
-	bool prev = args.getValue("prev", SuFalse) == SuTrue;
+	bool prev = args.getValue("prev", SuFalse).toBool();
 	int pos = (posval == SuFalse) ? (prev ? size() : 0) : posval.integer();
 	args.end();
 	Rxpart parts[MAXPARTS];

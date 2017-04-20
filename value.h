@@ -62,9 +62,11 @@ public:
 
 	SuValue* ptr() const
 		{ return is_int() ? 0 : p; }
-	explicit operator bool() const	// to allow if(val)
+	// to allow if(val), checks for non null, not true or false
+	explicit operator bool() const	
 		{ return p; }
-	Value operator-() const; // neg
+	bool toBool() const;
+
 
 	unsigned int hash() const
 		{ return is_int() ? im.n : p->hashfn(); }
@@ -103,6 +105,7 @@ public:
 	bool sameAs(Value other) const
 		{ return p == other.p; }
 
+	Value operator-() const; // neg
 	friend bool operator==(Value x, Value y);
 	friend bool operator<(Value x, Value y);
 	friend Value operator+(Value x, Value y);

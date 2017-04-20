@@ -517,9 +517,9 @@ static void list_named(short nargs, short nargnames, ushort* argnames, int each,
 	bool specified = false;
 	for (int i = 0; i < nargnames; ++i)
 		if (argnames[i] == list)
-			{ listq = (ARG(i) == SuTrue); specified = true; }
+			{ listq = (ARG(i).toBool()); specified = true; }
 		else if (argnames[i] == named)
-			{ namedq = (ARG(i) == SuTrue); specified = true; }
+			{ namedq = (ARG(i).toBool()); specified = true; }
 	if (!specified)
 		listq = namedq = true;
 	}

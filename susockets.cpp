@@ -260,7 +260,7 @@ Value SuSocketServer::call(Value self, Value member,
 		master->myclass = self;
 		master->call(master, NEW, na, nan, an, -1);
 
-		socketServer(name.str(), port.integer(), suserver, master, exit == SuTrue);
+		socketServer(name.str(), port.integer(), suserver, master, exit.toBool());
 		}
 	return Value();
 	}
