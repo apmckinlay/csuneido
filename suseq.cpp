@@ -117,7 +117,7 @@ bool SuSeq::infinite() const
 	KEEPSP
 	try
 		{
-		return iter.call(iter, Infinite, 0, 0, nullptr, -1).toBool();
+		return iter.call(iter, Infinite).toBool();
 		}
 	catch (...)
 		{
@@ -149,7 +149,7 @@ Value SuSeq::dup() const
 
 	duped = true;
 	KEEPSP
-	return iter.call(iter, DUP, 0, 0, nullptr, -1);
+	return iter.call(iter, DUP);
 	}
 
 Value SuSeq::next(Value it)
@@ -157,7 +157,7 @@ Value SuSeq::next(Value it)
 	static Value NEXT("Next");
 
 	KEEPSP
-	Value x = it.call(it, NEXT, 0, 0, nullptr, -1);
+	Value x = it.call(it, NEXT);
 	if (!x)
 		except("no return value from sequence.Next");
 	return x;

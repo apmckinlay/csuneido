@@ -154,7 +154,7 @@ Value trace()
 		try
 			{
 			KEEPSP
-			Value result = block.call(block, CALL, 0, 0, 0, -1);
+			Value result = block.call(block, CALL);
 			trace_level = prev_trace_level;
 			return result;
 			}
@@ -203,7 +203,7 @@ Value synchronized()
 	const int nargs = 1;
 	KEEPSP
 	Synch synch;
-	return ARG(0).call(ARG(0), CALL, 0, 0, 0, -1);
+	return ARG(0).call(ARG(0), CALL);
 	}
 PRIM(synchronized, "Synchronized(block)");
 

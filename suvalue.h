@@ -49,8 +49,8 @@ public:
 	virtual SuObject* ob_if_ob();			// defined by SuObject & SuSeq
 	SuObject* object();
 
-	virtual Value call(Value self, Value member,
-		short nargs, short nargnames, ushort* argnames, int each);
+	virtual Value call(Value self, Value member, short nargs = 0,
+		short nargnames = 0, ushort* argnames = nullptr, int each = -1);
 
 	virtual Value getdata(Value);
 	virtual void putdata(Value, Value);

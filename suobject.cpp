@@ -234,7 +234,7 @@ void SuObject::putdata(Value m, Value x)
 			KEEPSP
 			PUSH(m);
 			PUSH(x);
-			method.call(this, CALL, 2, 0, 0, -1);
+			method.call(this, CALL, 2);
 			return ;
 			}
 		else
@@ -284,7 +284,7 @@ Value SuObject::getdefault(Value member, Value def)
 			{
 			KEEPSP
 			PUSH(member);
-			return method.call(this, CALL, 1, 0, 0, -1);
+			return method.call(this, CALL, 1);
 			}
 		else
 			has_getter = false; // avoid future attempts
@@ -296,7 +296,7 @@ Value SuObject::getdefault(Value member, Value def)
 			if (Value method = myclass.getdata(getter))
 				{
 				KEEPSP
-				return method.call(this, CALL, 0, 0, 0, -1);
+				return method.call(this, CALL);
 				}
 			}
 	if (SuObject* defval_ob = def.ob_if_ob())
@@ -680,7 +680,7 @@ struct PartFn
 		{
 		KEEPSP
 		PUSH(x);
-		return SuTrue == docall(fn, CALL, 1, 0, 0, -1);
+		return SuTrue == docall(fn, CALL, 1);
 		}
 	Value fn;
 	};
@@ -707,7 +707,7 @@ struct Lt
 		KEEPSP
 		PUSH(x);
 		PUSH(y);
-		return SuTrue == docall(fn, CALL, 2, 0, 0, -1);
+		return SuTrue == docall(fn, CALL, 2);
 		}
 	Value fn;
 	};
@@ -1053,7 +1053,7 @@ Value SuObject::GetDefault(short nargs, short nargnames, ushort* argnames, int e
 	if (0 != strcmp(def.type(), "Block"))
 		return def;
 	KEEPSP
-	return def.call(def, CALL, 0, 0, 0, -1);
+	return def.call(def, CALL);
 	}
 
 // ==================================================================
@@ -1104,7 +1104,7 @@ void SuObject::outdelims(Ostream& os, const char* delims) const
 	Value c = lookup(const_cast<SuObject*>(this), MethodFinder(ToString));
 	if (c && c != SuFalse)
 		{
-		Value x = c.call(const_cast<SuObject*>(this), ToString, 0, 0, 0, -1);
+		Value x = c.call(const_cast<SuObject*>(this), ToString);
 		if (! x)
 			except("ToString must return a value");
 		if (const char* s = x.str_if_str())

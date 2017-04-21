@@ -252,7 +252,7 @@ Value BuiltinClass<SuRunPiped>::callclass(BuiltinArgs& args)
 	Closer<SuRunPiped*> closer(rp);
 	KEEPSP
 	PUSH(rp);
-	return block.call(block, CALL, 1, 0, 0, -1);
+	return block.call(block, CALL, 1);
 	}
 
 Value SuRunPiped::Read(BuiltinArgs& args)

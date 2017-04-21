@@ -36,7 +36,7 @@ Value call(const char* fname, Lisp<Value> args)
 	int nargs = 0;
 	for (; ! nil(args); ++args, ++nargs)
 		PUSH(*args);
-	return docall(globals[fname], CALL, nargs, 0, 0, -1);
+	return docall(globals[fname], CALL, nargs);
 	}
 
 Value method_call(Value ob, const gcstring& method, Lisp<Value> args)
@@ -45,7 +45,7 @@ Value method_call(Value ob, const gcstring& method, Lisp<Value> args)
 	int nargs = 0;
 	for (; ! nil(args); ++args, ++nargs)
 		PUSH(*args);
-	return docall(ob, new SuString(method), nargs, 0, 0, -1);
+	return docall(ob, new SuString(method), nargs);
 	}
 
 // used by sunapp

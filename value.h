@@ -84,8 +84,8 @@ public:
 		{ return is_int() ? 0 : p ? VAL->ob_if_ob() : 0; }
 	int symnum() const
 		{ return is_int() && im.n > 0 ? im.n : VAL->symnum(); }
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each)
+	Value call(Value self, Value member, short nargs = 0, 
+		short nargnames = 0, ushort* argnames = nullptr, int each = -1)
 		{ return VAL->call(self, member, nargs, nargnames, argnames, each); }
 	Value getdata(Value m) const
 		{ return VAL->getdata(m); }

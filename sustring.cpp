@@ -541,7 +541,7 @@ Value SuString::replace(const gcstring& patarg, Value reparg, int count) const
 				KEEPSP
 				gcstring match = gcstring::noalloc(parts[0].s, parts[0].n);
 				PUSH(new SuString(match));
-				Value x = docall(reparg, CALL, 1, 0, nullptr, -1);
+				Value x = docall(reparg, CALL, 1);
 				gcstring replace = x ? x.gcstr() : match;
 				result->add(replace.ptr(), replace.size());
 				}
@@ -571,7 +571,7 @@ Value SuString::MapN(short nargs, short nargnames, ushort* argnames, int each)
 		{
 		KEEPSP
 		PUSH(new SuString(s.substr(i, n)));
-		if (auto value = docall(block, CALL, 1, 0, 0, -1))
+		if (auto value = docall(block, CALL, 1))
 			dst.add(value.gcstr());
 		}
 	return new SuString(dst.gcstr());

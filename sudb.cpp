@@ -273,7 +273,7 @@ Value TransactionClass::call(Value self, Value member,
 			{
 			KEEPSP
 			PUSH(t);
-			Value result = block.call(block, CALL, 1, 0, 0, -1);
+			Value result = block.call(block, CALL, 1);
 			if (! t->isdone())
 				if (! t->commit())
 					except("Transaction: block commit failed: " << t->get_conflict());
@@ -339,7 +339,7 @@ Value SuTransaction::call(Value self, Value member,
 		Closer<SuQuery*> closer(val_cast<SuQuery*>(q));
 		KEEPSP
 		PUSH(q);
-		return block.call(block, CALL, 1, 0, 0, -1);
+		return block.call(block, CALL, 1);
 		}
 	else if (member == QueryFirst)
 		return queryone("transaction.QueryFirst", NEXT, false, this, args);
@@ -459,7 +459,7 @@ Value CursorClass::call(Value self, Value member,
 		Closer<SuCursor*> closer(c);
 		KEEPSP
 		PUSH(c);
-		return block.call(block, CALL, 1, 0, 0, -1);
+		return block.call(block, CALL, 1);
 		}
 	else
 		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
