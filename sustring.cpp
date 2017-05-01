@@ -211,11 +211,13 @@ Value SuString::call(Value self, Value member,
 		METHOD(FindLastnot1of);
 		methods["Has?"] = &SuString::Hasq;
 		METHOD(Iter);
+		METHOD(LineFromPosition);
 		METHOD(Lower);
 		methods["Lower?"] = &SuString::Lowerq;
 		METHOD(MapN);
 		METHOD(Match);
 		METHOD(Mbstowcs);
+		METHOD(NthLine);
 		methods["Number?"] = &SuString::Numberq;
 		methods["Numeric?"] = &SuString::Numericq;
 		methods["Prefix?"] = &SuString::Prefixq;
@@ -575,6 +577,39 @@ Value SuString::MapN(short nargs, short nargnames, ushort* argnames, int each)
 			dst.add(value.gcstr());
 		}
 	return new SuString(dst.gcstr());
+	}
+
+Value SuString::LineFromPosition(short nargs, short nargnames, 
+	unsigned short* argnames, int each)
+	{
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.LineFromPosition(pos)");
+	int pos = min(args.getint("pos"), size());
+	args.end();
+	int line = 0;
+	for (const char *p = ptr(), *lim = p + pos; p < lim; ++p)
+		if (*p == '\n')
+			++line;
+	return line;
+	}
+
+Value SuString::NthLine(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.NthLine(n)");
+	int n = args.getint("n");
+	args.end();
+	const char* p = ptr();
+	const char* lim = p + size();
+	for (; p < lim && n > 0; ++p)
+		if (*p == '\n')
+			--n;
+	const char* t = p;
+	while (t < lim && *t != '\n')
+		++t;
+	while (t > p && t[-1] == '\r')
+		--t;
+	return new SuString(gcstring::noalloc(p, t - p));
 	}
 
 Value SuString::Split(short nargs, short nargnames, ushort* argnames, int each)
