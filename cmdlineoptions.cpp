@@ -30,8 +30,9 @@
 
 extern int su_port;
 extern int dbserver_timeout;
+extern bool is_client;
 
-enum { PORT = AFTER_ACTIONS, UNATTENDED, LOCAL_LIBRARY,
+enum { PORT = AFTER_ACTIONS, NOSPLASH, UNATTENDED, LOCAL_LIBRARY,
 	NO_EXCEPTION_HANDLING, NO_GARBAGE_COLLECTION,
 	INSTALL_SERVICE, SERVICE,
 	CHECK_START, COMPACT_EXIT, IGNORE_VERSION, IGNORE_CHECK,
@@ -40,6 +41,7 @@ enum { PORT = AFTER_ACTIONS, UNATTENDED, LOCAL_LIBRARY,
 const char* CmdLineOptions::parse(const char* str)
 	{
 	char* end = nullptr; // used for strtol
+	const char* error = nullptr;
 
 	s = str;
 	while (int opt = get_option())
@@ -49,7 +51,7 @@ const char* CmdLineOptions::parse(const char* str)
 		// actions
 		case DUMP :
 		case LOAD :
-			if (0 != (argstr = get_word()))
+			if (nullptr != (argstr = get_word()))
 				argstr = strip_su(argstr);
 			else
 				argstr = "";
@@ -93,6 +95,9 @@ const char* CmdLineOptions::parse(const char* str)
 			su_port = strtol(s, &end, 10);
 			s = end;
 			break ;
+		case NOSPLASH:
+			error = "-n[osplash] option no longer supported, please remove";
+			break;
 		case UNATTENDED :
 			unattended = true;
 			break ;
@@ -154,6 +159,12 @@ const char* CmdLineOptions::parse(const char* str)
 			unreachable();
 			}
 		}
+	if (error)
+		{
+		if (action == CLIENT)
+			is_client = true; // so errlog goes to the right place
+		errlog(error);
+		}
 	return s;
 	}
 
@@ -178,6 +189,7 @@ static struct { const char* str; int num; } options[] = {
 	{ "-test", TEST },
 	{ "-t", TESTS },
 	{ "-port", PORT }, { "-p", PORT },
+	{ "-nosplash", NOSPLASH },{ "-n", NOSPLASH },
 	{ "-help", HELP }, { "-?", HELP }, { "-h", HELP },
 	{ "-version", VERSION }, { "-v", VERSION },
 	{ "-is", INSTALL_SERVICE }, { "-installservice", INSTALL_SERVICE },
