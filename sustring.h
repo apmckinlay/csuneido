@@ -115,6 +115,7 @@ private:
 	Value Asc(short nargs, short nargnames, ushort* argnames, int each);
 	Value Call(short nargs, short nargnames, ushort* argnames, int each);
 	Value Compile(short nargs, short nargnames, ushort* argnames, int each);
+	Value CountChar(short nargs, short nargnames, ushort* argnames, int each);
 	Value Detab(short nargs, short nargnames, ushort* argnames, int each);
 	Value Entab(short nargs, short nargnames, ushort* argnames, int each);
 	Value Eval(short nargs, short nargnames, ushort* argnames, int each);
@@ -128,7 +129,6 @@ private:
 	Value FindLastnot1of(short nargs, short nargnames, ushort* argnames, int each);
 	Value Hasq(short nargs, short nargnames, ushort* argnames, int each);
 	Value Iter(short nargs, short nargnames, ushort* argnames, int each);
-	Value LineFromPosition(short nargs, short nargnames, ushort* argnames, int each);
 	Value Lower(short nargs, short nargnames, ushort* argnames, int each);
 	Value Lowerq(short nargs, short nargnames, ushort* argnames, int each);
 	Value MapN(short nargs, short nargnames, ushort* argnames, int each);

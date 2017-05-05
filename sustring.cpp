@@ -198,6 +198,7 @@ Value SuString::call(Value self, Value member,
 		methods["AlphaNum?"] = &SuString::AlphaNumq;
 		methods[CALL] = &SuString::Call;
 		METHOD(Compile);
+		METHOD(CountChar);
 		METHOD(Detab);
 		METHOD(Entab);
 		METHOD(Eval);
@@ -211,7 +212,6 @@ Value SuString::call(Value self, Value member,
 		METHOD(FindLastnot1of);
 		methods["Has?"] = &SuString::Hasq;
 		METHOD(Iter);
-		METHOD(LineFromPosition);
 		METHOD(Lower);
 		methods["Lower?"] = &SuString::Lowerq;
 		METHOD(MapN);
@@ -579,20 +579,6 @@ Value SuString::MapN(short nargs, short nargnames, ushort* argnames, int each)
 	return new SuString(dst.gcstr());
 	}
 
-Value SuString::LineFromPosition(short nargs, short nargnames, 
-	unsigned short* argnames, int each)
-	{
-	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.LineFromPosition(pos)");
-	int pos = min(args.getint("pos"), size());
-	args.end();
-	int line = 0;
-	for (const char *p = ptr(), *lim = p + pos; p < lim; ++p)
-		if (*p == '\n')
-			++line;
-	return line;
-	}
-
 Value SuString::NthLine(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
@@ -627,6 +613,21 @@ Value SuString::Split(short nargs, short nargnames, ushort* argnames, int each)
 	if (i < str.size())
 		ob->add(new SuString(str.substr(i)));
 	return ob;
+	}
+
+Value SuString::CountChar(short nargs, short nargnames, ushort* argnames, 
+	int each)
+	{
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.CountChar(c)");
+	gcstring sc = args.getgcstr("c");
+	args.end();
+	if (sc.size() != 1)
+		args.exceptUsage();
+	char c = sc[0];
+	gcstring str = gcstr();
+	return std::count_if(str.begin(), str.end(), 
+		[c](char sch) { return sch == c; });
 	}
 
 Value SuString::Detab(short nargs, short nargnames, ushort* argnames, int each)
