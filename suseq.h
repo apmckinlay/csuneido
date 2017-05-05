@@ -40,7 +40,9 @@ public:
 	bool eq(const SuValue& y) const override;
 	SuObject* ob_if_ob() override;
 	SuObject* object() const;
-private:
+	const char* type() const override
+		{ return "Object"; }
+	private:
 	Value Join(short nargs) const;
 	bool infinite() const;
 	void build() const;

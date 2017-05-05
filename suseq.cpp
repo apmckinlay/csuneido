@@ -290,3 +290,10 @@ Value su_sequence()
 	return new SuSeq(ARG(0));
 	}
 PRIM(su_sequence, "Sequence(iter)");
+
+Value su_seq_q()
+	{
+	const int nargs = 1;
+	return val_cast<SuSeq*>(ARG(0)) ? SuTrue : SuFalse;
+	}
+PRIM(su_seq_q, "Seq?(value)");
