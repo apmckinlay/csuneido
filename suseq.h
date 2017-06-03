@@ -44,7 +44,7 @@ public:
 		{ return "Object"; }
 	private:
 	Value Join(short nargs) const;
-	bool infinite() const;
+	static bool infinite(Value it);
 	void build() const;
 	static SuObject* copy(Value iter);
 	Value dup() const;
