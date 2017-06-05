@@ -26,6 +26,7 @@
 #include "gcstring.h"
 #include "except.h"
 #include "charmatcher.h"
+#include <typeinfo>
 #include <vector>
 
 typedef std::vector<int> IntArrayList;
@@ -186,25 +187,6 @@ inline char toupper(char c)
 * This makes match almost as fast as indexOf or contains
 */
 
-enum ElementType
-	{
-	ELEMENT,
-	PAT_END,
-	START_OF_LINE,
-	END_OF_LINE,
-	START_OF_STRING,
-	END_OF_STRING,
-	START_OF_WORD,
-	END_OF_WORD,
-	BACKREF,
-	CHARS,
-	CHAR_CLASS,
-	BRANCH,
-	JUMP,
-	LEFT,
-	RIGHT
-	};
-
 class Element
 	{
 	public:
@@ -219,10 +201,6 @@ class Element
 		virtual int nextPossible(const char* s, int si, int sn) const
 			{
 			return si + 1;
-			}
-		virtual ElementType getType() const
-			{
-			return ELEMENT;
 			}
 	protected:
 		inline bool between(unsigned from, unsigned to, unsigned x) const
@@ -336,10 +314,6 @@ class PatEnd : public Element
 			{
 			return -1;
 			}
-		ElementType getType() const override
-			{
-			return PAT_END;
-			}
 	};
 
 class StartOfLine : public Element
@@ -357,10 +331,6 @@ class StartOfLine : public Element
 			const char* next = strchr(s + si, '\n');
 			return next == NULL ? sn + 1 : next - s + 1;
 			}
-		ElementType getType() const override
-			{
-			return START_OF_LINE;
-			}
 	};
 
 class EndOfLine : public Element
@@ -369,10 +339,6 @@ class EndOfLine : public Element
 		int omatch(const char* s, int si, int sn) const override
 			{
 			return (si == sn || s[si] == '\r' || s[si] == '\n') ? si : -1;
-			}
-		ElementType getType() const override
-			{
-			return END_OF_LINE;
 			}
 	};
 
@@ -387,10 +353,6 @@ class StartOfString : public Element
 			{
 			return sn + 1;
 			}
-		ElementType getType() const override
-			{
-			return START_OF_STRING;
-			}
 	};
 
 class EndOfString : public Element
@@ -403,10 +365,6 @@ class EndOfString : public Element
 				? si
 				: -1;
 			}
-		ElementType getType() const override
-			{
-			return END_OF_STRING;
-			}
 	};
 
 class StartOfWord : public Element
@@ -415,10 +373,6 @@ class StartOfWord : public Element
 		{
 		return (si == 0 || !RxCompile::word->matches(s[si - 1])) ? si : -1;
 		}
-	ElementType getType() const override
-		{
-		return START_OF_WORD;
-		}
 	};
 
 class EndOfWord : public Element
@@ -426,10 +380,6 @@ class EndOfWord : public Element
 	int omatch(const char* s, int si, int sn) const override
 		{
 		return (si == sn || !RxCompile::word->matches(s[si])) ? si : -1;
-		}
-	ElementType getType() const override
-		{
-		return END_OF_WORD;
 		}
 	};
 
@@ -452,10 +402,6 @@ class Backref : public Element
 				if (!same(s[si], t[ti], ignoringCase))
 					return -1;
 			return si;
-			}
-		ElementType getType() const override
-			{
-			return BACKREF;
 			}
 	};
 
@@ -495,10 +441,6 @@ class Chars : public Element
 						break;
 			return sn + 1;
 			}
-		ElementType getType() const override
-			{
-			return CHARS;
-			}
 	};
 
 class CharClass : public Element
@@ -529,10 +471,6 @@ class CharClass : public Element
 					return si;
 			return sn + 1;
 			}
-		ElementType getType() const override
-			{
-			return CHAR_CLASS;
-			}
 	};
 
 class Branch : public Element
@@ -541,10 +479,6 @@ class Branch : public Element
 		const int main;
 		const int alt;
 		Branch(int main, int alt) : main(main), alt(alt) { }
-		ElementType getType() const override
-			{
-			return BRANCH;
-			}
 	};
 
 class Jump : public Element
@@ -552,10 +486,6 @@ class Jump : public Element
 	public:
 		const int offset;
 		Jump(int offset) : offset(offset) { }
-		ElementType getType() const override
-			{
-			return JUMP;
-			}
 	};
 
 class Left : public Element
@@ -563,10 +493,6 @@ class Left : public Element
 	public:
 		const int idx;
 		Left(int idx) : idx(idx) { }
-		ElementType getType() const override
-			{
-			return LEFT;
-			}
 	};
 
 class Right : public Element
@@ -574,10 +500,6 @@ class Right : public Element
 	public:
 		const int idx;
 		Right(int idx) : idx(idx) { }
-		ElementType getType() const override
-			{
-			return RIGHT;
-			}
 	};
 
 Element* RxCompile::LEFT0 = new Left(0);
@@ -970,47 +892,48 @@ int RxMatch::amatch(int si, const Element** pat, IntArrayList* alt_si, IntArrayL
 	for (int pi = 0; pat[pi] != RxCompile::PATEND;)
 		{
 		const Element* e = pat[pi];
-		switch (e->getType())
-			{
-			case BRANCH:
+		if (typeid(*e) == typeid(Branch))
 			{
 			const Branch* b = dynamic_cast<const Branch*>(e);
 			alt_pi->push_back(pi + b->alt);
 			alt_si->push_back(si);
 			pi += b->main;
 			}
-			break;
-			case JUMP:
-				pi += dynamic_cast<const Jump*>(e)->offset;
-				break;
-			case LEFT:
-				idx = dynamic_cast<const Left*>(e)->idx;
-				if (idx < MAXPARTS)
-					part[idx].tmp = s + si;
+		else if (typeid(*e) == typeid(Jump))
+			{
+			pi += dynamic_cast<const Jump*>(e)->offset;
+			}
+		else if (typeid(*e) == typeid(Left))
+			{
+			idx = dynamic_cast<const Left*>(e)->idx;
+			if (idx < MAXPARTS)
+				part[idx].tmp = s + si;
+			++pi;
+			}
+		else if (typeid(*e) == typeid(Right))
+			{
+			idx = dynamic_cast<const Right*>(e)->idx;
+			if (idx < MAXPARTS)
+				{
+				part[idx].s = part[idx].tmp;
+				part[idx].n = s + si - part[idx].tmp;
+				}
+			++pi;
+			}
+		else
+			{
+			si = e->omatch(s, si, n, part);
+			if (si >= 0)
 				++pi;
-				break;
-			case RIGHT:
-				idx = dynamic_cast<const Right*>(e)->idx;
-				if (idx < MAXPARTS)
-					{
-					part[idx].s = part[idx].tmp;
-					part[idx].n = s + si - part[idx].tmp;
-					}
-				++pi;
-				break;
-			default:
-				si = e->omatch(s, si, n, part);
-				if (si >= 0)
-					++pi;
-				else
-					{
-					if (alt_si->size() <= 0)
-						return -1;
-					si = alt_si->back();
-					pi = alt_pi->back();
-					alt_si->pop_back();
-					alt_pi->pop_back();
-					}
+			else
+				{
+				if (alt_si->size() <= 0)
+					return -1;
+				si = alt_si->back();
+				pi = alt_pi->back();
+				alt_si->pop_back();
+				alt_pi->pop_back();
+				}
 			}
 		}
 	return si;
