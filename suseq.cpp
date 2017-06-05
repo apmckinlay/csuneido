@@ -32,7 +32,7 @@ SuSeq::SuSeq(Value i) : iter(i)
 
 void SuSeq::out(Ostream& os) const
 	{
-	if (infinite())
+	if (infinite(iter))
 		os << "Sequence(" << iter << ")";
 	else
 		{
@@ -58,7 +58,7 @@ Value SuSeq::call(Value self, Value member,
 		{
 		return Value();
 		}
-	if (! ob && (! duped || infinite())) // instantiate rather than dup again
+	if (! ob && (! duped || infinite(iter))) // instantiate rather than dup again
 		{
 		if (member == ITER)
 			{
@@ -110,14 +110,14 @@ Value SuSeq::Join(short nargs) const
 	return new SuString(oss.gcstr());
 	}
 
-bool SuSeq::infinite() const
+bool SuSeq::infinite(Value it)
 	{
 	static Value Infinite("Infinite?");
 
 	KEEPSP
 	try
 		{
-		return iter.call(iter, Infinite).toBool();
+		return it.call(it, Infinite).toBool();
 		}
 	catch (...)
 		{
@@ -127,15 +127,14 @@ bool SuSeq::infinite() const
 
 void SuSeq::build() const
 	{
-	if (ob)
-		return ;
-	if (infinite())
-		except("can't instantiate infinite sequence");
-	ob = copy(iter);
+	if (!ob)
+		ob = copy(iter);
 	}
 
 SuObject* SuSeq::copy(Value it)
 	{
+	if (infinite(it))
+		except("can't instantiate infinite sequence");
 	SuObject* copy = new SuObject;
 	Value x;
 	while (it != (x = next(it)))

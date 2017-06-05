@@ -1263,6 +1263,7 @@ Value SuObjectIter::call(Value self, Value member,
 	{
 	static Value NEXT("Next");
 	static Value DUP("Dup");
+	static Value INFINITE("Infinite?");
 
 	if (member == NEXT)
 		{
@@ -1295,6 +1296,8 @@ Value SuObjectIter::call(Value self, Value member,
 		{
 		return new SuObjectIter(object, values, include_vec, include_map);
 		}
+	else if (member == INFINITE)
+		return SuFalse;
 	else
 		method_not_found(type(), member);
 	}
