@@ -25,6 +25,7 @@
 #include "cachemap.h"
 #include "gcstring.h"
 #include "except.h"
+#include "charmatcher.h"
 #include <vector>
 
 typedef std::vector<int> IntArrayList;
@@ -111,141 +112,6 @@ inline char tolower(char c)
 inline char toupper(char c)
 	{
 	return islower(c) ? c - ('a' - 'A') : c;
-	}
-
-// CharMatcher
-class CharMatcher
-	{
-	public:
-		virtual bool matches(char ch) const
-			{
-			return false;
-			}
-		static CharMatcher* NONE;
-		static CharMatcher* is(char c);
-		static CharMatcher* anyOf(gcstring chars);
-		static CharMatcher* noneOf(gcstring chars);
-		static CharMatcher* inRange(unsigned from, unsigned to);
-
-		CharMatcher* negate();
-		CharMatcher* or_(CharMatcher* cm);
-	protected:
-		int indexIn(gcstring s, int start) const
-			{
-			const char* p = s.begin() + start;
-			int i = start;
-			for (; p < s.end(); ++p, ++i)
-				if (matches(*p))
-					return i;
-			return -1;
-			}
-	};
-
-class CMIs : public CharMatcher
-	{
-	private:
-		const char c;
-	public:
-		CMIs(char c) : c(c) { }
-		bool matches(char ch) const override
-			{
-			return c == ch;
-			}
-	};
-
-class CMAnyOf : public CharMatcher
-	{
-	private:
-		const gcstring chars;
-	public:
-		CMAnyOf(gcstring chars) : chars(chars) {}
-		bool matches(char ch) const override
-			{
-			return chars.find(ch) != -1;
-			}
-	};
-
-class CMInRange : public CharMatcher
-	{
-	private:
-		const unsigned from;
-		const unsigned to;
-	public:
-		CMInRange(unsigned from, unsigned to) :
-			from(from), to(to)
-			{ }
-		bool matches(char ch) const override
-			{
-			unsigned c = ch;
-			return from <= c && c <= to;
-			}
-	};
-
-class CMNegate : public CharMatcher
-	{
-	private:
-		const CharMatcher* cm;
-	public:
-		CMNegate(CharMatcher* cm) : cm(cm) { }
-		bool matches(char ch) const override
-			{
-			return !cm->matches(ch);
-			}
-	};
-
-class CMOr : public CharMatcher
-	{
-	private:
-		const CharMatcher* cm1;
-		const CharMatcher* cm2;
-	public:
-		CMOr(CharMatcher* cm1, CharMatcher* cm2) :
-			cm1(cm1), cm2(cm2)
-			{}
-		bool matches(char ch) const override
-			{
-			return cm1->matches(ch) || cm2->matches(ch);
-			}
-	};
-
-class CMNone : public CharMatcher
-	{
-	public:
-		bool matches(char ch) const override
-			{
-			return false;
-			}
-	};
-
-CharMatcher* CharMatcher::NONE = new CMNone();
-CharMatcher* CharMatcher::anyOf(gcstring chars)
-	{
-	return new CMAnyOf(chars);
-	}
-
-CharMatcher* CharMatcher::noneOf(gcstring chars)
-	{
-	return (new CMAnyOf(chars))->negate();
-	}
-
-CharMatcher* CharMatcher::inRange(unsigned from, unsigned to)
-	{
-	return new CMInRange(from, to);
-	}
-
-CharMatcher* CharMatcher::is(char c)
-	{
-	return new CMIs(c);
-	}
-
-CharMatcher* CharMatcher::negate()
-	{
-	return new CMNegate(this);
-	}
-
-CharMatcher* CharMatcher::or_(CharMatcher* cm)
-	{
-	return new CMOr(this, cm);
 	}
 
 /*
@@ -1401,40 +1267,9 @@ class test_regexp2 : public Tests
 	};
 REGISTER(test_regexp2);
 
-class test_charMatcher : public Tests
+class test_element : public Tests
 	{
-	TEST(0, main)
-		{
-		CMIs cmIs('a');
-		asserteq(cmIs.matches('a'), true);
-		asserteq(cmIs.matches('b'), false);
-
-		CMAnyOf cmAnyOf("bcd");
-		asserteq(cmAnyOf.matches('b'), true);
-		asserteq(cmAnyOf.matches('e'), false);
-
-		CMInRange cmInRange('e', 'g');
-		asserteq(cmInRange.matches('e'), true);
-		asserteq(cmInRange.matches('g'), true);
-		asserteq(cmInRange.matches('h'), false);
-
-		CMNegate cmNegate(&cmInRange);
-		asserteq(cmNegate.matches('e'), false);
-		asserteq(cmNegate.matches('g'), false);
-		asserteq(cmNegate.matches('h'), true);
-
-		CMOr cmOr(&cmAnyOf, &cmInRange);
-		asserteq(cmOr.matches('b'), true);
-		asserteq(cmOr.matches('e'), true);
-		asserteq(cmOr.matches('e'), true);
-		asserteq(cmOr.matches('g'), true);
-		asserteq(cmOr.matches('h'), false);
-
-		CMNone cmNone;
-		asserteq(cmNone.matches('a'), false);
-		asserteq(cmNone.matches('\n'), false);
-		}
-	TEST(1, posix)
+	TEST(0, posix)
 		{
 		asserteq(RxCompile::blank->matches(' '), true);
 		asserteq(RxCompile::blank->matches('\t'), true);
@@ -1520,12 +1355,7 @@ class test_charMatcher : public Tests
 		asserteq(RxCompile::notWord->matches('\n'), true);
 		asserteq(RxCompile::notWord->matches('('), true);
 		}
-	};
-REGISTER(test_charMatcher);
-
-class test_element : public Tests
-	{
-	TEST(0, omatch)
+	TEST(1, omatch)
 		{
 		asserteq(RxCompile::startOfLine->omatch("abc\nabc", 0, 7), 0);
 		asserteq(RxCompile::startOfLine->omatch("abc\nabc", 1, 7), -1);
@@ -1600,7 +1430,7 @@ class test_element : public Tests
 		asserteq(eBackref2.omatch("  World\nworld", 9, 13, parts), -1);
 		asserteq(eBackref2.omatch("  World\nworld", 13, 13, parts), -1);
 		}
-	TEST(1, nextPossible)
+	TEST(2, nextPossible)
 		{
 		asserteq(RxCompile::startOfLine->nextPossible("\nabc\n\nabc", 0, 9), 5);
 		asserteq(RxCompile::startOfLine->nextPossible("\nabc\n\nabc", 1, 9), 5);
