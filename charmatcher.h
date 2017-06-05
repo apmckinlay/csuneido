@@ -28,14 +28,14 @@ class CharMatcher
 		virtual bool matches(char ch) const;
 		static CharMatcher* NONE;
 		static CharMatcher* is(char c);
-		static CharMatcher* anyOf(gcstring chars);
-		static CharMatcher* noneOf(gcstring chars);
+		static CharMatcher* anyOf(const gcstring& chars);
+		static CharMatcher* noneOf(const gcstring& chars);
 		static CharMatcher* inRange(unsigned from, unsigned to);
 
 		CharMatcher* negate();
 		CharMatcher* or_(CharMatcher* cm);
 	protected:
-		int indexIn(gcstring s, int start) const;
+		int indexIn(const gcstring& s, int start) const;
 	};
 
 class CMIs : public CharMatcher
@@ -52,7 +52,7 @@ class CMAnyOf : public CharMatcher
 	private:
 		const gcstring chars;
 	public:
-		CMAnyOf(gcstring chars) : chars(chars) {}
+		CMAnyOf(const gcstring& chars) : chars(chars) {}
 		bool matches(char ch) const override;
 	};
 

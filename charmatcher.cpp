@@ -28,7 +28,7 @@ bool CharMatcher::matches(char ch) const
 	return false;
 	}
 
-int CharMatcher::indexIn(gcstring s, int start) const
+int CharMatcher::indexIn(const gcstring& s, int start) const
 	{
 	const char* p = s.begin() + start;
 	int i = start;
@@ -70,12 +70,12 @@ bool CMNone::matches(char ch) const
 	}
 
 CharMatcher* CharMatcher::NONE = new CMNone();
-CharMatcher* CharMatcher::anyOf(gcstring chars)
+CharMatcher* CharMatcher::anyOf(const gcstring& chars)
 	{
 	return new CMAnyOf(chars);
 	}
 
-CharMatcher* CharMatcher::noneOf(gcstring chars)
+CharMatcher* CharMatcher::noneOf(const gcstring& chars)
 	{
 	return (new CMAnyOf(chars))->negate();
 	}
