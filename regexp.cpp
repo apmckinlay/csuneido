@@ -127,17 +127,17 @@ inline char toupper(char c)
 *				|	$					endOfLine
 *				|	\A					startOfString
 *				|	\Z					endOfString
-*				|	(?i)				(only affects compile)
+*				|	(?i)					(only affects compile)
 *				|	(?-i)				(only affects compile)
-*				|	(?q)				(only affects compile)
+*				|	(?q)					(only affects compile)
 *				|	(?-q)				(only affects compile)
 *				|	\<					startOfWord
 *				|	\>					endOfWord
 *				|	\#					Backref(#)
 *				|	simple
-*				|	simple ?			Branch simple
-*				|	simple +			simple Branch
-*				|	simple *			Branch simple Branch
+*				|	simple ?				Branch simple
+*				|	simple +				simple Branch
+*				|	simple *				Branch simple Branch
 *				|	simple ??			Branch simple
 *				|	simple +?			simple Branch
 *				|	simple *?			Branch simple Branch
@@ -145,16 +145,16 @@ inline char toupper(char c)
 *	simple		:	.					any
 *				|	[ charmatch+ ]		CharClass
 *				|	[^ charmatch+ ]		CharClass
-*				|	shortcut			CharClass
+*				|	shortcut				CharClass
 *				|	( regex )			Left(i) ... Right(i)
 *				|	chars				Chars(string) // multiple characters
 *
-*	charmatch	:	shortcut			CharClass
+*	charmatch	:	shortcut				CharClass
 *				|	posix				CharClass
 *				|	char - char			CharClass
-*				|	char				CharClass
+*				|	char					CharClass
 *
-*	shortcut	:	\d					CharClass
+*	shortcut	:	\d						CharClass
 *				|	\D					CharClass
 *				|	\w					CharClass
 *				|	\W					CharClass
@@ -754,7 +754,6 @@ void RxCompile::emitChars(const char* s, int n)
 
 void RxCompile::insert(int i, Element* e)
 	{
-	//memmove(pat + i + 1, pat + i, pati - i);
 	for (int j = pati; j > i; j--)
 		pat[j] = pat[j - 1];
 	pat[i] = e;
@@ -813,13 +812,9 @@ bool RxCompile::next1of(const char* const set)
 
 
 /* next the stuff to match a pattern and a string
-*
-* uses iteration where possible
-* recurses for BRANCH (? * +) and alternatives
-* amatch finds longest match
-* match finds first successful amatch
+* amatch matches a specific point in a string against a compiled regular expression
+* returns -1 if no match, else the position past the match
 */
-
 class RxMatch
 	{
 	public:
