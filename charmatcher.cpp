@@ -64,12 +64,7 @@ bool CMOr::matches(char ch) const
 	return cm1->matches(ch) || cm2->matches(ch);
 	}
 
-bool CMNone::matches(char ch) const
-	{
-	return false;
-	}
-
-CharMatcher* CharMatcher::NONE = new CMNone();
+CharMatcher CharMatcher::NONE;
 CharMatcher* CharMatcher::anyOf(const gcstring& chars)
 	{
 	return new CMAnyOf(chars);
@@ -131,9 +126,8 @@ class test_charMatcher : public Tests
 		asserteq(cmOr.matches('g'), true);
 		asserteq(cmOr.matches('h'), false);
 
-		CMNone cmNone;
-		asserteq(cmNone.matches('a'), false);
-		asserteq(cmNone.matches('\n'), false);
+		asserteq(CharMatcher::NONE.matches('a'), false);
+		asserteq(CharMatcher::NONE.matches('\n'), false);
 		}
 	};
 REGISTER(test_charMatcher);

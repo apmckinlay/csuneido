@@ -26,7 +26,7 @@ class CharMatcher
 	{
 	public:
 		virtual bool matches(char ch) const;
-		static CharMatcher* NONE;
+		static CharMatcher NONE;
 		static CharMatcher* is(char c);
 		static CharMatcher* anyOf(const gcstring& chars);
 		static CharMatcher* noneOf(const gcstring& chars);
@@ -86,11 +86,5 @@ class CMOr : public CharMatcher
 		CMOr(CharMatcher* cm1, CharMatcher* cm2) :
 			cm1(cm1), cm2(cm2)
 			{}
-		bool matches(char ch) const override;
-	};
-
-class CMNone : public CharMatcher
-	{
-	public:
 		bool matches(char ch) const override;
 	};

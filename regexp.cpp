@@ -247,17 +247,6 @@ class RxCompile
 		static CharMatcher* cntrl;
 		static CharMatcher* word;
 		static CharMatcher* notWord;
-
-		static Element* LEFT0;
-		static Element* RIGHT0;
-		static Element* PATEND;
-		static Element* startOfLine;
-		static Element* endOfLine;
-		static Element* startOfString;
-		static Element* endOfString;
-		static Element* startOfWord;
-		static Element* endOfWord;
-		static Element* any;
 	private:
 		void regexp();
 		void sequence();
@@ -369,18 +358,20 @@ class EndOfString : public Element
 
 class StartOfWord : public Element
 	{
-	int omatch(const char* s, int si, int sn) const override
-		{
-		return (si == 0 || !RxCompile::word->matches(s[si - 1])) ? si : -1;
-		}
+	public:
+		int omatch(const char* s, int si, int sn) const override
+			{
+			return (si == 0 || !RxCompile::word->matches(s[si - 1])) ? si : -1;
+			}
 	};
 
 class EndOfWord : public Element
 	{
-	int omatch(const char* s, int si, int sn) const override
-		{
-		return (si == sn || !RxCompile::word->matches(s[si])) ? si : -1;
-		}
+	public:
+		int omatch(const char* s, int si, int sn) const override
+			{
+			return (si == sn || !RxCompile::word->matches(s[si])) ? si : -1;
+			}
 	};
 
 class Backref : public Element
@@ -502,16 +493,16 @@ class Right : public Element
 		Right(int idx) : idx(idx) { }
 	};
 
-Element* RxCompile::LEFT0 = new Left(0);
-Element* RxCompile::RIGHT0 = new Right(0);
-Element* RxCompile::PATEND = new PatEnd();
-Element* RxCompile::startOfLine = new StartOfLine();
-Element* RxCompile::endOfLine = new EndOfLine();
-Element* RxCompile::startOfString = new StartOfString();
-Element* RxCompile::endOfString = new EndOfString();
-Element* RxCompile::startOfWord = new StartOfWord();
-Element* RxCompile::endOfWord = new EndOfWord();
-Element* RxCompile::any = new CharClass(CharMatcher::noneOf("\r\n"));
+static Left LEFT0(0);
+static Right RIGHT0(0);
+static PatEnd PATEND;
+static StartOfLine startOfLine;
+static EndOfLine endOfLine;
+static StartOfString startOfString;
+static EndOfString endOfString;
+static StartOfWord startOfWord;
+static EndOfWord endOfWord;
+static CharClass any(CharMatcher::noneOf("\r\n"));
 
 char* rx_compile(const gcstring& s)
 	{
@@ -523,10 +514,10 @@ char* rx_compile(const gcstring& s)
 
 char* RxCompile::compile()
 	{
-	emit(LEFT0);
+	emit(&LEFT0);
 	regexp();
-	emit(RIGHT0);
-	emit(PATEND);
+	emit(&RIGHT0);
+	emit(&PATEND);
 	verify(pati <= patlen);
 	if (si < sn)
 		except("regex: closing ) without opening (");
@@ -567,17 +558,17 @@ void RxCompile::sequence()
 void RxCompile::element()
 	{
 	if (match('^'))
-		emit(startOfLine);
+		emit(&startOfLine);
 	else if (match('$'))
-		emit(endOfLine);
+		emit(&endOfLine);
 	else if (match("\\A"))
-		emit(startOfString);
+		emit(&startOfString);
 	else if (match("\\Z"))
-		emit(endOfString);
+		emit(&endOfString);
 	else if (match("\\<"))
-		emit(startOfWord);
+		emit(&startOfWord);
 	else if (match("\\>"))
-		emit(endOfWord);
+		emit(&endOfWord);
 	else if (match("(?i)"))
 		ignoringCase = true;
 	else if (match("(?-i)"))
@@ -623,7 +614,7 @@ void RxCompile::quoted()
 void RxCompile::simple()
 	{
 	if (match("."))
-		emit(any);
+		emit(&any);
 	else if (match("\\d"))
 		emit(new CharClass(digit));
 	else if (match("\\D"))
@@ -665,7 +656,7 @@ void RxCompile::charClass()
 	gcstring chars = "";
 	if (match(']'))
 		chars += "]";
-	CharMatcher* cm = CharMatcher::NONE;
+	CharMatcher* cm = &CharMatcher::NONE;
 	while (si < sn && src[si] != ']')
 		{
 		CharMatcher* elem;
@@ -675,7 +666,7 @@ void RxCompile::charClass()
 			unsigned to = src[si - 1];
 			elem = (from < to)
 				? CharMatcher::inRange(from, to)
-				: CharMatcher::NONE;
+				: &CharMatcher::NONE;
 			}
 		else if (match("\\d"))
 			elem = digit;
@@ -700,7 +691,7 @@ void RxCompile::charClass()
 			}
 		cm = cm->or_(elem);
 		}
-	if (!negate && cm == CharMatcher::NONE && chars.size() == 1)
+	if (!negate && cm == &CharMatcher::NONE && chars.size() == 1)
 		{
 		emitChars(chars.ptr(), 1);
 		return;
@@ -889,7 +880,7 @@ int RxMatch::amatch(int si, const Element** pat, IntArrayList* alt_si, IntArrayL
 		part[j].n = -1;
 	alt_si->clear();
 	alt_pi->clear();
-	for (int pi = 0; pat[pi] != RxCompile::PATEND;)
+	for (int pi = 0; pat[pi] != &PATEND;)
 		{
 		const Element* e = pat[pi];
 		if (typeid(*e) == typeid(Branch))
@@ -1280,37 +1271,37 @@ class test_element : public Tests
 		}
 	TEST(1, omatch)
 		{
-		asserteq(RxCompile::startOfLine->omatch("abc\nabc", 0, 7), 0);
-		asserteq(RxCompile::startOfLine->omatch("abc\nabc", 1, 7), -1);
-		asserteq(RxCompile::startOfLine->omatch("abc\nabc", 4, 7), 4);
+		asserteq(startOfLine.omatch("abc\nabc", 0, 7), 0);
+		asserteq(startOfLine.omatch("abc\nabc", 1, 7), -1);
+		asserteq(startOfLine.omatch("abc\nabc", 4, 7), 4);
 
-		asserteq(RxCompile::endOfLine->omatch("abc\nabc\r\nabc", 0, 12), -1);
-		asserteq(RxCompile::endOfLine->omatch("abc\nabc\r\nabc", 3, 12), 3);
-		asserteq(RxCompile::endOfLine->omatch("abc\nabc\r\nabc", 7, 12), 7);
-		asserteq(RxCompile::endOfLine->omatch("abc\nabc\r\nabc", 12, 12), 12);
+		asserteq(endOfLine.omatch("abc\nabc\r\nabc", 0, 12), -1);
+		asserteq(endOfLine.omatch("abc\nabc\r\nabc", 3, 12), 3);
+		asserteq(endOfLine.omatch("abc\nabc\r\nabc", 7, 12), 7);
+		asserteq(endOfLine.omatch("abc\nabc\r\nabc", 12, 12), 12);
 
-		asserteq(RxCompile::startOfString->omatch("abc\nabc", 0, 7), 0);
-		asserteq(RxCompile::startOfString->omatch("abc\nabc", 5, 7), -1);
+		asserteq(startOfString.omatch("abc\nabc", 0, 7), 0);
+		asserteq(startOfString.omatch("abc\nabc", 5, 7), -1);
 
-		asserteq(RxCompile::endOfString->omatch("abc\r\n", 5, 5), 5);
-		asserteq(RxCompile::endOfString->omatch("abc\r\n", 4, 5), 4);
-		asserteq(RxCompile::endOfString->omatch("abc\r\n", 3, 5), 3);
-		asserteq(RxCompile::endOfString->omatch("abc\r\n", 2, 5), -1);
+		asserteq(endOfString.omatch("abc\r\n", 5, 5), 5);
+		asserteq(endOfString.omatch("abc\r\n", 4, 5), 4);
+		asserteq(endOfString.omatch("abc\r\n", 3, 5), 3);
+		asserteq(endOfString.omatch("abc\r\n", 2, 5), -1);
 
-		asserteq(RxCompile::startOfWord->omatch("abc abc\rabc", 0, 11), 0);
-		asserteq(RxCompile::startOfWord->omatch("abc abc\rabc", 4, 11), 4);
-		asserteq(RxCompile::startOfWord->omatch("abc abc\rabc", 8, 11), 8);
-		asserteq(RxCompile::startOfWord->omatch("abc abc\rabc", 1, 11), -1);
+		asserteq(startOfWord.omatch("abc abc\rabc", 0, 11), 0);
+		asserteq(startOfWord.omatch("abc abc\rabc", 4, 11), 4);
+		asserteq(startOfWord.omatch("abc abc\rabc", 8, 11), 8);
+		asserteq(startOfWord.omatch("abc abc\rabc", 1, 11), -1);
 
-		asserteq(RxCompile::endOfWord->omatch("abc abc\rabc", 3, 11), 3);
-		asserteq(RxCompile::endOfWord->omatch("abc abc\rabc", 7, 11), 7);
-		asserteq(RxCompile::endOfWord->omatch("abc abc\rabc", 11, 11), 11);
-		asserteq(RxCompile::endOfWord->omatch("abc abc\rabc", 1, 11), -1);
+		asserteq(endOfWord.omatch("abc abc\rabc", 3, 11), 3);
+		asserteq(endOfWord.omatch("abc abc\rabc", 7, 11), 7);
+		asserteq(endOfWord.omatch("abc abc\rabc", 11, 11), 11);
+		asserteq(endOfWord.omatch("abc abc\rabc", 1, 11), -1);
 
-		asserteq(RxCompile::any->omatch("abc abc\r\n", 0, 9), 1);
-		asserteq(RxCompile::any->omatch("abc abc\r\n", 3, 9), 4);
-		asserteq(RxCompile::any->omatch("abc abc\r\n", 7, 9), -1);
-		asserteq(RxCompile::any->omatch("abc abc\r\n", 8, 9), -1);
+		asserteq(any.omatch("abc abc\r\n", 0, 9), 1);
+		asserteq(any.omatch("abc abc\r\n", 3, 9), 4);
+		asserteq(any.omatch("abc abc\r\n", 7, 9), -1);
+		asserteq(any.omatch("abc abc\r\n", 8, 9), -1);
 
 		Chars eChars1("aBc", false);
 		asserteq(eChars1.omatch("abc aBc", 0, 7), -1);
@@ -1355,15 +1346,15 @@ class test_element : public Tests
 		}
 	TEST(2, nextPossible)
 		{
-		asserteq(RxCompile::startOfLine->nextPossible("\nabc\n\nabc", 0, 9), 5);
-		asserteq(RxCompile::startOfLine->nextPossible("\nabc\n\nabc", 1, 9), 5);
-		asserteq(RxCompile::startOfLine->nextPossible("\nabc\n\nabc", 4, 9), 6);
-		asserteq(RxCompile::startOfLine->nextPossible("\nabc\n\nabc", 5, 9), 10);
-		asserteq(RxCompile::startOfLine->nextPossible("\nabc\n\nabc", 6, 9), 10);
-		asserteq(RxCompile::startOfLine->nextPossible("\nabc\n\nabc", 9, 9), 10);
+		asserteq(startOfLine.nextPossible("\nabc\n\nabc", 0, 9), 5);
+		asserteq(startOfLine.nextPossible("\nabc\n\nabc", 1, 9), 5);
+		asserteq(startOfLine.nextPossible("\nabc\n\nabc", 4, 9), 6);
+		asserteq(startOfLine.nextPossible("\nabc\n\nabc", 5, 9), 10);
+		asserteq(startOfLine.nextPossible("\nabc\n\nabc", 6, 9), 10);
+		asserteq(startOfLine.nextPossible("\nabc\n\nabc", 9, 9), 10);
 
-		asserteq(RxCompile::startOfString->nextPossible("abc", 0, 3), 4);
-		asserteq(RxCompile::startOfString->nextPossible("abc", 3, 3), 4);
+		asserteq(startOfString.nextPossible("abc", 0, 3), 4);
+		asserteq(startOfString.nextPossible("abc", 3, 3), 4);
 
 		Chars eChars1("aBc", false);
 		asserteq(eChars1.nextPossible("abc aBc", 0, 7), 4);
