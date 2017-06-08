@@ -1,23 +1,23 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
-* This file is part of Suneido - The Integrated Application Platform
-* see: http://www.suneido.com for more information.
-*
-* Copyright (c) 2000 Suneido Software Corp.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation - version 2.
-*
-* This program is distributed in the hope that it will be
-* useful, but WITHOUT ANY WARRANTY; without even the implied
-* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-* PURPOSE.  See the GNU General Public License in the file COPYING
-* for more details.
-*
-* You should have received a copy of the GNU General Public
-* License along with this program; if not, write to the Free
-* Software Foundation, Inc., 59 Temple Place - Suite 330,
-* Boston, MA 02111-1307, USA
+ * This file is part of Suneido - The Integrated Application Platform
+ * see: http://www.suneido.com for more information.
+ *
+ * Copyright (c) 2000 Suneido Software Corp.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation - version 2.
+ *
+ * This program is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License in the file COPYING
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the Free
+ * Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "regexp.h"
@@ -66,21 +66,21 @@ inline bool isword(char c)
 
 inline bool isspace(char c)
 	{
-	switch (c)
+    switch (c)
 		{
-		case ' ':
-		case '\t':
-		case '\r':
-		case '\n':
-		case '\v':
-		case '\f':
-			return true;
-		default:
-			return false;
+    case ' ':
+    case '\t':
+    case '\r':
+    case '\n':
+    case '\v':
+    case '\f':
+        return true;
+    default:
+        return false;
 		}
 	}
 
-inline bool isxdigit(char c)
+        inline bool isxdigit(char c)
 	{
 	return isdigit(c) || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
 	}
@@ -189,93 +189,93 @@ inline char toupper(char c)
 
 class Element
 	{
-	public:
-		virtual int omatch(const char* s, int si, int sn, Rxpart* res) const
-			{
-			return omatch(s, si, sn);
-			}
-		virtual int omatch(const char* s, int si, int sn) const
-			{
-			return -1;
-			};
-		virtual int nextPossible(const char* s, int si, int sn) const
-			{
-			return si + 1;
-			}
-	protected:
-		inline bool between(unsigned from, unsigned to, unsigned x) const
-			{
-			return from <= x && x <= to;
-			}
-		inline bool same(char c1, char c2, bool ignoringCase) const
-			{
-			return ignoringCase ? tolower(c1) == tolower(c2) : c1 == c2;
-			}
-		inline bool inRange(char from, char to, char c, bool ignoringCase) const
-			{
-			return ignoringCase
-				? between(from, to, tolower(c)) || between(from, to, toupper(c))
-				: between(from, to, tolower(c));
-			}
+public:
+	virtual int omatch(const char* s, int si, int sn, Rxpart* res) const
+		{
+		return omatch(s, si, sn);
+		}
+	virtual int omatch(const char* s, int si, int sn) const
+		{
+		return -1;
+		};
+	virtual int nextPossible(const char* s, int si, int sn) const
+		{
+		return si + 1;
+		}
+protected:
+	inline bool between(unsigned from, unsigned to, unsigned x) const
+		{
+		return from <= x && x <= to;
+		}
+	inline bool same(char c1, char c2, bool ignoringCase) const
+		{
+		return ignoringCase ? tolower(c1) == tolower(c2) : c1 == c2;
+		}
+	inline bool inRange(char from, char to, char c, bool ignoringCase) const
+		{
+		return ignoringCase
+			? between(from, to, tolower(c)) || between(from, to, toupper(c))
+			: between(from, to, tolower(c));
+		}
 	};
 
 // compile
 class RxCompile
 	{
-	public:
-		RxCompile(const char* src, int len) :
-			src(src), sn(len)
-			{
-			patlen = len * 3 + 8;
-			pat = new Element*[patlen];
-			}
-		char* compile();
+public:
+	RxCompile(const char* src, int len) :
+		src(src), sn(len)
+		{
+		patlen = len * 3 + 8;
+		pat = new Element*[patlen];
+		}
+	char* compile();
 
-		static CharMatcher* blank;
-		static CharMatcher* digit;
-		static CharMatcher* notDigit;
-		static CharMatcher* lower;
-		static CharMatcher* upper;
-		static CharMatcher* alpha;
-		static CharMatcher* alnum;
-		static CharMatcher* punct;
-		static CharMatcher* graph;
-		static CharMatcher* print;
-		static CharMatcher* xdigit;
-		static CharMatcher* space;
-		static CharMatcher* notSpace;
-		static CharMatcher* cntrl;
-		static CharMatcher* word;
-		static CharMatcher* notWord;
-	private:
-		void regexp();
-		void sequence();
-		void element();
-		void quoted();
-		void simple();
-		void charClass();
-		CharMatcher* posixClass();
+	static CharMatcher* blank;
+	static CharMatcher* digit;
+	static CharMatcher* notDigit;
+	static CharMatcher* lower;
+	static CharMatcher* upper;
+	static CharMatcher* alpha;
+	static CharMatcher* alnum;
+	static CharMatcher* punct;
+	static CharMatcher* graph;
+	static CharMatcher* print;
+	static CharMatcher* xdigit;
+	static CharMatcher* space;
+	static CharMatcher* notSpace;
+	static CharMatcher* cntrl;
+	static CharMatcher* word;
+	static CharMatcher* notWord;
+private:
+	void regexp();
+	void sequence();
+	void element();
+	void quoted();
+	void simple();
+	void charClass();
+	CharMatcher* posixClass();
 
-		const char* src;
-		int si = 0;
-		int sn;
-		bool ignoringCase = false;
-		int leftCount = 0;
-		bool inChars = false;
-		bool inCharsIgnoringCase = false;
-		Element** pat;
-		int patlen;
-		int pati = 0;
+	void emit(Element* e);
+	void emitChars(const char* s, int n);
+	void insert(int i, Element* e);
+	bool match(const char* s);
+	bool match(char c);
+	void mustMatch(char c);
+	bool matchBackref();
+	bool matchRange();
+	bool next1of(const char* const set);
 
-		void emit(Element* e);
-		void emitChars(const char* s, int n);
-		void insert(int i, Element* e);
-		bool match(const char* s);
-		bool match(char c);
-		void mustMatch(char c);
-		bool matchBackref();
-		bool matchRange();
-		bool next1of(const char* const set);
+	const char* src;
+	int si = 0;
+	int sn;
+	bool ignoringCase = false;
+	int leftCount = 0;
+	bool inChars = false;
+	bool inCharsIgnoringCase = false;
+	Element** pat;
+	int patlen;
+	int pati = 0;
 	};
 
 CharMatcher* RxCompile::blank = CharMatcher::anyOf(" \t");
@@ -298,199 +298,203 @@ CharMatcher* RxCompile::notWord = RxCompile::word->negate();
 
 class PatEnd : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return -1;
-			}
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return -1;
+		}
 	};
 
 class StartOfLine : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return (si == 0 || s[si - 1] == '\n') ? si : -1;
-			}
-		int nextPossible(const char* s, int si, int sn) const override
-			{
-			if (++si == sn)
-				return sn + 1;
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return (si == 0 || s[si - 1] == '\n') ? si : -1;
+		}
+	int nextPossible(const char* s, int si, int sn) const override
+		{
+		if (++si == sn)
+			return sn + 1;
 
-			const char* next = strchr(s + si, '\n');
-			return next == NULL ? sn + 1 : next - s + 1;
-			}
+		const char* next = strchr(s + si, '\n');
+		return next == NULL ? sn + 1 : next - s + 1;
+		}
 	};
 
 class EndOfLine : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return (si == sn || s[si] == '\r' || s[si] == '\n') ? si : -1;
-			}
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return (si == sn || s[si] == '\r' || s[si] == '\n') ? si : -1;
+		}
 	};
 
 class StartOfString : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return (si == 0) ? si : -1;
-			}
-		int nextPossible(const char* s, int si, int sn) const override
-			{
-			return sn + 1;
-			}
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return (si == 0) ? si : -1;
+		}
+	int nextPossible(const char* s, int si, int sn) const override
+		{
+		return sn + 1;
+		}
 	};
 
 class EndOfString : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return (si == sn || (si == sn - 1 && s[si] == '\n')
-				|| (si == sn - 2 && s[si] == '\r' && s[si + 1] == '\n'))
-				? si
-				: -1;
-			}
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return (si == sn || (si == sn - 1 && s[si] == '\n')
+			|| (si == sn - 2 && s[si] == '\r' && s[si + 1] == '\n'))
+			? si
+			: -1;
+		}
 	};
 
 class StartOfWord : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return (si == 0 || !RxCompile::word->matches(s[si - 1])) ? si : -1;
-			}
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return (si == 0 || !RxCompile::word->matches(s[si - 1])) ? si : -1;
+		}
 	};
 
 class EndOfWord : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return (si == sn || !RxCompile::word->matches(s[si])) ? si : -1;
-			}
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return (si == sn || !RxCompile::word->matches(s[si])) ? si : -1;
+		}
 	};
 
 class Backref : public Element
 	{
-	private:
-		int idx;
-		bool ignoringCase;
-	public:
-		Backref(int idx, bool ignoringCase) :
-			idx(idx), ignoringCase(ignoringCase)
-			{ }
-		int omatch(const char* s, int si, int sn, Rxpart* res) const override
-			{
-			auto t = res[idx].s;
-			int tn = res[idx].n;
-			if (tn == -1 || si + tn > sn)
+public:
+	Backref(int idx, bool ignoringCase) :
+		idx(idx), ignoringCase(ignoringCase)
+		{ }
+	int omatch(const char* s, int si, int sn, Rxpart* res) const override
+		{
+		auto t = res[idx].s;
+		int tn = res[idx].n;
+		if (tn == -1 || si + tn > sn)
+			return -1;
+		for (int ti = 0; ti < tn; ++ti, ++si)
+			if (!same(s[si], t[ti], ignoringCase))
 				return -1;
-			for (int ti = 0; ti < tn; ++ti, ++si)
-				if (!same(s[si], t[ti], ignoringCase))
-					return -1;
-			return si;
-			}
+		return si;
+		}
+private:
+	int idx;
+	bool ignoringCase;
 	};
 
 class Chars : public Element
 	{
-	private:
-		gcstring chars;
-		bool ignoringCase;
-	public:
-		Chars(const char* chars, bool ignoringCase) :
-			chars(chars), ignoringCase(ignoringCase)
-			{ }
-		Chars(const char* chars, int sn, bool ignoringCase) :
-			chars(chars, sn), ignoringCase(ignoringCase)
-			{ }
-		void add(const char* s, int sn)
-			{
-			chars += gcstring(s, sn);
-			}
-		int omatch(const char*s, int si, int sn) const override
-			{
-			if (si + chars.size() > sn)
+public:
+	Chars(const char* chars, bool ignoringCase) :
+		chars(chars), ignoringCase(ignoringCase)
+		{ }
+	Chars(const char* chars, int sn, bool ignoringCase) :
+		chars(chars, sn), ignoringCase(ignoringCase)
+		{ }
+	void add(const char* s, int sn)
+		{
+		chars += gcstring(s, sn);
+		}
+	int omatch(const char*s, int si, int sn) const override
+		{
+		if (si + chars.size() > sn)
+			return -1;
+		for (int ti = 0; ti < chars.size(); ++ti, ++si)
+			if (!same(s[si], chars[ti], ignoringCase))
 				return -1;
-			for (int ti = 0; ti < chars.size(); ++ti, ++si)
-				if (!same(s[si], chars[ti], ignoringCase))
-					return -1;
-			return si;
-			}
-		int nextPossible(const char* s, int si, int sn) const override
-			{
-			int len = chars.size();
-			for (++si; si <= sn - len; ++si)
-				for (int i = 0; ; ++i)
-					if (i == len)
-						return si;
-					else if (!same(s[si + i], chars[i], ignoringCase))
-						break;
-			return sn + 1;
-			}
+		return si;
+		}
+	int nextPossible(const char* s, int si, int sn) const override
+		{
+		int len = chars.size();
+		for (++si; si <= sn - len; ++si)
+			for (int i = 0; ; ++i)
+				if (i == len)
+					return si;
+				else if (!same(s[si + i], chars[i], ignoringCase))
+					break;
+		return sn + 1;
+		}
+private:
+	gcstring chars;
+	bool ignoringCase;
 	};
 
 class CharClass : public Element
 	{
-	private:
-		CharMatcher* cm;
-		bool ignoringCase;
-		bool matches(char c) const
-			{
-			return ignoringCase
-				? cm->matches(tolower(c)) || cm->matches(toupper(c))
-				: cm->matches(c);
-			}
-	public:
-		CharClass(CharMatcher* cm, bool ignoringCase = false) :
-			cm(cm), ignoringCase(ignoringCase)
-			{ }
-		int omatch(const char* s, int si, int sn) const override
-			{
-			if (si >= sn)
-				return -1;
-			return matches(s[si]) ? si + 1 : -1;
-			}
-		int nextPossible(const char* s, int si, int sn) const override
-			{
-			for (++si; si < sn; ++si)
-				if (matches(s[si]))
-					return si;
-			return sn + 1;
-			}
+public:
+	CharClass(CharMatcher* cm, bool ignoringCase = false) :
+		cm(cm), ignoringCase(ignoringCase)
+		{ }
+	int omatch(const char* s, int si, int sn) const override
+		{
+		if (si >= sn)
+			return -1;
+		return matches(s[si]) ? si + 1 : -1;
+		}
+	int nextPossible(const char* s, int si, int sn) const override
+		{
+		for (++si; si < sn; ++si)
+			if (matches(s[si]))
+				return si;
+		return sn + 1;
+		}
+private:
+	bool matches(char c) const
+		{
+		return ignoringCase
+			? cm->matches(tolower(c)) || cm->matches(toupper(c))
+			: cm->matches(c);
+		}
+	CharMatcher* cm;
+	bool ignoringCase;
 	};
 
 class Branch : public Element
 	{
-	public:
-		const int main;
-		const int alt;
-		Branch(int main, int alt) : main(main), alt(alt) { }
+public:
+	Branch(int main, int alt) : main(main), alt(alt) 
+		{ }
+	const int main;
+	const int alt;
 	};
 
 class Jump : public Element
 	{
-	public:
-		const int offset;
-		Jump(int offset) : offset(offset) { }
+public:
+	Jump(int offset) : offset(offset) 
+		{ }
+	const int offset;
 	};
 
 class Left : public Element
 	{
-	public:
-		const int idx;
-		Left(int idx) : idx(idx) { }
+public:
+	Left(int idx) : idx(idx) 
+		{ }
+	const int idx;
 	};
 
 class Right : public Element
 	{
-	public:
-		const int idx;
-		Right(int idx) : idx(idx) { }
+public:
+	Right(int idx) : idx(idx) 
+		{ }
+	const int idx;
 	};
 
 static Left LEFT0(0);
@@ -817,19 +821,19 @@ bool RxCompile::next1of(const char* const set)
 */
 class RxMatch
 	{
-	public:
-		RxMatch(const char* str, int len, Rxpart* pts)
-			: s(str), n(len), part(pts ? pts : parts)
-			{ }
-		int amatch(int si, const Element** pat, IntArrayList* alt_si, IntArrayList* alt_pi);
-		int amatch(int si, const Element** pat);
-	private:
-		const char* s;				// string
-		int i = 0;					// current position in string
-		int n;						// length of string
-		const Element* p = nullptr;	// current position in pattern
-		Rxpart* part;
-		Rxpart parts[MAXPARTS];		// used if none passed in
+public:
+	RxMatch(const char* str, int len, Rxpart* pts)
+		: s(str), n(len), part(pts ? pts : parts)
+		{ }
+	int amatch(int si, const Element** pat, IntArrayList* alt_si, IntArrayList* alt_pi);
+	int amatch(int si, const Element** pat);
+private:
+	const char* s;				// string
+	int i = 0;					// current position in string
+	int n;						// length of string
+	const Element* p = nullptr;	// current position in pattern
+	Rxpart* part;
+	Rxpart parts[MAXPARTS];		// used if none passed in
 	};
 
 bool rx_match(const char* s, int n, int i, const char* pat, Rxpart* psubs)
