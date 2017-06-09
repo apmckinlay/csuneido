@@ -631,22 +631,26 @@ void RxCompile::simple()
 		emit(new CharClass(space));
 	else if (match("\\S"))
 		emit(new CharClass(notSpace));
-	else if (matchBackref()) {
+	else if (matchBackref()) 
+		{
 		int i = src[si - 1] - '0';
 		emit(new Backref(i, ignoringCase));
 		}
-	else if (match("[")) {
+	else if (match("[")) 
+		{
 		charClass();
 		mustMatch(']');
 		}
-	else if (match("(")) {
+	else if (match("(")) 
+		{
 		int i = ++leftCount;
 		emit(new Left(i));
 		regexp();					// recurse
 		emit(new Right(i));
 		mustMatch(')');
 		}
-	else {
+	else 
+		{
 		if (si + 1 < sn)
 			match("\\");
 		emitChars(src + si, 1);
@@ -686,7 +690,8 @@ void RxCompile::charClass()
 			elem = notSpace;
 		else if (match("[:"))
 			elem = posixClass();
-		else {
+		else 
+			{
 			if (si + 1 < sn)
 				match("\\");
 			chars += gcstring(src + si, 1);
