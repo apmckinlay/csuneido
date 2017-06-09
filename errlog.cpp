@@ -36,6 +36,11 @@ void errlog(const char* msg1, const char* msg2, const char* msg3)
 	{
 	if (++count > LIMIT)
 		fatal("too many errors, exiting");
+	errlog_uncounted(msg1, msg2, msg3);
+	}
+
+void errlog_uncounted(const char* msg1, const char* msg2, const char* msg3)
+	{
 	OstreamFile log(is_client ? err_filename() : "error.log", "at");
 	time_t t;
 	time(&t);
