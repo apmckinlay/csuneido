@@ -73,7 +73,7 @@ struct Fibers
 	static bool yield();
 
 	/// mark current fiber as done and yield
-	static void end();
+	[[noreturn]] static void end();
 
 	static void foreach_tls(std::function<void(ThreadLocalStorage&)> f);
 
