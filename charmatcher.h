@@ -25,6 +25,7 @@
 class CharMatcher
 	{
 public:
+	virtual ~CharMatcher() = default;
 	virtual bool matches(char ch) const;
 	CharMatcher* negate();
 	CharMatcher* or_(CharMatcher* cm);
@@ -36,56 +37,4 @@ public:
 	static CharMatcher* inRange(unsigned from, unsigned to);
 protected:
 	int indexIn(const gcstring& s, int start) const;
-	};
-
-class CMIs : public CharMatcher
-	{
-public:
-	CMIs(char c) : c(c) 
-		{ }
-	bool matches(char ch) const override;
-private:
-	const char c;
-	};
-
-class CMAnyOf : public CharMatcher
-	{
-public:
-	CMAnyOf(const gcstring& chars) : chars(chars) 
-		{ }
-	bool matches(char ch) const override;
-private:
-	const gcstring chars;
-	};
-
-class CMInRange : public CharMatcher
-	{
-public:
-	CMInRange(unsigned from, unsigned to) : from(from), to(to)
-		{ }
-	bool matches(char ch) const override;
-private:
-	const unsigned from;
-	const unsigned to;
-	};
-
-class CMNegate : public CharMatcher
-	{
-public:
-	CMNegate(CharMatcher* cm) : cm(cm) 
-		{ }
-	bool matches(char ch) const override;
-private:
-	const CharMatcher* cm;
-	};
-
-class CMOr : public CharMatcher
-	{
-public:
-	CMOr(CharMatcher* cm1, CharMatcher* cm2) : cm1(cm1), cm2(cm2)
-		{ }
-	bool matches(char ch) const override;
-private:
-	const CharMatcher* cm1;
-	const CharMatcher* cm2;
 	};
