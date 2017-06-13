@@ -44,12 +44,12 @@ public:
 	const char* value = "";
 	int len = 0;
 	const char* err = "";
-	Buffer buf;
 	const char* source;
 	int si;
 	int keyword = 0;
 	CodeVisitor* visitor = nullptr; // not used by Scanner
 	// but placed here to avoid passing around extra argument in compiler
+	Buffer buf;
 protected:
 	explicit Scanner(const Scanner*);
 	virtual int keywords(const char*);

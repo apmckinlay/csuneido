@@ -1,0 +1,60 @@
+ifdef DEBUG
+  OFLAGS=-g
+  LDFLAGS=
+else
+  OFLAGS=-O2  -DNDEBUG
+  LDFLAGS=-s
+endif
+
+SOURCES = alloc.c reclaim.c allchblk.c misc.c mach_dep.c os_dep.c \
+	mark_rts.c headers.c mark.c obj_map.c blacklst.c finalize.c \
+	new_hblk.c dbg_mlc.c malloc.c stubborn.c dyn_load.c \
+	typd_mlc.c ptr_chck.c mallocx.c
+OBJECTS = $(patsubst %.c,$(OUTPUT)/%.o,$(SOURCES))
+
+all: $(OUTPUT)/gc.a $(OUTPUT)/gctest.exe
+
+CC = clang
+CFLAGS = -DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -D_X86_=1 \
+	-D_CRT_SECURE_NO_DEPRECATE -DLARGE_CONFIG \
+	-Wno-logical-op-parentheses -Wno-deprecated-declarations -Wno-return-stack-address -Wno-shift-negative-value\
+	-DSILENT -DALL_INTERIOR_POINTERS -DDONT_ADD_BYTE_AT_END \
+	-DTHREADS -DFIBERS -DGC_NOT_DLL -DGC_BUILD -Iinclude
+	
+.SUFFIXES:
+
+$(OUTPUT)/%.o : %.c
+	@echo $<
+	@$(CC) $(CFLAGS) $(OFLAGS) -c -o $@ $<
+
+$(OUTPUT)/%.o : %.cpp
+	@echo $<
+	@$(CC) $(CFLAGS) $(OFLAGS) -c -o $@ $<
+	
+$(OUTPUT)/test.o : tests/test.c
+	@echo $<
+	@$(CC) $(CFLAGS) $(OFLAGS) -c -o $@ $<
+	
+$(OBJECTS) $(OUTPUT)/test.o : include/private/gc_priv.h include/private/gc_hdrs.h include/gc.h include/private/gcconfig.h \
+	include/private/gc_locks.h include/private/gc_pmark.h include/gc_mark.h
+
+$(OUTPUT)/gc.a : $(OBJECTS)
+	ar r $@ $^
+	
+#  This produces a "GUI" applications that opens no windows and writes to "gc.log"
+$(OUTPUT)/gctest.exe : $(OUTPUT)/test.o $(OUTPUT)/gc.a $(OUTPUT)/stubs.o
+	$(CC) -mwindows $(LDFLAGS) -o $@ $^ $(GUILIBS)
+
+.PHONY : clean
+clean :
+	del /q $(OUTPUT)\\*.*
+	
+.PHONY : install
+install : $(OUTPUT)/gc.a
+	copy /y $(OUTPUT)\\gc.a ..\\gc_$(OUTPUT).a
+	
+.PHONY : test
+test : $(OUTPUT)/gctest.exe
+	del gc.log
+	$(OUTPUT)/gctest
+	type gc.log

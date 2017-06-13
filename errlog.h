@@ -22,3 +22,4 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void errlog(const char* msg1, const char* msg2 = "", const char* msg3 = "");
+void errlog_uncounted(const char* msg1, const char* msg2 = "", const char* msg3 = "");
