@@ -328,6 +328,23 @@ void RxCompile::element()
 			output(BRANCH, -len);
 			++s;
 			}
+		else if (*s == '{' && next() != '0' && next() != '}')
+			{
+			int numDig = 0;
+			int reps = 0;
+			char repsStr[4]; // restricting number of reps to < 1000
+			for (; isdigit(*(s + 1 + numDig)) && numDig < 4; ++numDig) {}
+			strncpy(repsStr, s + 1, numDig);
+			reps = atoi(repsStr);
+			if ((reps > 999) || (reps < 1)) reps = 0;
+			if (reps == 0)
+				n = start;
+			int save_n = n;
+			for (; reps > 1; --reps)
+				for (int j = start; j < save_n; ++j)
+					output(buf[j]);
+			s += 2 + numDig;
+			}
 		}
 	}
 
@@ -950,6 +967,13 @@ static Rxtest rxtests[] =
 	{ "hello", "h.*o", true },
 	{ "hello", "[a-z]ello", true },
 	{ "hello", "[^0-9]ello", true },
+	{ "hello", "a{0}", false },
+	{ "hell{0}", "l{0}", true},
+	{ "hello", "l{2}", true },
+	{ "hello", "l{3}", false },
+	{ "hello world", "o{2}", false },
+	{ "helloooooooooo", "o{10}$", true },
+	{ "hellooooooooooo", "hello{10}$", false },
 	{ "hello", "ell", true },
 	{ "hello", "^ell", false },
 	{ "hello", "ell$", false },
@@ -963,6 +987,8 @@ static Rxtest rxtests[] =
 
 	{ "0123456789", "^\\d+$", true },
 	{ "0123456789", "\\D", false },
+	{ "hello123", "hello\\d{3}$", true },
+	{ "hello123", "hello\\d{2}$", false },
 	{ "hello_123", "^\\w+$", true },
 	{ "hello_123", "\\W", false },
 	{ "hello \t\r\nworld", "^\\w+\\s+\\w+$", true },
