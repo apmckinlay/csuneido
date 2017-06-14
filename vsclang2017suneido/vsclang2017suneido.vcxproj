@@ -106,6 +106,7 @@
     <ClCompile Include="..\call.cpp" />
     <ClCompile Include="..\callback.cpp" />
     <ClCompile Include="..\catstr.cpp" />
+    <ClCompile Include="..\charmatcher.cpp" />
     <ClCompile Include="..\checksum.cpp" />
     <ClCompile Include="..\circlog.cpp" />
     <ClCompile Include="..\clientserver.cpp" />
