@@ -115,6 +115,7 @@ private:
 	Value Asc(short nargs, short nargnames, ushort* argnames, int each);
 	Value Call(short nargs, short nargnames, ushort* argnames, int each);
 	Value Compile(short nargs, short nargnames, ushort* argnames, int each);
+	Value CountChar(short nargs, short nargnames, ushort* argnames, int each);
 	Value Detab(short nargs, short nargnames, ushort* argnames, int each);
 	Value Entab(short nargs, short nargnames, ushort* argnames, int each);
 	Value Eval(short nargs, short nargnames, ushort* argnames, int each);
@@ -133,6 +134,7 @@ private:
 	Value MapN(short nargs, short nargnames, ushort* argnames, int each);
 	Value Match(short nargs, short nargnames, ushort* argnames, int each);
 	Value Mbstowcs(short nargs, short nargnames, ushort* argnames, int each);
+	Value NthLine(short nargs, short nargnames, ushort* argnames, int each);
 	Value Numberq(short nargs, short nargnames, ushort* argnames, int each);
 	Value Numericq(short nargs, short nargnames, ushort* argnames, int each);
 	Value Prefixq(short nargs, short nargnames, ushort* argnames, int each);

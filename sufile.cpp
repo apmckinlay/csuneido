@@ -121,7 +121,7 @@ Value BuiltinClass<SuFile>::callclass(BuiltinArgs& args)
 	Closer<SuFile*> closer(f);
 	KEEPSP
 	PUSH(f);
-	return block.call(block, CALL, 1, 0, 0, -1);
+	return block.call(block, CALL, 1);
 	}
 
 void SuFile::init(const char* fn, const char* m)

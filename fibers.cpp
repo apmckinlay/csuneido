@@ -282,7 +282,7 @@ void Fibers::unblock(int fiberIndex)
 	fi = fiberIndex - 1; // so it will run next (see yield)
 	}
 
-[[noreturn]] void Fibers::end()
+void Fibers::end()
 	{
 	LOG("end " << curFiberIndex());
 	verify(!inMain());

@@ -168,7 +168,7 @@ Value suSocketClient()
 	Closer<SuSocketClient*> closer(sc);
 	KEEPSP
 	PUSH(sc);
-	return block.call(block, CALL, 1, 0, 0, -1);
+	return block.call(block, CALL, 1);
 	}
 PRIM(suSocketClient, "SocketClient(ipaddress, port, timeout=60, timeoutConnect=0, block=false)");
 
@@ -260,7 +260,7 @@ Value SuSocketServer::call(Value self, Value member,
 		master->myclass = self;
 		master->call(master, NEW, na, nan, an, -1);
 
-		socketServer(name.str(), port.integer(), suserver, master, exit == SuTrue);
+		socketServer(name.str(), port.integer(), suserver, master, exit.toBool());
 		}
 	return Value();
 	}
@@ -283,10 +283,10 @@ static void _stdcall suserver(void* arg)
 		// make an instance by duplicating the master
 		sc = (SocketConnect*) arg;
 		SuServerInstance* master = (SuServerInstance*) sc->getarg();
-		SuServerInstance* ob = new SuServerInstance(master, sc);
+		SuValue* ob = new SuServerInstance(master, sc);
 
 		static Value RUN("Run");
-		ob->call(ob, RUN, 0, 0, 0, -1);
+		ob->call(ob, RUN);
 		}
 	catch (const Except& e)
 		{

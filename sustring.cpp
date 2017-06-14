@@ -198,6 +198,7 @@ Value SuString::call(Value self, Value member,
 		methods["AlphaNum?"] = &SuString::AlphaNumq;
 		methods[CALL] = &SuString::Call;
 		METHOD(Compile);
+		METHOD(CountChar);
 		METHOD(Detab);
 		METHOD(Entab);
 		METHOD(Eval);
@@ -216,6 +217,7 @@ Value SuString::call(Value self, Value member,
 		METHOD(MapN);
 		METHOD(Match);
 		METHOD(Mbstowcs);
+		METHOD(NthLine);
 		methods["Number?"] = &SuString::Numberq;
 		methods["Numeric?"] = &SuString::Numericq;
 		methods["Prefix?"] = &SuString::Prefixq;
@@ -457,7 +459,7 @@ Value SuString::Match(short nargs, short nargnames, ushort* argnames, int each)
 	args.usage("usage: string.Match(pattern, pos = false, prev = false) => object");
 	gcstring pat = args.getgcstr("pattern");
 	Value posval = args.getValue("pos", SuFalse);
-	bool prev = args.getValue("prev", SuFalse) == SuTrue;
+	bool prev = args.getValue("prev", SuFalse).toBool();
 	int pos = (posval == SuFalse) ? (prev ? size() : 0) : posval.integer();
 	args.end();
 	Rxpart parts[MAXPARTS];
@@ -541,7 +543,7 @@ Value SuString::replace(const gcstring& patarg, Value reparg, int count) const
 				KEEPSP
 				gcstring match = gcstring::noalloc(parts[0].s, parts[0].n);
 				PUSH(new SuString(match));
-				Value x = docall(reparg, CALL, 1, 0, nullptr, -1);
+				Value x = docall(reparg, CALL, 1);
 				gcstring replace = x ? x.gcstr() : match;
 				result->add(replace.ptr(), replace.size());
 				}
@@ -571,10 +573,29 @@ Value SuString::MapN(short nargs, short nargnames, ushort* argnames, int each)
 		{
 		KEEPSP
 		PUSH(new SuString(s.substr(i, n)));
-		if (auto value = docall(block, CALL, 1, 0, 0, -1))
+		if (auto value = docall(block, CALL, 1))
 			dst.add(value.gcstr());
 		}
 	return new SuString(dst.gcstr());
+	}
+
+Value SuString::NthLine(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.NthLine(n)");
+	int n = args.getint("n");
+	args.end();
+	const char* p = ptr();
+	const char* lim = p + size();
+	for (; p < lim && n > 0; ++p)
+		if (*p == '\n')
+			--n;
+	const char* t = p;
+	while (t < lim && *t != '\n')
+		++t;
+	while (t > p && t[-1] == '\r')
+		--t;
+	return new SuString(gcstring::noalloc(p, t - p));
 	}
 
 Value SuString::Split(short nargs, short nargnames, ushort* argnames, int each)
@@ -592,6 +613,21 @@ Value SuString::Split(short nargs, short nargnames, ushort* argnames, int each)
 	if (i < str.size())
 		ob->add(new SuString(str.substr(i)));
 	return ob;
+	}
+
+Value SuString::CountChar(short nargs, short nargnames, ushort* argnames, 
+	int each)
+	{
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("usage: string.CountChar(c)");
+	gcstring sc = args.getgcstr("c");
+	args.end();
+	if (sc.size() != 1)
+		args.exceptUsage();
+	char c = sc[0];
+	gcstring str = gcstr();
+	return std::count_if(str.begin(), str.end(), 
+		[c](char sch) { return sch == c; });
 	}
 
 Value SuString::Detab(short nargs, short nargnames, ushort* argnames, int each)

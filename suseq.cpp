@@ -32,8 +32,13 @@ SuSeq::SuSeq(Value i) : iter(i)
 
 void SuSeq::out(Ostream& os) const
 	{
-	build();
-	ob->out(os);
+	if (infinite(iter))
+		os << "Sequence(" << iter << ")";
+	else
+		{
+		build();
+		ob->out(os);
+		}
 	}
 
 Value SuSeq::call(Value self, Value member, 
@@ -42,13 +47,18 @@ Value SuSeq::call(Value self, Value member,
 	static Value ITER("Iter");
 	static Value COPY("Copy");
 	static Value JOIN("Join");
+	static Value CLOSE("Close");
 	static Value Instantiated("Instantiated?");
 
 	if (member == Instantiated)
 		{
 		return ob ? SuTrue : SuFalse;
 		}
-	if (! ob && ! duped) // instantiate rather than dup again
+	if (member == CLOSE)
+		{
+		return Value();
+		}
+	if (! ob && (! duped || infinite(iter))) // instantiate rather than dup again
 		{
 		if (member == ITER)
 			{
@@ -66,10 +76,10 @@ Value SuSeq::call(Value self, Value member,
 			}
 
 		static ushort G_Objects = globals("Sequences");
-		Value Objects = globals.find(G_Objects);
-		SuObject* obs;
-		if (Objects && nullptr != (obs = Objects.ob_if_ob()) && obs->has(member))
-			return obs->call(self, member, nargs, nargnames, argnames, each);
+		if (Value Objects = globals.find(G_Objects))
+			if (SuObject* obs = Objects.ob_if_ob())
+				if (obs->hasMethod(member))
+					return obs->call(self, member, nargs, nargnames, argnames, each);
 		}
 	build();
 	return ob->call(self, member, nargs, nargnames, argnames, each);
@@ -100,15 +110,31 @@ Value SuSeq::Join(short nargs) const
 	return new SuString(oss.gcstr());
 	}
 
+bool SuSeq::infinite(Value it)
+	{
+	static Value Infinite("Infinite?");
+
+	KEEPSP
+	try
+		{
+		return it.call(it, Infinite).toBool();
+		}
+	catch (...)
+		{
+		return false;
+		}
+	}
+
 void SuSeq::build() const
 	{
-	if (ob)
-		return ;
-	ob = copy(iter);
+	if (!ob)
+		ob = copy(iter);
 	}
 
 SuObject* SuSeq::copy(Value it)
 	{
+	if (infinite(it))
+		except("can't instantiate infinite sequence");
 	SuObject* copy = new SuObject;
 	Value x;
 	while (it != (x = next(it)))
@@ -122,7 +148,7 @@ Value SuSeq::dup() const
 
 	duped = true;
 	KEEPSP
-	return iter.call(iter, DUP, 0, 0, 0, -1);
+	return iter.call(iter, DUP);
 	}
 
 Value SuSeq::next(Value it)
@@ -130,7 +156,7 @@ Value SuSeq::next(Value it)
 	static Value NEXT("Next");
 
 	KEEPSP
-	Value x = it.call(it, NEXT, 0, 0, 0, -1);
+	Value x = it.call(it, NEXT);
 	if (!x)
 		except("no return value from sequence.Next");
 	return x;
@@ -186,6 +212,20 @@ SuObject* SuSeq::ob_if_ob()
 
 // SuSeqIter - implements Seq() ===============================================
 
+class SuSeqIter : public SuValue
+	{
+	public:
+		SuSeqIter(Value from, Value to, Value by);
+		void out(Ostream& os) const override;
+		Value call(Value self, Value member,
+			short nargs, short nargnames, ushort* argnames, int each) override;
+	private:
+		Value from;
+		Value to;
+		Value by;
+		Value i;
+	};
+
 SuSeqIter::SuSeqIter(Value f, Value t, Value b) : from(f), to(t), by(b)
 	{
 	i = from;
@@ -201,6 +241,7 @@ Value SuSeqIter::call(Value self, Value member,
 	{
 	static Value NEXT("Next");
 	static Value DUP("Dup");
+	static Value Infinite("Infinite?");
 
 	if (member == NEXT)
 		{
@@ -212,6 +253,8 @@ Value SuSeqIter::call(Value self, Value member,
 		}
 	else if (member == DUP)
 		return new SuSeqIter(from, to, by);
+	else if (member == Infinite)
+		return to == INT_MAX ? SuTrue : SuFalse;
 	else
 		method_not_found(type(), member);
 	}
@@ -246,3 +289,10 @@ Value su_sequence()
 	return new SuSeq(ARG(0));
 	}
 PRIM(su_sequence, "Sequence(iter)");
+
+Value su_seq_q()
+	{
+	const int nargs = 1;
+	return val_cast<SuSeq*>(ARG(0)) ? SuTrue : SuFalse;
+	}
+PRIM(su_seq_q, "Seq?(value)");

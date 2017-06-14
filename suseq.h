@@ -40,8 +40,11 @@ public:
 	bool eq(const SuValue& y) const override;
 	SuObject* ob_if_ob() override;
 	SuObject* object() const;
-private:
+	const char* type() const override
+		{ return "Object"; }
+	private:
 	Value Join(short nargs) const;
+	static bool infinite(Value it);
 	void build() const;
 	static SuObject* copy(Value iter);
 	Value dup() const;
@@ -50,18 +53,4 @@ private:
 	mutable Value iter;
 	mutable SuObject* ob = nullptr;
 	mutable bool duped = false;
-	};
-
-class SuSeqIter : public SuValue
-	{
-public:
-	SuSeqIter(Value from, Value to, Value by);
-	void out(Ostream& os) const override;
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
-private:
-	Value from;
-	Value to;
-	Value by;
-	Value i;
 	};

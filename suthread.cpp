@@ -74,7 +74,7 @@ static void _stdcall thread(void* arg)
 	try
 		{
 		ThreadInfo* ti = static_cast<ThreadInfo*>(arg);
-		ti->fn.call(ti->fn, CALL, 0, 0, 0, -1);
+		ti->fn.call(ti->fn, CALL);
 		}
 	catch (const Except& e)
 		{

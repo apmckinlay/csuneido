@@ -570,7 +570,7 @@ Value SuRecord::call_rule(ushort i, const char* why)
 	Value x;
 	try
 		{
-		x = fn.call(this, CALL, 0, 0, 0, -1);
+		x = fn.call(this, CALL);
 		}
 	catch (const Except& e)
 		{

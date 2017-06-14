@@ -69,7 +69,7 @@ void Tbl::user_trigger(int tran, const Record& oldrec, const Record& newrec)
 	PUSH(nil(newrec) ? SuFalse : new SuRecord(newrec, flds, t));
 	try
 		{
-		fn.call(fn, CALL, 3, 0, 0, -1);
+		fn.call(fn, CALL, 3);
 		}
 	catch (const Except& e)
 		{
@@ -113,6 +113,6 @@ Value su_do_without_triggers()
 
 	KEEPSP
 	Value block = ARG(1);
-	return block.call(block, CALL, 0, 0, 0, -1);
+	return block.call(block, CALL);
 	}
 PRIM(su_do_without_triggers, "DoWithoutTriggers(object, block)");

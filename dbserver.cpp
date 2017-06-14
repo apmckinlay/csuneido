@@ -801,7 +801,7 @@ const char* DbServer::cmd_exec(char* s)
 
 const char* DbServer::cmd_log(char* s)
 	{
-	errlog(session_id, s);
+	errlog_uncounted(session_id, s);
 	return "OK\r\n";
 	}
 

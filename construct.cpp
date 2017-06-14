@@ -60,11 +60,12 @@ Value Construct::call(Value self, Value member,
 	if (nargs == 2)
 		POP(); // suffix
 	if (ob)
-		return c.call(c, INSTANTIATE, 1, 0, 0, 1);	// nargs=1, each=1 => c(@+1 ob)
+		// nargs=1, each=1 => c(@+1 ob)
+		return c.call(c, INSTANTIATE, 1, 0, nullptr, 1);
 	else
 		{
 		POP(); // class
-		return c.call(c, INSTANTIATE, 0, 0, 0, -1);
+		return c.call(c, INSTANTIATE);
 		}
 	}
 
@@ -97,5 +98,5 @@ Value Instance::call(Value self, Value member,
 			clas->base = globals(basename);
 			}
 		}
-	return c.call(c, INSTANTIATE, 0, 0, 0, -1);
+	return c.call(c, INSTANTIATE);
 	}

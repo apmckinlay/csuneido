@@ -1,0 +1,54 @@
+include makefile.common
+
+ifdef DEBUG
+  FLAGS = -g
+  LDFLAGS =
+else
+  FLAGS = -O3 -DNDEBUG
+  LDFLAGS = -s
+endif
+
+CC=clang
+CXX=clang++ -std=gnu++1z
+FLAGS += -DCOMPILER=Clang -Werror -Wall -Wextra -Wno-sign-compare -Wfloat-equal \
+	-Wno-char-subscripts  -Wno-narrowing -Wno-unknown-pragmas \
+	-Wuninitialized -Wno-unused-parameter \
+	-Wno-implicit-exception-spec-mismatch -Wno-deprecated-declarations -Xclang -flto-visibility-public-std \
+	-D_USE_32BIT_TIME_T -D_WIN32_WINNT=0x0600 \
+	-DJOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE=0x2000 
+
+.SUFFIXES:
+
+$(OUTPUT)/%.o : %.c
+	@echo $<
+	@$(CC) $(FLAGS) -c -o $@ $<
+	$(call make-depend,$<,$@,$(subst .o,.d,$@),$(CC))
+
+$(OUTPUT)/%.o : %.cpp
+	@echo $<
+	@$(CXX) $(FLAGS) -c -o $@ $<
+	$(call make-depend,$<,$@,$(subst .o,.d,$@),$(CXX))
+
+SOURCES := $(subst sunapp.cpp ,,$(SOURCES)) # ostreamstd.cpp
+OBJECTS = $(patsubst %.c,$(OUTPUT)/%.o,$(subst .cpp,.c,$(SOURCES)))
+DEPENDS = $(subst .o,.d,$(OBJECTS))
+
+all : $(OUTPUT)/suneido.exe
+
+$(OUTPUT)/suneido.exe : $(OBJECTS) gc_$(OUTPUT).a $(OUTPUT)/res.o
+	@$(CXX) $(FLAGS) -c -o $(OUTPUT)/build.o build.cpp
+	@echo link $(OUTPUT)/suneido.exe
+	@$(CXX) $(LDFLAGS) -o $@ $^ $(OUTPUT)/build.o \
+		-lws2_32 -lgdi32 -lcomdlg32 -lcomctl32 -lole32 -loleaut32 -luuid -liphlpapi \
+		-mwindows -mconsole
+		
+$(OUTPUT)/res.o : suneido.rc resource.h res/suneido.exe.manifest
+	windres suneido.rc $@
+	
+-include $(DEPENDS)
+
+.PHONY : clean
+clean : 
+	del /q $(OUTPUT)\\*.*
+
+include makefile.install

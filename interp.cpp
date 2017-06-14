@@ -138,26 +138,6 @@ bool Frame::jumpToPopReturn()
 	result = docall(self, subscript, nargs, nargnames, argnames, each); \
 	POSTCALL(nargnames, subscript);
 
-// check top of stack for true or false
-// exception if any other value
-inline bool topbool()
-	{
-	if (TOP() == SuTrue)
-		return true;
-	else if (TOP() != SuFalse)
-		except("conditionals require true or false, got: " << TOP());
-	return false;
-	}
-inline bool popbool()
-	{
-	Value x = POP();
-	if (x == SuTrue)
-		return true;
-	else if (x != SuFalse)
-		except("conditionals require true or false, got: " << x);
-	return false;
-	}
-
 Value cat(Value x, Value y)
 	{
 	gcstring result = x.gcstr() + y.gcstr();
@@ -391,12 +371,12 @@ Value Frame::run()
 			break ;
 		case I_JUMP | POP_YES :
 			jump = fetch_jump();
-			if (popbool())
+			if (POP().toBool())
 				ip += jump;
 			break ;
 		case I_JUMP | POP_NO :
 			jump = fetch_jump();
-			if (! popbool())
+			if (! POP().toBool())
 				ip += jump;
 			break ;
 		case I_JUMP | CASE_YES :
@@ -418,20 +398,20 @@ Value Frame::run()
 			break ;
 		case I_JUMP | ELSE_POP_YES :
 			jump = fetch_jump();
-			if (topbool())
+			if (TOP().toBool())
 				ip += jump;
 			else
 				POP();
 			break ;
 		case I_JUMP | ELSE_POP_NO :
 			jump = fetch_jump();
-			if (! topbool())
+			if (! TOP().toBool())
 				ip += jump;
 			else
 				POP();
 			break ;
 		case I_BOOL:
-			topbool();
+			TOP().toBool();
 			break;
 		case I_TRY :
 			// save the catcher offset & stack pointer
@@ -622,7 +602,7 @@ Value Frame::run()
 			TOP() = ~ TOP().integer();
 			break ;
 		case I_NOT :
-			TOP() = topbool() ? SuFalse : SuTrue;
+			TOP() = TOP().toBool() ? SuFalse : SuTrue;
 			break ;
 		case I_ADD :
 			arg = POP();

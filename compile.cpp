@@ -451,7 +451,7 @@ void Compiler::member(SuObject* ob, const char* gname, const char* className, sh
 	Value x;
 	if (ahead == '(' && base > 0)
 		x = functionCompiler(base, mv.gcstr() == "New", gname, className);
-	else if (token != ',' && token != ')' && token != '}')
+	else if (token != ',' && token != ')' && token != '}' && token != ']')
 		{
 		x = constant();
 		if (minus)

@@ -553,23 +553,23 @@ class test_types : public Tests
 	{
 	TEST(0, main)
 		{
-		test1(new TypeBool, sizeof (int), 0, SuTrue);
-		test1(new TypeBool, sizeof (int), 0, SuFalse);
-		test1(new TypeInt<short>, sizeof (short), 0, 123);
-		test1(new TypeInt<short>, sizeof (short), 0, 0);
-		test1(new TypeInt<short>, sizeof (short), 0, -123);
-		test1(new TypeInt<long>, sizeof (long), 0, 123);
-		test1(new TypeInt<long>, sizeof (long), 0, 0);
-		test1(new TypeInt<long>, sizeof (long), 0, -123);
-		test1(new TypeOpaquePointer, sizeof (long), 0, 123);
-		test1(new TypeOpaquePointer, sizeof (long), 0, 0);
-		test1(new TypeOpaquePointer, sizeof (long), 0, -123);
-		test1(new TypeFloat, sizeof (float), 0, 123);
-		test1(new TypeFloat, sizeof (float), 0, new SuNumber("123.456"));
-		test1(new TypeDouble, sizeof (double), 0, 123);
-		test1(new TypeDouble, sizeof (double), 0, new SuNumber("123.456"));
+		test(new TypeBool, sizeof (int), 0, SuTrue);
+		test(new TypeBool, sizeof (int), 0, SuFalse);
+		test(new TypeInt<short>, sizeof (short), 0, 123);
+		test(new TypeInt<short>, sizeof (short), 0, 0);
+		test(new TypeInt<short>, sizeof (short), 0, -123);
+		test(new TypeInt<long>, sizeof (long), 0, 123);
+		test(new TypeInt<long>, sizeof (long), 0, 0);
+		test(new TypeInt<long>, sizeof (long), 0, -123);
+		test(new TypeOpaquePointer, sizeof (long), 0, 123);
+		test(new TypeOpaquePointer, sizeof (long), 0, 0);
+		test(new TypeOpaquePointer, sizeof (long), 0, -123);
+		test(new TypeFloat, sizeof (float), 0, 123);
+		test(new TypeFloat, sizeof (float), 0, new SuNumber("123.456"));
+		test(new TypeDouble, sizeof (double), 0, 123);
+		test(new TypeDouble, sizeof (double), 0, new SuNumber("123.456"));
 		}
-	void test1(Type* type, int size, int size2, Value x)
+	static void test(Type* type, int size, int size2, Value x)
 		{
 		char buf[64];
 		char buf2[64];
