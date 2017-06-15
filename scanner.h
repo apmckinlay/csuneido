@@ -47,8 +47,9 @@ public:
 	const char* source;
 	int si;
 	int keyword = 0;
-	CodeVisitor* visitor = nullptr; // not used by Scanner
+	// visitor is not used by Scanner
 	// but placed here to avoid passing around extra argument in compiler
+	CodeVisitor* visitor = nullptr; 
 	Buffer buf;
 protected:
 	explicit Scanner(const Scanner*);
