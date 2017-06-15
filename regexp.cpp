@@ -29,91 +29,7 @@
 #include <typeinfo>
 #include <vector>
 
-typedef std::vector<int> IntArrayList;
-
-// use our own definitions instead of ctype
-// to be consistent across all implementations
-
-inline bool isupper(char c)
-	{
-	return 'A' <= c && c <= 'Z';
-	}
-
-inline bool islower(char c)
-	{
-	return 'a' <= c && c <= 'z';
-	}
-
-inline bool isalpha(char c)
-	{
-	return islower(c) || isupper(c);
-	}
-
-inline bool isdigit(char c)
-	{
-	return '0' <= c && c <= '9';
-	}
-
-inline bool isalnum(char c)
-	{
-	return isalpha(c) || isdigit(c);
-	}
-
-inline bool isword(char c)
-	{
-	return c == '_' || isalnum(c);
-	}
-
-inline bool isspace(char c)
-	{
-	switch (c)
-		{
-		case ' ':
-		case '\t':
-		case '\r':
-		case '\n':
-		case '\v':
-		case '\f':
-			return true;
-		default:
-			return false;
-		}
-	}
-
-inline bool isxdigit(char c)
-	{
-	return isdigit(c) || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
-	}
-
-inline bool iscntrl(char c)
-	{
-	return (0 <= c && c <= 0x1f) || c == 0x7f;
-	}
-
-inline bool isprint(char c)
-	{
-	return !iscntrl(c);
-	}
-
-inline bool isgraph(char c)
-	{
-	return isprint(c) && c != ' ';
-	}
-
-inline bool ispunct(char c)
-	{
-	return isgraph(c) && !isalnum(c);
-	}
-
-inline char tolower(char c)
-	{
-	return isupper(c) ? c + ('a' - 'A') : c;
-	}
-
-inline char toupper(char c)
-	{
-	return islower(c) ? c - ('a' - 'A') : c;
-	}
+typedef std::vector<int> IntList;
 
 /*
 * regular expression grammar and compiled form:
@@ -189,95 +105,80 @@ inline char toupper(char c)
 
 class Element
 	{
-	public:
-		virtual ~Element() = default;
+public:
+	virtual ~Element() = default;
 
-		virtual int omatch(const char* s, int si, int sn, Rxpart* res) const
-			{
-			return omatch(s, si, sn);
-			}
-		virtual int omatch(const char* s, int si, int sn) const
-			{
-			return -1;
-			};
-		virtual int nextPossible(const char* s, int si, int sn) const
-			{
-			return si + 1;
-			}
-	protected:
-		static bool between(unsigned from, unsigned to, unsigned x)
-			{
-			return from <= x && x <= to;
-			}
-		static bool same(char c1, char c2, bool ignoringCase)
-			{
-			return ignoringCase ? tolower(c1) == tolower(c2) : c1 == c2;
-			}
-		static bool inRange(char from, char to, char c, bool ignoringCase)
-			{
-			return ignoringCase
-				? between(from, to, tolower(c)) || between(from, to, toupper(c))
-				: between(from, to, tolower(c));
-			}
+	virtual int omatch(const char* s, int si, int sn, Rxpart* res) const
+		{
+		return omatch(s, si, sn);
+		}
+	virtual int omatch(const char* s, int si, int sn) const
+		{
+		return -1;
+		};
+	virtual int nextPossible(const char* s, int si, int sn) const
+		{
+		return si + 1;
+		}
 	};
 
 // compile
 class RxCompile
 	{
-	public:
-		RxCompile(const char* src, int len) :
-			src(src), sn(len)
-			{
-			patlen = len * 3 + 8;
-			pat = new Element*[patlen];
-			}
-		char* compile();
+public:
+	RxCompile(const char* src, int len) :
+		src(src), sn(len)
+		{
+		patlen = len * 3 + 8;
+		pat = new Element*[patlen];
+		}
+	char* compile();
 
-		static CharMatcher* blank;
-		static CharMatcher* digit;
-		static CharMatcher* notDigit;
-		static CharMatcher* lower;
-		static CharMatcher* upper;
-		static CharMatcher* alpha;
-		static CharMatcher* alnum;
-		static CharMatcher* punct;
-		static CharMatcher* graph;
-		static CharMatcher* print;
-		static CharMatcher* xdigit;
-		static CharMatcher* space;
-		static CharMatcher* notSpace;
-		static CharMatcher* cntrl;
-		static CharMatcher* word;
-		static CharMatcher* notWord;
-	private:
-		void regexp();
-		void sequence();
-		void element();
-		void quoted();
-		void simple();
-		void charClass();
-		CharMatcher* posixClass();
+	static CharMatcher* blank;
+	static CharMatcher* digit;
+	static CharMatcher* notDigit;
+	static CharMatcher* lower;
+	static CharMatcher* upper;
+	static CharMatcher* alpha;
+	static CharMatcher* alnum;
+	static CharMatcher* punct;
+	static CharMatcher* graph;
+	static CharMatcher* print;
+	static CharMatcher* xdigit;
+	static CharMatcher* space;
+	static CharMatcher* notSpace;
+	static CharMatcher* cntrl;
+	static CharMatcher* word;
+	static CharMatcher* notWord;
+private:
+	void regexp();
+	void sequence();
+	void element();
+	void quoted();
+	void simple();
+	void charClass();
+	CharMatcher* posixClass();
 
-		void emit(Element* e);
-		void emitChars(const char* s, int n);
-		void insert(int i, Element* e);
-		bool match(const char* s);
-		bool match(char c);
-		void mustMatch(char c);
-		bool matchBackref();
-		bool matchRange();
-		bool next1of(const char* const set);
+	void emit(Element* e);
+	void emitChars(const char* s, int n);
+	void insert(int i, Element* e);
+	bool match(const char* s);
+	bool match(char c);
+	void mustMatch(char c);
+	bool matchBackref();
+	bool matchRange();
+	bool next1of(const char* const set) const;
 
-		const char* src;
-		int si = 0;
-		int sn;
-		bool ignoringCase = false;
-		int leftCount = 0;
-		bool inChars = false;
-		bool inCharsIgnoringCase = false;
-		Element** pat;
-		int patlen;
-		int pati = 0;
+	const char* src;
+	int si = 0;
+	int sn;
+	bool ignoringCase = false;
+	int leftCount = 0;
+	bool inChars = false;
+	bool inCharsIgnoringCase = false;
+	Element** pat;
+	int patlen;
+	int pati = 0;
 	};
 
 CharMatcher* RxCompile::blank = CharMatcher::anyOf(" \t");
@@ -299,205 +200,218 @@ CharMatcher::inRange('\x00', '\x1f')->or_(CharMatcher::is('\x7f'));
 CharMatcher* RxCompile::word = RxCompile::alnum->or_(CharMatcher::is('_'));
 CharMatcher* RxCompile::notWord = RxCompile::word->negate();
 
+static char tolower(char c)
+	{
+	return RxCompile::upper->matches(c) ? c + ('a' - 'A') : c;
+	}
+
+static char toupper(char c)
+	{
+	return RxCompile::lower->matches(c) ? c - ('a' - 'A') : c;
+	}
+
+static bool same(char c1, char c2, bool ignoringCase)
+	{
+	return ignoringCase ? tolower(c1) == tolower(c2) : c1 == c2;
+	}
+
 class PatEnd : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return -1;
-			}
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return -1;
+		}
 	};
 
 class StartOfLine : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return (si == 0 || s[si - 1] == '\n') ? si : -1;
-			}
-		int nextPossible(const char* s, int si, int sn) const override
-			{
-			if (++si == sn)
-				return sn + 1;
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return (si == 0 || s[si - 1] == '\n') ? si : -1;
+		}
+	int nextPossible(const char* s, int si, int sn) const override
+		{
+		if (++si == sn)
+			return sn + 1;
 
-			const char* next = strchr(s + si, '\n');
-			return next == NULL ? sn + 1 : next - s + 1;
-			}
+		const char* next = strchr(s + si, '\n');
+		return next == nullptr ? sn + 1 : next - s + 1;
+		}
 	};
 
 class EndOfLine : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return (si == sn || s[si] == '\r' || s[si] == '\n') ? si : -1;
-			}
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return (si == sn || s[si] == '\r' || s[si] == '\n') ? si : -1;
+		}
 	};
 
 class StartOfString : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return (si == 0) ? si : -1;
-			}
-		int nextPossible(const char* s, int si, int sn) const override
-			{
-			return sn + 1;
-			}
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return (si == 0) ? si : -1;
+		}
+	int nextPossible(const char* s, int si, int sn) const override
+		{
+		return sn + 1;
+		}
 	};
 
 class EndOfString : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return (si == sn || (si == sn - 1 && s[si] == '\n')
-				|| (si == sn - 2 && s[si] == '\r' && s[si + 1] == '\n'))
-				? si
-				: -1;
-			}
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return (si == sn || (si == sn - 1 && s[si] == '\n')
+			|| (si == sn - 2 && s[si] == '\r' && s[si + 1] == '\n'))
+			? si : -1;
+		}
 	};
 
 class StartOfWord : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return (si == 0 || !RxCompile::word->matches(s[si - 1])) ? si : -1;
-			}
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return (si == 0 || !RxCompile::word->matches(s[si - 1])) ? si : -1;
+		}
 	};
 
 class EndOfWord : public Element
 	{
-	public:
-		int omatch(const char* s, int si, int sn) const override
-			{
-			return (si == sn || !RxCompile::word->matches(s[si])) ? si : -1;
-			}
+public:
+	int omatch(const char* s, int si, int sn) const override
+		{
+		return (si == sn || !RxCompile::word->matches(s[si])) ? si : -1;
+		}
 	};
 
 class Backref : public Element
 	{
-	public:
-		Backref(int idx, bool ignoringCase) :
-			idx(idx), ignoringCase(ignoringCase)
-			{ }
-		int omatch(const char* s, int si, int sn, Rxpart* res) const override
-			{
-			auto t = res[idx].s;
-			int tn = res[idx].n;
-			if (tn == -1 || si + tn > sn)
+public:
+	Backref(int idx, bool ignoringCase) : idx(idx), ignoringCase(ignoringCase)
+		{ }
+	int omatch(const char* s, int si, int sn, Rxpart* res) const override
+		{
+		auto t = res[idx].s;
+		int tn = res[idx].n;
+		if (tn == -1 || si + tn > sn)
+			return -1;
+		for (int ti = 0; ti < tn; ++ti, ++si)
+			if (!same(s[si], t[ti], ignoringCase))
 				return -1;
-			for (int ti = 0; ti < tn; ++ti, ++si)
-				if (!same(s[si], t[ti], ignoringCase))
-					return -1;
-			return si;
-			}
-	private:
-		int idx;
-		bool ignoringCase;
+		return si;
+		}
+private:
+	int idx;
+	bool ignoringCase;
 	};
 
 class Chars : public Element
 	{
-	public:
-		Chars(const char* chars, bool ignoringCase) :
-			chars(chars), ignoringCase(ignoringCase)
-			{ }
-		Chars(const char* chars, int sn, bool ignoringCase) :
-			chars(chars, sn), ignoringCase(ignoringCase)
-			{ }
-		void add(const char* s, int sn)
-			{
-			chars += gcstring(s, sn);
-			}
-		int omatch(const char*s, int si, int sn) const override
-			{
-			if (si + chars.size() > sn)
+public:
+	Chars(const char* chars, bool ignoringCase) : 
+		chars(chars), ignoringCase(ignoringCase)
+		{ }
+	Chars(const char* chars, int sn, bool ignoringCase) :
+		chars(chars, sn), ignoringCase(ignoringCase)
+		{ }
+	void add(const char* s, int sn)
+		{
+		chars += gcstring(s, sn);
+		}
+	int omatch(const char*s, int si, int sn) const override
+		{
+		if (si + chars.size() > sn)
+			return -1;
+		for (int ti = 0; ti < chars.size(); ++ti, ++si)
+			if (!same(s[si], chars[ti], ignoringCase))
 				return -1;
-			for (int ti = 0; ti < chars.size(); ++ti, ++si)
-				if (!same(s[si], chars[ti], ignoringCase))
-					return -1;
-			return si;
-			}
-		int nextPossible(const char* s, int si, int sn) const override
-			{
-			int len = chars.size();
-			for (++si; si <= sn - len; ++si)
-				for (int i = 0; ; ++i)
-					if (i == len)
-						return si;
-					else if (!same(s[si + i], chars[i], ignoringCase))
-						break;
-			return sn + 1;
-			}
-	private:
-		gcstring chars;
-		bool ignoringCase;
+		return si;
+		}
+	int nextPossible(const char* s, int si, int sn) const override
+		{
+		int len = chars.size();
+		for (++si; si <= sn - len; ++si)
+			for (int i = 0; ; ++i)
+				if (i == len)
+					return si;
+				else if (!same(s[si + i], chars[i], ignoringCase))
+					break;
+		return sn + 1;
+		}
+private:
+	gcstring chars;
+	bool ignoringCase;
 	};
 
 class CharClass : public Element
 	{
-	public:
-		CharClass(CharMatcher* cm, bool ignoringCase = false) :
-			cm(cm), ignoringCase(ignoringCase)
-			{ }
-		int omatch(const char* s, int si, int sn) const override
-			{
-			if (si >= sn)
-				return -1;
-			return matches(s[si]) ? si + 1 : -1;
-			}
-		int nextPossible(const char* s, int si, int sn) const override
-			{
-			for (++si; si < sn; ++si)
-				if (matches(s[si]))
-					return si;
-			return sn + 1;
-			}
-	private:
-		bool matches(char c) const
-			{
-			return ignoringCase
-				? cm->matches(tolower(c)) || cm->matches(toupper(c))
-				: cm->matches(c);
-			}
-		CharMatcher* cm;
-		bool ignoringCase;
+public:
+	CharClass(CharMatcher* cm, bool ignoringCase = false) :
+		cm(cm), ignoringCase(ignoringCase)
+		{ }
+	int omatch(const char* s, int si, int sn) const override
+		{
+		if (si >= sn)
+			return -1;
+		return matches(s[si]) ? si + 1 : -1;
+		}
+	int nextPossible(const char* s, int si, int sn) const override
+		{
+		for (++si; si < sn; ++si)
+			if (matches(s[si]))
+				return si;
+		return sn + 1;
+		}
+private:
+	bool matches(char c) const
+		{
+		return ignoringCase
+			? cm->matches(tolower(c)) || cm->matches(toupper(c))
+			: cm->matches(c);
+		}
+	CharMatcher* cm;
+	bool ignoringCase;
 	};
 
 class Branch : public Element
 	{
-	public:
-		Branch(int main, int alt) : main(main), alt(alt)
-			{ }
-		const int main;
-		const int alt;
+public:
+	Branch(int main, int alt) : main(main), alt(alt)
+		{ }
+	const int main;
+	const int alt;
 	};
 
 class Jump : public Element
 	{
-	public:
-		Jump(int offset) : offset(offset)
-			{ }
-		const int offset;
+public:
+	Jump(int offset) : offset(offset)
+		{ }
+	const int offset;
 	};
 
 class Left : public Element
 	{
-	public:
-		Left(int idx) : idx(idx)
-			{ }
-		const int idx;
+public:
+	Left(int idx) : idx(idx)
+		{ }
+	const int idx;
 	};
 
 class Right : public Element
 	{
-	public:
-		Right(int idx) : idx(idx)
-			{ }
-		const int idx;
+public:
+	Right(int idx) : idx(idx)
+		{ }
+	const int idx;
 	};
 
 static Left LEFT0(0);
@@ -528,7 +442,7 @@ char* RxCompile::compile()
 	verify(pati <= patlen);
 	if (si < sn)
 		except("regex: closing ) without opening (");
-	return (char*)pat;
+	return reinterpret_cast<char*>(pat);
 	}
 
 void RxCompile::regexp()
@@ -613,8 +527,8 @@ void RxCompile::element()
 void RxCompile::quoted()
 	{
 	int start = si;
-	char* pos = strstr((char* const)(src + si), "(?-q)");
-	si = pos == NULL ? sn : pos - src;
+	char* pos = strstr(const_cast<char*>(src + si), "(?-q)");
+	si = pos == nullptr ? sn : pos - src;
 	emitChars(src + start, si - start);
 	}
 
@@ -712,7 +626,7 @@ void RxCompile::charClass()
 		cm = cm->or_(CharMatcher::anyOf(chars));
 	if (negate)
 		cm = cm->negate();
-	emit((Element*)new CharClass(cm, ignoringCase));
+	emit(new CharClass(cm, ignoringCase));
 	}
 
 CharMatcher* RxCompile::posixClass()
@@ -753,9 +667,8 @@ void RxCompile::emit(Element* e)
 
 void RxCompile::emitChars(const char* s, int n)
 	{
-	if (inChars && inCharsIgnoringCase == ignoringCase &&
-		!next1of("?*+"))
-		((Chars*)pat[pati - 1])->add(s, n);
+	if (inChars && inCharsIgnoringCase == ignoringCase && !next1of("?*+"))
+		static_cast<Chars*>(pat[pati - 1])->add(s, n);
 	else
 		{
 		emit(new Chars(s, n, ignoringCase));
@@ -817,11 +730,10 @@ bool RxCompile::matchRange()
 		return false;
 	}
 
-bool RxCompile::next1of(const char* const set)
+bool RxCompile::next1of(const char* const set) const
 	{
-	return si + 1 < sn && strchr(set, src[si + 1]) != NULL;
+	return si + 1 < sn && strchr(set, src[si + 1]) != nullptr;
 	}
-
 
 /* next the stuff to match a pattern and a string
 * amatch matches a specific point in a string against a compiled regular expression
@@ -829,41 +741,39 @@ bool RxCompile::next1of(const char* const set)
 */
 class RxMatch
 	{
-	public:
-		RxMatch(const char* str, int len, Rxpart* pts)
-			: s(str), n(len), part(pts ? pts : parts)
-			{ }
-		int amatch(int si, const Element** pat, IntArrayList* alt_si, IntArrayList* alt_pi);
-		int amatch(int si, const Element** pat);
-	private:
-		const char* s;				// string
-		int n;						// length of string
-		Rxpart* part;
-		Rxpart parts[MAXPARTS];		// used if none passed in
+public:
+	RxMatch(const char* str, int len, Rxpart* pts)
+		: s(str), n(len), part(pts ? pts : parts)
+		{ }
+	int amatch(int si, const Element** pat, IntList* alt_si, IntList* alt_pi) const;
+	int amatch(int si, const Element** pat);
+private:
+	const char* s;				// string
+	int n;						// length of string
+	Rxpart* part;
+	Rxpart parts[MAXPARTS];		// used if none passed in
 	};
 
 bool rx_match(const char* s, int n, int i, const char* pat, Rxpart* psubs)
 	{
-	IntArrayList* alt_si = new IntArrayList();
-	IntArrayList* alt_pi = new IntArrayList();
+	IntList alt_si;
+	IntList alt_pi;
 	RxMatch match(s, n, psubs);
 	const Element** p = (const Element**)pat;
 	const Element* e = p[1];
 	for (int si = i; si <= n; si = e->nextPossible(s, si, n))
-		{
-		if (match.amatch(si, p, alt_si, alt_pi) != -1)
+		if (match.amatch(si, p, &alt_si, &alt_pi) != -1)
 			return true;
-		}
 	return false;
 	}
 
 bool rx_match_reverse(const char* s, int n, int i, const char* pat, Rxpart* psubs)
 	{
-	IntArrayList* alt_si = new IntArrayList();
-	IntArrayList* alt_pi = new IntArrayList();
+	IntList alt_si;
+	IntList alt_pi;
 	RxMatch match(s, n, psubs);
 	for (int si = i; si >= 0; si--)
-		if (match.amatch(si, (const Element**)pat, alt_si, alt_pi) != -1)
+		if (match.amatch(si, (const Element**)pat, &alt_si, &alt_pi) != -1)
 			return true;
 	return false;
 	}
@@ -875,10 +785,13 @@ int rx_amatch(const char* s, int i, int n, const char* pat, Rxpart* psubs)
 
 int RxMatch::amatch(int si, const Element** pat)
 	{
-	return amatch(si, pat, new IntArrayList(), new IntArrayList());
+	IntList alt_si;
+	IntList alt_pi;
+	return amatch(si, pat, &alt_si, &alt_pi);
 	}
 
-int RxMatch::amatch(int si, const Element** pat, IntArrayList* alt_si, IntArrayList* alt_pi)
+int RxMatch::amatch(int si, const Element** pat, 
+	IntList* alt_si, IntList* alt_pi) const
 	{
 	int idx;
 	for (int j = 0; j < MAXPARTS; ++j)
@@ -969,7 +882,7 @@ int rx_replen(const gcstring& rep, Rxpart* subs)
 	return len;
 	}
 
-inline char trcase(char& tr, char c)
+static char trcase(char& tr, char c)
 	{
 	c = tr == 'E' ? c :
 		(tr == 'L' || tr == 'l' ? tolower(c) : toupper(c));
@@ -978,7 +891,7 @@ inline char trcase(char& tr, char c)
 	return c;
 	}
 
-inline char* insert(char* dst, Rxpart& part, char& tr)
+static char* insert(char* dst, Rxpart& part, char& tr)
 	{
 	int n = part.n;
 	if (n <= 0)
@@ -993,7 +906,10 @@ char* rx_mkrep(char* buf, const gcstring& rep, Rxpart* subs)
 	{
 	int nr = rep.size();
 	if (rep[0] == '\\' && rep[1] == '=')
-		return (char*)memcpy(buf, rep.ptr() + 2, nr - 2);
+		{
+		memcpy(buf, rep.ptr() + 2, nr - 2);
+		return buf;
+		}
 
 	char tr = 'E';
 	char *dst = buf;
@@ -1037,95 +953,95 @@ struct Rxtest
 	};
 static Rxtest rxtests[] =
 	{
-			{ "hello", "hello", true },
-			{ "hello", "^hello$", true },
+		{ "hello", "hello", true },
+		{ "hello", "^hello$", true },
 
-			{ "hello\nworld", "^hello$", true },
-			{ "hello\nworld", "\\Ahello", true },
-			{ "hello\nworld", "\\Aworld", false },
-			{ "hello\nworld", "world\\Z", true },
-			{ "hello\nworld", "hello\\Z", false },
+		{ "hello\nworld", "^hello$", true },
+		{ "hello\nworld", "\\Ahello", true },
+		{ "hello\nworld", "\\Aworld", false },
+		{ "hello\nworld", "world\\Z", true },
+		{ "hello\nworld", "hello\\Z", false },
 
-			{ "hello\r\nworld", "^hello$", true },
-			{ "hello\r\nworld", "\\Ahello", true },
-			{ "hello\r\nworld", "\\Aworld", false },
-			{ "hello\r\nworld", "world\\Z", true },
-			{ "hello\r\nworld", "hello\\Z", false },
+		{ "hello\r\nworld", "^hello$", true },
+		{ "hello\r\nworld", "\\Ahello", true },
+		{ "hello\r\nworld", "\\Aworld", false },
+		{ "hello\r\nworld", "world\\Z", true },
+		{ "hello\r\nworld", "hello\\Z", false },
 
-			{ "one_1 two_2\nthree_3", "\\<one_1\\>", true },
-			{ "one_1 two_2\nthree_3", "\\<two_2\\>", true },
-			{ "one_1 two_2\nthree_3", "\\<three_3\\>", true },
-			{ "one_1 two_2\r\nthree_3", "\\<two_2\\>", true },
-			{ "one_1 two_2\r\nthree_3", "\\<three_3\\>", true },
-			{ "one_1 two_2\nthree_3", "\\<one\\>", false },
-			{ "one_1 two_2\nthree_3", "\\<two\\>", false },
+		{ "one_1 two_2\nthree_3", "\\<one_1\\>", true },
+		{ "one_1 two_2\nthree_3", "\\<two_2\\>", true },
+		{ "one_1 two_2\nthree_3", "\\<three_3\\>", true },
+		{ "one_1 two_2\r\nthree_3", "\\<two_2\\>", true },
+		{ "one_1 two_2\r\nthree_3", "\\<three_3\\>", true },
+		{ "one_1 two_2\nthree_3", "\\<one\\>", false },
+		{ "one_1 two_2\nthree_3", "\\<two\\>", false },
 
-			{ "hello", "fred", false },
-			{ "hello", "h.*o", true },
-			{ "hello", "[a-z]ello", true },
-			{ "hello", "[^0-9]ello", true },
-			{ "hello", "ell", true },
-			{ "hello", "^ell", false },
-			{ "hello", "ell$", false },
-			{ "heeeeeeeello", "^he+llo$", true },
-			{ "heeeeeeeello", "^he*llo*", true },
-			{ "hllo", "^he*llo$", true },
-			{ "hllo", "^he?llo$", true },
-			{ "hello", "^he?llo$", true },
-			{ "heello", "^he?llo$", false },
-			{ "+123.456", "^[+-][0-9]+[.][0123456789]*$", true },
+		{ "hello", "fred", false },
+		{ "hello", "h.*o", true },
+		{ "hello", "[a-z]ello", true },
+		{ "hello", "[^0-9]ello", true },
+		{ "hello", "ell", true },
+		{ "hello", "^ell", false },
+		{ "hello", "ell$", false },
+		{ "heeeeeeeello", "^he+llo$", true },
+		{ "heeeeeeeello", "^he*llo*", true },
+		{ "hllo", "^he*llo$", true },
+		{ "hllo", "^he?llo$", true },
+		{ "hello", "^he?llo$", true },
+		{ "heello", "^he?llo$", false },
+		{ "+123.456", "^[+-][0-9]+[.][0123456789]*$", true },
 
-			{ "0123456789", "^\\d+$", true },
-			{ "0123456789", "\\D", false },
-			{ "hello_123", "^\\w+$", true },
-			{ "hello_123", "\\W", false },
-			{ "hello \t\r\nworld", "^\\w+\\s+\\w+$", true },
-			{ "!@#@!# \r\t{},()[];", "^\\W+$", true },
-			{ "123adjf!@#", "^\\S+$", true },
-			{ "123adjf!@#", "\\s", false },
+		{ "0123456789", "^\\d+$", true },
+		{ "0123456789", "\\D", false },
+		{ "hello_123", "^\\w+$", true },
+		{ "hello_123", "\\W", false },
+		{ "hello \t\r\nworld", "^\\w+\\s+\\w+$", true },
+		{ "!@#@!# \r\t{},()[];", "^\\W+$", true },
+		{ "123adjf!@#", "^\\S+$", true },
+		{ "123adjf!@#", "\\s", false },
 
-			{ "()[]", "^\\(\\)\\[\\]$", true },
-			{ "hello world", "^(hello|howdy) (\\w+)$", true },
-			{ "ab", "(a|ab)b", true }, // alternation backtrack
-			{ "abc", "x*c", true },
-			{ "abc", "x*$", true },
-			{ "abc", "x?$", true },
-			{ "abc", "^x?", true },
-			{ "abc", "^x*", true },
-			{ "aBcD", "abcd", false },
-			{ "aBcD", "(?i)abcd", true },
-			{ "aBCd", "a(?i)bc(?-i)d", true },
-			{ "aBCD", "a(?i)bc(?-i)D", true },
-			{ "ABCD", "a(?i)bc(?-i)d", false },
-			{ "abc", "a.c", true },
-			{ "a.c", "(?q)a.c", true },
-			{ "abc", "(?q)a.c", false },
-			{ "a.cd", "(?q)a.c(?-q).", true },
-			{ "abcd", "(?q)a.c(?-q).", false },
-			{ "abc", "(?q)(", false },
-			{ "ABC", "(?i)[A-Z]", true },
-			{ "ABC", "(?i)[a-z]", true },
-			{ "abc", "(?i)[A-Z]", true },
-			{ "abc", "(?i)[a-z]", true },
-			{ "\xaa", "[\xaa\xbb]", true },
-			{ "\xaa", "(?i)[\xaa\xbb]", true },
-			{ "\x8a", "(?i)\x9a", false },
-			{ "\x8a", "(?i)[\x9a\xbb]", false }, // need \xbb to keep char class
-			{ "\x8a", "[\x80-\x90]", true },
-			{ "\x8a", "(?i)[\x80-\x90]", true }, // 0x8a is upper in latin charset
-			{ "x", "(?i)[2-Y]", true },
+		{ "()[]", "^\\(\\)\\[\\]$", true },
+		{ "hello world", "^(hello|howdy) (\\w+)$", true },
+		{ "ab", "(a|ab)b", true }, // alternation backtrack
+		{ "abc", "x*c", true },
+		{ "abc", "x*$", true },
+		{ "abc", "x?$", true },
+		{ "abc", "^x?", true },
+		{ "abc", "^x*", true },
+		{ "aBcD", "abcd", false },
+		{ "aBcD", "(?i)abcd", true },
+		{ "aBCd", "a(?i)bc(?-i)d", true },
+		{ "aBCD", "a(?i)bc(?-i)D", true },
+		{ "ABCD", "a(?i)bc(?-i)d", false },
+		{ "abc", "a.c", true },
+		{ "a.c", "(?q)a.c", true },
+		{ "abc", "(?q)a.c", false },
+		{ "a.cd", "(?q)a.c(?-q).", true },
+		{ "abcd", "(?q)a.c(?-q).", false },
+		{ "abc", "(?q)(", false },
+		{ "ABC", "(?i)[A-Z]", true },
+		{ "ABC", "(?i)[a-z]", true },
+		{ "abc", "(?i)[A-Z]", true },
+		{ "abc", "(?i)[a-z]", true },
+		{ "\xaa", "[\xaa\xbb]", true },
+		{ "\xaa", "(?i)[\xaa\xbb]", true },
+		{ "\x8a", "(?i)\x9a", false },
+		{ "\x8a", "(?i)[\x9a\xbb]", false }, // need \xbb to keep char class
+		{ "\x8a", "[\x80-\x90]", true },
+		{ "\x8a", "(?i)[\x80-\x90]", true }, // 0x8a is upper in latin charset
+		{ "x", "(?i)[2-Y]", true },
 
-			{ "aBc123", "^[[:alnum:]]+$", true },
-			{ "aBc", "^[[:alpha:]]+$", true },
-			{ "aBc  123", "^[[:alpha:]]+[[:blank:]]+[[:digit:]]+$", true },
-			{ "\x01\x1f\x7f", "^[[:cntrl:]]+$", true },
-			{ "a", "^[[:cntrl:]]+$", false },
-			{ "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~azAZ19", "^[[:graph:]]+$", true },
-			{ "\x01", "^[[:graph:]]+$", false },
-			{ "abc", "^[[:lower:]]+$", true },
-			{ "ABC", "^[[:lower:]]+$", false },
-			{ "ABC", "^[[:upper:]]+$", true },
-			{ "19abcdEF \t!", "^[[:xdigit:]]+[[:space:]]+[[:punct:]]?$", true }
+		{ "aBc123", "^[[:alnum:]]+$", true },
+		{ "aBc", "^[[:alpha:]]+$", true },
+		{ "aBc  123", "^[[:alpha:]]+[[:blank:]]+[[:digit:]]+$", true },
+		{ "\x01\x1f\x7f", "^[[:cntrl:]]+$", true },
+		{ "a", "^[[:cntrl:]]+$", false },
+		{ "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~azAZ19", "^[[:graph:]]+$", true },
+		{ "\x01", "^[[:graph:]]+$", false },
+		{ "abc", "^[[:lower:]]+$", true },
+		{ "ABC", "^[[:lower:]]+$", false },
+		{ "ABC", "^[[:upper:]]+$", true },
+		{ "19abcdEF \t!", "^[[:xdigit:]]+[[:space:]]+[[:punct:]]?$", true }
 	};
 
 class test_regexp : public Tests
@@ -1137,7 +1053,7 @@ class test_regexp : public Tests
 			const char* pattern = rxtests[i].pattern;
 			const char* pat = rx_compile(pattern);
 			const char* string = rxtests[i].string;
-			except_if(rxtests[i].result != rx_match(string, strlen(string), 0, pat, NULL),
+			except_if(rxtests[i].result != rx_match(string, strlen(string), 0, pat, nullptr),
 				string << " =~ " << pattern << " should be " << (rxtests[i].result ? "true" : "false"));
 			}
 		}
@@ -1167,7 +1083,7 @@ class test_regexp : public Tests
 		}
 	TEST(3, escape_nul_bug)
 		{
-		asserteq(rx_replen("\\", NULL), 1);
+		asserteq(rx_replen("\\", nullptr), 1);
 		}
 	};
 REGISTER(test_regexp);

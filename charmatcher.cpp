@@ -28,7 +28,10 @@ class CMIs : public CharMatcher
 public:
 	CMIs(char c) : c(c)
 		{ }
-	bool matches(char ch) const override;
+	bool matches(char ch) const override
+		{
+		return c == ch;
+		}
 private:
 	const char c;
 	};
@@ -38,7 +41,10 @@ class CMAnyOf : public CharMatcher
 public:
 	CMAnyOf(const gcstring& chars) : chars(chars)
 		{ }
-	bool matches(char ch) const override;
+	bool matches(char ch) const override
+		{
+		return chars.find(ch) != -1;
+		}
 private:
 	const gcstring chars;
 	};
@@ -48,7 +54,11 @@ class CMInRange : public CharMatcher
 public:
 	CMInRange(unsigned from, unsigned to) : from(from), to(to)
 		{ }
-	bool matches(char ch) const override;
+	bool matches(char ch) const override
+		{
+		unsigned c = ch;
+		return from <= c && c <= to;
+		}
 private:
 	const unsigned from;
 	const unsigned to;
@@ -59,7 +69,10 @@ class CMNegate : public CharMatcher
 public:
 	CMNegate(CharMatcher* cm) : cm(cm)
 		{ }
-	bool matches(char ch) const override;
+	bool matches(char ch) const override
+		{
+		return !cm->matches(ch);
+		}
 private:
 	const CharMatcher* cm;
 	};
@@ -69,7 +82,10 @@ class CMOr : public CharMatcher
 public:
 	CMOr(CharMatcher* cm1, CharMatcher* cm2) : cm1(cm1), cm2(cm2)
 		{ }
-	bool matches(char ch) const override;
+	bool matches(char ch) const override
+		{
+		return cm1->matches(ch) || cm2->matches(ch);
+		}
 private:
 	const CharMatcher* cm1;
 	const CharMatcher* cm2;
@@ -88,32 +104,6 @@ int CharMatcher::indexIn(const gcstring& s, int start) const
 		if (matches(*p))
 			return i;
 	return -1;
-	}
-
-bool CMIs::matches(char ch) const
-	{
-	return c == ch;
-	}
-
-bool CMAnyOf::matches(char ch) const
-	{
-	return chars.find(ch) != -1;
-	}
-
-bool CMInRange::matches(char ch) const
-	{
-	unsigned c = ch;
-	return from <= c && c <= to;
-	}
-
-bool CMNegate::matches(char ch) const
-	{
-	return !cm->matches(ch);
-	}
-
-bool CMOr::matches(char ch) const
-	{
-	return cm1->matches(ch) || cm2->matches(ch);
 	}
 
 CharMatcher CharMatcher::NONE;
