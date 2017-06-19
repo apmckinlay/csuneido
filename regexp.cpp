@@ -126,12 +126,8 @@ public:
 class RxCompile
 	{
 public:
-	RxCompile(const char* src, int len) :
-		src(src), sn(len)
-		{
-		patlen = len * 3 + 8;
-		pat = new Element*[patlen];
-		}
+	RxCompile(const char* src, int len) : src(src), sn(len)
+		{ }
 	char* compile();
 
 	static CharMatcher* blank;
@@ -176,9 +172,7 @@ private:
 	int leftCount = 0;
 	bool inChars = false;
 	bool inCharsIgnoringCase = false;
-	Element** pat;
-	int patlen;
-	int pati = 0;
+	std::vector<Element*> pat;
 	};
 
 CharMatcher* RxCompile::blank = CharMatcher::anyOf(" \t");
@@ -439,25 +433,24 @@ char* RxCompile::compile()
 	regexp();
 	emit(&RIGHT0);
 	emit(&PATEND);
-	verify(pati <= patlen);
 	if (si < sn)
 		except("regex: closing ) without opening (");
-	return reinterpret_cast<char*>(pat);
+	return reinterpret_cast<char*>(&pat[0]);
 	}
 
 void RxCompile::regexp()
 	{
-	int start = pati;
+	int start = pat.size();
 	sequence();
 	if (match('|'))
 		{
-		int len = pati - start;
+		int len = pat.size() - start;
 		insert(start, new Branch(1, len + 2));
 		while (true)
 			{
-			start = pati;
+			start = pat.size();
 			sequence();
-			len = pati - start;
+			len = pat.size() - start;
 			if (match("|"))
 				{
 				insert(start, new Branch(1, len + 2));
@@ -500,9 +493,9 @@ void RxCompile::element()
 		;
 	else
 		{
-		int start = pati;
+		int start = pat.size();
 		simple();
-		int len = pati - start;
+		int len = pat.size() - start;
 		if (match("??"))
 			insert(start, new Branch(len + 1, 1));
 		else if (match('?'))
@@ -661,14 +654,14 @@ CharMatcher* RxCompile::posixClass()
 
 void RxCompile::emit(Element* e)
 	{
-	pat[pati++] = e;
+	pat.push_back(e);
 	inChars = false;
 	}
 
 void RxCompile::emitChars(const char* s, int n)
 	{
 	if (inChars && inCharsIgnoringCase == ignoringCase && !next1of("?*+"))
-		static_cast<Chars*>(pat[pati - 1])->add(s, n);
+		static_cast<Chars*>(pat.back())->add(s, n);
 	else
 		{
 		emit(new Chars(s, n, ignoringCase));
@@ -679,10 +672,7 @@ void RxCompile::emitChars(const char* s, int n)
 
 void RxCompile::insert(int i, Element* e)
 	{
-	for (int j = pati; j > i; j--)
-		pat[j] = pat[j - 1];
-	pat[i] = e;
-	pati++;
+	pat.insert(pat.begin() + i, e);
 	inChars = false;
 	}
 
