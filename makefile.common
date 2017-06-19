@@ -10,6 +10,7 @@ builtins.cpp \
 cachemap.cpp \
 call.cpp \
 catstr.cpp \
+charmatcher.cpp \
 checksum.cpp \
 circlog.cpp \
 cmdlineoptions.cpp \

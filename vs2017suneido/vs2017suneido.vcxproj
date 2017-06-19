@@ -112,6 +112,7 @@
     <ClCompile Include="..\call.cpp" />
     <ClCompile Include="..\callback.cpp" />
     <ClCompile Include="..\catstr.cpp" />
+    <ClCompile Include="..\charmatcher.cpp" />
     <ClCompile Include="..\checksum.cpp" />
     <ClCompile Include="..\circlog.cpp" />
     <ClCompile Include="..\clientserver.cpp" />
@@ -268,6 +269,7 @@
     <ClInclude Include="..\call.h" />
     <ClInclude Include="..\callback.h" />
     <ClInclude Include="..\catstr.h" />
+    <ClInclude Include="..\charmatcher.h" />
     <ClInclude Include="..\checksum.h" />
     <ClInclude Include="..\circlog.h" />
     <ClInclude Include="..\cmdlineoptions.h" />
