@@ -235,6 +235,12 @@ Value Compiler::constant(const char* gname, const char* className)
 		return number();
 	case T_STRING :
 		{
+		if (scanner.source[scanner.prev] == '#')
+			{
+			x = symbol(scanner.value);
+			match();
+			return x;
+			}
 		gcstring s;
 		while (true)
 			{
@@ -253,12 +259,6 @@ Value Compiler::constant(const char* gname, const char* className)
 			{
 			if (! ((x = SuDate::literal(scanner.value))))
 				syntax_error("bad date literal");
-			match();
-			return x;
-			}
-		else if (anyName())
-			{
-			x = symbol(scanner.value);
 			match();
 			return x;
 			}
@@ -1568,11 +1568,12 @@ void FunctionCompiler::expr0(bool newtype)
 		{
 	case T_STRING :
 		{
-		SuString* s = (scanner.len == 0)
-			? SuString::empty_string
-			: new SuString(scanner.value, scanner.len);
+		Value x = (scanner.source[scanner.prev] == '#') ? symbol(scanner.value)
+			: (scanner.len == 0)
+				? SuEmptyString
+				: new SuString(scanner.value, scanner.len);
 		match();
-		emit(I_PUSH, LITERAL, literal(s));
+		emit(I_PUSH, LITERAL, literal(x));
 		option = LITERAL;
 		lvalue = value = false;
 		break ;
