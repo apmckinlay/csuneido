@@ -95,8 +95,11 @@ public:
 	char* getBuf(int n);
 
 	/// Resets used and pos to 0. Does not alter size of buffer.
-	void clear()
-		{ used = pos = 0; }
+	Buffer& clear()
+		{
+		used = pos = 0;
+		return *this;
+		}
 
 private:
 	char* buf;

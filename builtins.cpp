@@ -501,6 +501,31 @@ Value su_unixtime()
 	}
 PRIM(su_unixtime, "UnixTime()");
 
+Value su_finally()
+	{
+	const int nargs = 2;
+	KEEPSP
+	try
+		{
+		Value result = ARG(0).call(ARG(0), CALL);
+		ARG(1).call(ARG(1), CALL); // could throw
+		return result;
+		}
+	catch (...)
+		{
+		try
+			{
+			ARG(1).call(ARG(1), CALL);
+			}
+		catch (...)
+			{
+			// ignore exception from final_block if main_block threw
+			}
+		throw;
+		}
+	}
+PRIM(su_finally, "Finally(main_block, final_block)");
+
 // rich edit --------------------------------------------------------
 #include "rich.h"
 

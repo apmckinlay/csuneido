@@ -35,7 +35,7 @@ char cclass_[256] =
 	0, WHITE, WHITE, WHITE, WHITE, WHITE, 0, 0,		// BS, HT, LF ...
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
-	WHITE, GO, GO, OK, GO, GO, GO, GO,				// SP ! " # $ % & '
+	WHITE, GO, GO, GO, GO, GO, GO, GO,				// SP ! " # $ % & '
 	OK, OK, GO, GO, OK, GO, GO, GO,					// ( ) * + , - . /
 	DIG, DIG, DIG, DIG, DIG, DIG, DIG, DIG,			// 0 1 2 3 4 5 6 7
 	DIG, DIG, GO, OK, GO, GO, GO, OK,				// 8 9 : ; < = > ?
@@ -115,9 +115,9 @@ int Scanner::next()
 
 int Scanner::nextall()
 	{
-	int state;
+	int state = 0;
 
-	prev = si; state = 0; keyword = 0; value = "";
+	prev = si; keyword = 0; value = "";
 	for (;;)
 		{
 		switch (state)
@@ -268,12 +268,11 @@ int Scanner::nextall()
 			else
 				return ':';
 		case '_' :
-			buf.clear();
 			while (ID == cclass(source[si]) || DIG == cclass(source[si]))
 				++si;
 			if (source[si] == '?' || source[si] == '!')
 				++si;
-			buf.add(source + prev, si - prev);
+			buf.clear().add(source + prev, si - prev);
 			value = buf.str();
 			keyword = keywords(value);
 			if (source[si] != ':' ||
@@ -314,10 +313,9 @@ int Scanner::nextall()
 				return '.';
 			break ;
 		case '`' :
-			buf.clear();
 			while (source[si] && source[si] != '`')
 				++si;
-			buf.add(source + prev + 1, si - prev - 1);
+			buf.clear().add(source + prev + 1, si - prev - 1);
 			if (source[si])
 				++si;	// skip closing quote
 			value = buf.str();
@@ -342,6 +340,17 @@ int Scanner::nextall()
 			len = buf.size();
 			return T_STRING;
 			}
+		case '#':
+			if (ID != cclass(source[si]))
+				return '#';
+			while (ID == cclass(source[si]) || DIG == cclass(source[si]))
+				++si;
+			if (source[si] == '?' || source[si] == '!')
+				++si;
+			buf.clear().add(source + prev + 1, si - prev - 1);
+			value = buf.str();
+			len = buf.size();
+			return T_STRING;
 		default :
 			unreachable();
 			}
@@ -358,7 +367,6 @@ inline bool isodigit(char c)
 	{ return '0' <= c && c <= '7'; }
 
 // should be called with i pointing at backslash
-//
 /* static */ char Scanner::doesc(const char* src, int& i)
 	{
 	++i; // backslash
@@ -458,7 +466,7 @@ static const char* input = "and break case catch continue class callback default
 	^= ^ -- -= - ++ += + /= / \
 	*= * %= % $= $ name _name name123 '\\Ahello\\'world\\Z' \
 	\"string\" 123 123name .name  Name Name123 name? 1$2 +1 num=1 \
-	num+=1 1%2 /*comments*/ //comments";
+	num+=1 1%2 #id /*comments*/ //comments";
 
 struct Result
 	{
@@ -494,23 +502,23 @@ static Result results[] =
 	{ T_NUMBER, "1" }, { I_CAT, 0 }, { T_NUMBER, "2" }, { I_ADD, 0 },
 	{ T_NUMBER, "1" }, { T_IDENTIFIER, "num" }, { I_EQ, 0 }, { T_NUMBER, "1" },
 	{ T_IDENTIFIER, "num" }, { I_ADDEQ, 0 }, { T_NUMBER, "1" },
-	{ T_NUMBER, "1" }, { I_MOD, 0 }, {T_NUMBER, "2" },
-	{ T_STRING, "comment" }
+	{ T_NUMBER, "1" }, { I_MOD, 0 }, {T_NUMBER, "2" }, { T_STRING, "id" }
 	};
 
 class test_scanner : public Tests
 	{
 	TEST(1, scan)
 		{
-		int token;
+		int i, token;
 		Scanner sc(input);
-		for (int i = 0; Eof != (token = sc.next()); ++i)
+		for (i = 0; Eof != (token = sc.next()); ++i)
 			{
 			asserteq(results[i].token,
 				(results[i].token < KEYWORDS ? token : sc.keyword));
 			if (results[i].value)
 				asserteq(gcstring(sc.value), gcstring(results[i].value));
 			}
+		verify(i == sizeof results / sizeof(Result));
 		}
 	};
 REGISTER(test_scanner);
