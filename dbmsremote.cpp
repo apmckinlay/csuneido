@@ -43,6 +43,7 @@
 #include "fibers.h" // for tls()
 #include "auth.h" // for NONCE_SIZE and TOKEN_SIZE
 #include "tr.h"
+#include "suobject.h"
 
 //#define LOGGING
 #ifdef LOGGING
@@ -616,7 +617,9 @@ Value DbmsRemote::connections()
 	{
 	sc.write("CONNECTIONS\r\n");
 	LOG("c> " << "CONNECTIONS");
-	return sc.readvalue();
+	Value result = sc.readvalue();
+	val_cast<SuObject*>(result)->set_readonly();
+	return result;
 	}
 
 void DbmsRemote::erase(int tran, Mmoffset recadr)
