@@ -109,15 +109,18 @@ Value ThreadClass::call(Value self, Value member,
 		{
 		NOARGS("Thread.List()");
 		SuObject* list = new SuObject();
-		//TODO implement Thread.List()
+		Fibers::foreach_fiber_info(
+			[list](const char* name, const char* status) { list->putdata(name, status); });
 		return list;
 		}
 	else if (member == Name)
 		{
 		if (nargs > 1)
 			except("usage: Thread.Name(name = false)");
-		//TODO implement Thread.Name()
-		return "";
+		const char* name = ARG(0).str();
+		char fiber_name[110] = "";
+		Fibers::set_name(name, fiber_name);
+		return Value(fiber_name);
 		}
 	else if (member == Sleep)
 		{

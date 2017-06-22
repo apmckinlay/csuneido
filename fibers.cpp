@@ -43,6 +43,7 @@
 //#define LOG(stuff) con() << stuff << endl
 #define LOG(stuff)
 
+static int64 fiber_count = 0;
 struct Fiber
 	{
 	enum Status { READY, BLOCKED, ENDED, REUSE }; // NOTE: sequence is significant
@@ -50,11 +51,13 @@ struct Fiber
 		{ }
 	explicit Fiber(void* f, void* arg = nullptr)
 		: fiber(f), status(READY), arg_ref(arg)
-		{ }
+		{ fiber_number = ++fiber_count;	}
 	bool operator==(Status s) const
 		{ return status == s; }
 	void* fiber = nullptr;
 	Status status = REUSE;
+	char name[80] = "";
+	int64 fiber_number = 0;
 	// for garbage collector
 	void* stack_ptr = nullptr;
 	void* stack_end = nullptr;
@@ -326,4 +329,32 @@ int Fibers::size()
 	int n = 0;
 	foreach_fiber([&n](Fiber&){ ++n; });
 	return n - 1; // exclude main fiber
+	}
+
+static void build_fiber_name(char* fiber_name, Fiber& fiber)
+	{
+	strcpy(fiber_name, "Thread-");
+	char count_str[20];
+	strcat(fiber_name, i64tostr(fiber.fiber_number, count_str));
+	strcat(fiber_name, " ");
+	strcat(fiber_name, fiber.name);
+	}
+
+void Fibers::set_name(const char* name, char * fiber_name)
+	{
+	verify(!inMain());
+	strcpy(cur->name, name);	
+	build_fiber_name(fiber_name, (Fiber&)cur);
+	}
+
+void Fibers::foreach_fiber_info(std::function<void(const char*, const char*)> fn)
+	{
+	foreach_fiber([fn](Fiber& fiber)
+		{
+		if (&fibers[MAIN] == &fiber)
+			return;
+		char fiber_name[110] = "";
+		build_fiber_name(fiber_name, fiber);
+		fn(fiber_name, fiber.status == Fiber::READY ? "READY" : "BLOCKED");
+		});
 	}

@@ -79,6 +79,12 @@ struct Fibers
 
 	/// current number of fibers
 	static int size();
-	};
+
+	/// set thread name
+	static void set_name(const char* name, char* fiber_name);
+	
+	/// list all threads
+	static void foreach_fiber_info(std::function<void(const char*, const char*)> fn);
+};
 
 void sleepms(int ms);
