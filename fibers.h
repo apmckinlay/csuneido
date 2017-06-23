@@ -22,6 +22,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <functional>
+#include "gcstring.h"
 
 struct Proc;
 class Dbms;
@@ -81,10 +82,10 @@ struct Fibers
 	static int size();
 
 	/// set thread name
-	static void set_name(const char* name, char* fiber_name);
+	static gcstring set_name(const char* name);
 	
 	/// list all threads
-	static void foreach_fiber_info(std::function<void(const char*, const char*)> fn);
+	static void foreach_fiber_info(std::function<void(gcstring, const char*)> fn);
 };
 
 void sleepms(int ms);

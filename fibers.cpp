@@ -38,6 +38,7 @@
 #include "win.h"
 #include "qpc.h"
 #include <functional>
+#include "gcstring.h"
 
 //#include "ostreamcon.h"
 //#define LOG(stuff) con() << stuff << endl
@@ -56,7 +57,7 @@ struct Fiber
 		{ return status == s; }
 	void* fiber = nullptr;
 	Status status = REUSE;
-	char name[80] = "";
+	gcstring name = "";
 	int64 fiber_number = 0;
 	// for garbage collector
 	void* stack_ptr = nullptr;
@@ -331,30 +332,28 @@ int Fibers::size()
 	return n - 1; // exclude main fiber
 	}
 
-static void build_fiber_name(char* fiber_name, Fiber& fiber)
+static gcstring build_fiber_name(gcstring name, int64 fiber_number)
 	{
-	strcpy(fiber_name, "Thread-");
-	char count_str[20];
-	strcat(fiber_name, i64tostr(fiber.fiber_number, count_str));
-	strcat(fiber_name, " ");
-	strcat(fiber_name, fiber.name);
+	gcstring fiber_name = "Thread-";
+	char fiber_number_str[20]; // 20 = max int64
+	i64tostr(fiber_number, fiber_number_str);
+	return gcstring(fiber_number_str) + gcstring(" ") + name;
 	}
 
-void Fibers::set_name(const char* name, char * fiber_name)
+gcstring Fibers::set_name(const char* name)
 	{
 	verify(!inMain());
-	strcpy(cur->name, name);	
-	build_fiber_name(fiber_name, (Fiber&)cur);
+	cur->name = name;
+	return build_fiber_name(cur->name, cur->fiber_number);
 	}
 
-void Fibers::foreach_fiber_info(std::function<void(const char*, const char*)> fn)
+void Fibers::foreach_fiber_info(std::function<void(gcstring, const char*)> fn)
 	{
 	foreach_fiber([fn](Fiber& fiber)
 		{
 		if (&fibers[MAIN] == &fiber)
 			return;
-		char fiber_name[110] = "";
-		build_fiber_name(fiber_name, fiber);
+		gcstring fiber_name = build_fiber_name(fiber.name, fiber.fiber_number);
 		fn(fiber_name, fiber.status == Fiber::READY ? "READY" : "BLOCKED");
 		});
 	}
