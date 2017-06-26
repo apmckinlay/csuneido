@@ -334,10 +334,9 @@ int Fibers::size()
 
 static gcstring build_fiber_name(gcstring name, int64 fiber_number)
 	{
-	gcstring fiber_name = "Thread-";
 	char fiber_number_str[20]; // 20 = max int64
 	i64tostr(fiber_number, fiber_number_str);
-	return gcstring(fiber_number_str) + gcstring(" ") + name;
+	return gcstring("Thread-") + fiber_number_str + " " + name;
 	}
 
 gcstring Fibers::set_name(const char* name)
