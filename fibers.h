@@ -81,6 +81,9 @@ struct Fibers
 	/// current number of fibers
 	static int size();
 
+	/// get thread name
+	static gcstring Fibers::get_name();
+
 	/// set thread name
 	static gcstring set_name(const char* name);
 	

@@ -51,7 +51,7 @@ struct Fiber
 	Fiber()
 		{ }
 	explicit Fiber(void* f, void* arg = nullptr)
-		: fiber(f), status(READY), arg_ref(arg)
+		: fiber(f), status(READY), name(""), arg_ref(arg)
 		{ fiber_number = ++fiber_count;	}
 	bool operator==(Status s) const
 		{ return status == s; }
@@ -336,12 +336,19 @@ static gcstring build_fiber_name(gcstring name, int64 fiber_number)
 	{
 	char fiber_number_str[20]; // 20 = max int64
 	i64tostr(fiber_number, fiber_number_str);
-	return gcstring("Thread-") + fiber_number_str + " " + name;
+	gcstring fiber_name = gcstring("Thread-") + fiber_number_str;
+	if (name != "")
+		fiber_name += " " + name;
+	return fiber_name;
+	}
+
+gcstring Fibers::get_name()
+	{
+	return build_fiber_name(cur->name, cur->fiber_number);
 	}
 
 gcstring Fibers::set_name(const char* name)
 	{
-	verify(!inMain());
 	cur->name = name;
 	return build_fiber_name(cur->name, cur->fiber_number);
 	}
