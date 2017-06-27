@@ -649,7 +649,7 @@ CharMatcher* RxCompile::posixClass()
 	else if (match("xdigit:]"))
 		return xdigit;
 	else
-		except("bad posix class");
+		except("regex: bad posix class");
 	}
 
 void RxCompile::emit(Element* e)
