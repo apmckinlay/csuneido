@@ -347,7 +347,7 @@ gcstring Fibers::get_name()
 	return build_fiber_name(cur->name, cur->fiber_number);
 	}
 
-gcstring Fibers::set_name(const char* name)
+gcstring Fibers::set_name(const gcstring& name)
 	{
 	cur->name = name;
 	return build_fiber_name(cur->name, cur->fiber_number);
