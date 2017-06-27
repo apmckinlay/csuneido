@@ -52,13 +52,13 @@ struct Fiber
 	Fiber()
 		{ }
 	explicit Fiber(void* f, void* arg = nullptr)
-		: fiber(f), status(READY), name(""), arg_ref(arg)
+		: fiber(f), status(READY), arg_ref(arg)
 		{ fiber_number = ++fiber_count;	}
 	bool operator==(Status s) const
 		{ return status == s; }
 	void* fiber = nullptr;
 	Status status = REUSE;
-	gcstring name = "";
+	gcstring name;
 	int fiber_number = 0;
 	// for garbage collector
 	void* stack_ptr = nullptr;
@@ -333,7 +333,7 @@ int Fibers::size()
 	return n - 1; // exclude main fiber
 	}
 
-static gcstring build_fiber_name(gcstring name, int64 fiber_number)
+static gcstring build_fiber_name(const gcstring& name, int fiber_number)
 	{
 	OstreamStr os;
 	os << "Thread-" << fiber_number;
@@ -353,7 +353,7 @@ gcstring Fibers::set_name(const gcstring& name)
 	return build_fiber_name(cur->name, cur->fiber_number);
 	}
 
-void Fibers::foreach_fiber_info(std::function<void(gcstring, const char*)> fn)
+void Fibers::foreach_fiber_info(std::function<void(const gcstring&, const char*)> fn)
 	{
 	foreach_fiber([fn](Fiber& fiber)
 		{

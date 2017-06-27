@@ -111,7 +111,7 @@ Value ThreadClass::call(Value self, Value member,
 		SuObject* list = new SuObject();
 		Fibers::foreach_fiber_info(
 			[list](gcstring name, const char* status) 
-				{ list->putdata(new SuString(name.str()), status); });
+				{ list->putdata(new SuString(name), status); });
 		return list;
 		}
 	else if (member == Name)
@@ -119,10 +119,10 @@ Value ThreadClass::call(Value self, Value member,
 		if (nargs > 1)
 			except("usage: Thread.Name(name = false)");
 		if (nargs == 0)
-			return new SuString(Fibers::get_name().str());
+			return new SuString(Fibers::get_name());
 		gcstring name = ARG(0).str();
 		gcstring fiber_name = Fibers::set_name(name);
-		return new SuString(fiber_name.str());
+		return new SuString(fiber_name);
 		}
 	else if (member == Sleep)
 		{
