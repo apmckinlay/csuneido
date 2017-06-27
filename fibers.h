@@ -85,7 +85,7 @@ struct Fibers
 	static gcstring get_name();
 
 	/// set thread name
-	static gcstring set_name(const gcstring& name);
+	static void set_name(const gcstring& name);
 	
 	/// list all threads
 	static void foreach_fiber_info(std::function<void(const gcstring&, const char*)> fn);

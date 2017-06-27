@@ -347,10 +347,9 @@ gcstring Fibers::get_name()
 	return build_fiber_name(cur->name, cur->fiber_number);
 	}
 
-gcstring Fibers::set_name(const gcstring& name)
+void Fibers::set_name(const gcstring& name)
 	{
 	cur->name = name;
-	return build_fiber_name(cur->name, cur->fiber_number);
 	}
 
 void Fibers::foreach_fiber_info(std::function<void(const gcstring&, const char*)> fn)

@@ -118,11 +118,9 @@ Value ThreadClass::call(Value self, Value member,
 		{
 		if (nargs > 1)
 			except("usage: Thread.Name(name = false)");
-		if (nargs == 0)
-			return new SuString(Fibers::get_name());
-		gcstring name = ARG(0).gcstr();
-		gcstring fiber_name = Fibers::set_name(name);
-		return new SuString(fiber_name);
+		if (nargs == 1)
+			Fibers::set_name(ARG(0).gcstr());
+		return new SuString(Fibers::get_name());
 		}
 	else if (member == Sleep)
 		{
