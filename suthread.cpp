@@ -110,7 +110,8 @@ Value ThreadClass::call(Value self, Value member,
 		NOARGS("Thread.List()");
 		SuObject* list = new SuObject();
 		Fibers::foreach_fiber_info(
-			[list](gcstring name, const char* status) { list->putdata(name.str(), status); });
+			[list](gcstring name, const char* status) 
+				{ list->putdata(new SuString(name.str()), status); });
 		return list;
 		}
 	else if (member == Name)
