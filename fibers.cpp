@@ -39,12 +39,13 @@
 #include "qpc.h"
 #include <functional>
 #include "gcstring.h"
+#include "ostreamstr.h"
 
 //#include "ostreamcon.h"
 //#define LOG(stuff) con() << stuff << endl
 #define LOG(stuff)
 
-static int64 fiber_count = 0;
+static int fiber_count = 0;
 struct Fiber
 	{
 	enum Status { READY, BLOCKED, ENDED, REUSE }; // NOTE: sequence is significant
@@ -58,7 +59,7 @@ struct Fiber
 	void* fiber = nullptr;
 	Status status = REUSE;
 	gcstring name = "";
-	int64 fiber_number = 0;
+	int fiber_number = 0;
 	// for garbage collector
 	void* stack_ptr = nullptr;
 	void* stack_end = nullptr;
@@ -334,12 +335,11 @@ int Fibers::size()
 
 static gcstring build_fiber_name(gcstring name, int64 fiber_number)
 	{
-	char fiber_number_str[20]; // 20 = max int64
-	i64tostr(fiber_number, fiber_number_str);
-	gcstring fiber_name = gcstring("Thread-") + fiber_number_str;
+	OstreamStr os;
+	os << "Thread-" << fiber_number;
 	if (name != "")
-		fiber_name += " " + name;
-	return fiber_name;
+		os << " " << name;
+	return os.gcstr();
 	}
 
 gcstring Fibers::get_name()

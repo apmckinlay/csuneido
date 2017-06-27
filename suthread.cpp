@@ -118,10 +118,10 @@ Value ThreadClass::call(Value self, Value member,
 		if (nargs > 1)
 			except("usage: Thread.Name(name = false)");
 		if (nargs == 0)
-			return Fibers::get_name().str();
+			return new SuString(Fibers::get_name().str());
 		const char* name = ARG(0).str();
 		gcstring fiber_name = Fibers::set_name(name);
-		return fiber_name.str();
+		return new SuString(fiber_name.str());
 		}
 	else if (member == Sleep)
 		{

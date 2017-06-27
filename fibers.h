@@ -82,7 +82,7 @@ struct Fibers
 	static int size();
 
 	/// get thread name
-	static gcstring Fibers::get_name();
+	static gcstring get_name();
 
 	/// set thread name
 	static gcstring set_name(const char* name);
