@@ -49,7 +49,7 @@ static int fiber_count = 0;
 struct Fiber
 	{
 	enum Status { READY, BLOCKED, ENDED, REUSE }; // NOTE: sequence is significant
-	Fiber()
+	Fiber() : status(REUSE)
 		{ }
 	explicit Fiber(void* f, void* arg = nullptr)
 		: fiber(f), status(READY), arg_ref(arg)
@@ -57,7 +57,7 @@ struct Fiber
 	bool operator==(Status s) const
 		{ return status == s; }
 	void* fiber = nullptr;
-	Status status = REUSE;
+	Status status;
 	gcstring name;
 	int fiber_number = 0;
 	// for garbage collector
