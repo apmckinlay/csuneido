@@ -3398,7 +3398,7 @@ c();  \n\
 } }\n\
 					 44  nop \n\
 					 45  pop \n\
-					 46  push literal #\"unhandled switch value\"\n\
+					 46  push literal \"unhandled switch value\"\n\
 					 47  throw \n\
 					 48  pop \n\
 \n\
