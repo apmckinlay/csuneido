@@ -1142,7 +1142,9 @@ void SuObject::outdelims(Ostream& os, const char* delims) const
 		ObOutInKey ooik; // adjust output of keys
 		os << it->key;
 		}
-		os << ": " << it->val;
+		os << ':';
+		if (it->val != SuTrue)
+			os << ' ' << it->val;
 		}
 
 	os << delims[1];
