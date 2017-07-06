@@ -48,7 +48,7 @@
 static int fiber_count = 0;
 struct Fiber
 	{
-	enum Status { READY, BLOCKED, REUSE }; // NOTE: sequence is significant
+	enum Status { READY, BLOCKED, REUSE }; 
 	Fiber() : status(REUSE)
 		{ }
 	explicit Fiber(void* f, void* arg = nullptr)
@@ -184,8 +184,11 @@ void Fibers::create(void (_stdcall *fiber_proc)(void* arg), void* arg)
 	for (int i = 1; i < MAXFIBERS; ++i)
 		if (fibers[i].status == Fiber::REUSE)
 			{
-			if (fibers[i].fiber != 0 && !fibers[i].fiber)
+			if (fibers[i].fiber)
+				{
+				LOG("delete fiber " << i << " from create");
 				DeleteFiber(fibers[i].fiber);
+				}
 			LOG("create " << i);
 			fibers[i] = Fiber(f, arg);
 			return;
@@ -239,19 +242,21 @@ bool Fibers::yield()
 		return true;
 		}
 
-	for (int i = 1; i < MAXFIBERS; ++i)
+	fi = fi % (MAXFIBERS - 1) + 1;
+	if (runnable(fibers[fi]))
 		{
-		fi = fi % (MAXFIBERS - 1) + 1;
-		Fiber f = fibers[fi];
-		if (f.status == Fiber::REUSE && f.fiber != 0 && !f.fiber)
+		switchto(fi);
+		return true;
+		}
+
+	for (int i = 1; i < MAXFIBERS; ++i)
+		{	
+		Fiber& f = fibers[i];
+		if (f.status == Fiber::REUSE && f.fiber)
 			{
+			LOG("delete fiber " << i << " from yield");
 			DeleteFiber(f.fiber);
-			fibers[fi] = Fiber(); // to help garbage collection
-			}
-		else if (runnable(f))
-			{
-			switchto(fi);
-			return true;
+			f = Fiber(); // to help garbage collection
 			}
 		}
 	// no runnable fibers
@@ -300,7 +305,7 @@ void Fibers::end()
 static void foreach_fiber(std::function<void(Fiber&)> f)
 	{
 	for (int i = 0; i < MAXFIBERS; ++i)
-		if (fibers[i].status < Fiber::REUSE)
+		if (fibers[i].status != Fiber::REUSE)
 			f(fibers[i]);
 	}
 
