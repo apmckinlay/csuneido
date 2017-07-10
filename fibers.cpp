@@ -46,6 +46,7 @@
 #define LOG(stuff)
 
 static int fiber_count = 0;
+
 struct Fiber
 	{
 	enum Status { READY, BLOCKED, REUSE }; 
@@ -296,7 +297,7 @@ void Fibers::unblock(int fiberIndex)
 void Fibers::end()
 	{
 	LOG("end " << curFiberIndex());
-	verify(!inMain());	
+	verify(!inMain());
 	cur->status = Fiber::REUSE;
 	yield();
 	unreachable();
