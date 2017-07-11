@@ -247,20 +247,19 @@ bool Fibers::yield()
 		return true;
 		}
 
-	fi = fi % (MAXFIBERS - 1) + 1;
-	if (runnable(fibers[fi]))
-		{
-		switchto(fi);
-		return true;
-		}
-
 	for (int i = 1; i < MAXFIBERS; ++i)
-		{	
-		Fiber& f = fibers[i];
+		{
+		fi = fi % (MAXFIBERS - 1) + 1;
+		Fiber& f = fibers[fi];
 		if (f.status == Fiber::REUSE && f.fiber)
 			{
-			deleteFiber(f, i, "yield");
+			deleteFiber(f, fi, "yield");
 			f = Fiber(); // to help garbage collection
+			}
+		else if (runnable(f))
+			{
+			switchto(fi);
+			return true;
 			}
 		}
 	// no runnable fibers
