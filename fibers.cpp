@@ -178,6 +178,7 @@ verify(Fibers::curFiberIndex() == MAIN);
 	GC_set_warn_proc(warn);
 	}
 
+static void deleteFiber(Fiber& f, int i, const char* from_fn)
 	{
 	LOG("delete fiber " << i << " from " << from_fn);
 	verify(&f != cur);
