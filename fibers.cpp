@@ -178,6 +178,12 @@ verify(Fibers::curFiberIndex() == MAIN);
 	GC_set_warn_proc(warn);
 	}
 
+	{
+	LOG("delete fiber " << i << " from " << from_fn);
+	verify(&f != cur);
+	DeleteFiber(f.fiber);
+	}
+
 void Fibers::create(void (_stdcall *fiber_proc)(void* arg), void* arg)
 	{
 	void* f = CreateFiber(0, fiber_proc, arg);
@@ -186,11 +192,7 @@ void Fibers::create(void (_stdcall *fiber_proc)(void* arg), void* arg)
 		if (fibers[i].status == Fiber::REUSE)
 			{
 			if (fibers[i].fiber)
-				{
-				LOG("delete fiber " << i << " from create");
-				verify(&fibers[i] != cur);
-				DeleteFiber(fibers[i].fiber);
-				}
+				deleteFiber(fibers[i], i, "create");
 			LOG("create " << i);
 			fibers[i] = Fiber(f, arg);
 			return;
@@ -256,9 +258,7 @@ bool Fibers::yield()
 		Fiber& f = fibers[i];
 		if (f.status == Fiber::REUSE && f.fiber)
 			{
-			LOG("delete fiber " << i << " from yield");
-			verify(&f != cur);
-			DeleteFiber(f.fiber);
+			deleteFiber(f, i, "yield");
 			f = Fiber(); // to help garbage collection
 			}
 		}
