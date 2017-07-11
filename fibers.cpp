@@ -188,6 +188,7 @@ void Fibers::create(void (_stdcall *fiber_proc)(void* arg), void* arg)
 			if (fibers[i].fiber)
 				{
 				LOG("delete fiber " << i << " from create");
+				verify(&fibers[i] != cur);
 				DeleteFiber(fibers[i].fiber);
 				}
 			LOG("create " << i);
@@ -256,6 +257,7 @@ bool Fibers::yield()
 		if (f.status == Fiber::REUSE && f.fiber)
 			{
 			LOG("delete fiber " << i << " from yield");
+			verify(&f != cur);
 			DeleteFiber(f.fiber);
 			f = Fiber(); // to help garbage collection
 			}
