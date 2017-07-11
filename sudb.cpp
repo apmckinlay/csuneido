@@ -681,17 +681,20 @@ Record object_to_record(const Header& hdr, SuObject* ob)
 		return surec->to_record(hdr);
 	Record r;
 	int ts = hdr.timestamp_field();
+	Value tsval;
 	for (Lisp<int> f = hdr.output_fldsyms(); ! nil(f); ++f)
 		{
 		if (*f == -1)
 			r.addnil();
 		else if (*f == ts)
-			r.addval(dbms()->timestamp());
+			r.addval(tsval = dbms()->timestamp());
 		else if (Value x = ob->getdata(symbol(*f)))
 			r.addval(x);
 		else
 			r.addnil();
 		}
+	if (tsval && !ob->get_readonly())
+		ob->put(symbol(ts), tsval);
 	return r;
 	}
 

@@ -166,12 +166,13 @@ Record SuRecord::to_record(const Header& h)
 	Record rec;
 	OstreamStr oss;
 	int ts = h.timestamp_field();
+	Value tsval;
 	for (f = fldsyms; ! nil(f); ++f)
 		{
 		if (*f == -1)
 			rec.addnil();
 		else if (*f == ts)
-			rec.addval(dbms()->timestamp());
+			rec.addval(tsval = dbms()->timestamp());
 		else if (Lisp<ushort>* pd = deps.find(*f))
 			{
 			// output dependencies
@@ -189,6 +190,8 @@ Record SuRecord::to_record(const Header& h)
 		else
 			rec.addnil();
 		}
+	if (tsval && !get_readonly())
+		put(symbol(ts), tsval);
 	return rec;
 	}
 
@@ -361,7 +364,7 @@ void SuRecord::erase()
 void SuRecord::update()
 	{
 	ck_modify("Update");
-	Record newrec =  to_record(hdr);
+	Record newrec = to_record(hdr);
 	recadr = dbms()->update(trans->tran, recadr, newrec);
 	verify(recadr >= 0);
 	}
