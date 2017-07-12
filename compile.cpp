@@ -1800,8 +1800,10 @@ void FunctionCompiler::expr0(bool newtype)
 		int t = token;
 		if (! lvalue)
 			syntax_error_();
-		if (token == I_EQ && local_pos != -1 && (option == AUTO || option == DYNAMIC))
-			scanner.visitor->local(local_pos, id, INIT); // fix up previous
+		bool fixup = token == I_EQ && local_pos != -1 && 
+			(option == AUTO || option == DYNAMIC);
+		if (fixup)
+			scanner.visitor->local(-1, id, false); // undo previous incorrect "usage"
 		matchnew();
 		if (scanner.keyword == K_FUNCTION || scanner.keyword == K_CLASS)
 			{
@@ -1819,6 +1821,8 @@ void FunctionCompiler::expr0(bool newtype)
 			}
 		else
 			expr();
+		if (fixup)
+			scanner.visitor->local(local_pos, id, INIT);
 		emit(t, 0x80 + (option << 4), id);
 		}
 	else if (token == I_PREINC || token == I_PREDEC)
