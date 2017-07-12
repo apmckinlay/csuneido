@@ -63,6 +63,8 @@ public:
 	void end_func() override;
 private:
 	void process(int pos, int i, bool init);
+	void setupLocal(int var);
+
 	std::stack<Locals> stack;
 	SuObject* results;
 	Event event;
@@ -75,14 +77,20 @@ CodeVisitor* make_codecheck(SuObject* results)
 
 // complicated because compiler sometimes calls local
 // before knowing if it's an initialization
-// in which cases it calls local again to fix up
+// in which cases it calls local again to undo
 void CodeCheck::local(int pos, int var, bool init)
 	{
 	if (event.pos != -1)
 		{
-		// ignore previous event if this is a "fixup"
-		if (var != event.var || ! init || event.init)
-			process(event.pos, event.var, event.init);
+		if (pos == -1)
+			{
+			verify(var == event.var);
+			verify(!event.init);
+			setupLocal(var);
+			event.pos = -1; // wipe out previous event	
+			return;
+			}
+		process(event.pos, event.var, event.init);
 		}
 	event = Event(pos, var, init);
 	}
@@ -120,6 +128,13 @@ void CodeCheck::process(int pos, int var, bool init)
 		else
 			results->add(pos); // use without init - ERROR
 		}
+	}
+
+void CodeCheck::setupLocal(int var)
+	{
+	Locals& top = stack.top();
+	if (var == top.size())
+		top.push_back(Local(event.pos));
 	}
 
 void CodeCheck::begin_func()
