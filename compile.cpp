@@ -805,6 +805,7 @@ void FunctionCompiler::params(vector<char>& flags)
 			if (scanner.value[0] == '_')
 				{
 				++scanner.value;
+				++scanner.prev;
 				flags[nparams] |= DYN;
 				}
 			if ((flags[nparams] & DOT) && isupper(*scanner.value))
