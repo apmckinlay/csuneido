@@ -22,6 +22,7 @@
 
 #include <ctype.h>
 
+// does NOT handle hex
 int numlen(const char* s)
 	{
 	const char* start = s;

@@ -27,6 +27,8 @@
 #include <ctype.h>
 #include <limits.h>
 
+// used by client-server text protocol
+
 int getnum(char type, char*& s)
 	{
 	while (isspace(*s))
