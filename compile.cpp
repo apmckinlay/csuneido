@@ -240,7 +240,10 @@ Value Compiler::constant(const char* gname, const char* className)
 		{
 	case I_SUB :
 		match();
-		return -constant();
+		return -number();
+	case I_ADD :
+		match();
+		// fallthrough
 	case T_NUMBER :
 		return number();
 	case T_STRING :
