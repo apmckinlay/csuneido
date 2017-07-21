@@ -53,6 +53,13 @@ inline char cclass(char c)
 	return cclass_[static_cast<unsigned char>(c)];
 	}
 
+bool iswhite(const char* s)
+	{
+	while (cclass(*s) == WHITE)
+		++s;
+	return *s;
+	}
+
 void scanner_locale_changed()
 	{
 	// called by su_setlocale
@@ -297,7 +304,7 @@ int Scanner::nextall()
 				{
 				len = numlen(source + si);
 				verify(len > 0);
-				if (source[si + len - 1] == '.')
+				if (source[si + len - 1] == '.' && iswhite(source + si + len))
 					--len;
 				buf.add(source + si, len);
 				si += len;
