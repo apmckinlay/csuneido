@@ -1332,22 +1332,16 @@ void SuNumber::pack(char* buf) const
 		return SuOne;
 	char* end;
 	errno = 0;
-	if (s[0] == '0') // hex or octal
+	if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) // hex
 		{
-		unsigned long n = strtoul(s, &end, 0);
+		unsigned long n = strtoul(s, &end, 16);
 		if (*end == 0 && errno != ERANGE)
 			return n;
-		if (*end != '.')
-			except("can't convert: " << s);
-		// else fall thru
+		except("can't convert: " << s);
 		}
-	else
-		{
-		long n = strtol(s, &end, 0);
-		if (*end == 0 && errno != ERANGE)
-			return n;
-		// else fall thru
-		}
+	long n = strtol(s, &end, 10);
+	if (*end == 0 && errno != ERANGE)
+		return n;
 	return new SuNumber(s);
 	}
 

@@ -2309,12 +2309,6 @@ static Cmpltest cmpltests[] =
 					  4  return \n\
 					  5\n" },
 
-	{ "0377;", "0377; }\n\
-					  0  nop \n\
-					  1  push int 255\n\
-					  4  return \n\
-					  5\n" },
-
 	{ "0x100;", "0x100; }\n\
 					  0  nop \n\
 					  1  push int 256\n\
