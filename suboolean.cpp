@@ -37,9 +37,9 @@ SuNumber* SuBoolean::number()
 	}
 
 void SuBoolean::out(Ostream& os) const
-	{ os << gcstr(); }
+	{ os << to_gcstr(); }
 
-gcstring SuBoolean::gcstr() const
+gcstring SuBoolean::to_gcstr() const
 	{
 	static gcstring ts("true");
 	static gcstring fs("false");

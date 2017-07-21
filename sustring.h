@@ -75,6 +75,8 @@ public:
 
 	gcstring gcstr() const override
 		{ return s; }
+	gcstring to_gcstr() const override
+		{ return s; }
 
 	int symnum() const override;
 

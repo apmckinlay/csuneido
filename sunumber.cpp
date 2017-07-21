@@ -1048,7 +1048,7 @@ char* SuNumber::format(char* buf) const
 	return buf;
 	}
 
-gcstring SuNumber::gcstr() const
+gcstring SuNumber::to_gcstr() const
 	{
 	char buf[32];
 	format(buf);
@@ -1738,7 +1738,7 @@ class test_number2 : public Tests
 	void test(const char* s, const char* expected)
 		{
 		SuNumber n(s);
-		assert_eq(round(&n, 2, 'h')->gcstr(), expected);
+		assert_eq(round(&n, 2, 'h')->to_gcstr(), expected);
 		}
 	};
 REGISTER(test_number2);
@@ -1766,12 +1766,12 @@ class test_number3 : public Tests
 	static void check1(const char* s)
 		{
 		Value num = SuNumber::literal(s);
-		assert_eq(num.gcstr(), s);
+		assert_eq(num.to_gcstr(), s);
 		}
 	static void check2(const char* s, const char* t)
 		{
 		Value num = SuNumber::literal(s);
-		assert_eq(num.gcstr(), t);
+		assert_eq(num.to_gcstr(), t);
 		}
 	};
 REGISTER(test_number3);

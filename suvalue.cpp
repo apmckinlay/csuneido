@@ -55,6 +55,9 @@ int SuValue::integer() const
 gcstring SuValue::gcstr() const
 	{ except("can't convert " << type() << " to String"); }
 
+gcstring SuValue::to_gcstr() const
+	{ except("can't convert " << type() << " to String"); }
+
 int SuValue::symnum() const
 	{ except("not a valid member: " << type()); }
 

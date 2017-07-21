@@ -1899,7 +1899,7 @@ void FunctionCompiler::args_list(short& nargs, const char* delims, vector<ushort
 					id = symnum(scanner.value);
 				else if (token == T_NUMBER)
 					{
-					id = strtoul(scanner.value, NULL, 0);
+					id = strtoul(scanner.value, NULL, 0); //FIXME check end
 					if (id >= 0x8000)
 						syntax_error("numeric subscript overflow: (" << scanner.value << ")");
 					}
@@ -1986,7 +1986,7 @@ void FunctionCompiler::record()
 					id = symnum(scanner.value);
 				else if (token == T_NUMBER)
 					{
-					id = strtoul(scanner.value, NULL, 0);
+					id = strtoul(scanner.value, NULL, 0); //FIXME check end
 					if (id >= 0x8000)
 						syntax_error("numeric subscript overflow: (" << scanner.value << ")");
 					}
@@ -2138,7 +2138,7 @@ short FunctionCompiler::emit(short op, short option, short target,
 		case I_SUB : result = prev1.lit - prev2.lit; break ;
 		case I_MUL : result = prev1.lit * prev2.lit; break ;
 		case I_DIV : result = prev1.lit / prev2.lit; break ;
-		case I_CAT : result = new SuString(prev1.lit.gcstr() + prev2.lit.gcstr()); break ;
+		case I_CAT : result = new SuString(prev1.lit.to_gcstr() + prev2.lit.to_gcstr()); break ;
 		case I_MOD : result = prev1.lit.integer() % prev2.lit.integer(); break ;
 		case I_LSHIFT : result = (ulong) prev1.lit.integer() << prev2.lit.integer(); break ;
 		case I_RSHIFT : result = (ulong) prev1.lit.integer() >> prev2.lit.integer(); break ;

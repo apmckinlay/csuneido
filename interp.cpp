@@ -140,7 +140,7 @@ bool Frame::jumpToPopReturn()
 
 Value cat(Value x, Value y)
 	{
-	gcstring result = x.gcstr() + y.gcstr();
+	gcstring result = x.to_gcstr() + y.to_gcstr();
 	if (Except* e = val_cast<Except*>(x))
 		return new Except(*e, result);
 	if (Except* e = val_cast<Except*>(y))

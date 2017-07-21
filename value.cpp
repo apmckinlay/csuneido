@@ -46,6 +46,11 @@ gcstring Value::gcstr() const
 	return VAL->gcstr();
 	}
 
+gcstring Value::to_gcstr() const
+	{
+	return VAL->to_gcstr();
+	}
+
 gcstring Value::pack() const
 	{
 	return VAL->pack();

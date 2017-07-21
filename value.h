@@ -91,7 +91,8 @@ public:
 		{ return VAL->getdata(m); }
 	void putdata(Value m, Value x)
 		{ VAL->putdata(m, x); }
-	gcstring gcstr() const;
+	gcstring gcstr() const; // only if string
+	gcstring to_gcstr() const; // coerces boolean, number, object-with-ToString
 	const char* str() const;
 	size_t packsize() const
 		{ return VAL->packsize(); }

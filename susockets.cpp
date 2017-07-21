@@ -105,7 +105,7 @@ Value SuSocketClient::call(Value self, Value member,
 	else if (member == Write)
 		{
 		args.usage("usage: socketClient.Write(string)");
-		gcstring s = args.getgcstr("string");
+		gcstring s = args.getValue("string").to_gcstr();
 		args.end();
 		ckopen("Write");
 		sc->write(s);
@@ -114,7 +114,7 @@ Value SuSocketClient::call(Value self, Value member,
 	else if (member == Writeline)
 		{
 		args.usage("usage: socketClient.Writeline(string)");
-		gcstring s = args.getgcstr("string");
+		gcstring s = args.getValue("string").to_gcstr();
 		args.end();
 		ckopen("Writeline");
 		sc->writebuf(s);

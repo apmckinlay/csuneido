@@ -76,6 +76,8 @@ public:
 	int order() const override;
 	size_t hashfn() const override;
 
+	gcstring to_gcstr() const override;
+
 	size_t packsize() const override;
 	void pack(char* buf) const override;
 	static SuObject* unpack(const gcstring& s);
@@ -164,6 +166,7 @@ private:
 	Value Values(short nargs, short nargnames, ushort* argnames, int each);
 	Value Assocs(short nargs, short nargnames, ushort* argnames, int each);
 	Value GetDefault(short nargs, short nargnames, ushort* argnames, int each);
+	const char* toString() const;
 
 	Vector vec;
 	Map map;
