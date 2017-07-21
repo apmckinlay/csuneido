@@ -373,12 +373,14 @@ inline int octval(char c)
 inline bool isodigit(char c)
 	{ return '0' <= c && c <= '7'; }
 
-// should be called with i pointing at backslash
 /* static */ char Scanner::doesc(const char* src, int& i)
 	{
+	verify(src[i] == '\\');
 	++i; // backslash
 	switch (src[i])
 		{
+	case '0' :
+		return 0;
 	case 'n' :
 		return '\n';
 	case 't' :
@@ -398,13 +400,7 @@ inline bool isodigit(char c)
 	case '\'' :
 		return src[i];
 	default :
-		if (isodigit(src[i]) && isodigit(src[i + 1]) && isodigit(src[i + 2]))
-			{
-			i += 2;
-			return octval(src[i]) + 	8 * octval(src[i-1]) + 64 * octval(src[i-2]);
-			}
-		else
-			return src[--i];
+		return src[--i];
 		}
 	}
 
