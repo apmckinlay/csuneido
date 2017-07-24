@@ -1854,7 +1854,7 @@ void FunctionCompiler::args(short& nargs, vector<ushort>& argnames, const char* 
 		{
 		if (! just_block)
 			args_list(nargs, delims, argnames);
-		if (token == T_NEWLINE && ! expecting_compound && scanner.ahead() == '{')
+		while (token == T_NEWLINE && ! expecting_compound && scanner.ahead() == '{')
 			match();
 		if (token == '{')
 			{ // take block following args as another arg
