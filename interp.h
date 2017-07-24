@@ -32,7 +32,7 @@ class Func;
 class SuFunction;
 class BuiltinFunc;
 
-enum { FalseNum = 0, TrueNum, OBJECT };
+enum { OBJECT = 1 };
 
 // used for expression evaluation and function arguments
 class Stack

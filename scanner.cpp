@@ -411,7 +411,6 @@ struct Keyword
 	};
 static Keyword words[] =
 	{
-	{ "False", K_FALSE }, { "True", K_TRUE },
 	{ "and", T_AND }, { "bool", K_BOOL}, { "break", K_BREAK },
 	{ "buffer", K_BUFFER }, { "callback", K_CALLBACK },
 	{ "case", K_CASE }, { "catch", K_CATCH }, { "char", K_INT8 },
@@ -463,7 +462,7 @@ int Scanner::keywords(const char* s)
 static const char* input = "and break case catch continue class callback default dll do \
 	else for forever function if is isnt or not \
 	new switch struct super return throw try while \
-	true True false False \
+	true false \
 	== = =~ ~ != !~ ! <<= << <> <= < \
 	>>= >> >= > || |= | && &= &  \
 	^= ^ -- -= - ++ += + /= / \
@@ -486,7 +485,7 @@ static Result results[] =
 	{ K_IF, 0 }, { I_IS, 0 }, { I_ISNT, 0 }, { T_OR, 0 }, { I_NOT, 0 },
 	{ K_NEW, 0 }, { K_SWITCH, 0 }, { K_STRUCT, 0 }, { K_SUPER, 0 },
 	{ K_RETURN, 0 }, { K_THROW, 0 }, { K_TRY, 0 }, { K_WHILE, 0 },
-	{ K_TRUE, 0 }, { K_TRUE, 0 }, { K_FALSE, 0 }, { K_FALSE, 0 },
+	{ K_TRUE, 0 }, { K_FALSE, 0 },
 	{ I_IS, 0 }, { I_EQ, 0 }, { I_MATCH, 0 }, { I_BITNOT, 0 },
 	{ I_ISNT, 0 }, { I_MATCHNOT, 0 }, { I_NOT, 0 },
 	{ I_LSHIFTEQ, 0 }, { I_LSHIFT, 0 },	{ I_ISNT, 0 }, { I_LTE, 0 },

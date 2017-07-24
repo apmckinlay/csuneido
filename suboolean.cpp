@@ -61,12 +61,12 @@ SuBoolean* SuBoolean::unpack(const gcstring& s)
 
 SuBoolean* SuBoolean::literal(const char* s)
 	{
-	if (0 == strcmp(s, "True") || 0 == strcmp(s, "true"))
+	if (0 == strcmp(s, "true"))
 		return t;
-	else if (0 == strcmp(s, "False") || 0 == strcmp(s, "false"))
+	else if (0 == strcmp(s, "false"))
 		return f;
 	else
-		return 0;
+		return nullptr;
 	}
 
 static int ord = ::order("Boolean");
