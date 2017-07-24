@@ -1048,7 +1048,7 @@ char* SuNumber::format(char* buf) const
 	return buf;
 	}
 
-gcstring SuNumber::gcstr() const
+gcstring SuNumber::to_gcstr() const
 	{
 	char buf[32];
 	format(buf);
@@ -1332,22 +1332,16 @@ void SuNumber::pack(char* buf) const
 		return SuOne;
 	char* end;
 	errno = 0;
-	if (s[0] == '0') // hex or octal
+	if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) // hex
 		{
-		unsigned long n = strtoul(s, &end, 0);
+		unsigned long n = strtoul(s, &end, 16);
 		if (*end == 0 && errno != ERANGE)
 			return n;
-		if (*end != '.')
-			except("can't convert: " << s);
-		// else fall thru
+		except("can't convert: " << s);
 		}
-	else
-		{
-		long n = strtol(s, &end, 0);
-		if (*end == 0 && errno != ERANGE)
-			return n;
-		// else fall thru
-		}
+	long n = strtol(s, &end, 10);
+	if (*end == 0 && errno != ERANGE)
+		return n;
 	return new SuNumber(s);
 	}
 
@@ -1738,7 +1732,7 @@ class test_number2 : public Tests
 	void test(const char* s, const char* expected)
 		{
 		SuNumber n(s);
-		assert_eq(round(&n, 2, 'h')->gcstr(), expected);
+		assert_eq(round(&n, 2, 'h')->to_gcstr(), expected);
 		}
 	};
 REGISTER(test_number2);
@@ -1766,12 +1760,12 @@ class test_number3 : public Tests
 	static void check1(const char* s)
 		{
 		Value num = SuNumber::literal(s);
-		assert_eq(num.gcstr(), s);
+		assert_eq(num.to_gcstr(), s);
 		}
 	static void check2(const char* s, const char* t)
 		{
 		Value num = SuNumber::literal(s);
-		assert_eq(num.gcstr(), t);
+		assert_eq(num.to_gcstr(), t);
 		}
 	};
 REGISTER(test_number3);

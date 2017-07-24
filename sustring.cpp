@@ -106,9 +106,8 @@ int SuString::symnum() const
 SuNumber* SuString::number()
 	{
 	if (size() == 0)
-		return &SuNumber::zero;
-	auto t = str();
-	return size() == numlen(t) ? new SuNumber(t, size()) : SuValue::number();
+		return &SuNumber::zero; // "" => 0
+	return SuValue::number(); // throw can't convert
 	}
 
 static int ord = ::order("String");
@@ -994,7 +993,7 @@ class test_sustring2 : public Tests
 	{
 	TEST(0, main)
 		{
-		Value result = run("'a\\x00bc'.Replace('[\\x00-\\xff][\\x00-\\xff]?[\\x00-\\xff]?', {|x| x.Size() })");
+		Value result = run("'a\\x00bc'.Replace('[\\x00-\\xff][\\x00-\\xff]?[\\x00-\\xff]?', { '' $ it.Size() })");
 //cout << "value result: " << result << endl;
 char buf[] = { '3', '1', 0 }; //'a', 0, 'b', 'c', 0 };
 gcstring g = gcstring::noalloc(buf, sizeof (buf) - 1);

@@ -270,7 +270,7 @@ Value BinOp::eval2(Value x, Value y)
 	case I_GTE :		return ! lt(x, y) ? SuTrue : SuFalse;
 	case I_ADD :		return x + y;
 	case I_SUB :		return x - y;
-	case I_CAT :		return new SuString(x.gcstr() + y.gcstr());
+	case I_CAT :		return new SuString(x.to_gcstr() + y.to_gcstr());
 	case I_MUL :		return x * y;
 	case I_DIV :		return x / y;
 	case I_MOD :		return x.integer() % y.integer();

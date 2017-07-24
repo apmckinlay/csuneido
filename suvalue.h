@@ -41,10 +41,11 @@ public:
 
 	virtual size_t hashfn() const;
 	virtual int integer() const;
-	virtual gcstring gcstr() const;
+	virtual gcstring gcstr() const;			// no coerce
+	virtual gcstring to_gcstr() const;		// defined by SuBoolean and SuNumber
 	virtual int symnum() const;				// creates if necessary
 	virtual bool int_if_num(int* pn) const;	// defined by SuNumber
-	virtual SuNumber* number();				// defined by SuNumber & SuString
+	virtual SuNumber* number();				// only coerces "" and false to 0
 	virtual const char* str_if_str() const;	// defined by SuString
 	virtual SuObject* ob_if_ob();			// defined by SuObject & SuSeq
 	SuObject* object();

@@ -33,13 +33,15 @@ int SuBoolean::integer() const
 
 SuNumber* SuBoolean::number()
 	{
-	return val ? &SuNumber::one : &SuNumber::zero;
+	if (! val)
+		return &SuNumber::zero; // false => 0
+	return SuValue::number(); // throw can't convert
 	}
 
 void SuBoolean::out(Ostream& os) const
-	{ os << gcstr(); }
+	{ os << to_gcstr(); }
 
-gcstring SuBoolean::gcstr() const
+gcstring SuBoolean::to_gcstr() const
 	{
 	static gcstring ts("true");
 	static gcstring fs("false");

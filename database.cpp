@@ -1091,6 +1091,8 @@ Record Database::key(TblNum tblnum, const gcstring& columns)
 
 Index* Database::mkindex(const Record& r)
 	{
+	static Value u("u");
+
 	verify(! nil(r));
 	auto columns = r.getstr(I_COLUMNS).str();
 	return new Index(this,
@@ -1100,7 +1102,7 @@ Index* Database::mkindex(const Record& r)
 		r.getlong(I_TREELEVELS),
 		r.getlong(I_NNODES),
 		r.getval(I_KEY) == SuTrue,
-		r.getval(I_KEY).gcstr() == "u");
+		r.getval(I_KEY) == u);
 	}
 
 short* comma_to_nums(const Lisp<Col>& cols, const gcstring& str)

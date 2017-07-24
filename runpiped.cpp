@@ -303,7 +303,7 @@ Value SuRunPiped::Flush(BuiltinArgs& args)
 
 void SuRunPiped::write(BuiltinArgs& args)
 	{
-	gcstring s = args.getgcstr("s");
+	gcstring s = args.getValue("s").to_gcstr();
 	args.end();
 
 	ckopen();

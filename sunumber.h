@@ -53,7 +53,7 @@ public:
 
 	int integer() const override;
 	int64 bigint() const;
-	gcstring gcstr() const override;
+	gcstring to_gcstr() const override;
 	void out(Ostream& os) const override;
 	size_t hashfn() const override;
 	int symnum() const override;

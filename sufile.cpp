@@ -177,7 +177,7 @@ Value SuFile::Write(BuiltinArgs& args)
 	{
 	args.usage("usage: file.Write(string)");
 	Value arg = args.getValue("string");
-	gcstring s = arg.gcstr();
+	gcstring s = arg.to_gcstr();
 	args.end();
 
 	ckopen("Write");
@@ -190,7 +190,7 @@ Value SuFile::Writeline(BuiltinArgs& args)
 	{
 	args.usage("usage: file.Writeline(string)");
 	Value arg = args.getValue("string");
-	gcstring s = arg.gcstr();
+	gcstring s = arg.to_gcstr();
 	args.end();
 
 	ckopen("Writeline");

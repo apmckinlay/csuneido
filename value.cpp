@@ -36,7 +36,6 @@ bool Value::toBool() const
 		except("expected boolean, got " << type());
 	}
 
-
 const char* Value::str() const
 	{
 	return VAL->gcstr().str();
@@ -45,6 +44,11 @@ const char* Value::str() const
 gcstring Value::gcstr() const
 	{
 	return VAL->gcstr();
+	}
+
+gcstring Value::to_gcstr() const
+	{
+	return VAL->to_gcstr();
 	}
 
 gcstring Value::pack() const
@@ -148,7 +152,6 @@ Value operator/(Value x, Value y)
 
 
 #include "catstr.h"
-#include "except.h"
 
 void cantforce(const char* t1, const char* t2)
 	{

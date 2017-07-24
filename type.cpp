@@ -240,7 +240,7 @@ Value TypePointer::result(long, long n)
 void TypeBuffer::put(char*& dst, char*& dst2, const char* lim2, Value x)
 	{
 	SuString* str;
-	if (! x || x == SuZero)
+	if (! x || x == SuZero || x == SuFalse)
 		{
 		// missing members
 		*((const char**) dst) = nullptr;

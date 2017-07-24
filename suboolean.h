@@ -31,7 +31,7 @@ class SuBoolean : public SuValue
 public:
 	int integer() const override;
 	void out(Ostream& os) const override;
-	gcstring gcstr() const override;
+	gcstring to_gcstr() const override;
 	SuNumber* number() override; // defined by SuNumber & SuString
 
 	size_t packsize() const override;
