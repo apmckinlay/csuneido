@@ -1660,12 +1660,6 @@ void FunctionCompiler::expr0(bool newtype)
 					lvalue = false;
 					id = globals(scanner.value);
 					scanner.visitor->global(scanner.prev, scanner.value);
-					if (id == TrueNum || id == FalseNum)
-						{
-						emit(I_PUSH, LITERAL,
-							literal(id == TrueNum ? SuTrue : SuFalse));
-						lvalue = value = false;
-						}
 					}
 				else if (option == LITERAL) // _Name
 					{
@@ -1854,7 +1848,7 @@ void FunctionCompiler::args(short& nargs, vector<ushort>& argnames, const char* 
 		{
 		if (! just_block)
 			args_list(nargs, delims, argnames);
-		if (token == T_NEWLINE && ! expecting_compound && scanner.ahead() == '{')
+		while (token == T_NEWLINE && ! expecting_compound && scanner.ahead() == '{')
 			match();
 		if (token == '{')
 			{ // take block following args as another arg
@@ -2402,18 +2396,6 @@ static Cmpltest cmpltests[] =
 					  1  push global X\n\
 					  4  return \n\
 					  5\n" },
-
-	{ "True;", "True; }\n\
-					  0  nop \n\
-					  1  push value true \n\
-					  2  return \n\
-					  3\n" },
-
-	{ "False;", "False; }\n\
-					  0  nop \n\
-					  1  push value false \n\
-					  2  return \n\
-					  3\n" },
 
 	{ "\"\";", "\"\"; }\n\
 					  0  nop \n\
@@ -3721,7 +3703,7 @@ class test_compile : public Tests
 	void process(int i, const char* code, const char* result);
 	TEST(1, function)
 		{
-		const char* s = "function (a, b = 0, c = False, d = 123, e = 'hello') { }";
+		const char* s = "function (a, b = 0, c = false, d = 123, e = 'hello') { }";
 		SuFunction* fn = force<SuFunction*>(compile(s));
 		verify(fn->nparams == 5);
 		verify(fn->ndefaults == 4);

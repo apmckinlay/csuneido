@@ -669,8 +669,7 @@ Prim::Prim(PrimFn f, const char* d) : fn(f), decl(d)
 
 void builtins()
 	{
-	verify(FalseNum == globals("False"));
-	verify(TrueNum == globals("True"));
+	globals(""); // don't use the [0] slot
 	verify(OBJECT == globals("Object"));
 
 	INSTANTIATE = Value("instantiate");
@@ -709,8 +708,6 @@ void builtins()
 	builtin("resource", new TypeResource);
 
 	builtin("mkrec", new MkRec);
-	builtin("False", SuFalse);
-	builtin("True", SuTrue);
 	builtin("Object", root_class = new RootClass);
 	builtin("Suneido", new SuObject);
 	builtin("Construct", new Construct);

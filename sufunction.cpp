@@ -658,7 +658,8 @@ class test_packfunc : public Tests
 	{
 	TEST(0, main)
 		{
-		Value fn = compile("function (a, b, c = 0, d = False) { return A + B() + x + y + 123 + 456 }", "test_packfunc");
+		Value fn = compile("function (a, b, c = 0, d = false) "
+			"{ return A + B() + x + y + 123 + 456 }", "test_packfunc");
 		verify(val_cast<SuFunction*>(fn));
 		int n = fn.packsize();
 		char* buf1 = new char[n + 1];
