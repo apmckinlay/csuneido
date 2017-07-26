@@ -40,7 +40,7 @@
 #include "cmdlineoptions.h" // for ignore_version
 #include "exceptimp.h"
 #include "tmpalloc.h"
-#include "fibers.h" // for tls()
+#include "fibers.h" // for tls() and Fibers::default_sessionid()
 #include "auth.h" // for NONCE_SIZE and TOKEN_SIZE
 #include "tr.h"
 #include "suobject.h"
@@ -434,7 +434,7 @@ DbmsRemote::DbmsRemote(SocketConnect* s) : sc(s)
 	sc.write("BINARY\r\n");
 	sc.ck_ok();
 
-	WRITE("SESSIONID ");
+	WRITE("SESSIONID " << Fibers::default_sessionid());
 	sc.ck_readline(buf, sizeof buf);
 	tls().fiber_id = dupstr(stripnl(buf));
 	}

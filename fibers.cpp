@@ -371,3 +371,12 @@ void Fibers::foreach_fiber_info(std::function<void(const gcstring&, const char*)
 		fn(fiber_name, fiber.status == Fiber::READY ? "READY" : "BLOCKED");
 		});
 	}
+
+const char* Fibers::default_sessionid()
+	{
+	if (inMain())
+		return "";
+	OstreamStr os;
+	os << fibers[MAIN].tls.fiber_id << ":" << Fibers::get_name();
+	return os.str();
+	}

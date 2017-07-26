@@ -89,6 +89,9 @@ struct Fibers
 	
 	/// list all threads
 	static void foreach_fiber_info(std::function<void(const gcstring&, const char*)> fn);
+
+	/// fiber's default session id
+	static const char* Fibers::default_sessionid();
 };
 
 void sleepms(int ms);
