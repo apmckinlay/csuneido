@@ -221,7 +221,7 @@ Value Serializer::getValue()
 	// i.e. strings will just point into the buffer
 	int n = getInt();
 	LOG('-');
-	Value val = unpack(read(n));
+	Value val = (n == 0) ? SuEmptyString : unpack(read(n));
 	LOG(val);
 	return val;
 	}
