@@ -619,7 +619,7 @@ void DbmsRemote::getResponse()
 
 extern int su_port;
 
-Dbms* dbms_remote2_async(char* addr)
+Dbms* dbms_remote2_async(const char* addr)
 	{
 	return new DbmsRemote2(socketClientAsync(addr, su_port));
 	}
@@ -644,7 +644,7 @@ static const char* httpget(const char* addr, int port)
 		}
 	}
 
-Dbms* dbms_remote2(char* addr)
+Dbms* dbms_remote2(const char* addr)
 	{
 	try
 		{

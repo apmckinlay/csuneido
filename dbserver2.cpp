@@ -164,7 +164,7 @@ static void _stdcall dbserver(void* sc)
 
 extern int su_port;
 
-void start_dbserver2(char* name)
+void start_dbserver2(const char* name)
 	{
 	socketServer(name, su_port, dbserver, nullptr, true);
 	}
