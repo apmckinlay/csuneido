@@ -199,14 +199,14 @@ Value SuDate::instantiate(short nargs, short nargnames, ushort* argnames, int ea
 			return ARG(0);
 		else
 			{
-			auto s = ARG(0).str();
-			if (*s == '#')
+			auto s = ARG(0).to_gcstr();
+			if (s[0] == '#')
 				{
-				Value x = SuDate::literal(s);
+				Value x = SuDate::literal(s.str());
 				return x ? x : SuFalse;
 				}
 			else
-				return parse(s);
+				return parse(s.str());
 			}
 		}
 	else if (nargs == 2 && nargnames == 0)
