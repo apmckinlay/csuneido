@@ -24,20 +24,27 @@
 #include "suvalue.h"
 #include "sunumber.h"
 #include "symbols.h"
+#include "gcstring.h"
 #include <malloc.h>
 #include <typeinfo>
 
-class gcstring;
 class SuString;
 class SuObject;
 class Ostream;
 
+// allocates a temporary SuNumber on the stack
+// NOTE: only for use by Value, not intended to be public
 #define NUM(n) (new (_alloca(sizeof (SuNumber))) SuNumber(n))
 
+// return a SuValue pointer, temporary auto box integer on stack if necessary
+// NOTE: only for use by Value, not intended to be public
 #define VAL	((SuValue*) (is_int() ? NUM(im.n) : p))
 
-#define INTVAL	((short) 0xffff)
-
+/*
+ * Value is a "value" type that either directly contains a short integer
+ * or else wraps an SuValue* which handles polymorphism.
+ * Assumes there are no valid pointer with a high short of 0xffff
+ */
 class Value
 	{
 public:
@@ -70,35 +77,47 @@ public:
 
 	unsigned int hash() const
 		{ return is_int() ? im.n : p->hashfn(); }
-	int integer() const
-		{ return is_int() ? im.n : (p ? p->integer() : 0); }
+
 	bool int_if_num(int* pn) const
 		{ return is_int() ? (*pn = im.n, true) : VAL->int_if_num(pn); }
+	int integer() const // coerces false and "" to 0
+		{ return is_int() ? im.n : (p ? p->integer() : 0); }
+	SuNumber* number() const // coerces false and "" to 0
+		{ return is_int() ? new SuNumber(im.n) : VAL->number(); }
+
+	int symnum() const
+		{ return is_int() && im.n > 0 ? im.n : VAL->symnum(); }
+
 	const char* str_if_str() const
 		{ return VAL->str_if_str(); }
-	SuNumber* number() const
-		{ return is_int() ? new SuNumber(im.n) : VAL->number(); }
+	gcstring gcstr() const // only if string
+		{ return VAL->gcstr(); }
+	gcstring to_gcstr() const // coerces boolean, number, object-with-ToString
+		{ return VAL->to_gcstr(); }
+	const char* str() const
+		{ return VAL->gcstr().str(); }
+
 	SuObject* object() const
 		{ return VAL->object(); }
 	SuObject* ob_if_ob() const
 		{ return is_int() ? 0 : p ? VAL->ob_if_ob() : 0; }
-	int symnum() const
-		{ return is_int() && im.n > 0 ? im.n : VAL->symnum(); }
+
 	Value call(Value self, Value member, short nargs = 0, 
 		short nargnames = 0, ushort* argnames = nullptr, int each = -1)
 		{ return VAL->call(self, member, nargs, nargnames, argnames, each); }
+
 	Value getdata(Value m) const
 		{ return VAL->getdata(m); }
 	void putdata(Value m, Value x)
 		{ VAL->putdata(m, x); }
-	gcstring gcstr() const; // only if string
-	gcstring to_gcstr() const; // coerces boolean, number, object-with-ToString
-	const char* str() const;
+
 	size_t packsize() const
 		{ return VAL->packsize(); }
 	void pack(char* buf) const
 		{ VAL->pack(buf); }
-	gcstring pack() const;
+	gcstring pack() const
+		{ return VAL->pack(); }
+
 	const char* type() const
 		{ return is_int() ? "Number" : p ? VAL->type() : "null"; }
 	const Named* get_named() const
@@ -119,6 +138,7 @@ public:
 		{ return im.type == INTVAL; }
 
 private:
+	static const short INTVAL = static_cast<ushort>(0xffff);
 	union
 		{
 		SuValue* p;
