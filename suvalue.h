@@ -49,7 +49,7 @@ public:
 	virtual gcstring to_gcstr() const;		// defined by SuBoolean and SuNumber
 
 	virtual bool int_if_num(int* pn) const;	// only defined by SuNumber
-	virtual int integer() const;				// only coerces "" and false to 0
+	virtual int integer() const;			// only coerces "" and false to 0
 	virtual SuNumber* number();				// only coerces "" and false to 0
 
 	virtual SuObject* ob_if_ob();			// defined by SuObject & SuSeq

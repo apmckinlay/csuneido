@@ -892,11 +892,11 @@ Value SuObject::Add(short nargs, short nargnames, ushort* argnames, int each)
 	static ushort at = ::symnum("at");
 	if (nargnames > 1 || (nargnames == 1 && argnames[0] != at))
 		except("usage: object.Add(value, ... [ at: position ])");
-	int i = INT_MAX;
-	if (nargnames)
-		ARG(nargs - 1).int_if_num(&i);
-	else
+	int i;
+	if (!nargnames)
 		i = vec.size();
+	else if (! ARG(nargs - 1).int_if_num(&i))
+		i = -1;
 	if (0 <= i && i <= vec.size())
 		{
 		for (int j = 0; j < nargs - nargnames; ++j, ++i)
