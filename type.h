@@ -49,6 +49,13 @@ public:
 	void out(Ostream& os) const override;
 	};
 
+inline int toInt(Value x)
+	{
+	return !x ? 0
+		: x == SuTrue ? 1
+		: x.integer();
+	}
+
 // integer Types
 template <class T> class TypeInt : public Type
 	{
@@ -57,13 +64,13 @@ public:
 		{ return sizeof (T); }
 	void put(char*& dst, char*&, const char*, Value x) override
 		{
-		*((T*) dst) = x ? (T) x.integer() : 0;
+		*((T*) dst) = toInt(x);
 		dst += sizeof (T);
 		}
 	Value get(const char*& src, Value x) override
 		{
 		T n = *((T*) src);
-		if (! x || n != x.integer())
+		if (! x || n != toInt(x))
 			x = n;
 		src += sizeof (T);
 		return x;
@@ -71,6 +78,7 @@ public:
 	void out(Ostream& os) const override;
 	Value result(long, long n) override
 		{ return (T) n; }
+private:
 	};
 
 template<> class TypeInt<long long> : public Type

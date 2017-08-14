@@ -24,18 +24,23 @@
 #include "sunumber.h"
 #include "ostream.h"
 #include "gcstring.h"
+#include "except.h"
 
 SuBoolean* SuBoolean::t = new SuBoolean(1);
 SuBoolean* SuBoolean::f = new SuBoolean(0);
 
 int SuBoolean::integer() const
-	{ return val; }
+	{
+	if (!val)
+		return 0; // false => 0
+	except("can't convert true to number");
+	}
 
 SuNumber* SuBoolean::number()
 	{
 	if (! val)
 		return &SuNumber::zero; // false => 0
-	return SuValue::number(); // throw can't convert
+	except("can't convert true to number");
 	}
 
 void SuBoolean::out(Ostream& os) const

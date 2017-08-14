@@ -790,15 +790,16 @@ Value SuDate::WeekDay(short nargs, short nargnames, ushort* argnames, int each)
 	int i = 0;
 	if (nargs == 1)
 		{
-		if (! ARG(0).int_if_num(&i))
+		if (auto s = ARG(0).str_if_str())
 			{
-			auto s = ARG(0).str();
 			for (i = 0; i < 7; ++i)
 				if (0 == memcmpic(s, weekday[i], strlen(s)))
-					break ;
+					break;
 			if (i >= 7)
 				except("usage: date.WeekDay( <day of week> )");
 			}
+		else
+			i = ARG(0).integer();
 		}
 	DateTime dt(date, time);
 	return (dt.day_of_week() - i + 7) % 7;

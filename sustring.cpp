@@ -103,11 +103,18 @@ int SuString::symnum() const
 	return ::symnum(str());
 	}
 
+int SuString::integer() const
+	{
+	if (size() == 0)
+		return 0; // "" => 0
+	except("can't convert String to number");
+	}
+
 SuNumber* SuString::number()
 	{
 	if (size() == 0)
 		return &SuNumber::zero; // "" => 0
-	return SuValue::number(); // throw can't convert
+	except("can't convert String to number");
 	}
 
 static int ord = ::order("String");

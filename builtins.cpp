@@ -136,17 +136,13 @@ Value trace()
 	{
 	const int nargs = 2;
 	int prev_trace_level = trace_level;
-	if (ARG(0).int_if_num(&trace_level))
-		{
-		if (0 == (trace_level & (TRACE_CONSOLE | TRACE_LOGFILE)))
-			trace_level |= TRACE_CONSOLE | TRACE_LOGFILE;
-		}
+	if (val_cast<SuString*>(ARG(0)))
+		tout() << ARG(0).gcstr() << endl;
 	else
 		{
-		if (val_cast<SuString*>(ARG(0)))
-			tout() << ARG(0).gcstr() << endl;
-		else
-			tout() << ARG(0) << endl;
+		trace_level = ARG(0).integer();
+		if (0 == (trace_level & (TRACE_CONSOLE | TRACE_LOGFILE)))
+			trace_level |= TRACE_CONSOLE | TRACE_LOGFILE;
 		}
 	Value block = ARG(1);
 	if (block != SuFalse)

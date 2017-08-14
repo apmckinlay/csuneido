@@ -192,7 +192,7 @@ long Callback::callback(Value fn, const char* src)
 				}
 
 			// call function
-			return docall(fn, CALL, nitems).integer();
+			return toInt(docall(fn, CALL, nitems));
 			}
 		catch (const std::exception& e)
 			{ except(e.what()); }
