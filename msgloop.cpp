@@ -32,13 +32,11 @@ static void shutdown(int);
 
 void message_loop(HWND hdlg)
 	{
+	const int END_MSG_LOOP = 0xebb;
 	MSG msg;
 
 	for (;;)
 		{
-		if (hdlg && GetWindowLong(hdlg, GWL_USERDATA) == 1)
-			return ;
-
 		while (! PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
 			{
 			SleepEx(0, true); // run completion routines (may unblock fibers)
@@ -62,6 +60,9 @@ void message_loop(HWND hdlg)
 			else
 				shutdown(msg.wParam);
 			}
+		if (hdlg && msg.hwnd == hdlg && 	msg.message == WM_NULL &&
+			msg.wParam == END_MSG_LOOP && msg.lParam == END_MSG_LOOP)
+			return ;
 
 		HWND window = GetAncestor(msg.hwnd, GA_ROOT);
 
