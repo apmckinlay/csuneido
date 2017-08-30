@@ -32,7 +32,7 @@ extern int su_port;
 extern int dbserver_timeout;
 extern bool is_client;
 
-enum { PORT = AFTER_ACTIONS, NOSPLASH, UNATTENDED, LOCAL_LIBRARY,
+enum { PORT = AFTER_ACTIONS, UNATTENDED, LOCAL_LIBRARY,
 	NO_EXCEPTION_HANDLING, NO_GARBAGE_COLLECTION,
 	INSTALL_SERVICE, SERVICE,
 	CHECK_START, COMPACT_EXIT, IGNORE_VERSION, IGNORE_CHECK,
@@ -95,9 +95,6 @@ const char* CmdLineOptions::parse(const char* str)
 			su_port = strtol(s, &end, 10);
 			s = end;
 			break ;
-		case NOSPLASH:
-			error = "-n[osplash] option no longer supported, please remove";
-			break;
 		case UNATTENDED :
 			unattended = true;
 			break ;
@@ -189,7 +186,6 @@ static struct { const char* str; int num; } options[] = {
 	{ "-test", TEST },
 	{ "-t", TESTS },
 	{ "-port", PORT }, { "-p", PORT },
-	{ "-nosplash", NOSPLASH },{ "-n", NOSPLASH },
 	{ "-help", HELP }, { "-?", HELP }, { "-h", HELP },
 	{ "-version", VERSION }, { "-v", VERSION },
 	{ "-is", INSTALL_SERVICE }, { "-installservice", INSTALL_SERVICE },
