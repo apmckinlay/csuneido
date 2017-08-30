@@ -1,737 +1,617 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
- * This file is part of Suneido - The Integrated Application Platform
- * see: http://www.suneido.com for more information.
- *
- * Copyright (c) 2000 Suneido Software Corp.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2.
- *
- * This program is distributed in the hope that it will be
- * useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details.
- *
- * You should have received a copy of the GNU General Public
- * License along with this program; if not, write to the Free
- * Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA
+* This file is part of Suneido - The Integrated Application Platform
+* see: http://www.suneido.com for more information.
+*
+* Copyright (c) 2017 Suneido Software Corp.
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation - version 2.
+*
+* This program is distributed in the hope that it will be
+* useful, but WITHOUT ANY WARRANTY; without even the implied
+* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+* PURPOSE.  See the GNU General Public License in the file COPYING
+* for more details.
+*
+* You should have received a copy of the GNU General Public
+* License along with this program; if not, write to the Free
+* Software Foundation, Inc., 59 Temple Place - Suite 330,
+* Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "connection.h"
 #include "dbms.h"
-#include "record.h"
-#include "row.h"
-#include "ostreamstr.h"
-#include "sockets.h"
-#include "build.h"
-#include <stdlib.h>
-#include <ctype.h>
 #include "lisp.h"
-#include "gcstring.h"
-#include "sudate.h"
-#include "pack.h"
-#include "fatal.h"
-#include "getnum.h"
-#include "value.h"
+#include "row.h"
+#include "clientserver.h"
+#include "sockets.h"
 #include "sustring.h"
-#include "gc.h"
-#include "cmdlineoptions.h" // for ignore_version
-#include "exceptimp.h"
-#include "tmpalloc.h"
-#include "fibers.h" // for tls() and Fibers::default_sessionid()
-#include "auth.h" // for NONCE_SIZE and TOKEN_SIZE
+#include "fibers.h"
+#include <cctype>
+#include <vector>
+#include "cmdlineoptions.h"
+#include "build.h"
 #include "tr.h"
-#include "suobject.h"
 
-//#define LOGGING
-#ifdef LOGGING
-#include "ostreamfile.h"
-OstreamFile& dbmslog()
+// the client side of the *binary* client-server protocol
+
+enum class CorQ : char { CURSOR = 'c', QUERY = 'q' };
+
+class DbmsRemote : public Dbms
 	{
-	static OstreamFile log("dbms.log", "ab");
-	return log;
-	}
-#define LOG(stuff) dbmslog() << stuff << endl
-#else
-//#define LOG(stuff)
-//#include "circlog.h"
-//#define LOG(stuff) CIRCLOG(stuff)
-#include "trace.h"
-#define LOG(stuff) TRACE(CLIENTSERVER, stuff)
-#endif
-
-#define DO(fn) try { fn; } catch (const Except& e) { fatal("lost connection:", e.str()); }
-
-#define WRITE_LIMIT	(1024 * 1024) // 1 mb
-#define CK(n) except_if(n > WRITE_LIMIT, "client write of " << n << " exceeds limit of " << WRITE_LIMIT)
-
-class CheckedSocketConnect
-	{
+	friend class DbmsQueryRemote;
 public:
-	CheckedSocketConnect(SocketConnect* s) : sc(s)
-		{ }
-	void write(const char* s)
-		{ DO(sc->write(s)); }
-	void write(const char* buf, int len)
-		{ DO(sc->write(buf, len)); }
-	void writebuf(const char* s)
-		{ DO(sc->writebuf(s)); }
-	void writebuf(const char* buf, int len)
-		{ DO(sc->writebuf(buf, len)); }
-	void read(char* buf, int len)
-		{ DO(if (len != sc->read(buf, len)) except("socket read timeout in dbmsremote")); }
-	gcstring read(int n)
-		{ DO(return sc->read(n)); }
-	void readline(char* buf, int len)
-		{ DO(if (! sc->readline(buf, len)) except("socket readline timeout in dbmsremote")); }
-	char* ck_readline(char* buf, int len)
-		{
-		readline(buf, len);
-		LOG("c< " << buf);
-		if (has_prefix(buf, "ERR "))
-			except((buf + 4) << " (from server)");
-		return buf;
-		}
-	enum { BUFSIZE = 500 }; // large enough for exceptions
-	void ck_ok()
-		{
-		char buf[BUFSIZE];
-		ck_readline(buf, sizeof buf);
-		if (0 != strcmp(buf, "OK\r\n"))
-			except("expected 'OK', got: " << buf);
-		}
-	bool readbool()
-		{
-		char buf[BUFSIZE];
-		ck_readline(buf, sizeof buf);
-		if (*buf != 't' && *buf != 'f')
-			except("expected 't' or 'f', got: " << buf);
-		return *buf == 't';
-		}
-	int readint(char c)
-		{
-		char buf[BUFSIZE];
-		ck_readline(buf, sizeof buf);
-		char* s = buf;
-		return ck_getnum(c, s);
-		}
-	Value readvalue()
-		{
-		char buf[BUFSIZE];
-		ck_readline(buf, sizeof buf);
-		if (0 == strcmp(buf, "\r\n"))
-			return Value();
-		char* s = buf;
-		int n = ck_getnum('P', s);
-		return unpack(read(n));
-		}
-	void close()
-		{ sc->close(); }
-	SocketConnect* sc;
+	explicit DbmsRemote(SocketConnect* s);
+	~DbmsRemote();
+
+	void abort(int tn) override;
+	void admin(const char* s) override;
+	bool auth(const gcstring& data) override;
+	Value check() override;
+	bool commit(int tn, const char** conflict) override;
+	Value connections() override;
+	DbmsQuery* cursor(const char* query) override;
+	int cursors() override;
+	Value dump(const char* filename) override;
+	void erase(int tn, Mmoffset recadr) override;
+	Value exec(Value ob) override;
+	int final() override;
+	Row get(Dir dir, const char* query, bool one, Header& hdr, int tn = NO_TRAN) override;
+	int kill(const char* sessionid) override;
+	Lisp<gcstring> libget(const char* name) override;
+	Lisp<gcstring> libraries() override;
+	int load(const char* filename) override;
+	void log(const char* s) override;
+	gcstring nonce() override;
+	DbmsQuery* query(int tn, const char* query) override;
+	int readCount(int tn) override;
+	int request(int tn, const char* s) override;
+	Value run(const char* s) override;
+	Value sessionid(const char* s) override;
+	int64 size() override;
+	int tempdest() override;
+	Value timestamp() override;
+	gcstring token() override;
+	Lisp<int> tranlist() override;
+	int transaction(TranType type, const char* session_id = "") override;
+	Mmoffset update(int tn, Mmoffset recadr, Record& rec) override;
+	int writeCount(int tn) override;
+private:
+	static bool checkHello(const gcstring& hello);
+	void close(int qn, CorQ cq);
+	const char* explain(int qn, CorQ cq);
+	Row get(int tn, int qn, Dir dir);
+	Header header(int qn, CorQ cq);
+	Lisp<Lisp<gcstring>> keys(int qn, CorQ cq);
+	Lisp<gcstring> order(int qn, CorQ cq);
+	bool output(int qn, const Record& rec);
+	void rewind(int qn, CorQ cq);
+
+	void send(Command cmd);
+	void send(Command cmd, bool b);
+	void send(Command cmd, int n);
+	void send(Command cmd, int n, int m);
+	void send(Command cmd, int tn, int qn, Dir dir);
+	void send(Command cmd, Dir dir, bool one, int tn, const char* query);
+	void send(Command cmd, int qn, const Record& rec);
+	void send(Command cmd, int tn, int recadr, const Record& rec);
+	void send(Command cmd, int n, CorQ cq);
+	void send(Command cmd, int n, const gcstring& s);
+	void send(Command cmd, const char* s);
+	void send(Command cmd, const gcstring& s);
+	void send(Command cmd, Value val);
+	Serializer& putCmd(Command cmd);
+	void doRequest();
+	void getResponse();
+	Header getHeader();
+	Row getRow(Header* phdr = nullptr);
+
+	ClientConnection io;
 	};
-
-#define WRITE(stuff) \
-	do { \
-	os.clear(); \
-	os << stuff << "\r\n"; \
-	LOG("c> " << os.str()); \
-	sc.write(os.str()); \
-	} while(0)
-#define WRITEBUF(stuff) \
-	do { \
-	os.clear(); \
-	os << stuff << "\r\n"; \
-	LOG("c> " << os.str()); \
-	sc.writebuf(os.str()); \
-	} while(0)
-
-// DbmsQueryRemote ===================================================
 
 class DbmsQueryRemote : public DbmsQuery
 	{
 public:
-	DbmsQueryRemote(CheckedSocketConnect& sc, int q);
-	void set_transaction(int tran) override;
-	Header header() override;
-	Lisp<gcstring> order() override;
-	Lisp<Lisp<gcstring> > keys() override;
-	Row get(Dir dir) override;
-	void rewind() override;
-	void close() override;
-	const char* explain() override;
-	bool output(const Record& rec) override;
-	virtual void out(Ostream& os);
+	DbmsQueryRemote(DbmsRemote& d, int q) : dr(d), qn(q)
+		{ }
+	void set_transaction(int tn) override
+		{ }
+	void close() override
+		{ return dr.close(qn, c_or_q()); }
+	const char* explain() override
+		{ return dr.explain(qn, c_or_q()); }
+	Row get(Dir dir) override
+		{ return dr.get(getTran(), qn, dir); }
+	Header header() override
+		{
+		if (nil(header_))
+			header_ = dr.header(qn, c_or_q());
+		return header_;
+		}
+	Lisp<Lisp<gcstring>> keys() override
+		{
+		if (nil(keys_))
+			keys_ = dr.keys(qn, c_or_q());
+		return keys_;
+		}
+	Lisp<gcstring> order() override
+		{ return dr.order(qn, c_or_q()); }
+	bool output(const Record& rec) override
+		{ return dr.output(qn, rec); }
+	void rewind() override
+		{ return dr.rewind(qn, c_or_q()); }
 protected:
-	CheckedSocketConnect& sc;
-	int id;
-	Header header_;
-	Lisp<Lisp<gcstring> > keys_;
-	OstreamStr os;
+	virtual CorQ c_or_q()
+		{
+		return CorQ::QUERY;
+		}
+	virtual int getTran()
+		{ return NO_TRAN; }
+
+	DbmsRemote& dr;
+	const int qn;
+	Header header_; // cache
+	Lisp<Lisp<gcstring>> keys_; // cache
 	};
 
-Ostream& operator<<(Ostream& os, DbmsQueryRemote* q)
-	{ q->out(os); return os; }
-
-DbmsQueryRemote::DbmsQueryRemote(CheckedSocketConnect& s, int i) : sc(s), id(i)
-	{ }
-
-void DbmsQueryRemote::set_transaction(int tran)
-	{ }
-
-static Header s_to_header(char* s)
+class DbmsCursorRemote : public DbmsQueryRemote
 	{
-	if (s[0] != '(' || s[strlen(s) - 3] != ')')
-		except("HEADER expected (...)\r\ngot: " << s);
+public:
+	DbmsCursorRemote(DbmsRemote& d, int c) : DbmsQueryRemote(d, c)
+		{ }
+	void set_transaction(int t) override
+		{ tn = t; }
+protected:
+	CorQ c_or_q() override
+		{ return CorQ::CURSOR; }
+	int getTran() override
+		{
+		verify(isTran(tn));
+		int t = tn;
+		tn = NO_TRAN; // clear after use
+		return t;
+		}
+private:
+	int tn = NO_TRAN;
+	};
+
+// DbmsRemote -----------------------------------------------------------------
+
+DbmsRemote::DbmsRemote(SocketConnect* sc) : io(sc)
+	{
+	gcstring hello = sc->read(HELLO_SIZE);
+	if (!checkHello(hello))
+		except("connect failed\n" <<
+			"client: Suneido " << build << "\n" <<
+			"server: " << hello);
+	}
+
+bool DbmsRemote::checkHello(const gcstring& hello)
+	{
+	if (cmdlineoptions.ignore_version)
+		return true;
+	const char* prefix = "Suneido ";
+	if (!hello.has_prefix(prefix) || hello.has_prefix("Suneido Database Server"))
+		return false;
+	gcstring rest = hello.substr(strlen(prefix));
+	if (!rest.has("Java"))
+		return rest.has_prefix(build); // exact match
+	else
+		{
+		// just compare date (not time)
+		gcstring bd(build, 11); // 11 = MMM dd yyyy
+		bd = tr(bd, "  ", " "); // squeeze out extra space for single digit dates
+		return rest.has_prefix(bd.str());
+		}
+	}
+
+DbmsRemote::~DbmsRemote()
+	{
+	io.close();
+	}
+
+void DbmsRemote::abort(int tn)
+	{
+	send(Command::ABORT, tn);
+	}
+
+void DbmsRemote::admin(const char* s)
+	{
+	send(Command::ADMIN, s);
+	}
+
+bool DbmsRemote::auth(const gcstring& data)
+	{
+	send(Command::AUTH, data);
+	return io.getBool();
+	}
+
+Value DbmsRemote::check()
+	{
+	send(Command::CHECK);
+	return new SuString(io.getStr());
+	}
+
+void DbmsRemote::close(int qn, CorQ cq) // DbmsQuery
+	{
+	send(Command::CLOSE, qn, cq);
+	}
+
+bool DbmsRemote::commit(int tn, const char** conflict)
+	{
+	send(Command::COMMIT, tn);
+	if (io.getBool())
+		return true;
+	*conflict = io.getStr().str();
+	return false;
+	}
+
+Value DbmsRemote::connections()
+	{
+	send(Command::CONNECTIONS);
+	return io.getValue();
+	}
+
+DbmsQuery* DbmsRemote::cursor(const char* query)
+	{
+	send(Command::CURSOR, query);
+	auto cn = io.getInt();
+	return new DbmsCursorRemote(*this, cn);
+	}
+
+int DbmsRemote::cursors()
+	{
+	send(Command::CURSORS);
+	return io.getInt();
+	}
+
+Value DbmsRemote::dump(const char* filename)
+	{
+	send(Command::DUMP, filename);
+	return new SuString(io.getStr());
+	}
+
+void DbmsRemote::erase(int tn, Mmoffset recadr)
+	{
+	send(Command::ERASE, tn, recadr);
+	}
+
+Value DbmsRemote::exec(Value ob)
+	{
+	send(Command::EXEC, ob);
+	return io.getBool() ? io.getValue() : Value();
+	}
+
+const char* DbmsRemote::explain(int qn, CorQ cq) // DbmsQuery
+	{
+	send(Command::EXPLAIN, qn, cq);
+	return io.getStr().str();
+	}
+
+int DbmsRemote::final()
+	{
+	send(Command::FINAL);
+	return io.getInt();
+	}
+
+Row DbmsRemote::get(Dir dir, const char* query, bool one, Header& hdr, int tn)
+	{
+	send(Command::GET1, dir, one, tn, query);
+	return getRow(&hdr);
+	}
+
+Row DbmsRemote::get(int tn, int qn, Dir dir) // DbmsQuery
+	{
+	send(Command::GET, tn, qn, dir);
+	return getRow();
+	}
+
+Row DbmsRemote::getRow(Header* phdr)
+	{
+	if (!io.getBool())
+		return Row::Eof;
+	int64_t recadr = static_cast<unsigned int>(io.getInt());
+	if (phdr)
+		*phdr = getHeader();
+	gcstring r = io.getBuf();
+	return Row(Record(r.ptr()), recadr);
+	}
+
+int DbmsRemote::kill(const char* sessionid)
+	{
+	send(Command::KILL, sessionid);
+	return io.getInt();
+	}
+
+Header DbmsRemote::header(int qn, CorQ cq) // DbmsQuery
+	{
+	send(Command::HEADER, qn, cq);
+	return getHeader();
+	}
+
+Header DbmsRemote::getHeader()
+	{
+	int n = io.getInt();
 	Lisp<gcstring> cols;
 	Lisp<gcstring> fields;
-	for (++s; *s != '\r'; )
+	for (int i = 0; i < n; ++i)
 		{
-		int n = strcspn(s, ",)");
-		if (isupper(*s))
-			*s = tolower(*s);
+		gcstring s = io.getStr();
+		if (isupper(s[0]))
+			s = s.uncapitalize();
 		else
-			fields.push(gcstring(s, n));
-		if (n != 1 || *s != '-')
-			cols.push(gcstring(s, n));
-		s += n + 1;
+			fields.push(s);
+		if (s != "-")
+			cols.push(s);
 		}
 	cols.reverse();
 	fields.reverse();
 	return Header(lisp(fields), cols);
 	}
 
-const int MAXHDRSIZE = 16000;
-
-Header DbmsQueryRemote::header()
+Lisp<Lisp<gcstring>> DbmsRemote::keys(int qn, CorQ cq) // DbmsQuery
 	{
-	if (nil(header_))
-		{
-		WRITE("HEADER " << this);
-		char buf[MAXHDRSIZE];
-		sc.ck_readline(buf, sizeof buf);
-		header_ = s_to_header(buf);
-		}
-	return header_;
-	}
-
-Lisp<gcstring> DbmsQueryRemote::order()
-	{
-	WRITE("ORDER " << this);
-	char buf[1000];
-	sc.ck_readline(buf, sizeof buf);
-	if (buf[0] != '(' || buf[strlen(buf) - 3] != ')')
-		except("ORDER expected (...)\r\ngot: " << buf);
-	Lisp<gcstring> cols;
-	for (char* s = buf + 1; *s != '\r'; )
-		{
-		int n = strcspn(s, ",)");
-		if (n > 0)
-			cols.push(gcstring(s, n));
-		s += n + 1;
-		}
-	return cols.reverse();
-	}
-
-Lisp<Lisp<gcstring> > DbmsQueryRemote::keys()
-	{
-	if (nil(keys_))
-		{
-		WRITE("KEYS " << this);
-		char buf[MAXHDRSIZE];
-		sc.ck_readline(buf, sizeof buf);
-		if (buf[0] != '(' || buf[strlen(buf) - 3] != ')')
-			except("KEYS expected (...)\r\ngot: " << buf);
-		for (char* s = buf + 1; *s != '\r'; )
-			{
-			Lisp<gcstring> fields;
-			++s;
-			if (*s == ')')
-				++s;
-			else
-				while (*s != ',' && *s != ')')
-					{
-					int n = strcspn(s, ",)");
-					fields.push(gcstring(s, n));
-					s += n + 1; // skip field + comma or )
-					}
-			fields.reverse();
-			keys_.push(fields);
-			++s; // skip comma or )
-			}
-		keys_.reverse();
-		}
-	return keys_;
-	}
-
-static Row getrec(CheckedSocketConnect& sc, Header* phdr = 0)
-	{
-	char buf[MAXHDRSIZE];
-	sc.ck_readline(buf, sizeof buf);
-	if (0 == strcmp(buf, "EOF\r\n"))
-		return Row::Eof;
-	char* s = buf;
-	Mmoffset recadr = int_to_mmoffset(ck_getnum('A', s));
-	verify(recadr >= 0);
-	int reclen = ck_getnum('R', s);
-	if (phdr)
-		*phdr = s_to_header(s);
-	char* rec = new(noptrs) char[reclen + 1];
-	sc.read(rec, reclen);
-	rec[reclen] = 0; // so last field is nul terminated
-	return Row(Record((void*) rec), recadr);
-	}
-
-Row DbmsQueryRemote::get(Dir dir)
-	{
-	WRITE("GET " << (dir == NEXT ? "+ " : "- ") << this);
-	return getrec(sc);
-	}
-
-void DbmsQueryRemote::rewind()
-	{
-	WRITE("REWIND " << this);
-	sc.ck_ok();
-	}
-
-static char* stripnl(char* s)
-	{
-	char* t = s + strlen(s) - 1;
-	while (t >= s && (*t == '\r' || *t == '\n'))
-		*t-- = 0;
-	return s;
-	}
-
-const char* DbmsQueryRemote::explain()
-	{
-	WRITE("EXPLAIN " << this);
-	char buf[16000];
-	sc.ck_readline(buf, sizeof buf);
-	return dupstr(stripnl(buf));
-	}
-
-bool DbmsQueryRemote::output(const Record& rec)
-	{
-	int reclen = rec.cursize();
-	CK(reclen);
-	WRITEBUF("OUTPUT " << this << " R" << reclen);
-	sc.write((char*) rec.dup().ptr(), reclen); // dup to squeeze?
-	return sc.readbool();
-	}
-
-void DbmsQueryRemote::out(Ostream& ostream)
-	{
-	ostream << 'Q' << id;
-	}
-
-void DbmsQueryRemote::close()
-	{
-	WRITE("CLOSE " << this);
-	sc.ck_ok();
-	}
-
-// DbmsCursorRemote ===================================================
-
-class DbmsCursorRemote : public DbmsQueryRemote
-	{
-public:
-	DbmsCursorRemote(CheckedSocketConnect& s, int i) : DbmsQueryRemote(s, i)
-		{ }
-	void set_transaction(int t) override;
-	void out(Ostream& os) override;
-private:
-	int tran = NO_TRAN;
-	};
-
-void DbmsCursorRemote::set_transaction(int t)
-	{
-	tran = t;
-	}
-
-void DbmsCursorRemote::out(Ostream& ostream)
-	{
-	if (isTran(tran))
-		{
-		ostream << "T" << tran << " ";
-		tran = NO_TRAN;
-		}
-	ostream << 'C' << id;
-	}
-
-// DbmsRemote ========================================================
-
-class DbmsRemote : public Dbms
-	{
-public:
-	explicit DbmsRemote(SocketConnect* s);
-	~DbmsRemote();
-
-	void abort(int tran) override;
-	void admin(const char* s) override;
-	bool auth(const gcstring& data) override;
-	Value check() override;
-	bool commit(int tran, const char** conflict) override;
-	Value connections() override;
-	DbmsQuery* cursor(const char* s) override;
-	int cursors() override;
-	Value dump(const char* filename) override;
-	void erase(int tran, Mmoffset recadr) override;
-	Value exec(Value ob) override;
-	int final() override;
-	Row get(Dir dir, const char* query, bool one, Header& hdr, int tran = NO_TRAN) override;
-	int kill(const char* s) override;
-	Lisp<gcstring> libget(const char* name) override;
-	Lisp<gcstring> libraries() override;
-	int load(const char* filename) override;
-	void log(const char* s) override;
-	gcstring nonce() override;
-	DbmsQuery* query(int tran, const char* s) override;
-	int readCount(int tran) override;
-	int request(int tran, const char* s) override;
-	Value run(const char* s) override;
-	Value sessionid(const char* s) override;
-	int64 size() override;
-	int tempdest() override;
-	gcstring token() override;
-	Lisp<int> tranlist() override;
-	int transaction(TranType type, const char* session_id = "") override;
-	Value timestamp() override;
-	Mmoffset update(int tran, Mmoffset recadr, Record& rec) override;
-	int writeCount(int tran) override;
-private:
-	CheckedSocketConnect sc;
-	OstreamStr os;
-	};
-
-static bool builtMatch(char* resp)
-	{
-	if (cmdlineoptions.ignore_version)
-		return true;
-	const char* prefix = "Suneido Database Server (";
-	if (!has_prefix(resp, prefix))
-		return false;
-	resp = resp + strlen(prefix);
-	if (!strstr(resp, "Java"))
-		return has_prefix(resp, build);
-	else
-		{
-		// just compare date (not time)
-		gcstring bd(build, 11); // 11 = MMM dd yyyy
-		// squeeze out extra space for single digit dates on cSuneido
-		bd = tr(bd, "  ", " ");
-		return has_prefix(resp, bd.str());
-		}
-	}
-
-DbmsRemote::DbmsRemote(SocketConnect* s) : sc(s)
-	{
-	char buf[80];
-	sc.readline(buf, sizeof buf);
-	if (! builtMatch(buf))
-		except("connect failed\nexpected: Suneido Database Server ("
-			<< build << ")\ngot: " << buf);
-	sc.write("BINARY\r\n");
-	sc.ck_ok();
-
-	WRITE("SESSIONID " << Fibers::default_sessionid());
-	sc.ck_readline(buf, sizeof buf);
-	tls().fiber_id = dupstr(stripnl(buf));
-	}
-
-DbmsRemote::~DbmsRemote()
-	{
-	sc.close();
-	}
-
-int DbmsRemote::transaction(TranType type, const char* session_id)
-	{
-	WRITE("TRANSACTION " << (type == READONLY ? "read" : "update"));
-	return sc.readint('T');
-	}
-
-bool DbmsRemote::commit(int tran, const char** conflict)
-	{
-	WRITE("COMMIT T" << tran);
-	char buf[256];
-	sc.ck_readline(buf, sizeof buf);
-	if (0 == strcmp(buf, "OK\r\n"))
-		return true;
-	if (conflict)
-		*conflict = dupstr(stripnl(buf));
-	return false;
-	}
-
-void DbmsRemote::abort(int tran)
-	{
-	WRITE("ABORT T" << tran);
-	sc.ck_ok();
-	}
-
-static const char* nl_to_sp(const char* s)
-	{
-	char* copy = dupstr(s);
-	for (auto t = copy; *t; ++t)
-		if (*t == '\r' || *t == '\n')
-			*t = ' ';
-	return copy;
-	}
-
-void DbmsRemote::admin(const char* s)
-	{
-	WRITE("ADMIN " << nl_to_sp(s));
-	sc.readbool();
-	}
-
-int DbmsRemote::request(int tran, const char* s)
-	{
-	CK(strlen(s));
-	WRITEBUF("REQUEST T" << tran << " Q" << strlen(s));
-	sc.write(s);
-	return sc.readint('R');
-	}
-
-DbmsQuery* DbmsRemote::cursor(const char* s)
-	{
-	CK(strlen(s));
-	WRITEBUF("CURSOR Q" << strlen(s));
-	sc.write(s);
-	return new DbmsCursorRemote(sc, sc.readint('C'));
-	}
-
-DbmsQuery* DbmsRemote::query(int tran, const char* s)
-	{
-	CK(strlen(s));
-	WRITEBUF("QUERY T" << tran << " Q" << strlen(s));
-	LOG("c> " << s);
-	sc.write(s);
-	return new DbmsQueryRemote(sc, sc.readint('Q'));
+	send(Command::KEYS, qn, cq);
+	int n = io.getInt();
+	Lisp<Lisp<gcstring>> list;
+	for (int i = 0; i < n; ++i)
+		list.push(io.getStrings());
+	return list.reverse();
 	}
 
 Lisp<gcstring> DbmsRemote::libget(const char* name)
 	{
-	WRITE("LIBGET " << name);
-	char buf[80];
-	sc.ck_readline(buf, sizeof buf);
-	int n;
-	char* s = buf;
-	Lisp<gcstring> srcs;
-	while (ERR != (n = getnum('L', s)))
+	send(Command::LIBGET, name);
+	int n = io.getInt();
+	std::vector<gcstring> libs(n);
+	std::vector<int> sizes(n);
+	for (int i = 0; i < n; ++i)
 		{
-		char buf2[80];
-		sc.readline(buf2, sizeof buf2);
-		srcs.push(stripnl(buf2)); // library
-
-		srcs.push(sc.read(n)); // text
+		libs[i] = io.getStr();
+		sizes[i] = io.getInt();
+		}
+	Lisp<gcstring> srcs;
+	for (int i = 0; i < n; ++i)
+		{
+		srcs.push(libs[i]);
+		gcstring src = io.read(sizes[i]);
+		srcs.push(src); // text
 		}
 	return srcs.reverse();
 	}
 
 Lisp<gcstring> DbmsRemote::libraries()
 	{
-	sc.write("LIBRARIES\r\n");
-	LOG("c> " << "LIBRARIES");
-	char buf[1000];
-	sc.ck_readline(buf, sizeof buf);
-	if (buf[0] != '(' || buf[strlen(buf) - 3] != ')')
-		except("LIBRARIES expected (...)\r\ngot: " << buf);
-	Lisp<gcstring> libs;
-	for (char* s = buf + 1; *s != '\r'; )
-		{
-		int n = strcspn(s, ",)");
-		libs.push(gcstring(s, n));
-		s += n + 1;
-		}
-	return libs.reverse();
-	}
-
-Lisp<int> DbmsRemote::tranlist()
-	{
-	sc.write("TRANLIST\r\n");
-	LOG("c> " << "TRANLIST");
-	char buf[1000];
-	sc.ck_readline(buf, sizeof buf);
-	if (buf[0] != '(' || buf[strlen(buf) - 3] != ')')
-		except("TRANLIST expected (...)\r\ngot: " << buf);
-	Lisp<int> trans;
-	for (char* s = buf + 1; *s != '\r'; )
-		{
-		int n = strcspn(s, ",)");
-		if (n)
-			trans.push(atoi(s));
-		s += n + 1;
-		}
-	return trans.reverse();
-	}
-
-Value DbmsRemote::timestamp()
-	{
-	sc.write("TIMESTAMP\r\n");
-	LOG("c> " << "TIMESTAMP");
-	char buf[80];
-	sc.ck_readline(buf, sizeof buf);
-	stripnl(buf);
-	Value x = SuDate::literal(buf);
-	if (! x)
-		except("Timestamp: bad value from server: " << buf);
-	return x;
-	}
-
-Value DbmsRemote::dump(const char* filename)
-	{
-	WRITE("DUMP " << filename);
-	return sc.readvalue();
+	send(Command::LIBRARIES);
+	return io.getStrings();
 	}
 
 int DbmsRemote::load(const char* filename)
 	{
-	WRITE("LOAD " << filename);
-	return sc.readint('N');
-	}
-
-Value DbmsRemote::run(const char* s)
-	{
-	WRITE("RUN " << nl_to_sp(s));
-	return sc.readvalue();
-	}
-
-Value DbmsRemote::exec(Value ob)
-	{
-	int n = ob.packsize();
-	CK(n);
-	WRITEBUF("EXEC P" << n);
-	char* buf = tmpalloc(n);
-	ob.pack(buf);
-	sc.write(buf, n);
-	return sc.readvalue();
-	}
-
-int64 DbmsRemote::size()
-	{
-	sc.write("SIZE\r\n");
-	LOG("c> " << "SIZE");
-	return int_to_mmoffset(sc.readint('S'));
-	}
-
-Value DbmsRemote::connections()
-	{
-	sc.write("CONNECTIONS\r\n");
-	LOG("c> " << "CONNECTIONS");
-	Value result = sc.readvalue();
-	val_cast<SuObject*>(result)->set_readonly();
-	return result;
-	}
-
-void DbmsRemote::erase(int tran, Mmoffset recadr)
-	{
-	WRITE("ERASE T" << tran << " A" << mmoffset_to_int(recadr));
-	sc.ck_ok();
-	}
-
-Mmoffset DbmsRemote::update(int tran, Mmoffset recadr, Record& rec)
-	{
-	int reclen = rec.cursize();
-	CK(reclen);
-	WRITEBUF("UPDATE T" << tran << " A" << mmoffset_to_int(recadr) << " R" << reclen);
-	sc.write((char*) rec.dup().ptr(), reclen); // dup only required for async ???
-	return int_to_mmoffset(sc.readint('U'));
-	}
-
-Row DbmsRemote::get(Dir dir, const char* query, bool one, Header& hdr, int tran)
-	{
-	CK(strlen(query));
-	WRITEBUF("GET1 " << (dir == PREV ? "- " : (one ? "1 " : "+ "))
-		<< " T" << tran << " Q" << strlen(query));
-	LOG("c> " << query);
-	sc.write(query);
-	return getrec(sc, &hdr);
-	}
-
-int DbmsRemote::tempdest()
-	{
-	sc.write("TEMPDEST\r\n");
-	LOG("c> " << "TEMPDEST");
-	return sc.readint('D');
-	}
-
-int DbmsRemote::cursors()
-	{
-	sc.write("CURSORS\r\n");
-	LOG("c> " << "CURSORS");
-	return sc.readint('N');
-	}
-
-Value DbmsRemote::sessionid(const char* s)
-	{
-	if (! *s)
-		return new SuString(tls().fiber_id);
-	WRITE("SESSIONID " << s);
-	char buf[80];
-	sc.ck_readline(buf, sizeof buf);
-	SuString* ss = new SuString(stripnl(buf));
-	tls().fiber_id = ss->str();
-	return ss;
-	}
-
-int DbmsRemote::final()
-	{
-	sc.write("FINAL\r\n");
-	LOG("c> " << "FINAL");
-	return sc.readint('N');
+	send(Command::LOAD, filename);
+	return io.getInt();
 	}
 
 void DbmsRemote::log(const char* s)
 	{
-	WRITE("LOG " << stripnl(dupstr(s)));
-	sc.ck_ok();
-	}
-
-int DbmsRemote::kill(const char* s)
-	{
-	WRITE("KILL " << s);
-	return sc.readint('N');
+	send(Command::LOG, s);
 	}
 
 gcstring DbmsRemote::nonce()
 	{
-	sc.write("NONCE\r\n");
-	return sc.read(Auth::NONCE_SIZE);
+	send(Command::NONCE);
+	return io.getStr();
+	}
+
+Lisp<gcstring> DbmsRemote::order(int qn, CorQ cq) // DbmsQuery
+	{
+	send(Command::ORDER, qn, cq);
+	return io.getStrings();
+	}
+
+bool DbmsRemote::output(int qn, const Record& rec) // DbmsQuery
+	{
+	send(Command::OUTPUT, qn, rec);
+	return true;
+	}
+
+DbmsQuery* DbmsRemote::query(int tn, const char* query)
+	{
+	send(Command::QUERY, tn, query);
+	int qn = io.getInt();
+	return new DbmsQueryRemote(*this, qn);
+	}
+
+int DbmsRemote::readCount(int tn)
+	{
+	send(Command::READCOUNT);
+	return io.getInt();
+	}
+
+int DbmsRemote::request(int tn, const char* s)
+	{
+	send(Command::REQUEST, tn, s);
+	return io.getInt();
+	}
+
+void DbmsRemote::rewind(int qn, CorQ cq) // DbmsQuery
+	{
+	send(Command::REWIND, qn, cq);
+	}
+
+Value DbmsRemote::run(const char* s)
+	{
+	send(Command::RUN, s);
+	return io.getBool() ? io.getValue() : Value();
+	}
+
+Value DbmsRemote::sessionid(const char* sessionid)
+	{
+	if (*sessionid || !*tls().fiber_id)
+		{
+		send(Command::SESSIONID, sessionid);
+		tls().fiber_id = io.getStr().str();
+		}
+	return new SuString(tls().fiber_id);
+	}
+
+int64 DbmsRemote::size()
+	{
+	send(Command::SIZE);
+	return io.getInt();
+	}
+
+int DbmsRemote::tempdest()
+	{
+	return 0;
+	}
+
+Value DbmsRemote::timestamp()
+	{
+	send(Command::TIMESTAMP);
+	return io.getValue();
 	}
 
 gcstring DbmsRemote::token()
 	{
-	sc.write("TOKEN\r\n");
-	return sc.read(Auth::TOKEN_SIZE);
+	send(Command::TOKEN);
+	return io.getStr();
 	}
 
-bool DbmsRemote::auth(const gcstring& data)
+Lisp<int> DbmsRemote::tranlist()
 	{
-	if (data.size() == 0)
-		return false;
-	WRITEBUF("AUTH D" << data.size());
-	sc.write(data.ptr(), data.size());
-	return sc.readbool();
+	send(Command::TRANSACTIONS);
+	return io.getInts();
 	}
 
-Value DbmsRemote::check()
+int DbmsRemote::transaction(TranType type, const char* session_id)
 	{
-	sc.write("CHECK\r\n");
-	return sc.readvalue();
+	send(Command::TRANSACTION, type == READWRITE);
+	return io.getInt();
 	}
 
-int DbmsRemote::readCount(int tran)
+Mmoffset DbmsRemote::update(int tn, Mmoffset recadr, Record& rec)
 	{
-	WRITE("READCOUNT T" << tran);
-	return sc.readint('C');
+	send(Command::UPDATE, tn, recadr, rec);
+	return io.getInt();
 	}
 
-int DbmsRemote::writeCount(int tran)
+int DbmsRemote::writeCount(int tn)
 	{
-	WRITE("WRITECOUNT T" << tran);
-	return sc.readint('C');
+	send(Command::WRITECOUNT);
+	return io.getInt();
 	}
 
-// factory methods ==================================================
+//-----------------------------------------------------------------------------
+
+void DbmsRemote::send(Command cmd)
+	{
+	putCmd(cmd);
+	doRequest();
+	}
+
+void DbmsRemote::send(Command cmd, bool b)
+	{
+	putCmd(cmd).putBool(b);
+	doRequest();
+	}
+
+void DbmsRemote::send(Command cmd, int n)
+	{
+	putCmd(cmd).putInt(n);
+	doRequest();
+	}
+
+void DbmsRemote::send(Command cmd, int n, int m)
+	{
+	putCmd(cmd).putInt(n).putInt(m);
+	doRequest();
+	}
+
+void DbmsRemote::send(Command cmd, int tn, int qn, Dir dir)
+	{
+	putCmd(cmd).put(dir == NEXT ? '+' : '-').putInt(tn).putInt(qn);
+	doRequest();
+	}
+
+void DbmsRemote::send(Command cmd, Dir dir, bool one, int tn, const char * query)
+	{
+	putCmd(cmd).put(one ? '1' : (dir == NEXT) ? '+' : '-')
+		.putInt(tn).putStr(query);
+	doRequest();
+	}
+
+void DbmsRemote::send(Command cmd, int qn, const Record & rec)
+	{
+	putCmd(cmd).putInt(qn).putInt(rec.cursize());
+	io.write(static_cast<char*>(rec.dup().ptr()), rec.cursize());
+	doRequest();
+	}
+
+void DbmsRemote::send(Command cmd, int tn, int recadr, const Record & rec)
+	{
+	putCmd(cmd).putInt(tn).putInt(recadr).putInt(rec.cursize());
+	io.write(static_cast<char*>(rec.dup().ptr()), rec.cursize());
+	doRequest();
+	}
+
+void DbmsRemote::send(Command cmd, int n, CorQ cq)
+	{
+	putCmd(cmd).putInt(n).put(char(cq));
+	doRequest();
+	}
+
+void DbmsRemote::send(Command cmd, int n, const gcstring& s)
+	{
+	putCmd(cmd).putInt(n).putStr(s);
+	doRequest();
+	}
+
+void DbmsRemote::send(Command cmd, const char* s)
+	{
+	putCmd(cmd).putStr(s);
+	doRequest();
+	}
+
+void DbmsRemote::send(Command cmd, const gcstring& s)
+	{
+	putCmd(cmd).putStr(s);
+	doRequest();
+	}
+
+void DbmsRemote::send(Command cmd, Value val)
+	{
+	putCmd(cmd).putValue(val);
+	doRequest();
+	}
+
+Serializer& DbmsRemote::putCmd(Command cmd)
+	{
+	io.clear();
+	return io.putCmd(char(cmd));
+	}
+
+void DbmsRemote::doRequest()
+	{
+	io.write();
+	getResponse();
+	}
+
+void DbmsRemote::getResponse()
+	{
+	if (!io.getBool())
+		{
+		auto err = io.getStr();
+		except(err << " (from server)");
+		}
+	}
+
+// factory methods ------------------------------------------------------------
+
+#include "ostreamstr.h"
+#include "exceptimp.h"
+#include "fatal.h"
 
 extern int su_port;
 

@@ -131,10 +131,8 @@
     <ClCompile Include="..\dbms.cpp" />
     <ClCompile Include="..\dbmslocal.cpp" />
     <ClCompile Include="..\dbmsremote.cpp" />
-    <ClCompile Include="..\dbmsremote2.cpp" />
     <ClCompile Include="..\dbmsunauth.cpp" />
     <ClCompile Include="..\dbserver.cpp" />
-    <ClCompile Include="..\dbserver2.cpp" />
     <ClCompile Include="..\dbserverdata.cpp" />
     <ClCompile Include="..\debug.cpp" />
     <ClCompile Include="..\dll.cpp" />

@@ -1,255 +1,140 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
- * This file is part of Suneido - The Integrated Application Platform
- * see: http://www.suneido.com for more information.
- *
- * Copyright (c) 2000 Suneido Software Corp.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2.
- *
- * This program is distributed in the hope that it will be
- * useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details.
- *
- * You should have received a copy of the GNU General Public
- * License along with this program; if not, write to the Free
- * Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA
+* This file is part of Suneido - The Integrated Application Platform
+* see: http://www.suneido.com for more information.
+*
+* Copyright (c) 2017 Suneido Software Corp.
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation - version 2.
+*
+* This program is distributed in the hope that it will be
+* useful, but WITHOUT ANY WARRANTY; without even the implied
+* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+* PURPOSE.  See the GNU General Public License in the file COPYING
+* for more details.
+*
+* You should have received a copy of the GNU General Public
+* License along with this program; if not, write to the Free
+* Software Foundation, Inc., 59 Temple Place - Suite 330,
+* Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "dbserver.h"
-#include "sockets.h"
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <malloc.h>
-#include "dbms.h"
-#include "row.h"
-#include "ostreamstr.h"
-#include "suvalue.h"
-#include "dbserverdata.h"
-#include "build.h"
-#include "fibers.h"
-#include "interp.h" // to set proc
-#include "suobject.h"
-#include "gcstring.h"
-#include "lisp.h"
-#include "getnum.h"
-#include "sesviews.h"
-#include <vector>
-#include "errlog.h"
-#include "exceptimp.h"
-#include "pack.h"
-#include "trace.h"
-#include "tmpalloc.h"
-#include "auth.h"
-#include "dbmsunauth.h"
+// the server side of the *binary* client-server protocol
 
-//#define LOGGING
-#ifdef LOGGING
-#include "ostreamfile.h"
-extern OstreamFile& dbmslog(); // in dbmsremote
-#define LOG(stuff) dbmslog() << stuff << endl
-#else
-//#define LOG(stuff)
-//#include "circlog.h"
-//#define LOG(stuff) CIRCLOG((void*) this << " " << session_id << " " << stuff)
-#define LOG(stuff) TRACE(CLIENTSERVER,  session_id << " " << stuff)
-#endif
+#include "clientserver.h"
+#include "connection.h"
+#include "dbms.h"
+#include "dbserverdata.h"
+#include "dbmsunauth.h"
+#include "auth.h"
+#include "suobject.h"
+#include "lisp.h"
+#include "sustring.h"
+#include "fibers.h"
+#include "row.h"
+#include "sockets.h"
+#include "interp.h"
+#include "sesviews.h"
+#include "exceptimp.h"
+#include "errlog.h"
+#include "build.h"
+#include "catstr.h"
 
 // ReSharper disable CppMemberFunctionMayBeConst
 
-class DbServer // one instance per connection
+class DbServer
 	{
 public:
-	DbServer(SocketConnect* s);
+	DbServer(SocketConnect* sc);
 	~DbServer();
+
 	void run();
-	void request(char* buf);
-	void close()
-		{
-		sc->close();
-		}
-	static void timer_proc();
-	const char* id()
-		{
-		return session_id;
-		}
-private:
+
+	void cmd_ABORT();
+	void cmd_ADMIN();
+	void cmd_AUTH();
+	void cmd_CHECK();
+	void cmd_CLOSE();
+	void cmd_COMMIT();
+	void cmd_CONNECTIONS();
+	void cmd_CURSOR();
+	void cmd_CURSORS();
+	void cmd_DUMP();
+	void cmd_ERASE();
+	void cmd_EXEC();
+	void cmd_EXPLAIN();
+	void cmd_FINAL();
+	void cmd_GET();
+	void cmd_GET1();
+	void cmd_HEADER();
+	void cmd_KEYS();
+	void cmd_KILL();
+	void cmd_LIBGET();
+	void cmd_LIBRARIES();
+	void cmd_LOAD();
+	void cmd_LOG();
+	void cmd_NONCE();
+	void cmd_ORDER();
+	void cmd_OUTPUT();
+	void cmd_QUERY();
+	void cmd_READCOUNT();
+	void cmd_REQUEST();
+	void cmd_REWIND();
+	void cmd_RUN();
+	void cmd_SESSIONID();
+	void cmd_SIZE();
+	void cmd_TIMESTAMP();
+	void cmd_TOKEN();
+	void cmd_TRANSACTION();
+	void cmd_TRANSACTIONS();
+	void cmd_UPDATE();
+	void cmd_WRITECOUNT();
+
+	Dbms& dbms() const
+		{ return data.auth ? *::dbms() : *newDbmsUnauth(::dbms()); }
 	static void abort_fn(int tran)
-		{
-		dbms_auth->abort(tran);
-		}
+		{ ::dbms()->abort(tran); }
+	DbmsQuery* q_or_c();
+	DbmsQuery* q_or_tc();
+	void putRow(const Row& row, const Header& hdr, bool sendhdr);
+	Record getRecord();
+	void putValue(Value val);
 
-	// commands
-	const char* cmd_text(char* s);
-	const char* cmd_binary(char* s);
-	const char* cmd_admin(char* s);
-	const char* cmd_cursor(char* s);
-	const char* cmd_close(char* s);
-	const char* cmd_transaction(char* s);
-	const char* cmd_tranlist(char* s);
-	const char* cmd_query(char* s);
-	const char* cmd_libget(char* s);
-	const char* cmd_libraries(char* s);
-	const char* cmd_request(char* s);
-	const char* cmd_explain(char* s);
-	const char* cmd_header(char* s);
-	const char* cmd_order(char* s);
-	const char* cmd_keys(char* s);
-	const char* cmd_get(char* s);
-	const char* cmd_get1(char* s);
-	const char* cmd_rewind(char* s);
-	const char* cmd_output(char* s);
-	const char* cmd_update(char* s);
-	const char* cmd_erase(char* s);
-	const char* cmd_commit(char* s);
-	const char* cmd_abort(char* s);
-	const char* cmd_timestamp(char* s);
-	const char* cmd_dump(char* s);
-	const char* cmd_load(char* s);
-	const char* cmd_run(char* s);
-	const char* cmd_size(char* s);
-	const char* cmd_connections(char* s);
-	const char* cmd_tempdest(char* s);
-	const char* cmd_cursors(char* s);
-	const char* cmd_sessionid(char* s);
-	const char* cmd_final(char*);
-	const char* cmd_log(char*);
-	const char* cmd_kill(char*);
-	const char* cmd_exec(char*);
-	const char* cmd_nonce(char*);
-	const char* cmd_token(char*);
-	const char* cmd_auth(char*);
-	const char* cmd_check(char*);
+	void close()
+		{ io.close(); }
 
-	void write(char* buf, int n)
-		{ sc->write(buf, n); }
-	void write(const char* s)
-		{ sc->write(s, strlen(s)); }
-	void write(const gcstring& s)
-		{ sc->write(s.ptr(), s.size()); 	}
-	void writebuf(char* buf, int n)
-		{ sc->writebuf(buf, n); }
-	void writebuf(char* s)
-		{ sc->writebuf(s, strlen(s)); }
-	void writebuf(const gcstring& s)
-		{ sc->writebuf(s.ptr(), s.size()); }
-
-	DbmsQuery* q_or_c(char*& s);
-	DbmsQuery* q_or_tc(char*& s);
-	const char* value_result(Value x);
-	const char* row_result(const Row& row, const Header& hdr, bool sendhdr = false);
-
-	Dbms* dbms()
-		{ return data->auth ? dbms_auth : dbms_unauth; }
-
-	SocketConnect* sc;
-	bool textmode;
-	OstreamStr os;
-	DbServerData* data;
-	const char* session_id;
-	static Dbms* dbms_auth;
-	static Dbms* dbms_unauth;
-	int last_activity;
-
-	Proc proc;
+	Connection io;
+	DbServerData& data;
+	SuString* session_id;
 	SesViews session_views;
+	Proc proc;
 	};
 
 static std::vector<DbServer*> dbservers;
 
-Dbms* DbServer::dbms_auth = 0;
-Dbms* DbServer::dbms_unauth = 0;
-
-int su_port = 3147;
-int dbserver_timeout = 240; // minutes = 4 hours
-
-static int dbserver_clock;
-
-static void _stdcall dbserver(void* sc)
+static gcstring makeHello()
 	{
-	try
-		{
-		DbServer dbs((SocketConnect*) sc);
-		dbs.run();
-		// destructor cleans up and closes socket
-		}
-	catch (...)
-		{ }
-	Fibers::end();
+	char* buf = salloc(HELLO_SIZE);
+	strcpy(buf, "Suneido ");
+	strcat(buf, build);
+	strcat(buf, "\r\n");
+	verify(strlen(buf) < HELLO_SIZE);
+	return gcstring::noalloc(buf, HELLO_SIZE);
 	}
+static const gcstring hello = makeHello();
 
-static void log_once(const char* s1, const char* s2 = "")
+DbServer::DbServer(SocketConnect* sc) : io(sc), data(*DbServerData::create())
 	{
-	static bool first = true;
-	if (first)
-		{
-		first = false;
-		errlog(s1, s2);
-		}
-	}
-
-void DbServer::timer_proc()
-	{
-	try
-		{
-		++dbserver_clock;
-		for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
-			if (dbserver_clock - dbservers[i]->last_activity > dbserver_timeout)
-				{
-				try
-					{
-					errlog("idle timeout, closing connection:", dbservers[i]->session_id);
-					}
-				catch (...)
-					{
-					errlog("idle timeout, closing connection: ???");
-					}
-				try
-					{
-					dbservers[i]->close();
-					}
-				catch (...)
-					{
-					log_once("idle timeout, error from close");
-					}
-				}
-		}
-	catch (...)
-		{
-		log_once("idle timeout, error from iteration");
-		}
-	}
-
-extern void dbserver_timer(void (*pfn)());
-
-void start_dbserver(const char* name)
-	{
-	socketServer(name, su_port, dbserver, nullptr, true);
-	dbserver_timer(DbServer::timer_proc);
-	}
-
-DbServer::DbServer(SocketConnect* s)
-	: sc(s), textmode(true), data(DbServerData::create())
-	{
-	if (! dbms_auth)
-		{
-		dbms_auth = ::dbms();
-		dbms_unauth = newDbmsUnauth(dbms_auth);
-		}
-	tls().fiber_id = session_id = sc->getadr();
+	tls().fiber_id = sc->getadr();
+	session_id = new SuString(sc->getadr());
 	dbserver_connections().add(session_id);
 	dbservers.push_back(this);
 
-	os << "Suneido Database Server (" << build << ")\r\n";
-	write(os.str());
+	sc->write(hello.ptr(), hello.size());
 
-	tls().proc = &proc;
 	tls().session_views = &session_views;
+	tls().proc = &proc;
 	}
 
 DbServer::~DbServer()
@@ -257,565 +142,219 @@ DbServer::~DbServer()
 	dbservers.erase(std::remove(dbservers.begin(), dbservers.end(), this));
 	dbserver_connections().remove1(session_id);
 	verify(dbservers.size() == dbserver_connections().size());
-	data->abort(abort_fn);
-	sc->close();
+	data.abort(abort_fn);
+	io.close();
 	}
 
-void DbServer::run()
-	{
-	char buf[32000];
-	while (sc->readline(buf, sizeof buf))
-		request(buf);
-	}
-
-inline bool match(const char* s, const char* pre)
-	{
-	const int npre = strlen(pre);
-	return 0 == _memicmp(s, pre, npre) &&
-		(s[npre] == ' ' || s[npre] == 0);
-	}
-
-struct Cmd
-	{
-	const char* cmd;
-	const char* (DbServer::*fn)(char* buf);
-	};
-
-#define CMD(name)	{ #name, &DbServer::cmd_##name }
-
-void DbServer::request(char* buf)
-	{
-	static Cmd cmds[] =
-		{ // most frequently used first
-		CMD(libget),
-		CMD(get),
-		CMD(get1),
-		CMD(output),
-		CMD(update),
-		CMD(header),
-		CMD(order),
-		CMD(keys),
-		CMD(transaction),
-		CMD(cursor),
-		CMD(close),
-		CMD(query),
-		CMD(request),
-		CMD(admin),
-		CMD(libraries),
-		CMD(explain),
-		CMD(rewind),
-		CMD(erase),
-		CMD(commit),
-		CMD(abort),
-		CMD(timestamp),
-		CMD(dump),
-		CMD(load),
-		CMD(run),
-		CMD(text),
-		CMD(binary),
-		CMD(tranlist),
-		CMD(size),
-		CMD(connections),
-		CMD(tempdest),
-		CMD(cursors),
-		CMD(sessionid),
-		CMD(final),
-		CMD(log),
-		CMD(kill),
-		CMD(exec),
-		CMD(nonce),
-		CMD(token),
-		CMD(auth),
-		CMD(check)
-		};
-	const int ncmds = sizeof cmds / sizeof (Cmd);
-
-	LOG("s< " << buf);
-	last_activity = dbserver_clock;
-	os.clear();
-	int n = strlen(buf);
-	while (n > 0 && isspace(buf[n - 1]))
-		buf[--n] = 0;
-	if (n == 0)
-		return ;
-	for (int i = 0; i < ncmds; ++i)
-		if (match(buf, cmds[i].cmd))
-			{
-			try
-				{
-				const char* s = (this->*(cmds[i].fn))(buf + strlen(cmds[i].cmd) + 1);
-				if (s)
-					{
-					LOG("s> " << s);
-					write(s);
-					}
-				}
-			catch (const Except& e)
-				{
-				os.clear();
-				char* t = dupstr(e.str());
-				for (char* s = t; *s; ++s)
-					if (*s == '\r')
-						*s = '\\';
-					else if (*s == '\n')
-						*s = 'n';
-				os << "ERR " << t << "\r\n";
-				LOG("s> " << os.str());
-				write(os.str());
-				}
-			catch (const std::exception& e)
-				{
-				os.clear();
-				os << "ERR " << e.what() << "\r\n";
-				write(os.str());
-				}
-			catch (...)
-				{
-				write("ERR unknown exception\r\n");
-				}
-			return ;
-			}
-	os << "ERR no such command: " << buf << "\r\n";
-	write(os.str());
-	}
-
-static const char* bool_result(bool result)
-	{
-	return result ? "t\r\n" : "f\r\n";
-	}
-
-const char* DbServer::cmd_text(char* req)
-	{
-	textmode = true;
-	return "OK\r\n";
-	}
-
-const char* DbServer::cmd_binary(char* req)
-	{
-	textmode = false;
-	return "OK\r\n";
-	}
-
-const char* DbServer::cmd_admin(char* s)
-	{
-	dbms()->admin(s);
-	return bool_result(true);
-	}
-
-const char* DbServer::cmd_cursor(char* s)
-	{
-	int qlen = ck_getnum('Q', s);
-	char* buf = tmpalloc(qlen + 1);
-	sc->read(buf, qlen);
-	buf[qlen] = 0;
-	DbmsQuery* q = dbms()->cursor(buf);
-	os << 'C' << data->add_cursor(q) << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_close(char* s)
-	{
-	int n;
-	bool ok = false;
-	if (ERR != (n = getnum('Q', s)))
-		ok = data->erase_query(n);
-	else if (ERR != (n = getnum('C', s)))
-		ok = data->erase_cursor(n);
-	return ok ? "OK\r\n" : "ERR invalid CLOSE\r\n";
-	}
-
-const char* DbServer::cmd_transaction(char* s)
-	{
-	Dbms::TranType mode;
-	if (match(s, "read"))
-		mode = Dbms::READONLY;
-	else if (match(s, "update"))
-		mode = Dbms::READWRITE;
-	else
-		return "ERR invalid mode\r\n";
-	int tran = dbms()->transaction(mode, session_id);
-	data->add_tran(tran);
-	os << 'T' << tran << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_request(char* s)
-	{
-	int tran = ck_getnum('T', s);
-	if (! textmode)
-		{ // binary
-		int qlen = ck_getnum('Q', s);
-		char* buf = tmpalloc(qlen + 1);
-		sc->read(buf, qlen);
-		buf[qlen] = 0;
-		LOG("q: " << buf << endl);
-		s = buf;
-		}
-	os << 'R' << dbms()->request(tran, s) << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_query(char* s)
-	{
-	int tran = ck_getnum('T', s);
-	int qlen = ck_getnum('Q', s);
-	char* buf = tmpalloc(qlen + 1);
-	sc->read(buf, qlen);
-	buf[qlen] = 0;
-	LOG("q: " << buf << endl);
-	DbmsQuery* q = dbms()->query(tran, buf);
-	os << 'Q' << data->add_query(tran, q) << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_libget(char* name)
-	{
-	Lisp<gcstring> srcs = dbms()->libget(name);
-
-	Lisp<gcstring> s;
-	for (s = srcs; ! nil(s); ++s)
-		{
-		++s; // skip library name
-		os << 'L' << s->size() << ' ';
-		}
-	os << "\r\n";
-	writebuf(os.str());
-	for (s = srcs; ! nil(s); ++s)
-		{
-		os.clear();
-		os << *s << "\r\n";
-		++s;
-		writebuf(os.str());
-		writebuf(*s);
-		}
-	write("");
-	return nullptr;
-	}
-
-const char* DbServer::cmd_libraries(char*)
-	{
-	os << dbms()->libraries() << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_tranlist(char*)
-	{
-	os << data->get_trans() << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_size(char*)
-	{
-	os << 'S' << mmoffset_to_int(dbms()->size()) << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_tempdest(char*)
-	{
-	os << 'D' << dbms()->tempdest() << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_cursors(char*)
-	{
-	os << 'N' << dbms()->cursors() << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::value_result(Value x)
-	{
-	if (! x)
-		return "\r\n";
-	int n = x.packsize();
-	os << 'P' << n << "\r\n";
-	writebuf(os.str());
-	char* buf = tmpalloc(n);
-	x.pack(buf);
-	write(buf, n);
-	return nullptr;
-	}
-
-const char* DbServer::cmd_connections(char*)
-	{
-	return value_result(&dbserver_connections());
-	}
-
-const char* DbServer::cmd_sessionid(char* s)
-	{
-	if (*s)
-		{
-		dbserver_connections().remove1(session_id);
-		tls().fiber_id = session_id = dupstr(s);
-		dbserver_connections().add(session_id);
-		}
-	os << session_id << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_final(char*)
-	{
-	os << 'N' << dbms()->final() << "\r\n";
-	return os.str();
-	}
-
-DbmsQuery* DbServer::q_or_c(char*& s)
-	{
-	DbmsQuery* q = nullptr;
-	int n;
-	if (ERR != (n = getnum('Q', s)))
-		q = data->get_query(n);
-	else if (ERR != (n = getnum('C', s)))
-		q = data->get_cursor(n);
-	if (! q)
-		except("valid query or cursor required");
-	return q;
-	}
-
-const char* DbServer::cmd_explain(char* s)
-	{
-	DbmsQuery* q = q_or_c(s);
-	os << q->explain() << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_header(char* s)
-	{
-	DbmsQuery* q = q_or_c(s);
-	os << q->header().schema() << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_order(char* s)
-	{
-	DbmsQuery* q = q_or_c(s);
-	os << q->order() << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_keys(char* s)
-	{
-	getnum('T', s); // not used
-	DbmsQuery* q = q_or_c(s);
-	os << q->keys() << "\r\n";
-	return os.str();
-	}
-
-DbmsQuery* DbServer::q_or_tc(char*& s)
-	{
-	DbmsQuery* q = nullptr;
-	int n, t;
-	if (ERR != (n = getnum('Q', s)))
-		q = data->get_query(n);
-	else if (ERR != (t = getnum('T', s)) && ERR != (n = getnum('C', s)))
-		{
-		q = data->get_cursor(n);
-		if (q)
-			q->set_transaction(t);
-		}
-	if (! q)
-		except("valid query or transaction & cursor required");
-	return q;
-	}
-
-const char* DbServer::cmd_get(char* s)
-	{
-	Dir dir;
-	if (*s == '+')
-		dir = NEXT;
-	else if (*s == '-')
-		dir = PREV;
-	else
-		return "ERR GET requires + or -";
-	s += 2;
-
-	DbmsQuery* q = q_or_tc(s);
-	Row row = q->get(dir);
-	Header hdr = q->header();
-	return row_result(row, hdr);
-	}
-
-const char* DbServer::row_result(const Row& row, const Header& hdr, bool sendhdr)
-	{
-	if (nil(row.data))
-		return "EOF\r\n";
-	if (textmode)
-		{
-		os << '(';
-		bool first = true;
-		for (Fields f = hdr.fields(); ! nil(f); ++f)
-			{
-			if (! first)
-				os << ", ";
-			first = false;
-			os << *f << ": " << row.getval(hdr, *f);
-			}
-		os << ")\r\n";
-		return os.str();
-		}
-	else // binary
-		{
-		Record rec = row.to_record(hdr);
-		os << 'A' << mmoffset_to_int(row.recadr) << " R" << rec.bufsize();
-		if (sendhdr)
-			os << ' ' << hdr.schema();
-		os << "\r\n";
-		LOG("s> " << os.str());
-		writebuf(os.str());
-		write((char*) rec.ptr(), rec.bufsize());
-		return nullptr;
-		}
-	}
-
-const char* DbServer::cmd_get1(char* s)
-	{
-	Dir dir = NEXT;
-	bool one = false;
-	if (*s == '+')
-		{}
-	else if (*s == '-')
-		dir = PREV;
-	else if (*s == '1')
-		one = true;
-	else
-		return "ERR GET requires + or -";
-	s += 2;
-
-	int tran = ck_getnum('T', s);
-	int qlen = ck_getnum('Q', s);
-	char* query = tmpalloc(qlen + 1);
-	sc->read(query, qlen);
-	query[qlen] = 0;
-	LOG("q: " << query << endl);
-
-	Header hdr;
-	Row row = dbms()->get(dir, query, one, hdr, tran);
-	return row_result(row, hdr, true);
-	}
-
-const char* DbServer::cmd_rewind(char* s)
-	{
-	getnum('T', s); // not used
-	DbmsQuery* q = q_or_c(s);
-	q->rewind();
-	return "OK\r\n";
-	}
-
-const char* DbServer::cmd_output(char* s)
-	{
-	DbmsQuery* q = q_or_tc(s);
-
-	int reclen = ck_getnum('R', s);
-
-	char* buf = tmpalloc(reclen);
-	sc->read(buf, reclen);
-	Record rec((void*) buf);
-	return bool_result(q->output(rec));
-	}
-
-const char* DbServer::cmd_erase(char* s)
-	{
-	int tran = ck_getnum('T', s);
-	Mmoffset recadr = int_to_mmoffset(ck_getnum('A', s));
-	dbms()->erase(tran, recadr);
-	return "OK\r\n";
-	}
-
-const char* DbServer::cmd_update(char* s)
-	{
-	int tran = ck_getnum('T', s);
-	Mmoffset recadr = int_to_mmoffset(ck_getnum('A', s));
-	verify(recadr >= 0);
-	int reclen = ck_getnum('R', s);
-	char* buf = tmpalloc(reclen);
-	sc->read(buf, reclen);
-	Record newrec((void*) buf);
-
-	os << 'U' << mmoffset_to_int(dbms()->update(tran, recadr, newrec)) << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_commit(char* s)
-	{
-	int tran = ck_getnum('T', s);
-	data->end_transaction(tran);
-	const char* conflict;
-	if (dbms()->commit(tran, &conflict))
-		return "OK\r\n";
-	else
-		{
-		os << conflict << "\r\n";
-		return os.str();
-		}
-	}
-
-const char* DbServer::cmd_abort(char* s)
-	{
-	int tran = ck_getnum('T', s);
-	data->end_transaction(tran);
-	dbms()->abort(tran);
-	return "OK\r\n";
-	}
-
-const char* DbServer::cmd_timestamp(char* s)
-	{
-	os << dbms()->timestamp() << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_dump(char* s)
-	{
-	dbms()->dump(s);
-	return value_result("");
-	}
-
-const char* DbServer::cmd_load(char* s)
-	{
-	os << 'N' << dbms()->load(s) << "\r\n";
-	return os.str();
-	}
-
-const char* DbServer::cmd_run(char* s)
-	{
-	Value x = dbms()->run(s);
-	if (! x)
-		return "\r\n";
-	if (textmode)
-		{
-		os << x << "\r\n";
-		return os.str();
-		}
-	else // binary
-		{
-		return value_result(x);
-		}
-	}
-
-extern Value exec(Value ob);
-
-const char* DbServer::cmd_exec(char* s)
-	{
-	int n = ck_getnum('P', s);
-	gcstring buf = sc->read(n);
-	return value_result(exec(unpack(buf)));
-	}
-
-const char* DbServer::cmd_log(char* s)
-	{
-	errlog_uncounted(session_id, s);
-	return "OK\r\n";
-	}
-
-static bool matches(int i, const char* sid)
+static void _stdcall dbserver(void* sc)
 	{
 	try
 		{
-		return 0 == strcmp(dbservers[i]->id(), sid);
+		DbServer dbs(static_cast<SocketConnect*>(sc));
+		dbs.run();
+		// destructor cleans up and closes socket
 		}
 	catch (...)
 		{
-		errlog("kill: bad entry in dbservers");
 		}
-	return false;
+	Fibers::end();
+	}
+
+int su_port = 3147;
+int dbserver_timeout = 240; // minutes = 4 hours
+
+void start_dbserver(const char* name)
+	{
+	socketServer(name, su_port, dbserver, nullptr, true);
+	}
+
+typedef  void(DbServer::*CmdFn)();
+
+// NOTE: sequence must exactly match clientserver.h and jSuneido
+static CmdFn commands[] {
+	&DbServer::cmd_ABORT, &DbServer::cmd_ADMIN, &DbServer::cmd_AUTH,
+	&DbServer::cmd_CHECK, &DbServer::cmd_CLOSE, &DbServer::cmd_COMMIT,
+	&DbServer::cmd_CONNECTIONS, &DbServer::cmd_CURSOR, &DbServer::cmd_CURSORS,
+	&DbServer::cmd_DUMP, &DbServer::cmd_ERASE, &DbServer::cmd_EXEC,
+	&DbServer::cmd_EXPLAIN, &DbServer::cmd_FINAL, &DbServer::cmd_GET,
+	&DbServer::cmd_GET1, &DbServer::cmd_HEADER, &DbServer::cmd_KEYS,
+	&DbServer::cmd_KILL, &DbServer::cmd_LIBGET, &DbServer::cmd_LIBRARIES,
+	&DbServer::cmd_LOAD, &DbServer::cmd_LOG, &DbServer::cmd_NONCE,
+	&DbServer::cmd_ORDER, &DbServer::cmd_OUTPUT, &DbServer::cmd_QUERY,
+	&DbServer::cmd_READCOUNT, &DbServer::cmd_REQUEST, &DbServer::cmd_REWIND,
+	&DbServer::cmd_RUN, &DbServer::cmd_SESSIONID, &DbServer::cmd_SIZE,
+	&DbServer::cmd_TIMESTAMP, &DbServer::cmd_TOKEN, &DbServer::cmd_TRANSACTION,
+	&DbServer::cmd_TRANSACTIONS, &DbServer::cmd_UPDATE, &DbServer::cmd_WRITECOUNT };
+
+void DbServer::run()
+	{
+	while (true)
+		{
+		int c = io.getCmd();
+		verify(0 <= c && c < sizeof commands / sizeof commands[0]);
+		auto cmd = commands[c];
+		try
+			{
+			(this->*cmd)();
+			}
+		catch (const Except& e)
+			{
+			io.clear();
+			io.putErr(e.str());
+			}
+		catch (const std::exception& e)
+			{
+			io.clear();
+			io.putErr(e.what());
+			}
+		catch (...)
+			{
+			io.clear();
+			io.putErr("unknown exception");
+			}
+		io.write();
+		}
+	}
+
+// commands ----------------------------------------------------------------------
+
+void DbServer::cmd_ABORT()
+	{
+	int tn = io.getInt();
+	data.end_transaction(tn);
+	dbms().abort(tn);
+	io.putOk();
+	}
+
+void DbServer::cmd_ADMIN()
+	{
+	gcstring s = io.getStr();
+	dbms().admin(s.str());
+	io.putOk();
+	}
+
+void DbServer::cmd_AUTH()
+	{
+	gcstring s = io.getStr();
+	bool result = Auth::auth(data.nonce, s);
+	if (result)
+		data.auth = true;
+	io.putOk().putBool(result);
+	}
+
+void DbServer::cmd_CHECK()
+	{
+	Value result = dbms().check();
+	io.putOk().putStr(result.gcstr());
+	}
+
+void DbServer::cmd_CLOSE()
+	{
+	int n = io.getInt();
+	bool ok = (io.get() == 'q')
+		? data.erase_query(n)
+		: data.erase_cursor(n);
+	if (!ok)
+		except("close failed");
+	io.putOk();
+	}
+
+void DbServer::cmd_COMMIT()
+	{
+	int tn = io.getInt();
+	data.end_transaction(tn);
+	const char* conflict;
+	io.putOk();
+	if (dbms().commit(tn, &conflict))
+		io.putBool(true);
+	else
+		io.putBool(false).putStr(conflict);
+	}
+
+void DbServer::cmd_CONNECTIONS()
+	{
+	io.putOk().putValue(&dbserver_connections());
+	}
+
+void DbServer::cmd_CURSOR()
+	{
+	gcstring query = io.getStr();
+	DbmsQuery* c = dbms().cursor(query.str());
+	int cn = data.add_cursor(c);
+	io.putOk().putInt(cn);
+	}
+
+void DbServer::cmd_CURSORS()
+	{
+	io.putOk().putInt(dbms().cursors());
+	}
+
+void DbServer::cmd_DUMP()
+	{
+	gcstring table = io.getStr();
+	Value result = dbms().dump(table.str());
+	io.putOk().putStr(result.gcstr());
+	}
+
+void DbServer::cmd_ERASE()
+	{
+	int tn = io.getInt();
+	Mmoffset recadr = io.getInt();
+	dbms().erase(tn, recadr);
+	io.putOk();
+	}
+
+void DbServer::cmd_EXEC()
+	{
+	Value ob = io.getValue();
+	Value result = dbms().exec(ob);
+	putValue(result);
+	}
+
+void DbServer::cmd_EXPLAIN()
+	{
+	DbmsQuery* q = q_or_c();
+	io.putOk().putStr(q->explain());
+	}
+
+void DbServer::cmd_FINAL()
+	{
+	io.putOk().putInt(dbms().final());
+	}
+
+void DbServer::cmd_GET()
+	{
+	Dir dir = (io.get() == '-') ? PREV : NEXT;
+	DbmsQuery* q = q_or_tc();
+	Row row = q->get(dir);
+	Header hdr = q->header();
+	return putRow(row, hdr, false);
+	}
+
+void DbServer::cmd_GET1()
+	{
+	char d = io.get();
+	Dir dir = d == '-' ? PREV : NEXT;
+	bool one = (d == '1');
+	int tn = io.getInt();
+	gcstring query = io.getStr();
+	Header hdr;
+	Row row = dbms().get(dir, query.str(), one, hdr, tn);
+	return putRow(row, hdr, true);
+	}
+
+void DbServer::cmd_HEADER()
+	{
+	auto hdr = q_or_c()->header().schema();
+	io.putOk().putStrings(hdr);
+	}
+
+void DbServer::cmd_KEYS()
+	{
+	auto keys = q_or_c()->keys();
+	io.putOk().putInt(keys.size());
+	for (auto k = keys; !nil(k); ++k)
+		io.putStrings(*k);
 	}
 
 // also called by dbmslocal
@@ -823,51 +362,235 @@ int kill_connections(const char* s)
 	{
 	int n_killed = 0;
 	for (int i = dbservers.size() - 1; i >= 0; --i) // reverse to handle erase
-		if (matches(i, s))
-			try
+		try
+			{
+			if (dbservers[i]->session_id->gcstr() == s)
 				{
 				dbservers[i]->close();
 				++n_killed;
 				}
-			catch (...)
-				{
-				errlog("kill: error from close");
-				}
+			}
+		catch (...)
+			{
+			errlog("kill: error from close");
+			}
 	return n_killed;
 	}
 
-const char* DbServer::cmd_kill(char* s)
+void DbServer::cmd_KILL()
 	{
-	int n_killed = kill_connections(s);
-	os << 'N' << n_killed << "\r\n";
-	return os.str();
+	gcstring s = io.getStr();
+	int n = kill_connections(s.str());
+	io.putOk().putInt(n);
 	}
 
-const char* DbServer::cmd_nonce(char* s)
+void DbServer::cmd_LIBGET()
 	{
-	gcstring nonce = Auth::nonce();
-	write(nonce);
-	data->nonce = nonce;
-	return nullptr;
+	gcstring name = io.getStr();
+	Lisp<gcstring> srcs = dbms().libget(name.str());
+	io.putOk().putInt(srcs.size() / 2);
+	for (auto src = srcs; !nil(src); ++src)
+		{
+		io.putStr(*src); // name
+		++src;
+		io.putInt(src->size()); // text size
+		}
+	for (auto src = srcs; !nil(src); ++src)
+		{
+		++src; // skip name
+		io.write(src->ptr(), src->size()); // text
+		}
+	// could mean multiple write's which is not ideal
+	// but most of the time only a single definition & write
 	}
 
-const char* DbServer::cmd_token(char* s)
+void DbServer::cmd_LIBRARIES()
 	{
-	write(Auth::token());
-	return nullptr;
+	io.putOk().putStrings(dbms().libraries());
 	}
 
-const char* DbServer::cmd_auth(char* s)
+void DbServer::cmd_LOAD()
 	{
-	int n = ck_getnum('D', s);
-	gcstring buf = sc->read(n);
-	bool result = Auth::auth(data->nonce, buf);
-	if (result)
-		data->auth = true;
-	return  bool_result(result);
+	gcstring table = io.getStr();
+	int result = dbms().load(table.str());
+	io.putOk().putInt(result);
 	}
 
-const char* DbServer::cmd_check(char* s)
+void DbServer::cmd_LOG()
 	{
-	return value_result(dbms()->check());
+	gcstring s = io.getStr();
+	dbms().log(s.str());
+	io.putOk();
+	}
+
+void DbServer::cmd_NONCE()
+	{
+	io.putOk().putStr(dbms().nonce());
+	}
+
+void DbServer::cmd_ORDER()
+	{
+	DbmsQuery* q = q_or_c();
+	io.putOk().putStrings(q->order());
+	}
+
+void DbServer::cmd_OUTPUT()
+	{
+	int qn = io.getInt();
+	DbmsQuery* q = data.get_query(qn);
+	Record rec = getRecord();
+	q->output(rec);
+	io.putOk();
+	}
+
+void DbServer::cmd_QUERY()
+	{
+	int tn = io.getInt();
+	gcstring query = io.getStr();
+	DbmsQuery* q = dbms().query(tn, query.str());
+	int qn = data.add_query(tn, q);
+	io.putOk().putInt(qn);
+	}
+
+void DbServer::cmd_READCOUNT()
+	{
+	int tn = io.getInt();
+	io.putOk().putInt(dbms().readCount(tn));
+	}
+
+void DbServer::cmd_REQUEST()
+	{
+	int tn = io.getInt();
+	gcstring s = io.getStr();
+	io.putOk().putInt(dbms().request(tn, s.str()));
+	}
+
+void DbServer::cmd_REWIND()
+	{
+	q_or_c()->rewind();
+	io.putOk();
+	}
+
+void DbServer::cmd_RUN()
+	{
+	gcstring s = io.getStr();
+	Value result = dbms().run(s.str());
+	putValue(result);
+	}
+
+void DbServer::cmd_SESSIONID()
+	{
+	gcstring s = io.getStr();
+	if (s != "")
+		{
+		dbserver_connections().remove1(session_id);
+		tls().fiber_id = s.str();
+		session_id = new SuString(s);
+		dbserver_connections().add(session_id);
+		}
+	io.putOk().putStr(session_id->str());
+	}
+
+void DbServer::cmd_SIZE()
+	{
+	io.putOk().putInt(dbms().size());
+	}
+
+void DbServer::cmd_TIMESTAMP()
+	{
+	io.putOk().putValue(dbms().timestamp());
+	}
+
+void DbServer::cmd_TOKEN()
+	{
+	io.putOk().putStr(dbms().token());
+	}
+
+void DbServer::cmd_TRANSACTION()
+	{
+	bool readwrite = io.getBool();
+	Dbms::TranType mode = readwrite ? Dbms::READWRITE : Dbms::READONLY;
+	int tn = dbms().transaction(mode, session_id->str());
+	data.add_tran(tn);
+	io.putOk().putInt(tn);
+	}
+
+void DbServer::cmd_TRANSACTIONS()
+	{
+	io.putOk().putInts(dbms().tranlist());
+	}
+
+void DbServer::cmd_UPDATE()
+	{
+	int tn = io.getInt();
+	int recadr = io.getInt();
+	Record rec = getRecord();
+	recadr = dbms().update(tn, recadr, rec);
+	io.putOk().putInt(recadr);
+	}
+
+void DbServer::cmd_WRITECOUNT()
+	{
+	int tn = io.getInt();
+	io.putOk().putInt(dbms().writeCount(tn));
+	}
+
+//--------------------------------------------------------------------------------
+
+DbmsQuery* DbServer::q_or_c()
+	{
+	int n = io.getInt();
+	return (io.get() == 'q')
+		? data.get_query(n)
+		: data.get_cursor(n);
+	}
+
+DbmsQuery* DbServer::q_or_tc()
+	{
+	int tn = io.getInt();
+	int qn = io.getInt();
+	if (!isTran(tn))
+		{
+		DbmsQuery* q = data.get_query(qn);
+		except_if(!q, "invalid query");
+		return q;
+		}
+	else
+		{
+		DbmsQuery* c = data.get_cursor(qn);
+		except_if(!c, "invalid cursor");
+		c->set_transaction(tn);
+		return c;
+		}
+	}
+
+void DbServer::putRow(const Row& row, const Header& hdr, bool sendhdr)
+	{
+	io.putOk();
+	if (nil(row.data))
+		{
+		io.putBool(false);
+		return;
+		}
+	Record rec = row.to_record(hdr);
+	io.putBool(true).putInt(row.recadr);
+	if (sendhdr)
+		io.putStrings(hdr.schema());
+	io.putInt(rec.bufsize());
+	io.write(static_cast<char*>(rec.ptr()), rec.bufsize());
+	}
+
+Record DbServer::getRecord()
+	{
+	gcstring r = io.getBuf();
+	return Record(r.ptr());
+	}
+
+void DbServer::putValue(Value val)
+	{
+	io.putOk();
+	if (val)
+		io.putBool(true).putValue(val);
+	else
+		io.putBool(false);
 	}
