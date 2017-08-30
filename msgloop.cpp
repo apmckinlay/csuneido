@@ -60,7 +60,7 @@ void message_loop(HWND hdlg)
 			else
 				shutdown(msg.wParam);
 			}
-		if (hdlg && msg.hwnd == hdlg && 	msg.message == WM_NULL &&
+		if (hdlg && msg.hwnd == hdlg && msg.message == WM_NULL &&
 			msg.wParam == END_MSG_LOOP && msg.lParam == END_MSG_LOOP)
 			return ;
 
