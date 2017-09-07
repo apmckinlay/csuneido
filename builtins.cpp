@@ -522,6 +522,20 @@ Value su_finally()
 	}
 PRIM(su_finally, "Finally(main_block, final_block)");
 
+Value su_sameq()
+	{
+	const int nargs = 2;
+	return ARG(0).sameAs(ARG(1)) ? SuTrue : SuFalse;
+	}
+PRIM(su_sameq, "Same?(x, y)");
+
+Value su_hash()
+	{
+	const int nargs = 1;
+	return ARG(0).hash();
+	}
+PRIM(su_hash, "Hash(value)");
+
 // rich edit --------------------------------------------------------
 #include "rich.h"
 
