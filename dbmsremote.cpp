@@ -425,7 +425,7 @@ DbmsQuery* DbmsRemote::query(int tn, const char* query)
 
 int DbmsRemote::readCount(int tn)
 	{
-	send(Command::READCOUNT);
+	send(Command::READCOUNT, tn);
 	return io.getInt();
 	}
 
@@ -499,7 +499,7 @@ Mmoffset DbmsRemote::update(int tn, Mmoffset recadr, Record& rec)
 
 int DbmsRemote::writeCount(int tn)
 	{
-	send(Command::WRITECOUNT);
+	send(Command::WRITECOUNT, tn);
 	return io.getInt();
 	}
 
