@@ -74,7 +74,6 @@ public:
 		{ return p; }
 	bool toBool() const;
 
-
 	unsigned int hash() const
 		{ return is_int() ? im.n : p->hashfn(); }
 
