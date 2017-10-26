@@ -25,10 +25,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <vector> // for Readline
 #include "sufinalize.h"
 #include "readline.h"
 #include <algorithm>
+#include "gsl-lite.h"
 using std::min;
 
 #ifdef _MSC_VER
@@ -46,21 +46,20 @@ public:
 	virtual void out(Ostream& os) const override
 		{ os << "File('" << filename << "', '" << mode << "')"; }
 	void close();
-	static Method<SuFile>* methods()
+	static auto methods()
 		{
-		static Method<SuFile> methods[] =
+		static Method<SuFile> methods[]
 			{
-			Method<SuFile>("Close", &SuFile::Close),
-			Method<SuFile>("Flush", &SuFile::Flush),
-			Method<SuFile>("Read", &SuFile::Read),
-			Method<SuFile>("Readline", &SuFile::Readline),
-			Method<SuFile>("Seek", &SuFile::Seek),
-			Method<SuFile>("Tell", &SuFile::Tell),
-			Method<SuFile>("Write", &SuFile::Write),
-			Method<SuFile>("Writeline", &SuFile::Writeline),
-			Method<SuFile>("", 0)
+			{ "Close", &Close },
+			{ "Flush", &Flush },
+			{ "Read", &Read },
+			{ "Readline", &Readline },
+			{ "Seek", &Seek },
+			{ "Tell", &Tell },
+			{ "Write", &Write },
+			{ "Writeline", &Writeline }
 			};
-		return methods;
+		return gsl::make_span(methods);
 		}
 	const char* type() const override
 		{ return "File"; }

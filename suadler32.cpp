@@ -24,6 +24,7 @@
 #include "suboolean.h"
 #include "gcstring.h"
 #include "checksum.h"
+#include "gsl-lite.h"
 
 class SuAdler32 : public SuValue
 	{
@@ -32,15 +33,14 @@ public:
 		{ }
 	void out(Ostream& os) const override
 		{ os << "Adler32()"; }
-	static Method<SuAdler32>* methods()
+	static auto methods()
 		{
-		static Method<SuAdler32> methods[] =
+		static Method<SuAdler32> methods[]
 			{
-			Method<SuAdler32>("Update", &SuAdler32::Update),
-			Method<SuAdler32>("Value", &SuAdler32::ValueFn),
-			Method<SuAdler32>("", nullptr)
+			{ "Update", &Update },
+			{ "Value", &ValueFn }
 			};
-		return methods;
+		return gsl::make_span(methods);
 		}
 	const char* type() const override
 		{ return "Adler32"; }

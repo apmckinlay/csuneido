@@ -92,9 +92,9 @@ template <class T> class BuiltinInstance : public T
 		}
 	static MemFun find(Value member)
 		{
-		for (Method<T>* m = T::methods(); m->method; ++m)
-			if (member == m->name)
-				return m->method;
+		for (auto m : T::methods())
+			if (member == m.name)
+				return m.method;
 		return nullptr;
 		}
 	};
@@ -121,8 +121,8 @@ public:
 			args.usage("usage: .Members()");
 			args.end();
 			SuObject* ob = new SuObject();
-			for (Method<T>* m = T::methods(); m->method; ++m)
-				ob->add(m->name);
+			for (auto m : T::methods())
+				ob->add(m.name);
 			return ob;
 			}
 		else

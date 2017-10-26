@@ -25,6 +25,7 @@
 #include "suvalue.h"
 #include "interp.h"
 #include "sustring.h"
+#include "gsl-lite.h"
 
 class SuScanner : public SuValue
 	{
@@ -32,24 +33,23 @@ public:
 	virtual void init(const char* s);
 	void out(Ostream& os) const override
 		{ os << "Scanner"; }
-	static Method<SuScanner>* methods()
+	static auto methods()
 		{
-		static Method<SuScanner> methods[] =
+		static Method<SuScanner> methods[]
 			{
-			Method<SuScanner>("Next", &SuScanner::Next),
-			Method<SuScanner>("Next2", &SuScanner::Next2),
-			Method<SuScanner>("Position", &SuScanner::Position),
-			Method<SuScanner>("Type", &SuScanner::Type),
-			Method<SuScanner>("Type2", &SuScanner::Type2),
-			Method<SuScanner>("Text", &SuScanner::Text),
-			Method<SuScanner>("Length", &SuScanner::Length),
-			Method<SuScanner>("Value", &SuScanner::Valu),
-			Method<SuScanner>("Keyword", &SuScanner::Keyword),
-			Method<SuScanner>("Keyword?", &SuScanner::KeywordQ),
-			Method<SuScanner>("Iter", &SuScanner::Iter),
-			Method<SuScanner>("", 0)
+			{ "Next", &Next },
+			{ "Next2", &Next2 },
+			{ "Position", &Position },
+			{ "Type", &Type },
+			{ "Type2", &Type2 },
+			{ "Text", &Text },
+			{ "Length", &Length },
+			{ "Value", &Valu },
+			{ "Keyword", &Keyword },
+			{ "Keyword?", &KeywordQ },
+			{ "Iter", &Iter }
 			};
-		return methods;
+		return gsl::make_span(methods);
 		}
 	Value Next(BuiltinArgs&); // returns same as Text
 	Value Next2(BuiltinArgs&); // NEW returns Type2
@@ -230,10 +230,6 @@ class SuQueryScanner : public SuScanner
 	{
 public:
 	void init(const char* s) override;
-	static Method<SuQueryScanner>* methods()
-		{
-		return (Method<SuQueryScanner>*) SuScanner::methods();
-		}
 	};
 
 Value su_queryscanner()

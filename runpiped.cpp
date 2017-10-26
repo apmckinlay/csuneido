@@ -167,6 +167,7 @@ int RunPiped::exitvalue()
 #include "sustring.h"
 #include "ostreamstr.h"
 #include "readline.h"
+#include "gsl-lite.h"
 
 class SuRunPiped : public SuFinalize
 	{
@@ -181,21 +182,20 @@ public:
 		{
 		os << "RunPiped('" << cmd << "')";
 		}
-	static Method<SuRunPiped>* methods()
+	static auto methods()
 		{
-		static Method<SuRunPiped> methods[] =
+		static Method<SuRunPiped> methods[]
 			{
-			Method<SuRunPiped>("Read", &SuRunPiped::Read),
-			Method<SuRunPiped>("Readline", &SuRunPiped::Readline),
-			Method<SuRunPiped>("Write", &SuRunPiped::Write),
-			Method<SuRunPiped>("Writeline", &SuRunPiped::Writeline),
-			Method<SuRunPiped>("Flush", &SuRunPiped::Flush),
-			Method<SuRunPiped>("CloseWrite", &SuRunPiped::CloseWrite),
-			Method<SuRunPiped>("Close", &SuRunPiped::Close),
-			Method<SuRunPiped>("ExitValue", &SuRunPiped::ExitValue),
-			Method<SuRunPiped>("", 0)
+			{ "Read", &Read },
+			{ "Readline", &Readline },
+			{ "Write", &Write },
+			{ "Writeline", &Writeline },
+			{ "Flush", &Flush },
+			{ "CloseWrite", &CloseWrite },
+			{ "Close", &Close },
+			{ "ExitValue", &ExitValue }
 			};
-		return methods;
+		return gsl::make_span(methods);
 		}
 	const char* type() const override
 		{ return "RunPiped"; }

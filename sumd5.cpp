@@ -20,10 +20,10 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "gsl-lite.h"
 #include <windows.h>
 #include <wincrypt.h>
 #include "builtinclass.h"
-#include "suboolean.h"
 #include "gcstring.h"
 #include "sufinalize.h"
 #include "sustring.h"
@@ -41,15 +41,14 @@ public:
 		}
 	void out(Ostream& os) const override
 		{ os << "Md5()"; }
-	static Method<Md5>* methods()
+	static auto methods()
 		{
-		static Method<Md5> methods[] =
+		static Method<Md5> methods[]
 			{
-			Method<Md5>("Update", &Md5::Update),
-			Method<Md5>("Value", &Md5::ValueFn),
-			Method<Md5>("", 0)
+			{ "Update", &Update },
+			{ "Value", &ValueFn }
 			};
-		return methods;
+		return gsl::make_span(methods);
 		}
 	const char* type() const override
 		{ return "Md5"; }

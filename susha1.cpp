@@ -20,10 +20,10 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "gsl-lite.h"
 #include <windows.h>
 #include <wincrypt.h>
 #include "builtinclass.h"
-#include "suboolean.h"
 #include "gcstring.h"
 #include "sufinalize.h"
 #include "sustring.h"
@@ -43,15 +43,14 @@ public:
 
 	void out(Ostream& os) const override
 		{ os << "Sha1()"; }
-	static Method<Sha1>* methods()
+	static auto methods()
 		{
-		static Method<Sha1> methods[] =
+		static Method<Sha1> methods[]
 			{
-			Method<Sha1>("Update", &Sha1::Update),
-			Method<Sha1>("Value", &Sha1::ValueFn),
-			Method<Sha1>("", 0)
+			{ "Update", &Update },
+			{ "Value", &ValueFn }
 			};
-		return methods;
+		return gsl::make_span(methods);
 		}
 	const char* type() const override
 		{ return "Sha1"; }
