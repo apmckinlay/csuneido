@@ -85,6 +85,12 @@ Value BuiltinClass<SuScanner>::instantiate(BuiltinArgs& args)
 	return scanner;
 	}
 
+template<>
+void BuiltinClass<SuScanner>::out(Ostream& os) const
+	{
+	os << "Scanner /* builtin class */";
+	}
+
 void SuScanner::init(const char* s)
 	{
 	scanner = new Scanner(s);
@@ -247,6 +253,12 @@ Value BuiltinClass<SuQueryScanner>::instantiate(BuiltinArgs& args)
 	SuQueryScanner* scanner = new BuiltinInstance<SuQueryScanner>();
 	scanner->init(s);
 	return scanner;
+	}
+
+template<>
+void BuiltinClass<SuQueryScanner>::out(Ostream& os) const
+	{
+	os << "QueryScanner /* builtin class */";
 	}
 
 #include "qscanner.h"

@@ -128,10 +128,8 @@ public:
 		else
 			method_not_found(builtintype<T>(), member);
 		}
-	void out(Ostream& os) const override
-		{ os << "/* builtin class */"; }
-	static Value instantiate(BuiltinArgs&)
-		{ return new T; }
+	void out(Ostream& os) const override;
+	static Value instantiate(BuiltinArgs&);
 	static Value callclass(BuiltinArgs& args)
 		{ return instantiate(args); }
 	const char* type() const override
