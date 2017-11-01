@@ -27,22 +27,11 @@
 #include "win.h"
 #include "suobject.h"
 #include "interp.h"
+// ReSharper disable once CppUnusedIncludeDirective
 #include "dbms.h"
-#include "func.h"
 #include "alert.h"
-#include "suclass.h"
 #include "sublock.h"
-
-class ThreadClass : public SuValue
-	{
-public:
-	Value call(Value self, Value member,
-		short nargs, short nargnames, ushort* argnames, int each) override;
-	void out(Ostream& os) const override
-		{
-		os << "Thread";
-		}
-	};
+#include "builtinclass.h"
 
 #pragma warning(disable:4722) // destructor never returns
 struct ThreadCloser
@@ -82,59 +71,86 @@ static void _stdcall thread(void* arg)
 		}
 	}
 
-Value ThreadClass::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+class SuThread : public SuValue
 	{
-	static Value Count("Count");
-	static Value List("List");
-	static Value Name("Name");
-	static Value Sleep("Sleep");
+public:
+	static auto methods()
+		{
+		return gsl::span<Method<SuThread>>(); // none
+		}
 
-	argseach(nargs, nargnames, argnames, each);
+	static Value Count(BuiltinArgs&);
+	static Value List(BuiltinArgs&);
+	static Value Name(BuiltinArgs&);
+	static Value Sleep(BuiltinArgs&);
+	};
 
-	if (member == CALL || member == INSTANTIATE)
+template<>
+Value BuiltinClass<SuThread>::instantiate(BuiltinArgs& args)
+	{
+	except("can't create instance of Thread");
+	}
+
+template<>
+Value BuiltinClass<SuThread>::callclass(BuiltinArgs& args)
+	{
+	args.usage("usage: Thread(func)");
+	Value func = args.getValue("func");
+	args.end();
+	persist_if_block(func);
+	Fibers::create(thread, new ThreadInfo(func));
+	return Value();
+	}
+
+template<>
+auto BuiltinClass<SuThread>::static_methods()
+	{
+	static StaticMethod methods[]
 		{
-		if (nargs != 1)
-			except("usage: Thread(callable)");
-		persist_if_block(ARG(0));
-		Fibers::create(thread, new ThreadInfo(ARG(0)));
-		return Value();
-		}
-	else if (member == Count)
-		{
-		NOARGS("Thread.Count()");
-		return Fibers::size();
-		}
-	else if (member == List)
-		{
-		NOARGS("Thread.List()");
-		SuObject* list = new SuObject();
-		Fibers::foreach_fiber_info(
-			[list](gcstring name, const char* status) 
-				{ list->putdata(new SuString(name), status); });
-		return list;
-		}
-	else if (member == Name)
-		{
-		if (nargs > 1)
-			except("usage: Thread.Name(name = false)");
-		if (nargs == 1)
-			Fibers::set_name(ARG(0).gcstr());
-		return new SuString(Fibers::get_name());
-		}
-	else if (member == Sleep)
-		{
-		if (nargs != 1)
-			except("usage: Thread.Sleep(milliseconds)");
-		Fibers::sleep(ARG(0).integer());
-		return Value();
-		}
-	else
-		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
+		{ "Count", &SuThread::Count },
+		{ "List", &SuThread::List },
+		{ "Name", &SuThread::Name },
+		{ "Sleep", &SuThread::Sleep }
+		};
+	return gsl::make_span(methods);
+	}
+
+Value SuThread::Count(BuiltinArgs& args)
+	{
+	args.usage("usage: Thread.Count()").end();
+	return Fibers::size();
+	}
+
+Value SuThread::List(BuiltinArgs& args)
+	{
+	args.usage("usage: Thread.List()").end();
+	SuObject* list = new SuObject();
+	Fibers::foreach_fiber_info(
+		[list](gcstring name, const char* status)
+		{ list->putdata(new SuString(name), status); });
+	return list;
+	}
+
+Value SuThread::Name(BuiltinArgs& args)
+	{
+	args.usage("usage: Thread.Name() or Thread.Name(string)");
+	if (Value name = args.getValue("string", Value()))
+		Fibers::set_name(name.gcstr());
+	args.end();
+	return new SuString(Fibers::get_name());
+	}
+
+Value SuThread::Sleep(BuiltinArgs& args)
+	{
+	args.usage("usage: Thread.Sleep(ms)");
+	int ms = args.getint("ms");
+	args.end();
+	Fibers::sleep(ms);
+	return Value();
 	}
 
 Value thread_singleton()
 	{
-	static ThreadClass* instance = new ThreadClass;
-	return instance;
+	static BuiltinClass<SuThread> instance("(func)");
+	return &instance;
 	}
