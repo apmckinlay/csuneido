@@ -28,7 +28,6 @@
 #include "sufinalize.h"
 #include "readline.h"
 #include <algorithm>
-#include "gsl-lite.h"
 using std::min;
 
 #ifdef _MSC_VER
@@ -43,8 +42,6 @@ class SuFile : public SuFinalize
 	{
 public:
 	void init(const char* filename, const char* mode);
-	virtual void out(Ostream& os) const override
-		{ os << "File('" << filename << "', '" << mode << "')"; }
 	void close();
 	static auto methods()
 		{
@@ -61,8 +58,6 @@ public:
 			};
 		return gsl::make_span(methods);
 		}
-	const char* type() const override
-		{ return "File"; }
 private:
 	Value Read(BuiltinArgs&);
 	Value Readline(BuiltinArgs&);
@@ -87,10 +82,6 @@ Value su_file()
 	static BuiltinClass<SuFile> suFileClass("(filename, mode = 'r', block = false)");
 	return &suFileClass;
 	}
-
-template<>
-void BuiltinClass<SuFile>::out(Ostream& os) const
-	{ os << "File /* builtin class */"; }
 
 template<>
 Value BuiltinClass<SuFile>::instantiate(BuiltinArgs& args)
@@ -164,8 +155,7 @@ Value SuFile::Read(BuiltinArgs& args)
 // NOTE: Readline should be consistent across file, socket, and runpiped
 Value SuFile::Readline(BuiltinArgs& args)
 	{
-	args.usage("usage: file.Readline()");
-	args.end();
+	args.usage("usage: file.Readline()").end();
 
 	ckopen("Readline");
 	int c;
@@ -223,8 +213,7 @@ Value SuFile::Seek(BuiltinArgs& args)
 
 Value SuFile::Tell(BuiltinArgs& args)
 	{
-	args.usage("usage: file.Tell()");
-	args.end();
+	args.usage("usage: file.Tell()").end();
 
 	ckopen("Tell");
 	int64 offset = FTELL64(f);
@@ -236,8 +225,7 @@ Value SuFile::Tell(BuiltinArgs& args)
 
 Value SuFile::Flush(BuiltinArgs& args)
 	{
-	args.usage("usage: file.Flush()");
-	args.end();
+	args.usage("usage: file.Flush()").end();
 
 	ckopen("Flush");
 	fflush(f);
@@ -246,8 +234,7 @@ Value SuFile::Flush(BuiltinArgs& args)
 
 Value SuFile::Close(BuiltinArgs& args)
 	{
-	args.usage("usage: file.Close()");
-	args.end();
+	args.usage("usage: file.Close()").end();
 
 	ckopen("Close");
 	close();

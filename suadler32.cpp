@@ -24,15 +24,12 @@
 #include "suboolean.h"
 #include "gcstring.h"
 #include "checksum.h"
-#include "gsl-lite.h"
 
 class SuAdler32 : public SuValue
 	{
 public:
 	SuAdler32() : value(1)
 		{ }
-	void out(Ostream& os) const override
-		{ os << "Adler32()"; }
 	static auto methods()
 		{
 		static Method<SuAdler32> methods[]
@@ -42,8 +39,6 @@ public:
 			};
 		return gsl::make_span(methods);
 		}
-	const char* type() const override
-		{ return "Adler32"; }
 	void update(const gcstring& gcstr);
 	ulong value;
 private:
@@ -58,14 +53,9 @@ Value su_adler32()
 	}
 
 template<>
-void BuiltinClass<SuAdler32>::out(Ostream& os) const
-	{ os << "Adler32 /* builtin class */"; }
-
-template<>
 Value BuiltinClass<SuAdler32>::instantiate(BuiltinArgs& args)
 	{
-	args.usage("usage: new Adler32()");
-	args.end();
+	args.usage("usage: new Adler32()").end();
 	return new BuiltinInstance<SuAdler32>();
 	}
 
@@ -98,7 +88,6 @@ void SuAdler32::update(const gcstring& s)
 
 Value SuAdler32::ValueFn(BuiltinArgs& args)
 	{
-	args.usage("usage: adler32.Value()");
-	args.end();
+	args.usage("usage: adler32.Value()").end();
 	return value;
 	}

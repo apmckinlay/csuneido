@@ -20,8 +20,7 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "gsl-lite.h"
-#include <windows.h>
+#include "win.h"
 #include <wincrypt.h>
 #include "builtinclass.h"
 #include "gcstring.h"
@@ -39,8 +38,6 @@ public:
 		if (! CryptCreateHash(hCryptProv, CALG_MD5, 0, 0, &hHash))
 			except("Md5: CryptCreateHash failed");
 		}
-	void out(Ostream& os) const override
-		{ os << "Md5()"; }
 	static auto methods()
 		{
 		static Method<Md5> methods[]
@@ -50,8 +47,6 @@ public:
 			};
 		return gsl::make_span(methods);
 		}
-	const char* type() const override
-		{ return "Md5"; }
 	void update(gcstring gcstr);
 	gcstring value();
 	void finalize() override;
@@ -71,14 +66,9 @@ Value su_md5()
 	}
 
 template<>
-void BuiltinClass<Md5>::out(Ostream& os) const
-	{ os << "Md5 /* builtin class */"; }
-
-template<>
 Value BuiltinClass<Md5>::instantiate(BuiltinArgs& args)
 	{
-	args.usage("usage: new Md5()");
-	args.end();
+	args.usage("usage: new Md5()").end();
 	return new BuiltinInstance<Md5>();
 	}
 
@@ -124,8 +114,7 @@ gcstring Md5::value()
 
 Value Md5::ValueFn(BuiltinArgs& args)
 	{
-	args.usage("usage: md5.Value()");
-	args.end();
+	args.usage("usage: md5.Value()").end();
 	return new SuString(value());
 	}
 

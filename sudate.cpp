@@ -910,7 +910,12 @@ Value SuDateClass::call(Value self, Value member,
 
 void SuDateClass::out(Ostream& os) const
 	{
-	os << "Date /* builtin */";
+	os << "Date /* builtin class */";
+	}
+
+const char* SuDateClass::type() const
+	{
+	return "BuiltinClass";
 	}
 
 #include "testing.h"

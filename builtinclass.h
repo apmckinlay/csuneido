@@ -26,7 +26,18 @@
 #include "suobject.h"
 #include "builtinargs.h"
 #include "ctype.h"
+#include "gsl-lite.h"
 
+/*
+ * Usage:
+ * define your class, inherit from SuValue
+ * define methods() and optionally static_methods()
+ * returning span of Method / StaticMethod
+ * methods take BuiltinArgs&
+ * specialize out and instantiate and optionally callclass (for the class)
+ */
+
+// a bound built-in method
 template <class T> class BuiltinMethod : public SuValue
 	{
 public:
@@ -50,6 +61,7 @@ private:
 	MemFun fn;
 	};
 
+// method array entries
 template <class T> struct Method
 	{
 	typedef class Value (T::*MemFun)(BuiltinArgs&);
@@ -57,6 +69,17 @@ template <class T> struct Method
 		{ }
 	Value name;
 	MemFun method;
+	};
+
+typedef Value (*StaticFun)(BuiltinArgs&);
+
+// static method array entries
+struct StaticMethod
+	{
+	StaticMethod(const char* n, StaticFun m) : name(n), method(m)
+		{ }
+	Value name;
+	StaticFun method;
 	};
 
 template <class T> const char* builtintype()
@@ -71,6 +94,7 @@ template <class T> const char* builtintype()
 	return s;
 	}
 
+// inherits from your class and implements common methods
 template <class T> class BuiltinInstance : public T
 	{
 	typedef Value (T::*MemFun)(BuiltinArgs&);
@@ -97,8 +121,18 @@ template <class T> class BuiltinInstance : public T
 				return m.method;
 		return nullptr;
 		}
+	void out(Ostream& os) const override
+		{
+		os << "a" << builtintype<T>();
+		}
+	const char* type() const override
+		{
+		return builtintype<T>();
+		}
 	};
 
+// handles call: CALL, INSTANTIATE, PARAMS, Members, 
+// callclass defaults to instantiate
 template <class T> class BuiltinClass : public SuValue
 	{
 public:
@@ -114,26 +148,49 @@ public:
 			return callclass(args);
 		else if (member == INSTANTIATE)
 			return instantiate(args);
-		else if (member == PARAMS && params != nullptr)
+		else if (member == PARAMS && params)
 			return new SuString(params);
 		else if (member == Members)
 			{
 			args.usage("usage: .Members()");
 			args.end();
 			SuObject* ob = new SuObject();
+			// class doesn't really have instance methods, but Suneido classes do
 			for (auto m : T::methods())
 				ob->add(m.name);
+			for (auto m : static_methods())
+				ob->add(m.name);
+			ob->add("Members");
+			if (params)
+				ob->add("Params");
 			return ob;
 			}
+		else if (auto m = find(member))
+			return (*m)(args);
 		else
 			method_not_found(builtintype<T>(), member);
 		}
-	void out(Ostream& os) const override;
+	static StaticFun find(Value member)
+		{
+		for (auto m : static_methods())
+			if (member == m.name)
+				return m.method;
+		return nullptr;
+		}
+	static auto static_methods()
+		{
+		return gsl::span<StaticMethod>();
+		}
+	void out(Ostream& os) const override	
+		{
+		os << builtintype<T>() << " /* builtin class */"; 
+		}
 	static Value instantiate(BuiltinArgs&);
 	static Value callclass(BuiltinArgs& args)
 		{ return instantiate(args); }
 	const char* type() const override
 		{ return "BuiltinClass"; }
 
+private:
 	const char* params;
 	};

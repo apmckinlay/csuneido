@@ -167,7 +167,6 @@ int RunPiped::exitvalue()
 #include "sustring.h"
 #include "ostreamstr.h"
 #include "readline.h"
-#include "gsl-lite.h"
 
 class SuRunPiped : public SuFinalize
 	{
@@ -178,10 +177,6 @@ public:
 		rp = new RunPiped(dupstr(cmd.str()));
 		}
 
-	void out(Ostream& os) const override
-		{
-		os << "RunPiped('" << cmd << "')";
-		}
 	static auto methods()
 		{
 		static Method<SuRunPiped> methods[]
@@ -197,8 +192,6 @@ public:
 			};
 		return gsl::make_span(methods);
 		}
-	const char* type() const override
-		{ return "RunPiped"; }
 	void close();
 private:
 	Value Read(BuiltinArgs&);
@@ -221,12 +214,6 @@ Value su_runpiped()
 	{
 	static BuiltinClass<SuRunPiped> suRunPipedClass("(command, block = false)");
 	return &suRunPipedClass;
-	}
-
-template<>
-void BuiltinClass<SuRunPiped>::out(Ostream& os) const
-	{
-	os << "RunPiped /* builtin class */";
 	}
 
 template<>
@@ -270,8 +257,7 @@ Value SuRunPiped::Read(BuiltinArgs& args)
 // NOTE: Readline should be consistent across file, socket, and runpiped
 Value SuRunPiped::Readline(BuiltinArgs& args)
 	{
-	args.usage("usage: runpiped.Readline()");
-	args.end();
+	args.usage("usage: runpiped.Readline()").end();
 
 	ckopen();
 	char c;
@@ -295,8 +281,7 @@ Value SuRunPiped::Writeline(BuiltinArgs& args)
 
 Value SuRunPiped::Flush(BuiltinArgs& args)
 	{
-	args.usage("usage: runpiped.Flush()");
-	args.end();
+	args.usage("usage: runpiped.Flush()").end();
 	rp->flush();
 	return Value();
 	}
@@ -312,8 +297,7 @@ void SuRunPiped::write(BuiltinArgs& args)
 
 Value SuRunPiped::CloseWrite(BuiltinArgs& args)
 	{
-	args.usage("usage: runpiped.CloseWrite()");
-	args.end();
+	args.usage("usage: runpiped.CloseWrite()").end();
 
 	ckopen();
 	rp->closewrite();
@@ -322,8 +306,7 @@ Value SuRunPiped::CloseWrite(BuiltinArgs& args)
 
 Value SuRunPiped::Close(BuiltinArgs& args)
 	{
-	args.usage("usage: runpiped.Close()");
-	args.end();
+	args.usage("usage: runpiped.Close()").end();
 
 	ckopen();
 	close();
@@ -332,8 +315,7 @@ Value SuRunPiped::Close(BuiltinArgs& args)
 
 Value SuRunPiped::ExitValue(BuiltinArgs& args)
 	{
-	args.usage("usage: runpiped.ExitValue()");
-	args.end();
+	args.usage("usage: runpiped.ExitValue()").end();
 	return rp->exitvalue();
 	}
 

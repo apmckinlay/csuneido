@@ -33,7 +33,7 @@ SuSeq::SuSeq(Value i) : iter(i)
 void SuSeq::out(Ostream& os) const
 	{
 	if (infinite(iter))
-		os << "Sequence(" << iter << ")";
+		os << "infiniteSequence";
 	else
 		{
 		build();
@@ -233,7 +233,7 @@ SuSeqIter::SuSeqIter(Value f, Value t, Value b) : from(f), to(t), by(b)
 
 void SuSeqIter::out(Ostream& os) const
 	{
-	os << "SeqIter";
+	os << "Seq";
 	}
 
 Value SuSeqIter::call(Value self, Value member, 

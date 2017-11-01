@@ -42,7 +42,7 @@ public:
 	SuObject* object() const;
 	const char* type() const override
 		{ return "Object"; }
-	private:
+private:
 	Value Join(short nargs) const;
 	static bool infinite(Value it);
 	void build() const;

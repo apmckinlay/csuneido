@@ -56,7 +56,7 @@ private:
 class BuiltinFunc : public Func
 	{
 	const char* type() const override
-		{ return "Builtin"; }
+		{ return "BuiltinFunction"; }
 	};
 
 typedef Value (*PrimFn)();
@@ -69,6 +69,7 @@ public:
 	Primitive(const char* decl, PrimFn f);
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
+	void out(Ostream& out) const override;
 private:
 	Value (*pfn)();
 	};

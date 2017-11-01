@@ -324,3 +324,8 @@ Value Primitive::call(Value self, Value member,
 	Framer frame(this, self);
 	return pfn();
 	}
+
+void Primitive::out(Ostream& out) const
+	{
+	out << named.name() << " /* builtin function */";
+	}

@@ -86,4 +86,5 @@ public:
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	void out(Ostream& os) const override;
+	const char* type() const override;
 	};

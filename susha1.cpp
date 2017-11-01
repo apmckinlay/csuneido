@@ -20,8 +20,7 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "gsl-lite.h"
-#include <windows.h>
+#include "win.h"
 #include <wincrypt.h>
 #include "builtinclass.h"
 #include "gcstring.h"
@@ -41,8 +40,6 @@ public:
 			except("Sha1: CryptCreateHash failed");
 		}
 
-	void out(Ostream& os) const override
-		{ os << "Sha1()"; }
 	static auto methods()
 		{
 		static Method<Sha1> methods[]
@@ -52,8 +49,6 @@ public:
 			};
 		return gsl::make_span(methods);
 		}
-	const char* type() const override
-		{ return "Sha1"; }
 	void update(gcstring gcstr) const;
 	gcstring value() const;
 	void finalize() override;
@@ -71,10 +66,6 @@ Value su_sha1()
 	static BuiltinClass<Sha1> Sha1Class("(@strings)");
 	return &Sha1Class;
 	}
-
-template<>
-void BuiltinClass<Sha1>::out(Ostream& os) const
-	{ os << "Sha1 /* builtin class */"; }
 
 template<>
 Value BuiltinClass<Sha1>::instantiate(BuiltinArgs& args)
@@ -126,8 +117,7 @@ gcstring Sha1::value() const
 
 Value Sha1::ValueFn(BuiltinArgs& args)
 	{
-	args.usage("usage: sha1.Value()");
-	args.end();
+	args.usage("usage: sha1.Value()").end();
 	return new SuString(value());
 	}
 
