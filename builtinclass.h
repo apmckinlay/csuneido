@@ -152,8 +152,7 @@ public:
 			return new SuString(params);
 		else if (member == Members)
 			{
-			args.usage("usage: .Members()");
-			args.end();
+			args.usage(".Members()").end();
 			SuObject* ob = new SuObject();
 			// class doesn't really have instance methods, but Suneido classes do
 			for (auto m : T::methods())

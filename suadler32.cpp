@@ -55,14 +55,14 @@ Value su_adler32()
 template<>
 Value BuiltinClass<SuAdler32>::instantiate(BuiltinArgs& args)
 	{
-	args.usage("usage: new Adler32()").end();
+	args.usage("new Adler32()").end();
 	return new BuiltinInstance<SuAdler32>();
 	}
 
 template<>
 Value BuiltinClass<SuAdler32>::callclass(BuiltinArgs& args)
 	{
-	args.usage("usage: Adler32(@strings)");
+	args.usage("Adler32(@strings)");
 	SuAdler32* a = new BuiltinInstance<SuAdler32>();
 	if (! args.hasUnnamed())
 		return a;
@@ -73,7 +73,7 @@ Value BuiltinClass<SuAdler32>::callclass(BuiltinArgs& args)
 
 Value SuAdler32::Update(BuiltinArgs& args)
 	{
-	args.usage("usage: adler32.Update(string)");
+	args.usage("adler32.Update(string)");
 	gcstring s = args.getgcstr("string");
 	args.end();
 
@@ -88,6 +88,6 @@ void SuAdler32::update(const gcstring& s)
 
 Value SuAdler32::ValueFn(BuiltinArgs& args)
 	{
-	args.usage("usage: adler32.Value()").end();
+	args.usage("adler32.Value()").end();
 	return value;
 	}

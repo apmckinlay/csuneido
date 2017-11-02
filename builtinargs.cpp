@@ -31,10 +31,12 @@ Used by BuiltinClass
 - can handle variable args with getNext and curName
 e.g.
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: ...");
+	args.usage("...");
 	char* first = args.getstr("first");
 	Value second = args.getValue("second", SuFalse);
 	args.end();
+for no arguments you can do:
+	args.usage("...").end();
 */
 
 // TODO don't do argseach
@@ -117,5 +119,5 @@ Value BuiltinArgs::getNextUnnamed()
 
 void BuiltinArgs::exceptUsage() const
 	{
-	except(msg1 << msg2 << msg3);
+	except("usage: " << msg1 << msg2 << msg3);
 	}

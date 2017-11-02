@@ -364,7 +364,7 @@ Value SuString::Tr(short nargs, short nargnames, ushort* argnames, int each)
 Value SuString::Find(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.Find(string, pos = 0)");
+	args.usage("string.Find(string, pos = 0)");
 	gcstring str = args.getgcstr("string");
 	int pos = args.getint("pos", 0);
 	args.end();
@@ -376,7 +376,7 @@ Value SuString::Find(short nargs, short nargnames, ushort* argnames, int each)
 Value SuString::FindLast(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.FindLast(string, pos = size())");
+	args.usage("string.FindLast(string, pos = size())");
 	auto str = args.getstr("string");
 	int pos = args.getint("pos", size());
 	args.end();
@@ -388,7 +388,7 @@ Value SuString::FindLast(short nargs, short nargnames, ushort* argnames, int eac
 Value SuString::Find1of(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.Find1of(string, pos = 0)");
+	args.usage("string.Find1of(string, pos = 0)");
 	gcstring set = args.getgcstr("string");
 	int pos = args.getint("pos", 0);
 	args.end();
@@ -405,7 +405,7 @@ Value SuString::Find1of(short nargs, short nargnames, ushort* argnames, int each
 Value SuString::FindLast1of(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.FindLast1of(string, pos = size() - 1)");
+	args.usage("string.FindLast1of(string, pos = size() - 1)");
 	gcstring set = args.getgcstr("string");
 	int pos = args.getint("pos", size() - 1);
 	args.end();
@@ -421,7 +421,7 @@ Value SuString::FindLast1of(short nargs, short nargnames, ushort* argnames, int 
 Value SuString::Findnot1of(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.Findnot1of(string, pos = 0)");
+	args.usage("string.Findnot1of(string, pos = 0)");
 	gcstring set = args.getgcstr("string");
 	int pos = args.getint("pos", 0);
 	args.end();
@@ -442,7 +442,7 @@ Value SuString::Findnot1of(short nargs, short nargnames, ushort* argnames, int e
 Value SuString::FindLastnot1of(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.FindLastnot1of(string, pos = size() - 1)");
+	args.usage("string.FindLastnot1of(string, pos = size() - 1)");
 	gcstring set = args.getgcstr("string");
 	int pos = args.getint("pos", size() - 1);
 	args.end();
@@ -462,7 +462,7 @@ Value SuString::FindLastnot1of(short nargs, short nargnames, ushort* argnames, i
 Value SuString::Match(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.Match(pattern, pos = false, prev = false) => object");
+	args.usage("string.Match(pattern, pos = false, prev = false) => object");
 	gcstring pat = args.getgcstr("pattern");
 	Value posval = args.getValue("pos", SuFalse);
 	bool prev = args.getValue("prev", SuFalse).toBool();
@@ -588,7 +588,7 @@ Value SuString::MapN(short nargs, short nargnames, ushort* argnames, int each)
 Value SuString::NthLine(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.NthLine(n)");
+	args.usage("string.NthLine(n)");
 	int n = args.getint("n");
 	args.end();
 	const char* p = ptr();
@@ -625,7 +625,7 @@ Value SuString::CountChar(short nargs, short nargnames, ushort* argnames,
 	int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.CountChar(c)");
+	args.usage("string.CountChar(c)");
 	gcstring sc = args.getgcstr("c");
 	args.end();
 	if (sc.size() != 1)
@@ -920,7 +920,7 @@ Value SuString::AlphaNumq(short nargs, short nargnames, ushort* argnames, int ea
 Value SuString::Hasq(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.Has?(string)");
+	args.usage("string.Has?(string)");
 	gcstring str = args.getgcstr("string");
 	args.end();
 	return s.find(str) == -1 ? SuFalse : SuTrue;
@@ -929,7 +929,7 @@ Value SuString::Hasq(short nargs, short nargnames, ushort* argnames, int each)
 Value SuString::Prefixq(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.Prefix?(string, pos = 0)");
+	args.usage("string.Prefix?(string, pos = 0)");
 	gcstring str = args.getgcstr("string");
 	int pos = args.getint("pos", 0);
 	args.end();
@@ -943,7 +943,7 @@ Value SuString::Prefixq(short nargs, short nargnames, ushort* argnames, int each
 Value SuString::Suffixq(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("usage: string.Suffix?(string)");
+	args.usage("string.Suffix?(string)");
 	gcstring str = args.getgcstr("string");
 	args.end();
 	return s.has_suffix(str) ? SuTrue : SuFalse;

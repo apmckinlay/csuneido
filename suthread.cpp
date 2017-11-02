@@ -94,7 +94,7 @@ Value BuiltinClass<SuThread>::instantiate(BuiltinArgs& args)
 template<>
 Value BuiltinClass<SuThread>::callclass(BuiltinArgs& args)
 	{
-	args.usage("usage: Thread(func)");
+	args.usage("Thread(func)");
 	Value func = args.getValue("func");
 	args.end();
 	persist_if_block(func);
@@ -117,13 +117,13 @@ auto BuiltinClass<SuThread>::static_methods()
 
 Value SuThread::Count(BuiltinArgs& args)
 	{
-	args.usage("usage: Thread.Count()").end();
+	args.usage("Thread.Count()").end();
 	return Fibers::size();
 	}
 
 Value SuThread::List(BuiltinArgs& args)
 	{
-	args.usage("usage: Thread.List()").end();
+	args.usage("Thread.List()").end();
 	SuObject* list = new SuObject();
 	Fibers::foreach_fiber_info(
 		[list](gcstring name, const char* status)
@@ -133,7 +133,7 @@ Value SuThread::List(BuiltinArgs& args)
 
 Value SuThread::Name(BuiltinArgs& args)
 	{
-	args.usage("usage: Thread.Name() or Thread.Name(string)");
+	args.usage("Thread.Name() or Thread.Name(string)");
 	if (Value name = args.getValue("string", Value()))
 		Fibers::set_name(name.gcstr());
 	args.end();
@@ -142,7 +142,7 @@ Value SuThread::Name(BuiltinArgs& args)
 
 Value SuThread::Sleep(BuiltinArgs& args)
 	{
-	args.usage("usage: Thread.Sleep(ms)");
+	args.usage("Thread.Sleep(ms)");
 	int ms = args.getint("ms");
 	args.end();
 	Fibers::sleep(ms);

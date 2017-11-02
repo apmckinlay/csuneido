@@ -74,7 +74,7 @@ Value su_scanner()
 template<>
 Value BuiltinClass<SuScanner>::instantiate(BuiltinArgs& args)
 	{
-	args.usage("usage: Scanner(string)");
+	args.usage("Scanner(string)");
 	auto s = args.getstr("string");
 	args.end();
 	SuScanner* scanner = new BuiltinInstance<SuScanner>();
@@ -90,7 +90,7 @@ void SuScanner::init(const char* s)
 // OLD - returns Text
 Value SuScanner::Next(BuiltinArgs& args)
 	{
-	args.usage("usage: scanner.Next()").end();
+	args.usage("scanner.Next()").end();
 
 	token = scanner->nextall();
 	if (token == -1)
@@ -113,7 +113,7 @@ Value SuScanner::Next2(BuiltinArgs& args)
 
 Value SuScanner::Position(BuiltinArgs& args)
 	{
-	args.usage("usage: scanner.Position()").end();
+	args.usage("scanner.Position()").end();
 
 	return scanner->si;
 	}
@@ -121,7 +121,7 @@ Value SuScanner::Position(BuiltinArgs& args)
 // OLD - returns type as integer
 Value SuScanner::Type(BuiltinArgs& args)
 	{
-	args.usage("usage: scanner.Type()").end();
+	args.usage("scanner.Type()").end();
 
 	return token;
 	}
@@ -131,7 +131,7 @@ Value SuScanner::Type(BuiltinArgs& args)
 // NEW - returns type as string
 Value SuScanner::Type2(BuiltinArgs& args)
 	{
-	args.usage("usage: scanner.Type()").end();
+	args.usage("scanner.Type()").end();
 
 	TYPE(ERROR);
 	TYPE(IDENTIFIER);
@@ -163,7 +163,7 @@ Value SuScanner::Type2(BuiltinArgs& args)
 
 Value SuScanner::Text(BuiltinArgs& args)
 	{
-	args.usage("usage: scanner.Text()").end();
+	args.usage("scanner.Text()").end();
 	if (scanner->si <= scanner->prev)
 		return SuEmptyString;
 	return new SuString(scanner->source + scanner->prev, scanner->si - scanner->prev);
@@ -171,14 +171,14 @@ Value SuScanner::Text(BuiltinArgs& args)
 
 Value SuScanner::Length(BuiltinArgs& args)
 	{
-	args.usage("usage: scanner.Size()").end();
+	args.usage("scanner.Size()").end();
 
 	return scanner->si - scanner->prev;
 	}
 
 Value SuScanner::Valu(BuiltinArgs& args)
 	{
-	args.usage("usage: scanner.Value()").end();
+	args.usage("scanner.Value()").end();
 	// scanner->len only set for strings ???
 	return token == T_STRING ? new SuString(scanner->value, scanner->len) : new SuString(scanner->value);
 	}
@@ -186,7 +186,7 @@ Value SuScanner::Valu(BuiltinArgs& args)
 // deprecated, replaced by Keyword?
 Value SuScanner::Keyword(BuiltinArgs& args)
 	{
-	args.usage("usage: scanner.Keyword()").end();
+	args.usage("scanner.Keyword()").end();
 
 	if (scanner->keyword && scanner->source[scanner->si] == ':')
 		return 0;
@@ -197,7 +197,7 @@ Value SuScanner::Keyword(BuiltinArgs& args)
 
 Value SuScanner::KeywordQ(BuiltinArgs& args)
 	{
-	args.usage("usage: scanner.Keyword?()").end();
+	args.usage("scanner.Keyword?()").end();
 
 	if (scanner->keyword && scanner->source[scanner->si] == ':')
 		return SuFalse;
@@ -206,7 +206,7 @@ Value SuScanner::KeywordQ(BuiltinArgs& args)
 
 Value SuScanner::Iter(BuiltinArgs& args)
 	{
-	args.usage("usage: scanner.Iter()").end();
+	args.usage("scanner.Iter()").end();
 
 	return this;
 	}
@@ -228,7 +228,7 @@ Value su_queryscanner()
 template<>
 Value BuiltinClass<SuQueryScanner>::instantiate(BuiltinArgs& args)
 	{
-	args.usage("usage: QueryScanner(string)");
+	args.usage("QueryScanner(string)");
 	auto s = args.getstr("string");
 	args.end();
 	SuQueryScanner* scanner = new BuiltinInstance<SuQueryScanner>();

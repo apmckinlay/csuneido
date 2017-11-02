@@ -586,7 +586,7 @@ public:
 		if (member != CALL)
 			return Func::call(self, member, nargs, nargnames, argnames, each);
 		BuiltinArgs args(nargs, nargnames, argnames, each);
-		args.usage("usage: mode, command, @args");
+		args.usage("Spawn(mode, command, @args)");
 		int mode = args.getint("mode");
 		auto cmd = args.getstr("command");
 		auto argv = new const char*[nargs];

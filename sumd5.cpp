@@ -68,14 +68,14 @@ Value su_md5()
 template<>
 Value BuiltinClass<Md5>::instantiate(BuiltinArgs& args)
 	{
-	args.usage("usage: new Md5()").end();
+	args.usage("new Md5()").end();
 	return new BuiltinInstance<Md5>();
 	}
 
 template<>
 Value BuiltinClass<Md5>::callclass(BuiltinArgs& args)
 	{
-	args.usage("usage: Md5(@strings)");
+	args.usage("Md5(@strings)");
 	Md5* a = new BuiltinInstance<Md5>();
 	if (! args.hasUnnamed())
 		return a;
@@ -86,7 +86,7 @@ Value BuiltinClass<Md5>::callclass(BuiltinArgs& args)
 
 Value Md5::Update(BuiltinArgs& args)
 	{
-	args.usage("usage: md5.Update(string)");
+	args.usage("md5.Update(string)");
 	gcstring s = args.getgcstr("string");
 	args.end();
 
@@ -114,7 +114,7 @@ gcstring Md5::value()
 
 Value Md5::ValueFn(BuiltinArgs& args)
 	{
-	args.usage("usage: md5.Value()").end();
+	args.usage("md5.Value()").end();
 	return new SuString(value());
 	}
 

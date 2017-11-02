@@ -219,7 +219,7 @@ Value su_runpiped()
 template<>
 Value BuiltinClass<SuRunPiped>::instantiate(BuiltinArgs& args)
 	{
-	args.usage("usage: RunPiped(command)");
+	args.usage("RunPiped(command)");
 	gcstring cmd = args.getgcstr("command");
 	SuRunPiped* runpiped = new BuiltinInstance<SuRunPiped>();
 	runpiped->init(cmd);
@@ -229,7 +229,7 @@ Value BuiltinClass<SuRunPiped>::instantiate(BuiltinArgs& args)
 template<>
 Value BuiltinClass<SuRunPiped>::callclass(BuiltinArgs& args)
 	{
-	args.usage("usage: RunPiped(command, block = false)");
+	args.usage("RunPiped(command, block = false)");
 	gcstring cmd = args.getgcstr("command");
 	Value block = args.getValue("block", SuFalse);
 	SuRunPiped* rp = new BuiltinInstance<SuRunPiped>();
@@ -244,7 +244,7 @@ Value BuiltinClass<SuRunPiped>::callclass(BuiltinArgs& args)
 
 Value SuRunPiped::Read(BuiltinArgs& args)
 	{
-	args.usage("usage: runpiped.Read(n = 1024)");
+	args.usage("runpiped.Read(n = 1024)");
 	int n = args.getint("n", 1024);
 	args.end();
 
@@ -257,7 +257,7 @@ Value SuRunPiped::Read(BuiltinArgs& args)
 // NOTE: Readline should be consistent across file, socket, and runpiped
 Value SuRunPiped::Readline(BuiltinArgs& args)
 	{
-	args.usage("usage: runpiped.Readline()").end();
+	args.usage("runpiped.Readline()").end();
 
 	ckopen();
 	char c;
@@ -266,14 +266,14 @@ Value SuRunPiped::Readline(BuiltinArgs& args)
 
 Value SuRunPiped::Write(BuiltinArgs& args)
 	{
-	args.usage("usage: runpiped.Write(s)");
+	args.usage("runpiped.Write(s)");
 	write(args);
 	return Value();
 	}
 
 Value SuRunPiped::Writeline(BuiltinArgs& args)
 	{
-	args.usage("usage: runpiped.Writeline(s)");
+	args.usage("runpiped.Writeline(s)");
 	write(args);
 	rp->write("\r\n", 2);
 	return Value();
@@ -281,7 +281,7 @@ Value SuRunPiped::Writeline(BuiltinArgs& args)
 
 Value SuRunPiped::Flush(BuiltinArgs& args)
 	{
-	args.usage("usage: runpiped.Flush()").end();
+	args.usage("runpiped.Flush()").end();
 	rp->flush();
 	return Value();
 	}
@@ -297,7 +297,7 @@ void SuRunPiped::write(BuiltinArgs& args)
 
 Value SuRunPiped::CloseWrite(BuiltinArgs& args)
 	{
-	args.usage("usage: runpiped.CloseWrite()").end();
+	args.usage("runpiped.CloseWrite()").end();
 
 	ckopen();
 	rp->closewrite();
@@ -306,7 +306,7 @@ Value SuRunPiped::CloseWrite(BuiltinArgs& args)
 
 Value SuRunPiped::Close(BuiltinArgs& args)
 	{
-	args.usage("usage: runpiped.Close()").end();
+	args.usage("runpiped.Close()").end();
 
 	ckopen();
 	close();
@@ -315,7 +315,7 @@ Value SuRunPiped::Close(BuiltinArgs& args)
 
 Value SuRunPiped::ExitValue(BuiltinArgs& args)
 	{
-	args.usage("usage: runpiped.ExitValue()").end();
+	args.usage("runpiped.ExitValue()").end();
 	return rp->exitvalue();
 	}
 

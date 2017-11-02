@@ -76,7 +76,7 @@ Value SuSocketClient::call(Value self, Value member,
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	if (member == Read)
 		{
-		args.usage("usage: socketClient.Read(size)");
+		args.usage("socketClient.Read(size)");
 		int n = args.getint("size");
 		args.end();
 		if (n == 0)
@@ -104,7 +104,7 @@ Value SuSocketClient::call(Value self, Value member,
 		}
 	else if (member == Write)
 		{
-		args.usage("usage: socketClient.Write(string)");
+		args.usage("socketClient.Write(string)");
 		gcstring s = args.getValue("string").to_gcstr();
 		args.end();
 		ckopen("Write");
@@ -113,7 +113,7 @@ Value SuSocketClient::call(Value self, Value member,
 		}
 	else if (member == Writeline)
 		{
-		args.usage("usage: socketClient.Writeline(string)");
+		args.usage("socketClient.Writeline(string)");
 		gcstring s = args.getValue("string").to_gcstr();
 		args.end();
 		ckopen("Writeline");

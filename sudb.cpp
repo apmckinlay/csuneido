@@ -93,7 +93,7 @@ auto BuiltinClass<DatabaseClass>::static_methods()
 template<>
 Value BuiltinClass<DatabaseClass>::callclass(BuiltinArgs& args)
 	{
-	args.usage("usage: Database(request)");
+	args.usage("Database(request)");
 	auto req = args.getstr("request");
 	args.end();
 	dbms()->admin(req);
@@ -140,7 +140,7 @@ Value DatabaseClass::Cursors(BuiltinArgs& args)
 
 Value DatabaseClass::SessionId(BuiltinArgs& args)
 	{
-	args.usage("usage: Database.SessionId(newid = '')");
+	args.usage("Database.SessionId(newid = '')");
 	auto s = args.getstr("string", "");
 	args.end();
 	return dbms()->sessionid(s);
@@ -154,7 +154,7 @@ Value DatabaseClass::Final(BuiltinArgs& args)
 
 Value DatabaseClass::Kill(BuiltinArgs& args)
 	{
-	args.usage("usage: Database.Kill(session_id)");
+	args.usage("Database.Kill(session_id)");
 	auto s = args.getstr("string");
 	args.end();
 	return dbms()->kill(s);
@@ -168,7 +168,7 @@ Value DatabaseClass::Check(BuiltinArgs& args)
 
 Value DatabaseClass::Dump(BuiltinArgs& args)
 	{
-	args.usage("usage: Database.Dump(table = '')");
+	args.usage("Database.Dump(table = '')");
 	auto what = args.getstr("string", "");
 	args.end();
 	Value result = dbms()->dump(what);
@@ -179,7 +179,7 @@ Value DatabaseClass::Dump(BuiltinArgs& args)
 
 Value DatabaseClass::Load(BuiltinArgs& args)
 	{
-	args.usage("usage: Database.Load(table)");
+	args.usage("Database.Load(table)");
 	auto table = args.getstr("table");
 	args.end();
 	int result = dbms()->load(table);
@@ -202,7 +202,7 @@ Value DatabaseClass::Token(BuiltinArgs& args)
 
 Value DatabaseClass::Auth(BuiltinArgs& args)
 	{
-	args.usage("usage: Database.Auth(string)");
+	args.usage("Database.Auth(string)");
 	auto s = args.getgcstr("string");
 	return dbms()->auth(s) ? SuTrue : SuFalse;
 	}
@@ -243,7 +243,7 @@ static Value queryone(const char* which, Dir dir, bool one,
 	{
 	if (tran)
 		tran->checkNotEnded("query");
-	args.usage("usage: ", which, QUERYONE_PARAMS);
+	args.usage("", which, QUERYONE_PARAMS);
 	auto query = args.getstr("query");
 	query = query_args(query, args);
 	TRACE(QUERY, traceTran(tran) <<
@@ -271,7 +271,7 @@ public:
 			return queryone(which, dir, one, NULL, args);
 		else if (member == Params)
 			{
-			args.usage("usage: ", which, ".Params()").end();
+			args.usage("", which, ".Params()").end();
 			return new SuString(QUERYONE_PARAMS);
 			}
 		else
@@ -374,7 +374,7 @@ Value SuTransaction::call(Value self, Value member,
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	if (member == Query)
 		{
-		args.usage("usage: transaction.Query(value [, block][, field: value...])");
+		args.usage("transaction.Query(value [, block][, field: value...])");
 		auto qstr = args.getstr("query");
 		Value block = args.getValue("block", Value());
 		if (block && ! dynamic_cast<Func*>(block.ptr()))

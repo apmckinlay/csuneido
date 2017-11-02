@@ -70,15 +70,14 @@ Value su_sha1()
 template<>
 Value BuiltinClass<Sha1>::instantiate(BuiltinArgs& args)
 	{
-	args.usage("usage: new Sha1()");
-	args.end();
+	args.usage("new Sha1()").end();
 	return new BuiltinInstance<Sha1>();
 	}
 
 template<>
 Value BuiltinClass<Sha1>::callclass(BuiltinArgs& args)
 	{
-	args.usage("usage: Sha1(@strings)");
+	args.usage("Sha1(@strings)");
 	Sha1* a = new BuiltinInstance<Sha1>();
 	if (! args.hasUnnamed())
 		return a;
@@ -89,7 +88,7 @@ Value BuiltinClass<Sha1>::callclass(BuiltinArgs& args)
 
 Value Sha1::Update(BuiltinArgs& args)
 	{
-	args.usage("usage: sha1.Update(string)");
+	args.usage("sha1.Update(string)");
 	gcstring s = args.getgcstr("string");
 	args.end();
 
@@ -117,7 +116,7 @@ gcstring Sha1::value() const
 
 Value Sha1::ValueFn(BuiltinArgs& args)
 	{
-	args.usage("usage: sha1.Value()").end();
+	args.usage("sha1.Value()").end();
 	return new SuString(value());
 	}
 

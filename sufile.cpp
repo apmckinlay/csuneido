@@ -86,7 +86,7 @@ Value su_file()
 template<>
 Value BuiltinClass<SuFile>::instantiate(BuiltinArgs& args)
 	{
-	args.usage("usage: new File(filename, mode = 'r'");
+	args.usage("new File(filename, mode = 'r'");
 	auto filename = args.getstr("filename");
 	auto mode = args.getstr("mode", "r");
 	args.end();
@@ -98,7 +98,7 @@ Value BuiltinClass<SuFile>::instantiate(BuiltinArgs& args)
 template<>
 Value BuiltinClass<SuFile>::callclass(BuiltinArgs& args)
 	{
-	args.usage("usage: File(filename, mode = 'r', block = false)");
+	args.usage("File(filename, mode = 'r', block = false)");
 	auto filename = args.getstr("filename");
 	auto mode = args.getstr("mode", "r");
 	Value block = args.getValue("block", SuFalse);
@@ -130,7 +130,7 @@ void SuFile::init(const char* fn, const char* m)
 
 Value SuFile::Read(BuiltinArgs& args)
 	{
-	args.usage("usage: file.Read(nbytes = all)");
+	args.usage("file.Read(nbytes = all)");
 	int64 n = args.getint("nbytes", INT_MAX);
 	args.end();
 
@@ -155,7 +155,7 @@ Value SuFile::Read(BuiltinArgs& args)
 // NOTE: Readline should be consistent across file, socket, and runpiped
 Value SuFile::Readline(BuiltinArgs& args)
 	{
-	args.usage("usage: file.Readline()").end();
+	args.usage("file.Readline()").end();
 
 	ckopen("Readline");
 	int c;
@@ -164,7 +164,7 @@ Value SuFile::Readline(BuiltinArgs& args)
 
 Value SuFile::Write(BuiltinArgs& args)
 	{
-	args.usage("usage: file.Write(string)");
+	args.usage("file.Write(string)");
 	Value arg = args.getValue("string");
 	gcstring s = arg.to_gcstr();
 	args.end();
@@ -177,7 +177,7 @@ Value SuFile::Write(BuiltinArgs& args)
 
 Value SuFile::Writeline(BuiltinArgs& args)
 	{
-	args.usage("usage: file.Writeline(string)");
+	args.usage("file.Writeline(string)");
 	Value arg = args.getValue("string");
 	gcstring s = arg.to_gcstr();
 	args.end();
@@ -191,7 +191,7 @@ Value SuFile::Writeline(BuiltinArgs& args)
 
 Value SuFile::Seek(BuiltinArgs& args)
 	{
-	args.usage("usage: file.Seek(offset, origin)");
+	args.usage("file.Seek(offset, origin)");
 	Value arg = args.getValue("offset");
 	int64 offset = arg.is_int() ? (int64) arg.integer() : arg.number()->bigint();
 	gcstring origin_s = args.getgcstr("origin", "set");
@@ -213,7 +213,7 @@ Value SuFile::Seek(BuiltinArgs& args)
 
 Value SuFile::Tell(BuiltinArgs& args)
 	{
-	args.usage("usage: file.Tell()").end();
+	args.usage("file.Tell()").end();
 
 	ckopen("Tell");
 	int64 offset = FTELL64(f);
@@ -225,7 +225,7 @@ Value SuFile::Tell(BuiltinArgs& args)
 
 Value SuFile::Flush(BuiltinArgs& args)
 	{
-	args.usage("usage: file.Flush()").end();
+	args.usage("file.Flush()").end();
 
 	ckopen("Flush");
 	fflush(f);
@@ -234,7 +234,7 @@ Value SuFile::Flush(BuiltinArgs& args)
 
 Value SuFile::Close(BuiltinArgs& args)
 	{
-	args.usage("usage: file.Close()").end();
+	args.usage("file.Close()").end();
 
 	ckopen("Close");
 	close();
