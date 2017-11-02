@@ -149,7 +149,7 @@ Value SuThread::Sleep(BuiltinArgs& args)
 	return Value();
 	}
 
-Value thread_singleton()
+Value su_Thread()
 	{
 	static BuiltinClass<SuThread> instance("(func)");
 	return &instance;

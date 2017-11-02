@@ -741,7 +741,7 @@ void builtins()
 	BUILTIN_CLASS("ServerEval", su_ServerEval);
 	BUILTIN_CLASS("Scanner", su_scanner);
 	BUILTIN_CLASS("QueryScanner", su_queryscanner);
-	BUILTIN_CLASS("Thread", thread_singleton);
+	BUILTIN_CLASS("Thread", su_Thread);
 
 	for (int i = 0; i < nprims; ++i)
 		{
