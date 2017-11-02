@@ -1746,6 +1746,7 @@ void FunctionCompiler::expr0(bool newtype)
 			}
 		else if (token == '[')
 			{
+			static Value intmax(INT_MAX);
 			match('[');
 			if (token == T_RANGETO || token == T_RANGELEN)
 				emit(I_PUSH, LITERAL, literal(SuZero));
@@ -1755,7 +1756,7 @@ void FunctionCompiler::expr0(bool newtype)
 				int type = token;
 				match();
 				if (token == ']')
-					emit(I_PUSH, LITERAL, literal(SuFalse));
+					emit(I_PUSH, LITERAL, literal(intmax));
 				else
 					expr();
 				static int g_rangeTo = globals("RangeTo");

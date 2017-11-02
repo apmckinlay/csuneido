@@ -60,7 +60,7 @@ Value rangeTo()
 	{
 	const int nargs = 2;
 	int from = ARG(0).integer();
-	int to = ARG(1) == SuFalse ? INT_MAX : ARG(1).integer();
+	int to = ARG(1).integer();
 	return new RangeTo(from, to);
 	}
 PRIM(rangeTo, "RangeTo(from, to)");
@@ -69,7 +69,7 @@ Value rangeLen()
 	{
 	const int nargs = 2;
 	int from = ARG(0).integer();
-	int len = ARG(1) == SuFalse ? INT_MAX : ARG(1).integer();
+	int len = ARG(1).integer();
 	if (len < 0)
 		len = 0;
 	return new RangeLen(from, len);
