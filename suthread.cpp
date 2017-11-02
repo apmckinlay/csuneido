@@ -94,8 +94,8 @@ Value BuiltinClass<SuThread>::instantiate(BuiltinArgs& args)
 template<>
 Value BuiltinClass<SuThread>::callclass(BuiltinArgs& args)
 	{
-	args.usage("Thread(func)");
-	Value func = args.getValue("func");
+	args.usage("Thread(block)");
+	Value func = args.getValue("block");
 	args.end();
 	persist_if_block(func);
 	Fibers::create(thread, new ThreadInfo(func));
