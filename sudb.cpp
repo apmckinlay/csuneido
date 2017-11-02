@@ -21,6 +21,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "sudb.h"
+#include "builtinclass.h"
 #include "suclass.h"
 #include "surecord.h"
 #include "sustring.h"
@@ -36,127 +37,177 @@
 #include "builtinargs.h"
 #include "trace.h"
 
-Value DatabaseClass::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+class DatabaseClass : public SuValue
 	{
-	static Value Transactions("Transactions");
-	static Value CurrentSize("CurrentSize");
-	static Value Connections("Connections");
-	static Value TempDest("TempDest");
-	static Value Cursors("Cursors");
-	static Value SessionId("SessionId");
-	static Value Final("Final");
-	static Value Kill("Kill");
-	static Value Dump("Dump");
-	static Value Load("Load");
-	static Value Nonce("Nonce");
-	static Value Token("Token");
-	static Value Auth("Auth");
-	static Value Check("Check");
+public:
+	static auto methods()
+		{
+		return gsl::span<Method<DatabaseClass>>(); // none
+		}
 
-	argseach(nargs, nargnames, argnames, each);
+	static Value Transactions(BuiltinArgs&);
+	static Value CurrentSize(BuiltinArgs&);
+	static Value Connections(BuiltinArgs&);
+	static Value TempDest(BuiltinArgs&);
+	static Value Cursors(BuiltinArgs&);
+	static Value SessionId(BuiltinArgs&);
+	static Value Final(BuiltinArgs&);
+	static Value Kill(BuiltinArgs&);
+	static Value Check(BuiltinArgs&);
+	static Value Dump(BuiltinArgs&);
+	static Value Load(BuiltinArgs&);
+	static Value Nonce(BuiltinArgs&);
+	static Value Token(BuiltinArgs&);
+	static Value Auth(BuiltinArgs&);
+	};
 
-	if (member == CALL || member == INSTANTIATE)
-		{
-		if (nargs != 1)
-			except("usage: Database(request)");
-		dbms()->admin(ARG(0).str());
-		return SuTrue;
-		}
-	else if (member == Transactions)
-		{
-		SuObject* ob = new SuObject();
-		for (Lisp<int> trans = dbms()->tranlist(); ! nil(trans); ++trans)
-			ob->add(*trans);
-		return ob;
-		}
-	else if (member == CurrentSize)
-		{
-		NOARGS("Database.CurrentSize()");
-		return SuNumber::from_int64(dbms()->size());
-		}
-	else if (member == Connections)
-		{
-		NOARGS("Database.Connections()");
-		return dbms()->connections();
-		}
-	else if (member == TempDest)
-		{
-		NOARGS("Database.TempDest()");
-		return dbms()->tempdest();
-		}
-	else if (member == Cursors)
-		{
-		NOARGS("Database.Cursors()");
-		return dbms()->cursors();
-		}
-	else if (member == SessionId)
-		{
-		auto s = "";
-		if (nargs == 1)
-			s = ARG(0).str();
-		else if (nargs != 0)
-			except("usage: Database.SessionId(newid = '')");
-		return dbms()->sessionid(s);
-		}
-	else if (member == Final)
-		{
-		NOARGS("Database.Final()");
-		return dbms()->final();
-		}
-	else if (member == Kill)
-		{
-		if (nargs != 1)
-			except("usage: Database.Kill(session_id)");
-		return dbms()->kill(ARG(0).str());
-		}
-	else if (member == Dump)
-		{
-		const char* what;
-		if (nargs == 0)
-			what = "";
-		else if (nargs == 1)
-			what = ARG(0).str();
-		else
-			except("usage: Database.Dump(table = '')");
-		Value result = dbms()->dump(what);
-		if (result != SuEmptyString)
-			except("Database.Dump failed: " << result);
-		return Value();
-		}
-	else if (member == Load)
-		{
-		if (nargs != 1)
-			except("usage: Database.Load(table)");
-		int result = dbms()->load(ARG(0).str());
-		if (result < 0)
-			except("Database.Load failed: " << result);
-		return result;
-		}
-	else if (member == Token)
-		{
-		NOARGS("Database.Token()");
-		return new SuString(dbms()->token());
-		}
-	else if (member == Nonce)
-		{
-		NOARGS("Database.Nonce()");
-		return new SuString(dbms()->nonce());
-		}
-	else if (member == Auth)
-		{
-		if (nargs != 1)
-			except("usage: Database.Auth(string)");
-		return dbms()->auth(ARG(0).gcstr()) ? SuTrue : SuFalse;
-		}
-	else if (member == Check)
-		{
-		NOARGS("Database.Check()");
-		return dbms()->check();
-		}
-	else
-		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
+Value su_Database()
+	{
+	static BuiltinClass<DatabaseClass> clazz("(request)");
+	return &clazz;
 	}
+
+template<>
+auto BuiltinClass<DatabaseClass>::static_methods()
+	{
+	static StaticMethod methods[]
+		{
+		{ "Transactions", &DatabaseClass::Transactions },
+		{ "CurrentSize", &DatabaseClass::CurrentSize },
+		{ "Connections", &DatabaseClass::Connections },
+		{ "TempDest", &DatabaseClass::TempDest },
+		{ "Cursors", &DatabaseClass::Cursors },
+		{ "SessionId", &DatabaseClass::SessionId },
+		{ "Final", &DatabaseClass::Final },
+		{ "Kill", &DatabaseClass::Kill },
+		{ "Check", &DatabaseClass::Check },
+		{ "Dump", &DatabaseClass::Dump },
+		{ "Load", &DatabaseClass::Load },
+		{ "Nonce", &DatabaseClass::Nonce },
+		{ "Token", &DatabaseClass::Token },
+		{ "Auth", &DatabaseClass::Auth },
+		};
+	return gsl::make_span(methods);
+	}
+
+template<>
+Value BuiltinClass<DatabaseClass>::callclass(BuiltinArgs& args)
+	{
+	args.usage("usage: Database(request)");
+	auto req = args.getstr("request");
+	args.end();
+	dbms()->admin(req);
+	return SuTrue;
+	}
+
+template<>
+Value BuiltinClass<DatabaseClass>::instantiate(BuiltinArgs&)
+	{
+	except("can't create instance of Database");
+	}
+
+Value DatabaseClass::Transactions(BuiltinArgs& args)
+	{
+	SuObject* ob = new SuObject();
+	for (Lisp<int> trans = dbms()->tranlist(); !nil(trans); ++trans)
+		ob->add(*trans);
+	return ob;
+	}
+
+Value DatabaseClass::CurrentSize(BuiltinArgs& args)
+	{
+	args.usage("Database.CurrentSize()").end();
+	return SuNumber::from_int64(dbms()->size());
+	}
+
+Value DatabaseClass::Connections(BuiltinArgs& args)
+	{
+	args.usage("Database.Connections()").end();
+	return dbms()->connections();
+	}
+
+Value DatabaseClass::TempDest(BuiltinArgs& args)
+	{
+	args.usage("Database.TempDest()").end();
+	return dbms()->tempdest();
+	}
+
+Value DatabaseClass::Cursors(BuiltinArgs& args)
+	{
+	args.usage("Database.Cursors()").end();
+	return dbms()->cursors();
+	}
+
+Value DatabaseClass::SessionId(BuiltinArgs& args)
+	{
+	args.usage("usage: Database.SessionId(newid = '')");
+	auto s = args.getstr("string", "");
+	args.end();
+	return dbms()->sessionid(s);
+	}
+
+Value DatabaseClass::Final(BuiltinArgs& args)
+	{
+	args.usage("Database.Final()").end();
+	return dbms()->final();
+	}
+
+Value DatabaseClass::Kill(BuiltinArgs& args)
+	{
+	args.usage("usage: Database.Kill(session_id)");
+	auto s = args.getstr("string");
+	args.end();
+	return dbms()->kill(s);
+	}
+
+Value DatabaseClass::Check(BuiltinArgs& args)
+	{
+	args.usage("Database.Check()").end();
+	return dbms()->check();
+	}
+
+Value DatabaseClass::Dump(BuiltinArgs& args)
+	{
+	args.usage("usage: Database.Dump(table = '')");
+	auto what = args.getstr("string", "");
+	args.end();
+	Value result = dbms()->dump(what);
+	if (result != SuEmptyString)
+		except("Database.Dump failed: " << result);
+	return Value();
+	}
+
+Value DatabaseClass::Load(BuiltinArgs& args)
+	{
+	args.usage("usage: Database.Load(table)");
+	auto table = args.getstr("table");
+	args.end();
+	int result = dbms()->load(table);
+	if (result < 0)
+		except("Database.Load failed: " << result);
+	return result;
+	}
+
+Value DatabaseClass::Nonce(BuiltinArgs& args)
+	{
+	args.usage("Database.Nonce()").end();
+	return new SuString(dbms()->nonce());
+	}
+
+Value DatabaseClass::Token(BuiltinArgs& args)
+	{
+	args.usage("Database.Token()").end();
+	return new SuString(dbms()->token());
+	}
+
+Value DatabaseClass::Auth(BuiltinArgs& args)
+	{
+	args.usage("usage: Database.Auth(string)");
+	auto s = args.getgcstr("string");
+	return dbms()->auth(s) ? SuTrue : SuFalse;
+	}
+
+// Query1/First/Last ------------------------------------------------
 
 static const char* query_args(const char* query, BuiltinArgs& args)
 	{

@@ -34,15 +34,6 @@ template <class T1, class T2> class Hashmap;
 
 typedef HashMap<ushort,Value> Rules;
 
-class DatabaseClass : public SuValue
-	{
-public:
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
-	void out(Ostream& os) const override
-		{ os << "Database"; }
-	};
-
 // database query values
 class SuQuery : public SuValue
 	{

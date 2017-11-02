@@ -720,15 +720,16 @@ void builtins()
 	builtin("mkrec", new MkRec);
 	builtin("Object", root_class = new RootClass);
 	builtin("Suneido", new SuObject);
+
 	builtin("Construct", new Construct);
 	builtin("Construct2", new Instance);
-	builtin("Database", new DatabaseClass);
 	builtin("Transaction", new TransactionClass);
 	builtin("Cursor", new CursorClass);
 	builtin("Record", new SuRecordClass);
 	builtin("Date", new SuDateClass);
 	builtin("Spawn", new Spawn);
 
+	BUILTIN_CLASS("Database", su_Database);
 	BUILTIN_CLASS("File", su_file);
 	BUILTIN_CLASS("Adler32", su_adler32);
 	BUILTIN_CLASS("Md5", su_md5);
