@@ -97,7 +97,7 @@ Value BuiltinClass<DatabaseClass>::callclass(BuiltinArgs& args)
 	auto req = args.getstr("request");
 	args.end();
 	dbms()->admin(req);
-	return SuTrue;
+	return Value();
 	}
 
 template<>
