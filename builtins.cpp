@@ -497,21 +497,28 @@ Value su_unixtime()
 	}
 PRIM(su_unixtime, "UnixTime()");
 
+static Value call(Value fn)
+	{
+	KEEPSP
+	return fn.call(fn, CALL);
+	}
+
 Value su_finally()
 	{
 	const int nargs = 2;
-	KEEPSP
+	Value main_block = ARG(0);
+	Value finally_block = ARG(1);
 	try
 		{
-		Value result = ARG(0).call(ARG(0), CALL);
-		ARG(1).call(ARG(1), CALL); // could throw
+		Value result = call(main_block);
+		call(finally_block); // could throw
 		return result;
 		}
 	catch (...)
 		{
 		try
 			{
-			ARG(1).call(ARG(1), CALL);
+			call(finally_block);
 			}
 		catch (...)
 			{
