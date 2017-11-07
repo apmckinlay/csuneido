@@ -14,10 +14,10 @@ suneido -load imagebook
 suneido -load translatelanguage.su
 copy \dev\jsuneido\jsuneido.jar
 copy \dev\jsuneido\lib\lucene*.jar
-del suneido%1.zip
-zip -9 suneido%1.zip suneido.exe suneido.db scilexer.dll clucene.dll zlibwapi.dll hunspell.exe en_US.aff en_US.dic splash.bmp jsuneido.jar lucene*.jar mylib.su mybook.su mycontacts.su release.html
+del suneido%DATE%.zip
+zip -9 suneido%DATE%.zip suneido.exe suneido.db scilexer.dll clucene.dll zlibwapi.dll hunspell.exe en_US.aff en_US.dic jsuneido.jar lucene*.jar mylib.su mybook.su mycontacts.su release.html
 del jsuneido.jar
 del lucene*.jar
 del suneido.db
 call unsave suneido.db
-du -h suneido%1.zip
+du -h suneido%DATE%.zip
