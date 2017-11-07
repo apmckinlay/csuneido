@@ -71,3 +71,7 @@ splash/*
 *.DS_Store
 *.db
 *.db-shm
+
+snap.bat
+
+snap201*/
