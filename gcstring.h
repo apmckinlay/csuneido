@@ -96,6 +96,8 @@ public:
 	gcstring capitalize() const;
 	gcstring uncapitalize() const;
 
+	void flatten() const;
+
 private:
 	mutable int n; // mutable because of flatten, negative means concat
 	union
@@ -117,7 +119,6 @@ private:
 
 	void ckflat() const
 		{ if (n < 0) flatten(); }
-	void flatten() const;
 	static void copy(char* s, const gcstring* p);
 	friend class SuBuffer;
 	char* buf()

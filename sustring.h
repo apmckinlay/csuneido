@@ -128,6 +128,7 @@ private:
 	Value Findnot1of(short nargs, short nargnames, ushort* argnames, int each);
 	Value FindLastnot1of(short nargs, short nargnames, ushort* argnames, int each);
 	Value Hasq(short nargs, short nargnames, ushort* argnames, int each);
+	Value Instantiate(short nargs, short nargnames, ushort * argnames, int each);
 	Value Iter(short nargs, short nargnames, ushort* argnames, int each);
 	Value Lower(short nargs, short nargnames, ushort* argnames, int each);
 	Value Lowerq(short nargs, short nargnames, ushort* argnames, int each);
