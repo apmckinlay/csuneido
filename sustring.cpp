@@ -952,9 +952,8 @@ Value SuString::Suffixq(short nargs, short nargnames, ushort* argnames, int each
 
 Value SuString::Instantiate(short nargs, short nargnames, ushort* argnames, int each)
 	{
-	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("string.Instantiate)").end();
-	s.flatten();
+	NOARGS("string.Instantiate()");
+	s.instantiate();
 	return this;
 	}
 

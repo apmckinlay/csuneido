@@ -211,6 +211,21 @@ bool has_suffix(const char* s, const char* suf)
 		0 == memcmp(s + n_s - n_suf, suf, n_suf);
 	}
 
+// ensures that this is an independant copy, not referencing other strings
+// helps garbage collection when saving parts of large strings
+void gcstring::instantiate()
+	{
+	if (n < 0)
+		flatten();
+	else
+		{
+		char* dst = salloc(n);
+		memcpy(dst, p, n);
+		dst[n] = 0;
+		p = dst;
+		}
+	}
+
 void gcstring::flatten() const
 	{
 	verify(n < 0);
@@ -279,6 +294,7 @@ gcstring gcstring::uncapitalize() const
 	return gcstring(buf, size());
 	}
 
+// allocate noptrs memory, allowing an extra byte for terminating nul
 char* salloc(int n)
 	{
 	return new(noptrs) char[n + 1];
