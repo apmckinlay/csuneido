@@ -36,7 +36,7 @@ enum { PORT = AFTER_ACTIONS, UNATTENDED, LOCAL_LIBRARY,
 	NO_EXCEPTION_HANDLING, NO_GARBAGE_COLLECTION,
 	INSTALL_SERVICE, SERVICE,
 	CHECK_START, COMPACT_EXIT, IGNORE_VERSION, IGNORE_CHECK,
-	TIMEOUT, USE_JOB, END_OF_OPTIONS };
+	TIMEOUT, END_OF_OPTIONS };
 
 const char* CmdLineOptions::parse(const char* str)
 	{
@@ -193,7 +193,6 @@ static struct { const char* str; int num; } options[] = {
 	{ "-unattended", UNATTENDED }, { "-u", UNATTENDED },
 	{ "-ignoreversion", IGNORE_VERSION }, { "-iv", IGNORE_VERSION },
 	{ "-ignorecheck", IGNORE_CHECK },
-	{ "-job", USE_JOB }, { "-j", USE_JOB},
 	{ "--", END_OF_OPTIONS },
 	};
 const int noptions = sizeof options / sizeof options[0];
