@@ -123,6 +123,7 @@ public:
 	Value get(uchar);
 
 	int each = 0;
+	bool created_block = false;
 	};
 
 Value dynamic(ushort);

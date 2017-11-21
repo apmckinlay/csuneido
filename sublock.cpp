@@ -26,6 +26,7 @@
 #include "sufunction.h"
 #include "ostream.h"
 #include "func.h"
+#include "fatal.h"
 
 class SuBlock : public Func
 	{
@@ -34,6 +35,7 @@ public:
 		persisted(false)
 		{
 		verify(frame->fn); // i.e. not a primitive
+		frame->created_block = true;
 		if (n != BLOCK_REST)
 			nparams = n;
 		else
@@ -66,12 +68,6 @@ private:
 	bool persisted;
 	};
 
-inline bool sameframe(Frame* f1, Frame* f2)
-	{
-	return f1->fn == f2->fn && f1->self == f2->self && f1->local == f2->local &&
-		f1->rule.rec == f2->rule.rec && f1->rule.mem == f2->rule.mem;
-	}
-
 Value suBlock(Frame* frame, int pc, int first, int nparams)
 	{
 	return new SuBlock(frame, pc, first, nparams);
@@ -82,6 +78,21 @@ void SuBlock::out(Ostream& out) const
 	out << "/* block */";
 	}
 
+class Persister
+	{
+public:
+	explicit Persister(Frame* f) : frame(f)
+		{}
+	~Persister()
+		{
+		if (frame->created_block)
+			for (int i = 0; i < frame->fn->nlocals; ++i)
+				persist_if_block(frame->local[i]);
+		}
+private:
+	Frame* frame;
+	};
+
 Value SuBlock::call(Value self, Value member, 
 	short nargs, short nargnames, ushort* argnames, int each)
 	{
@@ -91,6 +102,11 @@ Value SuBlock::call(Value self, Value member,
 			except_err("orphaned block!");
 		args(nargs, nargnames, argnames, each);
 		Framer framer(frame, pc, first, nparams, self.ptr() == this ? frame->self : self);
+		// if a block creates another block 
+		// and stores it in a local (of its parent function)
+		// then we need to persist it when we return
+		// otherwise it escapes its creating frame and becomes orphaned
+		Persister p(tls().proc->fp);
 		return tls().proc->fp->run();
 		}
 	else
@@ -112,7 +128,7 @@ void SuBlock::persist()
 		return;
 
 	if (frame->fn != fn)
-		except_err("orphaned block!");
+		fatal("orphaned block!");
 
 	// won't need to copy locals if another block persist has already done so
 	if (within(tls().proc->stack, frame->local))
