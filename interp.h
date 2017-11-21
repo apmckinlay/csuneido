@@ -92,21 +92,16 @@ public:
 	Frame(Frame* fp, int pc, int first, int nargs, Value self);
 
 	Value run();
-//private:
+
 	Func* prim = nullptr;
 	SuFunction* fn = nullptr;
 	Value self;
 	uchar* ip = nullptr;		// instruction pointer
 	Value* local = nullptr;	// base pointer to args and autos
-	// the rule member currently being evaluated - used to auto-register
-	Rule rule;
+	Rule rule; // rule member currently being evaluated - used to auto-register
+	bool created_block = false;
 
-	uchar* catcher = nullptr;
-	Value* catcher_sp = nullptr;
-	int catcher_x = 0;
-
-	Frame* blockframe = nullptr;
-
+private:
 	uchar fetch_local()
 		{ return fetch1(); }
 	short fetch_literal();
@@ -122,8 +117,13 @@ public:
 		{ ushort j = ip[1] * 256 + ip[0]; ip += 2; return j; }
 	Value get(uchar);
 
+	uchar* catcher = nullptr;
+	Value* catcher_sp = nullptr;
+	int catcher_x = 0;
+
+	Frame* blockframe = nullptr;
+
 	int each = 0;
-	bool created_block = false;
 	};
 
 Value dynamic(ushort);
