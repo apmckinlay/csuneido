@@ -174,6 +174,18 @@ Value SuSeq::getdata(Value i)
 	return ob->getdata(i);
 	}
 
+class Value SuSeq::rangeTo(int i, int j)
+	{
+	build();
+	return ob->rangeTo(i, j);
+	}
+
+Value SuSeq::rangeLen(int i, int n)
+	{
+	build();
+	return ob->rangeLen(i, n);
+	}
+
 size_t SuSeq::packsize() const
 	{
 	build();

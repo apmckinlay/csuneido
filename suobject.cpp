@@ -258,12 +258,34 @@ void SuObject::put(Value m, Value x)
 		vec[i] = x;
 	}
 
+static SuObject* sublist(SuObject* ob, int from, int to)
+	{
+	int size = ob->vecsize();
+	SuObject* result = new SuObject();
+	for (int i = from; i < to && i < size; ++i)
+		result->add(ob->get(i));
+	return result;
+	}
+
+Value SuObject::rangeTo(int i, int j)
+	{
+	int size = vecsize();
+	int f = prepFrom(i, size);
+	int t = prepTo(j, size);
+	return sublist(this, f, t);
+	}
+
+Value SuObject::rangeLen(int i, int n)
+	{
+	int size = vecsize();
+	int f = prepFrom(i, size);
+	int t = f + min(n, size - f);
+	return sublist(this, f, t);
+	}
+
 Value SuObject::getdata(Value member)
 	{
-	if (Range* r = val_cast<Range*>(member))
-		return r->sublist(this);
-	else
-		return getdefault(member, defval);
+	return getdefault(member, defval);
 	}
 
 Value SuObject::getdefault(Value member, Value def)

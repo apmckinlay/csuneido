@@ -1752,21 +1752,25 @@ void FunctionCompiler::expr0(bool newtype)
 				emit(I_PUSH, LITERAL, literal(SuZero));
 			else
 				expr();
-			if (token == T_RANGETO || token == T_RANGELEN) {
+			if (token == T_RANGETO || token == T_RANGELEN)
+				{
 				int type = token;
 				match();
 				if (token == ']')
 					emit(I_PUSH, LITERAL, literal(intmax));
 				else
 					expr();
-				static int g_rangeTo = globals("RangeTo");
-				static int g_rangeLen = globals("RangeLen");
+				static int g_rangeTo = globals("rangeTo");
+				static int g_rangeLen = globals("rangeLen");
 				vector<ushort> argnames;
 				emit(I_CALL, GLOBAL,
 					type == T_RANGETO ? g_rangeTo : g_rangeLen,
-					2, &argnames);
-			}
-			option = SUB;
+					3, &argnames);
+				option = LITERAL;
+				lvalue = value = super = false;
+				}
+			else
+				option = SUB;
 			match(']');
 			}
 		else if (token == '(' || // function call
@@ -2904,6 +2908,38 @@ static Cmpltest cmpltests[] =
 					  3  push sub \n\
 					  4  return \n\
 					  5\n" },
+	{ "x[i .. j];", "x[i .. j]; }\n\
+					  0  nop \n\
+					  1  push auto x\n\
+					  2  push auto i\n\
+					  3  push auto j\n\
+					  4  call global rangeTo 3\n\
+					  7  return \n\
+					  8\n" },
+	{ "x[i :: n];", "x[i :: n]; }\n\
+					  0  nop \n\
+					  1  push auto x\n\
+					  2  push auto i\n\
+					  3  push auto n\n\
+					  4  call global rangeLen 3\n\
+					  7  return \n\
+					  8\n" },
+	{ "x[.. j];", "x[.. j]; }\n\
+					  0  nop \n\
+					  1  push auto x\n\
+					  2  push value 0 \n\
+					  3  push auto j\n\
+					  4  call global rangeTo 3\n\
+					  7  return \n\
+					  8\n" },
+	{ "x[i ::];", "x[i ::]; }\n\
+					  0  nop \n\
+					  1  push auto x\n\
+					  2  push auto i\n\
+					  3  push literal 2147483647\n\
+					  4  call global rangeLen 3\n\
+					  7  return \n\
+					  8\n" },
 
 	{ "a();", "a(); }\n\
 					  0  nop \n\

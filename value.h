@@ -110,6 +110,11 @@ public:
 	void putdata(Value m, Value x)
 		{ VAL->putdata(m, x); }
 
+	Value rangeTo(int i, int j)
+		{ return VAL->rangeTo(i, j); }
+	Value rangeLen(int i, int n)
+		{ return VAL->rangeLen(i, n); }
+
 	size_t packsize() const
 		{ return VAL->packsize(); }
 	void pack(char* buf) const

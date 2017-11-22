@@ -46,6 +46,8 @@ public:
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	void putdata(Value i, Value x) override;
 	Value getdata(Value) override;
+	Value rangeTo(int i, int j) override;
+	Value rangeLen(int i, int n) override;
 
 	SuObject* ob_if_ob() override
 		{ return this; }

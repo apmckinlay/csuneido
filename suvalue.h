@@ -61,6 +61,9 @@ public:
 	virtual Value getdata(Value);
 	virtual void putdata(Value, Value);
 
+	virtual Value rangeTo(int i, int j);
+	virtual Value rangeLen(int i, int n);
+
 	virtual size_t packsize() const;
 	virtual void pack(char* buf) const;
 	gcstring pack() const;

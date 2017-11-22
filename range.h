@@ -21,13 +21,5 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "suvalue.h"
-
-class SuObject;
-
-class Range : public SuValue
-	{
-public:
-	virtual gcstring substr(gcstring s) const = 0;
-	virtual SuObject* sublist(SuObject* ob) const = 0;
-	};
+int prepFrom(int from, int len);
+int prepTo(int to, int len);

@@ -178,14 +178,28 @@ void SuString::pack(char* dst) const
 
 Value SuString::getdata(Value m)
 	{
-	if (Range* r = val_cast<Range*>(m))
-		return new SuString(r->substr(gcstr()));
 	int i;
 	if (! m.int_if_num(&i))
 		except("string subscripts must be integers");
 	if (i < 0)
 		i += size();
 	return substr(i, 1);
+	}
+
+Value SuString::rangeTo(int i, int j)
+	{
+	int size = this->size();
+	int f = prepFrom(i, size);
+	int t = prepTo(j, size);
+	if (t <= f)
+		return "";
+	return substr(f, t - f);
+	}
+
+Value SuString::rangeLen(int i, int n)
+	{
+	int f = prepFrom(i, size());
+	return substr(f, n);
 	}
 
 HashMap<Value,SuString::pmfn> SuString::methods;

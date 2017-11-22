@@ -34,6 +34,8 @@ public:
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	void putdata(Value i, Value x) override;
 	Value getdata(Value) override;
+	Value rangeTo(int i, int j) override;
+	Value rangeLen(int i, int n) override;
 	size_t packsize() const override;
 	void pack(char* buf) const override;
 	bool lt(const SuValue& y) const override;

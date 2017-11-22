@@ -51,6 +51,8 @@ public:
 		short nargs, short nargnames, ushort* argnames, int each) override;
 
 	Value getdata(Value) override;
+	Value rangeTo(int i, int j) override;
+	Value rangeLen(int i, int n) override;
 
 	const char* str_if_str() const override
 		{ return str(); }

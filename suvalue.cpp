@@ -87,6 +87,12 @@ Value SuValue::getdata(Value k)
 void SuValue::putdata(Value k, Value v)
 	{ except(type() << " does not support put (" << k << ")"); }
 
+Value SuValue::rangeTo(int i, int j)
+	{ except(type() << " does not support range"); }
+
+Value SuValue::rangeLen(int i, int n)
+	{ except(type() << " does not support range"); }
+
 size_t SuValue::packsize() const
 	{ except("can't pack " << type()); }
 
