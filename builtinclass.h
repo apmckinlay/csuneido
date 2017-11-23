@@ -34,7 +34,7 @@
  * define methods() and optionally static_methods()
  * returning span of Method / StaticMethod
  * methods take BuiltinArgs&
- * specialize out and instantiate and optionally callclass (for the class)
+ * specialize instantiate and optionally callclass (for the class)
  */
 
 // a bound built-in method
