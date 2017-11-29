@@ -44,7 +44,7 @@ class DbServerDataImp : public DbServerData
 public:
 	DbServerDataImp() : nextQnum(0), nextCnum(0)
 		{
-		auth = true; //TEMPORARY  until applications are converted
+		auth = false;
 		}
 
 	void add_tran(int tran) override;
