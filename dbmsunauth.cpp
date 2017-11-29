@@ -67,7 +67,7 @@ public:
 	int load(const char* filename) override
 		{ unauth(); }
 	void log(const char* s) override
-		{ unauth(); }
+		{ dbms->log(s); }
 	gcstring nonce() override
 		{ return dbms->nonce(); }
 	DbmsQuery* query(int tran, const char* s) override
