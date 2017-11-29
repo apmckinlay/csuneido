@@ -33,72 +33,76 @@ public:
 		{ }
 
 	void abort(int tran) override
-		{ except(notauth); }
+		{ unauth(); }
 	void admin(const char* s) override
-		{ except(notauth); }
+		{ unauth(); }
 	bool auth(const gcstring& data) override
 		{ return dbms->auth(data); }
 	Value check() override
-		{ except(notauth); }
+		{ unauth(); }
 	bool commit(int tran, const char** conflict = 0) override
-		{ except(notauth); }
+		{ unauth(); }
 	Value connections() override
-		{ except(notauth); }
+		{ unauth(); }
 	DbmsQuery* cursor(const char* s) override
-		{ except(notauth); }
+		{ unauth(); }
 	int cursors() override
-		{ except(notauth); }
+		{ unauth(); }
 	Value dump(const char* filename) override
-		{ except(notauth); }
+		{ unauth(); }
 	void erase(int tran, Mmoffset recadr) override
-		{ except(notauth); }
+		{ unauth(); }
 	Value exec(Value ob) override
-		{ except(notauth); }
+		{ unauth(); }
 	int final() override
-		{ except(notauth); }
+		{ unauth(); }
 	Row get(Dir dir, const char* query, bool one, Header& hdr, int tran = 0) override
-		{ except(notauth); }
+		{ unauth(); }
 	int kill(const char* s) override
-		{ except(notauth); }
+		{ unauth(); }
 	Lisp<gcstring> libget(const char* name) override
 		{ return dbms->libget(name); }
 	Lisp<gcstring> libraries() override
 		{ return dbms->libraries(); }
 	int load(const char* filename) override
-		{ except(notauth); }
+		{ unauth(); }
 	void log(const char* s) override
-		{ except(notauth); }
+		{ unauth(); }
 	gcstring nonce() override
 		{ return dbms->nonce(); }
 	DbmsQuery* query(int tran, const char* s) override
-		{ except(notauth); }
+		{ unauth(); }
 	int readCount(int tran) override
-		{ except(notauth); }
+		{ unauth(); }
 	int request(int tran, const char* s) override
-		{ except(notauth); }
+		{ unauth(); }
 	Value run(const char* s) override
-		{ except(notauth); }
+		{ unauth(); }
 	Value sessionid(const char* s) override
 		{ return dbms->sessionid(s); }
 	int64 size() override
-		{ except(notauth); }
+		{ unauth(); }
 	int tempdest() override
-		{ except(notauth); }
+		{ unauth(); }
 	Value timestamp() override
-		{ except(notauth); }
+		{ unauth(); }
 	gcstring token() override
-		{ except(notauth); }
+		{ unauth(); }
 	Lisp<int> tranlist() override
-		{ except(notauth); }
+		{ unauth(); }
 	int transaction(TranType type, const char* session_id = "") override
-		{ except(notauth); }
+		{ unauth(); }
 	Mmoffset update(int tran, Mmoffset recadr, Record& rec) override
-		{ except(notauth); }
+		{ unauth(); }
 	int writeCount(int tran) override
-		{ except(notauth); }
+		{ unauth(); }
 private:
 	Dbms* dbms;
-	const char* notauth = "not authorized";
+
+	[[noreturn]] void unauth()
+		{
+		except_err("not authorized");
+		}
 	};
 
 Dbms* newDbmsUnauth(Dbms* dbms)
