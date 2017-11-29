@@ -425,7 +425,8 @@ void DbServer::cmd_LOG()
 
 void DbServer::cmd_NONCE()
 	{
-	io.putOk().putStr(dbms().nonce());
+	data.nonce = Auth::nonce();
+	io.putOk().putStr(data.nonce);
 	}
 
 void DbServer::cmd_ORDER()
