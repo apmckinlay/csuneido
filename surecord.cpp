@@ -263,14 +263,14 @@ Value SuRecord::call(Value self, Value member,
 			update(ARG(0).object());
 		else
 			except("usage: record.Update() or record.Update(object))");
-		return SuTrue;
+		return Value();
 		}
 	else if (member == Delete)
 		{
 		if (nargs == 0)
 			{
 			erase();
-			return SuTrue;
+			return Value();
 			}
 		else
 			return SuObject::call(self, member, nargs, nargnames, argnames, each);

@@ -411,7 +411,9 @@ Value SuTransaction::call(Value self, Value member,
 	else if (member == Complete)
 		{
 		NOARGS("transaction.Complete()");
-		return commit() ? SuTrue : SuFalse;
+		if (!commit())
+			except("transaction.Complete failed: " << conflict);
+		return Value();
 		}
 	else if (member == Rollback)
 		{
@@ -723,7 +725,8 @@ Value SuQuery::explain() const
 Value SuQuery::output(SuObject* ob) const
 	{
 	Record r = object_to_record(hdr, ob);
-	return q->output(r) ? SuTrue : SuFalse;
+	q->output(r);
+	return Value();
 	}
 
 Record object_to_record(const Header& hdr, SuObject* ob)
