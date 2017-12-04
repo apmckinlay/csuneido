@@ -143,9 +143,9 @@ Value su_use()
 
 		libdb()->admin(CATSTR3("ensure ", lib.str(), " key(name,group)"));
 		}
-	catch (...)
+	catch (const Except& e)
 		{
-		return SuFalse;
+		except("Use failed: " << e);
 		}
 	thelibs.append(lib);
 	globals.clear();
