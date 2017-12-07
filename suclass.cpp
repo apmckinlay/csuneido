@@ -26,8 +26,14 @@
 #include "symbols.h"
 #include "sustring.h"
 #include "pack.h"
+#include "sufunction.h"
+#include "sumethod.h"
+#include "catstr.h"
+#include <ctype.h>
 
-//TODO don't inherit from SuObject
+extern Value root_class;
+
+//TODO classes and instances should not inherit from SuObject (like jSuneido)
 
 void SuClass::out(Ostream& out) const
 	{
@@ -35,7 +41,7 @@ void SuClass::out(Ostream& out) const
 	if (named.lib != "")
 		out << named.lib << " ";
 	out << "class";
-	if (base != -1 && base != OBJECT)
+	if (base != OBJECT)
 		{
 		out << " : ";
 		if (globals(base) == 0)
@@ -78,30 +84,56 @@ Value SuClass::call(Value self, Value member,
 		method_not_found(type(), member);
 	}
 
-class Counter
-	{
-public:
-	Counter()
-		{ ++count; }
-	~Counter()
-		{ --count; }
-	static int count;
-	};
-int Counter::count;
-
 Value SuClass::getdata(Value member)
 	{
-	if (Value x = get(member))
-		return x;
-	else if (base)
+	return get2(this, member);
+	}
+
+// 'self' will be different from 'this' when called by SuObject.get2
+Value SuClass::get2(Value self, Value member) // handles binding and getters
+	{
+	if (Value x = get3(member))
 		{
-		Counter counter;
-		if (Counter::count > 100)
-			except("too many levels of derivation (possible cycle): " << this);
-		return globals[base].getdata(member);
+		if (SuFunction* sufn = val_cast<SuFunction*>(x))
+			return new SuMethod(self, member, sufn);
+		return x;
 		}
-	else
-		return Value();
+	if (has_getter)
+		{
+		static Value Get_("Get_");
+		if (Value method = get3(Get_))
+			{
+			KEEPSP
+			PUSH(member);
+			return method.call(self, CALL, 1);
+			}
+		else
+			has_getter = false; // avoid future attempts
+		}
+	if (const char* s = member.str_if_str())
+		{
+		Value getter = new SuString(CATSTRA(islower(*s) ? "get_" : "Get_", s));
+		if (Value method = get3(getter))
+			{
+			KEEPSP
+			return method.call(self, CALL);
+			}
+		}
+	return Value();
+	}
+
+Value SuClass::get3(Value member) // handles inheritance
+	{
+	SuClass* c = this;
+	for (int i = 0; i < 100; ++i)
+		{
+		if (Value x = c->get(member))
+			return x;
+		if (c->base == OBJECT)
+			return Value();
+		c = force<SuClass*>(globals[c->base]);
+		}
+	except("too many levels of derivation (possible cycle): " << this);
 	}
 
 bool SuClass::eq(const SuValue& y) const

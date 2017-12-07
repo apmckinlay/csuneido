@@ -69,7 +69,8 @@ private:
 class ModificationCheck
 	{
 public:
-	explicit ModificationCheck(SuObject* ob) : object(ob), vecsize(ob->vecsize()), mapsize(ob->mapsize())
+	explicit ModificationCheck(SuObject* ob) 
+		: object(ob), vecsize(ob->vecsize()), mapsize(ob->mapsize())
 		{ }
 	~ModificationCheck()
 		{
@@ -82,14 +83,12 @@ private:
 	int mapsize;
 	};
 
-SuObject::SuObject()
-	: myclass(root_class), readonly(false), has_getter(true), has_setter(true), version(0)
+SuObject::SuObject() : myclass(root_class), readonly(false)
 	{
 	init();
 	}
 
-SuObject::SuObject(bool ro)
-	: myclass(root_class), readonly(ro), has_getter(true), has_setter(true), version(0)
+SuObject::SuObject(bool ro) 	: myclass(root_class), readonly(ro)
 	{
 	init();
 	}
@@ -193,7 +192,7 @@ void SuObject::setup()
 	}
 
 SuObject::SuObject(const SuObject& ob) : myclass(ob.myclass), defval(ob.defval),
-	vec(ob.vec), readonly(false), has_getter(true), has_setter(true), version(0)
+	vec(ob.vec), readonly(false)
 	{
 	for (Map::const_iterator it = ob.map.begin(), end = ob.map.end(); it != end; ++it)
 		map[it->key] = it->val;
@@ -202,7 +201,7 @@ SuObject::SuObject(const SuObject& ob) : myclass(ob.myclass), defval(ob.defval),
 SuObject::SuObject(SuObject* ob, size_t offset)
 	: myclass(ob->myclass), defval(ob->defval),
 	vec(ob->vec.begin() + min(offset, ob->vec.size()), ob->vec.end()),
-	readonly(false), has_getter(true), has_setter(true), version(0)
+	readonly(false)
 	{
 	for (Map::iterator it = ob->map.begin(), end = ob->map.end(); it != end; ++it)
 		map[it->key] = it->val;
@@ -226,20 +225,6 @@ void SuObject::putdata(Value m, Value x)
 	{
 	if (readonly)
 		except("can't modify readonly objects");
-	if (has_setter && ! has(m))
-		{
-		static Value Set_("Set_");
-		if (Value method = myclass.getdata(Set_))
-			{
-			KEEPSP
-			PUSH(m);
-			PUSH(x);
-			method.call(this, CALL, 2);
-			return ;
-			}
-		else
-			has_setter = false; // avoid future attempts
-		}
 	put(m, x);
 	}
 
@@ -291,36 +276,8 @@ Value SuObject::getdata(Value member)
 Value SuObject::getdefault(Value member, Value def)
 	{
 	Value x;
-	if ((x = get(member)))
+	if ((x = get2(this, member)))
 		return x;
-	if ((x = myclass.getdata(member)))
-		{
-		if (SuFunction* sufn = val_cast<SuFunction*>(x))
-			return new SuMethod(this, member, sufn);
-		return x;
-		}
-	if (has_getter)
-		{
-		static Value Get_("Get_");
-		if (Value method = myclass.getdata(Get_))
-			{
-			KEEPSP
-			PUSH(member);
-			return method.call(this, CALL, 1);
-			}
-		else
-			has_getter = false; // avoid future attempts
-		}
-	if (!myclass.sameAs(root_class.ptr()))
-		if (const char* s = member.str_if_str())
-			{
-			Value getter = new SuString(CATSTRA(islower(*s) ? "get_" : "Get_", s));
-			if (Value method = myclass.getdata(getter))
-				{
-				KEEPSP
-				return method.call(this, CALL);
-				}
-			}
 	if (SuObject* defval_ob = def.ob_if_ob())
 		{
 		x = new SuObject(*defval_ob);
@@ -329,6 +286,13 @@ Value SuObject::getdefault(Value member, Value def)
 		return x;
 		}
 	return def; // member not found
+	}
+
+class Value SuObject::get2(class Value self, class Value m)
+	{
+	if (Value x = get(m))
+		return x;
+	return force<Get2*>(myclass)->get2(this, m);
 	}
 
 Value SuObject::get(Value m) const

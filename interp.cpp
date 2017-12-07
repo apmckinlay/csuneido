@@ -34,7 +34,6 @@
 #include "symbols.h"
 #include "globals.h"
 #include "suclass.h"
-#include "sumethod.h"
 #include "trace.h"
 #include "varint.h"
 
@@ -751,9 +750,6 @@ inline Value getdata(Value ob, Value m)
 	Value x = ob.getdata(m);
 	if (! x)
 		except("uninitialized member: " << m);
-	if (val_cast<SuClass*>(ob))
-		if (SuFunction* sufn = val_cast<SuFunction*>(x))
-			return new SuMethod(ob, m, sufn);
 	return x;
 	}
 

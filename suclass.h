@@ -23,37 +23,50 @@
 
 #include "suobject.h"
 #include "named.h"
+#include "globals.h"
 
 class Ostream;
 
+class Get2
+	{
+protected:
+	~Get2() = default;
+public:
+	virtual Value get2(Value self, Value member) = 0;
+	};
+
 // user defined classes
-class SuClass : public SuObject
+class SuClass : public SuObject, public Get2
 	{
 public:
 	NAMED
-	explicit SuClass(short b) :
-		named("."), base(b)
+	explicit SuClass(short b) : named("."), base(b)
 		{ }
-	explicit SuClass(const SuClass& c) :
-		SuObject(c), named("."), base(c.base)
+	explicit SuClass(const SuClass& c) : SuObject(c), named("."), base(c.base)
 		{ }
 	void out(Ostream&) const override;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort *argnames, int each) override;
 	Value getdata(Value) override;
+	Value get2(Value self, Value member) override;
 	virtual bool eq(const SuValue& x) const override;
 
 	size_t packsize() const override;
 	void pack(char* buf) const override;
 	static SuClass* unpack(const gcstring& s);
+private:
+	Value get3(Value member);
 
+public:
 	short base;
+private:
+	bool has_getter = true;
 	};
 
 // conceptually RootClass is a kind of Class
 // but practically, it doesn't need to derive from SuClass
 // since it never has any members
-class RootClass : public SuValue
+class RootClass : public SuValue, public Get2
 	{
 public :
 	void out(Ostream& os) const override
@@ -62,6 +75,8 @@ public :
 		short nargs, short nargnames, ushort *argnames, int each) override;
 	Value getdata(Value) override
 		{ return Value(); }
-	static Value notfound(Value self, Value member, 
+	Value get2(Value self, Value member) override
+		{ return Value(); }
+	static Value notfound(Value self, Value member,
 		short nargs, short nargnames, ushort *argnames, int each);
 	};

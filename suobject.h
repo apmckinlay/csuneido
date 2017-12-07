@@ -37,7 +37,7 @@ public:
 	SuObject();
 	explicit SuObject(bool readonly);
 	explicit SuObject(const SuObject& ob);
-	void init();
+	static void init();
 	SuObject(SuObject* ob, size_t offset); // for slice
 
 	void out(Ostream& os) const override;
@@ -128,6 +128,7 @@ public:
 	bool hasMethod(Value name);
 	void addMembers(SuObject* list);
 protected:
+	virtual Value get2(Value self, Value m);
 	typedef Value (SuObject::*pmfn)(short, short, ushort*, int);
 	static HashMap<Value,pmfn> basic_methods;
 private:
@@ -173,11 +174,7 @@ private:
 	Vector vec;
 	Map map;
 	bool readonly;
-	// wasteful to put these on every object instead of on class
-	// but due to alignment they won't actually take any more space
-	bool has_getter;
-	bool has_setter;
-	int version; // incremented when member is added or removed
+	int version = 0; // incremented when member is added or removed
 	// used to detect modification during iteration
 	friend class ModificationCheck;
 	};
