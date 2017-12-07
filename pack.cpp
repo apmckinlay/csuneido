@@ -28,10 +28,9 @@
 #include "sudate.h"
 #include "suobject.h"
 #include "surecord.h"
-#include "sufunction.h"
-#include "suclass.h"
 #include "cvt.h"
 #include "globals.h"
+#include "named.h"
 
 Value unpack(const char* buf, int len)
 	{
@@ -59,10 +58,6 @@ Value unpack(const gcstring& s)
 		return SuObject::unpack(s);
 	case PACK_RECORD :
 		return SuRecord::unpack(s);
-	case PACK_FUNCTION :
-		return SuFunction::unpack(s);
-	case PACK_CLASS :
-		return SuClass::unpack(s);
 	default :
 		unreachable();
 		}

@@ -51,9 +51,6 @@ public:
 	Value get2(Value self, Value member) override;
 	virtual bool eq(const SuValue& x) const override;
 
-	size_t packsize() const override;
-	void pack(char* buf) const override;
-	static SuClass* unpack(const gcstring& s);
 private:
 	Value get3(Value member);
 

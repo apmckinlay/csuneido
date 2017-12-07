@@ -37,7 +37,6 @@ public:
 	SuObject();
 	explicit SuObject(bool readonly);
 	explicit SuObject(const SuObject& ob);
-	static void init();
 	SuObject(SuObject* ob, size_t offset); // for slice
 
 	void out(Ostream& os) const override;
@@ -134,6 +133,7 @@ protected:
 private:
 	static HashMap<Value,pmfn> methods;
 	static HashMap<Value, SuObject::pmfn> instance_methods;
+	static void init();
 	static void setup();
 	Value getdefault(Value member, Value def);
 	Value Size(short nargs, short nargnames, ushort* argnames, int each);

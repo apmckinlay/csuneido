@@ -83,12 +83,6 @@ void libload(int gnum)
 		{
 		gcstring lib = *srcs;
 		++srcs;
-		if (lib == "")
-			{ // compiled
-			globals.put(gnum, ::unpack(*srcs));
-			TRACE(LIBRARIES, "loaded " << gname << " (pre-compiled)");
-			break ;
-			}
 		try
 			{
 			const char* src;
@@ -271,7 +265,6 @@ Lisp<gcstring> libgetall(const char* name)
 		Fields flds = theDB()->get_fields(*libs);
 		int group_fld = search(flds, "group");
 		int text_fld = search(flds, "text");
-		int compiled_fld = search(flds, "compiled");
 		Index* index = theDB()->get_index(*libs, "name,group");
 		if (group_fld < 0 || text_fld < 0 || index == nullptr)
 			continue ; // library is invalid, ignore it
@@ -280,13 +273,6 @@ Lisp<gcstring> libgetall(const char* name)
 			{
 			Record rec(iter.data());
 			gcstring compiled;
-			if (compiled_fld >= 0 &&
-				(compiled = rec.getraw(compiled_fld)).size() > 0)
-				{
-				srcs.push(compiled);
-				srcs.push("");
-				break ;
-				}
 			srcs.push(rec.getraw(text_fld).to_heap());
 			srcs.push(*libs);
 			}

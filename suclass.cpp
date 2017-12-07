@@ -25,7 +25,6 @@
 #include "globals.h"
 #include "symbols.h"
 #include "sustring.h"
-#include "pack.h"
 #include "sufunction.h"
 #include "sumethod.h"
 #include "catstr.h"
@@ -139,35 +138,6 @@ Value SuClass::get3(Value member) // handles inheritance
 bool SuClass::eq(const SuValue& y) const
 	{
 	return this == &y; // a class is only equal to itself
-	}
-
-size_t SuClass::packsize() const
-	{
-	if (*globals(base) == '_')
-		except("can't pack class with _Name as base");
-	return 1 + // PACK_CLASS
-		packstrsize(globals(base)) +
-		packnamesize(named) +
-		SuObject::packsize();
-	}
-
-void SuClass::pack(char* buf) const
-	{
-	*buf++ = PACK_CLASS;
-	verify(base > 0);
-	buf += packstr(buf, globals(base));
-	buf += packname(buf, named);
-	SuObject::pack(buf);
-	}
-
-SuClass* SuClass::unpack(const gcstring& s)
-	{
-	const char* buf = s.ptr() + 1; // skip PACK_CLASS
-	short base = globals(unpackstr(buf));
-	SuClass* c = new SuClass(base);
-	buf += unpackname(buf, c->named);
-	unpack2(gcstring::noalloc(buf, s.ptr() + s.size() - buf), c);
-	return c;
 	}
 
 // RootClass --------------------------------------------------------

@@ -40,10 +40,6 @@ public:
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 
-	size_t packsize() const override;
-	void pack(char* buf) const override;
-	static SuFunction* unpack(const gcstring& s);
-
 	void source(Ostream&, int ci);
 	int source(int ci, int* pn);
 	void disasm(Ostream&);
