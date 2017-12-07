@@ -300,8 +300,7 @@ Value SuObject::get(Value m) const
 	int i;
 	if (m.int_if_num(&i) && 0 <= i && i < vec.size())
 		return vec[i];
-	Value* pv = map.find(m);
-	if (pv)
+	if (Value* pv = map.find(m))
 		return *pv;
 	else
 		return Value();
