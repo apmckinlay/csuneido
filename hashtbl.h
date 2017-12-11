@@ -235,7 +235,7 @@ Val& Hashtbl<Key,Val,KofV,Hfn,Keq>::insert(const Val& val)
 template <class Key, class Val, class KofV, class Hfn, class Keq>
 Val* Hashtbl<Key,Val,KofV,Hfn,Keq>::find(const Key& key) const
 	{
-	if (cap == 0)
+	if (sz == 0)
 		return 0;
 	for (Node* node = tbl[Hfn()(key) % cap]; node; node = node->next)
 		if (Keq()(KofV()(node->val), key))
@@ -246,7 +246,7 @@ Val* Hashtbl<Key,Val,KofV,Hfn,Keq>::find(const Key& key) const
 template <class Key, class Val, class KofV, class Hfn, class Keq>
 bool Hashtbl<Key,Val,KofV,Hfn,Keq>::erase(const Key& key)
 	{
-	if (cap == 0)
+	if (sz == 0)
 		return false;
 	int i = Hfn()(key) % cap;
 	Node** link = &tbl[i];
@@ -259,7 +259,7 @@ bool Hashtbl<Key,Val,KofV,Hfn,Keq>::erase(const Key& key)
 			freenode(node);
 			--sz;
 //			if (sz < cap / 2)	// ie. under 1/4 full
-//				resize(capi - 1);
+//				resize(capi - 1);	// shrink
 			return true;
 			}
 	return false;
