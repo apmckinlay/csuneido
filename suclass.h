@@ -42,14 +42,12 @@ public:
 	NAMED
 	explicit SuClass(short b) : named("."), base(b)
 		{ }
-	explicit SuClass(const SuClass& c) : SuObject(c), named("."), base(c.base)
-		{ }
 	void out(Ostream&) const override;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort *argnames, int each) override;
 	Value getdata(Value) override;
 	Value get2(Value self, Value member) override;
-	virtual bool eq(const SuValue& x) const override;
+	bool eq(const SuValue& x) const override;
 
 private:
 	Value get3(Value member);
