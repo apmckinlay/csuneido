@@ -56,7 +56,7 @@ public:
 
 	void out(Ostream& os) const override
 		{ os << "ObjectIter"; }
-	Value call(Value self, Value member, 
+	Value call(Value self, Value member,
 		short nargs, short nargnames, ushort* argnames, int each) override;
 private:
 	SuObject* object;
@@ -69,7 +69,7 @@ private:
 class ModificationCheck
 	{
 public:
-	explicit ModificationCheck(SuObject* ob) 
+	explicit ModificationCheck(SuObject* ob)
 		: object(ob), vecsize(ob->vecsize()), mapsize(ob->mapsize())
 		{ }
 	~ModificationCheck()
@@ -160,10 +160,8 @@ void SuObject::setup()
 	basic_methods["Base?"] = &SuObject::HasBase;
 	BASIC_METHOD(Eval);
 	BASIC_METHOD(Eval2);
-	BASIC_METHOD(Find);
 	BASIC_METHOD(GetDefault);
 	BASIC_METHOD(Iter);
-	BASIC_METHOD(Join);
 	basic_methods["Member?"] = &SuObject::HasMember;
 	basic_methods["Method?"] = &SuObject::HasMethod;
 	BASIC_METHOD(Members);
@@ -175,6 +173,8 @@ void SuObject::setup()
 	METHOD(Assocs);
 	METHOD(Erase);
 	METHOD(EqualRange);
+	METHOD(Find);
+	METHOD(Join);
 	METHOD(LowerBound);
 	methods["Reverse!"] = &SuObject::Reverse;
 	METHOD(Set_default);
@@ -449,7 +449,7 @@ bool SuObject::erase2(Value m)
 	}
 
 /** used for both Objects and instances */
-Value SuObject::call(Value self, Value member, 
+Value SuObject::call(Value self, Value member,
 	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL)
@@ -1261,7 +1261,7 @@ void SuObject::set_members(SuObject* ob)
 
 // SuObjectIter -------------------------------------------------------
 
-Value SuObjectIter::call(Value self, Value member, 
+Value SuObjectIter::call(Value self, Value member,
 	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value NEXT("Next");
