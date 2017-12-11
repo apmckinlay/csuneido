@@ -54,8 +54,6 @@ void SuClass::out(Ostream& out) const
 Value SuClass::call(Value self, Value member, 
 	short nargs, short nargnames, ushort *argnames, int each)
 	{
-	static Value BASENAME("BaseName");
-
 	if (member == INSTANTIATE)
 		{
 		SuObject* instance = new SuObject;
@@ -63,8 +61,6 @@ Value SuClass::call(Value self, Value member,
 		call(instance, NEW, nargs, nargnames, argnames, each);
 		return instance;
 		}
-	else if (member == BASENAME)
-		return new SuString(globals(base));
 	else if (pmfn* p = basic_methods.find(member))
 		return (this->*(*p))(nargs, nargnames, argnames, each);
 	if (member == CALL)
