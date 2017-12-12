@@ -42,8 +42,8 @@ public:
 		{
 		static Method<Md5> methods[]
 			{
-			{ "Update", &Update },
-			{ "Value", &ValueFn }
+			{ "Update", &Md5::Update },
+			{ "Value", &Md5::ValueFn }
 			};
 		return gsl::make_span(methods);
 		}

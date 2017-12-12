@@ -181,14 +181,14 @@ public:
 		{
 		static Method<SuRunPiped> methods[]
 			{
-			{ "Read", &Read },
-			{ "Readline", &Readline },
-			{ "Write", &Write },
-			{ "Writeline", &Writeline },
-			{ "Flush", &Flush },
-			{ "CloseWrite", &CloseWrite },
-			{ "Close", &Close },
-			{ "ExitValue", &ExitValue }
+			{ "Read", &SuRunPiped::Read },
+			{ "Readline", &SuRunPiped::Readline },
+			{ "Write", &SuRunPiped::Write },
+			{ "Writeline", &SuRunPiped::Writeline },
+			{ "Flush", &SuRunPiped::Flush },
+			{ "CloseWrite", &SuRunPiped::CloseWrite },
+			{ "Close", &SuRunPiped::Close },
+			{ "ExitValue", &SuRunPiped::ExitValue }
 			};
 		return gsl::make_span(methods);
 		}

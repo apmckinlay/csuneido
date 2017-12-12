@@ -72,17 +72,18 @@ class Vslots
 public:
 	Vslots() : prev(sizeof t), sz(0)
 		{ memset(t, 7, sizeof t); }
-	class iterator : public std::iterator<std::random_access_iterator_tag,Vslot,int>
+	class iterator
 		{
 		friend class Vslots;
 	public:
+		using difference_type = int;
+		using value_type = Vslot;
+		using pointer = const Vslot*;
+		using reference = const Vslot&;
+		using iterator_category = std::random_access_iterator_tag;
+
 		iterator()
 			{ }
-		Vslot operator*()
-			{
-			verify(t);
-			return Vslot((char*) t + t[i]);
-			}
 		Vslot operator*() const
 			{
 			verify(t);
@@ -238,18 +239,19 @@ public:
 		};
 	VFslots() : prev(sizeof t), sz(0)
 		{ memset(t, 7, sizeof t); }
-	class iterator : public std::iterator<std::random_access_iterator_tag,VFslot,int>
+	class iterator
 		{
 		friend class VFslots;
 	public:
+		using difference_type = int;
+		using value_type = VFslot;
+		using pointer = const VFslot*;
+		using reference = const VFslot&;
+		using iterator_category = std::random_access_iterator_tag;
+
 		iterator()
 			{ }
-		VFslot operator*()
-			{
-			verify(t);
-			return VFslot((char*) t + t[i].offset, t[i].adr.unpack());
-			}
-		const VFslot operator*() const
+		VFslot operator*() const
 			{
 			verify(t);
 			return VFslot((char*) t + t[i].offset, t[i].adr.unpack());
@@ -462,13 +464,19 @@ class VVslots
 public:
 	VVslots() : prev(sizeof t), sz(0)
 		{ }
-	class iterator : public std::iterator<std::random_access_iterator_tag,VVslot,int>
+	class iterator
 		{
 		friend class VVslots;
 	public:
+		using difference_type = int;
+		using value_type = VVslot;
+		using pointer = const VVslot*;
+		using reference = const VVslot&;
+		using iterator_category = std::random_access_iterator_tag;
+
 		iterator()
 			{ }
-		VVslot operator*()
+		VVslot operator*() const
 			{
 			Record key((char*) t + t[i]);
 			char* data = (char*) t + t[i] + roundup(key.cursize());

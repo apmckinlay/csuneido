@@ -63,20 +63,17 @@ gcstring tr(const gcstring& srcstr, const gcstring& from, const gcstring& to)
 	for (; si < srclen; ++si)
 		{
 		int i = xindex(fromset, src[si], allbut, lastto);
-		// mingw g++ 5.3 gives spurious strict-overflow warning
-		// if the following two lines are combined with &&
-		if (collapse)
-			if (i >= lastto)
+		if (collapse && i >= lastto)
+			{
+			*dst++ = toset[lastto];
+			do
 				{
-				*dst++ = toset[lastto];
-				do
-					{
-					if (++si >= srclen)
-						goto finished;
-					i = xindex(fromset, src[si], allbut, lastto);
-					}
-					while (i >= lastto);
+				if (++si >= srclen)
+					goto finished;
+				i = xindex(fromset, src[si], allbut, lastto);
 				}
+				while (i >= lastto);
+			}
 		if (i < 0)
 			*dst++ = src[si];
 		else if (lastto >= 0)

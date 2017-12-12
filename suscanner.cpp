@@ -34,17 +34,17 @@ public:
 		{
 		static Method<SuScanner> methods[]
 			{
-			{ "Next", &Next },
-			{ "Next2", &Next2 },
-			{ "Position", &Position },
-			{ "Type", &Type },
-			{ "Type2", &Type2 },
-			{ "Text", &Text },
-			{ "Length", &Length },
-			{ "Value", &Valu },
-			{ "Keyword", &Keyword },
-			{ "Keyword?", &KeywordQ },
-			{ "Iter", &Iter }
+			{ "Next", &SuScanner::Next },
+			{ "Next2", &SuScanner::Next2 },
+			{ "Position", &SuScanner::Position },
+			{ "Type", &SuScanner::Type },
+			{ "Type2", &SuScanner::Type2 },
+			{ "Text", &SuScanner::SuScanner::Text },
+			{ "Length", &SuScanner::Length },
+			{ "Value", &SuScanner::Valu },
+			{ "Keyword", &SuScanner::Keyword },
+			{ "Keyword?", &SuScanner::KeywordQ },
+			{ "Iter", &SuScanner::Iter }
 			};
 		return gsl::make_span(methods);
 		}

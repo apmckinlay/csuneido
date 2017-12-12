@@ -171,6 +171,8 @@ void Hashtbl<Key,Val,KofV,Hfn,Keq>::init(int n)
 	if (n == 0)
 		{
 		cap = capi = 0;
+		tbl = nullptr;
+		nodes = free = nullptr;
 		return ;
 		}
 	n = (n + 1) / 2;

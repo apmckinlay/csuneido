@@ -44,8 +44,8 @@ public:
 		{
 		static Method<Sha1> methods[]
 			{
-			{ "Update", &Update },
-			{ "Value", &ValueFn }
+			{ "Update", &Sha1::Update },
+			{ "Value", &Sha1::ValueFn }
 			};
 		return gsl::make_span(methods);
 		}

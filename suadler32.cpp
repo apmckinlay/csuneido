@@ -34,8 +34,8 @@ public:
 		{
 		static Method<SuAdler32> methods[]
 			{
-			{ "Update", &Update },
-			{ "Value", &ValueFn }
+			{ "Update", &SuAdler32::Update },
+			{ "Value", &SuAdler32::ValueFn }
 			};
 		return gsl::make_span(methods);
 		}

@@ -47,14 +47,14 @@ public:
 		{
 		static Method<SuFile> methods[]
 			{
-			{ "Close", &Close },
-			{ "Flush", &Flush },
-			{ "Read", &Read },
-			{ "Readline", &Readline },
-			{ "Seek", &Seek },
-			{ "Tell", &Tell },
-			{ "Write", &Write },
-			{ "Writeline", &Writeline }
+			{ "Close", &SuFile::Close },
+			{ "Flush", &SuFile::Flush },
+			{ "Read", &SuFile::Read },
+			{ "Readline", &SuFile::Readline },
+			{ "Seek", &SuFile::Seek },
+			{ "Tell", &SuFile::Tell },
+			{ "Write", &SuFile::Write },
+			{ "Writeline", &SuFile::Writeline }
 			};
 		return gsl::make_span(methods);
 		}
