@@ -27,7 +27,6 @@ dbms.cpp \
 dbmslocal.cpp \
 dbmsunauth.cpp \
 dbserver.cpp \
-dbserver2.cpp \
 dbserverdata.cpp \
 dump.cpp \
 dupstr.cpp \
@@ -123,7 +122,6 @@ callback.cpp \
 connection.cpp \
 dbhttp.cpp \
 dbmsremote.cpp \
-dbmsremote2.cpp \
 debug.cpp \
 dll.cpp \
 fatal.cpp \
