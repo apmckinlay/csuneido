@@ -295,7 +295,8 @@ void message(const char* s, const char* t, ulong timeout_ms = INFINITE)
 	{
 	St st(s, t, timeout_ms);
 	HANDLE thread = CreateThread(nullptr, 0, message_thread, (void*) &st, 0, nullptr);
-	WaitForSingleObject(thread, INFINITE);
+	if (thread)
+		WaitForSingleObject(thread, INFINITE);
 	}
 
 void handler(const Except& x)
