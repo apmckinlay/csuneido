@@ -31,7 +31,6 @@
 #include "slots.h" // for keydup
 #include "gc.h" // for noptrs
 #include <malloc.h> // for alloca
-#include <math.h>
 
 //#include "ostreamcon.h"
 //#include "ostreamstr.h"
