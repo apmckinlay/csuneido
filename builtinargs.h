@@ -39,6 +39,7 @@ public:
 		Value val = getval(name);
 		return val ? val : defval;
 		}
+	Value getNamed(const char* name);
 	int getint(const char* name)
 		{ ckndef(); return getValue(name).integer(); }
 	int getint(const char* name, int defval)
@@ -71,18 +72,20 @@ public:
 	void end();
 	bool hasUnnamed() const
 		{ return unnamed > 0; }
+	Value call(Value fn, Value self, Value method);
+
 private:
 	Value getval(const char* name);
 	void ckndef() const;
-	Lisp<int> taken;
 
 	short nargs;
 	short nargnames;
 	ushort* argnames;
 	int unnamed;
-	const char* msg1;
-	const char* msg2;
-	const char* msg3;
-	int i;
-	bool def;
+	const char* msg1 = "invalid arguments";
+	const char* msg2 = "";
+	const char* msg3 = "";
+	int i = 0;
+	bool def = false;
+	Lisp<int> taken;
 	};

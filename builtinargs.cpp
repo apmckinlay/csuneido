@@ -50,7 +50,6 @@ for no arguments you can do:
 #include "except.h"
 
 BuiltinArgs::BuiltinArgs(short& nargs_, short& nargnames_, ushort*& argnames_, int& each)
-	: msg1("invalid arguments"), msg2(""), msg3(""), i(0), def(false)
 	{
 	argseach(nargs_, nargnames_, argnames_, each);
 	nargs = nargs_;
@@ -59,25 +58,27 @@ BuiltinArgs::BuiltinArgs(short& nargs_, short& nargnames_, ushort*& argnames_, i
 	unnamed = nargs - nargnames;
 	}
 
+// takes the next unnamed
+// or if no unnamed then looks for a matching named
 Value BuiltinArgs::getval(const char* name)
 	{
-	int arg;
 	if (i < unnamed)
-		arg = i++;
+		return ARG(i++);
 	else
-		{
-		const int sym = symnum(name);
-		int j = 0;
-		for (; j < nargnames; ++j)
-			if (argnames[j] == sym)
-				break ;
-		if (j >= nargnames)
-			return Value();
-		else
-			taken.push(sym);
-		arg = unnamed + j;
-		}
-	return ARG(arg);
+		return getNamed(name);
+	}
+
+Value BuiltinArgs::getNamed(const char* name)
+	{
+	const int sym = symnum(name);
+	int j = 0;
+	for (; j < nargnames; ++j)
+		if (argnames[j] == sym)
+			break;
+	if (j >= nargnames)
+		return Value();
+	taken.push(sym);
+	return ARG(unnamed + j);
 	}
 
 Value BuiltinArgs::getValue(const char* name)
@@ -120,4 +121,11 @@ Value BuiltinArgs::getNextUnnamed()
 void BuiltinArgs::exceptUsage() const
 	{
 	except("usage: " << msg1 << msg2 << msg3);
+	}
+
+Value BuiltinArgs::call(Value fn, Value self, Value method)
+	{
+	verify(i <= unnamed);
+	verify(taken.empty());
+	return fn.call(self, method, nargs - i, nargnames, argnames, -1);
 	}
