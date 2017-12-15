@@ -76,6 +76,8 @@ public:
 
 	unsigned int hash() const
 		{ return is_int() ? im.n : p->hashfn(); }
+	unsigned int hashcontrib() const
+		{ return is_int() ? im.n : p->hashcontrib(); }
 
 	[[nodiscard]] bool int_if_num(int* pn) const
 		{ return is_int() ? (*pn = im.n, true) : VAL->int_if_num(pn); }

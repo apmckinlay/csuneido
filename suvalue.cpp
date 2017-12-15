@@ -49,6 +49,9 @@ bool SuValue::eq(const SuValue& y) const
 size_t SuValue::hashfn() const
 	{ return ((ulong) this >> 4); } // default function just uses address
 
+size_t SuValue::hashcontrib() const
+	{ return hashfn(); }
+
 int SuValue::integer() const
 	{ except("can't convert " << type() << " to number"); }
 

@@ -88,7 +88,7 @@ SuObject::SuObject() : myclass(root_class), readonly(false)
 	init();
 	}
 
-SuObject::SuObject(bool ro) 	: myclass(root_class), readonly(ro)
+SuObject::SuObject(bool ro) : myclass(root_class), readonly(ro)
 	{
 	init();
 	}
@@ -119,26 +119,22 @@ bool SuObject::lt(const SuValue& y) const
 		return ord < yo;
 	}
 
-static int hash_nest = 0;
-struct HashCount
-	{
-	HashCount()
-		{ ++hash_nest; }
-	~HashCount()
-		{ --hash_nest; }
-	};
-
 size_t SuObject::hashfn() const
 	{
-	HashCount nest;
-	size_t hash = size();
-	if (hash_nest > 4)
-		return hash;
-	for (int i = 0; i < vec.size(); ++i)
-		hash += vec[i].hash();
-	for (auto it = map.begin(); it != map.end(); ++it)
-		hash += it->val.hash() + it->key.hash();
+	size_t hash = hashcontrib();
+	if (vec.size() > 0)
+		hash = 31 * hash + vec[0].hashcontrib();
+	if (vec.size() > 1)
+		hash = 31 * hash + vec[1].hashcontrib();
+	if (map.size() <= 5)
+		for (auto e : map)
+			hash = 31 * hash + e.val.hashcontrib() ^ e.key.hashcontrib();
 	return hash;
+	}
+
+size_t SuObject::hashcontrib() const
+	{
+	return 31 * 31 * vec.size() + 31 * map.size();
 	}
 
 /** methods are available to Objects (not instances or classes) */

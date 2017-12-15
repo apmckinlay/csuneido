@@ -41,6 +41,7 @@ public:
 	virtual void out(Ostream&) const = 0;
 
 	virtual size_t hashfn() const;
+	virtual size_t hashcontrib() const;
 
 	virtual int symnum() const;				// creates if necessary
 

@@ -76,6 +76,7 @@ public:
 	bool lt(const SuValue& y) const override;
 	int order() const override;
 	size_t hashfn() const override;
+	size_t hashcontrib() const override;
 
 	gcstring to_gcstr() const override;
 
