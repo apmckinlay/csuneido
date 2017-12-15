@@ -94,7 +94,7 @@
       <Message>update Built</Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>"$(TargetDir)$(TargetFileName)" -t &amp;&amp; copy /y "$(TargetDir)$(TargetFileName)" $(MSBuildProjectDirectory)\..\suneido.exe</Command>
+      <Command>cd "$(TargetDir)\..\.." &amp;&amp; "$(TargetDir)$(TargetFileName)" -t &amp;&amp; copy /y "$(TargetDir)$(TargetFileName)" $(MSBuildProjectDirectory)\..\suneido.exe</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
