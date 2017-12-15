@@ -44,14 +44,18 @@ for no arguments you can do:
 // maybe have a builtinArgs function that returns one of two kinds of BuiltinArgs
 // either current stack one, or new args object one
 
+// TODO cache pointer to args
+
 #include "builtinargs.h"
 #include "func.h"
 #include "interp.h"
 #include "except.h"
 
-BuiltinArgs::BuiltinArgs(short& nargs_, short& nargnames_, ushort*& argnames_, int& each)
+BuiltinArgs::BuiltinArgs(short& nargs_,
+	short& nargnames_, ushort*& argnames_, int& each)
 	{
-	argseach(nargs_, nargnames_, argnames_, each);
+	if (nargs_ != 0)
+		argseach(nargs_, nargnames_, argnames_, each);
 	nargs = nargs_;
 	nargnames = nargnames_;
 	argnames = argnames_;

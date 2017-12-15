@@ -39,7 +39,6 @@ public:
 		Value val = getval(name);
 		return val ? val : defval;
 		}
-	Value getNamed(const char* name);
 	int getint(const char* name)
 		{ ckndef(); return getValue(name).integer(); }
 	int getint(const char* name, int defval)
@@ -64,6 +63,7 @@ public:
 		Value val = getval(name);
 		return val ? val.gcstr() : defval;
 		}
+	Value getNamed(const char* name);
 	bool hasNamed() const
 		{ return nargnames > 0; }
 	Value getNext();
@@ -73,7 +73,6 @@ public:
 	bool hasUnnamed() const
 		{ return unnamed > 0; }
 	Value call(Value fn, Value self, Value method);
-
 private:
 	Value getval(const char* name);
 	void ckndef() const;
