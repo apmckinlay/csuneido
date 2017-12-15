@@ -760,7 +760,6 @@ void builtins()
 	builtin("Suneido", new SuObject);
 
 	builtin("Construct", new Construct);
-	builtin("Construct2", new Instance);
 	builtin("Transaction", new TransactionClass);
 	builtin("Cursor", new CursorClass);
 	builtin("Record", new SuRecordClass);

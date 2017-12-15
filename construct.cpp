@@ -68,35 +68,3 @@ Value Construct::call(Value self, Value member,
 		return c.call(c, INSTANTIATE);
 		}
 	}
-
-// ==================================================================
-
-Instance::Instance()
-	{
-	named.num = globals("Instance");
-	}
-
-Value Instance::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
-	{
-	if (nargs != 2 || member != CALL)
-		except("usage: Instance(class, suffix)");
-	auto suffix = ARG(1).str();
-	Value c = ARG(0);
-	if (const char* s = c.str_if_str())
-		{
-		if (! has_suffix(s, suffix))
-			s = CATSTRA(s, suffix);
-		c = globals[s];
-		}
-	else if (SuClass* clas = val_cast<SuClass*>(c))
-		{
-		char* basename = globals(clas->base);
-		if (! has_suffix(basename, suffix))
-			{
-			basename = CATSTRA(basename, suffix);
-			clas->base = globals(basename);
-			}
-		}
-	return c.call(c, INSTANTIATE);
-	}

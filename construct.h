@@ -31,11 +31,3 @@ public:
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	};
-
-class Instance : public Func
-	{
-public:
-	Instance();
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
-	};
