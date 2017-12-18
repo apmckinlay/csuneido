@@ -276,6 +276,8 @@ Value SuObject::getdefault(Value member, Value def)
 		return x;
 	if (SuObject* defval_ob = def.ob_if_ob())
 		{
+		// if default value is an object
+		// set the member to a copy
 		x = new SuObject(*defval_ob);
 		if (! readonly)
 			put(member, x);
