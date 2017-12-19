@@ -392,13 +392,10 @@ void SuRecord::putdata(Value m, Value x)
 	RTRACE("set " << m << " = " << x);
 	int i = m.symnum();
 	invalid.erase(i); // before getdata
-	if (has(m))
-		{
-		Value old = SuObject::getdata(m);
-		if (old && x == old)
-			return ;
-		}
+	Value old = get(m);
 	SuObject::putdata(m, x);
+	if (old && x == old)
+		return ;
 	invalidate_dependents(i);
 	call_observers(i, "set");
 	}
