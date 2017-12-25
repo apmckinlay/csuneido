@@ -24,9 +24,8 @@
 #include "interp.h"
 #include "symbols.h"
 #include "suclass.h"
-#include "lisp.h"
-#include <stdarg.h>
-#include <ctype.h>
+#include <cstdarg>
+#include <cctype>
 #include "ostreamstr.h"
 #include "sustring.h"
 #include "fatal.h"
