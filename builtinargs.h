@@ -23,7 +23,7 @@
 
 #include "value.h"
 #include "gcstring.h"
-#include "lisp.h"
+#include "list.h"
 
 class BuiltinArgs
 	{
@@ -86,5 +86,5 @@ private:
 	const char* msg3 = "";
 	int i = 0;
 	bool def = false;
-	Lisp<int> taken;
+	ListSet<int> taken;
 	};

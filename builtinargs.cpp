@@ -81,7 +81,7 @@ Value BuiltinArgs::getNamed(const char* name)
 			break;
 	if (j >= nargnames)
 		return Value();
-	taken.push(sym);
+	taken.add(sym);
 	return ARG(unnamed + j);
 	}
 
@@ -106,7 +106,7 @@ void BuiltinArgs::end()
 
 Value BuiltinArgs::getNext()
 	{
-	while (i < nargs && i >= unnamed && taken.member(argnames[i - unnamed]))
+	while (i < nargs && i >= unnamed && taken.has(argnames[i - unnamed]))
 		++i;
 	return i < nargs ? ARG(i++) : Value();
 	}

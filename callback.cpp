@@ -32,7 +32,7 @@
 #include "suobject.h"
 #include "prim.h"
 #include "heap.h"
-#include "lisp.h"
+#include "list.h"
 
 long callback(Value fn, Callback* cb, char* src);
 
@@ -150,14 +150,14 @@ void Callback::put(char*& dst, char*& dst2, const char* lim2, Value x)
 	dst += sizeof (void*);
 	}
 
-static Lisp<void*> to_free;
+static List<void*> to_free;
 
 Value su_ClearCallback()
 	{
 	Value x = TOP();
 	Cb* cb = callbacks.find(x);
 	if (cb)
-		to_free.push(cb->fn);
+		to_free.add(cb->fn);
 	callbacks.erase(x);
 	return cb ? SuTrue : SuFalse;
 	}
@@ -165,8 +165,9 @@ PRIM(su_ClearCallback, "ClearCallback(value)");
 
 void free_callbacks()
 	{
-	for (; ! nil(to_free); ++to_free)
-		heap.free(*to_free);
+	for (auto x : to_free)
+		heap.free(x);
+	to_free.clear();
 	}
 
 // called by the functions created by make_callback
