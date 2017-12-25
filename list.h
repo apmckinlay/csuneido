@@ -148,12 +148,22 @@ public:
 		{ return siz; }
 	bool empty() const
 		{ return siz == 0; }
-	bool has(const T& x)
+	bool has(const T& x) const
 		{
 		for (auto p = data, end = data + siz; p < end; ++p)
 			if (*p == x)
 				return true;
 		return false;
+		}
+	bool operator==(const List<T>& other) const
+		{
+		if (this == &other)
+			return true;
+		if (siz != other.siz)
+			return false;
+		if (data == other.data) // will catch nullptr
+			return true;
+		return std::equal(begin(), end(), other.begin());
 		}
 
 	List& add(const T& x)
@@ -299,3 +309,17 @@ private:
 
 	List<T> list;
 	};
+
+#include "ostream.h"
+
+template <class T> Ostream& operator<<(Ostream& os, List<T> list)
+	{
+	os << '(';
+	auto sep = "";
+	for (auto x : list)
+		{
+		os << sep << x;
+		sep = ",";
+		}
+	return os << ')';
+	}

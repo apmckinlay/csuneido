@@ -58,7 +58,6 @@ class test_list : public Tests
 		v4.add(78);
 		assert_eq(4, v4.size());
 		}
-
 	static List<int> f()
 		{
 		List<int> tmp;
@@ -78,6 +77,23 @@ class test_list : public Tests
 		s2.add(789);
 		assert_eq(2, set.size());
 		assert_eq(3, s2.size());
+		}
+
+	TEST(3, equals)
+		{
+		List<int> v1;
+		assert_eq(v1, v1);
+		List<int> v2;
+		assert_eq(v1, v2);
+		v1.add(12).add(34);
+		assert_neq(v1, v2);
+		assert_neq(v2, v1);
+		v2.add(12);
+		assert_neq(v1, v2);
+		assert_neq(v2, v1);
+		v2.add(34);
+		assert_eq(v1, v2);
+		assert_eq(v2, v1);
 		}
 	};
 REGISTER(test_list);

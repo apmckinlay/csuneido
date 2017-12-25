@@ -81,6 +81,9 @@ private:
 #define assert_eq(x, y) except_if((x) != (y), \
 	"error: " << #x << " != " << #y << " (" << (x) << " != " << (y) << ")")
 
+#define assert_neq(x, y) except_if((x) == (y), \
+	"error: " << #x << " == " << #y << " (" << (x) << " == " << (y) << ")")
+
 #define xassert(expr) \
 	{ \
 	bool err = false; \
