@@ -29,11 +29,10 @@
 #include "sufunction.h"
 #include "func.h"
 #include "suclass.h"
-#include <ctype.h>
 #include "cvt.h"
 #include "pack.h"
 #include "sublock.h" // for persist_if_block
-#include "lisp.h"
+#include "list.h"
 #include "sumethod.h"
 #include "catstr.h"
 #include "ostreamstr.h"
@@ -122,13 +121,13 @@ bool SuObject::lt(const SuValue& y) const
 size_t SuObject::hashfn() const
 	{
 	size_t hash = hashcontrib();
-	if (vec.size() > 0)
+	if (!vec.empty())
 		hash = 31 * hash + vec[0].hashcontrib();
 	if (vec.size() > 1)
 		hash = 31 * hash + vec[1].hashcontrib();
 	if (map.size() <= 5)
 		for (auto e : map)
-			hash = 31 * hash + e.val.hashcontrib() ^ e.key.hashcontrib();
+			hash = 31 * (31 * hash + e.val.hashcontrib()) + e.key.hashcontrib();
 	return hash;
 	}
 
@@ -1054,17 +1053,17 @@ bool SuObject::eq(const SuValue& y) const
 // prevent infinite recursion
 class Track
 	{
-	public:
-		explicit Track(const SuObject* ob)
-			{ stack.push(ob); }
-		~Track()
-			{ stack.pop(); }
-		static bool has(const SuObject* ob)
-			{ return member(stack, ob); }
-	private:
-		static Lisp<const SuObject*> stack;
+public:
+	explicit Track(const SuObject* ob)
+		{ stack.push(ob); }
+	~Track()
+		{ stack.pop(); }
+	static bool has(const SuObject* ob)
+		{ return stack.has(ob); }
+private:
+	static List<const SuObject*> stack;
 	};
-Lisp<const SuObject*> Track::stack;
+List<const SuObject*> Track::stack;
 
 void SuObject::out(Ostream& os) const
 	{
