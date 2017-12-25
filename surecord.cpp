@@ -37,16 +37,16 @@
 #include "sublock.h"
 #include "trace.h"
 
-#define RTRACE(stuff) TRACE(RECORDS, (void*) this << " " << stuff)
+#define RTRACE(stuff) TRACE(RECORDS, (void*) this << " " << stuff)  // NOLINT
 
 SuRecord::SuRecord()
-	: trans(0), recadr(0), status(NEW)
+	: trans(nullptr), recadr(0), status(NEW)
 	{
 	defval = SuString::empty_string;
 	}
 
 SuRecord::SuRecord(const SuRecord& rec)
-	: SuObject(rec), trans(0), recadr(0), status(rec.status),
+	: SuObject(rec), trans(nullptr), recadr(0), status(rec.status),
 	observer(rec.observer.copy()), dependents(rec.dependents),
 	invalid(rec.invalid), invalidated(rec.invalidated.copy())
 	// note: only have to copy() lists that are appended to
@@ -55,7 +55,8 @@ SuRecord::SuRecord(const SuRecord& rec)
 	}
 
 SuRecord::SuRecord(const Row& r, const Header& h, int t)
-	: hdr(h), trans(t <= 0 ? 0 : new SuTransaction(t)), recadr(r.recadr), status(OLD)
+	: hdr(h), trans(t <= 0 ? nullptr : new SuTransaction(t)), 
+	recadr(r.recadr), status(OLD)
 	{
 	init(r);
 	}
@@ -451,19 +452,19 @@ void SuRecord::invalidate(ushort mem)
 		invalidate_dependents(mem);
 	}
 
+bool operator==(Observe o1, Observe o2)
+	{
+	return o1.fn == o2.fn && o1.mem == o2.mem;
+	}
+
 // track active observers to prevent cycles
 class TrackObserver
 	{
 public:
-	explicit TrackObserver(SuRecord* r, Value observer, ushort member) : rec(r)
-		{ r->active_observers.push(Observe(observer, member)); }
-	static bool has(SuRecord* r, Value observer, ushort member)
-		{
-		for (Lisp<Observe> obs = r->active_observers; ! nil(obs); ++obs)
-			if (obs->fn == observer && obs->mem == member)
-				return true;
-		return false;
-		}
+	explicit TrackObserver(SuRecord* r, Value observer, ushort mem) : rec(r)
+		{ r->active_observers.push(Observe{ observer, mem}); }
+	static bool has(SuRecord* r, Value observer, ushort mem)
+		{ return r->active_observers.has(Observe{ observer, mem }); }
 	~TrackObserver()
 		{ rec->active_observers.pop(); }
 private:

@@ -32,8 +32,6 @@ class Record;
 
 struct Observe
 	{
-	Observe(Value f, ushort m) : fn(f), mem(m)
-		{ }
 	Value fn;
 	ushort mem;
 	};
@@ -97,7 +95,7 @@ private:
 	HashMap<ushort,bool> invalid;
 	ListSet<ushort> invalidated;
 	Lisp<Value> active_rules;
-	Lisp<Observe> active_observers;
+	List<Observe> active_observers;
 	HashMap<ushort,Value> attached_rules;
 	};
 
