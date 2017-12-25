@@ -157,6 +157,7 @@
     <ClCompile Include="..\itostr.cpp" />
     <ClCompile Include="..\library.cpp" />
     <ClCompile Include="..\lisp.cpp" />
+    <ClCompile Include="..\list.cpp" />
     <ClCompile Include="..\load.cpp" />
     <ClCompile Include="..\mmfile.cpp" />
     <ClCompile Include="..\msgloop.cpp" />
