@@ -109,13 +109,12 @@ public:
 	// empty list, no allocation
 	List() = default;
 
-	List(const List& other) 
-		: data(other.data), siz(other.siz), cap(other.cap)
+	List(const List& other) 	: data(other.data), cap(other.cap), siz(other.siz)
 		{
 		if (data)
 			readonly = other.readonly = true;
 		}
-	List(List&& other) : data(other.data), siz(other.siz), cap(other.cap)
+	List(List&& other) : data(other.data), cap(other.cap), siz(other.siz)
 		{
 		other.reset();
 		}
@@ -155,6 +154,7 @@ public:
 				return true;
 		return false;
 		}
+	// same elements in same order
 	bool operator==(const List<T>& other) const
 		{
 		if (this == &other)
@@ -182,12 +182,14 @@ public:
 		{
 		verify(siz > 0);
 		--siz;
+		memset(data + siz, 0, sizeof (T)); // for garbage collection
 		}
 	// Makes it empty but keeps the current capacity
 	List& clear()
 		{
 		verify(!readonly);
 		siz = 0;
+		memset(data, 0, cap * sizeof(T)); // help garbage collection
 		return *this;
 		}
 	// Resets capacity to zero, releases array
@@ -231,7 +233,7 @@ public:
 		{ return const_iterator(data + siz); }
 
 private:
-	void List<T>::grow()
+	void grow()
 		{
 		cap = (cap == 0) ? 8 : 2 * cap;
 		T* d = static_cast<T*>(::operator new (sizeof(T) * cap));
