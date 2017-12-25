@@ -427,9 +427,10 @@ bool SuRecord::erase2(Value m)
 void SuRecord::call_observers(ushort i, const char* why)
 	{
 	call_observer(i, why);
-	for (; ! nil(invalidated); ++invalidated)
-		if (*invalidated != i)
-			call_observer(*invalidated, "invalidate");
+	for (auto x : invalidated)
+		if (x != i)
+			call_observer(x, "invalidate");
+	invalidated.clear();
 	}
 
 void SuRecord::invalidate_dependents(ushort mem)
@@ -444,8 +445,7 @@ void SuRecord::invalidate(ushort mem)
 	// TODO maybe clear dependencies? (would give a way to safely clear dependencies)
 	RTRACE("invalidate " << symstr(mem));
 	bool was_valid = ! invalid.find(mem);
-	if (! member(invalidated, mem))
-		invalidated.append(mem); // for observers
+	invalidated.add(mem); // for observers
 	invalid[mem] = true;
 	if (was_valid)
 		invalidate_dependents(mem);

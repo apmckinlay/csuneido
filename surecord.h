@@ -25,6 +25,7 @@
 #include "lisp.h"
 #include "row.h"
 #include "hashmap.h"
+#include "list.h"
 
 class SuTransaction;
 class Record;
@@ -94,7 +95,7 @@ private:
 	Lisp<Value> observer;
 	HashMap<ushort,Lisp<ushort> > dependents;
 	HashMap<ushort,bool> invalid;
-	Lisp<ushort> invalidated;
+	ListSet<ushort> invalidated;
 	Lisp<Value> active_rules;
 	Lisp<Observe> active_observers;
 	HashMap<ushort,Value> attached_rules;
