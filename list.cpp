@@ -95,5 +95,16 @@ class test_list : public Tests
 		assert_eq(v1, v2);
 		assert_eq(v2, v1);
 		}
+
+	TEST(4, erase)
+		{
+		List<int> v;
+		assert_eq(false, v.erase(56));
+		v.add(12).add(34).add(56).add(78);
+		assert_eq(true, v.erase(34));
+		assert_eq(List<int>({ 12, 78, 56 }), v);
+		assert_eq(true, v.erase(56));
+		assert_eq(List<int>({ 12, 78 }), v);
+		}
 	};
 REGISTER(test_list);

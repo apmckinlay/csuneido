@@ -118,6 +118,12 @@ public:
 		{
 		other.reset();
 		}
+	List(std::initializer_list<T> init)
+		{
+		cap = siz = init.size();
+		data = static_cast<T*>(::operator new (sizeof(T) * cap));
+		memcpy(data, init.begin(), sizeof(T) * siz);
+		}
 
 	List& operator=(const List& other) 
 		{
@@ -183,6 +189,22 @@ public:
 		verify(siz > 0);
 		--siz;
 		memset(data + siz, 0, sizeof (T)); // for garbage collection
+		}
+	// removes the first occurrence of a value
+	// NOTE: moves the last item into the removed spot so order changes
+	bool erase(const T& x)
+		{
+		for (auto p = data, end = data + siz; p < end; ++p)
+			if (*p == x)
+				{
+				--siz;
+				auto q = data + siz;
+				if (p < q)
+					memcpy(p, data + siz, sizeof(T)); // last => vacated spot
+				memset(q, 0, sizeof(T)); // for garbage collection
+				return true;
+				}
+		return false;
 		}
 	// Makes it empty but keeps the current capacity
 	List& clear()
