@@ -90,7 +90,7 @@ private:
 	SuTransaction* trans;
 	Mmoffset recadr;
 	enum { NEW, OLD, DELETED } status;
-	Lisp<Value> observer;
+	List<Value> observers;
 	HashMap<ushort,Lisp<ushort> > dependents;
 	HashMap<ushort,bool> invalid;
 	ListSet<ushort> invalidated;

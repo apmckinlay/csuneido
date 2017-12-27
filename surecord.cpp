@@ -47,7 +47,7 @@ SuRecord::SuRecord()
 
 SuRecord::SuRecord(const SuRecord& rec)
 	: SuObject(rec), trans(nullptr), recadr(0), status(rec.status),
-	observer(rec.observer.copy()), dependents(rec.dependents),
+	dependents(rec.dependents),
 	invalid(rec.invalid), invalidated(rec.invalidated.copy())
 	// note: only have to copy() lists that are appended to
 	{
@@ -239,9 +239,7 @@ Value SuRecord::call(Value self, Value member,
 	else if (member == Copy)
 		{
 		NOARGS("record.Copy()");
-		SuRecord* r = new SuRecord(*this);
-		r->observer = Lisp<Value>();
-		return r;
+		return new SuRecord(*this);
 		}
 	else if (member == Invalidate)
 		{
@@ -281,14 +279,14 @@ Value SuRecord::call(Value self, Value member,
 		if (nargs != 1)
 			except("usage: record.Observer(observer)");
 		persist_if_block(ARG(0));
-		observer.append(ARG(0));
+		observers.add(ARG(0));
 		return Value();
 		}
 	else if (member == RemoveObserver)
 		{
 		if (nargs != 1)
 			except("usage: record.RemoveObserver(observer)");
-		observer.erase(ARG(0));
+		observers.erase(ARG(0));
 		return Value();
 		}
 	else if (member == PreSet)
@@ -475,16 +473,16 @@ void SuRecord::call_observer(ushort member, const char* why)
 	{
 	RTRACE("call observer for " << symstr(member) << " due to " << why);
 	static ushort argname = ::symnum("member");
-	for (Lisp<Value> obs = observer; ! nil(obs); ++obs)
+	for (auto o : observers)
 		{
 		// prevent cycles
-		if (TrackObserver::has(this, *obs, member))
+		if (TrackObserver::has(this, o, member))
 			continue ;
-		TrackObserver track(this, *obs, member);
+		TrackObserver track(this, o, member);
 
 		KEEPSP
 		PUSH(symbol(member));
-		(*obs).call(this, CALL, 1, 1, &argname, -1);
+		o.call(this, CALL, 1, 1, &argname, -1);
 		}
 	}
 
