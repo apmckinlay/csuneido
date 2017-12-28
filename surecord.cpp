@@ -425,10 +425,9 @@ bool SuRecord::erase2(Value m)
 void SuRecord::call_observers(ushort i, const char* why)
 	{
 	call_observer(i, why);
-	for (auto x : invalidated)
-		if (x != i)
+	while (!invalidated.empty())
+		if (auto x = invalidated.popfront();  x != i)
 			call_observer(x, "invalidate");
-	invalidated.clear();
 	}
 
 void SuRecord::invalidate_dependents(ushort mem)
