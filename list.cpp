@@ -102,9 +102,11 @@ class test_list : public Tests
 		assert_eq(false, v.erase(56));
 		v.add(12).add(34).add(56).add(78);
 		assert_eq(true, v.erase(34));
-		assert_eq(List<int>({ 12, 78, 56 }), v);
-		assert_eq(true, v.erase(56));
-		assert_eq(List<int>({ 12, 78 }), v);
+		assert_eq(List<int>({ 12, 56, 78 }), v);
+		assert_eq(true, v.erase(78)); // last
+		assert_eq(List<int>({ 12, 56 }), v);
+		assert_eq(12, v.popfront());
+		assert_eq(List<int>({ 56 }), v);
 		}
 	};
 REGISTER(test_list);

@@ -22,75 +22,10 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "except.h"
+#include "gsl-lite.h"
 #include <iterator>
 
-/* ==================================================================
- * Simple generic pointer random access iterator. No bounds checking.
- */
-template <typename T>
-class PtrIter
-	{
-public:
-	using value_type = T;
-	using difference_type = std::ptrdiff_t;
-	using pointer = T*;
-	using reference = T&;
-	using iterator_category = std::random_access_iterator_tag;
-
-	PtrIter() = default;
-	explicit PtrIter(pointer p) : ptr(p)
-		{}
-
-	reference operator*() const
-		{ return *ptr; }
-	pointer operator->() const 
-		{ return ptr; }
-	reference operator[](difference_type rhs) const 
-		{ return ptr[rhs]; }
-
-	PtrIter& operator++()
-		{ ++ptr; return *this; }
-	PtrIter operator++(int)
-		{ return PtrIter(ptr++); }
-
-	PtrIter& operator--()
-		{ --ptr; return *this; }
-	PtrIter operator--(int)
-		{ return PtrIter(ptr++); }
-
-	PtrIter& operator+=(difference_type rhs) // all other +/- offset go thru here
-		{ ptr += rhs; return *this; }
-	PtrIter& operator-=(difference_type rhs) 
-		{ *this += -rhs; return *this; }
-
-	PtrIter operator+(difference_type rhs) const 
-		{ return PtrIter(ptr) += rhs; }
-	PtrIter operator-(difference_type rhs) const 
-		{ return PtrIter(ptr) += -rhs; }
-	friend PtrIter operator+(difference_type lhs, PtrIter rhs) 
-		{ return rhs += lhs; }
-
-	difference_type operator-(const PtrIter& rhs) const 
-		{ return ptr - rhs.ptr; }
-
-	bool operator==(const PtrIter& rhs) const
-		{ return ptr == rhs.ptr; }
-	bool operator!=(const PtrIter& rhs) const
-		{ return ptr != rhs.ptr; }
-	bool operator>(const PtrIter& rhs) const
-		{ return ptr > rhs.ptr; }
-	bool operator<(const PtrIter& rhs) const 
-		{ return ptr < rhs.ptr; }
-	bool operator>=(const PtrIter& rhs) const 
-		{ return ptr >= rhs.ptr; }
-	bool operator<=(const PtrIter& rhs) const 
-		{ return ptr <= rhs.ptr; }
-
-private:
-	T* ptr = nullptr;
-	};
-
-/* ==================================================================
+/*
  * Simple list template similar to std::vector.
  * Intended for garbage collection so no destructor handling.
  * Unlike vector, assignment and copy constructor do NOT copy.
@@ -103,13 +38,10 @@ template <typename T>
 class List
 	{
 public:
-	using iterator = PtrIter<T>;
-	using const_iterator = PtrIter<const T>;
-
 	// empty list, no allocation
 	List() = default;
 
-	List(const List& other) 	: data(other.data), cap(other.cap), siz(other.siz)
+	List(const List& other) : data(other.data), cap(other.cap), siz(other.siz)
 		{
 		if (data)
 			readonly = other.readonly = true;
@@ -190,18 +122,21 @@ public:
 		--siz;
 		memset(data + siz, 0, sizeof (T)); // for garbage collection
 		}
+	T popfront()
+		{
+		verify(siz > 0);
+		auto x = data[0];
+		shift(data);
+		return x;
+		}
+
 	// removes the first occurrence of a value
-	// NOTE: moves the last item into the removed spot so order changes
 	bool erase(const T& x)
 		{
 		for (auto p = data, end = data + siz; p < end; ++p)
 			if (*p == x)
 				{
-				--siz;
-				auto q = data + siz;
-				if (p < q)
-					memcpy(p, data + siz, sizeof(T)); // last => vacated spot
-				memset(q, 0, sizeof(T)); // for garbage collection
+				shift(p);
 				return true;
 				}
 		return false;
@@ -245,14 +180,14 @@ public:
 		return data[i];
 		}
 
-	iterator begin()
-		{ return iterator(data); }
-	iterator end()
-		{ return iterator(data + siz); }
-	const_iterator begin() const
-		{ return const_iterator(data); }
-	const_iterator end() const
-		{ return const_iterator(data + siz); }
+	auto begin()
+		{ return gsl::make_span(data, data + siz).begin(); }
+	auto end()
+		{ return gsl::make_span(data, data + siz).end(); }
+	auto begin() const
+		{ return gsl::make_span(data, data + siz).begin(); }
+	auto end() const
+		{ return gsl::make_span(data, data + siz).end(); }
 
 private:
 	void grow()
@@ -261,6 +196,14 @@ private:
 		T* d = static_cast<T*>(::operator new (sizeof(T) * cap));
 		memcpy(d, data, sizeof(T) * siz);
 		data = d;
+		}
+	void shift(T* p)
+		{
+		auto end = data + siz;
+		if (p + 1 < end)
+			memcpy(p, p + 1, (end - p - 1) * sizeof(T));
+		memset(end - 1, 0, sizeof(T)); // for garbage collection
+		--siz;
 		}
 
 	T* data = nullptr;
@@ -277,8 +220,6 @@ template <typename T>
 class ListSet
 	{
 public:
-	using const_iterator = PtrIter<const T>;
-
 	ListSet() = default;
 	ListSet(const ListSet& other) : list(other.list)
 		{}
@@ -308,6 +249,8 @@ public:
 			list.add(x);
 		return *this;
 		}
+	T popfront()
+		{ return list.popfront(); }
 	ListSet copy() const
 		{ return ListSet(list); }
 	ListSet& reset()
@@ -322,9 +265,9 @@ public:
 		}
 
 	// only const iterator so you can't break uniqueness
-	const_iterator begin() const
+	auto begin() const
 		{ return list.begin(); }
-	const_iterator end() const
+	auto end() const
 		{ return list.end(); }
 
 private:
@@ -336,7 +279,7 @@ private:
 
 #include "ostream.h"
 
-template <class T> Ostream& operator<<(Ostream& os, List<T> list)
+template <class T> Ostream& operator<<(Ostream& os, const List<T>& list)
 	{
 	os << '(';
 	auto sep = "";
