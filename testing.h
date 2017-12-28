@@ -72,7 +72,7 @@ private:
 	};
 
 #define REGISTER(name) \
-	static Tests* make_##name() { name* t = new name; t->group = #name; return t; } \
+	static Tests* make_##name() { auto t = new name; t->group = #name; return t; } \
 	static TestRegister register_##name(#name, make_##name)
 
 // ReSharper disable once CppUnusedIncludeDirective

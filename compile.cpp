@@ -107,7 +107,7 @@ public:
 
 	void member(SuObject* ob, const char* gname, const char* className, short base);
 	void member(SuObject* ob)
-		{ member(ob, 0, 0, -1); }
+		{ member(ob, nullptr, nullptr, -1); }
 	Value memname(const char* className, const char* s);
 	const char* ckglobal(const char*);
 private:
@@ -119,7 +119,7 @@ protected:
 #define syntax_error(stuff) \
 	do { \
 	OstreamStr os; \
-	os << stuff; \
+	os << stuff; /* NOLINT */ \
 	syntax_error_(os.str()); \
 	} while (false)
 
@@ -165,7 +165,7 @@ private:
 	bool expecting_compound = false;
 	// for loops
 	enum { maxtest = 100 };
-	uchar test[maxtest];
+	uchar test[maxtest]{};
 	bool it_used = false; // for blocks
 	bool inside_try = false;
 
@@ -228,7 +228,7 @@ Value compile(const char* s, const char* gname, CodeVisitor* visitor)
 
 Compiler::Compiler(const char* s, CodeVisitor* visitor)
 	: scanner(*new Scanner(dupstr(s), 0, visitor ? visitor : new CodeVisitor)),
-		stmtnest(99)
+		stmtnest(99), token(0)
 	{
 	match(); // get first token
 	}
@@ -2263,7 +2263,7 @@ void FunctionCompiler::mark()
 	emit(I_NOP);
 	}
 
-#define TARGET(i)	(short) ((code[i+1] + (code[i+2] << 8)))
+#define TARGET(i)	(short) ((code[(i)+1] + (code[(i)+2] << 8)))
 
 void FunctionCompiler::patch(short i)
 	{
@@ -3789,6 +3789,7 @@ class test_compile2 : public Tests
 		compile("function () { x \n ? y : z }");
 		compile("function () { [1, x, a: y, b: 4] }");
 		compile("function () { if (A) B else C }");
+		compile("function (.x) { }");
 		}
 	};
 REGISTER(test_compile2);

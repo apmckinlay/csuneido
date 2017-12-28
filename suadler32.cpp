@@ -39,7 +39,7 @@ public:
 			};
 		return gsl::make_span(methods);
 		}
-	void update(const gcstring& gcstr);
+	void update(const gcstring& s);
 	ulong value;
 private:
 	Value Update(BuiltinArgs&);
