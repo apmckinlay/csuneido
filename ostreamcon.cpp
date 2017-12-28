@@ -44,8 +44,7 @@ private:
 	HANDLE con;
 	};
 
-OstreamCon::OstreamCon()
-	: imp(new OstreamConImp)
+OstreamCon::OstreamCon() : imp(new OstreamConImp)
 	{ }
 
 OstreamCon::~OstreamCon()

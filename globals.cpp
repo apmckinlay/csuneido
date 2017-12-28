@@ -89,7 +89,7 @@ Value Globals::operator[](ushort j)
 		except("can't find " << names[j]);
 	}
 
-// returns Value() if not found
+// returns the value of a global (number), else Value() if not found
 Value Globals::find(ushort j)
 	{
 	if (! data[j])
