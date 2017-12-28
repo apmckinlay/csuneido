@@ -87,9 +87,9 @@ private:
 	Value call_rule(ushort i, const char* why);
 
 	Header hdr;
-	SuTransaction* trans;
-	Mmoffset recadr;
-	enum { NEW, OLD, DELETED } status;
+	SuTransaction* trans = nullptr;
+	Mmoffset recadr = 0;
+	enum { NEW, OLD, DELETED } status = NEW;
 	List<Value> observers;
 	HashMap<ushort,Lisp<ushort> > dependents;
 	HashMap<ushort,bool> invalid;

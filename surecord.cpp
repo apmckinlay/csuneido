@@ -40,13 +40,12 @@
 #define RTRACE(stuff) TRACE(RECORDS, (void*) this << " " << stuff)  // NOLINT
 
 SuRecord::SuRecord()
-	: trans(nullptr), recadr(0), status(NEW)
 	{
 	defval = SuString::empty_string;
 	}
 
 SuRecord::SuRecord(const SuRecord& rec)
-	: SuObject(rec), trans(nullptr), recadr(0), status(rec.status),
+	: SuObject(rec), status(rec.status),
 	dependents(rec.dependents),
 	invalid(rec.invalid), invalidated(rec.invalidated.copy())
 	// note: only have to copy() lists that are appended to
