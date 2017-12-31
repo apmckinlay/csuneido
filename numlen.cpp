@@ -20,7 +20,10 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <ctype.h>
+static bool isdigit(char c)
+	{
+	return '0' <= c && c <= '9';
+	}
 
 // does NOT handle hex
 int numlen(const char* s)

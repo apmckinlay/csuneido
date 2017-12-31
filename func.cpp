@@ -24,7 +24,7 @@
 #include "interp.h"
 #include "symbols.h"
 #include "suclass.h"
-#include <cstdarg>
+#include "suobject.h"
 #include <cctype>
 #include "ostreamstr.h"
 #include "sustring.h"
@@ -212,48 +212,6 @@ void Func::out(Ostream& out) const
 		out << "method */";
 	else
 		out << "function */";
-/*
-	short j = 0;
-	for (short i = 0; i < nparams; ++i)
-		{
-		if (i != 0)
-			out << ",";
-		if (i == nparams - rest)
-			out << "@";
-		out << names(locals[i]);
-		if (i >= nparams - ndefaults - rest && i < nparams - rest)
-			out << "=" << literals[j++];
-		}
-	out << ")";
-*/
-	}
-
-Primitive::Primitive(PrimFn f, ...)
-   	{
-	pfn = f;
-	ndefaults = 0;
-	rest = false;
-	literals = 0;
-
-	va_list ap;
-	va_start(ap, f);
-	const int maxparams = 20;
-	short tmp[maxparams];
-	char* s;
-	for (nparams = 0; 0 != (s = va_arg(ap, char*)); ++nparams)
-		{
-		verify(nparams < maxparams);
-		verify(! rest);
-		if (*s == '@')
-			{
-			rest = true;
-			++s;
-			}
-		tmp[nparams] = ::symnum(s);
-		}
-	va_end(ap);
-	locals = new ushort[nparams];
-	memcpy(locals, tmp, nparams * sizeof (ushort));
 	}
 
 #include "globals.h"

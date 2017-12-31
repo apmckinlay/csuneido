@@ -22,7 +22,7 @@
 
 #include "scanner.h"
 #include "sunumber.h"
-#include <ctype.h>
+#include <cctype>
 #include <algorithm>
 #include "except.h"
 #include "opcodes.h"
@@ -53,7 +53,7 @@ inline char cclass(char c)
 	return cclass_[static_cast<unsigned char>(c)];
 	}
 
-bool iswhite(const char* s)
+static bool nonWhiteRemaining(const char* s)
 	{
 	while (cclass(*s) == WHITE)
 		++s;
@@ -304,8 +304,9 @@ int Scanner::nextall()
 				{
 				len = numlen(source + si);
 				verify(len > 0);
-				if (source[si + len - 1] == '.' && iswhite(source + si + len))
-					--len;
+				if (source[si + len - 1] == '.' &&
+					nonWhiteRemaining(source + si + len))
+					--len; // don't absorb trailing period
 				buf.add(source + si, len);
 				si += len;
 				}

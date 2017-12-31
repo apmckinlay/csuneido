@@ -40,7 +40,7 @@
 #include "random.h"
 #include "dbms.h"
 #include "construct.h"
-#include <time.h> // for time for srand
+#include <ctime> // for time for srand
 #include "type.h"
 #include "prim.h"
 #include "fatal.h"
@@ -349,18 +349,6 @@ Value su_cmdline()
 	return new SuString(cmdline);
 	}
 PRIM(su_cmdline, "Cmdline()");
-
-Value make_class()
-	{
-	const int nargs = 2;
-	SuObject* ob = ARG(0).object();
-	short base = globals(ARG(1).str());
-	SuClass *c = new SuClass(base);
-	c->set_members(ob);
-	c->set_readonly();
-	return c;
-	}
-PRIM(make_class, "Class(object, class='Object')");
 
 Value su_random()
 	{

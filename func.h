@@ -65,7 +65,6 @@ typedef Value (*PrimFn)();
 class Primitive : public BuiltinFunc
 	{
 public:
-	explicit Primitive(PrimFn f, ...);
 	Primitive(const char* decl, PrimFn f);
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;

@@ -31,19 +31,21 @@ char* callStackString();
 Ostream& osexcept();
 
 #define except(msg) \
-	((osexcept() << msg), except_())
+	((osexcept() << msg), except_())  // NOLINT
 
 #define except_err(msg) \
-	((osexcept() << msg), except_err_())
+	((osexcept() << msg), except_err_())  // NOLINT
 
 #define except_if(e, msg) \
 	((e) ? except(msg) : (void) 0)
 
+#define FILE__ (strrchr("\\" __FILE__, '\\') + 1)
+
 #define error(msg) \
-	except_err(__FILE__ << ':' << __LINE__ << ": ERROR:" << msg)
+	except_err(FILE__ << ':' << __LINE__ << ": ERROR: " << msg)  // NOLINT
 
 #define except_log_stack(msg) \
-	((osexcept() << msg), except_log_stack_())
+	((osexcept() << msg), except_log_stack_())  // NOLINT
 
 #define verify(e) \
 	((e) ? (void) 0 : error("assert failed: " << #e))
