@@ -348,7 +348,7 @@ Value TriOp::eval(const Header& hdr, const Row& row)
 
 Expr* Query::make_in(Expr* expr, const Lisp<Value>& values)
 	{
-	return new In(expr, values);
+	return new In(expr, lispset(values));
 	}
 
 In::In(Expr* e, const Lisp<Value>& v) : expr(e), values(v), isterm(false)
