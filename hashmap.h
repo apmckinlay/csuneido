@@ -36,7 +36,7 @@ private:
 		Slot(const Key& k, const Val& v) : key(k), val(v)
 			{ }
 		bool operator==(const Slot& slot) const
-			{ return key == slot.key && val == slot.val; }
+			{ return Keq()(key, slot.key) && val == slot.val; }
 		Key key;
 		Val val;
 		};
