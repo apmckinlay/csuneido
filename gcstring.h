@@ -122,8 +122,8 @@ private:
 	void flatten() const;
 	static void copy(char* s, const gcstring* p);
 	friend class SuBuffer;
-	char* buf()
-		{ ckflat(); return (char*)p; }
+	char* buf() const
+		{ ckflat(); return const_cast<char*>(p); }
 	};
 
 inline bool operator==(const gcstring& x, const gcstring& y)
@@ -172,6 +172,6 @@ template <> struct HashFn<gcstring>
 	};
 
 bool has_prefix(const char* s, const char* pre);
-bool has_suffix(const char* s, const char* pre);
+bool has_suffix(const char* s, const char* suf);
 
 char* salloc(int n);
