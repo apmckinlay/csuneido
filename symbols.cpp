@@ -28,7 +28,17 @@
 #include "itostr.h"
 #include "trace.h"
 
-// unique strings used for member names
+/*
+ * Symbols are shared unique strings used primarily for member names.
+ * Symbols are represented by short (16 bit) integers, with the high bit set
+ * which means there is a limit of 32k symbols.
+ * The strings themselves are stored in a private PermanentHeap (names).
+ * SuSymbol inherits from SuString.
+ * SySymbol overrides eq to take advantage of uniqueness for performance.
+ * The SuSymbol's are stored in another private PermanentHeap (symbols).
+ * The index of the SuSymbol in the symbols array is its symbol number.
+ */
+
 class SuSymbol : public SuString
 	{
 public:
@@ -58,7 +68,10 @@ int SuSymbol::symnum() const
 
 bool SuSymbol::eq(const SuValue& y) const
 	{
-	return symbols.contains(&y) ? this == &y : SuString::eq(y);
+	if (this == &y)
+		return true;
+	return symbols.contains(this) && symbols.contains(&y) 
+		? false : SuString::eq(y);
 	}
 
 extern bool obout_inkey;
