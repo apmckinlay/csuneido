@@ -1224,19 +1224,6 @@ typedef SuObject::Vector Vec;
 
 typedef SuObject::Map Map;
 
-static bool mapeq(const Map& m1, const Map& m2)
-	{
-	if (m1.size() != m2.size())
-		return false;
-	for (Map::const_iterator it = m1.begin(); it != m2.end(); ++it)
-		{
-		Value* pv = m2.find(it->key);
-		if (! pv || *pv != it->val)
-			return false;
-		}
-	return true;
-	};
-
 bool SuObject::operator==(const SuObject& ob) const
 	{
 	if (this == &ob)
@@ -1244,7 +1231,7 @@ bool SuObject::operator==(const SuObject& ob) const
 	if (EqNest::has(this, &ob))
 		return true;
 	EqNest eqnest(this, &ob);
-	return myclass == ob.myclass && vec == ob.vec && mapeq(map, ob.map);
+	return myclass == ob.myclass && vec == ob.vec && map == ob.map;
 	}
 
 void SuObject::set_members(SuObject* ob)
