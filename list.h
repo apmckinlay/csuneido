@@ -27,6 +27,7 @@
 
 /*
  * Simple list template similar to std::vector.
+ * Uses short for size (for compactness) so limit is 32k elements.
  * Intended for garbage collection so no destructor handling.
  * Unlike vector, assignment and copy constructor do NOT copy.
  * Instead they set both source and target to readonly and share data.
@@ -43,8 +44,7 @@ public:
 
 	List(const List& other) : data(other.data), cap(other.cap), siz(other.siz)
 		{
-		if (data)
-			readonly = other.readonly = true;
+		sharewith(other);
 		}
 	List(List&& other) : data(other.data), cap(other.cap), siz(other.siz)
 		{
@@ -64,8 +64,7 @@ public:
 			data = other.data;
 			siz = other.siz;
 			cap = other.cap;
-			if (data)
-				readonly = other.readonly = true;
+			sharewith(other);
 			}
 		return *this;
 		}
@@ -92,7 +91,7 @@ public:
 				return true;
 		return false;
 		}
-	// same elements in same order
+	// same elements in same order, SLOW O(N)
 	bool operator==(const List<T>& other) const
 		{
 		if (this == &other)
@@ -106,7 +105,7 @@ public:
 
 	List& add(const T& x)
 		{
-		verify(!readonly);
+		verify(!readonly());
 		if (siz >= cap)
 			grow();
 		construct(&data[siz++], x);
@@ -118,21 +117,25 @@ public:
 	// removes the last element
 	void pop()
 		{
+		verify(!readonly());
 		verify(siz > 0);
 		--siz;
 		memset(data + siz, 0, sizeof (T)); // for garbage collection
 		}
+	// SLOW O(N)
 	T popfront()
 		{
+		verify(!readonly());
 		verify(siz > 0);
 		auto x = data[0];
 		shift(data);
 		return x;
 		}
 
-	// removes the first occurrence of a value
+	// removes the first occurrence of a value, SLOW O(N)
 	bool erase(const T& x)
 		{
+		verify(!readonly());
 		for (auto p = data, end = data + siz; p < end; ++p)
 			if (*p == x)
 				{
@@ -144,7 +147,7 @@ public:
 	// Makes it empty but keeps the current capacity
 	List& clear()
 		{
-		verify(!readonly);
+		verify(!readonly());
 		siz = 0;
 		memset(data, 0, cap * sizeof(T)); // help garbage collection
 		return *this;
@@ -154,7 +157,6 @@ public:
 		{
 		data = nullptr;
 		cap = siz = 0;
-		readonly = false;
 		return *this;
 		}
 
@@ -192,6 +194,7 @@ public:
 private:
 	void grow()
 		{
+		verify(0 <= cap && 2 * (int)cap <= SHRT_MAX);
 		cap = (cap == 0) ? 8 : 2 * cap;
 		T* d = static_cast<T*>(::operator new (sizeof(T) * cap));
 		memcpy(d, data, sizeof(T) * siz);
@@ -205,12 +208,27 @@ private:
 		memset(end - 1, 0, sizeof(T)); // for garbage collection
 		--siz;
 		}
+	void make_readonly() const
+		{
+		if (cap > 0)
+			cap = -cap;
+		}
+	void sharewith(const List& other) const
+		{
+		if (!data)
+			return;
+		make_readonly();
+		other.make_readonly();
+		}
+	bool readonly()
+		{ return cap < 0; }
 
 	T* data = nullptr;
-	int cap = 0; // size of data
-	int siz = 0; // current number of elements
-	mutable bool readonly = false;
+	mutable short cap = 0; // capacity of data, negative if readonly so mutable
+	short siz = 0; // current number of elements
 	};
+
+static_assert(sizeof(List<int>) == 8);
 
 /* ==================================================================
  * Simple set based on List.
@@ -241,8 +259,10 @@ public:
 		{ return list.size(); }
 	bool empty()
 		{ return list.empty(); }
+	// SLOW O(N)
 	bool has(const T& x)
 		{ return list.has(x); }
+	// SLOW O(N)
 	ListSet& add(const T& x)
 		{
 		if (!has(x))
