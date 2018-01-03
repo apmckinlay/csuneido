@@ -38,6 +38,7 @@ public:
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	bool eq(const SuValue& x) const override;
 	size_t hashfn() const override;
+	const Named* get_named() const override;
 
 	SuFunction* fn() const
 		{ return sufn; }

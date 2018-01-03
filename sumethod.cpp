@@ -26,19 +26,10 @@
 
 void SuMethod::out(Ostream& os) const
 	{
-	//os << "OBJECT: " << object << endl;
-	//os << "METHOD: " << method << endl;
-	//os << "SUFN: " << sufn->named.info() << endl;
-	if (sufn)
-		{
-		if (sufn->named.lib != "" || sufn->named.parent)
-			os << sufn;
-		else
-			os << "/* method " << sufn->named.name() << " */";
-		}
+	if (sufn->named.lib != "" || sufn->named.parent)
+		os << sufn;
 	else
-		os << "/* method */";
-//	os << method;
+		os << "/* method " << sufn->named.name() << " */";
 	}
 
 bool SuMethod::eq(const SuValue& y) const
@@ -55,11 +46,17 @@ size_t SuMethod::hashfn() const
 	return size_t(object.ptr()) ^ method.hash();
 	}
 
+const Named* SuMethod::get_named() const
+	{
+	return sufn->get_named();
+	}
+
 Value SuMethod::call(Value self, Value member, 
 	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member == CALL)
 		return object.call(object, method, nargs, nargnames, argnames, each);
 	else
+		// pass other methods e.g. Params through to the function
 		return sufn->call(sufn, member, nargs, nargnames, argnames, each);
 	}
