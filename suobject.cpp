@@ -817,7 +817,7 @@ Value SuObject::Delete(short nargs, short nargnames, ushort* argnames, int each)
 	if (nargs == 1 && nargnames == 1 && argnames[0] == all)
 		{
 		if (TOP() == SuTrue)
-			clear();
+			deleteAll();
 		}
 	else if (nargs > 0 && nargnames == 0)
 		{
@@ -829,7 +829,7 @@ Value SuObject::Delete(short nargs, short nargnames, ushort* argnames, int each)
 	return this;
 	}
 
-void SuObject::clear()
+void SuObject::deleteAll()
 	{
 	ModificationCheck mc(this);
 	std::fill(vec.begin(), vec.end(), Value());

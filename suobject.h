@@ -160,7 +160,7 @@ private:
 	Value Find(short nargs, short nargnames, ushort* argnames, int each);
 	Value Erase(short nargs, short nargnames, ushort* argnames, int each);
 	Value Delete(short nargs, short nargnames, ushort* argnames, int each);
-	void clear();
+	void deleteAll();
 	Value Add(short nargs, short nargnames, ushort* argnames, int each);
 	Value Reverse(short nargs, short nargnames, ushort* argnames, int each);
 	Value Join(short nargs, short nargnames, ushort* argnames, int each);
