@@ -54,7 +54,7 @@ SuRecord::SuRecord(const SuRecord& rec)
 	}
 
 SuRecord::SuRecord(const Row& r, const Header& h, int t)
-	: hdr(h), trans(t <= 0 ? nullptr : new SuTransaction(t)), 
+	: hdr(h), trans(t <= 0 ? nullptr : new SuTransaction(t)),
 	recadr(r.recadr), status(OLD)
 	{
 	init(r);
@@ -203,7 +203,7 @@ void SuRecord::out(Ostream& os) const
 		SuObject::outdelims(os, "[]");
 	}
 
-Value SuRecord::call(Value self, Value member, 
+Value SuRecord::call(Value self, Value member,
 	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	static Value Clear("Clear");
@@ -426,8 +426,11 @@ void SuRecord::call_observers(ushort i, const char* why)
 	{
 	call_observer(i, why);
 	while (!invalidated.empty())
-		if (auto x = invalidated.popfront();  x != i)
+		{
+		auto x = invalidated.popfront();
+		if (x != i)
 			call_observer(x, "invalidate");
+		}
 	}
 
 void SuRecord::invalidate_dependents(ushort mem)
