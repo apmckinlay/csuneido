@@ -203,5 +203,10 @@ class test_value : public Tests
 
 		asserteq(x = mid * mid, Value(30000 * 30000)); // overflow
 		}
+	TEST(1, smallint)
+		{
+		Value x(0x1234);
+		asserteq((int) x.p, 0xffff1234);
+		}
 	};
 REGISTER(test_value);

@@ -154,6 +154,7 @@ private:
 			short type; // NOTE: should be high word
 			} im;
 		};
+	friend class test_value;
 	};
 
 template <class T> inline T val_cast(Value v)
