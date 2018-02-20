@@ -148,42 +148,46 @@ gcstring gcstring::trim() const
 	return substr(i, j - i + 1);
 	}
 
-int gcstring::find(char c, size_t pos) const
+int gcstring::find(char c, int pos) const
 	{
-	if (pos >= size())
-		return -1;
 	ckflat();
+	if (pos >= n)
+		return -1;
+	if (pos < 0)
+		pos = 0;
 	char* q = (char*) memchr(p + pos, c, n - pos);
 	return q ? q - p : -1;
 	}
 
-int gcstring::find(const gcstring& x, size_t pos) const
+int gcstring::find(const gcstring& x, int pos) const
 	{
 	ckflat();
 	x.ckflat();
 	int lim = n - x.n;
-	for (int i = max(pos, 0u); i <= lim; ++i)
+	for (int i = max(0, pos); i <= lim; ++i)
 		if (0 == memcmp(p + i, x.p, x.n))
 			return i;
 	return -1;
 	}
 
-int gcstring::findlast(const gcstring& x, size_t pos) const
+int gcstring::findlast(const gcstring& x, int pos) const
 	{
 	if (x.size() > size())
 		return -1;
 	ckflat();
 	x.ckflat();
-	for (int i = min(pos, (size_t) n - x.n); i >= 0; --i)
+	for (int i = min(pos, n - x.n); i >= 0; --i)
 		if (0 == memcmp(p + i, x.p, x.n))
 			return i;
 	return -1;
 	}
 
-bool gcstring::has_prefix(const gcstring& x, size_t pos) const
+bool gcstring::has_prefix(const gcstring& x, int pos) const
 	{
 	if (pos + x.size() > size())
 		return false;
+	if (pos < 0)
+		pos = 0;
 	ckflat();
 	x.ckflat();
 	return 0 == memcmp(p + pos, x.p, x.n);
@@ -393,3 +397,15 @@ class test_gcstring : public Tests
 		}
 	};
 REGISTER(test_gcstring);
+
+class test_gcstring2 : public Tests
+	{
+	TEST(1, find)
+		{
+		gcstring s = "abcd";
+		gcstring t = "b";
+		int pos = -99;
+		asserteq(s.find(t, pos), 1);
+		}
+	};
+REGISTER(test_gcstring2);

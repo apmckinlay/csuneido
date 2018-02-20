@@ -75,10 +75,10 @@ public:
 	gcstring& operator+=(const char* s)
 		{ return *this += gcstring(strlen(s), s); }
 
-	int find(char c, size_t pos = 0) const;
-	int find(const gcstring& x, size_t pos = 0) const;
-	int findlast(const gcstring& x, size_t pos = 0) const;
-	int find(const char* s, size_t pos = 0) const
+	int find(char c, int pos = 0) const;
+	int find(const gcstring& x, int pos = 0) const;
+	int findlast(const gcstring& x, int pos = 0) const;
+	int find(const char* s, int pos = 0) const
 		{ return find(gcstring(strlen(s), s), pos); }
 	bool has(const char* s) const
 		{ return -1 != find(s); }
@@ -88,7 +88,7 @@ public:
 	gcstring substr(size_t i, int len = -1) const;
 	gcstring trim() const;
 
-	bool has_prefix(const gcstring& s, size_t pos = 0) const;
+	bool has_prefix(const gcstring& s, int pos = 0) const;
 	bool has_suffix(const gcstring& s) const;
 
 	gcstring to_heap();
