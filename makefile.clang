@@ -33,7 +33,11 @@ SOURCES := $(subst sunapp.cpp ,,$(SOURCES)) # ostreamstd.cpp
 OBJECTS = $(patsubst %.c,$(OUTPUT)/%.o,$(subst .cpp,.c,$(SOURCES)))
 DEPENDS = $(subst .o,.d,$(OBJECTS))
 
+.PHONY : all
 all : $(OUTPUT)/suneido.exe
+
+.PHONY : compile
+compile : $(OBJECTS)
 
 $(OUTPUT)/suneido.exe : $(OBJECTS) gc_$(OUTPUT).a $(OUTPUT)/res.o
 	@$(CXX) $(FLAGS) -c -o $(OUTPUT)/build.o build.cpp
