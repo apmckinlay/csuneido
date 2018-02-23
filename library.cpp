@@ -272,7 +272,6 @@ Lisp<gcstring> libgetall(const char* name)
 		if (! iter.eof())
 			{
 			Record rec(iter.data());
-			gcstring compiled;
 			srcs.push(rec.getraw(text_fld).to_heap());
 			srcs.push(*libs);
 			}
