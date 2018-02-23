@@ -694,7 +694,7 @@ Value QueryParser::constant()
 			{ x = SuTrue; match(); break ; }
 		else if (scanner.keyword == K_FALSE)
 			{ x = SuFalse; match(); break ; }
-		// else fall thru to syntax_error
+		FALLTHROUGH
 	default :
 		syntax_error();
 		}

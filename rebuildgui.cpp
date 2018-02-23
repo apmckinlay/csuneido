@@ -87,7 +87,7 @@ static bool rebuild()
 	case DBR_OK :
 		if (cmdlineoptions.check_start)
 			return true;
-		// else fall through to rebuild
+		FALLTHROUGH
 	case DBR_ERROR :
 		dbr->rebuild();
 		delete dbr;

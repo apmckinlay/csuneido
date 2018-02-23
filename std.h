@@ -48,7 +48,7 @@ template<class T> struct Closer
 
 char* dupstr(const char* s);
 
-#ifdef __GNUC__
+#if __GNUC__ < 7
 #define FALLTHROUGH
 #else
 #define FALLTHROUGH [[fallthrough]];
