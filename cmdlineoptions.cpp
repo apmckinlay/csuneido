@@ -76,6 +76,9 @@ const char* CmdLineOptions::parse(const char* str)
 			if (nullptr == (argstr = get_word()))
 				argstr = "127.0.0.1";
 			break ;
+		case REPL :
+			action = REPL;
+			break;
 		case INSTALL_SERVICE :
 			install = s;
 			break ;
@@ -180,6 +183,7 @@ static struct { const char* str; int num; } options[] = {
 	{ "-client", CLIENT }, { "-c", CLIENT },
 	{ "-eh", NO_EXCEPTION_HANDLING }, { "-exceptionhandling", NO_EXCEPTION_HANDLING },
 	{ "-gc", NO_GARBAGE_COLLECTION }, { "-garbagecollection", NO_GARBAGE_COLLECTION },
+	{ "-repl", REPL },
 	{ "-rebuild", REBUILD }, { "-r", REBUILD },
 	{ "-timeout", TIMEOUT }, { "-to", TIMEOUT },
 	{ "-tests", TESTS },

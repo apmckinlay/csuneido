@@ -52,6 +52,7 @@
 #include "build.h"
 
 #include "suservice.h"
+#include <fcntl.h>
 
 static_assert(sizeof(int64) == 8, "long long must be 64 bits / 8 bytes");
 static_assert(sizeof(time_t) == 4, "time_t must be 32 bits / 4 bytes");
@@ -61,6 +62,7 @@ void builtins();
 static void init(HINSTANCE hInstance, LPSTR lpszCmdLine);
 static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine);
 static void logPreviousErrors();
+static void repl();
 
 const char* cmdline = "";
 
@@ -186,6 +188,9 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		logPreviousErrors();
 		break ;
 		}
+	case REPL :
+		repl();
+		exit(EXIT_SUCCESS);
 	case COMPACT :
 		compact();
 		exit(EXIT_SUCCESS);
@@ -331,4 +336,65 @@ bool getSystemOption(const char* option, bool def_value)
 		if (Value val = suneido->get(option))
 			return (val == SuTrue) ? true : (val == SuFalse) ? false : def_value;
 	return def_value;
+	}
+
+#include <io.h>
+#include "ostreamcon.h"
+#include "func.h"
+
+static ULONG_PTR GetParentProcessId()
+	{
+	ULONG_PTR pbi[6];
+	ULONG ulSize = 0;
+	LONG(WINAPI *NtQueryInformationProcess)(HANDLE ProcessHandle, ULONG ProcessInformationClass,
+		PVOID ProcessInformation, ULONG ProcessInformationLength, PULONG ReturnLength);
+	*(FARPROC *)&NtQueryInformationProcess =
+		GetProcAddress(LoadLibraryA("NTDLL.DLL"), "NtQueryInformationProcess");
+	if (NtQueryInformationProcess) {
+		if (NtQueryInformationProcess(GetCurrentProcess(), 0,
+			&pbi, sizeof(pbi), &ulSize) >= 0 && ulSize == sizeof(pbi))
+			return pbi[5];
+		}
+	return (ULONG_PTR)-1;
+	}
+
+static Value print()
+	{
+	const int nargs = 1;
+	con() << ARG(0).gcstr();
+	return Value();
+	}
+
+static void repl()
+	{
+	auto pid = GetParentProcessId();
+	AttachConsole(pid); // need to use start/w
+	static OstreamCon con;
+	globals["Suneido"].putdata("Print",
+		new Primitive("PrintCon(string)", print));
+	HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
+	con << "Built:  " << build << endl;
+	run("Init.Repl()");
+	int fd = _open_osfhandle(reinterpret_cast<intptr_t>(in), _O_TEXT);
+	FILE* fin = _fdopen(fd, "r");
+	verify(fin);
+	char buf[1024];
+	con << "> ";
+	while (fgets(buf, sizeof buf, fin))
+		{
+		if (buf[0] == 'q' && buf[1] == '\n')
+			break;
+		try
+			{
+			Value x = run(buf);		
+			if (x)
+				con << x << endl;
+			}
+		catch (Except& e)
+			{
+			con << e << endl;
+			con << e.callstack() << endl;
+			}
+		con << "> ";
+		}
 	}

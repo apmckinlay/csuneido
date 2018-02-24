@@ -21,7 +21,7 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-enum { NONE = 0, DUMP, LOAD, SERVER, CLIENT, COMPACT,
+enum { NONE = 0, DUMP, LOAD, SERVER, CLIENT, REPL, COMPACT,
 	CHECK, REBUILD, DBDUMP, COPY, TEST, TESTS, HELP, VERSION,
 	UNINSTALL_SERVICE, AFTER_ACTIONS };
 
