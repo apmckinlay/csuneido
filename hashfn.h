@@ -22,7 +22,6 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "std.h"
-#include <stddef.h> // for size_t
 
 // function object template for hash functions
 template <class Key> struct HashFn
