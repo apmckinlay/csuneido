@@ -22,63 +22,43 @@
 
 #include "hashfn.h"
 
-// TODO: check if it would be better to inline than unwind
+// FNV1a see: 
+// https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
 
 size_t hashfn(const char* s)
 	{
-	// this is a version of hashpjw / elfhash
-	// WARNING: assumes size_t is 32 bits
-	// unwind the code to the point where the 32 bits are filled up
-	size_t result = *s++;
-	if (! *s)
-		return result;
-	result = (result << 4) + *s++;
-	if (! *s)
-		return result;
-	result = (result << 4) + *s++;
-	if (! *s)
-		return result;
-	result = (result << 4) + *s++;
-	if (! *s)
-		return result;
-	result = (result << 4) + *s++;
-	if (! *s)
-		return result;
-	result = (result << 4) + *s++;
-	if (! *s)
-		return result;
-	// handle any remaining characters
+	size_t hash = 2166136261;
 	for (; *s; ++s)
-		result = (((result << 4) + *s) ^ (result >> 24)) & 0xfffffff;
-	return result;
+		{
+		hash = hash ^ *s;
+		hash = hash * 16777619;
+		}
+	return hash;
 	}
 
 size_t hashfn(const char* s, int n)
 	{
-	// WARNING: assumes size_t is 32 bits
-	// unwind the code to the point where the 32 bits are filled up
-	if (n <= 0)
-		return 0;
-	size_t result = *s++;
-	if (! --n)
-		return result;
-	result = (result << 4) + *s++;
-	if (! --n)
-		return result;
-	result = (result << 4) + *s++;
-	if (! --n)
-		return result;
-	result = (result << 4) + *s++;
-	if (! --n)
-		return result;
-	result = (result << 4) + *s++;
-	if (! --n)
-		return result;
-	result = (result << 4) + *s++;
-	if (! --n)
-		return result;
-	// handle any remaining characters
-	for (; n; ++s, --n)
-		result = (((result << 4) + *s) ^ (result >> 24)) & 0xfffffff;
-	return result;
+	size_t hash = 2166136261;
+	for (auto end = s + n; s < end; ++s)
+		{
+		hash = hash ^ *s;
+		hash = hash * 16777619;
+		}
+	return hash;
 	}
+
+#include "testing.h"
+
+class test_hashfn : public Tests
+	{
+	TEST(0, string)
+		{
+		auto s = "one";
+		auto h = hashfn(s);
+		// both are equivalent
+		asserteq(h, hashfn(s, strlen(s)));
+		// order dependent
+		assert_neq(h, hashfn("eno"));
+		}
+	};
+REGISTER(test_hashfn);
