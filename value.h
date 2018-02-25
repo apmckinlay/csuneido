@@ -43,7 +43,8 @@ class Ostream;
 /*
  * Value is a "value" type that either directly contains a short integer
  * or else wraps an SuValue* which handles polymorphism.
- * Assumes there are no valid pointer with a high short of 0xffff
+ * Assumes there are no valid pointer with a low short of 0xffff
+ * which should be safe since alignment should be at least even.
  */
 class Value
 	{
@@ -150,8 +151,8 @@ private:
 		SuValue* p;
 		struct
 			{
+			short type; // NOTE: should be low word
 			short n;
-			short type; // NOTE: should be high word
 			} im;
 		};
 	friend class test_value;

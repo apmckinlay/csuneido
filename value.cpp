@@ -206,7 +206,7 @@ class test_value : public Tests
 	TEST(1, smallint)
 		{
 		Value x(0x1234);
-		asserteq((int) x.p, 0xffff1234);
+		asserteq((int)x.p, 0x1234ffff);
 		}
 	};
 REGISTER(test_value);
