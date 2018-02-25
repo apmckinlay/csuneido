@@ -26,14 +26,14 @@
 #include <iterator>
 
 /*
- * Simple list template similar to std::vector.
- * Uses short for size (for compactness) so limit is 32k elements.
- * Intended for garbage collection so no destructor handling.
- * Unlike vector, assignment and copy constructor do NOT copy.
- * Instead they set both source and target to readonly and share data.
- * Move assignment and copy constructor do not set readonly.
- * Throws exception for readonly violation.
- * Keeps elements in added order wherever reasonable.
+Simple list template similar to std::vector.
+Uses int16_t for size (for compactness) so limit is 32k elements.
+Intended for garbage collection so no destructor handling.
+Unlike vector, assignment and copy constructor do NOT copy.
+Instead they set both source and target to readonly and share data.
+Move assignment and copy constructor do not set readonly.
+Throws exception for readonly violation.
+Keeps elements in added order wherever reasonable.
  */
 template <typename T>
 class List
@@ -46,6 +46,7 @@ public:
 		{
 		sharewith(other);
 		}
+	// move constructor
 	List(List&& other) : data(other.data), cap(other.cap), siz(other.siz)
 		{
 		other.reset();
@@ -56,6 +57,8 @@ public:
 		data = static_cast<T*>(::operator new (sizeof(T) * cap));
 		memcpy(data, init.begin(), sizeof(T) * siz);
 		}
+	List(T* arr, int n) : data(arr), cap(n), siz(n)
+		{ make_readonly(); }
 
 	List& operator=(const List& other) 
 		{
@@ -135,7 +138,6 @@ public:
 	// removes the first occurrence of a value, SLOW O(N)
 	bool erase(const T& x)
 		{
-		verify(!readonly());
 		for (auto p = data, end = data + siz; p < end; ++p)
 			if (*p == x)
 				{
@@ -143,6 +145,12 @@ public:
 				return true;
 				}
 		return false;
+		}
+	// delete the element at a given index, shifting the following, SLOW O(N)
+	void remove(int i)
+		{
+		verify(0 <= i && i < siz);
+		shift(data + i);
 		}
 	// Makes it empty but keeps the current capacity
 	List& clear()
@@ -155,6 +163,8 @@ public:
 	// Resets capacity to zero, releases array
 	List& reset()
 		{
+		if (!readonly()) // if readonly then could be shared
+			memset(data, 0, cap * sizeof(T)); // help garbage collection
 		data = nullptr;
 		cap = siz = 0;
 		return *this;
@@ -181,6 +191,11 @@ public:
 		verify(0 <= i && i < siz);
 		return data[i];
 		}
+	T& back()
+		{
+		verify(siz > 0);
+		return data[siz - 1];
+		}
 
 	auto begin()
 		{ return gsl::make_span(data, data + siz).begin(); }
@@ -202,6 +217,7 @@ private:
 		}
 	void shift(T* p)
 		{
+		verify(!readonly());
 		auto end = data + siz;
 		if (p + 1 < end)
 			memcpy(p, p + 1, (end - p - 1) * sizeof(T));
@@ -224,16 +240,16 @@ private:
 		{ return cap < 0; }
 
 	T* data = nullptr;
-	mutable short cap = 0; // capacity of data, negative if readonly so mutable
-	short siz = 0; // current number of elements
+	mutable int16_t cap = 0; // capacity of data, negative if readonly so mutable
+	int16_t siz = 0; // current number of elements
 	};
 
 static_assert(sizeof(List<int>) == 8);
 
-/* ==================================================================
- * Simple set based on List.
- * WARNING: Not for large sets - add() and has() are O(N)
- */
+// ------------------------------------------------------------------
+
+// Simple set based on List.
+// WARNING: Not for large sets - add() and has() are O(N)
 template <typename T>
 class ListSet
 	{
