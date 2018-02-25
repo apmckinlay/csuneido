@@ -22,7 +22,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "ostream.h"
-#include "string.h"
+#include <string.h> // for strrchr
 
 [[noreturn]] void except_();
 [[noreturn]] void except_err_();
