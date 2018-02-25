@@ -23,7 +23,7 @@
 #include "globals.h"
 #include "library.h"
 #include "std.h"
-#include "hashmap.h"
+#include "htbl.h"
 #include <vector>
 #include "permheap.h"
 #include "trace.h"
@@ -35,7 +35,7 @@ const int NAMES_SPACE = 1024 * 1024;
 
 #define MISSING	((SuValue*) 1)
 
-static HashMap<const char*, int> tbl(INITSIZE);
+static Hmap<const char*, ushort> tbl(INITSIZE);
 static std::vector<Value> data;
 static std::vector<char*> names;
 static PermanentHeap ph("global names", NAMES_SPACE);
@@ -68,7 +68,7 @@ void Globals::clear()
 
 ushort Globals::operator()(const char* s)
 	{
-	if (int* pi = tbl.find(s))
+	if (ushort* pi = tbl.find(s))
 		return *pi;
 	TRACE(GLOBALS, "+ " << s);
 	char* str = strcpy((char*) ph.alloc(strlen(s) + 1), s);
@@ -76,7 +76,7 @@ ushort Globals::operator()(const char* s)
 	names.push_back(str);
 	verify(data.size() <= USHRT_MAX);
 	data.push_back(Value());
-	tbl[str] = num;
+	tbl.put(str, num);
 	return num;
 	}
 

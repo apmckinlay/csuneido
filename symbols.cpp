@@ -23,7 +23,7 @@
 #include "symbols.h"
 #include "suvalue.h"
 #include "permheap.h"
-#include "hashtbl.h"
+#include "htbl.h"
 #include "sustring.h"
 #include "itostr.h"
 #include "trace.h"
@@ -53,13 +53,23 @@ static PermanentHeap symbols("symbol table", MAX_SYMBOLS * sizeof (SuSymbol));
 const int NAMES_SPACE = 512 * 1024;
 static PermanentHeap names("symbol names", NAMES_SPACE);
 
-struct kofv
+template<> struct HashFn<SuSymbol*>
 	{
-	const char* operator()(SuSymbol* sym) const
-		{ return sym->str(); }
+	size_t operator()(SuSymbol* k) const
+		{ return hashfn(k->str()); }
+	size_t operator()(const char* s) const
+		{ return hashfn(s); }
+	};
+template<> struct KeyEq<SuSymbol*>
+	{
+	bool operator()(const char* x, SuSymbol* y) const
+		{ return 0 == strcmp(x, y->str()); }
+	bool operator()(SuSymbol* x, SuSymbol* y) const
+		{ return 0 == strcmp(x->str(), y->str()); 	}
 	};
 
-static Hashtbl<const char*,SuSymbol*,kofv> symtbl;
+// The hash set of SuSymbol* used to map char* => SuSymbol
+static Hset<SuSymbol*> symtbl(3000); // enough to open IDE
 
 int SuSymbol::symnum() const
 	{
@@ -70,11 +80,9 @@ bool SuSymbol::eq(const SuValue& y) const
 	{
 	if (this == &y)
 		return true;
-	return symbols.contains(this) && symbols.contains(&y) 
+	return symbols.contains(this) && symbols.contains(&y)
 		? false : SuString::eq(y);
 	}
-
-extern bool obout_inkey;
 
 int symnum(const char* s)
 	{
@@ -122,7 +130,6 @@ const char* symstr(int i)
 	}
 
 #include "prim.h"
-
 #include "ostreamstr.h"
 
 Value su_syminfo()
@@ -155,14 +162,21 @@ class test_symbols : public Tests
 	{
 	TEST(0, main)
 		{
-		const char* syms[] = { "one", "two", "three", "four" };
-		const int n = sizeof (syms) / sizeof (char*);
+		const char* strs[] = { "one", "two", "three", "four" };
+		const int n = sizeof (strs) / sizeof (char*);
 		ushort nums[n];
-		int i;
-		for (i = 0; i < n; ++i)
-			nums[i] = symnum(syms[i]);
-		for (i = 0; i < n; ++i)
-			asserteq(symbol(nums[i]).gcstr(), syms[i]);
+		for (int i = 0; i < n; ++i)
+			nums[i] = symnum(strs[i]);
+
+		for (int i = 0; i < n; ++i)
+			{
+			assert_eq(nums[i], symnum(strs[i]));
+			verify(symbol_existing(strs[i]));
+			verify(0 == strcmp(strs[i], symstr(nums[i])));
+			Value sym = symbol(nums[i]);
+			asserteq(sym.gcstr(), strs[i]);
+			verify(sym.sameAs(symbol(strs[i])));
+			}
 		}
 	};
 REGISTER(test_symbols);

@@ -35,16 +35,17 @@
 #include "cmdlineoptions.h"
 #include "fatal.h"
 #include "trace.h"
+#include "htbl.h"
 
 // register builtins
 
-HashMap<int,Value> builtins;
+Hmap<int,Value> builtins;
 
 void builtin(int gnum, Value value)
 	{
 	if (builtins.find(gnum))
 		fatal("duplicate builtin:", globals(gnum));
-	builtins[gnum] = value;
+	builtins.put(gnum, value);
 	}
 
 // local libraries
@@ -64,7 +65,7 @@ Dbms* libdb()
 
 // LibraryOverride
 
-HashMap<gcstring,gcstring> override;
+Hmap<gcstring,gcstring> override;
 
 // load on demand - called by globals
 
@@ -207,7 +208,7 @@ Value libraryOverride()
 	else
 		{
 		TRACE(LIBRARIES, "LibraryOverride " << lib << ":" << name);
-		override[key] = text;
+		override.put(key, text);
 		}
 	globals.put(name.str(), Value());
 	return Value();
@@ -217,10 +218,9 @@ PRIM(libraryOverride, "LibraryOverride(lib, name, text = '')");
 Value libraryOverrideClear()
 	{
 	TRACE(LIBRARIES, "LibraryOverrideClear");
-	for (HashMap<gcstring,gcstring>::iterator iter = override.begin();
-			iter != override.end(); ++iter)
+	for (auto [key,val] : override)
 		{
-		gcstring key = iter->key;
+		(void)val;
 		int i = key.find(':');
 		gcstring name = key.substr(i + 1);
 		globals.put(name.str(), Value());
@@ -235,10 +235,10 @@ PRIM(libraryOverrideClear, "LibraryOverrideClear()");
 Value builtinNames()
 	{
 	SuObject* c = new SuObject();
-	for (HashMap<int,Value>::iterator iter = builtins.begin();
-			iter != builtins.end(); ++iter)
+	for (auto [key,val] : builtins)
 		{
-		char* name = globals(iter->key);
+		(void)val;
+		char* name = globals(key);
 		if (isupper(*name))
 			c->add(name);
 		}

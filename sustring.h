@@ -24,7 +24,6 @@
 #include "value.h"
 #include "suvalue.h"
 #include "gcstring.h"
-#include "hashmap.h"
 
 class SuNumber;
 
@@ -109,9 +108,6 @@ protected:
 	gcstring s;
 
 private:
-	typedef Value (SuString::*pmfn)(short, short, ushort*, int);
-	static HashMap<Value,pmfn> methods;
-
 	Value Alphaq(short nargs, short nargnames, ushort* argnames, int each);
 	Value AlphaNumq(short nargs, short nargnames, ushort* argnames, int each);
 	Value Asc(short nargs, short nargnames, ushort* argnames, int each);

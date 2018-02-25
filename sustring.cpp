@@ -38,6 +38,7 @@
 #include "func.h" // for argseach for call
 #include "scanner.h" // for doesc
 #include <algorithm>
+#include "htbl.h"
 using std::min;
 using std::max;
 
@@ -202,7 +203,9 @@ Value SuString::rangeLen(int i, int n)
 	return substr(f, n);
 	}
 
-HashMap<Value,SuString::pmfn> SuString::methods;
+typedef Value(SuString::*pmfn)(short, short, ushort*, int);
+
+Hmap<Value,pmfn> methods;
 
 #define METHOD(fn) methods[#fn] = &SuString::fn
 

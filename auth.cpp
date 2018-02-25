@@ -21,13 +21,13 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "auth.h"
-#include "hashmap.h"
+#include "htbl.h"
 #include "thedb.h"
 #include "database.h"
 #include <stdlib.h> // for srand and rand
 #include <time.h> // for time which is used to seed rand
 
-static HashMap<gcstring, bool> tokens;
+static Hset<gcstring> tokens;
 
 gcstring rndstr(int size)
 	{
@@ -51,7 +51,7 @@ gcstring Auth::nonce()
 gcstring Auth::token()
 	{
 	gcstring token = rndstr(TOKEN_SIZE);
-	tokens[token] = true;
+	tokens.insert(token);
 	return token;
 	}
 
@@ -97,3 +97,21 @@ bool Auth::auth(const gcstring& nonce, const gcstring& data)
 	{
 	return is_token(data) || is_user(nonce, data);
 	}
+
+#include "testing.h"
+
+class test_auth : public Tests
+	{
+	TEST(0, token)
+		{
+		gcstring t = Auth::token();
+		asserteq(Auth::TOKEN_SIZE, t.size());
+		gcstring t2 = Auth::token();
+		assert_neq(t, t2);
+		verify(is_token(t));
+		verify(!is_token(t));
+		verify(is_token(t2));
+		verify(!is_token(t2));
+		}
+	};
+REGISTER(test_auth);
