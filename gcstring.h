@@ -163,8 +163,6 @@ inline bool operator<(const char* x, const gcstring& y)
 
 Ostream& operator<<(Ostream& os, const gcstring& s);
 
-template <class T> struct HashFn;
-
 template <> struct HashFn<gcstring>
 	{
 	size_t operator()(const gcstring& s) const
