@@ -456,6 +456,9 @@
     <ClCompile Include="..\list.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\htbl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\suneido.rc">

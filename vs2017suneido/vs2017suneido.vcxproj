@@ -149,6 +149,7 @@
     <ClCompile Include="..\globals.cpp" />
     <ClCompile Include="..\hashfn.cpp" />
     <ClCompile Include="..\hashmap.cpp" />
+    <ClCompile Include="..\htbl.cpp" />
     <ClCompile Include="..\index.cpp" />
     <ClCompile Include="..\interp.cpp" />
     <ClCompile Include="..\istream.cpp" />

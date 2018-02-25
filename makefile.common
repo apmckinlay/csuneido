@@ -38,6 +38,7 @@ getnum.cpp \
 globals.cpp \
 hashfn.cpp \
 hashmap.cpp \
+htbl.cpp \
 index.cpp \
 interp.cpp \
 istream.cpp \
