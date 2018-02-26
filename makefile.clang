@@ -12,8 +12,8 @@ CC=clang
 CXX=clang++ -std=gnu++1z
 FLAGS += -DCOMPILER=Clang -Werror -Wall -Wextra -Wno-sign-compare -Wfloat-equal \
 	-Wno-char-subscripts  -Wno-narrowing -Wno-unknown-pragmas \
-	-Wuninitialized -Wno-unused-parameter \
-	-Wno-implicit-exception-spec-mismatch -Wno-deprecated-declarations -Xclang -flto-visibility-public-std \
+	-Wuninitialized -Wno-unused-parameter -Wno-deprecated-declarations \
+	-Wno-implicit-exception-spec-mismatch -Xclang -flto-visibility-public-std \
 	-D_USE_32BIT_TIME_T -D_WIN32_WINNT=0x0600 \
 	-DJOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE=0x2000 
 
