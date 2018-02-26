@@ -73,7 +73,7 @@ bool db_rebuild_gui()
 	else
 		{
 		InitCommonControls();
-		BOOL result = DialogBox((HINSTANCE) GetModuleHandle(NULL), "REBUILD", NULL, 
+		BOOL result = DialogBox((HINSTANCE) GetModuleHandle(NULL), "REBUILD", NULL,
 			(DLGPROC) rebuild_proc);
 		return result == TRUE;
 		}
