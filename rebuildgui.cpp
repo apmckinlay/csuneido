@@ -164,7 +164,7 @@ static BOOL CALLBACK check_proc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM)
 			EndDialog(hDlg, FALSE);
 			delete dbr;
 			return TRUE;
-		default: 
+		default:
 			;
 			}
 		FALLTHROUGH
@@ -230,7 +230,7 @@ static BOOL CALLBACK rebuild_proc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM)
 			EndDialog(hDlg, FALSE);
 			delete dbr;
 			return TRUE;
-		default: 
+		default:
 			;
 			}
 		FALLTHROUGH
