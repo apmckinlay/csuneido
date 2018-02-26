@@ -83,6 +83,7 @@ recover.cpp \
 regexp.cpp \
 row.cpp \
 scanner.cpp \
+serializer.cpp \
 servereval.cpp \
 sesviews.cpp \
 slots.cpp \
@@ -134,7 +135,6 @@ rebuildgui.cpp \
 richeditio.cpp \
 richeditole.c \
 runpiped.cpp \
-serializer.cpp \
 sockets.cpp \
 structure.cpp \
 sucomobject.cpp \
