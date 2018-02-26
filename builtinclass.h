@@ -65,8 +65,6 @@ private:
 template <class T> struct Method
 	{
 	typedef class Value (T::*MemFun)(BuiltinArgs&);
-	Method(const char* n, MemFun m) : name(n), method(m)
-		{ }
 	Value name;
 	MemFun method;
 	};
@@ -76,8 +74,6 @@ typedef Value (*StaticFun)(BuiltinArgs&);
 // static method array entries
 struct StaticMethod
 	{
-	StaticMethod(const char* n, StaticFun m) : name(n), method(m)
-		{ }
 	Value name;
 	StaticFun method;
 	};
