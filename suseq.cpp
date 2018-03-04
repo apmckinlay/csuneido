@@ -23,7 +23,6 @@
 #include "suseq.h"
 #include "suobject.h"
 #include "interp.h"
-#include "globals.h"
 #include "sustring.h"
 #include "ostreamstr.h"
 
@@ -74,12 +73,9 @@ Value SuSeq::call(Value self, Value member,
 			// for common usage: for m in ob.Members().Copy()
 			return copy(dup());
 			}
-
-		static ushort G_Objects = globals("Sequences");
-		if (Value Objects = globals.find(G_Objects))
-			if (SuObject* obs = Objects.ob_if_ob())
-				if (obs->hasMethod(member))
-					return obs->call(self, member, nargs, nargnames, argnames, each);
+		static UserDefinedMethods udm("Sequences");
+		if (Value c = udm(member))
+			return c.call(self, member, nargs, nargnames, argnames, each);
 		}
 	build();
 	return ob->call(self, member, nargs, nargnames, argnames, each);

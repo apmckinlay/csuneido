@@ -21,57 +21,45 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "suobject.h"
-#include "named.h"
-#include "globals.h"
+#include "membase.h"
 
+class SuObject;
 class Ostream;
 
-class Get2
-	{
-protected:
-	~Get2() = default;
-public:
-	virtual Value get2(Value self, Value member) = 0;
-	};
-
 // user defined classes
-class SuClass : public SuObject, public Get2
+class SuClass : public MemBase
 	{
 public:
 	NAMED
+	SuClass() : named("."), base(0)
+		{ }
 	explicit SuClass(short b) : named("."), base(b)
 		{ }
 	void out(Ostream&) const override;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort *argnames, int each) override;
 	Value getdata(Value) override;
-	Value get2(Value self, Value member) override;
-	bool eq(const SuValue& x) const override;
+	bool eq(const SuValue& x) const override
+		{ return this == &x; }
+	size_t hashcontrib() const override;
 
+	bool hasMethod(Value mem)
+		{ return !!method_class(mem); }
+protected:
+	virtual Value get(Value m) const; // overridden by SuSocketServer
 private:
+	void put(Value m, Value x); // used by compile
+	Value get2(Value self, Value member);
 	Value get3(Value member);
+	Value mbclass() override
+		{ return this; }
+	Value parent() override;
+	bool readonly() override
+		{ return true; }
 
-public:
-	short base;
-private:
+	const short base;
 	bool has_getter = true;
-	};
 
-// conceptually RootClass is a kind of Class
-// but practically, it doesn't need to derive from SuClass
-// since it never has any members
-class RootClass : public SuValue, public Get2
-	{
-public :
-	void out(Ostream& os) const override
-		{ os << "Object"; }
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort *argnames, int each) override;
-	Value getdata(Value) override
-		{ return Value(); }
-	Value get2(Value self, Value member) override
-		{ return Value(); }
-	static Value notfound(Value self, Value member,
-		short nargs, short nargnames, ushort *argnames, int each);
+	friend class SuInstance;
+	friend struct ClassContainer;
 	};

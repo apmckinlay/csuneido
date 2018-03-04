@@ -178,5 +178,14 @@ class test_symbols : public Tests
 			verify(sym.sameAs(symbol(strs[i])));
 			}
 		}
+	TEST(1, empty_string)
+		{
+		auto s = _strdup("");
+		auto t = _strdup("");
+
+		Value x = symbol(s);
+		Value y = symbol(t);
+		assert_eq(x.ptr(), y.ptr());
+		}
 	};
 REGISTER(test_symbols);

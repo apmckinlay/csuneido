@@ -194,3 +194,14 @@ extern Value SuFalse;
 extern Value SuEmptyString;
 
 [[noreturn]] void method_not_found(const char* type, Value member);
+
+// implementation in suclass.cpp
+class UserDefinedMethods
+	{
+	public:
+		UserDefinedMethods(const char* name);
+
+		Value operator()(Value member) const;
+	private:
+		ushort gnum;
+	};

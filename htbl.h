@@ -25,7 +25,7 @@
  * Hmap and Hset are hash based maps and sets
  * implemented with: prime table sizes, open addressing, linear probing,
  * robin hood hashing, and resize on probe limit.
- * Htbl is the common code, it is not intended for external use.
+ * Htbl_ is the common code, it is not intended for external use.
  * To avoid padding it uses an array of blocks each with BN (8) entries.
  * But we still treat it as a single flat array.
  * Within blocks keys, values, and distances are separate arrays to avoid padding.
@@ -34,10 +34,8 @@
  * They are also moved by simple assignment
  * so should not have complex constructors or assignment operators.
  * NOTE: intended for use with garbage collection - does not run destructors.
- * Hashing and key equality functions can be specified with a HfEq type
- * or more "globally" by defining hashfn and keyeq for your type.
  * Allows lookup by a different type from the key,
- * as long as there are compatible hashfn(T) and keyeq(T, Key)
+ * as long as there are compatible hash and keyeq.
  * See: https://probablydance.com/2017/02/26/i-wrote-the-fastest-hashtable/
  */
 
@@ -46,6 +44,7 @@
 #include "keyeq.h"
 #include <utility>
 #include <stdint.h>
+#include "errlog.h"
 using std::make_pair;
 
 class Ostream;
@@ -54,17 +53,16 @@ const int BN = 8; // number of entries per block, 8 should ensure no padding
 
 static_assert((BN & (BN - 1)) == 0); // should be power of two
 
-// internal base class for Hset and Hmap
-template <typename Block, typename Key, typename Val, 
-	class Hfn = HashFn<Key>, class Keq = KeyEq<Key>>
-class Htbl
+// internal implementation for Hset and Hmap
+template <class Block, class Key, class Val, class Hfn, class Keq>
+class Htbl_
 	{
 	static_assert(sizeof(Block) <= BN * 17); // limit inline size
 
 public:
-	Htbl() : blocks(nullptr), isize(0)
+	Htbl_() : blocks(nullptr), isize(0)
 		{}
-	Htbl(int cap)
+	Htbl_(int cap)
 		{
 		cap = cap + cap / 8; // probelimit will usually hit first
 		verify(cap < primes[nprimes - 1]);
@@ -72,19 +70,19 @@ public:
 			{ }
 		init();
 		}
-	Htbl(const Htbl& other)
+	Htbl_(const Htbl_& other)
 		: blocks(other.blocks), isize(other.isize), siz(other.siz)
 		{
 		sharewith(other);
 		}
 	// move constructor
-	Htbl(Htbl&& other) : blocks(other.blocks), isize(other.isize),
+	Htbl_(Htbl_&& other) : blocks(other.blocks), isize(other.isize),
 		readonly(other.readonly), siz(other.siz)
 		{
 		other.reset();
 		}
 
-	Htbl& operator=(const Htbl& other)
+	Htbl_& operator=(const Htbl_& other)
 		{
 		if (&other != this)
 			{
@@ -97,7 +95,7 @@ public:
 		return *this;
 		}
 	// move assignment
-	Htbl& operator=(Htbl&& other)
+	Htbl_& operator=(Htbl_&& other)
 		{
 		if (&other != this)
 			{
@@ -110,15 +108,13 @@ public:
 		return *this;
 		}
 
-private:
-	void sharewith(const Htbl& other) const
+	void sharewith(const Htbl_& other) const
 		{
 		if (!blocks)
 			return;
 		readonly = other.readonly = true;
 		}
 
-public:
 	// delete the key, returns true if found, false if not
 	bool erase(Key k)
 		{
@@ -139,44 +135,35 @@ public:
 				}
 		return false; // not found
 		}
-	int size()
+	int size() const
 		{
 		return siz;
 		}
 	// Make it empty but keep the current capacity
-	Htbl& clear()
+	Htbl_& clear()
 		{
 		verify(!readonly);
 		siz = 0;
-		memset(blocks, 0, nblocks() * sizeof(Block)); // help garbage collection
+		if (blocks)
+			memset(blocks, 0, nblocks() * sizeof(Block)); // help garbage collection
 		return *this;
 		}
 	// Reset capacity to zero, release array
-	Htbl& reset()
+	Htbl_& reset()
 		{
-		if (!readonly) // if readonly then could be shared
-			memset(blocks, 0, nblocks() * sizeof(Block)); // help garbage collection
 		blocks = nullptr;
 		isize = siz = 0;
 		return *this;
 		}
-	// returns a move-able copy
-	Htbl copy() const
-		{
-		Htbl tmp;
-		tmp.blocks = new Block[nblocks()];
-		memcpy(tmp.blocks, blocks, nblocks * sizeof(Block));
-		tmp.isize = isize;
-		tmp.siz = siz;
-		return tmp;
-		}
 	class iterator
 		{
 	public:
-		iterator(const Htbl* h, int i_, int n_) : htbl(h), i(i_), n(n_)
+		iterator(const Htbl_* h, int i_, int n_) : htbl(h), i(i_), n(n_)
 			{}
 		auto operator*()
 			{ return htbl->key(i); }
+		auto pair()
+			{ return make_pair(htbl->key(i), htbl->val(i)); }
 		iterator& operator++()
 			{
 			for (++i; i < n; ++i)
@@ -187,25 +174,37 @@ public:
 		bool operator==(const iterator& other) const
 			{ return htbl == other.htbl && i == other.i; }
 	protected:
-		const Htbl* htbl;
+		const Htbl_* htbl;
 		int i;
 		int n;
 		};
 	iterator begin() const
 		{
-		iterator x(this, -1, nslots());
+		iterator x(this, -1, limit());
 		return ++x;
 		}
 	iterator end() const
 		{
-		return iterator(this, nslots(), nslots());
+		return iterator(this, limit(), limit());
 		}
 
-protected:
 	void init()
 		{
 		verify(isize < nprimes);
 		blocks = new Block[nblocks()];
+		}
+	// returns a move-able copy
+	Htbl_ copy() const
+		{
+		Htbl_ tmp;
+		if (blocks)
+			{
+			tmp.blocks = new Block[nblocks()];
+			memcpy(tmp.blocks, blocks, nblocks() * sizeof(Block));
+			tmp.isize = isize;
+			tmp.siz = siz;
+			}
+		return tmp;
 		}
 	int nblocks() const
 		{
@@ -215,6 +214,10 @@ protected:
 		{
 		// allocate an extra probelimit slots so we don't need bounds checks
 		return primes[isize] + probelimit();
+		}
+	int limit() const
+		{
+		return blocks ? nslots() : 0;
 		}
 	void insert(Key k, Val v, bool overwrite)
 		{
@@ -266,7 +269,7 @@ protected:
 		}
 
 	// if key is found, returns index, else -1
-	template <typename T>
+	template <class T>
 	int find(T k) const
 		{
 		if (!siz)
@@ -288,27 +291,28 @@ protected:
 
 	void grow(const char* which)
 		{
-		// check that we're not growing too much
-		verify(siz > primes[isize] / 4);
 		Block* oldblocks = blocks;
 		int oldnb = nblocks();
+		int oldsiz = siz;
+	restart:
 		++isize;
 		init();
-		int oldsiz = siz;
 		siz = 0;
 		for (int b = 0; b < oldnb; ++b)
 			{
 			Block& blk = oldblocks[b];
 			for (int i = 0; i < BN; ++i)
 				if (blk.distance[i] != 0) // NOTE: unadjusted so empty is 0
-					{
-					fastput(blk.keys[i], blk.val(i));
-					}
+					if (!fastput(blk.keys[i], blk.val(i)))
+						{
+						errlog_uncounted("htbl multiple grow");
+						goto restart;
+						}
 			}
 		verify(siz == oldsiz);
 		memset(oldblocks, 0, oldnb * sizeof (Block)); // help garbage collection
 		}
-	void fastput(Key k, Val v)
+	bool fastput(Key k, Val v)
 		{
 		// should be the same as the core of insert
 		// but no duplicate checks and no growing
@@ -321,12 +325,12 @@ protected:
 				set_key(i, k);
 				set_val(i, v);
 				++siz;
-				return ;
+				return true;
 				}
 			if (distance(i) < d)
 				swap(i, d, k, v);
 			}
-		error("grow failed");
+		return false; // failed, too many collisions
 		}
 
 	// distance is stored offset by 1 so zeroed data is EMPTY (-1)
@@ -346,11 +350,11 @@ protected:
 		{ return blocks[i / BN].set_val(i % BN, v); }
 
 	int probelimit() const
-		{ return isize <= 1 ? 3 : isize + 4; } // log2(n)
+		{ return isize + 4; } // ~ log2(n)
 
 	static constexpr const int primes[] = {
-		16 - 3, // 13 + 3 (probelimit) = 16
-		32 + 5, // 37 + 3 (probelimit) = 40
+		16 - 5, // 11 + 4 (probelimit) = 15
+		32 - 1, // 31 + 5 (probelimit) = 36
 		64 - 3,
 		128 - 1,
 		256 + 1,
@@ -363,41 +367,26 @@ protected:
 		32768 + 3,
 		65536 - 15
 		};
-	template <typename T>
+	template <class T>
 	int index_for_key(T k) const
 		{
 		size_t h = Hfn()(k);
-		// return h % primes[isize]; // BUT % is slow, % of constant is faster
-		switch (isize)
-			{
-		case 0: return h % primes[0];
-		case 1: return h % primes[1];
-		case 2: return h % primes[2];
-		case 3: return h % primes[3];
-		case 4: return h % primes[4];
-		case 5: return h % primes[5];
-		case 6: return h % primes[6];
-		case 7: return h % primes[7];
-		case 8: return h % primes[8];
-		case 9: return h % primes[9];
-		case 10: return h % primes[10];
-		case 11: return h % primes[11];
-		case 12: return h % primes[12];
-		default: unreachable();
-			}
+		return h % primes[isize];
 		}
 
 	static const int nprimes = sizeof primes / sizeof(int);
 	static const int8_t EMPTY = -1;
 	Block* blocks;
-	uint8_t isize;
+	uint8_t isize; // index into primes
 	mutable bool readonly = false;
 	uint16_t siz = 0; // current number of items
 	};
 
-static_assert(sizeof(Htbl<int, int, int> ) == 8);
+static_assert(sizeof(Htbl_<int, int, int, HashFn<int>, KeyEq<int>>) == 8);
 
-template <typename K>
+// Hset -------------------------------------------------------------
+
+template <class K>
 struct HsetBlock
 	{
 	bool val(int)
@@ -409,26 +398,53 @@ struct HsetBlock
 	K keys[BN];
 	};
 
-// specifies bool for value, but not actually stored, val/set_val are nop
-template <typename K, class Hfn = HashFn<K>, class Keq = KeyEq<K>>
-class Hset : public Htbl<HsetBlock<K>, K, bool, Hfn, Keq>
+// specifies bool for value, but it's not actually stored, val/set_val are nop
+template <class K, class Hfn = HashFn<K>, class Keq = KeyEq<K>>
+class Hset
 	{
+	using Tbl = Htbl_<HsetBlock<K>, K, bool, Hfn, Keq>;
+	using Iter = typename Tbl::iterator;
+
 public:
-	using Tbl = Htbl<HsetBlock<K>, K, bool, Hfn, Keq>;
+	Hset() = default;
+	Hset(int cap) : tbl(cap)
+		{}
+	Hset(const Hset& other) : tbl(other.tbl)
+		{}
+	Hset(Hset&& other) : tbl(std::move(other.tbl))
+		{}
+	Hset& operator=(const Hset& other)
+		{
+		tbl = other.tbl;
+		return *this;
+		}
+	Hset& operator=(Hset&& other)
+		{
+		tbl = std::move(other.tbl);
+		return *this;
+		}
 
-	using Tbl::Tbl;
-
-	template <typename T>
+	int size()
+		{ return tbl.size(); }
+	template <class T>
 	K* find(T k)
 		{
-		int i = Tbl::find(k);
-		return i < 0 ? nullptr : &Tbl::key(i);
+		int i = tbl.find(k);
+		return i < 0 ? nullptr : &tbl.key(i);
 		}
 	void insert(K k)
-		{ Tbl::insert(k, true, false); }
+		{ tbl.insert(k, true, false); }
+	bool erase(K k)
+		{ return tbl.erase(k); }
+	Iter begin() const
+		{ return tbl.begin(); }
+	Iter end() const
+		{ return tbl.end(); }
+private:
+	Tbl tbl;
 	};
 
-template <typename K>
+template <class K>
 Ostream& operator<<(Ostream& os, const Hset<K>& hset)
 	{
 	os << "{";
@@ -442,7 +458,9 @@ Ostream& operator<<(Ostream& os, const Hset<K>& hset)
 	return os;
 	}
 
-template <typename K, typename V>
+// Hmap -------------------------------------------------------------
+
+template <class K, class V>
 struct HmapBlock
 	{
 	// ReSharper disable once Cpp
@@ -456,49 +474,89 @@ struct HmapBlock
 	V vals[BN];
 	};
 
-template <typename K, typename V, class Hfn = HashFn<K>, class Keq = KeyEq<K>>
-class Hmap : public Htbl<HmapBlock<K, V>, K, V, Hfn, Keq>
+template <class K, class V, class Hfn = HashFn<K>, class Keq = KeyEq<K>>
+class Hmap
 	{
-public:
-	using Tbl = Htbl<HmapBlock<K, V>, K, V, Hfn, Keq>;
+	using Tbl = Htbl_<HmapBlock<K, V>, K, V, Hfn, Keq>;
 	using Iter = typename Tbl::iterator;
 
-	using Tbl::Tbl;
+public:
+	Hmap() = default;
+	Hmap(int cap) : tbl(cap)
+		{}
+	Hmap(const Hmap& other) : tbl(other.tbl)
+		{}
+	Hmap(Hmap&& other) : tbl(std::move(other.tbl))
+		{}
+	Hmap& operator=(const Hmap& other)
+		{
+		tbl = other.tbl;
+		return *this;
+		}
+	Hmap& operator=(Hmap&& other)
+		{
+		tbl = std::move(other.tbl);
+		return *this;
+		}
 
-	template <typename T>
+	int size() const
+		{ return tbl.size(); }
+
+	template <class T>
 	V* find(T k)
 		{
-		int i = Tbl::find(k);
+		int i = tbl.find(k);
+		return i < 0 ? nullptr : &valref(i);
+		}
+
+	template <class T>
+	V* find(T k) const
+		{
+		int i = tbl.find(k);
 		return i < 0 ? nullptr : &valref(i);
 		}
 	V& operator[](K k)
 		{
-		this->insert(k, {}, false);
+		tbl.insert(k, {}, false);
 		return *find(k);
 		}
 	void put(K k, V v)
+		{ tbl.insert(k, v, true); }
+	Hmap copy() const // moveable
 		{
-		this->insert(k, v, true);
+		Hmap tmp;
+		tmp.tbl = tbl.copy();
+		return tmp;
 		}
+	bool erase(K k)
+		{ return tbl.erase(k); }
+	void clear()
+		{ tbl.clear(); }
+	void reset()
+		{ tbl.reset(); }
+
 	class iterator : public Iter
 		{
 	public:
 		iterator(Iter it) : Iter(it)
 			{}
 		auto operator*()
-			{ return make_pair(Iter::operator*(), ((Hmap*) this->htbl)->val(this->i)); }
+			{ return this->pair(); }
 		};
 	iterator begin() const
-		{ return iterator(Tbl::begin()); }
+		{ return iterator(tbl.begin()); }
 	iterator end() const
-		{ return iterator(Tbl::end()); }
+		{ return iterator(tbl.end()); }
+
 private:
-	V& valref(int i)
-		{ return this->blocks[i / BN].vals[i % BN]; }
+	V& valref(int i) const
+		{ return tbl.blocks[i / BN].vals[i % BN]; }
+
+	Tbl tbl;
 	};
 
-template <typename K, typename V>
-Ostream& operator<<(Ostream& os, Hmap<K,V>& hmap)
+template <class K, class V, class Hfn, class Keq>
+Ostream& operator<<(Ostream& os, const Hmap<K,V,Hfn,Keq>& hmap)
 	{
 	os << "{";
 	auto sep = "";
@@ -509,4 +567,19 @@ Ostream& operator<<(Ostream& os, Hmap<K,V>& hmap)
 		}
 	os << "}";
 	return os;
+	}
+
+// WARNING: no protection from infinite recursion from cyclical references
+template <class K, class V, class Hfn, class Keq>
+bool operator==(const Hmap<K, V, Hfn, Keq>& x, const Hmap<K, V, Hfn, Keq>& y)
+	{
+	if (x.size() != y.size())
+		return false;
+	for (auto [k,v] : x)
+		{
+		V* pv = y.find(k);
+		if (!pv || v != *pv)
+			return false;
+		}
+	return true;
 	}

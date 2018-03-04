@@ -48,6 +48,7 @@ itostr.cpp \
 library.cpp \
 lisp.cpp \
 load.cpp \
+membase.cpp \
 mmfile.cpp \
 named.cpp \
 numlen.cpp \
@@ -96,6 +97,7 @@ sudb.cpp \
 sufile.cpp \
 sufinalize.cpp \
 sufunction.cpp \
+suinstance.cpp \
 sumd5.cpp \
 sumethod.cpp \
 sunumber.cpp \

@@ -127,6 +127,7 @@
     <ClCompile Include="..\database.cpp" />
     <ClCompile Include="..\date.cpp" />
     <ClCompile Include="..\dbcompact.cpp" />
+    <ClCompile Include="..\dbg.cpp" />
     <ClCompile Include="..\dbhttp.cpp" />
     <ClCompile Include="..\dbms.cpp" />
     <ClCompile Include="..\dbmslocal.cpp" />
@@ -160,6 +161,7 @@
     <ClCompile Include="..\lisp.cpp" />
     <ClCompile Include="..\list.cpp" />
     <ClCompile Include="..\load.cpp" />
+    <ClCompile Include="..\membase.cpp" />
     <ClCompile Include="..\mmfile.cpp" />
     <ClCompile Include="..\msgloop.cpp" />
     <ClCompile Include="..\named.cpp" />
@@ -217,6 +219,7 @@
     <ClCompile Include="..\sufile.cpp" />
     <ClCompile Include="..\sufinalize.cpp" />
     <ClCompile Include="..\sufunction.cpp" />
+    <ClCompile Include="..\suinstance.cpp" />
     <ClCompile Include="..\sumd5.cpp" />
     <ClCompile Include="..\sumethod.cpp" />
     <ClCompile Include="..\sunapp.cpp" />

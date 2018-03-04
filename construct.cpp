@@ -21,6 +21,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "construct.h"
+#include "suobject.h"
 #include "interp.h"
 #include "globals.h"
 #include "suclass.h"

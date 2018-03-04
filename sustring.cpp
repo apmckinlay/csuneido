@@ -260,16 +260,10 @@ Value SuString::call(Value self, Value member,
 		}
 	if (pmfn* p = methods.find(member))
 		return (this->*(*p))(nargs, nargnames, argnames, each);
-	else
-		{
-		static int G_SuStrings = globals("Strings");
-		Value SuStrings = globals.find(G_SuStrings);
-		SuObject* ob;
-		if (SuStrings && nullptr != (ob = SuStrings.ob_if_ob()) && ob->has(member))
-			return ob->call(self, member, nargs, nargnames, argnames, each);
-		else
-			method_not_found("string", member);
-		}
+	static UserDefinedMethods udm("Strings");
+	if (Value c = udm(member))
+		return c.call(self, member, nargs, nargnames, argnames, each);
+	method_not_found("string", member);
 	}
 
 Value SuString::Call(short nargs, short nargnames, ushort* argnames, int each)
@@ -1036,3 +1030,20 @@ Value v(&s);
 		}
 	};
 REGISTER(test_sustring2);
+
+
+class test_sustring3 : public Tests
+	{
+	TEST(0, main)
+		{
+		assert_eq(gcstring("/Business").findlast("/"), 0);
+		Value s = run("'/Business'.Substr(0, 0)");
+		assert_eq(s, SuEmptyString);
+		Value t = run("'/Business'[..0]");
+		assert_eq(t, SuEmptyString);
+
+		Value b = run("#('':).Member?('/Business'[..0])");
+		assert_eq(b, SuTrue);
+		}
+	};
+REGISTER(test_sustring3);

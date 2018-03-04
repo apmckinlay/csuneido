@@ -31,6 +31,7 @@
 #include "catstr.h"
 #include <ctype.h>
 #include "varint.h"
+#include "suinstance.h"
 
 #define TARGET(i)	(short) ((code[i] + (code[i+1] << 8)))
 
@@ -67,7 +68,7 @@ Value SuFunction::call(Value self, Value member,
 
 void SuFunction::dotParams(Value self)
 	{
-	SuObject* ob = val_cast<SuObject*>(self);
+	SuInstance* ob = val_cast<SuInstance*>(self);
 	if (! ob)
 		return ;
 	Value* args = GETSP() - nparams + 1;

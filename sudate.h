@@ -63,6 +63,8 @@ public:
 	static long long minus_ms(SuDate* d1, SuDate* d2);
 	static Value instantiate(short nargs, short nargnames, ushort* argnames, int each);
 private:
+	using Mfn = Value(SuDate::*)(short, short, ushort*, int);
+	static Mfn method(Value member);
 	Value FormatEn(short nargs, short nargnames, ushort* argnames, int each);
 	Value Plus(short nargs, short nargnames, ushort* argnames, int each);
 	Value MinusDays(short nargs, short nargnames, ushort* argnames, int each);

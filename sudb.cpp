@@ -22,7 +22,6 @@
 
 #include "sudb.h"
 #include "builtinclass.h"
-#include "suclass.h"
 #include "surecord.h"
 #include "sustring.h"
 #include "interp.h"
@@ -343,8 +342,7 @@ Value TransactionClass::call(Value self, Value member,
 			throw ;
 			}
 		}
-	else
-		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
+	method_not_found("Transaction", member);
 	}
 
 SuTransaction::SuTransaction(TranType type)
@@ -445,13 +443,10 @@ Value SuTransaction::call(Value self, Value member,
 		}
 	else
 		{
-		static ushort G_Trans = globals("Transactions");
-		Value Trans = globals.find(G_Trans);
-		SuObject* ob;
-		if (Trans && nullptr != (ob = Trans.ob_if_ob()) && ob->has(member))
-			return ob->call(self, member, nargs, nargnames, argnames, each);
-		else
-			method_not_found("transaction", member);
+		static UserDefinedMethods udm("Transactions");
+		if (Value c = udm(member))
+			return c.call(self, member, nargs, nargnames, argnames, each);
+		method_not_found("transaction", member);
 		}
 	}
 
@@ -514,8 +509,7 @@ Value CursorClass::call(Value self, Value member,
 		PUSH(c);
 		return block.call(block, CALL, 1);
 		}
-	else
-		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
+	method_not_found("Cursor", member);
 	}
 
 int SuCursor::next_num = 0;
@@ -597,7 +591,7 @@ Value SuQuery::call(Value, Value member,
 	if (member == NewRecord)
 		{
 		static Value gRecord = globals["Record"];
-		return gRecord.call(gRecord, INSTANTIATE, nargs, nargnames, argnames, each);
+		return gRecord.call(gRecord, CALL, nargs, nargnames, argnames, each);
 		}
 	else if (member == Keys)
 		{

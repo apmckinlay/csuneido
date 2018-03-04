@@ -33,6 +33,7 @@
 #include "sufunction.h"
 #include "suobject.h"
 #include "suclass.h"
+#include "suinstance.h"
 #include "sumethod.h"
 #include "sudate.h"
 #include "surecord.h"
@@ -247,10 +248,10 @@ Value buffer()
 	}
 PRIM(buffer, "Buffer(size, string='')");
 
-Value objectq()
+Value objectq() //TODO don't include instances
 	{
 	Value x = TOP();
-	return x.ob_if_ob() && ! val_cast<SuClass*>(x)
+	return x.ob_if_ob() || val_cast<SuInstance*>(x)
 		? SuTrue : SuFalse;
 	}
 PRIM(objectq, "Object?(value)");
@@ -680,8 +681,6 @@ Value SuTrue;
 Value SuFalse;
 Value SuEmptyString;
 
-Value root_class;
-
 void builtin(int gnum, Value value); // in library.cpp
 void builtin(const char* name, Value value)
 	{
@@ -704,7 +703,6 @@ Prim::Prim(PrimFn f, const char* d) : fn(f), decl(d)
 void builtins()
 	{
 	globals(""); // don't use the [0] slot
-	verify(OBJECT == globals("Object"));
 
 	INSTANTIATE = Value("instantiate");
 	CALL = Value("call");				// Note: no class can have a "call" method
@@ -744,13 +742,13 @@ void builtins()
 	builtin("rangeTo", new RangeTo);
 	builtin("rangeLen", new RangeLen);
 	builtin("mkrec", new MkRec);
-	builtin("Object", root_class = new RootClass);
+	builtin("Object", su_object());
 	builtin("Suneido", new SuObject);
 
 	builtin("Construct", new Construct);
 	builtin("Transaction", new TransactionClass);
 	builtin("Cursor", new CursorClass);
-	builtin("Record", new SuRecordClass);
+	builtin("Record", su_record());
 	builtin("Date", new SuDateClass);
 	builtin("Spawn", new Spawn);
 

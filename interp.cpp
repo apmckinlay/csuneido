@@ -179,7 +179,7 @@ Value Frame::run()
 	Value mem;
 
 	each = -1;
-	tls().proc->super = 0;
+	tls().proc->super = NOSUPER;
 	for (;;)
 	try
 		{

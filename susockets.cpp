@@ -23,6 +23,7 @@
 #include "susockets.h"
 #include "sockets.h"
 #include "sufinalize.h"
+#include "suinstance.h"
 #include "suobject.h"
 #include "symbols.h"
 #include "interp.h"
@@ -175,14 +176,12 @@ PRIM(suSocketClient, "SocketClient(ipaddress, port, timeout=60, timeoutConnect=0
 // SuSocketServer =====================================================
 // the base for user defined Server classes
 
-class SuSocketServer : public RootClass
+// SuSocketServer is the built-in "SocketServer" class that is derived from
+class SuSocketServer : public SuClass
 	{
 public:
 	void out(Ostream& os) const override;
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
-	const char* type() const override
-		{ return "BuiltinClass"; }
+	Value get(Value m) const override;
 	};
 
 void SuSocketServer::out(Ostream& os) const
@@ -192,14 +191,13 @@ void SuSocketServer::out(Ostream& os) const
 
 static void _stdcall suserver(void* sc);
 
-class SuServerInstance : public SuObject
+class SuServerInstance : public SuInstance
 	{
 public:
-	explicit SuServerInstance(SocketConnect* c) : sc(c)
-		{ } // old way
-	SuServerInstance() : sc(nullptr)
-		{ } // master
-	SuServerInstance(SuServerInstance* master, SocketConnect* s) : SuObject(*master), sc(s)
+	explicit SuServerInstance(Value c) : SuInstance(c), sc(nullptr)
+		{ }
+	SuServerInstance(SuServerInstance* master, SocketConnect* s) 
+		: SuInstance(*master), sc(s)
 		{ } // dup
 	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
@@ -208,60 +206,71 @@ private:
 	SocketConnect* sc;
 	};
 
-Value SuSocketServer::call(Value self, Value member, 
+class CallClass : public BuiltinFunc
+	{
+public:
+	Value call(Value self, Value member,
+		short nargs, short nargnames, ushort* argnames, int each) override;
+	};
+
+Value SuSocketServer::get(Value m) const
+	{
+	if (m == CALL_CLASS)
+		{
+		static CallClass callclass;
+		return &callclass;
+		}
+	return Value();
+	}
+
+Value CallClass::call(Value self, Value member,
 	short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (member == PARAMS)
-		return new SuString("(name = .Name, port = .Port, exit = false, ...)");
-	else if (member == CALL_CLASS)
+	static Value Name("Name");
+	static Value Port("Port");
+	static int NAME = ::symnum("name");
+	static int PORT = ::symnum("port");
+	static int EXIT = ::symnum("exit");
+
+	SuClass* selfob = force<SuClass*>(self);
+	BuiltinArgs args(nargs, nargnames, argnames, each);
+	args.usage("SocketServer(name = .Name, port = .Port, exit = false, ...)");
+	Value name = args.getValue("name", Value());
+	Value port = args.getValue("port", Value());
+	Value exit = args.getValue("exit", Value());
+
+	// convert arguments, make name, port, and exit named
+	int na = 0;
+	Value* a = (Value*) _alloca(sizeof (Value) * nargs);
+	ushort* an = (ushort*) _alloca(sizeof (short) * (nargnames + 3));
+	short nan = 0;
+	while (Value arg = args.getNext())
 		{
-		static Value Name("Name");
-		static Value Port("Port");
-		static int NAME = ::symnum("name");
-		static int PORT = ::symnum("port");
-		static int EXIT = ::symnum("exit");
-
-		SuObject* selfob = self.object();
-		BuiltinArgs args(nargs, nargnames, argnames, each);
-		args.usage("SocketServer(name = .Name, port = .Port, exit = false, ...)");
-		Value name = args.getValue("name", Value());
-		Value port = args.getValue("port", Value());
-		Value exit = args.getValue("exit", Value());
-
-		// convert arguments, make name, port, and exit named
-		int na = 0;
-		Value* a = (Value*) _alloca(sizeof (Value) * nargs);
-		ushort* an = (ushort*) _alloca(sizeof (short) * (nargnames + 3));
-		short nan = 0;
-		while (Value arg = args.getNext())
-			{
-			a[na++] = arg;
-			if (ushort n = args.curName())
-				an[nan++] = n;
-			}
-		KEEPSP
-		for (int i = 0; i < na; ++i)
-			PUSH(a[i]);
-		if (name)
-			{ PUSH(name); an[nan++] = NAME; ++na; }
-		else
-			name = selfob->getdata(Name);
-		if (port)
-			{ PUSH(port); an[nan++] = PORT; ++na; }
-		else
-			port = selfob->getdata(Port);
-		if (exit)
-			{ PUSH(exit); an[nan++] = EXIT; ++na; }
-		else
-			exit = SuFalse;
-
-		// construct a "master" instance, which will be duplicated for each connection
-		SuServerInstance* master = new SuServerInstance();
-		master->myclass = self;
-		master->call(master, NEW, na, nan, an, -1);
-
-		socketServer(name.str(), port.integer(), suserver, master, exit.toBool());
+		a[na++] = arg;
+		if (ushort n = args.curName())
+			an[nan++] = n;
 		}
+	KEEPSP
+	for (int i = 0; i < na; ++i)
+		PUSH(a[i]);
+	if (name)
+		{ PUSH(name); an[nan++] = NAME; ++na; }
+	else
+		name = selfob->getdata(Name);
+	if (port)
+		{ PUSH(port); an[nan++] = PORT; ++na; }
+	else
+		port = selfob->getdata(Port);
+	if (exit)
+		{ PUSH(exit); an[nan++] = EXIT; ++na; }
+	else
+		exit = SuFalse;
+
+	// construct a "master" instance, which will be duplicated for each connection
+	SuServerInstance* master = new SuServerInstance(self);
+	master->call(master, NEW, na, nan, an, -1);
+
+	socketServer(name.str(), port.integer(), suserver, master, exit.toBool());
 	return Value();
 	}
 
@@ -381,5 +390,20 @@ Value SuServerInstance::call(Value self, Value member,
 		return new SuString(sc->getadr());
 		}
 	else
-		return SuObject::call(self, member, nargs, nargnames, argnames, each);
+		return SuInstance::call(self, member, nargs, nargnames, argnames, each);
 	}
+
+//#include "testing.h"
+//#include "compile.h"
+//
+//class test_socketserver : public Tests
+//	{
+//	TEST(1, "construct")
+//		{
+//		Value x = compile("SocketServer {\n"
+//			"Name: Test\n"
+//			"Port: 1234 }");
+//		x.call(x, CALL_CLASS);
+//		}
+//	};
+//REGISTER(test_socketserver);

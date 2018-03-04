@@ -42,6 +42,7 @@ class SuRecord : public SuObject
 public:
 	SuRecord();
 	explicit SuRecord(const SuRecord& rec);
+	explicit SuRecord(SuObject* ob);
 	SuRecord(const Row& r, const Header& hdr, int t);
 	SuRecord(const Row& r, const Header& hdr, SuTransaction* t = 0);
 	SuRecord(const Record& rec, const Lisp<int>& flds, SuTransaction* t);
@@ -99,11 +100,4 @@ private:
 	HashMap<ushort,Value> attached_rules;
 	};
 
-class SuRecordClass : public SuValue
-	{
-public:
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
-	void out(Ostream& os) const override
-		{ os << "Record /* builtin */"; }
-	};
+Value su_record();

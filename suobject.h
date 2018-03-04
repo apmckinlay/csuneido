@@ -25,33 +25,33 @@
 #include "suvalue.h"
 #include <vector>
 #include "hashmap.h"
+#include "meth.h"
+#include "gsl-lite.h"
 
-// objects - both generic containers,
-// and instances of user defined classes
+// generic containers, see also SuInstance and SuClass
 class SuObject : public SuValue
 	{
 public:
 	typedef std::vector<Value> Vector;
 	typedef HashMap<Value,Value> Map;
+	typedef MemFun<SuObject> Mfn;
 
-	SuObject();
-	explicit SuObject(bool readonly);
+	SuObject() = default;
+	explicit SuObject(bool ro);
 	explicit SuObject(const SuObject& ob);
 	SuObject(SuObject* ob, size_t offset); // for slice
 
 	void out(Ostream& os) const override;
-	void outdelims(Ostream& os, const char* delim) const;
+	void outdelims(Ostream& os, const char* delims) const;
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
-	void putdata(Value i, Value x) override;
-	Value getdata(Value) override;
+	void putdata(Value m, Value x) override;
+	Value getdata(Value m) override;
 	Value rangeTo(int i, int j) override;
 	Value rangeLen(int i, int n) override;
 
 	SuObject* ob_if_ob() override
 		{ return this; }
-
-	void set_members(SuObject* x);
 
 	size_t size() const
 		{ return vec.size() + map.size(); }
@@ -68,17 +68,15 @@ public:
 
 	virtual bool has(Value);
 
-	virtual bool erase(Value x);
-	virtual bool erase2(Value x);
+	virtual bool erase(Value m);
+	virtual bool erase2(Value m);
 
 	bool operator==(const SuObject& ob) const;
-	bool eq(const SuValue& x) const override;
+	bool eq(const SuValue& y) const override;
 	bool lt(const SuValue& y) const override;
 	int order() const override;
 	size_t hashfn() const override;
 	size_t hashcontrib() const override;
-
-	gcstring to_gcstr() const override;
 
 	size_t packsize() const override;
 	void pack(char* buf) const override;
@@ -92,7 +90,6 @@ public:
 	bool get_readonly() const
 		{ return readonly; }
 
-	Value myclass;
 	Value defval; // default value
 
 	typedef std::pair<Value,Value> Pair;
@@ -125,57 +122,54 @@ public:
 	Value find(Value value);
 	void remove1(Value value);
 	void sort();
-	bool hasMethod(Value name);
-	void addMembers(SuObject* list);
-protected:
-	virtual Value get2(Value self, Value m);
-	typedef Value (SuObject::*pmfn)(short, short, ushort*, int);
-	static HashMap<Value,pmfn> basic_methods;
-private:
-	static HashMap<Value,pmfn> methods;
-	static HashMap<Value, SuObject::pmfn> instance_methods;
-	static void init();
-	static void setup();
-	Value getdefault(Value member, Value def);
-	Value Size(short nargs, short nargnames, ushort* argnames, int each);
-	Value Members(short nargs, short nargnames, ushort* argnames, int each);
-	Value Iter(short nargs, short nargnames, ushort* argnames, int each);
-	Value HasMember(short nargs, short nargnames, ushort* argnames, int each);
-	Value HasMethod(short nargs, short nargnames, ushort* argnames, int each);
-	Value MethodClass(short nargs, short nargnames, ushort* argnames, int each);
-	Value Base(short nargs, short nargnames, ushort* argnames, int each);
-	Value HasBase(short nargs, short nargnames, ushort* argnames, int each);
-	Value Eval(short nargs, short nargnames, ushort* argnames, int each);
-	Value Eval2(short nargs, short nargnames, ushort* argnames, int each);
-	Value Set_default(short nargs, short nargnames, ushort* argnames, int each);
-	Value Copy(short nargs, short nargnames, ushort* argnames, int each);
-	Value Partition(short nargs, short nargnames, ushort* argnames, int each);
-	Value Sort(short nargs, short nargnames, ushort* argnames, int each);
-	Value LowerBound(short nargs, short nargnames, ushort* argnames, int each);
-	Value UpperBound(short nargs, short nargnames, ushort* argnames, int each);
-	Value EqualRange(short nargs, short nargnames, ushort* argnames, int each);
 	Value unique();
-	Value Unique(short nargs, short nargnames, ushort* argnames, int each);
-	Value Slice(short nargs, short nargnames, ushort* argnames, int each);
-	Value Find(short nargs, short nargnames, ushort* argnames, int each);
-	Value Erase(short nargs, short nargnames, ushort* argnames, int each);
-	Value Delete(short nargs, short nargnames, ushort* argnames, int each);
-	void deleteAll();
-	Value Add(short nargs, short nargnames, ushort* argnames, int each);
-	Value Reverse(short nargs, short nargnames, ushort* argnames, int each);
-	Value Join(short nargs, short nargnames, ushort* argnames, int each);
-	Value Set_readonly(short nargs, short nargnames, ushort* argnames, int each);
+private:
+	void append(Value x);
+	void insert(int i, Value x);
+	void migrateMapToVec();
+	static Mfn method(Value member);
+	void ck_readonly() const;
+	Value getdefault(Value member, Value def);
+	Value Size(BuiltinArgs& args);
+	Value Members(BuiltinArgs& args);
+	Value Iter(BuiltinArgs& args);
+	Value MemberQ(BuiltinArgs& args);
+	Value MethodQ(BuiltinArgs& args);
+	Value MethodClass(BuiltinArgs& args);
+	Value Base(BuiltinArgs& args);
+	Value BaseQ(BuiltinArgs& args);
+	Value Eval(BuiltinArgs& args);
+	Value Eval2(BuiltinArgs& args);
+	Value Set_default(BuiltinArgs& args);
+	Value Copy(BuiltinArgs& args);
+	Value Partition(BuiltinArgs& args);
+	Value Sort(BuiltinArgs& args);
+	Value LowerBound(BuiltinArgs& args);
+	Value UpperBound(BuiltinArgs& args);
+	Value EqualRange(BuiltinArgs& args);
+	Value Unique(BuiltinArgs& args);
+	Value Slice(BuiltinArgs& args);
+	Value Find(BuiltinArgs& args);
+	Value Erase(BuiltinArgs& args);
+	Value Delete(BuiltinArgs& args);
+	void clear();
+	Value Add(BuiltinArgs& args);
+	Value Reverse(BuiltinArgs& args);
+	Value Join(BuiltinArgs& args);
+	Value Set_readonly(BuiltinArgs& args);
 	void setReadonly();
-	Value IsReadonly(short nargs, short nargnames, ushort* argnames, int each);
-	Value Values(short nargs, short nargnames, ushort* argnames, int each);
-	Value Assocs(short nargs, short nargnames, ushort* argnames, int each);
-	Value GetDefault(short nargs, short nargnames, ushort* argnames, int each);
-	const char* toString() const;
+	Value ReadonlyQ(BuiltinArgs& args);
+	Value Values(BuiltinArgs& args);
+	Value Assocs(BuiltinArgs& args);
+	Value GetDefault(BuiltinArgs& args);
 
 	Vector vec;
 	Map map;
-	bool readonly;
+	bool readonly = false;
 	int version = 0; // incremented when member is added or removed
 	// used to detect modification during iteration
 	friend class ModificationCheck;
+	friend class MemBase;
 	};
+
+	Value su_object();

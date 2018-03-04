@@ -71,6 +71,40 @@ template <class T> T* dup(const vector<T>& x, NoPtrs)
 	return y;
 	}
 
+struct Container
+	{
+	virtual Value get(Value m) = 0;
+	virtual void add(Value m)
+		{ unreachable(); }
+	virtual void put(Value m, Value x) = 0;
+	virtual const Named* get_named()
+		{ return nullptr; }
+	};
+struct ObjectContainer : public Container
+	{
+	SuObject* ob;
+	ObjectContainer(SuObject* o) : ob(o)
+		{}
+	Value get(Value m) override
+		{ return ob->get(m); }
+	void add(Value m) override
+		{ ob->add(m); }
+	void put(Value m, Value x) override
+		{ ob->put(m, x); }
+	};
+struct ClassContainer : public Container
+	{
+	SuClass* c;
+	ClassContainer(SuClass* c_) : c(c_)
+		{}
+	Value get(Value m) override
+		{ return c->get(m); }
+	void put(Value m, Value x) override
+		{ c->put(m, x); }
+	const Named* get_named() override
+		{ return c->get_named(); }
+	};
+
 class Compiler
 	{
 public:
@@ -105,8 +139,8 @@ public:
 	void ckmatch(int t);
 	[[noreturn]] void syntax_error_(const char* err = "") const;
 
-	void member(SuObject* ob, const char* gname, const char* className, short base);
-	void member(SuObject* ob)
+	void member(Container& ob, const char* gname, const char* className, short base);
+	void member(Container& ob)
 		{ member(ob, nullptr, nullptr, -1); }
 	Value memname(const char* className, const char* s);
 	const char* ckglobal(const char*);
@@ -358,9 +392,10 @@ Value Compiler::object() //=======================================
 		}
 	else
 		syntax_error_();
+	ObjectContainer con(ob);
 	while (token != end)
 		{
-		member(ob);
+		member(con);
 		if (token == ',' || token == ';')
 			match();
 		}
@@ -392,7 +427,7 @@ Value Compiler::suclass(const char* gname, const char* className)
 		if (token == ':')
 			matchnew();
 		}
-	short base = OBJECT;
+	short base = 0;
 	if (token != '{')
 		{
 		if (*scanner.value == '_')
@@ -406,21 +441,21 @@ Value Compiler::suclass(const char* gname, const char* className)
 		scanner.visitor->global(scanner.prev, scanner.value);
 		matchnew(T_IDENTIFIER);
 		}
-	SuClass *ob = new SuClass(base);
+	SuClass* c = new SuClass(base);
+	ClassContainer con(c);
 	match('{');
 	while (token != '}')
 		{
-		member(ob, gname, className, base);
+		member(con, gname, className, base);
 		if (token == ',' || token == ';')
 			match();
 		}
 	match('}');
-	ob->set_readonly();
-	return ob;
+	return c;
 	}
 
 // object constant & class members
-void Compiler::member(SuObject* ob, const char* gname, const char* className, short base)
+void Compiler::member(Container& ob, const char* gname, const char* className, short base)
 	{
 	Value mv;
 	bool name = false;
@@ -434,7 +469,7 @@ void Compiler::member(SuObject* ob, const char* gname, const char* className, sh
 		}
 	bool default_allowed = true;
 	int ahead = scanner.ahead();
-	if (ahead == ':' || (base > 0 && ahead == '('))
+	if (ahead == ':' || (base >= 0 && ahead == '('))
 		{
 		if (anyName())
 			{
@@ -458,11 +493,11 @@ void Compiler::member(SuObject* ob, const char* gname, const char* className, sh
 		}
 	else
 		default_allowed = false;
-	if (base > 0 && ! mv)
+	if (base >= 0 && ! mv)
 		syntax_error("class members must be named");
 
 	Value x;
-	if (ahead == '(' && base > 0)
+	if (ahead == '(' && base >= 0)
 		x = functionCompiler(base, mv.gcstr() == "New", gname, className);
 	else if (token != ',' && token != ')' && token != '}' && token != ']')
 		{
@@ -477,15 +512,15 @@ void Compiler::member(SuObject* ob, const char* gname, const char* className, sh
 
 	if (mv)
 		{
-		if (ob->get(mv))
+		if (ob.get(mv))
 			syntax_error("duplicate member name (" << mv << ")");
-		ob->put(mv, x);
+		ob.put(mv, x);
 		}
 	else
-		ob->add(x);
+		ob.add(x);
 	if (name)
 		if (Named* nx = const_cast<Named*>(x.get_named()))
-			if (auto nob = ob->get_named())
+			if (auto nob = ob.get_named())
 				{
 				nx->parent = nob;
 				nx->str = mv.str();

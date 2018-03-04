@@ -32,8 +32,6 @@ class Func;
 class SuFunction;
 class BuiltinFunc;
 
-enum { OBJECT = 1 };
-
 // used for expression evaluation and function arguments
 class Stack
 	{
@@ -128,19 +126,19 @@ private:
 
 Value dynamic(ushort);
 
+enum { NOSUPER = -1 };
+
 // a process (Fibers)
 struct Proc
 	{
-	Proc() : fp(frames), super(0), in_handler(false)
-		{ }
 	void clear_unused();
 
 	Stack stack;
 	enum { MAXFRAMES = 180 }; // to fit Proc in 4 pages
 	Frame frames[MAXFRAMES];
-	Frame *fp;					// points to current frame
-	short super;
-	bool in_handler;
+	Frame *fp = frames;					// points to current frame
+	short super = NOSUPER;
+	bool in_handler = false;
 	Value block_return_value;
 	};
 

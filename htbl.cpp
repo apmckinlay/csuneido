@@ -52,6 +52,11 @@ template<> struct KeyEq<Foo>
 	bool operator()(const Foo& x, const Foo& y) const
 		{ return 0 == strcmp(x.s, y.s); 	}
 	};
+Ostream& operator<<(Ostream& os, const Foo& foo)
+	{
+	os << foo.s << ":" << foo.n;
+	return os;
+	}
 
 // for TEST(2, hset2)
 struct Bar
@@ -73,6 +78,11 @@ struct BarEq
 	bool operator()(const Bar& x, const Bar& y)
 		{ return 0 == strcmp(x.s, y.s); }
 	};
+Ostream& operator<<(Ostream& os, const Bar& x)
+	{
+	os << x.s << ":" << x.n;
+	return os;
+	}
 
 class test_htbl : public Tests
 	{
@@ -119,10 +129,11 @@ class test_htbl : public Tests
 			}
 		asserteq(0, hset.size());
 		}
-	static gcstring str(const Hset<int>& hset)
+	template <class T>
+	static gcstring str(const T& x)
 		{
 		OstreamStr os;
-		os << hset;
+		os << x;
 		return os.gcstr();
 		}
 	TEST(1, hset1)
@@ -159,10 +170,8 @@ class test_htbl : public Tests
 			asserteq(100 + i, hmap[i]);
 			}
 		asserteq(10, hmap.size());
-		OstreamStr os;
-		os << hmap;
 		asserteq("{0: 100, 1: 101, 2: 102, 3: 103, 4: 104, 5: 105, 6: 106, "
-			"7: 107, 8: 108, 9: 109}", os.gcstr());
+			"7: 107, 8: 108, 9: 109}", str(hmap));
 		// note: order depends on hashing
 		}
 	TEST(4, randmap)
@@ -230,10 +239,11 @@ class test_htbl : public Tests
 		xassert(t2.insert(789));
 
 		auto t3{ f() }; // moved so not readonly
+		assert_eq(str(t3), "{12}");
 		t3.insert(56);
 
-		Hset<int> t4;
-		t4 = f(); // moved so not readonly
+		Hset<int> t4 = f(); // moved so not readonly
+		assert_eq(str(t4), "{12}");
 		t4.insert(123);
 		}
 	static Hset<int> f()
@@ -247,21 +257,61 @@ class test_htbl : public Tests
 		Hmap<int,int> t;
 		t.put(1, 111);
 		auto t2 = t; // sets both to readonly since shared data
+		assert_eq(str(t2), "{1: 111}");
 		xassert(t.put(2, 222));
 		xassert(t2.put(3, 333));
 
-		auto t3{ m() }; // moved so not readonly
-		t3.put(4, 444);
+		//auto t3{ m() }; // moved so not readonly
+		//assert_eq(str(t3), "{9: 999}");
+		//t3.put(4, 444);
 
-		Hmap<int,int> t4;
-		t4 = m(); // moved so not readonly
+		Hmap<int,int> t4 = m(); // moved so not readonly
+		assert_eq(str(t4), "{9: 999}");
 		t4.put(5, 555);
+
+		Hmap<int, int> x = t4.copy();
+		assert_eq(str(x), str(t4));
+		x.put(6, 666);
+		assert_eq(x.size(), t4.size() + 1);
 		}
 	static Hmap<int,int> m()
 		{
 		Hmap<int,int> tmp;
 		tmp.put(9, 999);
 		return tmp;
+		}
+
+	TEST(7, grow_restart)
+		{
+		Hset<const char*> t;
+		// lots of collisions
+		t.insert("WindowBase_border");			// hash % 37 == 24
+		t.insert("WindowBase_move_observers");	// hash % 37 == 24
+		t.insert("Window_newset");				// hash % 37 == 25
+		t.insert("WindowBase_rcmdmap");			// hash % 37 == 25
+		t.insert("WindowBase_cmdmap");			// hash % 37 == 25
+		t.insert("Window_exitOnClose");			// hash % 37 == 26
+		// now make it grow
+		t.insert("a");
+		t.insert("b");
+		t.insert("c");
+		t.insert("d");
+		t.insert("e");
+		t.insert("f");
+		t.insert("g");
+		}
+
+	TEST(8, empty)
+		{
+		Hmap<int, int> hm;
+		hm.clear();
+		hm.reset();
+		(void) hm.copy();
+		for (auto [k,v] : hm)
+			{
+			(void)k;
+			(void)v;
+			}
 		}
 	};
 REGISTER(test_htbl);

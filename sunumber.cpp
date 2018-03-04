@@ -1522,11 +1522,9 @@ Value SuNumber::call(Value self, Value member,
 		}
 	else
 		{
-		static ushort G_SuNumbers = globals("Numbers");
-		Value SuNumbers = globals.find(G_SuNumbers);
-		SuObject* ob;
-		if (SuNumbers && nullptr != (ob = SuNumbers.ob_if_ob()) && ob->has(member))
-			return ob->call(self, member, nargs, nargnames, argnames, each);
+		static UserDefinedMethods udm("Numbers");
+		if (Value c = udm(member))
+			return c.call(self, member, nargs, nargnames, argnames, each);
 		else
 			method_not_found("number", member);
 		}

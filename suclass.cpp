@@ -21,18 +21,29 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "suclass.h"
+#include "suobject.h"
+#include "suinstance.h"
 #include "interp.h"
 #include "globals.h"
-#include "symbols.h"
 #include "sustring.h"
 #include "sufunction.h"
 #include "sumethod.h"
 #include "catstr.h"
-#include <ctype.h>
+#include <cctype>
+#include "builtinargs.h"
+#include "susockets.h"
 
-extern Value root_class;
+void SuClass::put(Value m, Value x)
+	{
+	data[m] = x;
+	}
 
-//TODO classes and instances should not inherit from SuObject (like jSuneido)
+Value SuClass::get(Value m) const // no inheritance
+	{
+	if (Value* pv = data.find(m))
+		return *pv;
+	return Value();
+	}
 
 void SuClass::out(Ostream& out) const
 	{
@@ -40,10 +51,10 @@ void SuClass::out(Ostream& out) const
 	if (named.lib != "")
 		out << named.lib << " ";
 	out << "class";
-	if (base != OBJECT)
+	if (base)
 		{
 		out << " : ";
-		if (globals(base) == 0)
+		if (globals(base) == nullptr)
 			out << '_';
 		else
 			out << globals(base);
@@ -51,32 +62,81 @@ void SuClass::out(Ostream& out) const
 	out << " */";
 	}
 
-Value SuClass::call(Value self, Value member, 
+Value suSocketServer();
+
+Value SuClass::call(Value self, Value member,
 	short nargs, short nargnames, ushort *argnames, int each)
 	{
 	if (member == INSTANTIATE)
 		{
-		SuObject* instance = new SuObject;
-		instance->myclass = this;
+		Value instance = new SuInstance(this);
 		call(instance, NEW, nargs, nargnames, argnames, each);
 		return instance;
 		}
-	else if (pmfn* p = basic_methods.find(member))
-		return (this->*(*p))(nargs, nargnames, argnames, each);
+	if (auto f = method(member)) // builtin methods
+		{
+		BuiltinArgs args(nargs, nargnames, argnames, each);
+		return (this->*f)(args);
+		}
 	if (member == CALL)
 		member = CALL_CLASS;
-	if (tls().proc->super)
-		{
-		short super = tls().proc->super; tls().proc->super = 0;
-		return globals[super].call(self, member, nargs, nargnames, argnames, each);
-		}
-	if (Value x = get(member))
+	if (tls().proc->super != NOSUPER)
+		return callSuper(self, member, nargs, nargnames, argnames, each);
+
+	if (Value x = get3(member))
 		return x.call(self, CALL, nargs, nargnames, argnames, each);
-	else if (base)
-		return globals[base].call(self, member, nargs, nargnames, argnames, each);
-	else
-		// for built-in classes that don't use RootClass
-		method_not_found(type(), member);
+
+	if (member == CALL_CLASS) // default for CallClass is Instantiate
+		return call(self, INSTANTIATE, nargs, nargnames, argnames, each);
+
+	if (member == NEW) // no more New in inheritance (since get3 failed)
+		{
+		argseach(nargs, nargnames, argnames, each);
+		if (nargs > nargnames) // as usual, excess named arguments are ignored
+			except("too many arguments to New");
+		return Value();
+		}
+
+	static UserDefinedMethods udm("Objects");
+	if (Value c = udm(member))
+		return c.call(self, member, nargs, nargnames, argnames, each);
+
+	static Value DEFAULT("Default");
+	if (member != DEFAULT)
+		{
+		argseach(nargs, nargnames, argnames, each);
+		// insert member before args
+		PUSH(0); // make space
+		Value* sp = GETSP();
+		int i;
+		for (i = 0; i < nargs; ++i)
+			sp[-i] = sp[-i - 1];
+		sp[-i] = member;
+		return self.call(self, DEFAULT, nargs + 1, nargnames, argnames, each);
+		}
+	method_not_found(type(), member);
+	}
+
+UserDefinedMethods::UserDefinedMethods(const char* name) : gnum(globals(name))
+	{
+	}
+
+class Database;
+extern Database* thedb;
+bool isclient();
+
+Value UserDefinedMethods::operator()(Value member) const
+	{
+	if (thedb || isclient()) // don't access database in tests
+		if (SuClass* c = val_cast<SuClass*>(globals.find(gnum)))
+			if (c->hasMethod(member))
+				return c;
+	return Value();
+	}
+
+size_t SuClass::hashcontrib() const
+	{
+	return base + 31 * data.size();
 	}
 
 Value SuClass::getdata(Value member)
@@ -84,7 +144,7 @@ Value SuClass::getdata(Value member)
 	return get2(this, member);
 	}
 
-// 'self' will be different from 'this' when called by SuObject.get2
+// 'self' will be different from 'this' when called by SuInstance.get2
 Value SuClass::get2(Value self, Value member) // handles binding and getters
 	{
 	if (Value x = get3(member))
@@ -124,96 +184,39 @@ Value SuClass::get3(Value member) // handles inheritance
 		{
 		if (Value x = c->get(member))
 			return x;
-		if (c->base == OBJECT)
+		if (! c->base)
 			return Value();
 		c = force<SuClass*>(globals[c->base]);
 		}
 	except("too many levels of derivation (possible cycle): " << this);
 	}
 
-bool SuClass::eq(const SuValue& y) const
+Value SuClass::parent()
 	{
-	return this == &y; // a class is only equal to itself
+	return base ? globals[base] : Value();
 	}
 
-// RootClass --------------------------------------------------------
+//-------------------------------------------------------------------
 
-// the class for all "class-less" objects
-// the base for all "base-less" classes
-// theoretically the "basic" methods should be in here
-// but for speed they are in class SuObject
+#include "testing.h"
 
-Value RootClass::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+class test_class : public Tests
 	{
-	if (member == CALL || member == INSTANTIATE)
-		{ // only used for Object(...)
-		Value* args = GETSP() - nargs + 1;
-		SuObject* ob;
-		if (each >= 0)
-			{
-			verify(nargs == 1 && nargnames == 0);
-			ob = args[0].object()->slice(each);
-			}
-		else
-			{
-			// create an object from the args
-			ob = new SuObject;
-			ob->myclass = this;
-			// convert args to members
-			short unamed = nargs - nargnames;
-			// un-named
-			int i;
-			for (i = 0; i < unamed; ++i)
-				ob->add(args[i]);
-			// named
-			verify(i >= nargs || argnames);
-			for (int j = 0; i < nargs; ++i, ++j)
-				ob->put(symbol(argnames[j]), args[i]);
-			}
-		return ob;
-		}
-	else
+	TEST(1, "construct")
 		{
-		static ushort G_Objects = globals("Objects");
-		Value Objects = globals.find(G_Objects);
-		SuObject* ob;
-		if (Objects && nullptr != (ob = Objects.ob_if_ob()) && ob->has(member))
-			return ob->call(self, member, nargs, nargnames, argnames, each);
-		else
-			return notfound(self, member, nargs, nargnames, argnames, each);
+		val_cast<SuClass*>(run("class { }"));
+		val_cast<SuInstance*>(run("c = class { }; new c"));
+		val_cast<SuInstance*>(run("c = class { }; c()"));
+		assert_eq(Value(123), run("c = class { CallClass() { 123 } }; c()"));
+		assert_eq(run("#(Foo, 123)"),
+			run("c = class { Default(@args) { args } }; c.Foo(123)"));
+		assert_eq(run("#(Foo, 123)"),
+			run("c = class { Default(@args) { args } }; c().Foo(123)"));
+		run("new class{ New() { } }");
+		assert_eq(Value(123),
+			run("c = class { New(.x) { } F() { .x } }; c(123).F()"));
+		assert_eq(Value("foo"),
+			run("c = class { ToString() { 'foo' } }; Display(c())"));
 		}
-	}
-
-#include "func.h"
-
-// this is separate so it can be used by other builtin classes
-Value RootClass::notfound(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
-	{
-	static Value DEFAULT("Default");
-
-	argseach(nargs, nargnames, argnames, each);
-	if (member == NEW)
-		{
-		if (nargs > nargnames) // as usual, excess named arguments are ignored
-			except("too many arguments to New");
-		return Value();
-		}
-	else if (member == CALL_CLASS)
-		// default for CallClass is instantiate
-		return self.call(self, INSTANTIATE, nargs, nargnames, argnames, each);
-	else if (member != DEFAULT)
-		{
-		// insert member before args
-		PUSH(0); // make space
-		Value* sp = GETSP();
-		int i;
-		for (i = 0; i < nargs; ++i)
-			sp[-i] = sp[-i - 1];
-		sp[-i] = member;
-		return self.call(self, DEFAULT, nargs + 1, nargnames, argnames, each);
-		}
-	else
-		method_not_found(self.type(), ARG(0));
-	}
+	};
+REGISTER(test_class);

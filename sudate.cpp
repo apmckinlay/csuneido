@@ -28,9 +28,7 @@
 #include "suclass.h"
 #include "date.h"
 #include "interp.h"
-#include "globals.h"
 #include "symbols.h"
-#include "hashmap.h"
 #include "suboolean.h"
 #include "sustring.h"
 #include "sunumber.h"
@@ -106,44 +104,41 @@ void SuDate::out(Ostream& out) const
 	out.fill(' ');
 	}
 
-#define METHOD(fn) methods[#fn] = &SuDate::fn
+#define METHOD(fn) { #fn, &SuDate::fn }
+
+SuDate::Mfn SuDate::method(Value member)
+	{
+	using Method = std::pair<Value, SuDate::Mfn>;
+	static Method methods[]{
+		METHOD(FormatEn),
+		METHOD(Plus),
+		METHOD(MinusDays),
+		METHOD(MinusSeconds),
+		METHOD(Year),
+		METHOD(Month),
+		METHOD(Day),
+		METHOD(Hour),
+		METHOD(Minute),
+		METHOD(Second),
+		METHOD(Millisecond),
+		METHOD(WeekDay) };
+
+	for (auto[name, meth] : methods)
+		if (name == member)
+			return meth;
+	return nullptr;
+	}
 
 Value SuDate::call(Value self, Value member, 
 	short nargs, short nargnames, ushort* argnames, int each)
 	{
-	typedef Value (SuDate::*pmfn)(short, short, ushort*, int);
-	static HashMap<Value,pmfn> methods;
-
-	static bool first = true;
-	if (first)
-		{
-		METHOD(FormatEn);
-		METHOD(Plus);
-		METHOD(MinusDays);
-		METHOD(MinusSeconds);
-		METHOD(Year);
-		METHOD(Month);
-		METHOD(Day);
-		METHOD(Hour);
-		METHOD(Minute);
-		METHOD(Second);
-		METHOD(Millisecond);
-		METHOD(WeekDay);
-		first = false;
-		}
 	argseach(nargs, nargnames, argnames, each);
-	if (pmfn* p = methods.find(member))
-		return (this->*(*p))(nargs, nargnames, argnames, each);
-	else
-		{
-		static ushort G_Dates = globals("Dates");
-		Value Dates = globals.find(G_Dates);
-		SuObject* ob;
-		if (Dates && nullptr != (ob = Dates.ob_if_ob()) && ob->has(member))
-			return ob->call(self, member, nargs, nargnames, argnames, each);
-		else
-			method_not_found("date", member);
-		}
+	if (auto meth = method(member))
+		return (this->*meth)(nargs, nargnames, argnames, each);
+	static UserDefinedMethods udm("Dates");
+	if (Value c = udm(member))
+		return c.call(self, member, nargs, nargnames, argnames, each);
+	method_not_found("date", member);
 	}
 
 static void adjust(int& n, int& n2, int range)
@@ -892,20 +887,19 @@ Value SuDateClass::call(Value self, Value member,
 	argseach(nargs, nargnames, argnames, each);
 	if (member == INSTANTIATE || member == CALL )
 		return SuDate::instantiate(nargs, nargnames, argnames, each);
-	else if (member == Begin)
+	if (member == Begin)
 		{
 		static Value begin = SuDate::literal("#17000101");
 		NOARGS("Date.Begin()");
 		return begin;
 		}
-	else if (member == End)
+	if (member == End)
 		{
 		static Value end = SuDate::literal("#30000101");
 		NOARGS("Date.End()");
 		return end;
 		}
-	else
-		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
+	method_not_found("Date", member);
 	}
 
 void SuDateClass::out(Ostream& os) const
@@ -917,6 +911,8 @@ const char* SuDateClass::type() const
 	{
 	return "BuiltinClass";
 	}
+
+//-------------------------------------------------------------------
 
 #include "testing.h"
 

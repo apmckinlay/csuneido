@@ -21,7 +21,6 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "surecord.h"
-#include "suclass.h"
 #include "sudb.h"
 #include "sustring.h"
 #include "interp.h"
@@ -49,6 +48,11 @@ SuRecord::SuRecord(const SuRecord& rec)
 	dependents(rec.dependents),
 	invalid(rec.invalid), invalidated(rec.invalidated.copy())
 	// note: only have to copy() lists that are appended to
+	{
+	defval = SuString::empty_string;
+	}
+
+SuRecord::SuRecord(SuObject* ob) : SuObject(ob)
 	{
 	defval = SuString::empty_string;
 	}
@@ -342,13 +346,10 @@ Value SuRecord::call(Value self, Value member,
 	else
 		{
 		// TODO: calling object methods shouldn't require Records
-		static ushort gRecords = globals("Records");
-		Value Records = globals.find(gRecords);
-		SuObject* ob;
-		if (Records && nullptr != (ob = Records.ob_if_ob()) && ob->has(member))
-			return ob->call(self, member, nargs, nargnames, argnames, each);
-		else
-			return SuObject::call(self, member, nargs, nargnames, argnames, each);
+		static UserDefinedMethods udm("Records");
+		if (Value c = udm(member))
+			return c.call(self, member, nargs, nargnames, argnames, each);
+		return SuObject::call(self, member, nargs, nargnames, argnames, each);
 		}
 	}
 
@@ -426,11 +427,8 @@ void SuRecord::call_observers(ushort i, const char* why)
 	{
 	call_observer(i, why);
 	while (!invalidated.empty())
-		{
-		auto x = invalidated.popfront();
-		if (x != i)
+		if (auto x = invalidated.popfront();  x != i)
 			call_observer(x, "invalidate");
-		}
 	}
 
 void SuRecord::invalidate_dependents(ushort mem)
@@ -599,25 +597,45 @@ void SuRecord::pack(char* buf) const
 	return r;
 	}
 
-Value SuRecordClass::call(Value self, Value member,
+// Record(...) function
+
+class MkRecord : public Func
+	{
+	public:
+		MkRecord()
+			{
+			named.num = globals("Record");
+			}
+		Value call(Value self, Value member,
+			short nargs, short nargnames, ushort* argnames, int each) override;
+	};
+
+Value su_record()
+	{
+	return new MkRecord();
+	}
+
+Value MkRecord::call(Value self, Value member,
 	short nargs, short nargnames, ushort* argnames, int each)
 	{
-	if (member == CALL || member == INSTANTIATE)
+	if (member != CALL)
+		return Func::call(self, member, nargs, nargnames, argnames, each);
+	Value* args = GETSP() - nargs + 1;
+	if (each >= 0)
 		{
-		SuRecord* ob = new SuRecord;
-		// convert args to members
-		Value* args = GETSP() - nargs + 1;
-		short unamed = nargs - nargnames;
-		// un-named
-		int i;
-		for (i = 0; i < unamed; ++i)
-			ob->put(i, args[i]);
-		// named
-		verify(i >= nargs || argnames);
-		for (int j = 0; i < nargs; ++i, ++j)
-			ob->put(symbol(argnames[j]), args[i]);
-		return ob;
+		verify(nargs == 1 && nargnames == 0);
+		return new SuRecord(args[0].object());
 		}
-	else
-		return RootClass::notfound(self, member, nargs, nargnames, argnames, each);
+	SuRecord* ob = new SuRecord;
+	// convert args to members
+	short unamed = nargs - nargnames;
+	// un-named
+	int i;
+	for (i = 0; i < unamed; ++i)
+		ob->put(i, args[i]);
+	// named
+	verify(i >= nargs || argnames);
+	for (int j = 0; i < nargs; ++i, ++j)
+		ob->put(symbol(argnames[j]), args[i]);
+	return ob;
 	}
