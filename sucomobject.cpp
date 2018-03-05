@@ -185,7 +185,7 @@ static Value com2su(VARIANT* var)
 		{ // VariantClear() will release the BSTR in varValue
 		int nw = SysStringLen(V_BSTR(&varValue));
 		if (nw == 0)
-			return SuString::empty_string;
+			return SuEmptyString;
 		int n = WideCharToMultiByte(CP_ACP, 0, V_BSTR(&varValue), nw, 0, 0, NULL, NULL);
 		char* s = (char*) _alloca(n);
 		n = WideCharToMultiByte(CP_ACP, 0, V_BSTR(&varValue), nw, s, n, NULL, NULL);

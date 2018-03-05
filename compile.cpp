@@ -298,7 +298,7 @@ Value Compiler::constant(const char* gname, const char* className)
 			else
 				break;
 			}
-		return s == "" ? SuString::empty_string : new SuString(s);
+		return s == "" ? SuEmptyString : new SuString(s);
 		}
 	case '#' :
 		match();
@@ -1321,7 +1321,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 		mark();
 		b = emit(I_CATCH, 0, -1);
 		patch(a);
-		Value value = SuString::empty_string;
+		Value value = SuEmptyString;
 		if (scanner.keyword == K_CATCH)
 			{
 			match();

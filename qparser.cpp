@@ -661,7 +661,7 @@ Value QueryParser::constant()
 		break ;
 	case T_STRING :
 		if (scanner.len == 0)
-			x = SuString::empty_string;
+			x = SuEmptyString;
 		else
 			x = new SuString(scanner.value, scanner.len);
 		match();

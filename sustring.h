@@ -64,7 +64,7 @@ public:
 
 	size_t packsize() const override;
 	void pack(char* buf) const override;
-	static SuString* unpack(const gcstring& s);
+	static Value unpack(const gcstring& s);
 
 	const char* ptr() const
 		{ return s.ptr(); }
@@ -93,8 +93,6 @@ public:
 		{ return s == t; }
 
 	void out(Ostream& out) const override;
-
-	static SuString* empty_string;
 
 	int order() const override;
 	bool lt(const SuValue& x) const override;

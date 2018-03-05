@@ -40,7 +40,7 @@ Value unpack(const char* buf, int len)
 Value unpack(const gcstring& s)
 	{
 	if (s.size() == 0)
-		return SuString::empty_string;
+		return SuEmptyString;
 	switch (s[0])
 		{
 	case PACK_FALSE :
@@ -278,9 +278,9 @@ class test_pack : public Tests
 		}
 	TEST(1, string_pack)
 		{
-		testpack(SuString::empty_string);
+		testpack(SuEmptyString);
 		testpack(new SuString("hello\nworld"));
-		verify(SuString::unpack(gcstring("")) == SuString::empty_string);
+		verify(SuString::unpack(gcstring("")) == SuEmptyString);
 		}
 	TEST(2, number_pack)
 		{

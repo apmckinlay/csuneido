@@ -42,8 +42,6 @@
 using std::min;
 using std::max;
 
-SuString* SuString::empty_string = new SuString("");
-
 extern bool obout_inkey;
 
 void SuString::out(Ostream& out) const
@@ -167,10 +165,10 @@ void SuString::pack(char* dst) const
 	memcpy(dst + 1, ptr(), n);
 	}
 
-/*static*/ SuString* SuString::unpack(const gcstring& s)
+/*static*/ Value SuString::unpack(const gcstring& s)
 	{
 	if (s.size() <= 1)
-		return SuString::empty_string;
+		return SuEmptyString;
 	else
 		return new SuString(s.substr(1));
 	}
@@ -329,7 +327,7 @@ Value SuString::Eval(short nargs, short nargnames, ushort* argnames, int each)
 	if (Value result = run(str()))
 		return result;
 	else
-		return Value(SuString::empty_string);
+		return SuEmptyString;
 	}
 
 Value SuString::Eval2(short nargs, short nargnames, ushort* argnames, int each)
@@ -513,7 +511,7 @@ Value SuString::Extract(short nargs, short nargnames, ushort* argnames, int each
 	int i = nargs == 2 ? ARG(1).integer() : (parts[1].n >= 0 ? 1 : 0);
 	return i < MAXPARTS && parts[i].n >= 0
 		? SuString::noalloc(parts[i].s, parts[i].n)
-		: SuString::empty_string;
+		: SuEmptyString;
 	}
 
 // "hello world".Replace("l", "L") => "heLLo worLd"

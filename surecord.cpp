@@ -40,7 +40,7 @@
 
 SuRecord::SuRecord()
 	{
-	defval = SuString::empty_string;
+	defval = SuEmptyString;
 	}
 
 SuRecord::SuRecord(const SuRecord& rec)
@@ -49,12 +49,12 @@ SuRecord::SuRecord(const SuRecord& rec)
 	invalid(rec.invalid), invalidated(rec.invalidated.copy())
 	// note: only have to copy() lists that are appended to
 	{
-	defval = SuString::empty_string;
+	defval = SuEmptyString;
 	}
 
 SuRecord::SuRecord(SuObject* ob) : SuObject(ob)
 	{
-	defval = SuString::empty_string;
+	defval = SuEmptyString;
 	}
 
 SuRecord::SuRecord(const Row& r, const Header& h, int t)
@@ -73,7 +73,7 @@ SuRecord::SuRecord(const Row& r, const Header& h, SuTransaction* t)
 void SuRecord::init(const Row& dbrow)
 	{
 	verify(recadr >= 0);
-	defval = SuString::empty_string;
+	defval = SuEmptyString;
 	Row row(dbrow);
 	row.to_heap();
 	for (Row::iterator iter = row.begin(hdr); iter != row.end(); ++iter)
@@ -87,7 +87,7 @@ void SuRecord::init(const Row& dbrow)
 SuRecord::SuRecord(const Record& dbrec, const Lisp<int>& fldsyms, SuTransaction* t)
 	: trans(t), recadr(0), status(OLD)
 	{
-	defval = SuString::empty_string;
+	defval = SuEmptyString;
 	Record rec = dbrec.to_heap();
 	int i = 0;
 	for (Lisp<int> f = fldsyms; ! nil(f); ++f, ++i)

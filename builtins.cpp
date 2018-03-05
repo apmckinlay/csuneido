@@ -312,7 +312,7 @@ Value name()
 	if (auto named = TOP().get_named())
 		return new SuString(named->name());
 	else
-		return SuString::empty_string;
+		return SuEmptyString;
 	}
 PRIM(name, "Name(value)");
 
@@ -715,7 +715,7 @@ void builtins()
 	SuMinusOne = Value(-1);
 	SuTrue = SuBoolean::t;
 	SuFalse = SuBoolean::f;
-	SuEmptyString = SuString::empty_string;
+	SuEmptyString = symbol("");
 
 	// struct, dll, callback types
 	builtin("bool", new TypeBool);

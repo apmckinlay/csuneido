@@ -323,7 +323,7 @@ public:
 			{ }
 		}
 	Value result() override
-		{ return count ? Value(total / count) : Value(SuString::empty_string); }
+		{ return count ? Value(total / count) : SuEmptyString; }
 private:
 	int count = 0;
 	Value total;
