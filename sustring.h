@@ -140,6 +140,7 @@ private:
 	Value Repeat(short nargs, short nargnames, ushort* argnames, int each);
 	Value Replace(short nargs, short nargnames, ushort* argnames, int each);
 	Value replace(const gcstring& pat, Value rep, int count = INT_MAX) const;
+	Value Reverse(short nargs, short nargnames, ushort* argnames, int each);
 	Value ServerEval(short nargs, short nargnames, ushort* argnames, int each);
 	Value Size(short nargs, short nargnames, ushort* argnames, int each);
 	Value Split(short nargs, short nargnames, ushort* argnames, int each);

@@ -247,6 +247,7 @@ Value SuString::call(Value self, Value member,
 		methods["Prefix?"] = &SuString::Prefixq;
 		METHOD(Repeat);
 		METHOD(Replace);
+		METHOD(Reverse);
 		METHOD(ServerEval);
 		METHOD(Size);
 		METHOD(Split);
@@ -966,6 +967,18 @@ Value SuString::Instantiate(short nargs, short nargnames, ushort* argnames, int 
 	NOARGS("string.Instantiate()");
 	s.instantiate();
 	return this;
+	}
+
+Value SuString::Reverse(short nargs, short nargnames, ushort* argnames, int each)
+	{
+	NOARGS("string.Reverse()");
+	char* buf = salloc(size());
+	char* dst = buf + size();
+	*dst = 0;
+	for (auto c : s)
+		*--dst = c;
+	verify(dst == buf);
+	return SuString::noalloc(buf, size());
 	}
 
 // tests ============================================================
