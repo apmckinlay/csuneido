@@ -461,7 +461,7 @@ Value su_getenv()
 	{
 	const int nargs = 1;
 	char* s = getenv(ARG(0).str());
-	return new SuString(s ? s : "");
+	return s ? new SuString(s) : SuEmptyString;
 	}
 PRIM(su_getenv, "Getenv(string)");
 
