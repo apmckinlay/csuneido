@@ -33,6 +33,7 @@
 #include "prim.h"
 #include "heap.h"
 #include "list.h"
+#include "suinstance.h"
 
 long callback(Value fn, Callback* cb, char* src);
 
@@ -108,8 +109,8 @@ struct CbHashFn
 	{
 	size_t operator()(Value x)
 		{
-		if (SuObject* ob = val_cast<SuObject*>(x))
-			return (size_t) ob;
+		if (val_cast<SuInstance*>(x))
+			return reinterpret_cast<size_t>(x.ptr());
 		return x.hash();
 		}
 	};
@@ -117,9 +118,8 @@ struct CbEq
 	{
 	bool operator()(Value x, Value y)
 		{
-		if (SuObject* xob = val_cast<SuObject*>(x))
-			if (SuObject* yob = val_cast<SuObject*>(y))
-				return xob == yob;
+		if (val_cast<SuInstance*>(x) && val_cast<SuInstance*>(y))
+			return x.ptr() == y.ptr();
 		return x == y;
 		}
 	};

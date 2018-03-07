@@ -33,8 +33,6 @@ public:
 	MemBase() : named(".")
 		{ }
 
-	size_t hashfn() const override;
-
 private:
 	template <typename Finder> Value lookup(Finder finder);
 	void addMembersTo(SuObject* ob);

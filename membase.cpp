@@ -28,15 +28,6 @@
 #include "sufunction.h"
 #include "interp.h"
 
-size_t MemBase::hashfn() const
-	{
-	size_t hash = hashcontrib();
-	if (data.size() <= 5)
-		for (auto [key, val] : data)
-			hash = 31 * hash + (key.hashcontrib() ^ val.hashcontrib());
-	return hash;
-	}
-
 MemFun<MemBase> MemBase::method(Value member)
 	{
 	static Meth<MemBase> meths[] =

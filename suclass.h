@@ -39,9 +39,6 @@ public:
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort *argnames, int each) override;
 	Value getdata(Value) override;
-	bool eq(const SuValue& x) const override
-		{ return this == &x; }
-	size_t hashcontrib() const override;
 
 	bool hasMethod(Value mem)
 		{ return !!method_class(mem); }

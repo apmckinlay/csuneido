@@ -36,8 +36,11 @@ public:
 	void putdata(Value, Value) override;
 	Value call(Value self, Value member, short nargs,
 		short nargnames, ushort* argnames, int each) override;
+
 	bool eq(const SuValue& x) const override;
+	size_t hashfn() const override;
 	size_t hashcontrib() const override;
+
 	void out(Ostream&) const override;
 	gcstring to_gcstr() const override;
 	const char* type() const override;

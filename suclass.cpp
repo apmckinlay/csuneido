@@ -134,11 +134,6 @@ Value UserDefinedMethods::operator()(Value member) const
 	return Value();
 	}
 
-size_t SuClass::hashcontrib() const
-	{
-	return base + 31 * data.size();
-	}
-
 Value SuClass::getdata(Value member)
 	{
 	return get2(this, member);
