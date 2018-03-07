@@ -1454,7 +1454,7 @@ class test_database : public Tests
 			verify(i < nrecs);
 			assertreceq(records[nameorder[i]], Record(iter.data()));
 			}
-		asserteq(i, nrecs);
+		assert_eq(i, nrecs);
 
 		thedb->add_index("test_database", "phone", true);
 
@@ -1486,7 +1486,7 @@ class test_database : public Tests
 			verify(i < nrecs);
 			assertreceq(records[phoneorder[i]], Record(iter.data()));
 			}
-		asserteq(i, nrecs);
+		assert_eq(i, nrecs);
 		verify(thedb->commit(tran));
 
 
@@ -1538,9 +1538,9 @@ class test_database : public Tests
 		thedb->add_column(table, "Two"); // rule
 		thedb->add_column(table, "three");
 		thedb->add_index(table, "one", true);
-		asserteq(thedb->get_fields(table), lisp(gcstring("one"), gcstring("three")));
-		asserteq(thedb->get_columns(table), lisp(gcstring("two"), gcstring("one"), gcstring("three")));
-		asserteq(thedb->get_rules(table), lisp(gcstring("two")));
+		assert_eq(thedb->get_fields(table), lisp(gcstring("one"), gcstring("three")));
+		assert_eq(thedb->get_columns(table), lisp(gcstring("two"), gcstring("one"), gcstring("three")));
+		assert_eq(thedb->get_rules(table), lisp(gcstring("two")));
 		Record r;
 		r.addval("one");
 		r.addval(3);
@@ -1572,7 +1572,7 @@ class test_database : public Tests
 		index = thedb->get_index("indexes", "table,columns");
 		for (iter = index->begin(schema_tran); ! iter.eof(); ++iter)
 			{ ++n; }
-		asserteq(n, 6);
+		assert_eq(n, 6);
 
 		END
 		}

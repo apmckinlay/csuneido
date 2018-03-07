@@ -186,27 +186,27 @@ class test_value : public Tests
 
 		Value x;
 
-		asserteq(x = zero + one, one);
+		assert_eq(x = zero + one, one);
 		verify(x.is_int());
-		asserteq(x = one + one, 2);
+		assert_eq(x = one + one, 2);
 		verify(x.is_int());
-		asserteq(x = mid + one, 30001);
+		assert_eq(x = mid + one, 30001);
 		verify(x.is_int());
 		verify(mid + mid == 60000); // overflow
-		asserteq(big + one, 100001);
-		asserteq(big + big, 200000);
-		asserteq(zero - mid - mid, -60000); // overflow
+		assert_eq(big + one, 100001);
+		assert_eq(big + big, 200000);
+		assert_eq(zero - mid - mid, -60000); // overflow
 
-		asserteq(Value(1) / Value(8), Value(new SuNumber(".125")));
-		asserteq(x = mid / Value(300), 100);
+		assert_eq(Value(1) / Value(8), Value(new SuNumber(".125")));
+		assert_eq(x = mid / Value(300), 100);
 		verify(x.is_int());
 
-		asserteq(x = mid * mid, Value(30000 * 30000)); // overflow
+		assert_eq(x = mid * mid, Value(30000 * 30000)); // overflow
 		}
 	TEST(1, smallint)
 		{
 		Value x(0x1234);
-		asserteq((int)x.p, 0x1234ffff);
+		assert_eq((int)x.p, 0x1234ffff);
 		}
 	};
 REGISTER(test_value);

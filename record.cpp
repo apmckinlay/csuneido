@@ -568,12 +568,12 @@ class test_record : public Tests
 		Record r;
 		int64 n = 88888;
 		r.addmmoffset(n);
-		asserteq(r.getmmoffset(0), n);
+		assert_eq(r.getmmoffset(0), n);
 		n = 4 + (static_cast<int64>(1) << 32);
 		int m = mmoffset_to_int(n);
-		asserteq(n, int_to_mmoffset(m));
+		assert_eq(n, int_to_mmoffset(m));
 		r.addmmoffset(n);
-		asserteq(r.getmmoffset(1), n);
+		assert_eq(r.getmmoffset(1), n);
 		}
 	TEST(3, to_from_int)
 		{
@@ -582,17 +582,17 @@ class test_record : public Tests
 
 		int64 n64 = r.to_int64();
 		Record r2 = Record::from_int64(n64, 0);
-		asserteq(r, r2);
+		assert_eq(r, r2);
 
 		int n = r.to_int();
 		Record r3 = Record::from_int(n, 0);
-		asserteq(r, r3);
+		assert_eq(r, r3);
 
 		for (int64 i = 1; i < 16; ++i)
 			{
 			Mmoffset mmo = i * 1024 * 1024 * 1024;
 			n = mmoffset_to_tagged_int(mmo);
-			asserteq(tagged_int_to_mmoffset(n), mmo);
+			assert_eq(tagged_int_to_mmoffset(n), mmo);
 			}
 		}
 	};

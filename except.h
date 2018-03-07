@@ -51,10 +51,6 @@ Ostream& osexcept();
 #define verify(e) \
 	((e) ? (void) 0 : error("assert failed: " << #e))
 
-#define asserteq(x, y) \
-	((x) == (y) ? (void) 0 : error("assert failed: " << \
-	"\n" << #x << " " << (x) << "\n!=\n" << #y << " " << (y)))
-
 #define unreachable()	error("should not reach here!")
 
 class Except;

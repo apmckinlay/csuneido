@@ -174,7 +174,7 @@ class test_symbols : public Tests
 			verify(symbol_existing(strs[i]));
 			verify(0 == strcmp(strs[i], symstr(nums[i])));
 			Value sym = symbol(nums[i]);
-			asserteq(sym.gcstr(), strs[i]);
+			assert_eq(sym.gcstr(), strs[i]);
 			verify(sym.sameAs(symbol(strs[i])));
 			}
 		}

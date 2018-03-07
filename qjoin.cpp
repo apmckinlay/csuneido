@@ -263,7 +263,7 @@ Row Join::get(Dir dir)
 			{
 #ifndef NDEBUG
 			if (row2 != Eof)
-				asserteq(row_to_key(hdr1, row1, joincols), row_to_key(source2->header(), row2, joincols));
+				assert_eq(row_to_key(hdr1, row1, joincols), row_to_key(source2->header(), row2, joincols));
 #endif
 			return row1 + (row2 == Eof ? empty2 : row2);
 			}

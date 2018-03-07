@@ -68,7 +68,7 @@ class test_btree : public Tests
 
 		for (int i = 0; i < 100; ++i)
 			bt.insert(Vslot(key(i)));
-		asserteq(bt.treelevels, 0);
+		assert_eq(bt.treelevels, 0);
 
 		assertfeq(bt.rangefrac(key(0), endkey(99)), 1);
 		assertfeq(bt.rangefrac(Record(), endkey(99)), 1);
@@ -87,7 +87,7 @@ class test_btree : public Tests
 
 		for (int i = 0; i < 100; ++i)
 			bt.insert(Vslot(bigkey(i)));
-		asserteq(bt.treelevels, 2);
+		assert_eq(bt.treelevels, 2);
 
 		assertfeq(bt.rangefrac(key(""), key(0)), 0);
 		assertfeq(bt.rangefrac(key(""), key(25)), .25);
@@ -98,7 +98,7 @@ class test_btree : public Tests
 		assertfeq(bt.rangefrac(key(0), endkey(99)), 1);
 		assertclose(bt.rangefrac(key(10), key(20)), .1);
 		assertfeq(bt.rangefrac(key(""), key(20)), .2);
-//		asserteq(bt.rangefrac(key(20), endkey(20)), .01);
+//		assert_eq(bt.rangefrac(key(20), endkey(20)), .01);
 		assertfeq(bt.rangefrac(Record(), Record()), 0);
 		assertfeq(bt.rangefrac(key(999), maxkey()), 0);
 		}

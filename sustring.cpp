@@ -998,12 +998,12 @@ class test_sustring : public Tests
 		}
 	TEST(2, replace)
 		{
-		asserteq(SuString("hello world").replace("x", "X"), "hello world"); // same
-		asserteq(SuString("hello world").replace("l", "L"), "heLLo worLd");
-		asserteq(SuString("hello world").replace("l", "L", 0), "hello world"); // same
-		asserteq(SuString("hello world").replace(".", "<&>", 5), "<h><e><l><l><o> world");
-		asserteq(SuString("world").replace("^", "hello "), "hello world");
-		asserteq(SuString("hello").replace("$", " world"), "hello world");
+		assert_eq(SuString("hello world").replace("x", "X"), "hello world"); // same
+		assert_eq(SuString("hello world").replace("l", "L"), "heLLo worLd");
+		assert_eq(SuString("hello world").replace("l", "L", 0), "hello world"); // same
+		assert_eq(SuString("hello world").replace(".", "<&>", 5), "<h><e><l><l><o> world");
+		assert_eq(SuString("world").replace("^", "hello "), "hello world");
+		assert_eq(SuString("hello").replace("$", " world"), "hello world");
 		}
 	TEST(3, match)
 		{

@@ -283,7 +283,7 @@ void Mmfile::evict_chunk()
 	for (int i = 0; i < MAX_CHUNKS; ++i)
 		if (base[i])
 			++n;
-	asserteq(n, chunks_mapped);
+	assert_eq(n, chunks_mapped);
 #endif
 	int chunk = lru_chunk();
 	verify(base[chunk]);
@@ -333,11 +333,11 @@ class test_mmfile : public Tests
 		Mmfile::iterator iter;
 		for (i = 0, iter = begin; iter != m.end(); ++iter, ++i)
 			verify(0 == strcmp((char*) *iter, data[i]));
-		asserteq(i, ndata);
+		assert_eq(i, ndata);
 
 		for (i = ndata - 1, iter = m.end(); iter != begin; --i)
 			verify(0 == strcmp((char*) *--iter, data[i]));
-		asserteq(i, -1);
+		assert_eq(i, -1);
 
 		} verify(0 == remove("testmm"));
 		}
@@ -357,11 +357,11 @@ class test_mmfile : public Tests
 		Mmfile::iterator iter;
 		for (n = 0, iter = m.begin(); iter != m.end(); ++iter)
 			++n;
-		asserteq(n, 2);
+		assert_eq(n, 2);
 
 		for (n = 0, iter = m.end(); iter != m.begin(); --iter)
 			++n;
-		asserteq(n, 2);
+		assert_eq(n, 2);
 
 		} verify(0 == remove("testmm"));
 		}

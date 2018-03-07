@@ -118,7 +118,7 @@ class test_qscanner : public Tests
 		{
 		QueryScanner sc(qscanner_input);
 		for (int i = 0; Eof != sc.next(); ++i)
-			asserteq(results[i], sc.keyword);
+			assert_eq(results[i], sc.keyword);
 		}
 	};
 REGISTER(test_qscanner);

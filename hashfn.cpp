@@ -56,7 +56,7 @@ class test_hashfn : public Tests
 		auto s = "one";
 		auto h = hashfn(s);
 		// both are equivalent
-		asserteq(h, hashfn(s, strlen(s)));
+		assert_eq(h, hashfn(s, strlen(s)));
 		// order dependent
 		assert_neq(h, hashfn("eno"));
 		}

@@ -31,9 +31,9 @@ class test_slots : public Tests
 		Mmoffset n = (int64) 3 * 1024 * 1024 * 1024;
 		Record r;
 		r.addmmoffset(n);
-		asserteq(r.getmmoffset(0), n);
+		assert_eq(r.getmmoffset(0), n);
 		Vslot vs(r);
-		asserteq(vs.adr(), n);
+		assert_eq(vs.adr(), n);
 		}
 	TEST(1, "VFslot")
 		{
@@ -41,14 +41,14 @@ class test_slots : public Tests
 		r.addval("hello");
 		Mmoffset n = (int64) 3 * 1024 * 1024 * 1024;
 		VFslot vfs(r, n);
-		asserteq(vfs.key, r);
-		asserteq(vfs.adr, n);
+		assert_eq(vfs.key, r);
+		assert_eq(vfs.adr, n);
 
 		VFslots slots;
 		slots.push_back(vfs);
 		VFslot vfs2 = slots.back();
-		asserteq(vfs2.key, r);
-		asserteq(vfs2.adr, n);
+		assert_eq(vfs2.key, r);
+		assert_eq(vfs2.adr, n);
 		}
 	};
 REGISTER(test_slots);

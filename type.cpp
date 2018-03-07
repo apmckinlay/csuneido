@@ -577,12 +577,12 @@ class test_types : public Tests
 		char* dst2 = buf2;
 		char* lim2 = buf2 + sizeof buf2;
 
-		asserteq(type->size(), size);
+		assert_eq(type->size(), size);
 		type->put(dst, dst2, lim2, x);
 		verify(dst == buf + size);
 		verify(dst2 == buf2 + size2);
 		const char* src = buf;
-		asserteq(type->get(src, Value()), x);
+		assert_eq(type->get(src, Value()), x);
 		}
 	};
 REGISTER(test_types);

@@ -257,7 +257,7 @@ Record k(ulong recnum)
 		1 << 10;
 #endif
 	r.addmmoffset((recnum << 2) + offset);
-	asserteq((r.getmmoffset(r.size() - 1) - offset), (recnum << 2));
+	assert_eq((r.getmmoffset(r.size() - 1) - offset), (recnum << 2));
 
 	verify(kk(r) == recnum);
 	return r;

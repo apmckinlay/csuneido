@@ -89,11 +89,11 @@ class test_circlog : public Tests
 	TEST(0, "main")
 		{
 		clear();
-		asserteq(circ_log_get(), "");
+		assert_eq(circ_log_get(), "");
 		circ_log("one");
-		asserteq(circ_log_get(), "one\n");
+		assert_eq(circ_log_get(), "one\n");
 		circ_log("two");
-		asserteq(circ_log_get(), "one\ntwo\n");
+		assert_eq(circ_log_get(), "one\ntwo\n");
 		}
 	};
 REGISTER(test_circlog);

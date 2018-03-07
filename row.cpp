@@ -381,7 +381,7 @@ class test_row : public Tests
 		Row y(d);
 		Row z(y);
 		z.to_heap();
-		asserteq(y, z);
+		assert_eq(y, z);
 		}
 	TEST(4, timestamp)
 		{

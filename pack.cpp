@@ -302,7 +302,7 @@ class test_pack : public Tests
 		x.pack(buf);
 		verify(buf[n] == '\xc4');
 		Value y = ::unpack(buf, n);
-		asserteq(x, y);
+		assert_eq(x, y);
 		}
 	TEST(3, long_pack)
 		{
@@ -322,10 +322,10 @@ class test_pack : public Tests
 		packlong(buf, x);
 		gcstring s = gcstring::noalloc(buf, packsize(x));
 		long y = unpacklong(s);
-		asserteq(x, y);
+		assert_eq(x, y);
 		Value num = ::unpack(s);
-		asserteq(x, num.integer());
-		asserteq(packsize(x), num.packsize());
+		assert_eq(x, num.integer());
+		assert_eq(packsize(x), num.packsize());
 		char buf2[80];
 		num.pack(buf2);
 		verify(0 == memcmp(buf, buf2, packsize(x)));

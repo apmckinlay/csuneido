@@ -125,46 +125,46 @@ class test_tr : public Tests
 	{
 	TEST(0, main)
 		{
-		asserteq(tr("", "", ""), "");
-		asserteq(tr("", "abc", "ABC"), "");
-		asserteq(tr("", "^abc", "x"), "");
+		assert_eq(tr("", "", ""), "");
+		assert_eq(tr("", "abc", "ABC"), "");
+		assert_eq(tr("", "^abc", "x"), "");
 
-		asserteq(tr("abc", "", ""), "abc");
-		asserteq(tr("abc", "xyz", ""), "abc");
-		asserteq(tr("zon", "xyz", ""), "on");
-		asserteq(tr("oyn", "xyz", ""), "on");
-		asserteq(tr("nox", "xyz", ""), "no");
-		asserteq(tr("zyx", "xyz", ""), "");
+		assert_eq(tr("abc", "", ""), "abc");
+		assert_eq(tr("abc", "xyz", ""), "abc");
+		assert_eq(tr("zon", "xyz", ""), "on");
+		assert_eq(tr("oyn", "xyz", ""), "on");
+		assert_eq(tr("nox", "xyz", ""), "no");
+		assert_eq(tr("zyx", "xyz", ""), "");
 
-		asserteq(tr("zon", "xyz", "XYZ"), "Zon");
-		asserteq(tr("oyn", "xyz", "XYZ"), "oYn");
-		asserteq(tr("nox", "xyz", "XYZ"), "noX");
-		asserteq(tr("zyx", "xyz", "XYZ"), "ZYX");
+		assert_eq(tr("zon", "xyz", "XYZ"), "Zon");
+		assert_eq(tr("oyn", "xyz", "XYZ"), "oYn");
+		assert_eq(tr("nox", "xyz", "XYZ"), "noX");
+		assert_eq(tr("zyx", "xyz", "XYZ"), "ZYX");
 
-		asserteq(tr("a b - c", "^abc", ""), "abc"); // allbut delete
-		asserteq(tr("a b - c", "^a-z", ""), "abc"); // allbut delete
-		asserteq(tr("a  b - c", "^abc", " "), "a b c"); // allbut collapse
-		asserteq(tr("a  b - c", "^a-z", " "), "a b c"); // allbut collapse
-		asserteq(tr("a-b-c", "-x", ""), "abc"); // literal dash
-		asserteq(tr("a-b-c", "x-", ""), "abc"); // literal dash
+		assert_eq(tr("a b - c", "^abc", ""), "abc"); // allbut delete
+		assert_eq(tr("a b - c", "^a-z", ""), "abc"); // allbut delete
+		assert_eq(tr("a  b - c", "^abc", " "), "a b c"); // allbut collapse
+		assert_eq(tr("a  b - c", "^a-z", " "), "a b c"); // allbut collapse
+		assert_eq(tr("a-b-c", "-x", ""), "abc"); // literal dash
+		assert_eq(tr("a-b-c", "x-", ""), "abc"); // literal dash
 
 		// collapse at end
-		asserteq(tr("hello \t\n\n", " \t\n", "\n"), "hello\n");
+		assert_eq(tr("hello \t\n\n", " \t\n", "\n"), "hello\n");
 
 		// signed char range
-		asserteq(tr("hello", "^\x20-\xff", ""), "hello");
-		asserteq(tr("hello\x7f", "\x70-\x7f", ""), "hello");
-		asserteq(tr("hello\xff", "\x7f-\xff", ""), "hello");
+		assert_eq(tr("hello", "^\x20-\xff", ""), "hello");
+		assert_eq(tr("hello\x7f", "\x70-\x7f", ""), "hello");
+		assert_eq(tr("hello\xff", "\x7f-\xff", ""), "hello");
 
-		asserteq(tr("abc", "abcdefghijklmnop", "abcdefg"), "abc");
-		asserteq(tr("nop", "abcdefghijklmnop", "abcdefg"), "g");
+		assert_eq(tr("abc", "abcdefghijklmnop", "abcdefg"), "abc");
+		assert_eq(tr("nop", "abcdefghijklmnop", "abcdefg"), "g");
 		}
 	TEST(1, expandRanges)
 		{
 		gcstring s = expandRanges(gcstring("\x00-\xff", 3));
-		asserteq(s.size(), 256);
-		asserteq(s[0], '\x00');
-		asserteq(s[255], '\xff');
+		assert_eq(s.size(), 256);
+		assert_eq(s[0], '\x00');
+		assert_eq(s[255], '\xff');
 		}
 	};
 REGISTER(test_tr);

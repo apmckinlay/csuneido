@@ -349,7 +349,7 @@ class test_gcstring : public Tests
 		int i;
 		for (i = 0; i < N; ++i)
 			s += big;
-		asserteq(s.size(), N * bigsize);
+		assert_eq(s.size(), N * bigsize);
 		for (i = 0; i < N; ++i)
 			verify(has_prefix(s.ptr() + i * bigsize, big));
 		}
@@ -363,7 +363,7 @@ class test_gcstring : public Tests
 		s = "01234567890123456789012345678901234567890123456789012345678901234567890123456789";
 		gcstring t = "0123456789012345678901234567890123456789";
 		t += "0123456789012345678901234567890123456789";
-		asserteq(s.find(t), 0);
+		assert_eq(s.find(t), 0);
 		}
 	TEST(6, presuffix)
 		{
@@ -378,24 +378,24 @@ class test_gcstring : public Tests
 	TEST(7, trim)
 		{
 		gcstring hello("hello");
-		asserteq(hello.trim(), hello);
-		asserteq(gcstring("  hello").trim(), hello);
-		asserteq(gcstring("hello  ").trim(), hello);
-		asserteq(gcstring(" hello ").trim(), hello);
+		assert_eq(hello.trim(), hello);
+		assert_eq(gcstring("  hello").trim(), hello);
+		assert_eq(gcstring("hello  ").trim(), hello);
+		assert_eq(gcstring(" hello ").trim(), hello);
 		}
 	TEST(8, capitalize)
 		{
 		gcstring s;
-		asserteq(s.capitalize(), "");
-		asserteq(s.uncapitalize(), "");
+		assert_eq(s.capitalize(), "");
+		assert_eq(s.uncapitalize(), "");
 		s = "Hello";
-		asserteq(s.capitalize(), "Hello");
-		asserteq(s.uncapitalize(), "hello");
-		asserteq(s[0], 'H');
+		assert_eq(s.capitalize(), "Hello");
+		assert_eq(s.uncapitalize(), "hello");
+		assert_eq(s[0], 'H');
 		s = "hello";
-		asserteq(s.uncapitalize(), "hello");
-		asserteq(s.capitalize(), "Hello");
-		asserteq(s[0], 'h');
+		assert_eq(s.uncapitalize(), "hello");
+		assert_eq(s.capitalize(), "Hello");
+		assert_eq(s[0], 'h');
 		}
 	};
 REGISTER(test_gcstring);
@@ -407,7 +407,7 @@ class test_gcstring2 : public Tests
 		gcstring s = "abcd";
 		gcstring t = "b";
 		int pos = -99;
-		asserteq(s.find(t, pos), 1);
+		assert_eq(s.find(t, pos), 1);
 		}
 	};
 REGISTER(test_gcstring2);

@@ -105,7 +105,7 @@ class test_auth : public Tests
 	TEST(0, token)
 		{
 		gcstring t = Auth::token();
-		asserteq(Auth::TOKEN_SIZE, t.size());
+		assert_eq(Auth::TOKEN_SIZE, t.size());
 		gcstring t2 = Auth::token();
 		assert_neq(t, t2);
 		verify(is_token(t));

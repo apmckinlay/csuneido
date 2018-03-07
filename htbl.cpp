@@ -92,7 +92,7 @@ class test_htbl : public Tests
 		// assumes that int hash is identity, not mixed
 		Hset<int> hset(40);
 		const int P = 61;
-		asserteq(0, hset.size());
+		assert_eq(0, hset.size());
 		std::tuple<int, const char*> add[] = {
 			{2,				"{2}"},
 			{P + 2,			"{2, 63}"}, // collision
@@ -104,14 +104,14 @@ class test_htbl : public Tests
 		for (auto [n,s] : add)
 			{
 			hset.insert(n);
-			asserteq(s, str(hset));
+			assert_eq(s, str(hset));
 			}
-		asserteq(6, hset.size());
+		assert_eq(6, hset.size());
 		for (auto [n,_] : add)
 			{
 			auto p = hset.find(n);
 			verify(p);
-			asserteq(n, *p);
+			assert_eq(n, *p);
 			(void)_;
 			}
 		std::tuple<int, const char*> del[] = {
@@ -125,9 +125,9 @@ class test_htbl : public Tests
 		for (auto[n, s] : del)
 			{
 			verify(hset.erase(n));
-			asserteq(s, str(hset));
+			assert_eq(s, str(hset));
 			}
-		asserteq(0, hset.size());
+		assert_eq(0, hset.size());
 		}
 	template <class T>
 	static gcstring str(const T& x)
@@ -144,7 +144,7 @@ class test_htbl : public Tests
 		hset.insert(Foo{"one",123});
 		auto p = hset.find("one");
 		verify(p);
-		asserteq(123, p->n);
+		assert_eq(123, p->n);
 		}
 	TEST(2, hset2)
 		{
@@ -154,7 +154,7 @@ class test_htbl : public Tests
 		hset.insert(Bar{"one",123});
 		auto p = hset.find("one");
 		verify(p);
-		asserteq(123, p->n);
+		assert_eq(123, p->n);
 		}
 	TEST(3, hmap)
 		{
@@ -166,11 +166,11 @@ class test_htbl : public Tests
 			{
 			int* pi = hmap.find(i);
 			verify(pi);
-			asserteq(100 + i, *pi);
-			asserteq(100 + i, hmap[i]);
+			assert_eq(100 + i, *pi);
+			assert_eq(100 + i, hmap[i]);
 			}
-		asserteq(10, hmap.size());
-		asserteq("{0: 100, 1: 101, 2: 102, 3: 103, 4: 104, 5: 105, 6: 106, "
+		assert_eq(10, hmap.size());
+		assert_eq("{0: 100, 1: 101, 2: 102, 3: 103, 4: 104, 5: 105, 6: 106, "
 			"7: 107, 8: 108, 9: 109}", str(hmap));
 		// note: order depends on hashing
 		}
@@ -185,37 +185,37 @@ class test_htbl : public Tests
 			//tbl.put(mix(i), i);
 			tbl[mix(i)] = i;
 			}
-		asserteq(N, tbl.size());
+		assert_eq(N, tbl.size());
 
 		for (int i = 0; i < N; ++i)
 			{
 			auto p = tbl.find(mix(i));
 			verify(p);
-			asserteq(i, *p);
-			asserteq(i, tbl[mix(i)]);
+			assert_eq(i, *p);
+			assert_eq(i, tbl[mix(i)]);
 			}
 
 		int n = 0;
 		for (auto [k,v] : tbl)
 			{
-			asserteq(k, mix(v));
+			assert_eq(k, mix(v));
 			++n;
 			}
 		verify(n == N);
 
 		for (int i = 0; i < N; i += 2)
 			verify(tbl.erase(mix(i)));
-		asserteq(N/2, tbl.size());
+		assert_eq(N/2, tbl.size());
 		for (int i = 0; i < N; ++i)
 			if (i & 1)
-				asserteq(i, tbl[mix(i)]);
+				assert_eq(i, tbl[mix(i)]);
 			else
 				verify(!tbl.find(mix(i)));
 
 		n = 0;
 		for (auto[k, v] : tbl)
 			{
-			asserteq(k, mix(v));
+			assert_eq(k, mix(v));
 			++n;
 			}
 		verify(n == N/2);

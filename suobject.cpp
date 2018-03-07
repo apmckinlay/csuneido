@@ -1283,24 +1283,24 @@ class test_object : public Tests
 		ob.remove1(SuTrue);
 
 		ob.add(SuTrue);
-		asserteq(ob.size(), 1);
+		assert_eq(ob.size(), 1);
 		ob.remove1(SuFalse);
-		asserteq(ob.size(), 1);
+		assert_eq(ob.size(), 1);
 		ob.remove1(SuTrue);
-		asserteq(ob.size(), 0);
+		assert_eq(ob.size(), 0);
 
 		ob.add(1);
 		ob.add(2);
 		ob.add(4);
 		ob.put(10, 2);
 		ob.put(11, 3);
-		asserteq(ob.size(), 5);
+		assert_eq(ob.size(), 5);
 		ob.remove1(2);
-		asserteq(ob.size(), 4);
-		asserteq(ob.get(0), 1);
-		asserteq(ob.get(1), 4);
-		asserteq(ob.get(10), 2);
-		asserteq(ob.get(11), 3);
+		assert_eq(ob.size(), 4);
+		assert_eq(ob.get(0), 1);
+		assert_eq(ob.get(1), 4);
+		assert_eq(ob.get(10), 2);
+		assert_eq(ob.get(11), 3);
 		}
 	};
 REGISTER(test_object);
@@ -1309,37 +1309,37 @@ class test_object2 : public Tests
 	{
 	TEST(1, list_named)
 		{
-		asserteq(Value(3), run("#(1, 2, a: 3).Size()"));
-		asserteq(Value(2), run("#(1, 2, a: 3).Size(list:)"));
-		asserteq(Value(1), run("#(1, 2, a: 3).Size(named:)"));
-		asserteq(Value(3), run("#(1, 2, a: 3).Size(list:, named:)"));
-		asserteq(Value(2), run("#(1, 2, a: 3).Size(list:, named: false)"));
-		asserteq(Value(1), run("#(1, 2, a: 3).Size(list: false, named:)"));
-		asserteq(Value(0), run("#(1, 2, a: 3).Size(list: false, named: false)"));
+		assert_eq(Value(3), run("#(1, 2, a: 3).Size()"));
+		assert_eq(Value(2), run("#(1, 2, a: 3).Size(list:)"));
+		assert_eq(Value(1), run("#(1, 2, a: 3).Size(named:)"));
+		assert_eq(Value(3), run("#(1, 2, a: 3).Size(list:, named:)"));
+		assert_eq(Value(2), run("#(1, 2, a: 3).Size(list:, named: false)"));
+		assert_eq(Value(1), run("#(1, 2, a: 3).Size(list: false, named:)"));
+		assert_eq(Value(0), run("#(1, 2, a: 3).Size(list: false, named: false)"));
 
-		asserteq(run("#(0, 1, a)"), run("#(1, 2, a: 3).Members()"));
-		asserteq(run("#(0, 1)"), run("#(1, 2, a: 3).Members(list:)"));
-		asserteq(run("#(a)"), run("#(1, 2, a: 3).Members(named:)"));
-		asserteq(run("#(0, 1, a)"), run("#(1, 2, a: 3).Members(list:, named:)"));
-		asserteq(run("#(0, 1)"), run("#(1, 2, a: 3).Members(list:, named: false)"));
-		asserteq(run("#(a)"), run("#(1, 2, a: 3).Members(list: false, named:)"));
-		asserteq(run("#()"), run("#(1, 2, a: 3).Members(list: false, named: false)"));
+		assert_eq(run("#(0, 1, a)"), run("#(1, 2, a: 3).Members()"));
+		assert_eq(run("#(0, 1)"), run("#(1, 2, a: 3).Members(list:)"));
+		assert_eq(run("#(a)"), run("#(1, 2, a: 3).Members(named:)"));
+		assert_eq(run("#(0, 1, a)"), run("#(1, 2, a: 3).Members(list:, named:)"));
+		assert_eq(run("#(0, 1)"), run("#(1, 2, a: 3).Members(list:, named: false)"));
+		assert_eq(run("#(a)"), run("#(1, 2, a: 3).Members(list: false, named:)"));
+		assert_eq(run("#()"), run("#(1, 2, a: 3).Members(list: false, named: false)"));
 
-		asserteq(run("#(1, 2, 3)"), run("#(1, 2, a: 3).Values()"));
-		asserteq(run("#(1, 2)"), run("#(1, 2, a: 3).Values(list:)"));
-		asserteq(run("#(3)"), run("#(1, 2, a: 3).Values(named:)"));
-		asserteq(run("#(1, 2, 3)"), run("#(1, 2, a: 3).Values(list:, named:)"));
-		asserteq(run("#(1, 2)"), run("#(1, 2, a: 3).Values(list:, named: false)"));
-		asserteq(run("#(3)"), run("#(1, 2, a: 3).Values(list: false, named:)"));
-		asserteq(run("#()"), run("#(1, 2, a: 3).Values(list: false, named: false)"));
+		assert_eq(run("#(1, 2, 3)"), run("#(1, 2, a: 3).Values()"));
+		assert_eq(run("#(1, 2)"), run("#(1, 2, a: 3).Values(list:)"));
+		assert_eq(run("#(3)"), run("#(1, 2, a: 3).Values(named:)"));
+		assert_eq(run("#(1, 2, 3)"), run("#(1, 2, a: 3).Values(list:, named:)"));
+		assert_eq(run("#(1, 2)"), run("#(1, 2, a: 3).Values(list:, named: false)"));
+		assert_eq(run("#(3)"), run("#(1, 2, a: 3).Values(list: false, named:)"));
+		assert_eq(run("#()"), run("#(1, 2, a: 3).Values(list: false, named: false)"));
 
-		asserteq(run("#((0, 1), (1, 2), (a, 3))"), run("#(1, 2, a: 3).Assocs()"));
-		asserteq(run("#((0, 1), (1, 2))"), run("#(1, 2, a: 3).Assocs(list:)"));
-		asserteq(run("#((a, 3))"), run("#(1, 2, a: 3).Assocs(named:)"));
-		asserteq(run("#((0, 1), (1, 2), (a, 3))"), run("#(1, 2, a: 3).Assocs(list:, named:)"));
-		asserteq(run("#((0, 1), (1, 2))"), run("#(1, 2, a: 3).Assocs(list:, named: false)"));
-		asserteq(run("#((a, 3))"), run("#(1, 2, a: 3).Assocs(list: false, named:)"));
-		asserteq(run("#()"), run("#(1, 2, a: 3).Assocs(list: false, named: false)"));
+		assert_eq(run("#((0, 1), (1, 2), (a, 3))"), run("#(1, 2, a: 3).Assocs()"));
+		assert_eq(run("#((0, 1), (1, 2))"), run("#(1, 2, a: 3).Assocs(list:)"));
+		assert_eq(run("#((a, 3))"), run("#(1, 2, a: 3).Assocs(named:)"));
+		assert_eq(run("#((0, 1), (1, 2), (a, 3))"), run("#(1, 2, a: 3).Assocs(list:, named:)"));
+		assert_eq(run("#((0, 1), (1, 2))"), run("#(1, 2, a: 3).Assocs(list:, named: false)"));
+		assert_eq(run("#((a, 3))"), run("#(1, 2, a: 3).Assocs(list: false, named:)"));
+		assert_eq(run("#()"), run("#(1, 2, a: 3).Assocs(list: false, named: false)"));
 		}
 	};
 REGISTER(test_object2);

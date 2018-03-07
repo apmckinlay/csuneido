@@ -773,18 +773,18 @@ class test_recover : public Tests
 	void check()
 		{
 		DbRecover* dbr = DbRecover::check("tempdb");
-		asserteq(dbr->status(), DBR_OK);
+		assert_eq(dbr->status(), DBR_OK);
 		dbr->check_indexes();
-		asserteq(dbr->status(), DBR_OK);
+		assert_eq(dbr->status(), DBR_OK);
 		verify(! alerts);
 		delete dbr;
 		}
 	void rebuild()
 		{
 		DbRecover* dbr = DbRecover::check("tempdb");
-		asserteq(dbr->status(), DBR_OK);
+		assert_eq(dbr->status(), DBR_OK);
 		dbr->check_indexes();
-		asserteq(dbr->status(), DBR_OK);
+		assert_eq(dbr->status(), DBR_OK);
 		verify(dbr->rebuild(null_progress, false));
 		verify(! alerts);
 		delete dbr;
@@ -798,11 +798,11 @@ class test_recover : public Tests
 		{
 		Translate tr(10);
 		tr.add(80, 88);
-		asserteq(tr[80], 88);
+		assert_eq(tr[80], 88);
 		const int64 MB = 1024 * 1024;
 		tr.add(4500 * MB, 4600 * MB);
-		asserteq(tr[4500 * MB], 4600 * MB);
-		asserteq(tr[80], 88);
+		assert_eq(tr[4500 * MB], 4600 * MB);
+		assert_eq(tr[80], 88);
 		}
 	};
 REGISTER(test_recover);

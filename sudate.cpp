@@ -937,13 +937,13 @@ class test_sudate : public Tests
 		OstreamStr os;
 		os << now;
 		Value d = SuDate::parse(os.str());
-		asserteq(now, d);
+		assert_eq(now, d);
 
 		gcstring s = "#20031218.151501002";
 		Value ds = SuDate::parse(s.str());
 		os.clear();
 		os << ds;
-		asserteq(s, os.str());
+		assert_eq(s, os.str());
 		}
 	TEST(2, literal)
 		{
@@ -951,7 +951,7 @@ class test_sudate : public Tests
 		Value x = SuDate::literal(s);
 		OstreamStr os;
 		os << x;
-		asserteq(gcstring(s), gcstring(os.str()));
+		assert_eq(gcstring(s), gcstring(os.str()));
 
 		verify(! SuDate::literal("#200901011"));
 		verify(! SuDate::literal("#20090101.1"));

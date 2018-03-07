@@ -1547,11 +1547,11 @@ class test_number : public Tests
 			SuNumber n(x);
 			verify(x == n.integer());
 			}
-		asserteq(SuNumber("-.5").integer(), 0);
-		asserteq(SuNumber("1e99").integer(), INT_MAX);
-		asserteq(SuNumber("-1e99").integer(), INT_MIN);
-		asserteq(SuNumber("1e-99").integer(), 0);
-		asserteq(SuNumber("-1e-99").integer(), 0);
+		assert_eq(SuNumber("-.5").integer(), 0);
+		assert_eq(SuNumber("1e99").integer(), INT_MAX);
+		assert_eq(SuNumber("-1e99").integer(), INT_MIN);
+		assert_eq(SuNumber("1e-99").integer(), 0);
+		assert_eq(SuNumber("-1e-99").integer(), 0);
 		}
 
 	TEST(2, str)
@@ -1577,14 +1577,14 @@ class test_number : public Tests
 
 	TEST(3, add_sub)
 		{
-		asserteq(SuNumber(1) + SuNumber(1), SuNumber(2));
-		asserteq(SuNumber(1) - SuNumber(1), SuNumber(0L));
-		asserteq(SuNumber(0L) - SuNumber(1), SuNumber(-1));
-		asserteq(SuNumber(456) - SuNumber(123), SuNumber(333));
-		asserteq(SuNumber(123) - SuNumber(456), SuNumber(-333));
-		asserteq(SuNumber(9999) + SuNumber(1), SuNumber(10000));
-		asserteq(SuNumber(10000) - SuNumber(1), SuNumber(9999));
-		asserteq(SuNumber("999999999999999e489") + SuNumber("999999999999999e489"),
+		assert_eq(SuNumber(1) + SuNumber(1), SuNumber(2));
+		assert_eq(SuNumber(1) - SuNumber(1), SuNumber(0L));
+		assert_eq(SuNumber(0L) - SuNumber(1), SuNumber(-1));
+		assert_eq(SuNumber(456) - SuNumber(123), SuNumber(333));
+		assert_eq(SuNumber(123) - SuNumber(456), SuNumber(-333));
+		assert_eq(SuNumber(9999) + SuNumber(1), SuNumber(10000));
+		assert_eq(SuNumber(10000) - SuNumber(1), SuNumber(9999));
+		assert_eq(SuNumber("999999999999999e489") + SuNumber("999999999999999e489"),
 			SuNumber::infinity);
 		for (long i = 0; i < 1000; ++i)
 			{
@@ -1604,9 +1604,9 @@ class test_number : public Tests
 		verify(SuNumber(-1) * SuNumber(-1) == SuNumber(1));
 		verify(SuNumber(2) * SuNumber(2) == SuNumber(4));
 		verify(SuNumber(10001) * SuNumber(10001) == SuNumber(100020001));
-		asserteq(SuNumber("1e300") * SuNumber("1e300"), SuNumber::infinity);
-		asserteq(SuNumber("1e-300") * SuNumber("1e-300"), SuNumber::zero);
-		asserteq(SuNumber("1.08") * SuNumber(".9259259259259259"), SuNumber("1"));
+		assert_eq(SuNumber("1e300") * SuNumber("1e300"), SuNumber::infinity);
+		assert_eq(SuNumber("1e-300") * SuNumber("1e-300"), SuNumber::zero);
+		assert_eq(SuNumber("1.08") * SuNumber(".9259259259259259"), SuNumber("1"));
 		for (long i = 0; i < 1000; ++i)
 			{
 			{
@@ -1632,8 +1632,8 @@ class test_number : public Tests
 		verify(SuNumber(123) / SuNumber(1) == SuNumber(123));
 		verify(SuNumber(456) / SuNumber(2) == SuNumber(228));
 		verify(SuNumber(10000) / SuNumber(10) == SuNumber(1000));
-		asserteq(SuNumber("1e-300") / SuNumber("1e300"), SuNumber::zero);
-		asserteq(SuNumber("1e300") / SuNumber("1e-300"), SuNumber::infinity);
+		assert_eq(SuNumber("1e-300") / SuNumber("1e300"), SuNumber::zero);
+		assert_eq(SuNumber("1e300") / SuNumber("1e-300"), SuNumber::infinity);
 		SuNumber m(100000000), n(100000001);
 		verify(! close(&m, &n));
 		for (long i = 0; i < 1000; ++i)
@@ -1772,9 +1772,9 @@ class test_number4 : public Tests
 	{
 	TEST(0, main)
 		{
-		asserteq(SuNumber("10000"), SuNumber(10000));
-		asserteq(SuNumber("1000000000000000000"), SuNumber("1e18"));
-		asserteq(SuNumber("1234567890123456789"), SuNumber("1234567890123456000"));
+		assert_eq(SuNumber("10000"), SuNumber(10000));
+		assert_eq(SuNumber("1000000000000000000"), SuNumber("1e18"));
+		assert_eq(SuNumber("1234567890123456789"), SuNumber("1234567890123456000"));
 		}
 	};
 REGISTER(test_number4);

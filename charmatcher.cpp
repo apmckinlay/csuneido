@@ -145,32 +145,32 @@ class test_charMatcher : public Tests
 	TEST(0, main)
 		{
 		CMIs cmIs('a');
-		asserteq(cmIs.matches('a'), true);
-		asserteq(cmIs.matches('b'), false);
+		assert_eq(cmIs.matches('a'), true);
+		assert_eq(cmIs.matches('b'), false);
 
 		CMAnyOf cmAnyOf("bcd");
-		asserteq(cmAnyOf.matches('b'), true);
-		asserteq(cmAnyOf.matches('e'), false);
+		assert_eq(cmAnyOf.matches('b'), true);
+		assert_eq(cmAnyOf.matches('e'), false);
 
 		CMInRange cmInRange('e', 'g');
-		asserteq(cmInRange.matches('e'), true);
-		asserteq(cmInRange.matches('g'), true);
-		asserteq(cmInRange.matches('h'), false);
+		assert_eq(cmInRange.matches('e'), true);
+		assert_eq(cmInRange.matches('g'), true);
+		assert_eq(cmInRange.matches('h'), false);
 
 		CMNegate cmNegate(&cmInRange);
-		asserteq(cmNegate.matches('e'), false);
-		asserteq(cmNegate.matches('g'), false);
-		asserteq(cmNegate.matches('h'), true);
+		assert_eq(cmNegate.matches('e'), false);
+		assert_eq(cmNegate.matches('g'), false);
+		assert_eq(cmNegate.matches('h'), true);
 
 		CMOr cmOr(&cmAnyOf, &cmInRange);
-		asserteq(cmOr.matches('b'), true);
-		asserteq(cmOr.matches('e'), true);
-		asserteq(cmOr.matches('e'), true);
-		asserteq(cmOr.matches('g'), true);
-		asserteq(cmOr.matches('h'), false);
+		assert_eq(cmOr.matches('b'), true);
+		assert_eq(cmOr.matches('e'), true);
+		assert_eq(cmOr.matches('e'), true);
+		assert_eq(cmOr.matches('g'), true);
+		assert_eq(cmOr.matches('h'), false);
 
-		asserteq(CharMatcher::NONE.matches('a'), false);
-		asserteq(CharMatcher::NONE.matches('\n'), false);
+		assert_eq(CharMatcher::NONE.matches('a'), false);
+		assert_eq(CharMatcher::NONE.matches('\n'), false);
 		}
 	};
 REGISTER(test_charMatcher);

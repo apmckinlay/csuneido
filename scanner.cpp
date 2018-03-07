@@ -516,10 +516,10 @@ class test_scanner : public Tests
 		Scanner sc(input);
 		for (i = 0; Eof != (token = sc.next()); ++i)
 			{
-			asserteq(results[i].token,
+			assert_eq(results[i].token,
 				(results[i].token < KEYWORDS ? token : sc.keyword));
 			if (results[i].value)
-				asserteq(gcstring(sc.value), gcstring(results[i].value));
+				assert_eq(gcstring(sc.value), gcstring(results[i].value));
 			}
 		verify(i == sizeof results / sizeof(Result));
 		}

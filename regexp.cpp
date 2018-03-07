@@ -1057,7 +1057,7 @@ class test_regexp : public Tests
 		size_t replen = rx_replen(rep, parts);
 		char buf[200];
 		rx_mkrep(buf, rep, parts);
-		asserteq(strlen(buf), replen);
+		assert_eq(strlen(buf), replen);
 		verify(0 == strcmp(buf, "Hello wORLD HELLO world hello WORLD"));
 		}
 	TEST(2, group_repetition_bug)
@@ -1066,14 +1066,14 @@ class test_regexp : public Tests
 		Rxpart parts[MAXPARTS];
 		auto s = "hello world ";
 		rx_match(s, strlen(s), 0, pat, parts);
-		asserteq(parts[0].s, s);
-		asserteq(parts[0].n, 12);
-		asserteq(parts[1].s, s + 6);
-		asserteq(parts[1].n, 6);
+		assert_eq(parts[0].s, s);
+		assert_eq(parts[0].n, 12);
+		assert_eq(parts[1].s, s + 6);
+		assert_eq(parts[1].n, 6);
 		}
 	TEST(3, escape_nul_bug)
 		{
-		asserteq(rx_replen("\\", nullptr), 1);
+		assert_eq(rx_replen("\\", nullptr), 1);
 		}
 	};
 REGISTER(test_regexp);
@@ -1086,8 +1086,8 @@ class test_regexp2 : public Tests
 		Rxpart parts[MAXPARTS];
 		auto s = "axb";
 		rx_amatch(s, 0, 3, pat, parts);
-		asserteq(parts[0].s, s);
-		asserteq(parts[0].n, 3);
+		assert_eq(parts[0].s, s);
+		assert_eq(parts[0].n, 3);
 		}
 	};
 REGISTER(test_regexp2);
@@ -1096,147 +1096,147 @@ class test_element : public Tests
 	{
 	TEST(0, posix)
 		{
-		asserteq(RxCompile::blank->matches(' '), true);
-		asserteq(RxCompile::blank->matches('\t'), true);
-		asserteq(RxCompile::blank->matches('\0'), false);
-		asserteq(RxCompile::blank->matches('a'), false);
+		assert_eq(RxCompile::blank->matches(' '), true);
+		assert_eq(RxCompile::blank->matches('\t'), true);
+		assert_eq(RxCompile::blank->matches('\0'), false);
+		assert_eq(RxCompile::blank->matches('a'), false);
 
-		asserteq(RxCompile::digit->matches('0'), true);
-		asserteq(RxCompile::digit->matches('9'), true);
-		asserteq(RxCompile::digit->matches('\0'), false);
-		asserteq(RxCompile::digit->matches('a'), false);
+		assert_eq(RxCompile::digit->matches('0'), true);
+		assert_eq(RxCompile::digit->matches('9'), true);
+		assert_eq(RxCompile::digit->matches('\0'), false);
+		assert_eq(RxCompile::digit->matches('a'), false);
 
-		asserteq(RxCompile::notDigit->matches('0'), false);
-		asserteq(RxCompile::notDigit->matches('9'), false);
-		asserteq(RxCompile::notDigit->matches('\0'), true);
-		asserteq(RxCompile::notDigit->matches('a'), true);
+		assert_eq(RxCompile::notDigit->matches('0'), false);
+		assert_eq(RxCompile::notDigit->matches('9'), false);
+		assert_eq(RxCompile::notDigit->matches('\0'), true);
+		assert_eq(RxCompile::notDigit->matches('a'), true);
 
-		asserteq(RxCompile::lower->matches('a'), true);
-		asserteq(RxCompile::lower->matches('z'), true);
-		asserteq(RxCompile::lower->matches('A'), false);
-		asserteq(RxCompile::lower->matches('\0'), false);
+		assert_eq(RxCompile::lower->matches('a'), true);
+		assert_eq(RxCompile::lower->matches('z'), true);
+		assert_eq(RxCompile::lower->matches('A'), false);
+		assert_eq(RxCompile::lower->matches('\0'), false);
 
-		asserteq(RxCompile::upper->matches('A'), true);
-		asserteq(RxCompile::upper->matches('Z'), true);
-		asserteq(RxCompile::upper->matches('a'), false);
-		asserteq(RxCompile::upper->matches('\0'), false);
+		assert_eq(RxCompile::upper->matches('A'), true);
+		assert_eq(RxCompile::upper->matches('Z'), true);
+		assert_eq(RxCompile::upper->matches('a'), false);
+		assert_eq(RxCompile::upper->matches('\0'), false);
 
-		asserteq(RxCompile::alpha->matches('a'), true);
-		asserteq(RxCompile::alpha->matches('A'), true);
-		asserteq(RxCompile::alpha->matches('1'), false);
-		asserteq(RxCompile::alpha->matches('\n'), false);
+		assert_eq(RxCompile::alpha->matches('a'), true);
+		assert_eq(RxCompile::alpha->matches('A'), true);
+		assert_eq(RxCompile::alpha->matches('1'), false);
+		assert_eq(RxCompile::alpha->matches('\n'), false);
 
-		asserteq(RxCompile::alnum->matches('a'), true);
-		asserteq(RxCompile::alnum->matches('A'), true);
-		asserteq(RxCompile::alnum->matches('1'), true);
-		asserteq(RxCompile::alnum->matches('\n'), false);
+		assert_eq(RxCompile::alnum->matches('a'), true);
+		assert_eq(RxCompile::alnum->matches('A'), true);
+		assert_eq(RxCompile::alnum->matches('1'), true);
+		assert_eq(RxCompile::alnum->matches('\n'), false);
 
-		asserteq(RxCompile::punct->matches('!'), true);
-		asserteq(RxCompile::punct->matches('\\'), true);
-		asserteq(RxCompile::punct->matches('a'), false);
-		asserteq(RxCompile::punct->matches('\n'), false);
+		assert_eq(RxCompile::punct->matches('!'), true);
+		assert_eq(RxCompile::punct->matches('\\'), true);
+		assert_eq(RxCompile::punct->matches('a'), false);
+		assert_eq(RxCompile::punct->matches('\n'), false);
 
-		asserteq(RxCompile::graph->matches('!'), true);
-		asserteq(RxCompile::graph->matches('1'), true);
-		asserteq(RxCompile::graph->matches('a'), true);
-		asserteq(RxCompile::graph->matches(' '), false);
-		asserteq(RxCompile::graph->matches('\n'), false);
+		assert_eq(RxCompile::graph->matches('!'), true);
+		assert_eq(RxCompile::graph->matches('1'), true);
+		assert_eq(RxCompile::graph->matches('a'), true);
+		assert_eq(RxCompile::graph->matches(' '), false);
+		assert_eq(RxCompile::graph->matches('\n'), false);
 
-		asserteq(RxCompile::print->matches('!'), true);
-		asserteq(RxCompile::print->matches('1'), true);
-		asserteq(RxCompile::print->matches('a'), true);
-		asserteq(RxCompile::print->matches(' '), true);
-		asserteq(RxCompile::print->matches('\n'), false);
+		assert_eq(RxCompile::print->matches('!'), true);
+		assert_eq(RxCompile::print->matches('1'), true);
+		assert_eq(RxCompile::print->matches('a'), true);
+		assert_eq(RxCompile::print->matches(' '), true);
+		assert_eq(RxCompile::print->matches('\n'), false);
 
-		asserteq(RxCompile::xdigit->matches('0'), true);
-		asserteq(RxCompile::xdigit->matches('a'), true);
-		asserteq(RxCompile::xdigit->matches('g'), false);
-		asserteq(RxCompile::xdigit->matches('\n'), false);
+		assert_eq(RxCompile::xdigit->matches('0'), true);
+		assert_eq(RxCompile::xdigit->matches('a'), true);
+		assert_eq(RxCompile::xdigit->matches('g'), false);
+		assert_eq(RxCompile::xdigit->matches('\n'), false);
 
-		asserteq(RxCompile::space->matches(' '), true);
-		asserteq(RxCompile::space->matches('\t'), true);
-		asserteq(RxCompile::space->matches('\n'), true);
-		asserteq(RxCompile::space->matches('a'), false);
+		assert_eq(RxCompile::space->matches(' '), true);
+		assert_eq(RxCompile::space->matches('\t'), true);
+		assert_eq(RxCompile::space->matches('\n'), true);
+		assert_eq(RxCompile::space->matches('a'), false);
 
-		asserteq(RxCompile::notSpace->matches(' '), false);
-		asserteq(RxCompile::notSpace->matches('\t'), false);
-		asserteq(RxCompile::notSpace->matches('\n'), false);
-		asserteq(RxCompile::notSpace->matches('a'), true);
+		assert_eq(RxCompile::notSpace->matches(' '), false);
+		assert_eq(RxCompile::notSpace->matches('\t'), false);
+		assert_eq(RxCompile::notSpace->matches('\n'), false);
+		assert_eq(RxCompile::notSpace->matches('a'), true);
 
-		asserteq(RxCompile::cntrl->matches(' '), false);
-		asserteq(RxCompile::cntrl->matches('a'), false);
-		asserteq(RxCompile::cntrl->matches('\n'), true);
-		asserteq(RxCompile::cntrl->matches('\x00'), true);
+		assert_eq(RxCompile::cntrl->matches(' '), false);
+		assert_eq(RxCompile::cntrl->matches('a'), false);
+		assert_eq(RxCompile::cntrl->matches('\n'), true);
+		assert_eq(RxCompile::cntrl->matches('\x00'), true);
 
-		asserteq(RxCompile::word->matches('a'), true);
-		asserteq(RxCompile::word->matches('1'), true);
-		asserteq(RxCompile::word->matches('_'), true);
-		asserteq(RxCompile::word->matches('\n'), false);
-		asserteq(RxCompile::word->matches('('), false);
+		assert_eq(RxCompile::word->matches('a'), true);
+		assert_eq(RxCompile::word->matches('1'), true);
+		assert_eq(RxCompile::word->matches('_'), true);
+		assert_eq(RxCompile::word->matches('\n'), false);
+		assert_eq(RxCompile::word->matches('('), false);
 
-		asserteq(RxCompile::notWord->matches('a'), false);
-		asserteq(RxCompile::notWord->matches('1'), false);
-		asserteq(RxCompile::notWord->matches('_'), false);
-		asserteq(RxCompile::notWord->matches('\n'), true);
-		asserteq(RxCompile::notWord->matches('('), true);
+		assert_eq(RxCompile::notWord->matches('a'), false);
+		assert_eq(RxCompile::notWord->matches('1'), false);
+		assert_eq(RxCompile::notWord->matches('_'), false);
+		assert_eq(RxCompile::notWord->matches('\n'), true);
+		assert_eq(RxCompile::notWord->matches('('), true);
 		}
 	TEST(1, omatch)
 		{
-		asserteq(startOfLine.omatch("abc\nabc", 0, 7), 0);
-		asserteq(startOfLine.omatch("abc\nabc", 1, 7), -1);
-		asserteq(startOfLine.omatch("abc\nabc", 4, 7), 4);
+		assert_eq(startOfLine.omatch("abc\nabc", 0, 7), 0);
+		assert_eq(startOfLine.omatch("abc\nabc", 1, 7), -1);
+		assert_eq(startOfLine.omatch("abc\nabc", 4, 7), 4);
 
-		asserteq(endOfLine.omatch("abc\nabc\r\nabc", 0, 12), -1);
-		asserteq(endOfLine.omatch("abc\nabc\r\nabc", 3, 12), 3);
-		asserteq(endOfLine.omatch("abc\nabc\r\nabc", 7, 12), 7);
-		asserteq(endOfLine.omatch("abc\nabc\r\nabc", 12, 12), 12);
+		assert_eq(endOfLine.omatch("abc\nabc\r\nabc", 0, 12), -1);
+		assert_eq(endOfLine.omatch("abc\nabc\r\nabc", 3, 12), 3);
+		assert_eq(endOfLine.omatch("abc\nabc\r\nabc", 7, 12), 7);
+		assert_eq(endOfLine.omatch("abc\nabc\r\nabc", 12, 12), 12);
 
-		asserteq(startOfString.omatch("abc\nabc", 0, 7), 0);
-		asserteq(startOfString.omatch("abc\nabc", 5, 7), -1);
+		assert_eq(startOfString.omatch("abc\nabc", 0, 7), 0);
+		assert_eq(startOfString.omatch("abc\nabc", 5, 7), -1);
 
-		asserteq(endOfString.omatch("abc\r\n", 5, 5), 5);
-		asserteq(endOfString.omatch("abc\r\n", 4, 5), 4);
-		asserteq(endOfString.omatch("abc\r\n", 3, 5), 3);
-		asserteq(endOfString.omatch("abc\r\n", 2, 5), -1);
+		assert_eq(endOfString.omatch("abc\r\n", 5, 5), 5);
+		assert_eq(endOfString.omatch("abc\r\n", 4, 5), 4);
+		assert_eq(endOfString.omatch("abc\r\n", 3, 5), 3);
+		assert_eq(endOfString.omatch("abc\r\n", 2, 5), -1);
 
-		asserteq(startOfWord.omatch("abc abc\rabc", 0, 11), 0);
-		asserteq(startOfWord.omatch("abc abc\rabc", 4, 11), 4);
-		asserteq(startOfWord.omatch("abc abc\rabc", 8, 11), 8);
-		asserteq(startOfWord.omatch("abc abc\rabc", 1, 11), -1);
+		assert_eq(startOfWord.omatch("abc abc\rabc", 0, 11), 0);
+		assert_eq(startOfWord.omatch("abc abc\rabc", 4, 11), 4);
+		assert_eq(startOfWord.omatch("abc abc\rabc", 8, 11), 8);
+		assert_eq(startOfWord.omatch("abc abc\rabc", 1, 11), -1);
 
-		asserteq(endOfWord.omatch("abc abc\rabc", 3, 11), 3);
-		asserteq(endOfWord.omatch("abc abc\rabc", 7, 11), 7);
-		asserteq(endOfWord.omatch("abc abc\rabc", 11, 11), 11);
-		asserteq(endOfWord.omatch("abc abc\rabc", 1, 11), -1);
+		assert_eq(endOfWord.omatch("abc abc\rabc", 3, 11), 3);
+		assert_eq(endOfWord.omatch("abc abc\rabc", 7, 11), 7);
+		assert_eq(endOfWord.omatch("abc abc\rabc", 11, 11), 11);
+		assert_eq(endOfWord.omatch("abc abc\rabc", 1, 11), -1);
 
-		asserteq(any.omatch("abc abc\r\n", 0, 9), 1);
-		asserteq(any.omatch("abc abc\r\n", 3, 9), 4);
-		asserteq(any.omatch("abc abc\r\n", 7, 9), -1);
-		asserteq(any.omatch("abc abc\r\n", 8, 9), -1);
+		assert_eq(any.omatch("abc abc\r\n", 0, 9), 1);
+		assert_eq(any.omatch("abc abc\r\n", 3, 9), 4);
+		assert_eq(any.omatch("abc abc\r\n", 7, 9), -1);
+		assert_eq(any.omatch("abc abc\r\n", 8, 9), -1);
 
 		Chars eChars1("aBc", false);
-		asserteq(eChars1.omatch("abc aBc", 0, 7), -1);
-		asserteq(eChars1.omatch("abc aBc", 4, 7), 7);
-		asserteq(eChars1.omatch("abc aBc", 5, 7), -1);
+		assert_eq(eChars1.omatch("abc aBc", 0, 7), -1);
+		assert_eq(eChars1.omatch("abc aBc", 4, 7), 7);
+		assert_eq(eChars1.omatch("abc aBc", 5, 7), -1);
 		Chars eChars2("aBc", true);
-		asserteq(eChars2.omatch("abc aBc", 0, 7), 3);
-		asserteq(eChars2.omatch("abc aBc", 4, 7), 7);
-		asserteq(eChars2.omatch("abc aBc", 5, 7), -1);
-		asserteq(eChars2.omatch("abc aBc", 7, 7), -1);
+		assert_eq(eChars2.omatch("abc aBc", 0, 7), 3);
+		assert_eq(eChars2.omatch("abc aBc", 4, 7), 7);
+		assert_eq(eChars2.omatch("abc aBc", 5, 7), -1);
+		assert_eq(eChars2.omatch("abc aBc", 7, 7), -1);
 
 		CharMatcher* cm = CharMatcher::anyOf("acd")->or_(CharMatcher::inRange('1', '9'));
 		CharClass eCharClass1(cm, false);
-		asserteq(eCharClass1.omatch("Aa1\n", 0, 4), -1);
-		asserteq(eCharClass1.omatch("Aa1\n", 1, 4), 2);
-		asserteq(eCharClass1.omatch("Aa1\n", 2, 4), 3);
-		asserteq(eCharClass1.omatch("Aa1\n", 3, 4), -1);
-		asserteq(eCharClass1.omatch("Aa1\n", 4, 4), -1);
+		assert_eq(eCharClass1.omatch("Aa1\n", 0, 4), -1);
+		assert_eq(eCharClass1.omatch("Aa1\n", 1, 4), 2);
+		assert_eq(eCharClass1.omatch("Aa1\n", 2, 4), 3);
+		assert_eq(eCharClass1.omatch("Aa1\n", 3, 4), -1);
+		assert_eq(eCharClass1.omatch("Aa1\n", 4, 4), -1);
 		CharClass eCharClass2(cm, true);
-		asserteq(eCharClass2.omatch("Aa1\n", 0, 4), 1);
-		asserteq(eCharClass2.omatch("Aa1\n", 1, 4), 2);
-		asserteq(eCharClass2.omatch("Aa1\n", 2, 4), 3);
-		asserteq(eCharClass2.omatch("Aa1\n", 3, 4), -1);
-		asserteq(eCharClass2.omatch("Aa1\n", 4, 4), -1);
+		assert_eq(eCharClass2.omatch("Aa1\n", 0, 4), 1);
+		assert_eq(eCharClass2.omatch("Aa1\n", 1, 4), 2);
+		assert_eq(eCharClass2.omatch("Aa1\n", 2, 4), 3);
+		assert_eq(eCharClass2.omatch("Aa1\n", 3, 4), -1);
+		assert_eq(eCharClass2.omatch("Aa1\n", 4, 4), -1);
 
 		Rxpart parts[2];
 		const char* s = "hello world !!";
@@ -1245,51 +1245,51 @@ class test_element : public Tests
 		parts[1].s = s + 6;
 		parts[1].n = 5;
 		Backref eBackref1(1, false);
-		asserteq(eBackref1.omatch("  World\nworld", 2, 13, parts), -1);
-		asserteq(eBackref1.omatch("  World\nworld", 8, 13, parts), 13);
-		asserteq(eBackref1.omatch("  World\nworld", 9, 13, parts), -1);
-		asserteq(eBackref1.omatch("  World\nworld", 13, 13, parts), -1);
+		assert_eq(eBackref1.omatch("  World\nworld", 2, 13, parts), -1);
+		assert_eq(eBackref1.omatch("  World\nworld", 8, 13, parts), 13);
+		assert_eq(eBackref1.omatch("  World\nworld", 9, 13, parts), -1);
+		assert_eq(eBackref1.omatch("  World\nworld", 13, 13, parts), -1);
 		Backref eBackref2(1, true);
-		asserteq(eBackref2.omatch("  World\nworld", 2, 13, parts), 7);
-		asserteq(eBackref2.omatch("  World\nworld", 8, 13, parts), 13);
-		asserteq(eBackref2.omatch("  World\nworld", 9, 13, parts), -1);
-		asserteq(eBackref2.omatch("  World\nworld", 13, 13, parts), -1);
+		assert_eq(eBackref2.omatch("  World\nworld", 2, 13, parts), 7);
+		assert_eq(eBackref2.omatch("  World\nworld", 8, 13, parts), 13);
+		assert_eq(eBackref2.omatch("  World\nworld", 9, 13, parts), -1);
+		assert_eq(eBackref2.omatch("  World\nworld", 13, 13, parts), -1);
 		}
 	TEST(2, nextPossible)
 		{
-		asserteq(startOfLine.nextPossible("\nabc\n\nabc", 0, 9), 5);
-		asserteq(startOfLine.nextPossible("\nabc\n\nabc", 1, 9), 5);
-		asserteq(startOfLine.nextPossible("\nabc\n\nabc", 4, 9), 6);
-		asserteq(startOfLine.nextPossible("\nabc\n\nabc", 5, 9), 10);
-		asserteq(startOfLine.nextPossible("\nabc\n\nabc", 6, 9), 10);
-		asserteq(startOfLine.nextPossible("\nabc\n\nabc", 9, 9), 10);
+		assert_eq(startOfLine.nextPossible("\nabc\n\nabc", 0, 9), 5);
+		assert_eq(startOfLine.nextPossible("\nabc\n\nabc", 1, 9), 5);
+		assert_eq(startOfLine.nextPossible("\nabc\n\nabc", 4, 9), 6);
+		assert_eq(startOfLine.nextPossible("\nabc\n\nabc", 5, 9), 10);
+		assert_eq(startOfLine.nextPossible("\nabc\n\nabc", 6, 9), 10);
+		assert_eq(startOfLine.nextPossible("\nabc\n\nabc", 9, 9), 10);
 
-		asserteq(startOfString.nextPossible("abc", 0, 3), 4);
-		asserteq(startOfString.nextPossible("abc", 3, 3), 4);
+		assert_eq(startOfString.nextPossible("abc", 0, 3), 4);
+		assert_eq(startOfString.nextPossible("abc", 3, 3), 4);
 
 		Chars eChars1("aBc", false);
-		asserteq(eChars1.nextPossible("abc aBc", 0, 7), 4);
-		asserteq(eChars1.nextPossible("abc aBc", 4, 7), 8);
-		asserteq(eChars1.nextPossible("abc aBc", 5, 7), 8);
+		assert_eq(eChars1.nextPossible("abc aBc", 0, 7), 4);
+		assert_eq(eChars1.nextPossible("abc aBc", 4, 7), 8);
+		assert_eq(eChars1.nextPossible("abc aBc", 5, 7), 8);
 		Chars eChars2("aBc", true);
-		asserteq(eChars2.nextPossible("abc aBc", 0, 7), 4);
-		asserteq(eChars2.nextPossible("abc aBc", 4, 7), 8);
-		asserteq(eChars2.nextPossible("abc aBc", 5, 7), 8);
-		asserteq(eChars2.nextPossible("abc aBc", 7, 7), 8);
+		assert_eq(eChars2.nextPossible("abc aBc", 0, 7), 4);
+		assert_eq(eChars2.nextPossible("abc aBc", 4, 7), 8);
+		assert_eq(eChars2.nextPossible("abc aBc", 5, 7), 8);
+		assert_eq(eChars2.nextPossible("abc aBc", 7, 7), 8);
 
 		CharMatcher* cm = CharMatcher::anyOf("acd")->or_(CharMatcher::inRange('1', '9'));
 		CharClass eCharClass1(cm, false);
-		asserteq(eCharClass1.nextPossible("AC1\n", 0, 4), 2);
-		asserteq(eCharClass1.nextPossible("AC1\n", 1, 4), 2);
-		asserteq(eCharClass1.nextPossible("AC1\n", 2, 4), 5);
-		asserteq(eCharClass1.nextPossible("AC1\n", 3, 4), 5);
-		asserteq(eCharClass1.nextPossible("AC1\n", 4, 4), 5);
+		assert_eq(eCharClass1.nextPossible("AC1\n", 0, 4), 2);
+		assert_eq(eCharClass1.nextPossible("AC1\n", 1, 4), 2);
+		assert_eq(eCharClass1.nextPossible("AC1\n", 2, 4), 5);
+		assert_eq(eCharClass1.nextPossible("AC1\n", 3, 4), 5);
+		assert_eq(eCharClass1.nextPossible("AC1\n", 4, 4), 5);
 		CharClass eCharClass2(cm, true);
-		asserteq(eCharClass2.nextPossible("AC1\n", 0, 4), 1);
-		asserteq(eCharClass2.nextPossible("AC1\n", 1, 4), 2);
-		asserteq(eCharClass2.nextPossible("AC1\n", 2, 4), 5);
-		asserteq(eCharClass2.nextPossible("AC1\n", 3, 4), 5);
-		asserteq(eCharClass2.nextPossible("AC1\n", 4, 4), 5);
+		assert_eq(eCharClass2.nextPossible("AC1\n", 0, 4), 1);
+		assert_eq(eCharClass2.nextPossible("AC1\n", 1, 4), 2);
+		assert_eq(eCharClass2.nextPossible("AC1\n", 2, 4), 5);
+		assert_eq(eCharClass2.nextPossible("AC1\n", 3, 4), 5);
+		assert_eq(eCharClass2.nextPossible("AC1\n", 4, 4), 5);
 		}
 	};
 REGISTER(test_element);

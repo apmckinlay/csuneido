@@ -818,7 +818,7 @@ double Select::datafrac(Indexes indexes)
 void Select::select(const Fields& index, const Record& from, const Record& to)
 	{
 	LOG("select " << index << " " << from << " => " << to);
-	// asserteq(index, required_index); // not sure why this fails
+	// assert_eq(index, required_index); // not sure why this fails
 	if (conflicting)
 		{
 		sel.org = keymax;
@@ -1280,23 +1280,23 @@ class test_qselect : public Tests
 		ts.choose_primary(index_b);
 		verify(nil(ts.primary));
 		ts.choose_primary(Fields());
-		asserteq(index_a_b, ts.primary);
+		assert_eq(index_a_b, ts.primary);
 		ts.choose_primary(index_a);
-		asserteq(index_a_b, ts.primary);
+		assert_eq(index_a_b, ts.primary);
 		ts.choose_primary(index_a_b);
-		asserteq(index_a_b, ts.primary);
+		assert_eq(index_a_b, ts.primary);
 
 		ts.theindexes = lisp(index_a, index_a_b, index_b);
 		ts.ifracs[index_a] = .3;
 		ts.ifracs[index_b] = .4;
 		ts.choose_primary(Fields());
-		asserteq(index_a_b, ts.primary);
+		assert_eq(index_a_b, ts.primary);
 		ts.choose_primary(index_a);
-		asserteq(index_a_b, ts.primary);
+		assert_eq(index_a_b, ts.primary);
 		ts.choose_primary(index_a_b);
-		asserteq(index_a_b, ts.primary);
+		assert_eq(index_a_b, ts.primary);
 		ts.choose_primary(index_b);
-		asserteq(index_b, ts.primary);
+		assert_eq(index_b, ts.primary);
 		}
 	TEST(1, frac)
 		{
@@ -1313,9 +1313,9 @@ class test_qselect : public Tests
 		Fields index_a_c = lisp(gcstring("a"), gcstring("c"));
 		ts.theindexes = lisp(index_b, index_a_c, index_a);
 		assertfeq(ts.field_frac("a"), .1);
-		asserteq(tbl.iselsize_index, index_a);
+		assert_eq(tbl.iselsize_index, index_a);
 		assertfeq(ts.field_frac("b"), .1);
-		asserteq(tbl.iselsize_index, index_b);
+		assert_eq(tbl.iselsize_index, index_b);
 		assertfeq(ts.field_frac("c"), .5);
 		}
 	};

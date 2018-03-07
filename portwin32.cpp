@@ -198,7 +198,7 @@ Mmfile::~Mmfile()
 		li.QuadPart = file_size;
 		li.LowPart = SetFilePointer(f, li.LowPart, &li.HighPart, FILE_BEGIN);
 		SetEndOfFile(f);
-		asserteq(file_size, getfilesize(f));
+		verify(file_size == getfilesize(f));
 		}
 
 	CloseHandle(f);

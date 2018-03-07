@@ -78,7 +78,7 @@ private:
 // ReSharper disable once CppUnusedIncludeDirective
 #include "except.h"
 
-#define assert_eq(x, y) except_if((x) != (y), \
+#define assert_eq(x, y) except_if(! ((x) == (y)), \
 	"error: " << #x << " != " << #y << " (" << (x) << " != " << (y) << ")")
 
 #define assert_neq(x, y) except_if((x) == (y), \

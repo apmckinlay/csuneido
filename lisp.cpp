@@ -61,17 +61,17 @@ class test_lisp : public Tests
 		verify(y.copy() == lisp(1, 2, 3, 4));
 
 		Lisp<int> empty;
-		asserteq(reverse(empty), empty);
+		assert_eq(reverse(empty), empty);
 		x = lisp(1, 2, 3);
-		asserteq(set_union(x, empty), x);
-		asserteq(set_union(empty, x), x);
-		asserteq(difference(empty, x), empty);
-		asserteq(difference(x, empty), x);
+		assert_eq(set_union(x, empty), x);
+		assert_eq(set_union(empty, x), x);
+		assert_eq(difference(empty, x), empty);
+		assert_eq(difference(x, empty), x);
 
 		x = lisp(11, 22, 33);
-		asserteq(x[0], 11);
-		asserteq(x[1], 22);
-		asserteq(x[2], 33);
+		assert_eq(x[0], 11);
+		assert_eq(x[1], 22);
+		assert_eq(x[2], 33);
 		xassert(x[3]);
 		xassert(x[999]);
 		}
