@@ -31,7 +31,6 @@
 #include "catstr.h"
 #include <cctype>
 #include "builtinargs.h"
-#include "susockets.h"
 
 void SuClass::put(Value m, Value x)
 	{
@@ -61,8 +60,6 @@ void SuClass::out(Ostream& out) const
 		}
 	out << " */";
 	}
-
-Value suSocketServer();
 
 Value SuClass::call(Value self, Value member,
 	short nargs, short nargnames, ushort *argnames, int each)
