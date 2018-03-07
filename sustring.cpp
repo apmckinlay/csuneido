@@ -42,6 +42,8 @@
 using std::min;
 using std::max;
 
+static_assert(sizeof(SuString) == 12);
+
 extern bool obout_inkey;
 
 void SuString::out(Ostream& out) const

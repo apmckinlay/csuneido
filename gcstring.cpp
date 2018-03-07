@@ -28,6 +28,8 @@
 using std::min;
 using std::max;
 
+static_assert(sizeof(gcstring) == 8);
+
 // defer concatenation by storing left & right parts separately
 struct Concat
 	{
