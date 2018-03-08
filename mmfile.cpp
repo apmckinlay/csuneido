@@ -283,7 +283,7 @@ void Mmfile::evict_chunk()
 	for (int i = 0; i < MAX_CHUNKS; ++i)
 		if (base[i])
 			++n;
-	assert_eq(n, chunks_mapped);
+	verify(n == chunks_mapped);
 #endif
 	int chunk = lru_chunk();
 	verify(base[chunk]);
