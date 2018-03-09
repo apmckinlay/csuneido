@@ -57,6 +57,7 @@ public:
 	Ostream& operator<<(long i);
 	Ostream& operator<<(unsigned long i);
 	Ostream& operator<<(int64 i);
+	Ostream& operator<<(uint64 i);
 	Ostream& operator<<(double d);
 	Ostream& operator<<(void* p);
 	// for manipulators
