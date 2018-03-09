@@ -465,7 +465,6 @@
     <ClCompile Include="..\suinstance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\dbg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
