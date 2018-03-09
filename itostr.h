@@ -25,4 +25,7 @@
 
 char* itostr(int x, char* buf, int radix = 10);
 char* utostr(unsigned int x, char* buf, int radix = 10);
+
+const int I64BUF = 32;
 char* i64tostr(int64 x, char* buf, int radix = 10);
+char* u64tostr(uint64 x, char* buf, int radix = 10);
