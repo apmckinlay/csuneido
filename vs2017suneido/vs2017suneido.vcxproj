@@ -136,6 +136,7 @@
     <ClCompile Include="..\dbserverdata.cpp" />
     <ClCompile Include="..\debug.cpp" />
     <ClCompile Include="..\dll.cpp" />
+    <ClCompile Include="..\dnum.cpp" />
     <ClCompile Include="..\dump.cpp" />
     <ClCompile Include="..\dupstr.cpp" />
     <ClCompile Include="..\errlog.cpp" />

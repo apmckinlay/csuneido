@@ -28,6 +28,7 @@ dbmslocal.cpp \
 dbmsunauth.cpp \
 dbserver.cpp \
 dbserverdata.cpp \
+dnum.cpp \
 dump.cpp \
 dupstr.cpp \
 errlog.cpp \

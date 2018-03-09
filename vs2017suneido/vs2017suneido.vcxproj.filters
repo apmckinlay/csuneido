@@ -465,6 +465,7 @@
     <ClCompile Include="..\suinstance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\dnum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
