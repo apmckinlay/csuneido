@@ -74,7 +74,7 @@ public:
 
 	explicit SuNumber(long);
 	static SuNumber* from_int64(int64);
-	explicit SuNumber(const char* buf, short len = -1);
+	explicit SuNumber(const char* buf);
 	explicit SuNumber(const SuNumber* x)
 		{ *this = *x; }
 

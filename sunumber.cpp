@@ -805,29 +805,9 @@ void div10(short tmp[])
 
 // conversions from strings to numbers ------------------------------
 
-// emulates a string pointer, but uses length not terminating nul
-class BufPtr
-	{
-public:
-	BufPtr(const char* _s, short len)
-		{ s = _s; limit = _s + len; }
-	char operator*()
-		{ return s < limit ? *s : 0; }
-	BufPtr& operator++()
-		{ if (s < limit) ++s; return *this; }
-	const char* operator++(int)
-		{ return s < limit ? s++ : s; }
-	const char* ptr()
-		{ return s; }
-private:
-	const char* s;
-	const char* limit;
-	};
-
 // TODO: handle bad format
-SuNumber::SuNumber(const char* buf, short len)
+SuNumber::SuNumber(const char* s)
 	{
-	BufPtr s(buf, len == -1 ? strlen(buf) : len);
 	exp = 0;
 
 	// sign
@@ -839,16 +819,16 @@ SuNumber::SuNumber(const char* buf, short len)
 	while (*s == '0')
 		++s;
 
-	const char* start = s.ptr();
+	const char* start = s;
 
 	// integer part
 	while (isdigit(*s))
 		++s;
-	short intdigits = s.ptr() - start;
+	short intdigits = s - start;
 
 	// fraction part
 	short edif = 0;
-	const char* stop = s.ptr();
+	const char* stop = s;
 	if (*s == '.')
 		{
 		++s;
@@ -857,11 +837,11 @@ SuNumber::SuNumber(const char* buf, short len)
 			// skip zeroes after leading decimal
 			while (*s == '0')
 				++s, --edif;
-			start = s.ptr();
+			start = s;
 			}
 		while (isdigit(*s))
 			++s;
-		stop = s.ptr();
+		stop = s;
 		}
 	else
 		{
