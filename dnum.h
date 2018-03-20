@@ -30,30 +30,40 @@ class Dnum
 	{
 public:
 	Dnum() = default;
+	Dnum(const Dnum&) = default;
 	explicit Dnum(int n);
 	explicit Dnum(const char* s);
-	//Dnum(bool neg, uint64_t c, int8_t e)
-	//	: sign(neg ? Sign::NEG : Sign::POS), coef(c), exp(e)
-	//	{}
 
+	friend struct test_dnum;
 	friend Ostream& operator<<(Ostream& os, const Dnum& dn);
+	friend bool operator==(const Dnum& x, const Dnum& y);
+	static bool almostSame(Dnum x, Dnum y);
 	gcstring show() const;
 	gcstring to_gcstr() const;
 	bool isZero() const
-		{ return sign == Sign::ZERO; }
+		{ return sign == 0; }
 	bool isInf() const;
+
+	Dnum operator-() const;
+	Dnum abs() const;
+	static int cmp(Dnum x, Dnum y);
+	friend Dnum operator*(Dnum x, Dnum y);
+	friend Dnum operator/(Dnum x, Dnum y);
 	
 	static const Dnum ZERO;
 	static const Dnum ONE;
 	static const Dnum INF;
 	static const Dnum MINUS_INF;
 private:
-	enum class Sign : int8_t { NEG = -1, ZERO = 0, POS = +1 };
-	Dnum(Sign s, uint64_t c, int8_t e) : coef(c), sign(s), exp(e)
-		{}
+	Dnum(int s, uint64_t c, int e);
+	uint32_t split(uint64_t * lo);
+	Dnum& minCoef();
+	Dnum & maxCoef();
+	bool shiftLeft();
+	static Dnum inf(int sign);
 
 	uint64_t coef = 0;
-	Sign sign = Sign::ZERO;
+	int8_t sign = 0;
 	int8_t exp = 0;
 	};
 
