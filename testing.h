@@ -85,8 +85,9 @@ private:
 	"error: " << #x << " == " << #y << " (" << (x) << " == " << (y) << ")")
 
 #define xassert(expr) \
-	{ \
+	do { \
 	bool err = false; \
 	try { expr; } catch (...) { err = true; } \
-	verify(err); \
-	}
+	if (!err) \
+		except_err("error: expected exception from " #expr); \
+	} while(false)
