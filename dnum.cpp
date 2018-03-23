@@ -27,29 +27,26 @@
 #include <climits>
 #include "except.h"
 #include <algorithm>
-#include "debug.h"
 
 /*
  * Dnum is a decimal floating point implementation
  * using a 64 bit unsigned integer for the coefficient
  * and signed 8 bit integers for the sign and exponent.
- * Max coefficient is 1e19 - 1 = 9.999...e18 (not 2^64 - 1 which is 1.8...e19)
+ * Max coefficient is 1e20 - 1 = 19 nines (not 2^64 - 1 which is 1.8...e19)
  * Value is sign * coef * 10^exp
- * Zero is represented with sign = 0. (Zeroed value is zero.)
- * Infinite is represented by a maximum exponent.
- * Normally values are kept with a minimum coefficient
+ * Zero is represented with a sign of 0. (Zeroed value is zero.)
+ * Infinite is represented by a sign of +2 or -2
+ * Values are normalized with a minimum coefficient
  * i.e. no trailing zero decimal digits
  * since this is the simplest for conversion to/from text.
  * For some operations we maximize the coefficient so it is "left" aligned.
- * This puts the most significant digits at the high end of the coefficient.
- * This means 1e18 <= coef < 1e19
+ * This puts the most significant digits at the high end of the coefficient
+ * so that 1e18 <= coef < 1e19
  * This format is best for comparison 
  * (and for pack which is required to be comparable)
  * From an external viewpoint, Dnum is an immutable value class.
  * Internally, intermediate temporary Dnum values are mutable.
  */
-
-// COULD represent inf/-inf with +2 / -2
 
 #pragma warning(disable: 4201)
 
@@ -69,18 +66,17 @@ typedef struct
 #define LO32(n) (*reinterpret_cast<Int64*>(&(n))).lo32
 #define HI32(n) (*reinterpret_cast<Int64*>(&(n))).hi32
 
-enum { NEG = -1, POS = +1 };
+enum { NEG_INF = -2, NEG = -1, POS = +1, POS_INF = +2 }; // zero = 0
 
 static_assert(sizeof(Dnum) == 16); // not 10 due to alignment/padding
 
-#define INF_COEF UINT64_MAX //TODO review whether we need this
-#define INF_EXP INT8_MAX
 #define COEF_MAX	 9'999'999'999'999'999'999ull
 
 const Dnum Dnum::ZERO;
 const Dnum Dnum::ONE(1);
-const Dnum Dnum::INF{POS, INF_COEF, INF_EXP };
-const Dnum Dnum::MINUS_INF{NEG, INF_COEF, INF_EXP };
+const Dnum Dnum::INF{ POS_INF, UINT64_MAX, 0 };
+const Dnum Dnum::MINUS_INF{ NEG_INF, UINT64_MAX, 0 };
+const Dnum Dnum::MAX_INT{ POS, COEF_MAX, 0 };
 
 namespace
 	{
@@ -106,18 +102,55 @@ namespace
 		1000000000000000000ull,
 		10000000000000000000ull 
 		};
+	uint64_t halfpow10[20] = { // for rounding
+		0ull,
+		5ull,
+		50ull,
+		500ull,
+		5000ull,
+		50000ull,
+		500000ull,
+		5000000ull,
+		50000000ull,
+		500000000ull,
+		5000000000ull,
+		50000000000ull,
+		500000000000ull,
+		5000000000000ull,
+		50000000000000ull,
+		500000000000000ull,
+		5000000000000000ull,
+		50000000000000000ull,
+		500000000000000000ull,
+		5000000000000000000ull 
+		};
 	}
 
+#define SIGN(n) ((n) < 0 ? -1 : (n) > 0 ? +1 : 0)
+
 // primary constructor, normalizes
-Dnum::Dnum(int s, uint64_t c, int e) : coef(c), sign(s), exp(e)
+Dnum::Dnum(int s, uint64_t c, int e) : coef(c), sign(SIGN(s)), exp(e)
 	{
-	verify(-1 <= s && s <= +1);
 	if (s == 0 || c == 0 || e < INT8_MIN)
 		*this = Dnum::ZERO;
-	else if (e >= INT8_MAX)
-		*this = inf(sign);
+	else if (s == POS_INF || s == NEG_INF || e > INT8_MAX)
+		{
+		sign = s < 0 ? NEG_INF : POS_INF;
+		coef = UINT64_MAX;
+		exp = 0;
+		}
 	else
-		minCoef();
+		{
+		e = minCoef();
+		if (e >= INT8_MAX)
+			{
+			sign = s < 0 ? NEG_INF : POS_INF;
+			coef = UINT64_MAX;
+			exp = 0;
+			}
+		else
+			exp = e;
+		}
 	CHECK(coef == 0 || coef % 10 != 0);
 	}
 
@@ -127,8 +160,8 @@ Dnum::Dnum(int n) : Dnum(n < 0 ? NEG : n > 0 ? POS : 0, n < 0 ? -n : n, 0)
 
 Dnum Dnum::inf(int sign)
 	{
-	return sign == POS ? Dnum::INF
-		: sign == NEG ? Dnum::MINUS_INF
+	return sign > 0 ? Dnum::INF
+		: sign < 0 ? Dnum::MINUS_INF
 		: Dnum::ZERO;
 	}
 
@@ -229,7 +262,7 @@ Dnum::Dnum(const char* s)
 		except("invalid number");
 	if (coef == 0 || e < INT8_MIN)
 		*this = Dnum::ZERO;
-	else if (e >= INT8_MAX)
+	else if (e > INT8_MAX)
 		*this = inf(sign);
 	else
 		exp = e;
@@ -240,7 +273,7 @@ Ostream& operator<<(Ostream& os, const Dnum& dn)
 	// assumes min coef / right justified
 	if (dn.isZero())
 		return os << '0';
-	if (dn.sign == NEG)
+	if (dn.sign <= NEG)
 		os << '-';
 	if (dn.isInf())
 		return os << "inf";
@@ -290,7 +323,7 @@ Ostream& operator<<(Ostream& os, const Dnum& dn)
 gcstring Dnum::show() const
 	{
 	OstreamStr os(32);
-	os << ((sign == NEG) ? '-' : (sign == POS) ? '+' :
+	os << ((sign <= NEG) ? '-' : (sign >= POS) ? '+' :
 		(sign == 0) ? 'z' : '?') <<
 		coef << 'e' << exp;
 	return os.gcstr();
@@ -305,7 +338,7 @@ gcstring Dnum::to_gcstr() const
 
 bool Dnum::isInf() const
 	{
-	return exp == INF_EXP;
+	return sign == POS_INF || sign == NEG_INF;
 	}
 
 // operations
@@ -322,17 +355,9 @@ bool Dnum::almostSame(Dnum x, Dnum y)
 	{
 	if (x.sign != y.sign)
 		return false;
-	x.maxCoef();
-	y.maxCoef();
-	if (x.exp != y.exp)
-		return false;
-	auto xc = round(x.coef);
-	auto yc = round(y.coef);
-	if (xc != yc)
-		return false;
-if (x.coef != y.coef)
-dbg("almost " << x.coef << " ~ " << y.coef);
-	return true;
+	int xexp = x.maxCoef();
+	int yexp = y.maxCoef();
+	return xexp == yexp && round(x.coef) == round(y.coef);
 	}
 
 // unary minus
@@ -348,7 +373,8 @@ Dnum Dnum::abs() const
 	{
 	// don't need normalization
 	Dnum n(*this);
-	n.sign *= n.sign;
+	if (n.sign < 0)
+		n.sign = -n.sign;
 	return n;
 	}
 
@@ -367,15 +393,17 @@ int Dnum::cmp(Dnum x, Dnum y) // by value so we can modify
 	int sign = x.sign;
 	if (x.exp != y.exp)
 		{
-		x.maxCoef();
-		y.maxCoef();
-		if (x.exp < y.exp)
+		int xexp = x.maxCoef();
+		int yexp = y.maxCoef();
+		if (xexp < yexp)
 			return -sign;
-		if (x.exp > y.exp)
+		if (xexp > yexp)
 			return +sign;
 		}
 	return sign * CMP(x.coef, y.coef);
 	}
+
+// multiply ---------------------------------------------------------
 
 namespace
 {
@@ -421,24 +449,21 @@ Dnum operator*(Dnum x, Dnum y) // args by value so we can modify
 		// common, lower precision, fast case
 		return Dnum(sign, x.coef * y.coef, x.exp + y.exp);
 
-	// split x 10-9
-	x.maxCoef();
+	int xexp = x.maxCoef();
 	uint64_t xhi = x.coef / E9; // 10 digits
 	uint32_t xlo = x.coef % E9; // 9 digits
-	// split y 9-10
-	y.maxCoef();
+
+	int yexp = y.maxCoef();
 	uint32_t yhi = y.coef / E10; // 9 digits
 	uint64_t ylo = y.coef % E10; // 10 digits
 
 	uint64_t hi = xhi * yhi;
-dbg("hi = " << xhi << " * " << yhi << " = " << hi);
-	int e = 19;
+	int e = xexp + yexp + 19;
 	uint32_t factor = E9;
 	uint32_t factor2 = E8;
-	if (hi < E18)
+	if (hi < E18) // optimization to get more precision
 		{
 		hi *= 10;
-dbg("hi *= 10 = " << hi);
 		--e;
 		factor = E8;
 		factor2 = E7;
@@ -447,34 +472,19 @@ dbg("hi *= 10 = " << hi);
 	if (xlo == 0)
 		c = hi + (xhi / 10) * ylo / factor;
 	else if (ylo == 0)
-		c = hi + ((uint64_t) xlo * yhi) / factor;
+		c = hi + (static_cast<uint64_t>(xlo) * yhi) / factor;
 	else
 		{
-		auto m1 = ((uint64_t)xlo * yhi);
-		auto mid1 = m1 / 10; // 9 digits * 9 digits e10
-dbg("xlo * yhi = " << xlo << " * " << yhi << " = " << m1 << " /10 = " << mid1);
-		auto ylo2 = (ylo + 5) / 10;
-dbg("ylo2 = " << ylo << " /10 rounded = " << ylo2);
-		auto m2 = xhi * ylo2;
-		auto mid2 = (m2 / 10); // 10 digits e9 * 10 digits
-dbg("xhi * ylo2 = " << xhi << " * " << ylo2 << " = " << m2 << " /10 = " << mid2);
-		auto m = (mid1 + mid2);
-		auto mid = (m / factor2);
-dbg("mid = " << mid1 << " + " << mid2 << " = " << m << " /" << factor2 << " = " << mid);
-		c = hi + mid; 
-dbg("coef = " << hi << " + " << mid << " = " << c);
+		auto mid1 = static_cast<uint64_t>(xlo) * yhi / 10; // 9 dig * 9 dig e10
+		auto mid2 = (xhi * ((ylo + 5) / 10)) / 10; // 10 dig e9 * 10 dig
+		c = hi + (mid1 + mid2) / factor2; 
 		}
 	if (factor == E8)
-		{
-		auto lo = xlo * ylo;
-		auto lo2 = (lo + E18/2) / E18;
-dbg("lo = " << xlo << " * " << ylo << " = " << lo << " /e18 rounded = " << lo2);
-		auto c2 = c + lo2;
-dbg("coef = " << c << " + " << lo2 << " = " << c2);
-		c = c2;
-		}
-	return Dnum(sign, c, x.exp + y.exp + e);
+		c += (xlo * ylo + E18/2) / E18;
+	return Dnum(sign, c, e);
 	}
+
+// divide -----------------------------------------------------------
 
 namespace
 	{
@@ -490,6 +500,7 @@ namespace
 		return y;
 		}
 
+	// the maximum we can safely shift (*10) x
 	int maxShift(uint64_t x)
 		{
 		int i = ilog10(x);
@@ -502,7 +513,7 @@ namespace
 		
 	uint64_t div2(uint64_t x, uint64_t y, int& exp)
 		{
-		//PRE x maxCoef, x != 0, y mincoef
+		//PRE x maxCoef, x != 0, y mincoef, y != 0
 		++div_long;
 		uint64_t q = 0;
 		for (int i = 0; ; ++i)
@@ -566,8 +577,8 @@ Dnum operator/(Dnum x, Dnum y) // args by value so we can modify
 		return Dnum::ZERO;
 
 	// assuming y.minCoef
-	x.maxCoef();
-	int exp = x.exp - y.exp;
+	int xexp = x.maxCoef();
+	int exp = xexp - y.exp;
 	if (x.coef % y.coef == 0)
 		// fast, exact path
 		return Dnum(sign, x.coef / y.coef, exp);
@@ -576,12 +587,80 @@ Dnum operator/(Dnum x, Dnum y) // args by value so we can modify
 	return Dnum(sign, q, exp);
 	}
 
+// add/sub ----------------------------------------------------------
+
+Dnum operator+(Dnum x, Dnum y)
+	{
+	if (x.isZero())
+		return y;
+	if (y.isZero())
+		return x;
+	if (x.sign == POS_INF)
+		return y.sign == NEG_INF ? Dnum::ZERO : x;
+	if (x.sign == NEG_INF)
+		return y.sign == POS_INF ? Dnum::ZERO : x;
+	if (y.isInf())
+		return y;
+	// now x and y are not zero or inf
+	int exp = x.exp;
+	if (x.exp != y.exp)
+		if (!align(x, y, exp))
+			return x;
+	return x.sign == y.sign ? uadd(x, y, exp) : usub(x, y, exp);
+	}
+
+// sets resulting exponent
+bool align(Dnum& x, Dnum& y, int& exp)
+	{
+	if (x.exp < y.exp)
+		std::swap(x, y); // adding so swap doesn't change sign
+	int xshift = maxShift(x.coef);
+	int yshift = ilog10(y.coef);
+	int e = x.exp - y.exp;
+	if (e > xshift + yshift)
+		return false;
+	if (xshift > e)
+		xshift = e;
+	CHECK(0 <= xshift && xshift <= 20);
+	x.coef *= pow10[xshift];
+	exp = x.exp - xshift;
+	if (e > xshift)
+		{
+		yshift = e - xshift;
+		CHECK(0 <= yshift && yshift <= 20);
+		y.coef = (y.coef + halfpow10[yshift]) / pow10[yshift];
+		CHECK(y.exp + yshift == exp);
+		}
+	return true;
+	}
+
+Dnum uadd(const Dnum& x, const Dnum& y, int exp)
+	{
+	uint64_t coef = x.coef + y.coef;
+	if (coef < x.coef || coef < y.coef)
+		{ // overflow
+		auto xc = (x.coef + 5) / 10;
+		auto yc = (y.coef + 5) / 10;
+		coef = xc + yc;
+		++exp;
+		}
+	return Dnum(x.sign, coef, exp);
+	}
+
+Dnum usub(const Dnum& x, const Dnum& y, int exp)
+	{
+	return x.coef > y.coef
+		? Dnum(x.sign, x.coef - y.coef, exp)
+		: Dnum(-x.sign, y.coef - x.coef, exp);
+	}
+
 // private helpers --------------------------------------------------
 
 // "shift" coef right as far as possible, i.e. trim trailing decimal zeroes
+// returns new exponent
 // minimize slow % operations by using factor of 2 in 10
 // try big steps first to minimize iteration
-Dnum& Dnum::minCoef()
+int Dnum::minCoef()
 	{
 	// 19 decimal digits = at most 18 trailing decimal zeros
 	int e = exp;
@@ -591,50 +670,47 @@ Dnum& Dnum::minCoef()
 		coef /= 10; // drop least significant digit
 		++e;
 		}
-	if ((coef & 0b1111'11111) == 0 && (coef % 10000'00000) == 0)
+	if ((LO32(coef) & 0b1111'11111) == 0 && (coef % 10000'00000) == 0)
 		{
 		coef /= 10000'00000;
 		e += 9;
 		}
-	if ((coef & 0b11111) == 0 && (coef % 100000) == 0)
+	if ((LO32(coef) & 0b11111) == 0 && (coef % 100000) == 0)
 		{
 		coef /= 100000;
 		e += 5;
 		}
-	while ((coef & 1) == 0 && (coef % 10) == 0)
+	while ((LO32(coef) & 1) == 0 && (coef % 10) == 0)
 		{
 		coef /= 10;
 		e += 1;
 		}
 	CHECK(coef == 0 || coef % 10 != 0);
-	exp = e > INF_EXP ? INF_EXP : e;
-	return *this;
+	return e;
 	}
 
-// "shift" coef "left" as far as possible
-Dnum& Dnum::maxCoef()
+// "shift" coef "left" as far as possible, returns new exp
+// NOTE: does not adjust this.exp (because it might underflow)
+int Dnum::maxCoef()
 	{
 	if (isZero() || isInf())
-		return *this;
+		return exp;
 	CHECK(0 < coef && coef <= COEF_MAX);
 	int i = maxShift(coef);
-	exp -= i;	//TODO handle underflow
 	coef *= pow10[i];
 	CHECK(coef != 0);
-	return *this;
+	return exp - i;
 	}
 
-// tests ============================================================
+// tests ------------------------------------------------------------
 
 #include "testing.h"
-
-#define assert_cmp(x, y, c) \
-	except_if(Dnum::cmp(x, y) != (c), \
-		(x) << " <=> " << (y) << " = " << Dnum::cmp(x, y))
+#include <utility>
+using namespace std::rel_ops;
 
 struct test_dnum : Tests
 	{
-	TEST(0, "parse")
+	TEST(0, "from string")
 		{
 		assert_eq(Dnum("0").show(), "z0e0");
 		assert_eq(Dnum("0.").show(), "z0e0");
@@ -657,7 +733,7 @@ struct test_dnum : Tests
 		assert_eq(Dnum("1e-999"), Dnum::ZERO);
 		assert_eq(Dnum("0e999"), Dnum::ZERO);
 		}
-	TEST(1, "ostream")
+	TEST(1, "to string")
 		{
 		assert_eq(Dnum::ZERO.to_gcstr(), "0");
 		assert_eq(Dnum::ONE.to_gcstr(), "1");
@@ -667,27 +743,43 @@ struct test_dnum : Tests
 		assert_eq(Dnum(-1234).to_gcstr(), "-1234");
 		assert_eq(Dnum("1e9").to_gcstr(), "1e9");
 		}
-	TEST(2, "operations")
+	TEST(2, "misc")
 		{
-		assert_eq(Dnum::ZERO, Dnum(0));
+		// constructors
+		assert_eq(Dnum(0), Dnum::ZERO);
 		assert_eq(Dnum("-12.34e56"), Dnum(NEG, 1234, 54)); 
+		
+		// normalization
+		assert_eq(Dnum(POS, 1, 999), Dnum::INF); // exponent overflow
+		assert_eq(Dnum(NEG, 1, 999), Dnum::MINUS_INF); // exponent overflow
+		assert_eq(Dnum(POS, 1, -999), Dnum::ZERO); // exponent underflow
+		assert_eq(Dnum(NEG, 1, -999), Dnum::ZERO); // exponent underflow
+		assert_eq(Dnum(POS, 123000, 0).show(), "+123e3"); // min coef
+		assert_eq(Dnum("1000e127"), Dnum::INF); // min coef exponent overflow
 
+		// unary minus
 		assert_eq((-Dnum("0")).show(), "z0e0");
 		assert_eq((-Dnum("+123")).show(), "-123e0");
 		assert_eq((-Dnum("-123")).show(), "+123e0");
 
+		// abs
 		assert_eq(Dnum("0").abs().show(), "z0e0");
 		assert_eq(Dnum("123").abs().show(), "+123e0");
 		assert_eq(Dnum("-123").abs().show(), "+123e0");
 
-		// test minCoef
+		// minCoef
 		assert_eq(Dnum(POS, 1'000, 0).show(), "+1e3");
 		assert_eq(Dnum(POS, 1'000'000, 0).show(), "+1e6");
 		assert_eq(Dnum(POS, 1'000'000'000, 0).show(), "+1e9");
 		assert_eq(Dnum(POS, 1'000'000'000'000ull, 0).show(), "+1e12");
 
-		assert_eq(Dnum(9).maxCoef().show(), "+9000000000000000000e-18");
-		assert_eq(Dnum(987654).maxCoef().show(), "+9876540000000000000e-13");
+		// maxCoef
+		Dnum n(9);
+		assert_eq(n.maxCoef(), -18);
+		assert_eq(n.coef, 9000000000000000000ull);
+		n = Dnum(987654);
+		assert_eq(n.maxCoef(), -13);
+		assert_eq(n.coef, 9876540000000000000ull);
 		}
 	TEST(3, "cmp")
 		{
@@ -695,21 +787,29 @@ struct test_dnum : Tests
 		const char* nums[] = { "-inf", "-1e9", "-123.45", "-123", "-100", "-1e-9", 
 			"0", "1e-9", "100", "123", "123.45", "1e9", "inf" };
 		int i = 0;
-		for (auto xs : nums)
+		for (auto x : nums)
 			{
-			Dnum x(xs);
 			int j = 0;
-			for (auto ys : nums)
+			for (auto y : nums)
 				{
-				Dnum y(ys);
-				assert_cmp(x, y, CMP(i, j));
-				assert_cmp(y, x, CMP(j, i));
+				cmp(x, y, CMP(i, j));
+				cmp(y, x, CMP(j, i));
 				++j;
 				}
 			++i;
 			}
-		assert_cmp(Dnum(POS, 1000, 0), Dnum(POS, 1, 3), 0);
+		cmp(Dnum(POS, 1000, 0), Dnum(POS, 1, 3), 0);
 		}
+	template <typename X, typename Y>
+	static void cmp(X x_, Y y_, int c)
+		{
+		Dnum x(x_);
+		Dnum y(y_);
+		except_if(Dnum::cmp(x, y) != (c),
+			(x) << " <=> " << (y) << " = " << Dnum::cmp(x, y));
+		}
+
+
 	TEST(4, "mul")
 		{
 		assert_eq(clz(0), 64);
@@ -756,19 +856,17 @@ struct test_dnum : Tests
 		mul("1111111111111111111", "1111111111111111111",
 			"123456790123456790e19");
 
-		Dnum m(POS, COEF_MAX, 0);
-		mul(m, m, "9999999999999999998e19");
-		mul(m, Dnum::ONE, m);
-		mul(m, "1111111111111111111", "1.111111111111111111e37");
+		mul(Dnum::MAX_INT, Dnum::MAX_INT, "9999999999999999998e19");
+		mul(Dnum::MAX_INT, Dnum::ONE, Dnum::MAX_INT);
+		mul(Dnum::MAX_INT, "1111111111111111111", "1.111111111111111111e37");
 		}
 	template <typename X, typename Y, typename E>
 	static void mul(X x, Y y, E expected)
 		{
 		Dnum dx(x), dy(y), e(expected);
-		Dnum p;
 		for (int i = 0; i < 2; ++i)
 			{
-			p = dx * dy;
+			Dnum p = dx * dy;
 			except_if(!Dnum::almostSame(p, e),
 				dx << " * " << dy << "\n" << p << " result\n" << e << " expected");
 			p = -dx * -dy;
@@ -817,6 +915,55 @@ struct test_dnum : Tests
 		Dnum e(expected);
 		except_if(! Dnum::almostSame(q, e),
 			x << " / " << y << "\n" << q << " result\n" << e << " expected");
+		}
+
+	TEST(6, "add/sub")
+		{
+		// special cases
+		addsub(123, 0, 123);
+		addsub("inf", "-inf", 0);
+		addsub("inf", 123, "inf");
+		addsub("-inf", 123, "-inf");
+		assert_eq(Dnum::INF + Dnum::INF, Dnum::INF);
+		assert_eq(Dnum::MINUS_INF + Dnum::MINUS_INF, Dnum::MINUS_INF);
+		assert_eq(Dnum::INF - Dnum::INF, Dnum::ZERO);
+		assert_eq(Dnum::MINUS_INF - Dnum::MINUS_INF, Dnum::ZERO);
+
+		const int nums[] = { 0, 1, 12, 99, 100, 123, 1000, 1234, 9999 };
+		for (auto x : nums)
+			for (auto y : nums)
+				{
+				addsub(x, y, x + y);
+				addsub(x, -y, x - y);
+				}
+
+		addsub(111, 12, 123);
+		addsub(1e4, 2e2, 10200); // align
+		addsub(2e4, 1e2, 20100); // align
+		addsub("1e30", 999, "1e30"); // can't align
+		addsub("1e18", 3, "1000000000000000003");
+		addsub("1e19", 33, "10000000000000000030"); // dropped digit
+		addsub("1e19", 37, "10000000000000000040"); // round dropped digit
+		assert_eq(Dnum::MAX_INT + Dnum::MAX_INT, Dnum("2e19")); // overflow
+		}
+	template <typename X, typename Y, typename Z>
+	static void addsub(X x_, Y y_, Z sum_)
+		{
+		Dnum x(x_);
+		Dnum y(y_);
+		Dnum sum(sum_);
+		Dnum z = x + y; // add
+		except_if(z != sum,
+			x << " + " << y << "\n" << z << " result\n" << sum << " expected");
+		z = y + x; // add reverse
+		except_if(z != sum,
+			y << " + " << x << "\n" << z << " result\n" << sum << " expected");
+		z = -x + -y; // add negatives
+		except_if(z != -sum,
+			-x << " + " << -y << "\n" << z << " result\n" << -sum << " expected");
+		z = sum - y; // subtract
+		except_if(z != x,
+			sum << " - " << y << "\n" << z << " result\n" << x << " expected");
 		}
 	};
 REGISTER(test_dnum);

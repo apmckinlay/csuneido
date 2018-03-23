@@ -47,20 +47,27 @@ public:
 	Dnum operator-() const;
 	Dnum abs() const;
 	static int cmp(Dnum x, Dnum y);
+	friend bool operator<(Dnum x, Dnum y)
+		{ return cmp(x, y) < 0; }
 	friend Dnum operator*(Dnum x, Dnum y);
 	friend Dnum operator/(Dnum x, Dnum y);
-	
+	friend Dnum operator+(Dnum x, Dnum y);
+	friend Dnum operator-(Dnum x, Dnum y)
+		{ return x + -y; }
+
 	static const Dnum ZERO;
 	static const Dnum ONE;
 	static const Dnum INF;
 	static const Dnum MINUS_INF;
+	static const Dnum MAX_INT;
 private:
 	Dnum(int s, uint64_t c, int e);
-	uint32_t split(uint64_t * lo);
-	Dnum& minCoef();
-	Dnum & maxCoef();
-	bool shiftLeft();
+	int minCoef();
+	int maxCoef();
 	static Dnum inf(int sign);
+	friend bool align(Dnum& x, Dnum& y, int& exp);
+	friend Dnum uadd(const Dnum& x, const Dnum& y, int exp);
+	friend Dnum usub(const Dnum& x, const Dnum& y, int exp);
 
 	uint64_t coef = 0;
 	int8_t sign = 0;
