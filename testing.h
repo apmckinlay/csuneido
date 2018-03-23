@@ -48,7 +48,7 @@ public:
 	int runtests(TestObserver&);
 	BASE(0) BASE(1) BASE(2) BASE(3) BASE(4) BASE(5)
 	BASE(6) BASE(7) BASE(8) BASE(9) BASE(10)
-	const char* group;
+	const char* group = 0;
 	};
 
 #define TEST(i,name) \
@@ -72,27 +72,19 @@ private:
 	};
 
 #define REGISTER(name) \
-	static Tests* make_##name() { auto t = new name; t->group = #name; return t; } \
+	static Tests* make_##name() { auto t = new (name); t->group = #name; return t; } \
 	static TestRegister register_##name(#name, make_##name)
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include "except.h"
 
-#define assert_eq(x, y) \
-	do { \
-	auto xx = x; \
-	auto yy = y; \
-	except_if(! (xx == yy), \
-		"error: " << #x << " != " << #y << " (" << xx << " != " << yy << ")"); \
-	} while (false)
+// WARNING: error evaluates args a second time
+#define assert_eq(x, y) except_if(! ((x) == (y)), \
+	"error: " << #x << " != " << #y << " (" << (x) << " != " << (y) << ")")
 
-#define assert_neq(x, y) \
-	do { \
-	auto xx = x; \
-	auto yy = y; \
-	except_if(xx == yy, \
-		"error: " << #x << " == " << #y << " (" << xx << " == " << yy << ")"); \
-	} while (false)
+// WARNING: error evaluates args a second time
+#define assert_neq(x, y) except_if((x) == (y), \
+	"error: " << #x << " == " << #y << " (" << (x) << " == " << (y) << ")")
 
 #define xassert(expr) \
 	do { \
