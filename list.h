@@ -163,8 +163,6 @@ public:
 	// Resets capacity to zero, releases array
 	List& reset()
 		{
-		if (!readonly()) // if readonly then could be shared
-			memset(data, 0, cap * sizeof(T)); // help garbage collection
 		data = nullptr;
 		cap = siz = 0;
 		return *this;
