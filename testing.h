@@ -78,11 +78,21 @@ private:
 // ReSharper disable once CppUnusedIncludeDirective
 #include "except.h"
 
-#define assert_eq(x, y) except_if(! ((x) == (y)), \
-	"error: " << #x << " != " << #y << " (" << (x) << " != " << (y) << ")")
+#define assert_eq(x, y) \
+	do { \
+	auto xx = x; \
+	auto yy = y; \
+	except_if(! (xx == yy), \
+		"error: " << #x << " != " << #y << " (" << xx << " != " << yy << ")"); \
+	} while (false)
 
-#define assert_neq(x, y) except_if((x) == (y), \
-	"error: " << #x << " == " << #y << " (" << (x) << " == " << (y) << ")")
+#define assert_neq(x, y) \
+	do { \
+	auto xx = x; \
+	auto yy = y; \
+	except_if(xx == yy, \
+		"error: " << #x << " == " << #y << " (" << xx << " == " << yy << ")"); \
+	} while (false)
 
 #define xassert(expr) \
 	do { \
