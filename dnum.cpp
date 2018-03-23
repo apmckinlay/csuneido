@@ -128,26 +128,25 @@ namespace
 
 #define SIGN(n) ((n) < 0 ? -1 : (n) > 0 ? +1 : 0)
 
+#define SETINF() do { \
+	sign = s < 0 ? NEG_INF : POS_INF; \
+	coef = UINT64_MAX; \
+	exp = 0; \
+	} while (false)
+
+
 // primary constructor, normalizes
 Dnum::Dnum(int s, uint64_t c, int e) : coef(c), sign(SIGN(s)), exp(e)
 	{
 	if (s == 0 || c == 0 || e < INT8_MIN)
 		*this = Dnum::ZERO;
 	else if (s == POS_INF || s == NEG_INF || e > INT8_MAX)
-		{
-		sign = s < 0 ? NEG_INF : POS_INF;
-		coef = UINT64_MAX;
-		exp = 0;
-		}
+		SETINF();
 	else
 		{
 		e = minCoef();
-		if (e >= INT8_MAX)
-			{
-			sign = s < 0 ? NEG_INF : POS_INF;
-			coef = UINT64_MAX;
-			exp = 0;
-			}
+		if (e > INT8_MAX)
+			SETINF();
 		else
 			exp = e;
 		}
@@ -341,7 +340,7 @@ bool Dnum::isInf() const
 	return sign == POS_INF || sign == NEG_INF;
 	}
 
-// operations
+// operations -------------------------------------------------------
 
 bool operator==(const Dnum& x, const Dnum& y)
 	{
@@ -351,6 +350,7 @@ bool operator==(const Dnum& x, const Dnum& y)
 
 #define round(n) (((n) + 5) / 10)
 
+// for tests, rounds off last digit
 bool Dnum::almostSame(Dnum x, Dnum y)
 	{
 	if (x.sign != y.sign)
@@ -613,7 +613,7 @@ Dnum operator+(Dnum x, Dnum y)
 bool align(Dnum& x, Dnum& y, int& exp)
 	{
 	if (x.exp < y.exp)
-		std::swap(x, y); // adding so swap doesn't change sign
+		std::swap(x, y); // we're adding, so swap doesn't change sign
 	int xshift = maxShift(x.coef);
 	int yshift = ilog10(y.coef);
 	int e = x.exp - y.exp;
@@ -638,7 +638,7 @@ Dnum uadd(const Dnum& x, const Dnum& y, int exp)
 	{
 	uint64_t coef = x.coef + y.coef;
 	if (coef < x.coef || coef < y.coef)
-		{ // overflow
+		{ // overflow (note: most overflow will fit in UINT64_MAX)
 		auto xc = (x.coef + 5) / 10;
 		auto yc = (y.coef + 5) / 10;
 		coef = xc + yc;
@@ -657,9 +657,10 @@ Dnum usub(const Dnum& x, const Dnum& y, int exp)
 // private helpers --------------------------------------------------
 
 // "shift" coef right as far as possible, i.e. trim trailing decimal zeroes
-// returns new exponent
+// returns new (larger) exponent
 // minimize slow % operations by using factor of 2 in 10
 // try big steps first to minimize iteration
+// COULD use ilog10 to skip checks for larger divides
 int Dnum::minCoef()
 	{
 	// 19 decimal digits = at most 18 trailing decimal zeros
@@ -667,7 +668,7 @@ int Dnum::minCoef()
 	verify(coef != 0);
 	if (coef > COEF_MAX)
 		{
-		coef /= 10; // drop least significant digit
+		coef = (coef + 5) / 10; // drop/round least significant digit
 		++e;
 		}
 	if ((LO32(coef) & 0b1111'11111) == 0 && (coef % 10000'00000) == 0)
@@ -689,7 +690,7 @@ int Dnum::minCoef()
 	return e;
 	}
 
-// "shift" coef "left" as far as possible, returns new exp
+// "shift" coef "left" as far as possible, returns new (smaller) exp
 // NOTE: does not adjust this.exp (because it might underflow)
 int Dnum::maxCoef()
 	{
@@ -775,10 +776,12 @@ struct test_dnum : Tests
 
 		// maxCoef
 		Dnum n(9);
-		assert_eq(n.maxCoef(), -18);
+		int p = n.maxCoef();
+		assert_eq(p, -18);
 		assert_eq(n.coef, 9000000000000000000ull);
 		n = Dnum(987654);
-		assert_eq(n.maxCoef(), -13);
+		p = n.maxCoef();
+		assert_eq(p, -13);
 		assert_eq(n.coef, 9876540000000000000ull);
 		}
 	TEST(3, "cmp")
@@ -944,6 +947,9 @@ struct test_dnum : Tests
 		addsub("1e18", 3, "1000000000000000003");
 		addsub("1e19", 33, "10000000000000000030"); // dropped digit
 		addsub("1e19", 37, "10000000000000000040"); // round dropped digit
+
+		assert_eq(Dnum("7777777777777777777") + Dnum("7777777777777777777"),
+			Dnum("15555555555555555550")); // overflow handled by normalization
 		assert_eq(Dnum::MAX_INT + Dnum::MAX_INT, Dnum("2e19")); // overflow
 		}
 	template <typename X, typename Y, typename Z>
