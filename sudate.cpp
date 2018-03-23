@@ -330,7 +330,8 @@ Value SuDate::parse(const char* s, const char* order)
 	char prev = 0;
 	while (*s)
 		{
-		verify(ntokens < MAXTOKENS);
+		if (ntokens >= MAXTOKENS)
+			return SuFalse;
 		if (isalpha(*s))
 			{
 			char buf[80];
