@@ -29,7 +29,8 @@ class gcstring;
 class Dnum
 	{
 public:
-	Dnum() = default;
+	Dnum() : coef(0), sign(0), exp(0)
+		{}
 	Dnum(const Dnum&) = default;
 	explicit Dnum(int n);
 	explicit Dnum(const char* s);
@@ -37,7 +38,7 @@ public:
 	friend struct test_dnum;
 	friend Ostream& operator<<(Ostream& os, const Dnum& dn);
 	friend bool operator==(const Dnum& x, const Dnum& y);
-	static bool almostSame(Dnum x, Dnum y);
+	static bool almostSame(const Dnum& x, const Dnum& y);
 	gcstring show() const;
 	gcstring to_gcstr() const;
 	bool isZero() const
@@ -46,31 +47,29 @@ public:
 
 	Dnum operator-() const;
 	Dnum abs() const;
-	static int cmp(Dnum x, Dnum y);
-	friend bool operator<(Dnum x, Dnum y)
+	static int cmp(const Dnum& x, const Dnum& y);
+	friend bool operator<(const Dnum& x, const Dnum& y)
 		{ return cmp(x, y) < 0; }
-	friend Dnum operator*(Dnum x, Dnum y);
-	friend Dnum operator/(Dnum x, Dnum y);
-	friend Dnum operator+(Dnum x, Dnum y);
-	friend Dnum operator-(Dnum x, Dnum y)
+	friend Dnum operator*(const Dnum& x, const Dnum& y);
+	friend Dnum operator/(const Dnum& x, const Dnum& y);
+	friend Dnum operator+(const Dnum& x, const Dnum& y);
+	friend Dnum operator-(const Dnum& x, const Dnum& y)
 		{ return x + -y; }
 
 	static const Dnum ZERO;
 	static const Dnum ONE;
+	static const Dnum MINUS_ONE;
 	static const Dnum INF;
 	static const Dnum MINUS_INF;
 	static const Dnum MAX_INT;
 private:
 	Dnum(int s, uint64_t c, int e);
-	int minCoef();
-	int maxCoef();
-	static Dnum inf(int sign);
-	friend bool align(Dnum& x, Dnum& y, int& exp);
-	friend Dnum uadd(const Dnum& x, const Dnum& y, int exp);
-	friend Dnum usub(const Dnum& x, const Dnum& y, int exp);
+	friend bool align(Dnum& x, Dnum& y);
+	friend Dnum uadd(const Dnum& x, const Dnum& y);
+	friend Dnum usub(const Dnum& x, const Dnum& y);
 
-	uint64_t coef = 0;
-	int8_t sign = 0;
-	int8_t exp = 0;
+	uint64_t coef;
+	int8_t sign;
+	int8_t exp;
 	};
 
