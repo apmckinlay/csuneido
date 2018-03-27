@@ -641,25 +641,23 @@ namespace
 		// 19 decimal digits = at most 18 trailing decimal zeros
 		CHECK(coef != 0);
 		int tz = ctz32(LO32(coef));
-		int p = ilog10(coef);
-		int maxshift = tz < p ? tz : p;
-		if (maxshift >= 9 && (coef % 1'000'000'000) == 0)
+		if (tz >= 9 && (coef % 1'000'000'000) == 0)
 			{
 			coef /= 1'000'000'000;
 			exp += 9;
-			maxshift -= 9;
+			tz -= 9;
 			}
-		if (maxshift >= 5 && (coef % 100'000) == 0)
+		if (tz >= 5 && (coef % 100'000) == 0)
 			{
 			coef /= 100'000;
 			exp += 5;
-			maxshift -= 5;
+			tz -= 5;
 			}
-		while (maxshift > 0 && (coef % 10) == 0)
+		while (tz > 0 && (coef % 10) == 0)
 			{
 			coef /= 10;
 			exp += 1;
-			maxshift -= 1;
+			tz -= 1;
 			}
 		CHECK(coef % 10 != 0);
 		return exp;
