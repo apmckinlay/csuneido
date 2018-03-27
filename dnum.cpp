@@ -24,6 +24,7 @@
 #include "itostr.h"
 #include "ostreamstr.h"
 #include "gcstring.h"
+#include "pack.h"
 #include <climits>
 #include "except.h"
 #include <intrin.h> // for _BitScanForward/Reverse
@@ -60,6 +61,18 @@ typedef struct
 	} Int64;
 #define LO32(n) (*reinterpret_cast<Int64*>(&(n))).lo32
 #define HI32(n) (*reinterpret_cast<Int64*>(&(n))).hi32
+
+typedef struct
+	{
+	uint8_t b0; // least significant
+	uint8_t b1;
+	uint8_t b2;
+	uint8_t b3;
+	uint8_t b4;
+	uint8_t b5;
+	uint8_t b6;
+	uint8_t b7; // most significant
+	} Int64bytes;
 
 // sign values, zero = 0
 enum { NEG_INF = -2, NEG = -1, POS = +1, POS_INF = +2 };
@@ -742,6 +755,112 @@ Dnum usub(const Dnum& x, const Dnum& y)
 		: Dnum(-x.sign, y.coef - x.coef, x.exp);
 	}
 
+// packing ----------------------------------------------------------
+
+size_t Dnum::packsize() const
+	{
+	if (sign == NEG_INF || sign == 0 || sign == POS_INF)
+		return 1; // just tag
+	Int64bytes bytes = *reinterpret_cast<const Int64bytes*>(&(coef));
+	// omit trailing zero bytes
+	if (bytes.b0)
+		return 10;
+	if (bytes.b1)
+		return 9;
+	if (bytes.b2)
+		return 8;
+	if (bytes.b3)
+		return 7;
+	if (bytes.b4)
+		return 6;
+	if (bytes.b5)
+		return 5;
+	if (bytes.b6)
+		return 4;
+	return 3;
+	}
+
+void Dnum::pack(char* dst) const
+	{
+	*dst++ = PACK2_ZERO + sign;
+	if (sign == NEG_INF || sign == 0 || sign == POS_INF)
+		return;
+	*dst++ = exp + 128; // convert to sort as unsigned
+	Int64bytes bytes = *reinterpret_cast<const Int64bytes*>(&(coef));
+	// omit trailing zero bytes
+	int emit = 0;
+	if (bytes.b0)
+		dst[7] = emit = bytes.b0;
+	if (emit || bytes.b1)
+		dst[6] = emit = bytes.b1;
+	if (emit || bytes.b2)
+		dst[5] = emit = bytes.b2;
+	if (emit || bytes.b3)
+		dst[4] = emit = bytes.b3;
+	if (emit || bytes.b4)
+		dst[3] = emit = bytes.b4;
+	if (emit || bytes.b5)
+		dst[2] = emit = bytes.b5;
+	if (emit || bytes.b6)
+		dst[1] = bytes.b6;
+	CHECK(bytes.b7 != 0);
+	dst[0] = bytes.b7;
+	}
+
+Dnum Dnum::unpack(const gcstring& s)
+	{
+	auto src = reinterpret_cast<const uint8_t*>(s.ptr());
+	int sign = *src++ - PACK2_ZERO;
+	switch (sign)
+		{
+	case NEG_INF:
+		return Dnum::MINUS_INF;
+	case NEG:
+		break;
+	case 0:
+		return Dnum::ZERO;
+	case POS:
+		break;
+	case POS_INF:
+		return Dnum::INF;
+	default:
+		unreachable();
+		}
+	int exp = static_cast<int>(*src++) - 128;
+	Int64bytes bytes = {};
+	switch (s.size())
+		{
+	case 10:
+		bytes.b0 = src[7];
+		FALLTHROUGH
+	case 9:
+		bytes.b1 = src[6];
+		FALLTHROUGH
+	case 8:
+		bytes.b2 = src[5];
+		FALLTHROUGH
+	case 7:
+		bytes.b3 = src[4];
+		FALLTHROUGH
+	case 6:
+		bytes.b4 = src[3];
+		FALLTHROUGH
+	case 5:
+		bytes.b5 = src[2];
+		FALLTHROUGH
+	case 4:
+		bytes.b6 = src[1];
+		FALLTHROUGH
+	case 3:
+		bytes.b7 = src[0];
+		break;
+	default:
+		unreachable();
+		}
+	uint64_t coef = *reinterpret_cast<const uint64_t*>(&bytes);
+	return Dnum(sign, coef, exp);
+	}
+
 // tests ------------------------------------------------------------
 
 #include "testing.h"
@@ -1029,6 +1148,34 @@ struct test_dnum : Tests
 		z = sum - y; // subtract
 		except_if(z != x,
 			sum << " - " << y << "\n" << z << " result\n" << x << " expected");
+		}
+
+	#define PACK(dn, ...) { \
+		char buf[16]; \
+		memset(buf, 0xee, sizeof buf); \
+		char expected[] = { __VA_ARGS__, '\xee' }; \
+		assert_eq((dn).packsize(), sizeof expected - 1); \
+		(dn).pack(buf); \
+		for (int i = 0; i < sizeof expected; ++i) \
+			except_if(buf[i] != expected[i], \
+				"expected " << hex << (int)(uint8_t) expected[i] << \
+				" got " << (int)(uint8_t) buf[i] << \
+				" at position " << dec << i); \
+		Dnum u = Dnum::unpack(gcstring(buf, sizeof expected - 1)); \
+		assert_eq(u, dn); \
+		}
+
+	TEST(7, "packing")
+		{
+		PACK(Dnum::ZERO, PACK2_ZERO);
+		PACK(Dnum::INF, PACK2_POS_INF);
+		PACK(Dnum::MINUS_INF, PACK2_NEG_INF);
+		PACK(Dnum::ONE, PACK2_POS, '\x81',
+			'\x0d', '\xe0', '\xb6', '\xb3', '\xa7', '\x64');
+		PACK(Dnum("1e99"), PACK2_POS, '\xe4',
+			'\x0d', '\xe0', '\xb6', '\xb3', '\xa7', '\x64');
+		PACK(Dnum(-1234), PACK2_NEG, '\x84',
+			'\x11', '\x20', '\x0c', '\x76', '\x44', '\xd5');
 		}
 	};
 REGISTER(test_dnum);

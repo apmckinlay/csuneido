@@ -55,6 +55,9 @@ public:
 	friend Dnum operator+(const Dnum& x, const Dnum& y);
 	friend Dnum operator-(const Dnum& x, const Dnum& y)
 		{ return x + -y; }
+	size_t packsize() const;
+	void pack(char* buf) const;
+	static Dnum unpack(const gcstring& s);
 
 	static const Dnum ZERO;
 	static const Dnum ONE;
