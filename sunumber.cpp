@@ -414,8 +414,8 @@ int SuNumber::order() const
 
 bool SuNumber::eq(const SuValue& y) const
 	{
-	if (y.order() == ord)
-		return *this == static_cast<const SuNumber&>(y);
+	if (auto yy = dynamic_cast<const SuNumber*>(&y))
+		return *this == *yy;
 	else
 		return false;
 	}
@@ -429,9 +429,10 @@ bool SuNumber::lt(const SuValue& y) const
 		return ord < yo;
 	}
 
+static_assert(PLUS > MINUS);
+
 int cmp(const SuNumber* x, const SuNumber* y)
 	{
-	verify(PLUS > MINUS);
 	if (x->sign > y->sign)
 		return 1;
 	else if (x->sign < y->sign)
