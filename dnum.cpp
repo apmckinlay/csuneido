@@ -755,27 +755,76 @@ Dnum usub(const Dnum& x, const Dnum& y)
 
 // packing ----------------------------------------------------------
 
+#define E11 100'000'000'000
+#define E6 1'000'000
+#define E5 100'000
+#define E4 10'000
+#define E3 1000
+#define E2 100
+
+namespace
+	{
+	uint64_t prev_coef = 0;
+	int prev_size = 0;
+	// 10 bytes is sufficient for 19 decimal digits, 2 digits per byte
+	// static so not threadsafe, must not yield while in use
+	uint8_t bytes[10];
+
+	int coef_to_bytes(uint64_t coef)
+		{
+		// cache the last result, to optimize the common case of packsize,pack
+		if (coef == prev_coef)
+			return prev_size;
+		prev_coef = coef;
+
+		// split 8 digits (32 bits) - 11 digits (64 bits)
+		// so lower precision can be handled in 32 bit top half
+		uint32_t hi = coef / E11; // 8 digits
+		uint64_t lo64 = coef % E11; // 11 digits
+
+		bytes[9] = hi / E6; // most significant
+		CHECK(bytes[9]);
+		hi %= E6;
+		bytes[8] = hi / E4;
+		hi %= E4;
+		bytes[7] = hi / E2;
+		bytes[6] = hi % E2;
+
+		int n = 4;
+		if (lo64 == 0)
+			bytes[5] = bytes[4] = bytes[3] = bytes[2] = bytes[1] = bytes[0] = 0;
+		else
+			{
+			n = 10;
+			if (lo64 < E9)
+				bytes[5] = 0;
+			else
+				{
+				bytes[5] = lo64 / E9;
+				lo64 %= E9;
+				}
+			CHECK(lo64 < UINT32_MAX);
+			uint32_t lo = LO32(lo64);
+			bytes[4] = lo / E7;
+			lo %= E7;
+			bytes[3] = lo / E5;
+			lo %= E5;
+			bytes[2] = lo / E3;
+			lo %= E3;
+			bytes[1] = lo / 10;
+			bytes[0] = lo % 10; // least significant
+			}
+		while (bytes[10 - n] == 0)
+			--n;
+		return prev_size = n;
+		}
+	}
+	
 size_t Dnum::packsize() const
 	{
 	if (sign == NEG_INF || sign == 0 || sign == POS_INF)
 		return 1; // just tag
-	Int64bytes bytes = *reinterpret_cast<const Int64bytes*>(&(coef));
-	// omit trailing zero bytes
-	if (bytes.b0)
-		return 10;
-	if (bytes.b1)
-		return 9;
-	if (bytes.b2)
-		return 8;
-	if (bytes.b3)
-		return 7;
-	if (bytes.b4)
-		return 6;
-	if (bytes.b5)
-		return 5;
-	if (bytes.b6)
-		return 4;
-	return 3;
+	return 2 + coef_to_bytes(coef);
 	}
 
 void Dnum::pack(char* dst) const
@@ -783,31 +832,26 @@ void Dnum::pack(char* dst) const
 	*dst++ = PACK2_ZERO + sign;
 	if (sign == NEG_INF || sign == 0 || sign == POS_INF)
 		return;
-	*dst++ = exp + 128; // convert to sort as unsigned
-	Int64bytes bytes = *reinterpret_cast<const Int64bytes*>(&(coef));
-	// omit trailing zero bytes
-	int emit = 0;
-	if (bytes.b0)
-		dst[7] = emit = bytes.b0;
-	if (emit || bytes.b1)
-		dst[6] = emit = bytes.b1;
-	if (emit || bytes.b2)
-		dst[5] = emit = bytes.b2;
-	if (emit || bytes.b3)
-		dst[4] = emit = bytes.b3;
-	if (emit || bytes.b4)
-		dst[3] = emit = bytes.b4;
-	if (emit || bytes.b5)
-		dst[2] = emit = bytes.b5;
-	if (emit || bytes.b6)
-		dst[1] = bytes.b6;
-	CHECK(bytes.b7 != 0);
-	dst[0] = bytes.b7;
+	auto e = exp ^ 0x80; // convert to sort as unsigned
+	if (sign < 0)
+		e = ~e;
+	*dst++ = e;
+
+	int n = coef_to_bytes(coef);
+	uint8_t* b = bytes + 9;
+	while (n--)
+		{
+		auto c = *b--;
+		if (sign < 0)
+			c = ~c;
+		*dst++ = c;
+		}
 	}
 
 Dnum Dnum::unpack(const gcstring& s)
 	{
 	auto src = reinterpret_cast<const uint8_t*>(s.ptr());
+	auto limit = src + s.size();
 	int sign = *src++ - PACK2_ZERO;
 	switch (sign)
 		{
@@ -824,44 +868,25 @@ Dnum Dnum::unpack(const gcstring& s)
 	default:
 		unreachable();
 		}
-	int exp = static_cast<int>(*src++) - 128;
-	Int64bytes bytes = {};
-	switch (s.size())
+	int8_t exp = static_cast<int8_t>(*src++ ^ 0x80);
+	if (sign < 0)
+		exp = ~exp;
+	uint64_t coef = 0;
+	for (int i = 17; src < limit; ++src, i -= 2) //TODO optimize do 32 bit first
 		{
-	case 10:
-		bytes.b0 = src[7];
-		FALLTHROUGH
-	case 9:
-		bytes.b1 = src[6];
-		FALLTHROUGH
-	case 8:
-		bytes.b2 = src[5];
-		FALLTHROUGH
-	case 7:
-		bytes.b3 = src[4];
-		FALLTHROUGH
-	case 6:
-		bytes.b4 = src[3];
-		FALLTHROUGH
-	case 5:
-		bytes.b5 = src[2];
-		FALLTHROUGH
-	case 4:
-		bytes.b6 = src[1];
-		FALLTHROUGH
-	case 3:
-		bytes.b7 = src[0];
-		break;
-	default:
-		unreachable();
+		auto p = i >= 0 ? pow10[i] : 1;
+		auto c = *src;
+		if (sign < 0)
+			c = ~c;
+		coef += c * p;
 		}
-	uint64_t coef = *reinterpret_cast<const uint64_t*>(&bytes);
 	return Dnum(sign, coef, exp);
 	}
 
 // tests ------------------------------------------------------------
 
 #include "testing.h"
+#include "list.h"
 #include <utility>
 using namespace std::rel_ops;
 
@@ -1168,12 +1193,26 @@ struct test_dnum : Tests
 		PACK(Dnum::ZERO, PACK2_ZERO);
 		PACK(Dnum::INF, PACK2_POS_INF);
 		PACK(Dnum::MINUS_INF, PACK2_NEG_INF);
-		PACK(Dnum::ONE, PACK2_POS, '\x81',
-			'\x0d', '\xe0', '\xb6', '\xb3', '\xa7', '\x64');
-		PACK(Dnum("1e99"), PACK2_POS, '\xe4',
-			'\x0d', '\xe0', '\xb6', '\xb3', '\xa7', '\x64');
-		PACK(Dnum(-1234), PACK2_NEG, '\x84',
-			'\x11', '\x20', '\x0c', '\x76', '\x44', '\xd5');
+		const char* nums[] = { "-inf", "-1e9", "-123.45", "-123", "-100", 
+			"-1e-9", "0", "1e-9", ".123", "100", "123", "123.45", "98765432", 
+			"98765432.12345678901", "1e9", "inf" };
+		List<gcstring> packed;
+		for (auto s : nums)
+			{
+			Dnum dn(s);
+			int n = dn.packsize();
+			verify(n < 20);
+			char buf[20];
+			dn.pack(buf);
+			gcstring p(buf, n);
+			packed.add(p);
+			Dnum d2 = Dnum::unpack(p);
+			assert_eq(d2, dn);
+			}
+		for (int i = 0; i < packed.size(); ++i)
+			for (int j = 0; j < packed.size(); ++j)
+				except_if(CMP(packed[i], packed[j]) != CMP(i, j),
+					"packed " << nums[i] << " <=> " << nums[j]);
 		}
 	};
 REGISTER(test_dnum);
