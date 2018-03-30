@@ -21,7 +21,6 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "dnum.h"
-#include "itostr.h"
 #include "ostreamstr.h"
 #include "gcstring.h"
 #include "pack.h"
@@ -33,7 +32,8 @@
  * Dnum is a decimal floating point implementation
  * using a 64 bit unsigned integer for the coefficient
  * and signed 8 bit integers for the sign and exponent.
- * Max coefficient is 1e20 - 1 = 19 nines (not 2^64 - 1 which is 1.8...e19)
+ * Max coefficient is 16 decimal digits (not 2^64 - 1 which is 1.8...e19)
+ * 16 digits allows splitting into two 8 digit values which fit in 32 bit.
  * Assumed decimal point is to the left of the coefficient.
  * i.e. if exponent is 0, then 0 <= value < 1
  * Zero is represented with a sign of 0. (Zeroed value is zero.)
@@ -43,9 +43,14 @@
  * since this is the simplest for most operations.
  * From an external viewpoint, Dnum is an immutable value class.
  * Internally, intermediate temporary Dnum values are mutable.
+ * 
+ * 32 bit programs like cSuneido do not have access to 64 bit instructions.
+ * In Visual C++ 64 bit operations are compiled to subroutine calls.
+ * Matching % and / are kept close together
+ * since with /O2 VC++ will use a single call to get quotient and remainder.
  */
 
-#define CHECKING true
+#define CHECKING false
 #if CHECKING
 #define CHECK(cond) verify(cond)
 #else
@@ -62,22 +67,21 @@ typedef struct
 #define LO32(n) (*reinterpret_cast<Int64*>(&(n))).lo32
 #define HI32(n) (*reinterpret_cast<Int64*>(&(n))).hi32
 
-typedef struct
-	{
-	uint8_t b0; // least significant
-	uint8_t b1;
-	uint8_t b2;
-	uint8_t b3;
-	uint8_t b4;
-	uint8_t b5;
-	uint8_t b6;
-	uint8_t b7; // most significant
-	} Int64bytes;
-
 // sign values, zero = 0
 enum { NEG_INF = -2, NEG = -1, POS = +1, POS_INF = +2 };
 
-#define COEF_MAX	 9'999'999'999'999'999'999ull
+#define COEF_MAX	9'999'999'999'999'999ull
+#define MAX_DIGITS	16
+#define MAX_SHIFT	(MAX_DIGITS - 1)
+
+#define E1 10
+#define E2 100
+#define E3 1000
+#define E4 10'000
+#define E5 100'000
+#define E6 1'000'000
+#define E7 10'000'000
+#define E8 100'000'000
 
 const Dnum Dnum::ZERO;
 const Dnum Dnum::ONE(1);
@@ -85,7 +89,7 @@ const Dnum Dnum::MINUS_ONE(-1);
 // infinite coefficient isn't used, just has to be non-zero for constructor
 const Dnum Dnum::INF{ POS_INF, 1, 0 };
 const Dnum Dnum::MINUS_INF{ NEG_INF, 1, 0 };
-const Dnum Dnum::MAX_INT{ POS, COEF_MAX, 19 };
+const Dnum Dnum::MAX_INT{ POS, COEF_MAX, 16 };
 
 namespace
 	{
@@ -162,7 +166,7 @@ namespace
 		if (x == 0)
 			return 0;
 		int y = (19 * (63 - clz64(x))) >> 6;
-		if (y < 20 && x >= pow10[y + 1])
+		if (y < 19 && x >= pow10[y + 1])
 			++y;
 		return y;
 		}
@@ -171,7 +175,7 @@ namespace
 	int maxShift(uint64_t x)
 		{
 		int i = ilog10(x);
-		return i > 18 ? 0 : 18 - i;
+		return i > MAX_SHIFT ? 0 : MAX_SHIFT - i;
 		}
 
 	// "shift" coef "left" as far as possible, returns amount shifted
@@ -200,12 +204,14 @@ Dnum::Dnum(int s, uint64_t c, int e)
 		SETINF();
 	else
 		{
-		if (c > COEF_MAX)
+		bool atmax = false;
+		while (c > COEF_MAX)
 			{
 			c = (c + 5) / 10; // drop/round least significant digit
 			++e;
+			atmax = true;
 			}
-		else
+		if (! atmax)
 			e -= maxCoef(c);
 		if (e > INT8_MAX)
 			SETINF();
@@ -224,7 +230,7 @@ Dnum::Dnum(int n)
 	if (coef == 0)
 		exp = 0;
 	else
-		exp = 19 - maxCoef(coef);
+		exp = MAX_DIGITS - maxCoef(coef);
 	}
 
 namespace 
@@ -260,7 +266,7 @@ namespace
 			digits = true;
 
 		uint64_t n = 0;
-		for (int i = 18; ; ++s)
+		for (int i = MAX_SHIFT; ; ++s)
 			{
 			if (isdigit(*s))
 				{
@@ -276,7 +282,7 @@ namespace
 			else if (before_decimal)
 				{
 				// decimal point or end
-				exp = 18 - i;
+				exp = MAX_SHIFT - i;
 				if (*s != '.')
 					break;
 				before_decimal = false;
@@ -333,62 +339,130 @@ Dnum::Dnum(const char* s)
 		exp = e;
 	}
 
-Ostream& operator<<(Ostream& os, const Dnum& dn)
+namespace
 	{
-	if (dn.isZero())
-		return os << '0';
-	if (dn.sign <= NEG)
-		os << '-';
-	if (dn.isInf())
-		return os << "inf";
-	uint64_t c = dn.coef;
-	char digits[I64BUF + 4];
-	char* dst = digits;
-	for (int i = 18; i >= 0 && c != 0; --i)
+	char* append(char* dst, char* src)
 		{
-		int digit = c / pow10[i];
-		*dst++ = '0' + digit;
-		c %= pow10[i];
+		while (*src)
+			*dst++ = *src++;
+		return dst;
 		}
-	*dst = 0;
-	int ndigits = dst - digits;
-	int exp = dn.exp - ndigits;
-	if (0 <= exp && exp <= 4)
+	}
+
+#define PUT(n, p) *d++ = '0' + ((n) / (p)); (n) %= (p)
+
+char* Dnum::tostr(char* buf, int len) const
+	{
+	verify(len >= STRLEN);
+	char* dst = buf;
+	if (isZero())
+		return strcpy(dst, "0");
+	if (sign <= NEG)
+		*dst++ = '-';
+	if (isInf())
+		return strcpy(dst, "inf"), buf;
+
+	//uint64_t c = coef;
+	char digits[17];
+	char* d = digits;
+	uint32_t hi = uint32_t(coef / E8); // 8 digits
+	uint32_t lo = uint32_t(coef % E8); // 8 digits
+	PUT(hi, E7);
+	PUT(hi, E6);
+	PUT(hi, E5);
+	PUT(hi, E4);
+	PUT(hi, E3);
+	PUT(hi, E2);
+	PUT(hi, E1);
+	PUT(hi, 1);
+	PUT(lo, E7);
+	PUT(lo, E6);
+	PUT(lo, E5);
+	PUT(lo, E4);
+	PUT(lo, E3);
+	PUT(lo, E2);
+	PUT(lo, E1);
+	PUT(lo, 1);
+	while (d > digits && d[-1] == '0')
+		--d;
+	//for (int i = MAX_SHIFT; i >= 0 && c != 0; --i) 
+	//	{
+	//	auto p = pow10[i];
+	//	int digit = c / p;
+	//	c %= p;
+	//	*d++ = '0' + digit;
+	//	}
+	*d = 0;
+	int ndigits = d - digits;
+	int e = exp - ndigits;
+	if (0 <= e && e <= 4)
 		{
 		// decimal to the right
-		os << digits;
-		for (int i = 0; i < exp; ++i)
-			os << '0';
+		dst = append(dst, digits);
+		for (int i = 0; i < e; ++i)
+			*dst++ = '0';
 		}
-	else if (-ndigits - 4 < exp && exp <= -ndigits)
+	else if (-ndigits - 4 < e && e <= -ndigits)
 		{
 		// decimal to the left
-		os << ".";
-		for (int n = -exp - ndigits; n > 0; --n)
-			os << '0';
-		os << digits;
+		*dst++ = '.';
+		for (int n = -e - ndigits; n > 0; --n)
+			*dst++ = '0';
+		dst = append(dst, digits);
 		}
-	else if (-ndigits < exp && exp <= -1)
+	else if (-ndigits < e && e <= -1)
 		{
 		// decimal within
-		int d = ndigits + exp;
+		int dec = ndigits + e;
 		for (int i = 0; digits[i]; ++i)
 			{
-			if (i == d)
-				os << '.';
-			os << digits[i];
+			if (i == dec)
+				*dst++ = '.';
+			*dst++ = digits[i];
 			}
 		}
 	else
 		{
 		// scientific notation
-		os << digits[0];
+		*dst++ = digits[0];
 		if (digits[1])
-			os << "." << (digits + 1);
-		char buf[20];
-		os << 'e' << itostr(exp += strlen(digits) - 1, buf, 10);
+			{
+			*dst++ = '.';
+			dst = append(dst, digits + 1);
+			}
+		*dst++ = 'e';
+		e += strlen(digits) - 1;
+		if (e < 0)
+			{
+			*dst++ = '-';
+			e = -e;
+			}
+		int nd = e > 100 ? 3 : e > 10 ? 2 : 1;
+		switch (nd)
+			{
+		case 3:
+			*dst++ = '0' + (e / 100);
+			e %= 100;
+			[[fallthrough]];
+		case 2:
+			*dst++ = '0' + (e / 10);
+			e %= 10;
+			[[fallthrough]];
+		case 1:
+			*dst++ = '0' + e;
+			break;
+		default:
+			unreachable();
+			}
 		}
-	return os;
+	*dst = 0;
+	return buf;
+	}
+
+Ostream& operator<<(Ostream& os, const Dnum& dn)
+	{
+	char buf[Dnum::STRLEN];
+	return os << dn.tostr(buf, sizeof buf);
 	}
 
 // "raw" format for test and debug
@@ -410,11 +484,13 @@ gcstring Dnum::show() const
 		{
 		os << ".";
 		uint64_t c = coef;
-		for (int i = 18; i >= 0 && c != 0; --i)
+		for (int i = MAX_SHIFT; i >= 0 && c != 0; --i)
 			{
-			int digit = c / pow10[i];
+			auto p = pow10[i];
+			int digit = int(c / p);
+			c %= p;
+			CHECK(0 <= digit && digit <= 9);
 			os << static_cast<char>('0' + digit);
-			c %= pow10[i];
 			}
 		}
 	os << 'e' << exp;
@@ -437,20 +513,12 @@ bool Dnum::isInf() const
 
 bool operator==(const Dnum& x, const Dnum& y)
 	{
-	// WARNING: assumes both x and y are normalized
+	// WARNING: assumes/requires both x and y are normalized
 	if (x.sign != y.sign)
 		return false;
 	if (x.sign == 0 || x.sign == NEG_INF || x.sign == POS_INF)
 		return true;
 	return x.exp == y.exp && x.coef == y.coef;
-	}
-
-#define ROUND(n) (((n) + 5) / 10)
-
-// for tests, rounds off last digit
-bool Dnum::almostSame(const Dnum& x, const Dnum& y)
-	{
-	return x.sign == y.sign && x.exp == y.exp && ROUND(x.coef) == ROUND(y.coef);
 	}
 
 // unary minus
@@ -493,15 +561,6 @@ int Dnum::cmp(const Dnum& x, const Dnum& y)
 
 // multiply ---------------------------------------------------------
 
-namespace
-{
-	const uint32_t E7 = 10'000'000;
-	const uint32_t E8 = 100'000'000;
-	const uint32_t E9 = 1'000'000'000;
-	const uint64_t E10 = 10'000'000'000;
-	const uint64_t E18 = 1'000'000'000'000'000'000;
-}
-
 Dnum operator*(const Dnum& x, const Dnum& y)
 	{
 	int sign = x.sign * y.sign;
@@ -509,39 +568,32 @@ Dnum operator*(const Dnum& x, const Dnum& y)
 		return Dnum::ZERO;
 	if (x.isInf() || y.isInf())
 		return inf(sign);
-
-	uint64_t xhi = x.coef / E9; // 10 digits
-	uint32_t xlo = x.coef % E9; // 9 digits
-
-	uint32_t yhi = y.coef / E10; // 9 digits
-	uint64_t ylo = y.coef % E10; // 10 digits
-
-	uint64_t c = xhi * yhi;
 	int e = x.exp + y.exp;
-	uint32_t factor = E9;
-	uint32_t factor2 = E8;
-	if (c < E18) // optimization to get more precision
-		{
-		c *= 10;
-		--e;
-		factor = E8;
-		factor2 = E7;
-		}
+	if (x.coef == 1)
+		return Dnum(sign, y.coef, e);
+	if (y.coef == 1)
+		return Dnum(sign, x.coef, e);
+
+	uint32_t xhi = uint32_t(x.coef / E8); // 8 digits
+	uint32_t xlo = uint32_t(x.coef % E8); // 8 digits
+
+	uint32_t yhi = uint32_t(y.coef / E8); // 8 digits
+	uint32_t ylo = uint32_t(y.coef % E8); // 8 digits
+
+	uint64_t c = static_cast<uint64_t>(xhi) * yhi;
 	if (xlo == 0)
 		{
 		if (ylo != 0)
-			c += (xhi / 10) * ylo / factor;
+			c += (static_cast<uint64_t>(xhi) * ylo) / E8;
 		}
 	else if (ylo == 0)
-		c += (static_cast<uint64_t>(xlo) * yhi) / factor;
+		c += (static_cast<uint64_t>(xlo) * yhi) / E8;
 	else
 		{
-		auto mid1 = static_cast<uint64_t>(xlo) * yhi / 10; // 9 dig * 9 dig e10
-		auto mid2 = (xhi * ((ylo + 5) / 10)) / 10; // 10 dig e9 * 10 dig
-		c += (mid1 + mid2) / factor2; 
+		auto mid1 = (static_cast<uint64_t>(xlo)) * yhi;
+		auto mid2 = (static_cast<uint64_t>(ylo)) * xhi;
+		c += (mid1 + mid2) / E8;
 		}
-	if (factor == E8)
-		c += (xlo * ylo + E18/2) / E18;
 	return Dnum(sign, c, e);
 	}
 
@@ -551,21 +603,22 @@ namespace
 	{
 	bool mul10safe(uint64_t n)
 		{
-		return n <= COEF_MAX / 10;
+		return n <= UINT64_MAX / 10;
 		}
 
-	int div_long = 0;
-	int div_iter = 0;
-	int div_reduce = 0;
+	// the maximum we can safely shift left (*10)
+	int maxShift64(uint64_t x)
+		{
+		int i = ilog10(x);
+		return i > 18 ? 0 : 18 - i;
+		}
 		
 	uint64_t div2(uint64_t x, uint64_t y, int& exp)
 		{
 		//PRE x maxCoef, x != 0, y mincoef, y != 0
-		++div_long;
 		uint64_t q = 0;
 		for (int i = 0; ; ++i)
 			{
-			++div_iter;
 			// ensure x > y so q2 > 0
 			if (x < y)
 				{
@@ -575,25 +628,17 @@ namespace
 				q *= 10;
 				--exp;
 				}
-			if (i == 2 && q < 10000)
-				{
-				// slow progress, drop another low digit from y
-				// reduces worst case iterations
-				++div_reduce;
-				y /= 10;
-				q *= 10;
-				--exp;
-				}
 
 			uint64_t q2 = x / y;
+			x %= y;
 			CHECK(q2 != 0);
 			q += q2;
-			x -= q2 * y;
 			if (x == 0)
 				break;
 
 			// shift x (and q) to the left (max coef)
-			int p = maxShift(x > q ? x : q);
+			// use full 64 bit extra range to reduce iterations
+			int p = maxShift64(x > q ? x : q);
 			if (p == 0)
 				break;
 			exp -= p;
@@ -604,10 +649,7 @@ namespace
 	done:
 		return q;
 		}
-	}
 
-namespace
-	{
 	// count trailing (least significant) zero bits
 	int ctz32(uint32_t x)
 		{
@@ -628,30 +670,27 @@ namespace
 		return n; 
 #endif
 		}
-	}
 
-namespace
-	{
 	// "shift" coef right as far as possible, i.e. trim trailing decimal zeroes
 	// returns new (larger) exponent
 	// minimize slow % operations by using factor of 2 in 10 (ctz) and ilog10
 	// try big steps first to minimize iteration
 	int minCoef(uint64_t& coef, int exp)
 		{
-		// 19 decimal digits = at most 18 trailing decimal zeros
+		// 16 decimal digits = at most 15 trailing decimal zeros
 		CHECK(coef != 0);
 		int tz = ctz32(LO32(coef));
-		if (tz >= 9 && (coef % 1'000'000'000) == 0)
+		if (tz >= 8 && (coef % E8) == 0)
 			{
-			coef /= 1'000'000'000;
-			exp += 9;
-			tz -= 9;
+			coef /= E8;
+			exp += 8;
+			tz -= 8;
 			}
-		if (tz >= 5 && (coef % 100'000) == 0)
+		if (tz >= 4 && (coef % E4) == 0)
 			{
-			coef /= 100'000;
-			exp += 5;
-			tz -= 5;
+			coef /= E4;
+			exp += 4;
+			tz -= 4;
 			}
 		while (tz > 0 && (coef % 10) == 0)
 			{
@@ -680,14 +719,12 @@ Dnum operator/(const Dnum& x, const Dnum& y)
 		}
 	if (y.isInf())
 		return Dnum::ZERO;
+	if (y.coef == 1)
+		return Dnum(sign, x.coef, x.exp - y.exp);
 
 	uint64_t ycoef = y.coef;
 	int yexp = minCoef(ycoef, y.exp);
-	int exp = x.exp - yexp + 19;
-	if (x.coef % ycoef == 0)
-		// fast, exact path
-		return Dnum(sign, x.coef / ycoef, exp);
-	// slow path
+	int exp = x.exp - yexp + MAX_DIGITS;
 	uint64_t q = div2(x.coef, ycoef, exp);
 	return Dnum(sign, q, exp);
 	}
@@ -755,20 +792,13 @@ Dnum usub(const Dnum& x, const Dnum& y)
 
 // packing ----------------------------------------------------------
 
-#define E11 100'000'000'000
-#define E6 1'000'000
-#define E5 100'000
-#define E4 10'000
-#define E3 1000
-#define E2 100
-
 namespace
 	{
 	uint64_t prev_coef = 0;
 	int prev_size = 0;
-	// 10 bytes is sufficient for 19 decimal digits, 2 digits per byte
-	// static so not threadsafe, must not yield while in use
-	uint8_t bytes[10];
+	// 8 bytes is sufficient for 16 decimal digits, 2 digits per byte
+	// WARNING: static so not threadsafe, must not yield while in use
+	uint8_t bytes[8];
 
 	int coef_to_bytes(uint64_t coef)
 		{
@@ -777,44 +807,34 @@ namespace
 			return prev_size;
 		prev_coef = coef;
 
-		// split 8 digits (32 bits) - 11 digits (64 bits)
-		// so lower precision can be handled in 32 bit top half
-		uint32_t hi = coef / E11; // 8 digits
-		uint64_t lo64 = coef % E11; // 11 digits
+		// split 8 digits (32 bits) - 8 digits (32 bits)
+		// so each half can be handled as 32 bit
+		// and lower precision can be handled in one half
+		uint32_t hi = uint32_t(coef / E8); // 8 digits
+		uint32_t lo = uint32_t(coef % E8); // 8 digits
 
-		bytes[9] = hi / E6; // most significant
-		CHECK(bytes[9]);
+		bytes[0] = hi / E6; // most significant
+		CHECK(bytes[0]);
 		hi %= E6;
-		bytes[8] = hi / E4;
+		bytes[1] = hi / E4;
 		hi %= E4;
-		bytes[7] = hi / E2;
-		bytes[6] = hi % E2;
+		bytes[2] = hi / E2;
+		bytes[3] = hi % E2;
 
 		int n = 4;
-		if (lo64 == 0)
-			bytes[5] = bytes[4] = bytes[3] = bytes[2] = bytes[1] = bytes[0] = 0;
+		if (lo == 0)
+			bytes[4] = bytes[5] = bytes[6] = bytes[7] = 0;
 		else
 			{
-			n = 10;
-			if (lo64 < E9)
-				bytes[5] = 0;
-			else
-				{
-				bytes[5] = lo64 / E9;
-				lo64 %= E9;
-				}
-			CHECK(lo64 < UINT32_MAX);
-			uint32_t lo = LO32(lo64);
-			bytes[4] = lo / E7;
-			lo %= E7;
-			bytes[3] = lo / E5;
-			lo %= E5;
-			bytes[2] = lo / E3;
-			lo %= E3;
-			bytes[1] = lo / 10;
-			bytes[0] = lo % 10; // least significant
+			n = 8;
+			bytes[4] = lo / E6;
+			lo %= E6;
+			bytes[5] = lo / E4;
+			lo %= E4;
+			bytes[6] = lo / E2;
+			bytes[7] = lo % E2; // least significant
 			}
-		while (bytes[10 - n] == 0)
+		while (bytes[n-1] == 0)
 			--n;
 		return prev_size = n;
 		}
@@ -832,54 +852,71 @@ void Dnum::pack(char* dst) const
 	*dst++ = PACK2_ZERO + sign;
 	if (sign == NEG_INF || sign == 0 || sign == POS_INF)
 		return;
+	uint8_t x = sign < 0 ? 0xff : 0;
 	auto e = exp ^ 0x80; // convert to sort as unsigned
-	if (sign < 0)
-		e = ~e;
-	*dst++ = e;
+	*dst++ = e ^ x;
 
 	int n = coef_to_bytes(coef);
-	uint8_t* b = bytes + 9;
-	while (n--)
+	uint8_t* b = bytes + n;
+	dst += n;
+	switch (n)
 		{
-		auto c = *b--;
-		if (sign < 0)
-			c = ~c;
-		*dst++ = c;
+	case 8: *--dst = *--b ^ x; [[fallthrough]];
+	case 7: *--dst = *--b ^ x; [[fallthrough]];
+	case 6: *--dst = *--b ^ x; [[fallthrough]];
+	case 5: *--dst = *--b ^ x; [[fallthrough]];
+	case 4: *--dst = *--b ^ x; [[fallthrough]];
+	case 3: *--dst = *--b ^ x; [[fallthrough]];
+	case 2: *--dst = *--b ^ x; [[fallthrough]];
+	case 1: *--dst = *--b ^ x; break;
+	default: unreachable();
 		}
 	}
+
+#define ADD(n_, p_) b = *--src; b ^= x; (n_) += b * (p_)
 
 Dnum Dnum::unpack(const gcstring& s)
 	{
 	auto src = reinterpret_cast<const uint8_t*>(s.ptr());
-	auto limit = src + s.size();
-	int sign = *src++ - PACK2_ZERO;
+	int sign = src[0] - PACK2_ZERO;
+	uint8_t x;
 	switch (sign)
 		{
 	case NEG_INF:
 		return Dnum::MINUS_INF;
 	case NEG:
+		x = 0xff;
 		break;
 	case 0:
 		return Dnum::ZERO;
 	case POS:
+		x = 0;
 		break;
 	case POS_INF:
 		return Dnum::INF;
 	default:
 		unreachable();
 		}
-	int8_t exp = static_cast<int8_t>(*src++ ^ 0x80);
-	if (sign < 0)
-		exp = ~exp;
-	uint64_t coef = 0;
-	for (int i = 17; src < limit; ++src, i -= 2) //TODO optimize do 32 bit first
+	CHECK(s.size() > 2);
+	int8_t exp = static_cast<int8_t>(src[1] ^ 0x80);
+	exp ^= x;
+	uint32_t hi = 0;
+	uint32_t lo = 0;
+	uint8_t b;
+	src += s.size();
+	switch (s.size() - 2)
 		{
-		auto p = i >= 0 ? pow10[i] : 1;
-		auto c = *src;
-		if (sign < 0)
-			c = ~c;
-		coef += c * p;
+	case 8: ADD(lo, 1); [[fallthrough]];
+	case 7: ADD(lo, E2); [[fallthrough]];
+	case 6: ADD(lo, E4); [[fallthrough]];
+	case 5: ADD(lo, E6); [[fallthrough]];
+	case 4: ADD(hi, 1); [[fallthrough]];
+	case 3: ADD(hi, E2); [[fallthrough]];
+	case 2: ADD(hi, E4); [[fallthrough]];
+	case 1: ADD(hi, E6); break;
+	default: unreachable();
 		}
+	uint64_t coef = static_cast<uint64_t>(hi) * E8 + lo;
 	return Dnum(sign, coef, exp);
 	}
 
@@ -887,6 +924,7 @@ Dnum Dnum::unpack(const gcstring& s)
 
 #include "testing.h"
 #include "list.h"
+#include <chrono>
 #include <utility>
 using namespace std::rel_ops;
 
@@ -909,8 +947,7 @@ struct test_dnum : Tests
 		assert_eq(Dnum(".0").show(), "z0e0");
 		assert_eq(Dnum("0.0").show(), "z0e0");
 		assert_eq(Dnum("-0.0e9").show(), "z0e0");
-		assert_eq(Dnum("9999999999999999999").show(),
-												"+.9999999999999999999e19");
+		assert_eq(Dnum("9999999999999999").show(), "+.9999999999999999e16");
 		assert_eq(Dnum("1").show(),				"+.1e1");
 		assert_eq(Dnum("1234").show(),			"+.1234e4");
 		assert_eq(Dnum(".001").show(),			"+.1e-2");
@@ -929,22 +966,30 @@ struct test_dnum : Tests
 		}
 	TEST(1, "to string")
 		{
-		assert_eq(Dnum::ZERO.to_gcstr(), "0");
-		assert_eq(Dnum::ONE.to_gcstr(), "1");
-		assert_eq(Dnum::INF.to_gcstr(), "inf");
-		assert_eq(Dnum::MINUS_INF.to_gcstr(), "-inf");
-		assert_eq(Dnum(1234).to_gcstr(), "1234");
-		assert_eq(Dnum(-1234).to_gcstr(), "-1234");
+		str(Dnum::ZERO, "0");
+		str(Dnum::ONE, "1");
+		str(Dnum::INF, "inf");
+		str(Dnum::MINUS_INF, "-inf");
+		str(Dnum(1234), "1234");
+		str(Dnum(-1234), "-1234");
 		str("1e9");
 		str("1.23e9");
 		str("-123.456");
 		str(".000123");
 		}
+	static void str(const Dnum dn, const char* expected)
+		{
+		char buf[Dnum::STRLEN];
+		(void) dn.tostr(buf, sizeof buf);
+		except_if(0 != strcmp(buf, expected),
+			"tostr\n" << buf << " result\n" << expected << " expected");
+		}
 	static void str(const char* s)
 		{
 		Dnum n(s);
-		assert_eq(n.to_gcstr(), s);
+		str(n, s);
 		}
+
 	TEST(2, "misc")
 		{
 		// normalization
@@ -1010,12 +1055,12 @@ struct test_dnum : Tests
 		for (int i = 0; i < 20; ++i, n *= 10)
 			assert_eq(ilog10(n), i);
 
-		assert_eq(maxShift(1), 18);
-		assert_eq(maxShift(9), 18);
-		assert_eq(maxShift(99), 17);
-		assert_eq(maxShift(999'999'999'999'999'999ull), 1);
-		assert_eq(maxShift(1'000'999'999'999'999'999ull), 0);
-		assert_eq(maxShift(9'999'999'999'999'999'999ull), 0);
+		assert_eq(maxShift(1), MAX_SHIFT);
+		assert_eq(maxShift(9), MAX_SHIFT);
+		assert_eq(maxShift(99), MAX_SHIFT - 1);
+		assert_eq(maxShift(999'999'999'999'999ull), 1);
+		assert_eq(maxShift(1'000'999'999'999'999ull), 0);
+		assert_eq(maxShift(9'999'999'999'999'999ull), 0);
 		assert_eq(maxShift(UINT64_MAX), 0);
 
 		// special cases (no actual math)
@@ -1031,17 +1076,15 @@ struct test_dnum : Tests
 			for (auto y : nums)
 				mul(x, y, x * y);
 		Dnum z("4294967295");
-		mul(z, z, "18446744065119617030");
+		mul(z, z, "1844674406511962e4");
 
-		mul("112233445566", "112233445566",
-			"1259634630361628506e4");
+		mul("112233445566", "112233445566", "1259634630361629e7");
 
-		mul("1111111111111111111", "1111111111111111111",
-			"123456790123456790e19");
+		mul("1111111111111111", "1111111111111111", "1.234567901234568e30");
 
-		mul(Dnum::MAX_INT, Dnum::MAX_INT, "9999999999999999998e19");
+		mul(Dnum::MAX_INT, Dnum::MAX_INT, "9.999999999999998e31");
 		mul(Dnum::MAX_INT, Dnum::ONE, Dnum::MAX_INT);
-		mul(Dnum::MAX_INT, "1111111111111111111", "1.111111111111111111e37");
+		mul(Dnum::MAX_INT, "1111111111111111", "1.111111111111111e31");
 		}
 	template <typename X, typename Y, typename E>
 	static void mul(X x, Y y, E expected)
@@ -1052,16 +1095,16 @@ struct test_dnum : Tests
 		for (int i = 0; i < 2; ++i)
 			{
 			Dnum p = dx * dy;
-			except_if(!Dnum::almostSame(p, e),
+			except_if(!almostSame(p, e),
 				dx << " * " << dy << "\n" << p << " result\n" << e << " expected");
 			p = -dx * -dy;
-			except_if(!Dnum::almostSame(p, e),
+			except_if(!almostSame(p, e),
 				dx << " * " << dy << "\n" << p << " result\n" << e << " expected");
 			p = -dx * dy;
-			except_if(!Dnum::almostSame(p, -e),
+			except_if(!almostSame(p, -e),
 				dx << " * " << dy << "\n" << p << " result\n" << e << " expected");
 			p = dx * -dy;
-			except_if(!Dnum::almostSame(p, -e),
+			except_if(!almostSame(p, -e),
 				dx << " * " << dy << "\n" << p << " result\n" << e << " expected");
 			std::swap(dx, dy);
 			}
@@ -1088,6 +1131,7 @@ struct test_dnum : Tests
 		div("123", "inf", "0");
 		div("inf", "123", "inf");
 		div("inf", "inf", "1");
+		div("123456", "1e3", "123.456");
 
 		// divides evenly
 		div("123", "123", "1");
@@ -1097,11 +1141,12 @@ struct test_dnum : Tests
 		div("123000", ".000123", "1e9");
 
 		// long division
-		div("1", "3", ".3333333333333333333");
-		div("2", "3", ".6666666666666666666");
-		div("11", "17", ".6470588235294117647");
-		div("1234567890123456789", "9876543210987654321", ".1249999988609375000");
-		div("1", "3333333333333333333", "3e-19");
+		div("1", "3", ".3333333333333333");
+		div("2", "3", ".6666666666666666");
+		div("11", "17", ".6470588235294118");
+		div("1234567890123456", "9876543210987654", ".1249999988609374");
+		div("1", "3333333333333333", "3e-16");
+		div("12", ".4444444444444444", "27");
 
 		// exp overflow
 		div("1e99", "1e-99", "inf");
@@ -1117,7 +1162,7 @@ struct test_dnum : Tests
 		{
 		Dnum q = Dnum(x) / Dnum(y);
 		Dnum e(expected);
-		except_if(! Dnum::almostSame(q, e),
+		except_if(! almostSame(q, e),
 			x << " / " << y << "\n" << q << " result\n" << e << " expected");
 		}
 
@@ -1142,16 +1187,16 @@ struct test_dnum : Tests
 				}
 
 		addsub(111, 12, 123);
-		addsub(1e4, 2e2, 10200); // align
-		addsub(2e4, 1e2, 20100); // align
+		addsub("1e4", "2e2", 10200); // align
+		addsub("2e4", "1e2", 20100); // align
 		addsub("1e30", 999, "1e30"); // can't align
-		addsub("1e18", 3, "1000000000000000003");
-		addsub("1e19", 33, "10000000000000000030"); // dropped digit
-		addsub("1e19", 37, "10000000000000000040"); // round dropped digit
+		addsub("1e15", 3, "1000000000000003");
+		addsub("1e16", 33, "10000000000000030"); // dropped digit
+		addsub("1e16", 37, "10000000000000040"); // round dropped digit
 
-		assert_eq(Dnum("7777777777777777777") + Dnum("7777777777777777777"),
-			Dnum("15555555555555555550")); // overflow handled by normalization
-		assert_eq(Dnum::MAX_INT + Dnum::MAX_INT, Dnum("2e19")); // overflow
+		assert_eq(Dnum("7777777777777777") + Dnum("7777777777777777"),
+			Dnum("15555555555555550")); // overflow handled by normalization
+		assert_eq(Dnum::MAX_INT + Dnum::MAX_INT, Dnum("2e16")); // overflow
 		}
 	template <typename X, typename Y, typename Z>
 	static void addsub(X x_, Y y_, Z sum_)
@@ -1173,29 +1218,11 @@ struct test_dnum : Tests
 			sum << " - " << y << "\n" << z << " result\n" << x << " expected");
 		}
 
-	#define PACK(dn, ...) { \
-		char buf[16]; \
-		memset(buf, 0xee, sizeof buf); \
-		char expected[] = { __VA_ARGS__, '\xee' }; \
-		assert_eq((dn).packsize(), sizeof expected - 1); \
-		(dn).pack(buf); \
-		for (int i = 0; i < sizeof expected; ++i) \
-			except_if(buf[i] != expected[i], \
-				"expected " << hex << (int)(uint8_t) expected[i] << \
-				" got " << (int)(uint8_t) buf[i] << \
-				" at position " << dec << i); \
-		Dnum u = Dnum::unpack(gcstring(buf, sizeof expected - 1)); \
-		assert_eq(u, dn); \
-		}
-
 	TEST(7, "packing")
 		{
-		PACK(Dnum::ZERO, PACK2_ZERO);
-		PACK(Dnum::INF, PACK2_POS_INF);
-		PACK(Dnum::MINUS_INF, PACK2_NEG_INF);
-		const char* nums[] = { "-inf", "-1e9", "-123.45", "-123", "-100", 
+		const char* nums[] = { "-inf", "-1e9", "-123.45", "-123", "-100",
 			"-1e-9", "0", "1e-9", ".123", "100", "123", "123.45", "98765432", 
-			"98765432.12345678901", "1e9", "inf" };
+			"98765432.12345678", "1e9", "inf" };
 		List<gcstring> packed;
 		for (auto s : nums)
 			{
@@ -1214,5 +1241,44 @@ struct test_dnum : Tests
 				except_if(CMP(packed[i], packed[j]) != CMP(i, j),
 					"packed " << nums[i] << " <=> " << nums[j]);
 		}
+
+#define TRUNC(n) ((n) / 10)
+#define ROUND(n) (((n) + 5) / 10)
+
+	// for tests, rounds off last digit
+	static bool almostSame(const Dnum& x, const Dnum& y)
+		{
+		return x.sign == y.sign && x.exp == y.exp &&
+			(TRUNC(x.coef) == TRUNC(y.coef) || ROUND(x.coef) == ROUND(y.coef));
+		}
+
+	//TEST(8, "benchmark")
+	//	{
+	//	Dnum m(123);
+	//	Dnum x("123456789012.3456");
+	//	Dnum y("9876543210987654");
+	//	static Dnum z("-12345678.98765432e11");
+	//	static char buf[Dnum::STRLEN];
+
+	//	const int N = 1'000'000'000;
+	//	auto t1 = std::chrono::high_resolution_clock::now();
+	//	for (int i = 0; i < N; ++i)
+	//		{
+	//		z = x / y;
+
+	//		//z = Dnum("-12345678.98765432e11");
+
+	//		//prev_coef = 0;
+	//		//int n = z.packsize();
+	//		//prev_coef = 0;
+	//		//z.pack(buf);
+	//		//z = Dnum::unpack(gcstring::noalloc(buf, n));
+
+	//		//(void) z.tostr(buf, sizeof buf);
+	//		}
+	//	auto t2 = std::chrono::high_resolution_clock::now();
+	//	std::chrono::duration<double, std::nano> dur = t2 - t1;
+	//	except(dur.count() / N << "ns");
+	//	}
 	};
 REGISTER(test_dnum);

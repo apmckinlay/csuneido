@@ -29,16 +29,16 @@ class gcstring;
 class Dnum
 	{
 public:
-	Dnum() : coef(0), sign(0), exp(0)
+	constexpr Dnum() : coef(0), sign(0), exp(0)
 		{}
 	Dnum(const Dnum&) = default;
 	explicit Dnum(int n);
 	explicit Dnum(const char* s);
 
 	friend struct test_dnum;
-	friend Ostream& operator<<(Ostream& os, const Dnum& dn);
 	friend bool operator==(const Dnum& x, const Dnum& y);
-	static bool almostSame(const Dnum& x, const Dnum& y);
+	friend Ostream& operator<<(Ostream& os, const Dnum& dn);
+	char* tostr(char* dst, int len) const;
 	gcstring show() const;
 	gcstring to_gcstr() const;
 	bool isZero() const
@@ -65,11 +65,13 @@ public:
 	static const Dnum INF;
 	static const Dnum MINUS_INF;
 	static const Dnum MAX_INT;
+	enum { STRLEN = 24 };
 private:
 	Dnum(int s, uint64_t c, int e);
 	friend bool align(Dnum& x, Dnum& y);
 	friend Dnum uadd(const Dnum& x, const Dnum& y);
 	friend Dnum usub(const Dnum& x, const Dnum& y);
+	friend struct test_dnum;
 
 	uint64_t coef;
 	int8_t sign;
