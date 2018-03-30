@@ -1760,6 +1760,8 @@ class test_number4 : public Tests
 	};
 REGISTER(test_number4);
 
+#include <chrono>
+
 class test_number5 : public Tests
 	{
 	TEST(0, packed_compare)
@@ -1777,6 +1779,22 @@ class test_number5 : public Tests
 		verify(s1 < s2);
 		verify(s2 < s3);
 		}
+	//TEST(1, "benchmark")
+	//	{
+	//	SuNumber x("123456789012.3456");
+	//	SuNumber y("9876543210987654");
+	//	static SuNumber z("0");
+	//
+	//	const int N = 1'000'000;
+	//	auto t1 = std::chrono::high_resolution_clock::now();
+	//	for (int i = 0; i < N; ++i)
+	//		{
+	//		z = x / y;
+	//		}
+	//	auto t2 = std::chrono::high_resolution_clock::now();
+	//	std::chrono::duration<double, std::nano> dur = t2 - t1;
+	//	except(dur.count() / N << "ns");
+	//	}
 	};
 REGISTER(test_number5);
 
