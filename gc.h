@@ -21,7 +21,11 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#if _WIN64
+typedef unsigned __int64 size_t;
+#else
 typedef unsigned int size_t;
+#endif
 
 extern "C"
 {

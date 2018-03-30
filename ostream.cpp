@@ -178,6 +178,6 @@ Ostream& Ostream::operator<<(void* p)
 	{
 	char buf[32];
 	strcpy(buf, "0x");
-	utostr((unsigned long) p, buf + 2, 16);
+	utostr((intptr_t) p, buf + 2, 16);
 	return write_padded(buf, strlen(buf));
 	}

@@ -242,7 +242,9 @@ private:
 	int16_t siz = 0; // current number of elements
 	};
 
+#ifndef _WIN64
 static_assert(sizeof(List<int>) == 8);
+#endif
 
 // ------------------------------------------------------------------
 
