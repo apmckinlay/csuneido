@@ -46,6 +46,7 @@
  * 
  * 32 bit programs like cSuneido do not have access to 64 bit instructions.
  * In Visual C++ 64 bit operations are compiled to subroutine calls.
+ * So we use 32 bit operations as much as possible.
  * Matching % and / are kept close together
  * since with /O2 VC++ will use a single call to get quotient and remainder.
  */
@@ -224,6 +225,7 @@ Dnum::Dnum(int s, uint64_t c, int e)
 		}
 	}
 
+//TODO -n could overflow 
 Dnum::Dnum(int n) 
 	: coef(n < 0 ? -n : n), sign(n < 0 ? NEG : n > 0 ? POS : 0)
 	{
