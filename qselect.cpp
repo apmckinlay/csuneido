@@ -1236,7 +1236,6 @@ class TestSelect : public Select
 
 class TestTable : public Table
 	{
-	friend class test_qselect;
 public:
 	double nrecords() override
 		{ return 1000; }

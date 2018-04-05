@@ -71,7 +71,6 @@ private:
 	friend bool align(Dnum& x, Dnum& y);
 	friend Dnum uadd(const Dnum& x, const Dnum& y);
 	friend Dnum usub(const Dnum& x, const Dnum& y);
-	friend struct test_dnum;
 
 	uint64_t coef;
 	int8_t sign;
