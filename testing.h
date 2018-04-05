@@ -93,3 +93,23 @@ private:
 	if (!err) \
 		except_err("error: expected exception from " #expr); \
 	} while(false)
+
+using Bfn = void(*)(long long);
+
+#define BENCHMARK(name) \
+	void bench_##name(long long nreps); \
+	static Benchmark tmp##name(#name, bench_##name); \
+	void bench_##name(long long nreps)
+
+struct Benchmark
+	{
+	Benchmark(const char* n, Bfn f);
+
+	const char* name;
+	Bfn fn;
+	};
+
+extern Benchmark* benchmarks[];
+extern int n_benchmarks;
+
+void run_benchmarks(Ostream& os, const char* prefix);

@@ -175,6 +175,13 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		int nfailed = TestRegister::runtest(CATSTRA("test_", cmdlineoptions.argstr), to);
 		exit(nfailed == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
 		}
+	case BENCH :
+		{
+		OstreamStr os;
+		run_benchmarks(os, cmdlineoptions.argstr);
+		alert(os.str());
+		exit(EXIT_SUCCESS);
+		}
 	case SERVER :
 		is_server = true;
 		start_dbserver(cmdlineoptions.argstr);
@@ -200,7 +207,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	case VERSION :
 		alert("Built:  " << build << "\n"
 			""
-			"Copyright (C) 2000-2016 Suneido Software Corp.\n"
+			"Copyright (C) 2000-2018 Suneido Software Corp.\n"
 			"All rights reserved worldwide.\n"
 			"Licensed under the GNU General Public License v2\n"
 			"\n"

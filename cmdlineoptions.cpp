@@ -62,6 +62,10 @@ const char* CmdLineOptions::parse(const char* str)
 			if (nullptr == (argstr = get_word()))
 				action = TESTS;
 			break ;
+		case BENCH :
+			if (nullptr == (argstr = get_word()))
+				argstr = ""; // all
+			break ;
 		case SERVER :
 			if (*s == '=')
 				{
@@ -131,6 +135,8 @@ const char* CmdLineOptions::parse(const char* str)
 			}
 		case HELP :
 			alert("options:\n"
+				"	-b[ench]\n"
+				"	-b[ench] name\n"
 				"	-check\n"
 				"	-c[heck]s[tart]\n"
 				"	-r[ebuild]\n"
@@ -168,8 +174,9 @@ const char* CmdLineOptions::parse(const char* str)
 	return s;
 	}
 
-// Note: must put options that are a prefix of other options first e.g. -check before -c
+// Note: must put options that are a prefix of other options last e.g. -check before -c
 static struct { const char* str; int num; } options[] = {
+	{ "-bench", BENCH }, { "-b", BENCH },
 	{ "-dbdump", DBDUMP },
 	{ "-dump", DUMP }, { "-d", DUMP },
 	{ "-locallibrary", LOCAL_LIBRARY }, { "-ll", LOCAL_LIBRARY },
@@ -199,18 +206,17 @@ static struct { const char* str; int num; } options[] = {
 	{ "-ignorecheck", IGNORE_CHECK },
 	{ "--", END_OF_OPTIONS },
 	};
-const int noptions = sizeof options / sizeof options[0];
 
 int CmdLineOptions::get_option()
 	{
 	skip_white();
-	for (int i = 0; i < noptions; ++i)
-		if (has_prefix(s, options[i].str))
+	for (auto& option : options)
+		if (has_prefix(s, option.str))
 			{
-			s += strlen(options[i].str);
-			if (options[i].num < AFTER_ACTIONS)
-				set_action(options[i].num);
-			return options[i].num;
+			s += strlen(option.str);
+			if (option.num < AFTER_ACTIONS)
+				set_action(option.num);
+			return option.num;
 			}
 	return 0;
 	}
@@ -224,7 +230,8 @@ void CmdLineOptions::skip_white()
 void CmdLineOptions::set_action(int a)
 	{
 	if (action)
-		except("Please specify only one of: -dump, -load, -server, -client, -check, -rebuild, -copy, -test, -installserver, -uninstallserver");
+		except("Please specify only one of: -dump, -load, -server, -client, "
+			"-check, -rebuild, -test, -bench, -installserver, -uninstallserver");
 	action = a;
 	}
 

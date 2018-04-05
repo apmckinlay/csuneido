@@ -110,7 +110,62 @@ TestRegister* TestRegister::findtest(const char* name)
 	return 0;
 	}
 
-// test the testing framework
+// benchmarks =======================================================
+
+#include "ostreamstr.h"
+#include <chrono>
+
+const int MAX_BENCHMARKS = 100;
+Benchmark* benchmarks[MAX_BENCHMARKS];
+int n_benchmarks = 0;
+
+Benchmark::Benchmark(const char* n, Bfn f) : name(n), fn(f)
+	{
+	verify(n_benchmarks < MAX_BENCHMARKS);
+	benchmarks[n_benchmarks++] = this;
+	}
+
+// estimate how many reps per second
+long long reps_per_sec(Bfn fn)
+	{
+	for (long long nreps = 1; ; nreps *= 2)
+		{
+		auto t1 = std::chrono::high_resolution_clock::now();
+		fn(nreps);
+		auto t2 = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::nano> dur = t2 - t1;
+		if (dur.count() > 20e6) // 20 ms in ns
+			return 1e9 / dur.count() * nreps;
+		}
+	}
+
+void run_benchmark(Ostream& os, Benchmark* b)
+	{
+	os << "-bench " << b->name << ": ";
+	try
+		{
+		long long nreps = reps_per_sec(b->fn);
+		auto t1 = std::chrono::high_resolution_clock::now();
+		b->fn(nreps);
+		auto t2 = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::nano> dur = t2 - t1;
+		os << int(dur.count() / nreps + .5) << " ns  ";
+		}
+	catch (const Except& e)
+		{
+		os << "failed: " << e;
+		}
+	os << endl;
+	}
+
+void run_benchmarks(Ostream& os, const char* prefix)
+	{
+	for (int i = 0; i < n_benchmarks; ++i)
+		if (has_prefix(benchmarks[i]->name, prefix))
+			run_benchmark(os, benchmarks[i]);
+	}
+
+// test the testing framework =======================================
 
 #ifdef STANDALONE
 
