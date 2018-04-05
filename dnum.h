@@ -26,6 +26,7 @@
 class Ostream;
 class gcstring;
 
+#pragma pack(4)
 class Dnum
 	{
 public:
@@ -76,4 +77,4 @@ private:
 	int8_t sign;
 	int8_t exp;
 	};
-
+#pragma pack()
