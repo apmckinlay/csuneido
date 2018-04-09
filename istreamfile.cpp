@@ -86,48 +86,42 @@ void IstreamFile::close() const
 
 
 #include "testing.h"
-#include "except.h"
-#include "sustring.h"
 
-class test_istreamfile : public Tests
+TEST(istreamfile)
 	{
-	TEST(0, main)
-		{
-		FILE* f = fopen("test.tmp", "w");
-		fputs("hello\n", f);
-		fputs("world\n", f);
-		fclose(f);
+	FILE* f = fopen("test.tmp", "w");
+	fputs("hello\n", f);
+	fputs("world\n", f);
+	fclose(f);
 
-		{ IstreamFile isf("test.tmp");
-		const int bufsize = 20;
-		char buf[bufsize];
-		isf.getline(buf, bufsize);
-		verify(isf);
-		verify(0 == strcmp("hello", buf));
-		verify('w' == isf.peek());
-		verify('w' == isf.get());
-		isf.putback('W');
-		isf.getline(buf, bufsize);
-		verify(isf);
-		verify(0 == strcmp("World", buf));
-		isf.getline(buf, bufsize);
-		verify(isf.eof());
-		isf.close();
-		verify(! isf);
-		}
+	{ IstreamFile isf("test.tmp");
+	const int bufsize = 20;
+	char buf[bufsize];
+	isf.getline(buf, bufsize);
+	verify(isf);
+	verify(0 == strcmp("hello", buf));
+	verify('w' == isf.peek());
+	verify('w' == isf.get());
+	isf.putback('W');
+	isf.getline(buf, bufsize);
+	verify(isf);
+	verify(0 == strcmp("World", buf));
+	isf.getline(buf, bufsize);
+	verify(isf.eof());
+	isf.close();
+	verify(! isf);
+	}
 
-		{ IstreamFile isf("test.tmp");
-		const int bufsize = 20;
-		char buf[bufsize];
-		isf.read(buf, 6);
-		verify(isf.gcount() == 6);
-		verify(! isf.eof());
-		isf.read(buf, 10);
-		verify(isf.gcount() == 6);
-		verify(isf.eof());
-		}
+	{ IstreamFile isf("test.tmp");
+	const int bufsize = 20;
+	char buf[bufsize];
+	isf.read(buf, 6);
+	verify(isf.gcount() == 6);
+	verify(! isf.eof());
+	isf.read(buf, 10);
+	verify(isf.gcount() == 6);
+	verify(isf.eof());
+	}
 
-		verify(0 == remove("test.tmp"));
-		}
-	};
-REGISTER(test_istreamfile);
+	verify(0 == remove("test.tmp"));
+	}

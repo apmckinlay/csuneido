@@ -1096,259 +1096,248 @@ Value SuObjectIter::call(Value self, Value member,
 		method_not_found(type(), member);
 	}
 
-// tests ============================================================
+// tests ------------------------------------------------------------
 
 #include "testing.h"
 #include "random.h"
 
-class test_object : public Tests
+TEST(suobject_number)
 	{
-	TEST (1, number)
-		{
-		int i;
-		{
-		SuObject ob;
-
-		verify(ob.size() == 0);
-		Value x = 123;
-		ob.add(x);
-		verify(ob.size() == 1);
-		verify(ob.get(0) == x);
-		verify(ob.get(SuZero) == x);
-
-		Value s_zero = new SuString("zero");
-		Value s_one = new SuString("one");
-		Value s_big = new SuString("big");
-		Value s_str = new SuString("string");
-
-		// fast use
-		ob.put(SuZero, s_zero);
-		ob.put(1, s_one);
-		ob.put("big", s_big);
-		ob.put("zero", s_zero);
-		verify(s_zero == ob.get(SuZero));
-		verify(s_one == ob.get(1));
-		verify(s_one == ob.get(new SuNumber(1)));
-		verify(s_big == ob.get("big"));
-		verify(s_zero == ob.get("zero"));
-
-		// slow use
-		ob.put(123456, s_big);
-		ob.put("string", s_str);
-		verify(s_big == ob.get(123456));
-		verify(s_str == ob.get(new SuString("string")));
-		verify(s_zero == ob.get(0));
-		verify(s_one == ob.get(1));
-		verify(s_big == ob.get("big"));
-		verify(s_zero == ob.get("zero"));
-		}
-
-		// TODO: test with more random keys
-
-		const int N = 10000;
-		const int M = 10;
-		SuObject ob;
-		for (i = 0; i < N; ++i)
-			{
-			Value key = random(M);
-			if (Value data = ob.get(key))
-				ob.put(key, data + 1);
-			else
-				ob.put(key, 1);
-			}
-		int total = 0;
-		for (i = 0; i < M; ++i)
-			{
-			Value data = ob.get(i);
-			verify(data);
-			total += data.integer();
-			}
-		verify(total == N);
-		}
-
-	TEST(2, empty)
-		{
-		SuObject ob;
-		verify(ob.size() == 0);
-		verify(! ob.get(0));
-		verify(! ob.get(10));
-		verify(! ob.get("x"));
-		}
-	TEST(3, no_match)
-		{
-		SuObject ob;
-		int i;
-		for (i = 0; i < 100; ++i)
-			ob.put(i, i);
-		char s[2] = "a";
-		for (i = 0; i < 25; ++i, ++*s)
-			ob.put(s, i);
-
-		verify(! ob.get(101));
-		verify(! ob.get("z"));
-		}
-	TEST(4, equal)
-		{
-		SuObject ob1;
-		SuObject ob2;
-		verify(ob1 == ob2);
-		int i;
-		for (i = 0; i < 100; ++i)
-			ob1.put(i, i);
-		verify(! (ob1 == ob2));
-		for (i = 0; i < 100; ++i)
-			ob2.put(i, i);
-		verify(ob1 == ob2);
-		char s[2] = "a";
-		for (i = 0; i < 26; ++i, ++*s)
-			ob1.put(s, i);
-
-		verify(! (ob1 == ob2));
-		*s = 'a';
-		for (int j = 0; j < i; ++j, ++*s)
-			ob2.put(s, j);
-		verify(ob1 == ob2);
-		}
-	TEST(5, slice)
-		{
-		int i;
-
-		//building ob1 to offset
-		SuObject ob1;
-		for (i = 0; i < 100; ++i)
-			ob1.put(i, i);
-		char s[2] = "a";
-		for (i = 0; i < 26; ++i, ++*s)
-			ob1.put(s, i);
-
-		SuObject* ob = ob1.slice(2);
-
-		//building ob2 - should be same as ob1 after slice
-		SuObject ob2;
-		for (i = 0; i < 98; ++i)
-			ob2.put(i, i + 2);
-		*s = 'a';
-		for (i = 0; i < 26; ++i, ++*s)
-			ob2.put(s, i);
-
-		verify(*ob == ob2);
-		}
-	TEST(6, vector)
-		{
-		int i;
-		SuObject ob;
-		for (i = 1; i < 10; i += 2)
-			ob.put(i, i);
-		verify(ob.vecsize() == 0 && ob.mapsize() == 5);
-		for (i = 0; i < 5; i += 2)
-			ob.put(i, i);
-		for (; i < 10; i += 2)
-			ob.put(i, i);
-		verify(ob.vecsize() == 10 && ob.mapsize() == 0);
-		for (i = 0; i < 10; ++i)
-			verify(ob.get(i) == i);
-		}
-	TEST(7, iterate)
-		{
-		int i;
-		SuObject ob;
-		for (i = 0; i < 100; ++i)
-			ob.put(i, i);
-		char c[2] = "a";
-		for (i = 0; i < 26; ++i, ++*c)
-			ob.put(c, i);
-		verify(ob.size() == 126);
-
-		// iterate
-		SuObject::iterator iter = ob.begin();
-		for (i = 0; i < 100; ++i, ++iter)
-			{
-			verify(iter != ob.end());
-			verify((*iter).first == i);
-			verify((*iter).second == i);
-			}
-		for (i = 0; i < 26; ++i, ++iter)
-			{
-			verify(iter != ob.end());
-			std::pair<Value,Value> p = *iter;
-			gcstring s = p.first.gcstr();
-			verify(s.size() == 1 && s[0] >= 'a' && s[0] <= 'z');
-			verify(p.second == s[0] - 'a');
-			}
-		verify(iter == ob.end());
-		}
-	TEST(9, remove1)
-		{
-		SuObject ob;
-		ob.remove1(SuTrue);
-
-		ob.add(SuTrue);
-		assert_eq(ob.size(), 1);
-		ob.remove1(SuFalse);
-		assert_eq(ob.size(), 1);
-		ob.remove1(SuTrue);
-		assert_eq(ob.size(), 0);
-
-		ob.add(1);
-		ob.add(2);
-		ob.add(4);
-		ob.put(10, 2);
-		ob.put(11, 3);
-		assert_eq(ob.size(), 5);
-		ob.remove1(2);
-		assert_eq(ob.size(), 4);
-		assert_eq(ob.get(0), 1);
-		assert_eq(ob.get(1), 4);
-		assert_eq(ob.get(10), 2);
-		assert_eq(ob.get(11), 3);
-		}
-	};
-REGISTER(test_object);
-
-class test_object2 : public Tests
+	int i;
 	{
-	TEST(1, list_named)
+	SuObject ob;
+
+	verify(ob.size() == 0);
+	Value x = 123;
+	ob.add(x);
+	verify(ob.size() == 1);
+	verify(ob.get(0) == x);
+	verify(ob.get(SuZero) == x);
+
+	Value s_zero = new SuString("zero");
+	Value s_one = new SuString("one");
+	Value s_big = new SuString("big");
+	Value s_str = new SuString("string");
+
+	// fast use
+	ob.put(SuZero, s_zero);
+	ob.put(1, s_one);
+	ob.put("big", s_big);
+	ob.put("zero", s_zero);
+	verify(s_zero == ob.get(SuZero));
+	verify(s_one == ob.get(1));
+	verify(s_one == ob.get(new SuNumber(1)));
+	verify(s_big == ob.get("big"));
+	verify(s_zero == ob.get("zero"));
+
+	// slow use
+	ob.put(123456, s_big);
+	ob.put("string", s_str);
+	verify(s_big == ob.get(123456));
+	verify(s_str == ob.get(new SuString("string")));
+	verify(s_zero == ob.get(0));
+	verify(s_one == ob.get(1));
+	verify(s_big == ob.get("big"));
+	verify(s_zero == ob.get("zero"));
+	}
+
+	// TODO: test with more random keys
+
+	const int N = 10000;
+	const int M = 10;
+	SuObject ob;
+	for (i = 0; i < N; ++i)
 		{
-		assert_eq(Value(3), run("#(1, 2, a: 3).Size()"));
-		assert_eq(Value(2), run("#(1, 2, a: 3).Size(list:)"));
-		assert_eq(Value(1), run("#(1, 2, a: 3).Size(named:)"));
-		assert_eq(Value(3), run("#(1, 2, a: 3).Size(list:, named:)"));
-		assert_eq(Value(2), run("#(1, 2, a: 3).Size(list:, named: false)"));
-		assert_eq(Value(1), run("#(1, 2, a: 3).Size(list: false, named:)"));
-		assert_eq(Value(0), run("#(1, 2, a: 3).Size(list: false, named: false)"));
-
-		assert_eq(run("#(0, 1, a)"), run("#(1, 2, a: 3).Members()"));
-		assert_eq(run("#(0, 1)"), run("#(1, 2, a: 3).Members(list:)"));
-		assert_eq(run("#(a)"), run("#(1, 2, a: 3).Members(named:)"));
-		assert_eq(run("#(0, 1, a)"), run("#(1, 2, a: 3).Members(list:, named:)"));
-		assert_eq(run("#(0, 1)"), run("#(1, 2, a: 3).Members(list:, named: false)"));
-		assert_eq(run("#(a)"), run("#(1, 2, a: 3).Members(list: false, named:)"));
-		assert_eq(run("#()"), run("#(1, 2, a: 3).Members(list: false, named: false)"));
-
-		assert_eq(run("#(1, 2, 3)"), run("#(1, 2, a: 3).Values()"));
-		assert_eq(run("#(1, 2)"), run("#(1, 2, a: 3).Values(list:)"));
-		assert_eq(run("#(3)"), run("#(1, 2, a: 3).Values(named:)"));
-		assert_eq(run("#(1, 2, 3)"), run("#(1, 2, a: 3).Values(list:, named:)"));
-		assert_eq(run("#(1, 2)"), run("#(1, 2, a: 3).Values(list:, named: false)"));
-		assert_eq(run("#(3)"), run("#(1, 2, a: 3).Values(list: false, named:)"));
-		assert_eq(run("#()"), run("#(1, 2, a: 3).Values(list: false, named: false)"));
-
-		assert_eq(run("#((0, 1), (1, 2), (a, 3))"), run("#(1, 2, a: 3).Assocs()"));
-		assert_eq(run("#((0, 1), (1, 2))"), run("#(1, 2, a: 3).Assocs(list:)"));
-		assert_eq(run("#((a, 3))"), run("#(1, 2, a: 3).Assocs(named:)"));
-		assert_eq(run("#((0, 1), (1, 2), (a, 3))"), run("#(1, 2, a: 3).Assocs(list:, named:)"));
-		assert_eq(run("#((0, 1), (1, 2))"), run("#(1, 2, a: 3).Assocs(list:, named: false)"));
-		assert_eq(run("#((a, 3))"), run("#(1, 2, a: 3).Assocs(list: false, named:)"));
-		assert_eq(run("#()"), run("#(1, 2, a: 3).Assocs(list: false, named: false)"));
+		Value key = random(M);
+		if (Value data = ob.get(key))
+			ob.put(key, data + 1);
+		else
+			ob.put(key, 1);
 		}
-	};
-REGISTER(test_object2);
+	int total = 0;
+	for (i = 0; i < M; ++i)
+		{
+		Value data = ob.get(i);
+		verify(data);
+		total += data.integer();
+		}
+	verify(total == N);
+	}
 
-class test_object3 : public Tests
+TEST(suobject_empty)
 	{
-	TEST (1, construct)
+	SuObject ob;
+	verify(ob.size() == 0);
+	verify(! ob.get(0));
+	verify(! ob.get(10));
+	verify(! ob.get("x"));
+	}
+
+TEST(suobject_no_match)
+	{
+	SuObject ob;
+	int i;
+	for (i = 0; i < 100; ++i)
+		ob.put(i, i);
+	char s[2] = "a";
+	for (i = 0; i < 25; ++i, ++*s)
+		ob.put(s, i);
+
+	verify(! ob.get(101));
+	verify(! ob.get("z"));
+	}
+
+TEST(suobject_equal)
+	{
+	SuObject ob1;
+	SuObject ob2;
+	verify(ob1 == ob2);
+	int i;
+	for (i = 0; i < 100; ++i)
+		ob1.put(i, i);
+	verify(! (ob1 == ob2));
+	for (i = 0; i < 100; ++i)
+		ob2.put(i, i);
+	verify(ob1 == ob2);
+	char s[2] = "a";
+	for (i = 0; i < 26; ++i, ++*s)
+		ob1.put(s, i);
+
+	verify(! (ob1 == ob2));
+	*s = 'a';
+	for (int j = 0; j < i; ++j, ++*s)
+		ob2.put(s, j);
+	verify(ob1 == ob2);
+	}
+
+TEST(suobject_slice)
+	{
+	int i;
+
+	//building ob1 to offset
+	SuObject ob1;
+	for (i = 0; i < 100; ++i)
+		ob1.put(i, i);
+	char s[2] = "a";
+	for (i = 0; i < 26; ++i, ++*s)
+		ob1.put(s, i);
+
+	SuObject* ob = ob1.slice(2);
+
+	//building ob2 - should be same as ob1 after slice
+	SuObject ob2;
+	for (i = 0; i < 98; ++i)
+		ob2.put(i, i + 2);
+	*s = 'a';
+	for (i = 0; i < 26; ++i, ++*s)
+		ob2.put(s, i);
+
+	verify(*ob == ob2);
+	}
+
+TEST(suobject_vector)
+	{
+	int i;
+	SuObject ob;
+	for (i = 1; i < 10; i += 2)
+		ob.put(i, i);
+	verify(ob.vecsize() == 0 && ob.mapsize() == 5);
+	for (i = 0; i < 5; i += 2)
+		ob.put(i, i);
+	for (; i < 10; i += 2)
+		ob.put(i, i);
+	verify(ob.vecsize() == 10 && ob.mapsize() == 0);
+	for (i = 0; i < 10; ++i)
+		verify(ob.get(i) == i);
+	}
+
+TEST(suobject_iterate)
+	{
+	int i;
+	SuObject ob;
+	for (i = 0; i < 100; ++i)
+		ob.put(i, i);
+	char c[2] = "a";
+	for (i = 0; i < 26; ++i, ++*c)
+		ob.put(c, i);
+	verify(ob.size() == 126);
+
+	// iterate
+	SuObject::iterator iter = ob.begin();
+	for (i = 0; i < 100; ++i, ++iter)
 		{
-		run("Object(1, a: 2)");
+		verify(iter != ob.end());
+		verify((*iter).first == i);
+		verify((*iter).second == i);
 		}
-	};
-REGISTER(test_object3);
+	for (i = 0; i < 26; ++i, ++iter)
+		{
+		verify(iter != ob.end());
+		std::pair<Value,Value> p = *iter;
+		gcstring s = p.first.gcstr();
+		verify(s.size() == 1 && s[0] >= 'a' && s[0] <= 'z');
+		verify(p.second == s[0] - 'a');
+		}
+	verify(iter == ob.end());
+	}
+
+TEST(suobject_remove1)
+	{
+	SuObject ob;
+	ob.remove1(SuTrue);
+
+	ob.add(SuTrue);
+	assert_eq(ob.size(), 1);
+	ob.remove1(SuFalse);
+	assert_eq(ob.size(), 1);
+	ob.remove1(SuTrue);
+	assert_eq(ob.size(), 0);
+
+	ob.add(1);
+	ob.add(2);
+	ob.add(4);
+	ob.put(10, 2);
+	ob.put(11, 3);
+	assert_eq(ob.size(), 5);
+	ob.remove1(2);
+	assert_eq(ob.size(), 4);
+	assert_eq(ob.get(0), 1);
+	assert_eq(ob.get(1), 4);
+	assert_eq(ob.get(10), 2);
+	assert_eq(ob.get(11), 3);
+	}
+
+TEST(suobject_list_named)
+	{
+	assert_eq(Value(3), run("#(1, 2, a: 3).Size()"));
+	assert_eq(Value(2), run("#(1, 2, a: 3).Size(list:)"));
+	assert_eq(Value(1), run("#(1, 2, a: 3).Size(named:)"));
+	assert_eq(Value(3), run("#(1, 2, a: 3).Size(list:, named:)"));
+	assert_eq(Value(2), run("#(1, 2, a: 3).Size(list:, named: false)"));
+	assert_eq(Value(1), run("#(1, 2, a: 3).Size(list: false, named:)"));
+	assert_eq(Value(0), run("#(1, 2, a: 3).Size(list: false, named: false)"));
+
+	assert_eq(run("#(0, 1, a)"), run("#(1, 2, a: 3).Members()"));
+	assert_eq(run("#(0, 1)"), run("#(1, 2, a: 3).Members(list:)"));
+	assert_eq(run("#(a)"), run("#(1, 2, a: 3).Members(named:)"));
+	assert_eq(run("#(0, 1, a)"), run("#(1, 2, a: 3).Members(list:, named:)"));
+	assert_eq(run("#(0, 1)"), run("#(1, 2, a: 3).Members(list:, named: false)"));
+	assert_eq(run("#(a)"), run("#(1, 2, a: 3).Members(list: false, named:)"));
+	assert_eq(run("#()"), run("#(1, 2, a: 3).Members(list: false, named: false)"));
+
+	assert_eq(run("#(1, 2, 3)"), run("#(1, 2, a: 3).Values()"));
+	assert_eq(run("#(1, 2)"), run("#(1, 2, a: 3).Values(list:)"));
+	assert_eq(run("#(3)"), run("#(1, 2, a: 3).Values(named:)"));
+	assert_eq(run("#(1, 2, 3)"), run("#(1, 2, a: 3).Values(list:, named:)"));
+	assert_eq(run("#(1, 2)"), run("#(1, 2, a: 3).Values(list:, named: false)"));
+	assert_eq(run("#(3)"), run("#(1, 2, a: 3).Values(list: false, named:)"));
+	assert_eq(run("#()"), run("#(1, 2, a: 3).Values(list: false, named: false)"));
+
+	assert_eq(run("#((0, 1), (1, 2), (a, 3))"), run("#(1, 2, a: 3).Assocs()"));
+	assert_eq(run("#((0, 1), (1, 2))"), run("#(1, 2, a: 3).Assocs(list:)"));
+	assert_eq(run("#((a, 3))"), run("#(1, 2, a: 3).Assocs(named:)"));
+	assert_eq(run("#((0, 1), (1, 2), (a, 3))"), run("#(1, 2, a: 3).Assocs(list:, named:)"));
+	assert_eq(run("#((0, 1), (1, 2))"), run("#(1, 2, a: 3).Assocs(list:, named: false)"));
+	assert_eq(run("#((a, 3))"), run("#(1, 2, a: 3).Assocs(list: false, named:)"));
+	assert_eq(run("#()"), run("#(1, 2, a: 3).Assocs(list: false, named: false)"));
+	}

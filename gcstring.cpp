@@ -310,106 +310,102 @@ char* salloc(int n)
 
 #include "testing.h"
 
-class test_gcstring : public Tests
+TEST(gcstring_construct)
 	{
-	TEST(1, construct)
-		{
-		gcstring s;
-		verify(s == "");
-		gcstring t("hello");
-		verify(t == "hello");
-		}
-	TEST(2, compare)
-		{
-		gcstring s = "hello world";
-		verify("a" < s);
-		gcstring t("hello");
-		verify(t < s);
-		}
-	TEST(3, substr)
-		{
-		gcstring s = "hello world";
-		verify(s.substr(0) == s);
-		verify(s.substr(6) == "world");
-		verify(s.substr(3,5) == "lo wo");
-		}
-	TEST(4, concat)
-		{
-		gcstring s = "hello world";
-		gcstring t("hello");
-		verify(t + " world" == s);
-		gcstring x = "12";
-		x += "34";
-		gcstring y = "56";
-		y += "78";
-		verify(x + y == "12345678");
+	gcstring s;
+	verify(s == "");
+	gcstring t("hello");
+	verify(t == "hello");
+	}
 
-		s = "";
-		const int N = 10;
-		const char* big = "now is the time for all good men to come to the aid of their party.";
-		int bigsize = strlen(big);
-		int i;
-		for (i = 0; i < N; ++i)
-			s += big;
-		assert_eq(s.size(), N * bigsize);
-		for (i = 0; i < N; ++i)
-			verify(has_prefix(s.ptr() + i * bigsize, big));
-		}
-	TEST(5, find)
-		{
-		gcstring s = "hello world";
-		verify(s.find("lo") == 3);
-		verify(s.find("x") == -1);
-		verify(s.find("o", 5) == 7);
-
-		s = "01234567890123456789012345678901234567890123456789012345678901234567890123456789";
-		gcstring t = "0123456789012345678901234567890123456789";
-		t += "0123456789012345678901234567890123456789";
-		assert_eq(s.find(t), 0);
-		}
-	TEST(6, presuffix)
-		{
-		gcstring s = "hello world";
-		verify(s.has_prefix(""));
-		verify(s.has_suffix(""));
-		verify(s.has_prefix("hello"));
-		verify(s.has_suffix("world"));
-		verify(! s.has_suffix("hello"));
-		verify(! s.has_prefix("world"));
-		}
-	TEST(7, trim)
-		{
-		gcstring hello("hello");
-		assert_eq(hello.trim(), hello);
-		assert_eq(gcstring("  hello").trim(), hello);
-		assert_eq(gcstring("hello  ").trim(), hello);
-		assert_eq(gcstring(" hello ").trim(), hello);
-		}
-	TEST(8, capitalize)
-		{
-		gcstring s;
-		assert_eq(s.capitalize(), "");
-		assert_eq(s.uncapitalize(), "");
-		s = "Hello";
-		assert_eq(s.capitalize(), "Hello");
-		assert_eq(s.uncapitalize(), "hello");
-		assert_eq(s[0], 'H');
-		s = "hello";
-		assert_eq(s.uncapitalize(), "hello");
-		assert_eq(s.capitalize(), "Hello");
-		assert_eq(s[0], 'h');
-		}
-	};
-REGISTER(test_gcstring);
-
-class test_gcstring2 : public Tests
+TEST(gcstring_compare)
 	{
-	TEST(1, find)
-		{
-		gcstring s = "abcd";
-		gcstring t = "b";
-		int pos = -99;
-		assert_eq(s.find(t, pos), 1);
-		}
-	};
-REGISTER(test_gcstring2);
+	gcstring s = "hello world";
+	verify("a" < s);
+	gcstring t("hello");
+	verify(t < s);
+	}
+
+TEST(gcstring_substr)
+	{
+	gcstring s = "hello world";
+	verify(s.substr(0) == s);
+	verify(s.substr(6) == "world");
+	verify(s.substr(3,5) == "lo wo");
+	}
+
+TEST(gcstring_concat)
+	{
+	gcstring s = "hello world";
+	gcstring t("hello");
+	verify(t + " world" == s);
+	gcstring x = "12";
+	x += "34";
+	gcstring y = "56";
+	y += "78";
+	verify(x + y == "12345678");
+
+	s = "";
+	const int N = 10;
+	const char* big = "now is the time for all good men to come to the aid of their party.";
+	int bigsize = strlen(big);
+	int i;
+	for (i = 0; i < N; ++i)
+		s += big;
+	assert_eq(s.size(), N * bigsize);
+	for (i = 0; i < N; ++i)
+		verify(has_prefix(s.ptr() + i * bigsize, big));
+	}
+
+TEST(gcstring_find)
+	{
+	gcstring s = "hello world";
+	verify(s.find("lo") == 3);
+	verify(s.find("x") == -1);
+	verify(s.find("o", 5) == 7);
+
+	s = "01234567890123456789012345678901234567890123456789012345678901234567890123456789";
+	gcstring t = "0123456789012345678901234567890123456789";
+	t += "0123456789012345678901234567890123456789";
+	assert_eq(s.find(t), 0);
+
+	s = "abcd";
+	t = "b";
+	int pos = -99;
+	assert_eq(s.find(t, pos), 1);
+	}
+
+TEST(gcstring_presuffix)
+	{
+	gcstring s = "hello world";
+	verify(s.has_prefix(""));
+	verify(s.has_suffix(""));
+	verify(s.has_prefix("hello"));
+	verify(s.has_suffix("world"));
+	verify(! s.has_suffix("hello"));
+	verify(! s.has_prefix("world"));
+	}
+
+TEST(gcstring_trim)
+	{
+	gcstring hello("hello");
+	assert_eq(hello.trim(), hello);
+	assert_eq(gcstring("  hello").trim(), hello);
+	assert_eq(gcstring("hello  ").trim(), hello);
+	assert_eq(gcstring(" hello ").trim(), hello);
+	}
+
+TEST(gcstring_capitalize)
+	{
+	gcstring s;
+	assert_eq(s.capitalize(), "");
+	assert_eq(s.uncapitalize(), "");
+	s = "Hello";
+	assert_eq(s.capitalize(), "Hello");
+	assert_eq(s.uncapitalize(), "hello");
+	assert_eq(s[0], 'H');
+	s = "hello";
+	assert_eq(s.uncapitalize(), "hello");
+	assert_eq(s.capitalize(), "Hello");
+	assert_eq(s[0], 'h');
+	}

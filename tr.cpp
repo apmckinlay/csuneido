@@ -119,53 +119,52 @@ static int xindex(const gcstring& fromset, char c, bool allbut, int lastto)
 		return i;
 	}
 
+// tests ------------------------------------------------------------
+
 #include "testing.h"
 
-class test_tr : public Tests
+TEST(tr)
 	{
-	TEST(0, main)
-		{
-		assert_eq(tr("", "", ""), "");
-		assert_eq(tr("", "abc", "ABC"), "");
-		assert_eq(tr("", "^abc", "x"), "");
+	assert_eq(tr("", "", ""), "");
+	assert_eq(tr("", "abc", "ABC"), "");
+	assert_eq(tr("", "^abc", "x"), "");
 
-		assert_eq(tr("abc", "", ""), "abc");
-		assert_eq(tr("abc", "xyz", ""), "abc");
-		assert_eq(tr("zon", "xyz", ""), "on");
-		assert_eq(tr("oyn", "xyz", ""), "on");
-		assert_eq(tr("nox", "xyz", ""), "no");
-		assert_eq(tr("zyx", "xyz", ""), "");
+	assert_eq(tr("abc", "", ""), "abc");
+	assert_eq(tr("abc", "xyz", ""), "abc");
+	assert_eq(tr("zon", "xyz", ""), "on");
+	assert_eq(tr("oyn", "xyz", ""), "on");
+	assert_eq(tr("nox", "xyz", ""), "no");
+	assert_eq(tr("zyx", "xyz", ""), "");
 
-		assert_eq(tr("zon", "xyz", "XYZ"), "Zon");
-		assert_eq(tr("oyn", "xyz", "XYZ"), "oYn");
-		assert_eq(tr("nox", "xyz", "XYZ"), "noX");
-		assert_eq(tr("zyx", "xyz", "XYZ"), "ZYX");
+	assert_eq(tr("zon", "xyz", "XYZ"), "Zon");
+	assert_eq(tr("oyn", "xyz", "XYZ"), "oYn");
+	assert_eq(tr("nox", "xyz", "XYZ"), "noX");
+	assert_eq(tr("zyx", "xyz", "XYZ"), "ZYX");
 
-		assert_eq(tr("a b - c", "^abc", ""), "abc"); // allbut delete
-		assert_eq(tr("a b - c", "^a-z", ""), "abc"); // allbut delete
-		assert_eq(tr("a  b - c", "^abc", " "), "a b c"); // allbut collapse
-		assert_eq(tr("a  b - c", "^a-z", " "), "a b c"); // allbut collapse
-		assert_eq(tr("a-b-c", "-x", ""), "abc"); // literal dash
-		assert_eq(tr("a-b-c", "x-", ""), "abc"); // literal dash
+	assert_eq(tr("a b - c", "^abc", ""), "abc"); // allbut delete
+	assert_eq(tr("a b - c", "^a-z", ""), "abc"); // allbut delete
+	assert_eq(tr("a  b - c", "^abc", " "), "a b c"); // allbut collapse
+	assert_eq(tr("a  b - c", "^a-z", " "), "a b c"); // allbut collapse
+	assert_eq(tr("a-b-c", "-x", ""), "abc"); // literal dash
+	assert_eq(tr("a-b-c", "x-", ""), "abc"); // literal dash
 
-		// collapse at end
-		assert_eq(tr("hello \t\n\n", " \t\n", "\n"), "hello\n");
+	// collapse at end
+	assert_eq(tr("hello \t\n\n", " \t\n", "\n"), "hello\n");
 
-		// signed char range
-		assert_eq(tr("hello", "^\x20-\xff", ""), "hello");
-		assert_eq(tr("hello\x7f", "\x70-\x7f", ""), "hello");
-		assert_eq(tr("hello\xff", "\x7f-\xff", ""), "hello");
+	// signed char range
+	assert_eq(tr("hello", "^\x20-\xff", ""), "hello");
+	assert_eq(tr("hello\x7f", "\x70-\x7f", ""), "hello");
+	assert_eq(tr("hello\xff", "\x7f-\xff", ""), "hello");
 
-		assert_eq(tr("abc", "abcdefghijklmnop", "abcdefg"), "abc");
-		assert_eq(tr("nop", "abcdefghijklmnop", "abcdefg"), "g");
-		}
-	TEST(1, expandRanges)
-		{
-		gcstring s = expandRanges(gcstring("\x00-\xff", 3));
-		assert_eq(s.size(), 256);
-		assert_eq(s[0], '\x00');
-		assert_eq(s[255], '\xff');
-		}
-	};
-REGISTER(test_tr);
+	assert_eq(tr("abc", "abcdefghijklmnop", "abcdefg"), "abc");
+	assert_eq(tr("nop", "abcdefghijklmnop", "abcdefg"), "g");
+	}
+
+TEST(tr_expandRanges)
+	{
+	gcstring s = expandRanges(gcstring("\x00-\xff", 3));
+	assert_eq(s.size(), 256);
+	assert_eq(s[0], '\x00');
+	assert_eq(s[255], '\xff');
+	}
 

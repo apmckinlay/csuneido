@@ -154,59 +154,56 @@ void method_not_found(const char* type, Value member)
 		except("method not found: " << type << '.' << member);
 	}
 
-// test =============================================================
+// tests ------------------------------------------------------------
 
 #include "testing.h"
 
-class test_value : public Tests
+TEST(value)
 	{
-	TEST(0, main)
-		{
-		Value zero(0);
-		verify(zero == zero);
-		Value one(1);
-		verify(one == one);
-		Value mid(30000);
-		verify(mid == mid);
-		Value big(100000);
-		verify(big == big);
-		Value sym("sym");
-		verify(sym == sym);
-		Value str(new SuString("sym"));
-		verify(str == str);
+	Value zero(0);
+	verify(zero == zero);
+	Value one(1);
+	verify(one == one);
+	Value mid(30000);
+	verify(mid == mid);
+	Value big(100000);
+	verify(big == big);
+	Value sym("sym");
+	verify(sym == sym);
+	Value str(new SuString("sym"));
+	verify(str == str);
 
-		verify(zero != one);
-		verify(one != sym);
-		verify(sym == str);
-		verify(sym.hash() == str.hash());
+	verify(zero != one);
+	verify(one != sym);
+	verify(sym == str);
+	verify(sym.hash() == str.hash());
 
-		verify(zero < one);
-		verify(one < big);
-		verify(one < sym);
+	verify(zero < one);
+	verify(one < big);
+	verify(one < sym);
 
-		Value x;
+	Value x;
 
-		assert_eq(x = zero + one, one);
-		verify(x.is_int());
-		assert_eq(x = one + one, 2);
-		verify(x.is_int());
-		assert_eq(x = mid + one, 30001);
-		verify(x.is_int());
-		verify(mid + mid == 60000); // overflow
-		assert_eq(big + one, 100001);
-		assert_eq(big + big, 200000);
-		assert_eq(zero - mid - mid, -60000); // overflow
+	assert_eq(x = zero + one, one);
+	verify(x.is_int());
+	assert_eq(x = one + one, 2);
+	verify(x.is_int());
+	assert_eq(x = mid + one, 30001);
+	verify(x.is_int());
+	verify(mid + mid == 60000); // overflow
+	assert_eq(big + one, 100001);
+	assert_eq(big + big, 200000);
+	assert_eq(zero - mid - mid, -60000); // overflow
 
-		assert_eq(Value(1) / Value(8), Value(new SuNumber(".125")));
-		assert_eq(x = mid / Value(300), 100);
-		verify(x.is_int());
+	assert_eq(Value(1) / Value(8), Value(new SuNumber(".125")));
+	assert_eq(x = mid / Value(300), 100);
+	verify(x.is_int());
 
-		assert_eq(x = mid * mid, Value(30000 * 30000)); // overflow
-		}
-	TEST(1, smallint)
-		{
-		Value x(0x1234);
-		assert_eq((int)x.p, 0x1234ffff);
-		}
-	};
-REGISTER(test_value);
+	assert_eq(x = mid * mid, Value(30000 * 30000)); // overflow
+	}
+
+TEST(value_smallint)
+	{
+	Value x(0x1234);
+	assert_eq((int)x.p, 0x1234ffff);
+	}

@@ -21,93 +21,47 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "testing.h"
-#include <string.h>
-#include "except.h"
+#include <cstring>
 #include "exceptimp.h"
 
-#define RUN(i) \
-	if (testname##i()) \
-		{ \
-		const char* error = 0; \
-		to.start_test(group, testname##i()); \
-		try \
-			{ test##i(); } \
-		catch (const Except& e) \
-			{ ++nfailed; error = e.str(); } \
-		to.end_test(group, testname##i(), error); \
-		}
+// tests ------------------------------------------------------------
 
-int Tests::runtests(TestObserver& to)
+const int MAX_TESTS = 200;
+static Test* newtests[MAX_TESTS];
+int n_tests = 0;
+
+Test::Test(const char* n, Tfn f) : name(n), fn(f)
 	{
-	to.start_group(group);
+	if (n_tests < MAX_TESTS)
+		newtests[n_tests++] = this;
+	}
+
+int run_tests(TestObserver& to, const char* prefix)
+	{
 	int nfailed = 0;
-	RUN(0); RUN(1); RUN(2); RUN(3); RUN(4); RUN(5);
-	RUN(6); RUN(7); RUN(8); RUN(9); RUN(10);
-	to.end_group(group, nfailed);
-	return nfailed;
-	}
-
-const int MAXTESTS = 100;
-static TestRegister* tests[MAXTESTS];
-static int ntests = 0;
-static const char* duplicate = 0;
-TestRegister::TestRegister(const char* n, Tests* (*f)()) : name(n), makefn(f)
-	{
-	verify(ntests + 1 < MAXTESTS);
-	if (findtest(name))
-		duplicate = name;
-	tests[ntests++] = this;
-	}
-/*
-static void failures(Ostream& os, int n)
-	{
-	if (n == 0)
-		os << "SUCCESSFUL";
-	else
+	for (int i = 0; i < n_tests; ++i)
+		if (has_prefix(newtests[i]->name, prefix))
+			{
+			const char* error = nullptr;
+			to.start_test(newtests[i]->name);
+			try
+				{
+				newtests[i]->fn();
+				}
+			catch (const Except& e)
+				{
+				++nfailed;
+				error = e.str();
+				}
+			to.end_test(newtests[i]->name, error);
+			}
+	if (n_tests >= MAX_TESTS)
 		{
-		os << n << " FAILURE";
-		if (n > 1)
-			os << "S";
+		to.end_test("", "MAX_TESTS NOT LARGE ENOUGH");
+		++nfailed;
 		}
-	os << endl;
-	}
-
-static void showdups(Ostream& os)
-	{
-	if (duplicate)
-		os << "DUPLICATE TEST NAME: " << duplicate << endl << endl;
-	}
-*/
-int TestRegister::runall(TestObserver& to)
-	{
-	int nfailed = 0;
-//	showdups(results);
-	for (int i = 0; i < ntests; ++i)
-		nfailed += tests[i]->makefn()->runtests(to);
 	to.end_all(nfailed);
 	return nfailed;
-	}
-
-int TestRegister::runtest(const char* name, TestObserver& to)
-	{
-//	showdups(results);
-	if (TestRegister* tr = findtest(name))
-		{
-		int nfailed = tr->makefn()->runtests(to);
-		to.end_all(nfailed);
-		return nfailed;
-		}
-//	else
-//		results << "TEST NOT FOUND: " << name << endl;
-	return -1;
-	}
-
-TestRegister* TestRegister::findtest(const char* name)
-	{
-	for (int i = 0; i < ntests; ++i)
-		if (0 == strcmp(name, tests[i]->name))
-			return tests[i];
-	return 0;
 	}
 
 // benchmarks =======================================================
@@ -164,53 +118,3 @@ void run_benchmarks(Ostream& os, const char* prefix)
 		if (has_prefix(benchmarks[i]->name, prefix))
 			run_benchmark(os, benchmarks[i]);
 	}
-
-// test the testing framework =======================================
-
-#ifdef STANDALONE
-
-#define verify(e) if (! (e)) throw Except(#e, __FILE__, __LINE__); else
-
-class SomeTests : public Tests
-	{
-public:
-	TEST(1, first)
-		{ }
-	TEST(2, second)
-		{ }
-	};
-REGISTER(SomeTests);
-
-class OtherTests : public Tests
-	{
-public:
-	TEST(1, first)
-		{ verify(1 == 2); }
-	TEST(2, second)
-		{ }
-	};
-REGISTER(OtherTests);
-
-class MyTests : public Tests
-	{
-public:
-	TESTS(1, SomeTests);
-	TESTS(2, OtherTests);
-	};
-REGISTER(MyTests);
-
-class MyTests2 : public Tests
-	{
-public:
-	TESTS(1, MyTests);
-	TESTS(2, SomeTests);
-	};
-REGISTER(MyTests2);
-
-void main()
-	{
-	TestRegister::run("MyTests");
-	cerr << endl;
-	}
-
-#endif

@@ -22,7 +22,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 enum { NONE = 0, DUMP, LOAD, SERVER, CLIENT, REPL, COMPACT,
-	CHECK, REBUILD, DBDUMP, TEST, TESTS, BENCH, HELP, VERSION,
+	CHECK, REBUILD, DBDUMP, TEST, BENCH, HELP, VERSION,
 	UNINSTALL_SERVICE, AFTER_ACTIONS };
 
 class CmdLineOptions

@@ -277,42 +277,38 @@ protected:
 		}
 	};
 
-class test_serializer : public Tests
+TEST(serializer)
 	{
-	TEST(0, main)
-		{
-		Buffer buf;
-		TestSerializer se(buf);
-		auto ints = lisp(123, 456);
-		auto strings = lisp(gcstring("foo"), gcstring("bar"));
+	Buffer buf;
+	TestSerializer se(buf);
+	auto ints = lisp(123, 456);
+	auto strings = lisp(gcstring("foo"), gcstring("bar"));
 
-		test(0);
-		test(55);
-		test(-1);
-		test(-55);
-		test(123456789);
-		test(-123456789);
+	test(0);
+	test(55);
+	test(-1);
+	test(-55);
+	test(123456789);
+	test(-123456789);
 
-		buf.clear();
-		se.putBool(false);
-		se.putBool(true);
-		se.put('x');
-		se.putInt(123);
-		se.putStr("hello world");
-		se.putStr(gcstring("foobar"));
-		se.putValue(SuMinusOne);
-		se.putInts(ints);
-		se.putStrings(strings);
+	buf.clear();
+	se.putBool(false);
+	se.putBool(true);
+	se.put('x');
+	se.putInt(123);
+	se.putStr("hello world");
+	se.putStr(gcstring("foobar"));
+	se.putValue(SuMinusOne);
+	se.putInts(ints);
+	se.putStrings(strings);
 
-		assert_eq(se.getBool(), false);
-		assert_eq(se.getBool(), true);
-		assert_eq(se.get(), 'x');
-		assert_eq(se.getInt(), 123);
-		assert_eq(se.getStr(), "hello world");
-		assert_eq(se.getStr(), "foobar");
-		assert_eq(se.getValue(), SuMinusOne);
-		assert_eq(se.getInts(), ints);
-		assert_eq(se.getStrings(), strings);
-		}
-	};
-REGISTER(test_serializer);
+	assert_eq(se.getBool(), false);
+	assert_eq(se.getBool(), true);
+	assert_eq(se.get(), 'x');
+	assert_eq(se.getInt(), 123);
+	assert_eq(se.getStr(), "hello world");
+	assert_eq(se.getStr(), "foobar");
+	assert_eq(se.getValue(), SuMinusOne);
+	assert_eq(se.getInts(), ints);
+	assert_eq(se.getStrings(), strings);
+	}

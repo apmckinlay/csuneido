@@ -74,27 +74,22 @@ void PermanentHeap::free(void* p)
 
 #include "testing.h"
 #include "random.h"
-#include <memory.h>
 
-class test_permheap : public Tests
+TEST(permheap)
 	{
-	TEST(0, main)
+	PermanentHeap ph("test", 1024 * 1024);
+	for (int i = 0; i < 100; ++i)
 		{
-		PermanentHeap ph("test", 1024 * 1024);
-		for (int i = 0; i < 100; ++i)
-			{
-			int n = random(10000);
-			void* p = ph.alloc(n);
-			memset(p, 0, n);
-			}
+		int n = random(10000);
+		void* p = ph.alloc(n);
+		memset(p, 0, n);
 		}
-	TEST(1, free)
-		{
-		PermanentHeap ph("test", 8 * 1024 * 1024);
-		void* p = ph.alloc(8);
-		void* q = ph.alloc(2 * 1024 * 1024);
-		ph.free(q);
-		memset(p, 0, 1);
-		}
-	};
-REGISTER(test_permheap);
+	}
+TEST(permheap_free)
+	{
+	PermanentHeap ph("test", 8 * 1024 * 1024);
+	void* p = ph.alloc(8);
+	void* q = ph.alloc(2 * 1024 * 1024);
+	ph.free(q);
+	memset(p, 0, 1);
+	}

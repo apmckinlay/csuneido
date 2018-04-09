@@ -268,67 +268,67 @@ long unpacklong(const gcstring& s)
 #include "testing.h"
 #include <malloc.h>
 
-class test_pack : public Tests
+static void testpack(Value x)
 	{
-	TEST(0, boolean_pack)
-		{
-		testpack(SuTrue);
-		testpack(SuFalse);
-		verify(SuBoolean::unpack(gcstring("")) == SuBoolean::f);
-		}
-	TEST(1, string_pack)
-		{
-		testpack(SuEmptyString);
-		testpack(new SuString("hello\nworld"));
-		verify(SuString::unpack(gcstring("")) == SuEmptyString);
-		}
-	TEST(2, number_pack)
-		{
-		testpack(new SuNumber(0L));
-		testpack(new SuNumber(123));
-		testpack(new SuNumber(-123));
-		testpack(new SuNumber("123.456"));
-		testpack(new SuNumber("1234567890"));
-		testpack(new SuNumber("-123.456"));
-		testpack(new SuNumber("1.23e45"));
-		testpack(new SuNumber("-1.23e-45"));
-		verify(SuNumber::unpack(gcstring("")) == &SuNumber::zero);
-		}
-	void testpack(Value x)
-		{
-		size_t n = x.packsize();
-		char* buf = (char*) _alloca(n + 1);
-		buf[n] = '\xc4';
-		x.pack(buf);
-		verify(buf[n] == '\xc4');
-		Value y = ::unpack(buf, n);
-		assert_eq(x, y);
-		}
-	TEST(3, long_pack)
-		{
-		testpack(0);
-		testpack(1);
-		testpack(-1);
-		testpack(1234);
-		testpack(-1234);
-		testpack(12345678);
-		testpack(-12345678);
-		testpack(LONG_MAX);
-		testpack(LONG_MIN + 1); // no positive equivalent to LONG_MIN
-		}
-	void testpack(long x)
-		{
-		char buf[80];
-		packlong(buf, x);
-		gcstring s = gcstring::noalloc(buf, packsize(x));
-		long y = unpacklong(s);
-		assert_eq(x, y);
-		Value num = ::unpack(s);
-		assert_eq(x, num.integer());
-		assert_eq(packsize(x), num.packsize());
-		char buf2[80];
-		num.pack(buf2);
-		verify(0 == memcmp(buf, buf2, packsize(x)));
-		}
-	};
-REGISTER(test_pack);
+	size_t n = x.packsize();
+	char* buf = (char*) _alloca(n + 1);
+	buf[n] = '\xc4';
+	x.pack(buf);
+	verify(buf[n] == '\xc4');
+	Value y = ::unpack(buf, n);
+	assert_eq(x, y);
+	}
+
+TEST(pack_boolean)
+	{
+	testpack(SuTrue);
+	testpack(SuFalse);
+	verify(SuBoolean::unpack(gcstring("")) == SuBoolean::f);
+	}
+
+TEST(pack_string)
+	{
+	testpack(SuEmptyString);
+	testpack(new SuString("hello\nworld"));
+	verify(SuString::unpack(gcstring("")) == SuEmptyString);
+	}
+
+TEST(pack_number)
+	{
+	testpack(new SuNumber(0L));
+	testpack(new SuNumber(123));
+	testpack(new SuNumber(-123));
+	testpack(new SuNumber("123.456"));
+	testpack(new SuNumber("1234567890"));
+	testpack(new SuNumber("-123.456"));
+	testpack(new SuNumber("1.23e45"));
+	testpack(new SuNumber("-1.23e-45"));
+	verify(SuNumber::unpack(gcstring("")) == &SuNumber::zero);
+	}
+
+static void testpack(long x)
+	{
+	char buf[80];
+	packlong(buf, x);
+	gcstring s = gcstring::noalloc(buf, packsize(x));
+	long y = unpacklong(s);
+	assert_eq(x, y);
+	Value num = ::unpack(s);
+	assert_eq(x, num.integer());
+	assert_eq(packsize(x), num.packsize());
+	char buf2[80];
+	num.pack(buf2);
+	verify(0 == memcmp(buf, buf2, packsize(x)));
+	}
+TEST(pack_long)
+	{
+	testpack(0);
+	testpack(1);
+	testpack(-1);
+	testpack(1234);
+	testpack(-1234);
+	testpack(12345678);
+	testpack(-12345678);
+	testpack(LONG_MAX);
+	testpack(LONG_MIN + 1); // no positive equivalent to LONG_MIN
+	}

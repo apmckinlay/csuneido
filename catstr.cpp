@@ -39,32 +39,30 @@ char *catstr(char* buf, ...)
 	}
 
 #include "testing.h"
-#include "except.h"
-#include <string.h>
+#include <cstring>
 
-class test_catstr : public Tests
+TEST(catstr)
 	{
-	TEST(0, catstr)
-		{
-		char buf[128];
+	char buf[128];
 
-		memset(buf, '-', 128);
-		catstr(buf + 1, "hello", " ", "world", NULL);
-		verify(0 == strcmp(buf + 1, "hello world"));
-		verify(buf[0] == '-');
-		verify(buf[13] == '-');
-		}
-	TEST(1, CATSTRA)
-		{
-		verify(0 == strcmp(CATSTRA("hello", "world"), "helloworld"));
-		}
-	TEST(2, STRDUPA)
-		{
-		verify(0 == strcmp(STRDUPA("hello"), "hello"));
-		}
-	TEST(3, PREFIXA)
-		{
-		verify(0 == strcmp(PREFIXA("helloworld", 5), "hello"));
-		}
-	};
-REGISTER(test_catstr);
+	memset(buf, '-', 128);
+	catstr(buf + 1, "hello", " ", "world", NULL);
+	verify(0 == strcmp(buf + 1, "hello world"));
+	verify(buf[0] == '-');
+	verify(buf[13] == '-');
+	}
+
+TEST(catstr_CATSTRA)
+	{
+	verify(0 == strcmp(CATSTRA("hello", "world"), "helloworld"));
+	}
+
+TEST(catstr_STRDUPA)
+	{
+	verify(0 == strcmp(STRDUPA("hello"), "hello"));
+	}
+
+TEST(catstr_PREFIXA)
+	{
+	verify(0 == strcmp(PREFIXA("helloworld", 5), "hello"));
+	}

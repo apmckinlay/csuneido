@@ -73,80 +73,36 @@ Dbms* dbms()
 		}
 	}
 
-// tests ============================================================
+// tests ------------------------------------------------------------
 
 #include "testing.h"
 #include "tempdb.h"
 #include "row.h"
 #include "value.h"
 
-class test_dbms : public Tests
+TEST(dbms_recadr)
 	{
-	TEST(1, recadr)
-		{
-		TempDB tempdb;
+	TempDB tempdb;
 
-		int tran;
-
-		// so trigger searches won't give error
-		dbms()->admin("create stdlib (group, name, text) key(name,group)");
-
-		// create customer file
-		dbms()->admin("create customer (id, name, city) key(id)");
-		tran = dbms()->transaction(Dbms::READWRITE);
-		dbms()->request(tran, "insert {id: \"a\", name: \"axon\", city: \"saskatoon\"} into customer");
-		dbms()->request(tran, "insert {id: \"b\", name: \"bob\", city: \"regina\"} into customer");
-		verify(dbms()->commit(tran));
-
-		{ tran = dbms()->transaction(Dbms::READWRITE);
-		DbmsQuery* q = dbms()->query(tran, "customer");
-		Row row = q->get(NEXT);
-		verify(row.recadr);
-		dbms()->erase(tran, row.recadr);
-		verify(dbms()->commit(tran)); }
-
-		{ tran = dbms()->transaction(Dbms::READWRITE);
-		DbmsQuery* q = dbms()->query(tran, "customer");
-		Row row = q->get(NEXT);
-		verify(row.recadr);
-		Record rec;
-		rec.addval("b");
-		rec.addval("Bob");
-		rec.addval("Regina");
-		dbms()->update(tran, row.recadr, rec);
-		verify(dbms()->commit(tran)); }
-
-		{ tran = dbms()->transaction(Dbms::READONLY);
-		DbmsQuery* q = dbms()->query(tran, "customer");
-		Row row = q->get(NEXT);
-		Record rec = row.data[1];
-		assert_eq(rec.getval(1), Value("Bob"));
-		verify(dbms()->commit(tran)); }
-		}
-	};
-REGISTER(test_dbms);
-
-void dbms_test()
-	{
-	int tran;
+	// so trigger searches won't give error
+	dbms()->admin("create stdlib (group, name, text) key(name,group)");
 
 	// create customer file
-	try { dbms()->admin("drop dbms_test"); } catch (...) { }
-	dbms()->admin("create dbms_test (id, name, city) key(id)");
-	tran = dbms()->transaction(Dbms::READWRITE);
-	dbms()->request(tran, "insert {id: \"a\", name: \"axon\", city: \"saskatoon\"} into dbms_test");
-	dbms()->request(tran, "insert {id: \"b\", name: \"bob\", city: \"regina\"} into dbms_test");
+	dbms()->admin("create customer (id, name, city) key(id)");
+	int tran = dbms()->transaction(Dbms::READWRITE);
+	dbms()->request(tran, "insert {id: \"a\", name: \"axon\", city: \"saskatoon\"} into customer");
+	dbms()->request(tran, "insert {id: \"b\", name: \"bob\", city: \"regina\"} into customer");
 	verify(dbms()->commit(tran));
 
 	{ tran = dbms()->transaction(Dbms::READWRITE);
-	DbmsQuery* q = dbms()->query(tran, "dbms_test");
+	DbmsQuery* q = dbms()->query(tran, "customer");
 	Row row = q->get(NEXT);
 	verify(row.recadr);
 	dbms()->erase(tran, row.recadr);
 	verify(dbms()->commit(tran)); }
 
 	{ tran = dbms()->transaction(Dbms::READWRITE);
-	DbmsQuery* q = dbms()->query(tran, "dbms_test");
+	DbmsQuery* q = dbms()->query(tran, "customer");
 	Row row = q->get(NEXT);
 	verify(row.recadr);
 	Record rec;
@@ -157,11 +113,9 @@ void dbms_test()
 	verify(dbms()->commit(tran)); }
 
 	{ tran = dbms()->transaction(Dbms::READONLY);
-	DbmsQuery* q = dbms()->query(tran, "dbms_test");
+	DbmsQuery* q = dbms()->query(tran, "customer");
 	Row row = q->get(NEXT);
 	Record rec = row.data[1];
 	assert_eq(rec.getval(1), Value("Bob"));
 	verify(dbms()->commit(tran)); }
-
-	dbms()->admin("drop dbms_test");
 	}

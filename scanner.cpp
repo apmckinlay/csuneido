@@ -508,20 +508,16 @@ static Result results[] =
 	{ T_NUMBER, "1" }, { I_MOD, 0 }, {T_NUMBER, "2" }, { T_STRING, "id" }
 	};
 
-class test_scanner : public Tests
+TEST(scanner)
 	{
-	TEST(1, scan)
+	int i, token;
+	Scanner sc(input);
+	for (i = 0; Eof != (token = sc.next()); ++i)
 		{
-		int i, token;
-		Scanner sc(input);
-		for (i = 0; Eof != (token = sc.next()); ++i)
-			{
-			assert_eq(results[i].token,
-				(results[i].token < KEYWORDS ? token : sc.keyword));
-			if (results[i].value)
-				assert_eq(gcstring(sc.value), gcstring(results[i].value));
-			}
-		verify(i == sizeof results / sizeof(Result));
+		assert_eq(results[i].token,
+			(results[i].token < KEYWORDS ? token : sc.keyword));
+		if (results[i].value)
+			assert_eq(gcstring(sc.value), gcstring(results[i].value));
 		}
-	};
-REGISTER(test_scanner);
+	verify(i == sizeof results / sizeof(Result));
+	}

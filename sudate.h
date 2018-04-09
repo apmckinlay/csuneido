@@ -26,7 +26,6 @@
 // date and time values
 class SuDate : public SuValue
 	{
-	friend class test_date;
 public:
 	SuDate();
 	SuDate(int d, int t);

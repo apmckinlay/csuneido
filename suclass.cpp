@@ -192,23 +192,19 @@ Value SuClass::parent()
 
 #include "testing.h"
 
-class test_class : public Tests
+TEST(suclass_construct)
 	{
-	TEST(1, "construct")
-		{
-		val_cast<SuClass*>(run("class { }"));
-		val_cast<SuInstance*>(run("c = class { }; new c"));
-		val_cast<SuInstance*>(run("c = class { }; c()"));
-		assert_eq(Value(123), run("c = class { CallClass() { 123 } }; c()"));
-		assert_eq(run("#(Foo, 123)"),
-			run("c = class { Default(@args) { args } }; c.Foo(123)"));
-		assert_eq(run("#(Foo, 123)"),
-			run("c = class { Default(@args) { args } }; c().Foo(123)"));
-		run("new class{ New() { } }");
-		assert_eq(Value(123),
-			run("c = class { New(.x) { } F() { .x } }; c(123).F()"));
-		assert_eq(Value("foo"),
-			run("c = class { ToString() { 'foo' } }; Display(c())"));
-		}
-	};
-REGISTER(test_class);
+	val_cast<SuClass*>(run("class { }"));
+	val_cast<SuInstance*>(run("c = class { }; new c"));
+	val_cast<SuInstance*>(run("c = class { }; c()"));
+	assert_eq(Value(123), run("c = class { CallClass() { 123 } }; c()"));
+	assert_eq(run("#(Foo, 123)"),
+		run("c = class { Default(@args) { args } }; c.Foo(123)"));
+	assert_eq(run("#(Foo, 123)"),
+		run("c = class { Default(@args) { args } }; c().Foo(123)"));
+	run("new class{ New() { } }");
+	assert_eq(Value(123),
+		run("c = class { New(.x) { } F() { .x } }; c(123).F()"));
+	assert_eq(Value("foo"),
+		run("c = class { ToString() { 'foo' } }; Display(c())"));
+	}

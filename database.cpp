@@ -1398,199 +1398,197 @@ Record Database::get_record(int tran, const gcstring& table, const gcstring& ind
 #include "tempdb.h"
 #include "btree.h"
 
-class test_database : public Tests
+static void assertreceq(const Record& r1, const Record& r2)
 	{
+	if (r1.size() != r2.size())
+		except(r1 << endl << "!=" << endl << r2);
+	for (int i = 1; i < r1.size(); ++i)
+		if (r1.getraw(i) != r2.getraw(i))
+			except(r1 << endl << "!=" << endl << r2);
+	}
+
+static Record record(const char* s1, const char* s2, long n)
+	{
+	Record r;
+	r.addval(s1);
+	r.addval(s2);
+	r.addval(n);
+	return r;
+	}
+static Record key(long n)
+	{
+	Record r;
+	r.addval(n);
+	return r;
+	}
+
 #define BEGIN \
 	{ TempDB tempdb;
 #define END \
-	verify(thedb->final.empty()); \
-	verify(thedb->trans.empty()); \
+	verify(thedb->final_empty()); \
+	verify(thedb->trans_empty()); \
 	}
 
-	TEST(0, database)
+TEST(database)
+	{
+	BEGIN
+
+	thedb->add_table("test_database");
+	thedb->add_column("test_database", "name");
+	thedb->add_column("test_database", "phone");
+	thedb->add_column("test_database", "num");
+	verify(thedb->get_columns("test_database") == lisp(gcstring("name"), gcstring("phone"), gcstring("num")));
+
+	thedb->add_index("test_database", "name", true);
+	thedb->add_index("test_database", "num", true);
+
+	Record records[] =
 		{
-		BEGIN
+		record("bob", "123-4444", 1),
+		record("joe", "652-9876", 2),
+		record("axon", "249-5050", 3),
+		record("andrew", "242-0707", 4),
+		record("bobby", "123-4567", 5)
+		};
+	const int nrecs = sizeof (records) / sizeof (Record);
 
-		thedb->add_table("test_database");
-		thedb->add_column("test_database", "name");
-		thedb->add_column("test_database", "phone");
-		thedb->add_column("test_database", "num");
-		verify(thedb->get_columns("test_database") == lisp(gcstring("name"), gcstring("phone"), gcstring("num")));
+	int tran = thedb->transaction(READWRITE);
 
-		thedb->add_index("test_database", "name", true);
-		thedb->add_index("test_database", "num", true);
+	// add records
+	int i;
+	for (i = 0; i < nrecs; ++i)
+		thedb->add_record(tran, "test_database", records[i]);
 
-		Record records[] =
-			{
-			record("bob", "123-4444", 1),
-			record("joe", "652-9876", 2),
-			record("axon", "249-5050", 3),
-			record("andrew", "242-0707", 4),
-			record("bobby", "123-4567", 5)
-			};
-		const int nrecs = sizeof (records) / sizeof (Record);
+	// adding duplicates should fail
+	for (i = 0; i < nrecs; ++i)
+		xassert(thedb->add_record(tran, "test_database", records[i]));
+	xassert(thedb->add_record(tran, "test_database", record("new", "", 3)));
 
-		int tran = thedb->transaction(READWRITE);
+	verify(thedb->commit(tran));
 
-		// add records
-		int i;
-		for (i = 0; i < nrecs; ++i)
-			thedb->add_record(tran, "test_database", records[i]);
+	tran = thedb->transaction(READONLY);
 
-		// adding duplicates should fail
-		for (i = 0; i < nrecs; ++i)
-			xassert(thedb->add_record(tran, "test_database", records[i]));
-		xassert(thedb->add_record(tran, "test_database", record("new", "", 3)));
+	Index* index = thedb->get_index("test_database", "name");
+	Index::iterator iter = index->begin(tran);
+	const int nameorder[] = { 3, 2, 0, 4, 1 };
+	for (i = 0; ! iter.eof(); ++iter, ++i)
+		{
+		verify(i < nrecs);
+		assertreceq(records[nameorder[i]], Record(iter.data()));
+		}
+	assert_eq(i, nrecs);
 
-		verify(thedb->commit(tran));
+	thedb->add_index("test_database", "phone", true);
 
-		tran = thedb->transaction(READONLY);
-
-		Index* index = thedb->get_index("test_database", "name");
-		Index::iterator iter = index->begin(tran);
-		const int nameorder[] = { 3, 2, 0, 4, 1 };
-		for (i = 0; ! iter.eof(); ++iter, ++i)
-			{
-			verify(i < nrecs);
-			assertreceq(records[nameorder[i]], Record(iter.data()));
-			}
-		assert_eq(i, nrecs);
-
-		thedb->add_index("test_database", "phone", true);
-
-		const int phoneorder[] = { 0, 4, 3, 2, 1};
-		index = thedb->get_index("test_database", "phone");
-		iter = index->begin(tran);
-		for (i = 0; ! iter.eof(); ++iter, ++i)
-			{
-			verify(i < nrecs);
-			assertreceq(records[phoneorder[i]], Record(iter.data()));
-			}
-
-		verify(thedb->commit(tran));
-
-		// update
-		tran = thedb->transaction(READWRITE);
-		xassert(thedb->update_record(tran, "test_database", "num",
-			key(2), record("joe", "652-9876", 4)));
-		thedb->update_record(tran, "test_database", "num",
-			key(3), record("axon", "249-5051", 3));
-		thedb->update_record(tran, "test_database", "num",
-			key(3), record("axon", "249-5050", 3));
-		verify(thedb->commit(tran));
-		// verify
-		tran = thedb->transaction(READONLY);
-		iter = index->begin(tran);
-		for (i = 0; ! iter.eof(); ++iter, ++i)
-			{
-			verify(i < nrecs);
-			assertreceq(records[phoneorder[i]], Record(iter.data()));
-			}
-		assert_eq(i, nrecs);
-		verify(thedb->commit(tran));
-
-
-		xassert(thedb->remove_column("test_database", "name"));
-
-		thedb->add_column("test_database", "extra");
-		thedb->add_index("test_database", "extra", false);
-		xassert(thedb->remove_column("test_database", "extra"));
-		thedb->remove_index("test_database", "extra");
-		thedb->remove_column("test_database", "extra");
-		thedb->remove_table("test_database");
-
-		END
+	const int phoneorder[] = { 0, 4, 3, 2, 1};
+	index = thedb->get_index("test_database", "phone");
+	iter = index->begin(tran);
+	for (i = 0; ! iter.eof(); ++iter, ++i)
+		{
+		verify(i < nrecs);
+		assertreceq(records[phoneorder[i]], Record(iter.data()));
 		}
 
-	void assertreceq(const Record& r1, const Record& r2) const
+	verify(thedb->commit(tran));
+
+	// update
+	tran = thedb->transaction(READWRITE);
+	xassert(thedb->update_record(tran, "test_database", "num",
+		key(2), record("joe", "652-9876", 4)));
+	thedb->update_record(tran, "test_database", "num",
+		key(3), record("axon", "249-5051", 3));
+	thedb->update_record(tran, "test_database", "num",
+		key(3), record("axon", "249-5050", 3));
+	verify(thedb->commit(tran));
+	// verify
+	tran = thedb->transaction(READONLY);
+	iter = index->begin(tran);
+	for (i = 0; ! iter.eof(); ++iter, ++i)
 		{
-		if (r1.size() != r2.size())
-			except(r1 << endl << "!=" << endl << r2);
-		for (int i = 1; i < r1.size(); ++i)
-			if (r1.getraw(i) != r2.getraw(i))
-				except(r1 << endl << "!=" << endl << r2);
+		verify(i < nrecs);
+		assertreceq(records[phoneorder[i]], Record(iter.data()));
 		}
+	assert_eq(i, nrecs);
+	verify(thedb->commit(tran));
 
-	static Record record(const char* s1, const char* s2, long n)
-		{
-		Record r;
-		r.addval(s1);
-		r.addval(s2);
-		r.addval(n);
-		return r;
-		}
-	Record key(long n)
-		{
-		Record r;
-		r.addval(n);
-		return r;
-		}
 
-	TEST(1, rules)
-		{
-		BEGIN
+	xassert(thedb->remove_column("test_database", "name"));
 
-		int tran = thedb->transaction(READWRITE);
+	thedb->add_column("test_database", "extra");
+	thedb->add_index("test_database", "extra", false);
+	xassert(thedb->remove_column("test_database", "extra"));
+	thedb->remove_index("test_database", "extra");
+	thedb->remove_column("test_database", "extra");
+	thedb->remove_table("test_database");
 
-		const char* table = "test_database";
-		thedb->add_table(table);
-		thedb->add_column(table, "one");
-		thedb->add_column(table, "Two"); // rule
-		thedb->add_column(table, "three");
-		thedb->add_index(table, "one", true);
-		assert_eq(thedb->get_fields(table), lisp(gcstring("one"), gcstring("three")));
-		assert_eq(thedb->get_columns(table), lisp(gcstring("two"), gcstring("one"), gcstring("three")));
-		assert_eq(thedb->get_rules(table), lisp(gcstring("two")));
-		Record r;
-		r.addval("one");
-		r.addval(3);
-		thedb->add_record(tran, table, r);
-		Index* index = thedb->get_index(table, "one");
-		verify(index);
-		Index::iterator iter = index->begin(tran);
-		verify(! iter.eof());
-		Record r2(iter.data());
-		assertreceq(r, r2);
-		++iter;
-		verify(iter.eof());
+	END
+	}
 
-		verify(thedb->commit(tran));
+TEST(database_rules)
+	{
+	BEGIN
 
-		END
-		}
-	TEST(2, create)
-		{
-		BEGIN
+	int tran = thedb->transaction(READWRITE);
 
-		tempdb.reopen();
+	const char* table = "test_database";
+	thedb->add_table(table);
+	thedb->add_column(table, "one");
+	thedb->add_column(table, "Two"); // rule
+	thedb->add_column(table, "three");
+	thedb->add_index(table, "one", true);
+	assert_eq(thedb->get_fields(table), lisp(gcstring("one"), gcstring("three")));
+	assert_eq(thedb->get_columns(table), lisp(gcstring("two"), gcstring("one"), gcstring("three")));
+	assert_eq(thedb->get_rules(table), lisp(gcstring("two")));
+	Record r;
+	r.addval("one");
+	r.addval(3);
+	thedb->add_record(tran, table, r);
+	Index* index = thedb->get_index(table, "one");
+	verify(index);
+	Index::iterator iter = index->begin(tran);
+	verify(! iter.eof());
+	Record r2(iter.data());
+	assertreceq(r, r2);
+	++iter;
+	verify(iter.eof());
 
-		int n;
-		Index* index;
-		Index::iterator iter;
+	verify(thedb->commit(tran));
 
-		n = 0;
-		index = thedb->get_index("indexes", "table,columns");
-		for (iter = index->begin(schema_tran); ! iter.eof(); ++iter)
-			{ ++n; }
-		assert_eq(n, 6);
+	END
+	}
 
-		END
-		}
-	TEST(3, delete_rule_bug)
-		{
-		BEGIN
-		const char* table = "test_database";
-		thedb->add_table(table);
-		thedb->add_column(table, "a");
-		thedb->add_column(table, "B"); // rule
-		thedb->add_column(table, "C");
-		thedb->add_column(table, "D");
-		thedb->add_index(table, "a", true);
+TEST(database_create)
+	{
+	BEGIN
 
-		thedb->remove_column(table, "c");
-		thedb->add_column(table, "c");
-		END
-		}
-	};
-REGISTER(test_database);
+	tempdb.reopen();
+
+	int n;
+	Index* index;
+	Index::iterator iter;
+
+	n = 0;
+	index = thedb->get_index("indexes", "table,columns");
+	for (iter = index->begin(schema_tran); ! iter.eof(); ++iter)
+		{ ++n; }
+	assert_eq(n, 6);
+
+	END
+	}
+
+TEST(database_delete_rule_bug)
+	{
+	BEGIN
+	const char* table = "test_database";
+	thedb->add_table(table);
+	thedb->add_column(table, "a");
+	thedb->add_column(table, "B"); // rule
+	thedb->add_column(table, "C");
+	thedb->add_column(table, "D");
+	thedb->add_index(table, "a", true);
+
+	thedb->remove_column(table, "c");
+	thedb->add_column(table, "c");
+	END
+	}
 

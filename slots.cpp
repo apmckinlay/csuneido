@@ -24,31 +24,27 @@
 #include "std.h"
 #include "testing.h"
 
-class test_slots : public Tests
+TEST(slots_vslot)
 	{
-	TEST(0, "Vslot")
-		{
-		Mmoffset n = (int64) 3 * 1024 * 1024 * 1024;
-		Record r;
-		r.addmmoffset(n);
-		assert_eq(r.getmmoffset(0), n);
-		Vslot vs(r);
-		assert_eq(vs.adr(), n);
-		}
-	TEST(1, "VFslot")
-		{
-		Record r;
-		r.addval("hello");
-		Mmoffset n = (int64) 3 * 1024 * 1024 * 1024;
-		VFslot vfs(r, n);
-		assert_eq(vfs.key, r);
-		assert_eq(vfs.adr, n);
+	Mmoffset n = (int64) 3 * 1024 * 1024 * 1024;
+	Record r;
+	r.addmmoffset(n);
+	assert_eq(r.getmmoffset(0), n);
+	Vslot vs(r);
+	assert_eq(vs.adr(), n);
+	}
+TEST(slots_vfslot)
+	{
+	Record r;
+	r.addval("hello");
+	Mmoffset n = (int64) 3 * 1024 * 1024 * 1024;
+	VFslot vfs(r, n);
+	assert_eq(vfs.key, r);
+	assert_eq(vfs.adr, n);
 
-		VFslots slots;
-		slots.push_back(vfs);
-		VFslot vfs2 = slots.back();
-		assert_eq(vfs2.key, r);
-		assert_eq(vfs2.adr, n);
-		}
-	};
-REGISTER(test_slots);
+	VFslots slots;
+	slots.push_back(vfs);
+	VFslot vfs2 = slots.back();
+	assert_eq(vfs2.key, r);
+	assert_eq(vfs2.adr, n);
+	}

@@ -917,45 +917,43 @@ const char* SuDateClass::type() const
 
 #include "testing.h"
 
-class test_sudate : public Tests
+TEST(sudate_packing)
 	{
-	TEST(0, packing)
-		{
-		Value x = SuDate::parse("2000/3/4 12:34:56");
-		SuDate* date = force<SuDate*>(x);
-		verify(date->packsize() == 9);
-		char buf[10];
-		buf[9] = 123;
-		date->pack(buf);
-		verify(buf[9] == 123);
-		gcstring s = gcstring::noalloc(buf, 9);
-		SuDate* date2 = SuDate::unpack(s);
-		verify(date->eq(*date2));
-		}
-	TEST(1, out)
-		{
-		Value now = new SuDate;
-		OstreamStr os;
-		os << now;
-		Value d = SuDate::parse(os.str());
-		assert_eq(now, d);
+	Value x = SuDate::parse("2000/3/4 12:34:56");
+	SuDate* date = force<SuDate*>(x);
+	verify(date->packsize() == 9);
+	char buf[10];
+	buf[9] = 123;
+	date->pack(buf);
+	verify(buf[9] == 123);
+	gcstring s = gcstring::noalloc(buf, 9);
+	SuDate* date2 = SuDate::unpack(s);
+	verify(date->eq(*date2));
+	}
 
-		gcstring s = "#20031218.151501002";
-		Value ds = SuDate::parse(s.str());
-		os.clear();
-		os << ds;
-		assert_eq(s, os.str());
-		}
-	TEST(2, literal)
-		{
-		auto s = "#19990101";
-		Value x = SuDate::literal(s);
-		OstreamStr os;
-		os << x;
-		assert_eq(gcstring(s), gcstring(os.str()));
+TEST(sudate_ostream)
+	{
+	Value now = new SuDate;
+	OstreamStr os;
+	os << now;
+	Value d = SuDate::parse(os.str());
+	assert_eq(now, d);
 
-		verify(! SuDate::literal("#200901011"));
-		verify(! SuDate::literal("#20090101.1"));
-		}
-	};
-REGISTER(test_sudate);
+	gcstring s = "#20031218.151501002";
+	Value ds = SuDate::parse(s.str());
+	os.clear();
+	os << ds;
+	assert_eq(s, os.str());
+	}
+
+TEST(sudate_literal)
+	{
+	auto s = "#19990101";
+	Value x = SuDate::literal(s);
+	OstreamStr os;
+	os << x;
+	assert_eq(gcstring(s), gcstring(os.str()));
+
+	verify(! SuDate::literal("#200901011"));
+	verify(! SuDate::literal("#20090101.1"));
+	}

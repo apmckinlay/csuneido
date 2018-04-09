@@ -49,16 +49,12 @@ size_t hashfn(const char* s, int n)
 
 #include "testing.h"
 
-class test_hashfn : public Tests
+TEST(hashfn_string)
 	{
-	TEST(0, string)
-		{
-		auto s = "one";
-		auto h = hashfn(s);
-		// both are equivalent
-		assert_eq(h, hashfn(s, strlen(s)));
-		// order dependent
-		assert_neq(h, hashfn("eno"));
-		}
-	};
-REGISTER(test_hashfn);
+	auto s = "one";
+	auto h = hashfn(s);
+	// both are equivalent
+	assert_eq(h, hashfn(s, strlen(s)));
+	// order dependent
+	assert_neq(h, hashfn("eno"));
+	}

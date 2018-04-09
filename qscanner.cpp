@@ -112,13 +112,9 @@ static short results[] =
 	K_UNIQUE, K_UPDATE, K_VIEW, K_WHERE,
 	};
 
-class test_qscanner : public Tests
+TEST(qscanner)
 	{
-	TEST(0, qscanner)
-		{
-		QueryScanner sc(qscanner_input);
-		for (int i = 0; Eof != sc.next(); ++i)
-			assert_eq(results[i], sc.keyword);
-		}
-	};
-REGISTER(test_qscanner);
+	QueryScanner sc(qscanner_input);
+	for (int i = 0; Eof != sc.next(); ++i)
+		assert_eq(results[i], sc.keyword);
+	}

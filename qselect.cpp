@@ -485,7 +485,7 @@ Lisp<Fixed> combine(Lisp<Fixed> fixed1, const Lisp<Fixed>& fixed2);
 
 void Select::optimize_setup()
 	{
-	fixed(); // calc before altering expr
+	(void) fixed(); // calc before altering expr
 
 	// the code depends on using the same indexes throughout (compares pointers)
 	theindexes = tbl->indexes();
@@ -1231,7 +1231,8 @@ Record keymax = makemax();
 
 class TestSelect : public Select
 	{
-	friend class test_qselect;
+	friend static void test_qselect_choose_primary();
+	friend static void test_qselect_frac();
 	};
 
 class TestTable : public Table
@@ -1257,66 +1258,62 @@ public:
 
 #define assertfeq(x, y)		verify(fabs((x) - (y)) < .01)
 
-class test_qselect : public Tests
+TEST(qselect_choose_primary)
 	{
-	TEST(0, choose_primary)
-		{
-		TestSelect ts;
-		ts.fixdone = true;
-		TestTable tbl;
-		ts.source = ts.tbl = &tbl;
-		Fields index_a = lisp(gcstring("a"));
-		Fields index_b = lisp(gcstring("b"));
-		Fields index_a_b = lisp(gcstring("a"), gcstring("b"));
+	TestSelect ts;
+	ts.fixdone = true;
+	TestTable tbl;
+	ts.source = ts.tbl = &tbl;
+	Fields index_a = lisp(gcstring("a"));
+	Fields index_b = lisp(gcstring("b"));
+	Fields index_a_b = lisp(gcstring("a"), gcstring("b"));
 
-		ts.choose_primary(Fields());
-		verify(nil(ts.primary));
+	ts.choose_primary(Fields());
+	verify(nil(ts.primary));
 
-		ts.theindexes = lisp(index_a_b);
-		ts.ifracs[index_a_b] = .12;
-		ts.ffracs["a"] = .3;
-		ts.ffracs["b"] = .4;
-		ts.choose_primary(index_b);
-		verify(nil(ts.primary));
-		ts.choose_primary(Fields());
-		assert_eq(index_a_b, ts.primary);
-		ts.choose_primary(index_a);
-		assert_eq(index_a_b, ts.primary);
-		ts.choose_primary(index_a_b);
-		assert_eq(index_a_b, ts.primary);
+	ts.theindexes = lisp(index_a_b);
+	ts.ifracs[index_a_b] = .12;
+	ts.ffracs["a"] = .3;
+	ts.ffracs["b"] = .4;
+	ts.choose_primary(index_b);
+	verify(nil(ts.primary));
+	ts.choose_primary(Fields());
+	assert_eq(index_a_b, ts.primary);
+	ts.choose_primary(index_a);
+	assert_eq(index_a_b, ts.primary);
+	ts.choose_primary(index_a_b);
+	assert_eq(index_a_b, ts.primary);
 
-		ts.theindexes = lisp(index_a, index_a_b, index_b);
-		ts.ifracs[index_a] = .3;
-		ts.ifracs[index_b] = .4;
-		ts.choose_primary(Fields());
-		assert_eq(index_a_b, ts.primary);
-		ts.choose_primary(index_a);
-		assert_eq(index_a_b, ts.primary);
-		ts.choose_primary(index_a_b);
-		assert_eq(index_a_b, ts.primary);
-		ts.choose_primary(index_b);
-		assert_eq(index_b, ts.primary);
-		}
-	TEST(1, frac)
-		{
-		TestSelect ts;
-		ts.fixdone = true;
-		TestTable tbl;
-		ts.source = ts.tbl = &tbl;
-		assertfeq(ts.field_frac("a"), .5);
-		verify(nil(tbl.iselsize_index));
-		ts.isels["a"] = Iselect();
-		ts.isels["b"] = Iselect();
-		Fields index_a = lisp(gcstring("a"));
-		Fields index_b = lisp(gcstring("b"));
-		Fields index_a_c = lisp(gcstring("a"), gcstring("c"));
-		ts.theindexes = lisp(index_b, index_a_c, index_a);
-		assertfeq(ts.field_frac("a"), .1);
-		assert_eq(tbl.iselsize_index, index_a);
-		assertfeq(ts.field_frac("b"), .1);
-		assert_eq(tbl.iselsize_index, index_b);
-		assertfeq(ts.field_frac("c"), .5);
-		}
-	};
-REGISTER(test_qselect);
+	ts.theindexes = lisp(index_a, index_a_b, index_b);
+	ts.ifracs[index_a] = .3;
+	ts.ifracs[index_b] = .4;
+	ts.choose_primary(Fields());
+	assert_eq(index_a_b, ts.primary);
+	ts.choose_primary(index_a);
+	assert_eq(index_a_b, ts.primary);
+	ts.choose_primary(index_a_b);
+	assert_eq(index_a_b, ts.primary);
+	ts.choose_primary(index_b);
+	assert_eq(index_b, ts.primary);
+	}
 
+TEST(qselect_frac)
+	{
+	TestSelect ts;
+	ts.fixdone = true;
+	TestTable tbl;
+	ts.source = ts.tbl = &tbl;
+	assertfeq(ts.field_frac("a"), .5);
+	verify(nil(tbl.iselsize_index));
+	ts.isels["a"] = Iselect();
+	ts.isels["b"] = Iselect();
+	Fields index_a = lisp(gcstring("a"));
+	Fields index_b = lisp(gcstring("b"));
+	Fields index_a_c = lisp(gcstring("a"), gcstring("c"));
+	ts.theindexes = lisp(index_b, index_a_c, index_a);
+	assertfeq(ts.field_frac("a"), .1);
+	assert_eq(tbl.iselsize_index, index_a);
+	assertfeq(ts.field_frac("b"), .1);
+	assert_eq(tbl.iselsize_index, index_b);
+	assertfeq(ts.field_frac("c"), .5);
+	}

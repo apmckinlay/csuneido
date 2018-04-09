@@ -981,82 +981,44 @@ Value SuString::Reverse(short nargs, short nargnames, ushort* argnames, int each
 	return SuString::noalloc(buf, size());
 	}
 
-// tests ============================================================
+// tests ------------------------------------------------------------
 
 #include "testing.h"
 
-class test_sustring : public Tests
+TEST(sustring_extract)
 	{
-	TEST(0, main)
-		{
-		// TODO
-		}
-	TEST(1, extract)
-		{
-		verify(SuTrue == run("'hello world'.Extract('.....$') is 'world'"));
-		verify(SuTrue == run("'hello world'.Extract('w(..)ld') is 'or'"));
-		}
-	TEST(2, replace)
-		{
-		assert_eq(SuString("hello world").replace("x", "X"), "hello world"); // same
-		assert_eq(SuString("hello world").replace("l", "L"), "heLLo worLd");
-		assert_eq(SuString("hello world").replace("l", "L", 0), "hello world"); // same
-		assert_eq(SuString("hello world").replace(".", "<&>", 5), "<h><e><l><l><o> world");
-		assert_eq(SuString("world").replace("^", "hello "), "hello world");
-		assert_eq(SuString("hello").replace("$", " world"), "hello world");
-		}
-	TEST(3, match)
-		{
-		verify(SuTrue == run("'hello world'.Match('w(..)ld') is #((6,5),(7,2))"));
-		}
-	TEST(4, is_identifier)
-		{
-		verify(! is_identifier(""));
-		verify(! is_identifier("?"));
-		verify(! is_identifier("a b"));
-		verify(! is_identifier("123"));
-		verify(! is_identifier("?ab"));
-		verify(! is_identifier("a?b"));
-		verify(is_identifier("x"));
-		verify(is_identifier("xyz"));
-		verify(is_identifier("Abc"));
-		verify(is_identifier("_x"));
-		verify(is_identifier("x_"));
-		verify(is_identifier("x_1"));
-		verify(is_identifier("x?"));
-		}
-	};
-REGISTER(test_sustring);
+	verify(SuTrue == run("'hello world'.Extract('.....$') is 'world'"));
+	verify(SuTrue == run("'hello world'.Extract('w(..)ld') is 'or'"));
+	}
 
-class test_sustring2 : public Tests
+TEST(sustring_replace)
 	{
-	TEST(0, main)
-		{
-		Value result = run("'a\\x00bc'.Replace('[\\x00-\\xff][\\x00-\\xff]?[\\x00-\\xff]?', { '' $ it.Size() })");
-//cout << "value result: " << result << endl;
-char buf[] = { '3', '1', 0 }; //'a', 0, 'b', 'c', 0 };
-gcstring g = gcstring::noalloc(buf, sizeof (buf) - 1);
-SuString s(g);
-Value v(&s);
-//cout << "should be: " << v << endl;
-		assert_eq(result, v);
-		}
-	};
-REGISTER(test_sustring2);
+	assert_eq(SuString("hello world").replace("x", "X"), "hello world"); // same
+	assert_eq(SuString("hello world").replace("l", "L"), "heLLo worLd");
+	assert_eq(SuString("hello world").replace("l", "L", 0), "hello world"); // same
+	assert_eq(SuString("hello world").replace(".", "<&>", 5), "<h><e><l><l><o> world");
+	assert_eq(SuString("world").replace("^", "hello "), "hello world");
+	assert_eq(SuString("hello").replace("$", " world"), "hello world");
+	}
 
-
-class test_sustring3 : public Tests
+TEST(sustring_match)
 	{
-	TEST(0, main)
-		{
-		assert_eq(gcstring("/Business").findlast("/"), 0);
-		Value s = run("'/Business'.Substr(0, 0)");
-		assert_eq(s, SuEmptyString);
-		Value t = run("'/Business'[..0]");
-		assert_eq(t, SuEmptyString);
+	verify(SuTrue == run("'hello world'.Match('w(..)ld') is #((6,5),(7,2))"));
+	}
 
-		Value b = run("#('':).Member?('/Business'[..0])");
-		assert_eq(b, SuTrue);
-		}
-	};
-REGISTER(test_sustring3);
+TEST(sustring_is_identifier)
+	{
+	verify(! is_identifier(""));
+	verify(! is_identifier("?"));
+	verify(! is_identifier("a b"));
+	verify(! is_identifier("123"));
+	verify(! is_identifier("?ab"));
+	verify(! is_identifier("a?b"));
+	verify(is_identifier("x"));
+	verify(is_identifier("xyz"));
+	verify(is_identifier("Abc"));
+	verify(is_identifier("_x"));
+	verify(is_identifier("x_"));
+	verify(is_identifier("x_1"));
+	verify(is_identifier("x?"));
+	}

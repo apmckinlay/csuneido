@@ -42,8 +42,6 @@ SuNumber SuNumber::minus_one(-1);
 SuNumber SuNumber::infinity(PLUS, SCHAR_MAX);
 SuNumber SuNumber::minus_infinity(MINUS, SCHAR_MAX);
 
-random_class randnum;
-
 // misc. routines --------------------------------------------
 
 SuNumber::SuNumber(char s, schar e) : sign(s), exp(e)
@@ -1515,296 +1513,263 @@ Value SuNumber::call(Value self, Value member,
 
 #include "testing.h"
 
-class test_number : public Tests
+static random_class randnum;
+
+TEST(sunumber_int_convert)
 	{
-	TEST(1, int_convert)
+	assert_eq(SuNumber(0L).integer(), 0);
+	assert_eq(SuNumber(1).integer(), 1);
+	assert_eq(SuNumber(-1).integer(), -1);
+	for (long i = 0; i < 1000; ++i)
 		{
-		verify(0 == SuNumber(0L).integer());
-		verify(1 == SuNumber(1).integer());
-		verify(-1 == SuNumber(-1).integer());
-		for (long i = 0; i < 1000; ++i)
-			{
-			long x = rand();
-			SuNumber n(x);
-			verify(x == n.integer());
-			}
-		assert_eq(SuNumber("-.5").integer(), 0);
-		assert_eq(SuNumber("1e99").integer(), INT_MAX);
-		assert_eq(SuNumber("-1e99").integer(), INT_MIN);
-		assert_eq(SuNumber("1e-99").integer(), 0);
-		assert_eq(SuNumber("-1e-99").integer(), 0);
+		long x = rand();
+		SuNumber n(x);
+		assert_eq(n.integer(), x);
 		}
+	assert_eq(SuNumber("-.5").integer(), 0);
+	assert_eq(SuNumber("1e99").integer(), INT_MAX);
+	assert_eq(SuNumber("-1e99").integer(), INT_MIN);
+	assert_eq(SuNumber("1e-99").integer(), 0);
+	assert_eq(SuNumber("-1e-99").integer(), 0);
+	}
 
-	TEST(2, str)
-		{
-		verify(SuNumber("0") == SuNumber(0L));
-		verify(SuNumber("1") == SuNumber(1));
-		verify(SuNumber("-1") == SuNumber(-1));
-		verify(SuNumber("12") == SuNumber(12));
-		verify(SuNumber("123") == SuNumber(123));
-		verify(SuNumber("1234") == SuNumber(1234));
-		verify(SuNumber("12345") == SuNumber(12345));
-		verify(SuNumber("1.234e3") == SuNumber(1234));
-		verify(SuNumber("0.08") == SuNumber(".08"));
-		for (long i = 0; i < 1000; ++i)
-			{
-			SuNumber x(randnum);
-			char buf[30];
-			x.format(buf);
-			SuNumber y(buf);
-			verify(x == y);
-			}
-		}
-
-	TEST(3, add_sub)
-		{
-		assert_eq(SuNumber(1) + SuNumber(1), SuNumber(2));
-		assert_eq(SuNumber(1) - SuNumber(1), SuNumber(0L));
-		assert_eq(SuNumber(0L) - SuNumber(1), SuNumber(-1));
-		assert_eq(SuNumber(456) - SuNumber(123), SuNumber(333));
-		assert_eq(SuNumber(123) - SuNumber(456), SuNumber(-333));
-		assert_eq(SuNumber(9999) + SuNumber(1), SuNumber(10000));
-		assert_eq(SuNumber(10000) - SuNumber(1), SuNumber(9999));
-		assert_eq(SuNumber("999999999999999e489") + SuNumber("999999999999999e489"),
-			SuNumber::infinity);
-		for (long i = 0; i < 1000; ++i)
-			{
-			SuNumber x(randnum);
-			SuNumber y(randnum);
-			SuNumber& a = x + y - y;
-			SuNumber& b = x - y + y;
-			verify(a == b);
-			}
-		}
-
-	TEST(4, mul)
-		{
-		verify(SuNumber(0L) * SuNumber(123) == SuNumber(0L));
-		verify(SuNumber(123) * SuNumber(0L) == SuNumber(0L));
-		verify(SuNumber(1) * SuNumber(-1) == SuNumber(-1));
-		verify(SuNumber(-1) * SuNumber(-1) == SuNumber(1));
-		verify(SuNumber(2) * SuNumber(2) == SuNumber(4));
-		verify(SuNumber(10001) * SuNumber(10001) == SuNumber(100020001));
-		assert_eq(SuNumber("1e300") * SuNumber("1e300"), SuNumber::infinity);
-		assert_eq(SuNumber("1e-300") * SuNumber("1e-300"), SuNumber::zero);
-		assert_eq(SuNumber("1.08") * SuNumber(".9259259259259259"), SuNumber("1"));
-		for (long i = 0; i < 1000; ++i)
-			{
-			{
-			long xi = rand() & 0xffff;
-			SuNumber x(xi);
-			long yi = rand() & 0xffff;
-			SuNumber y(yi);
-			SuNumber& z = x * y;
-			verify(z.integer() == xi * yi);
-			}
-			SuNumber x(randnum);
-			SuNumber y(randnum);
-			SuNumber& a = x * y;
-			SuNumber& b = y * x;
-			verify(a == b);
-			}
-		}
-
-	TEST(5, div)
-		{
-		verify(SuNumber(123) / SuNumber(0L) == SuNumber::infinity);
-		verify(SuNumber(0L) / SuNumber(123) == SuNumber(0L));
-		verify(SuNumber(123) / SuNumber(1) == SuNumber(123));
-		verify(SuNumber(456) / SuNumber(2) == SuNumber(228));
-		verify(SuNumber(10000) / SuNumber(10) == SuNumber(1000));
-		assert_eq(SuNumber("1e-300") / SuNumber("1e300"), SuNumber::zero);
-		assert_eq(SuNumber("1e300") / SuNumber("1e-300"), SuNumber::infinity);
-		SuNumber m(100000000), n(100000001);
-		verify(! close(&m, &n));
-		for (long i = 0; i < 1000; ++i)
-			{
-			SuNumber x(randnum);
-			SuNumber y(randnum);
-			SuNumber& a = x / y;
-			SuNumber& b = a * y;
-			verify(close(&x, &b));
-			}
-		}
-	TEST(6, toInt)
-		{
-		verify(SuNumber("0").toint() == SuNumber("0"));
-		verify(SuNumber("123").toint() == SuNumber("123"));
-		verify(SuNumber("123.456").toint() == SuNumber("123"));
-		verify(SuNumber(".456").toint() == SuNumber("0"));
-		verify(SuNumber("1e99").toint() == SuNumber("1e99"));
-		verify(SuNumber("1e-99").toint() == SuNumber("0"));
-		}
-	TEST(7, toFrac)
-		{
-		verify(SuNumber("0").tofrac() == SuNumber("0"));
-		verify(SuNumber("123").tofrac() == SuNumber("0"));
-		verify(SuNumber("123.456").tofrac() == SuNumber(".456"));
-		verify(SuNumber(".456").tofrac() == SuNumber(".456"));
-		verify(SuNumber("1e99").tofrac() == SuNumber("0"));
-		verify(SuNumber("1e-99").tofrac() == SuNumber("1e-99"));
-		}
-
-	TEST(8, mask)
-		{
-		char buf[32];
-		verify(0 == strcmp(SuNumber("0").mask(buf, "###"), "0"));
-		verify(0 == strcmp(SuNumber("0").mask(buf, "#.##"), ".00"));
-		verify(0 == strcmp(SuNumber(".08").mask(buf, "#.##"), ".08"));
-		verify(0 == strcmp(SuNumber(".08").mask(buf, "#.#"), ".1"));
-		verify(0 == strcmp(SuNumber("6.789").mask(buf, "#.##"), "6.79"));
-		verify(0 == strcmp(SuNumber("123").mask(buf, "##"), "#"));
-		verify(0 == strcmp(SuNumber("-1").mask(buf, "#.##"), "-"));
-		verify(0 == strcmp(SuNumber("-12").mask(buf, "-####"), "-12"));
-		verify(0 == strcmp(SuNumber("-12").mask(buf, "(####)"), "(12)"));
-		}
-
-	TEST(9, hash)
-		{
-		verify(SuNumber(SHRT_MIN).hashfn() == Value(SHRT_MIN).hash());
-		verify(SuNumber(-500).hashfn() == Value(-500).hash());
-		verify(SuNumber(0L).hashfn() == Value(0).hash());
-		verify(SuNumber(500).hashfn() == Value(500).hash());
-		verify(SuNumber(SHRT_MAX).hashfn() == Value(SHRT_MAX).hash());
-		}
-	};
-REGISTER(test_number);
-
-class test_number2 : public Tests
+TEST(sunumber_str)
 	{
-	TEST(0, dbl)
+	assert_eq(SuNumber("0"), SuNumber(0L));
+	assert_eq(SuNumber("1"), SuNumber(1));
+	assert_eq(SuNumber("-1"), SuNumber(-1));
+	assert_eq(SuNumber("12"), SuNumber(12));
+	assert_eq(SuNumber("123"), SuNumber(123));
+	assert_eq(SuNumber("1234"), SuNumber(1234));
+	assert_eq(SuNumber("12345"), SuNumber(12345));
+	assert_eq(SuNumber("1.234e3"), SuNumber(1234));
+	assert_eq(SuNumber("0.08"), SuNumber(".08"));
+	assert_eq(SuNumber("10000"), SuNumber(10000));
+	assert_eq(SuNumber("1000000000000000000"), SuNumber("1e18"));
+	assert_eq(SuNumber("1234567890123456789"), SuNumber("1234567890123456000"));
+	for (long i = 0; i < 1000; ++i)
 		{
-		ckdbl(0);
-		ckdbl(1);
-		ckdbl(-1);
-		ckdbl(123.456);
-		ckdbl(-123.456);
-		ckdbl(1.234e5);
-		ckdbl(1.234e-5);
-		ckdbl(-1.234e5);
-		ckdbl(-1.234e-5);
+		SuNumber x(randnum);
+		char buf[30];
+		(void) x.format(buf);
+		SuNumber y(buf);
+		assert_eq(y, x);
 		}
-	void ckdbl(double x)
-		{
-		SuNumber* sunum = SuNumber::from_double(x);
-		double y = sunum->to_double();
-		verify(fabs(x - y) < 1e-10);
-		}
-	TEST(1, int64)
-		{
-		int64 x = 1;
-		for (int i = 0; i < 16; ++i, x = x * 10 + 1)
-			{
-			SuNumber* n = SuNumber::from_int64(x);
-			verify(n->bigint() == x);
-			}
-		}
-	TEST(2, round)
-		{
-		test("1e-20", "0");
-		test("0", "0");
-		test(".11", ".11");
-		test(".111", ".11");
-		test(".999", "1");
-		test("1e20", "1e20");
-		}
-	void test(const char* s, const char* expected)
-		{
-		SuNumber n(s);
-		assert_eq(round(&n, 2, 'h')->to_gcstr(), expected);
-		}
-	};
-REGISTER(test_number2);
+	}
 
-class test_number3 : public Tests
+TEST(sunumber_add_sub)
 	{
-	TEST(0, main)
+	assert_eq(SuNumber(1) + SuNumber(1), SuNumber(2));
+	assert_eq(SuNumber(1) - SuNumber(1), SuNumber(0L));
+	assert_eq(SuNumber(0L) - SuNumber(1), SuNumber(-1));
+	assert_eq(SuNumber(456) - SuNumber(123), SuNumber(333));
+	assert_eq(SuNumber(123) - SuNumber(456), SuNumber(-333));
+	assert_eq(SuNumber(9999) + SuNumber(1), SuNumber(10000));
+	assert_eq(SuNumber(10000) - SuNumber(1), SuNumber(9999));
+	assert_eq(SuNumber("999999999999999e489") + SuNumber("999999999999999e489"),
+		SuNumber::infinity);
+	for (long i = 0; i < 1000; ++i)
 		{
-		check1("0");
-		check1("1");
-		check1("-1");
-		check1("65535"); // USHRT_MAX
-		check1("65536");
-		check1("3000000000");
-		check1("4294967295"); // ULONG_MAX
-		check1("5000000000");
-
-		check2("0xffff", "65535");
-		check2("0x10000", "65536");
-		check2("0xffffffff", "-1");
-
-		check2("0.123", ".123");
-		check2("00.001", ".001");
+		SuNumber x(randnum);
+		SuNumber y(randnum);
+		SuNumber& a = x + y - y;
+		SuNumber& b = x - y + y;
+		assert_eq(a, b);
 		}
-	static void check1(const char* s)
-		{
-		Value num = SuNumber::literal(s);
-		assert_eq(num.to_gcstr(), s);
-		}
-	static void check2(const char* s, const char* t)
-		{
-		Value num = SuNumber::literal(s);
-		assert_eq(num.to_gcstr(), t);
-		}
-	};
-REGISTER(test_number3);
+	}
 
-class test_number4 : public Tests
+TEST(sunumber_mul)
 	{
-	TEST(0, main)
+	assert_eq(SuNumber(0L) * SuNumber(123), SuNumber(0L));
+	assert_eq(SuNumber(123) * SuNumber(0L), SuNumber(0L));
+	assert_eq(SuNumber(1) * SuNumber(-1), SuNumber(-1));
+	assert_eq(SuNumber(-1) * SuNumber(-1), SuNumber(1));
+	assert_eq(SuNumber(2) * SuNumber(2), SuNumber(4));
+	assert_eq(SuNumber(10001) * SuNumber(10001), SuNumber(100020001));
+	assert_eq(SuNumber("1e300") * SuNumber("1e300"), SuNumber::infinity);
+	assert_eq(SuNumber("1e-300") * SuNumber("1e-300"), SuNumber::zero);
+	assert_eq(SuNumber("1.08") * SuNumber(".9259259259259259"), SuNumber("1"));
+	for (long i = 0; i < 1000; ++i)
 		{
-		assert_eq(SuNumber("10000"), SuNumber(10000));
-		assert_eq(SuNumber("1000000000000000000"), SuNumber("1e18"));
-		assert_eq(SuNumber("1234567890123456789"), SuNumber("1234567890123456000"));
+		{
+		long xi = rand() & 0xffff;
+		SuNumber x(xi);
+		long yi = rand() & 0xffff;
+		SuNumber y(yi);
+		SuNumber& z = x * y;
+		assert_eq(z.integer(), xi * yi);
 		}
-	};
-REGISTER(test_number4);
+		SuNumber x(randnum);
+		SuNumber y(randnum);
+		SuNumber& a = x * y;
+		SuNumber& b = y * x;
+		assert_eq(a, b);
+		}
+	}
 
-#include <chrono>
-
-class test_number5 : public Tests
+TEST(sunumber_div)
 	{
-	TEST(0, packed_compare)
+	assert_eq(SuNumber(123) / SuNumber(0L), SuNumber::infinity);
+	assert_eq(SuNumber(0L) / SuNumber(123), SuNumber(0L));
+	assert_eq(SuNumber(123) / SuNumber(1), SuNumber(123));
+	assert_eq(SuNumber(456) / SuNumber(2), SuNumber(228));
+	assert_eq(SuNumber(10000) / SuNumber(10), SuNumber(1000));
+	assert_eq(SuNumber("1e-300") / SuNumber("1e300"), SuNumber::zero);
+	assert_eq(SuNumber("1e300") / SuNumber("1e-300"), SuNumber::infinity);
+	assert_eq(SuNumber(12) / SuNumber(".4444444444444444"), SuNumber(27));
+	SuNumber m(100000000), n(100000001);
+	verify(! close(&m, &n));
+	for (long i = 0; i < 1000; ++i)
 		{
-		char buf1[100], buf2[100], buf3[100];
-		memset(buf1, 0, 100);
-		memset(buf2, 0, 100);
-		memset(buf3, 0, 100);
-		SuNumber n1("-100000"); n1.pack(buf1);
-		SuNumber n2("-50000"); n2.pack(buf2);
-		SuNumber n3("-1000"); n3.pack(buf3);
-		gcstring s1(buf1, n1.packsize());
-		gcstring s2(buf2, n2.packsize());
-		gcstring s3(buf3, n3.packsize());
-		verify(s1 < s2);
-		verify(s2 < s3);
+		SuNumber x(randnum);
+		SuNumber y(randnum);
+		SuNumber& a = x / y;
+		SuNumber& b = a * y;
+		verify(close(&x, &b));
 		}
-	//TEST(1, "benchmark")
-	//	{
-	//	SuNumber x("123456789012.3456");
-	//	SuNumber y("9876543210987654");
-	//	static SuNumber z("0");
-	//
-	//	const int N = 1'000'000;
-	//	auto t1 = std::chrono::high_resolution_clock::now();
-	//	for (int i = 0; i < N; ++i)
-	//		{
-	//		z = x / y;
-	//		}
-	//	auto t2 = std::chrono::high_resolution_clock::now();
-	//	std::chrono::duration<double, std::nano> dur = t2 - t1;
-	//	except(dur.count() / N << "ns");
-	//	}
-	};
-REGISTER(test_number5);
-
-class test_number_div : public Tests
+	}
+TEST(sunumber_toint)
 	{
-	TEST(0, main)
+	assert_eq(SuNumber("0").toint(), SuNumber("0"));
+	assert_eq(SuNumber("123").toint(), SuNumber("123"));
+	assert_eq(SuNumber("123.456").toint(), SuNumber("123"));
+	assert_eq(SuNumber(".456").toint(), SuNumber("0"));
+	assert_eq(SuNumber("1e99").toint(), SuNumber("1e99"));
+	assert_eq(SuNumber("1e-99").toint(), SuNumber("0"));
+	}
+TEST(sunumber_tofrac)
+	{
+	assert_eq(SuNumber("0").tofrac(), SuNumber("0"));
+	assert_eq(SuNumber("123").tofrac(), SuNumber("0"));
+	assert_eq(SuNumber("123.456").tofrac(), SuNumber(".456"));
+	assert_eq(SuNumber(".456").tofrac(), SuNumber(".456"));
+	assert_eq(SuNumber("1e99").tofrac(), SuNumber("0"));
+	assert_eq(SuNumber("1e-99").tofrac(), SuNumber("1e-99"));
+	}
+
+TEST(sunumber_mask)
+	{
+	char buf[32];
+	assert_eq(SuNumber("0").mask(buf, "###"), gcstring("0"));
+	assert_eq(SuNumber("0").mask(buf, "#.##"), gcstring(".00"));
+	assert_eq(SuNumber(".08").mask(buf, "#.##"), gcstring(".08"));
+	assert_eq(SuNumber(".08").mask(buf, "#.#"), gcstring(".1"));
+	assert_eq(SuNumber("6.789").mask(buf, "#.##"), gcstring("6.79"));
+	assert_eq(SuNumber("123").mask(buf, "##"), gcstring("#"));
+	assert_eq(SuNumber("-1").mask(buf, "#.##"), gcstring("-"));
+	assert_eq(SuNumber("-12").mask(buf, "-####"), gcstring("-12"));
+	assert_eq(SuNumber("-12").mask(buf, "(####)"), gcstring("(12)"));
+	}
+
+TEST(sunumber_hash)
+	{
+	assert_eq(SuNumber(SHRT_MIN).hashfn(), Value(SHRT_MIN).hash());
+	assert_eq(SuNumber(-500).hashfn(), Value(-500).hash());
+	assert_eq(SuNumber(0L).hashfn(), Value(0).hash());
+	assert_eq(SuNumber(500).hashfn(), Value(500).hash());
+	assert_eq(SuNumber(SHRT_MAX).hashfn(), Value(SHRT_MAX).hash());
+	}
+
+static void ckdbl(double x)
+	{
+	SuNumber* sunum = SuNumber::from_double(x);
+	double y = sunum->to_double();
+	verify(fabs(x - y) < 1e-10);
+	}
+TEST(sunumber_double)
+	{
+	ckdbl(0);
+	ckdbl(1);
+	ckdbl(-1);
+	ckdbl(123.456);
+	ckdbl(-123.456);
+	ckdbl(1.234e5);
+	ckdbl(1.234e-5);
+	ckdbl(-1.234e5);
+	ckdbl(-1.234e-5);
+	}
+
+TEST(sunumber_int64)
+	{
+	int64 x = 1;
+	for (int i = 0; i < 16; ++i, x = x * 10 + 1)
 		{
-		SuNumber x(12);
-		SuNumber y(".4444444444444444");
-		SuNumber(x / y == SuNumber(27));
+		SuNumber* n = SuNumber::from_int64(x);
+		assert_eq(n->bigint(), x);
 		}
-	};
-REGISTER(test_number_div);
+	}
+
+static void test(const char* s, const char* expected)
+	{
+	SuNumber n(s);
+	assert_eq(round(&n, 2, 'h')->to_gcstr(), expected);
+	}
+TEST(sunumber_round)
+	{
+	test("1e-20", "0");
+	test("0", "0");
+	test(".11", ".11");
+	test(".111", ".11");
+	test(".999", "1");
+	test("1e20", "1e20");
+	}
+
+static void check1(const char* s)
+	{
+	Value num = SuNumber::literal(s);
+	assert_eq(num.to_gcstr(), s);
+	}
+static void check2(const char* s, const char* t)
+	{
+	Value num = SuNumber::literal(s);
+	assert_eq(num.to_gcstr(), t);
+	}
+TEST(sunumber_literal)
+	{
+	check1("0");
+	check1("1");
+	check1("-1");
+	check1("65535"); // USHRT_MAX
+	check1("65536");
+	check1("3000000000");
+	check1("4294967295"); // ULONG_MAX
+	check1("5000000000");
+
+	check2("0xffff", "65535");
+	check2("0x10000", "65536");
+	check2("0xffffffff", "-1");
+
+	check2("0.123", ".123");
+	check2("00.001", ".001");
+	}
+
+TEST(sunumber_parse)
+	{
+	assert_eq(SuNumber("10000"), SuNumber(10000));
+	assert_eq(SuNumber("1000000000000000000"), SuNumber("1e18"));
+	assert_eq(SuNumber("1234567890123456789"), SuNumber("1234567890123456000"));
+	}
+
+TEST(sunumber_packed_compare)
+	{
+	char buf1[100], buf2[100], buf3[100];
+	memset(buf1, 0, 100);
+	memset(buf2, 0, 100);
+	memset(buf3, 0, 100);
+	SuNumber n1("-100000"); n1.pack(buf1);
+	SuNumber n2("-50000"); n2.pack(buf2);
+	SuNumber n3("-1000"); n3.pack(buf3);
+	gcstring s1(buf1, n1.packsize());
+	gcstring s2(buf2, n2.packsize());
+	gcstring s3(buf3, n3.packsize());
+	verify(s1 < s2);
+	verify(s2 < s3);
+	}
+
+BENCHMARK(sunum_div)
+	{
+	SuNumber x("123456789012.3456");
+	SuNumber y("9876543210987654");
+	while (nreps-- > 0)
+		(void) (x / y);
+	}

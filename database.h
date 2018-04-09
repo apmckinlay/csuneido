@@ -196,8 +196,9 @@ class Database
 	friend class Index::iterator;
 	friend SuValue* su_transactions();
 	friend class DbRecoverImp;
-	friend class test_database;
-	friend class test_transaction;
+	friend static void test_transaction();
+	friend static void test_transaction_reads();
+	friend static void test_transaction_finalization();
 	friend class DbmsLocal;
 public:
 	explicit Database(const char* filename, bool create = false);
@@ -281,6 +282,12 @@ public:
 	// for use by dbcopy only
 	Mmoffset output_record(int tran, Tbl* tbl, Record& rec);
 	void create_indexes(Tbl* tbl, Mmoffset first, Mmoffset last);
+
+	// for tests
+	bool final_empty() const
+		{ return final.empty(); }
+	bool trans_empty() const
+		{ return trans.empty(); }
 
 	Mmfile* mmf;
 	bool loading;

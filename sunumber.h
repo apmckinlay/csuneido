@@ -33,7 +33,6 @@ enum Sign { MINUS = 0, PLUS = 1 };
 const int NDIGITS = 4;	// 16 decimal digits
 const int MAXDIGITS = 16;
 class random_class { };
-extern random_class randnum;
 
 // decimal representation, floating point number values
 class SuNumber : public SuValue
@@ -77,6 +76,7 @@ public:
 	explicit SuNumber(const char* buf);
 	explicit SuNumber(const SuNumber* x)
 		{ *this = *x; }
+	explicit SuNumber(random_class);
 
 	char* format(char* buf) const;
 
@@ -98,8 +98,8 @@ public:
 private:
 	SuNumber(char s, schar e);
 	SuNumber(char s, schar e, const short* d);
-	explicit SuNumber(random_class);
-	friend class test_number;
+	friend static void test_sunumber_toint();
+	friend static void test_sunumber_tofrac();
 	SuNumber& toint();
 	SuNumber& tofrac();
 	void check() const;

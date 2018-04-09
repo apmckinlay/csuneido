@@ -155,7 +155,7 @@ private:
 			short n;
 			} im;
 		};
-	friend class test_value;
+	friend static void test_value_smallint();
 	};
 
 template <class T> inline T val_cast(Value v)

@@ -140,37 +140,33 @@ CharMatcher* CharMatcher::or_(CharMatcher* cm)
 
 #include "testing.h"
 
-class test_charMatcher : public Tests
+TEST(charMatcher)
 	{
-	TEST(0, main)
-		{
-		CMIs cmIs('a');
-		assert_eq(cmIs.matches('a'), true);
-		assert_eq(cmIs.matches('b'), false);
+	CMIs cmIs('a');
+	assert_eq(cmIs.matches('a'), true);
+	assert_eq(cmIs.matches('b'), false);
 
-		CMAnyOf cmAnyOf("bcd");
-		assert_eq(cmAnyOf.matches('b'), true);
-		assert_eq(cmAnyOf.matches('e'), false);
+	CMAnyOf cmAnyOf("bcd");
+	assert_eq(cmAnyOf.matches('b'), true);
+	assert_eq(cmAnyOf.matches('e'), false);
 
-		CMInRange cmInRange('e', 'g');
-		assert_eq(cmInRange.matches('e'), true);
-		assert_eq(cmInRange.matches('g'), true);
-		assert_eq(cmInRange.matches('h'), false);
+	CMInRange cmInRange('e', 'g');
+	assert_eq(cmInRange.matches('e'), true);
+	assert_eq(cmInRange.matches('g'), true);
+	assert_eq(cmInRange.matches('h'), false);
 
-		CMNegate cmNegate(&cmInRange);
-		assert_eq(cmNegate.matches('e'), false);
-		assert_eq(cmNegate.matches('g'), false);
-		assert_eq(cmNegate.matches('h'), true);
+	CMNegate cmNegate(&cmInRange);
+	assert_eq(cmNegate.matches('e'), false);
+	assert_eq(cmNegate.matches('g'), false);
+	assert_eq(cmNegate.matches('h'), true);
 
-		CMOr cmOr(&cmAnyOf, &cmInRange);
-		assert_eq(cmOr.matches('b'), true);
-		assert_eq(cmOr.matches('e'), true);
-		assert_eq(cmOr.matches('e'), true);
-		assert_eq(cmOr.matches('g'), true);
-		assert_eq(cmOr.matches('h'), false);
+	CMOr cmOr(&cmAnyOf, &cmInRange);
+	assert_eq(cmOr.matches('b'), true);
+	assert_eq(cmOr.matches('e'), true);
+	assert_eq(cmOr.matches('e'), true);
+	assert_eq(cmOr.matches('g'), true);
+	assert_eq(cmOr.matches('h'), false);
 
-		assert_eq(CharMatcher::NONE.matches('a'), false);
-		assert_eq(CharMatcher::NONE.matches('\n'), false);
-		}
-	};
-REGISTER(test_charMatcher);
+	assert_eq(CharMatcher::NONE.matches('a'), false);
+	assert_eq(CharMatcher::NONE.matches('\n'), false);
+	}

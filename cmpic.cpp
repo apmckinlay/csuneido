@@ -41,27 +41,24 @@ int memcmpic(const char* s, const char* t, int n)
 
 #include "testing.h"
 
-class test_cmpic : public Tests
+TEST(cmpic_str)
 	{
-	TEST(0, strcmpic)
-		{
-		verify(0 == strcmpic("", ""));
-		verify(0 == strcmpic("abc", "abc"));
-		verify(0 == strcmpic("aBc", "Abc"));
-		verify(0 != strcmpic("abc", "abcd"));
-		verify(0 != strcmpic("abcd", "abc"));
-		verify(0 != strcmpic("abc", ""));
-		verify(0 != strcmpic("", "abc"));
-		}
-	TEST(1, memcmpic)
-		{
-		verify(0 == memcmpic("", "", 0));
-		verify(0 == memcmpic("abc", "abc", 3));
-		verify(0 == memcmpic("aBc", "Abc", 3));
-		verify(0 != memcmpic("abc", "abcd", 4));
-		verify(0 != memcmpic("abcd", "abc", 4));
-		verify(0 != memcmpic("abc", "", 1));
-		verify(0 != memcmpic("", "abc", 1));
-		}
-	};
-REGISTER(test_cmpic);
+	verify(0 == strcmpic("", ""));
+	verify(0 == strcmpic("abc", "abc"));
+	verify(0 == strcmpic("aBc", "Abc"));
+	verify(0 != strcmpic("abc", "abcd"));
+	verify(0 != strcmpic("abcd", "abc"));
+	verify(0 != strcmpic("abc", ""));
+	verify(0 != strcmpic("", "abc"));
+	}
+
+TEST(cmpic_mem)
+	{
+	verify(0 == memcmpic("", "", 0));
+	verify(0 == memcmpic("abc", "abc", 3));
+	verify(0 == memcmpic("aBc", "Abc", 3));
+	verify(0 != memcmpic("abc", "abcd", 4));
+	verify(0 != memcmpic("abcd", "abc", 4));
+	verify(0 != memcmpic("abc", "", 1));
+	verify(0 != memcmpic("", "abc", 1));
+	}

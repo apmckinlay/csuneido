@@ -174,20 +174,16 @@ static void DateCalc_Normalize_Signs(int *Dd, int *Dh, int *Dm, int *Ds)
 
 static bool DateCalc_check_date(int year, int month, int day)
 	{
-	if ((year >= 1) && (year <= 3000) &&
+	return (year >= 1) && (year <= 3000) &&
 		(month >= 1) && (month <= 12) &&
 		(day >= 1) &&
-		(day <= DateCalc_Days_in_Month_[DateCalc_leap_year(year)][month]))
-		return true;
-    return false;
+			(day <= DateCalc_Days_in_Month_[DateCalc_leap_year(year)][month]);
 	}
 
 static bool DateCalc_check_time(int hour, int min, int sec)
 	{
-    if ((hour >= 0) && (min >= 0) && (sec >= 0) &&
-		(hour < 24) && (min < 60) && (sec < 60))
-		return true;
-    return false;
+	return (hour >= 0) && (min >= 0) && (sec >= 0) &&
+			(hour < 24) && (min < 60) && (sec < 60);
 	}
 
 bool DateTime::valid() const
@@ -368,34 +364,30 @@ void DateTime::plus(int y, int mo, int d, int h, int mi, int s, int ms)
 
 #include "testing.h"
 
-class test_date : public Tests
+TEST(date)
 	{
-	TEST(0, main)
-		{
-		DateTime dt(2003, 11, 27, 16, 37, 33, 123);
-		DateTime dt2(dt.date(), dt.time());
-		assert_eq(dt2.year, 2003);
-		assert_eq(dt2.month, 11);
-		assert_eq(dt2.day, 27);
-		assert_eq(dt2.hour, 16);
-		assert_eq(dt2.minute, 37);
-		assert_eq(dt2.second, 33);
-		assert_eq(dt2.millisecond, 123);
+	DateTime dt(2003, 11, 27, 16, 37, 33, 123);
+	DateTime dt2(dt.date(), dt.time());
+	assert_eq(dt2.year, 2003);
+	assert_eq(dt2.month, 11);
+	assert_eq(dt2.day, 27);
+	assert_eq(dt2.hour, 16);
+	assert_eq(dt2.minute, 37);
+	assert_eq(dt2.second, 33);
+	assert_eq(dt2.millisecond, 123);
 
-		assert_eq(dt.day_of_week(), 4);
+	assert_eq(dt.day_of_week(), 4);
 
-		DateTime dt3(2003, 12, 03, 0, 0, 0, 0);
-		assert_eq(dt3.minus_days(dt), 6);
+	DateTime dt3(2003, 12, 03, 0, 0, 0, 0);
+	assert_eq(dt3.minus_days(dt), 6);
 
-		DateTime dt4(2003, 12, 03, 0, 0, 12, 345);
-		assert_eq(dt4.minus_milliseconds(dt3), 12345);
+	DateTime dt4(2003, 12, 03, 0, 0, 12, 345);
+	assert_eq(dt4.minus_milliseconds(dt3), 12345);
 
-		dt3.plus(0, 0, 0, 1, 2, 3, 4);
-		DateTime dt5(2003, 12, 03, 1, 2, 3, 4);
-		verify(dt3 == dt5);
+	dt3.plus(0, 0, 0, 1, 2, 3, 4);
+	DateTime dt5(2003, 12, 03, 1, 2, 3, 4);
+	verify(dt3 == dt5);
 
-		dt.plus(0, 0, 6, 0, 0, 0, 0);
-		verify(dt == DateTime(2003, 12, 03, 16, 37, 33, 123));
-		};
-	};
-REGISTER(test_date);
+	dt.plus(0, 0, 6, 0, 0, 0, 0);
+	verify(dt == DateTime(2003, 12, 03, 16, 37, 33, 123));
+	}

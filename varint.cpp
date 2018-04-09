@@ -64,23 +64,22 @@ int varint(uchar*& code)
 	return n;
 	}
 
+// tests ------------------------------------------------------------
+
 #include "testing.h"
 
-class test_varint : public Tests
+static void test(int n)
 	{
-	TEST(0, main)
-		{
-		test(0);
-		test(99);
-		test(1234);
-		test(12345);
-		}
-	void test(int n)
-		{
-		vector<uchar> code;
-		push_varint(code, n);
-		int ci = 0;
-		assert_eq(varint(&code[0], ci), n);
-		}
-	};
-REGISTER(test_varint);
+	vector<uchar> code;
+	push_varint(code, n);
+	int ci = 0;
+	assert_eq(varint(&code[0], ci), n);
+	}
+
+TEST(varint)
+	{
+	test(0);
+	test(99);
+	test(1234);
+	test(12345);
+	}

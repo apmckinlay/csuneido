@@ -55,26 +55,21 @@ short cvt_short(const char* q)
 	}
 
 #include "testing.h"
-#include "except.h"
 
-class test_cvt : public Tests
+TEST(cvt_short)
 	{
-	TEST(0, cvt_short)
-		{
-		char buf[2];
-		assert_eq(0, cvt_short(cvt_short(buf, 0)));
-		assert_eq(1234, cvt_short(cvt_short(buf, 1234)));
-		assert_eq(-1234, cvt_short(cvt_short(buf, -1234)));
-		}
-	TEST(1, cvt_long)
-		{
-		char buf[4];
-		assert_eq(0, cvt_long(cvt_long(buf, 0)));
-		assert_eq(1234, cvt_long(cvt_long(buf, 1234)));
-		assert_eq(-1234, cvt_long(cvt_long(buf, -1234)));
-		assert_eq(12345678, cvt_long(cvt_long(buf, 12345678)));
-		assert_eq(-12345678, cvt_long(cvt_long(buf, -12345678)));
-		}
-	};
-REGISTER(test_cvt);
+	char buf[2];
+	assert_eq(0, cvt_short(cvt_short(buf, 0)));
+	assert_eq(1234, cvt_short(cvt_short(buf, 1234)));
+	assert_eq(-1234, cvt_short(cvt_short(buf, -1234)));
+	}
 
+TEST(cvt_long)
+	{
+	char buf[4];
+	assert_eq(0, cvt_long(cvt_long(buf, 0)));
+	assert_eq(1234, cvt_long(cvt_long(buf, 1234)));
+	assert_eq(-1234, cvt_long(cvt_long(buf, -1234)));
+	assert_eq(12345678, cvt_long(cvt_long(buf, 12345678)));
+	assert_eq(-12345678, cvt_long(cvt_long(buf, -12345678)));
+	}

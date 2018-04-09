@@ -70,27 +70,24 @@ char* i64tostr(int64 x, char* buf, int radix)
 	}
 
 #include "testing.h"
-#include <string.h>
+#include <cstring>
 
-class test_itostr : public Tests
+TEST(itostr_unsigned)
 	{
-	TEST(0, utostr)
-		{
-		char buf[20];
-		verify(0 == strcmp(utostr(0, buf), "0"));
-		verify(0 == strcmp(utostr(1, buf), "1"));
-		verify(0 == strcmp(utostr(1234, buf), "1234"));
-		verify(0 == strcmp(utostr(1024, buf, 16), "400"));
-		verify(0 == strcmp(utostr(7, buf, 2), "111"));
-		}
-	TEST(1, itostr)
-		{
-		char buf[20];
-		verify(0 == strcmp(itostr(0, buf), "0"));
-		verify(0 == strcmp(itostr(1, buf), "1"));
-		verify(0 == strcmp(itostr(1234, buf), "1234"));
-		verify(0 == strcmp(itostr(-1, buf), "-1"));
-		verify(0 == strcmp(itostr(-1234, buf), "-1234"));
-		}
-	};
-REGISTER(test_itostr);
+	char buf[20];
+	verify(0 == strcmp(utostr(0, buf), "0"));
+	verify(0 == strcmp(utostr(1, buf), "1"));
+	verify(0 == strcmp(utostr(1234, buf), "1234"));
+	verify(0 == strcmp(utostr(1024, buf, 16), "400"));
+	verify(0 == strcmp(utostr(7, buf, 2), "111"));
+	}
+
+TEST(itostr)
+	{
+	char buf[20];
+	verify(0 == strcmp(itostr(0, buf), "0"));
+	verify(0 == strcmp(itostr(1, buf), "1"));
+	verify(0 == strcmp(itostr(1234, buf), "1234"));
+	verify(0 == strcmp(itostr(-1, buf), "-1"));
+	verify(0 == strcmp(itostr(-1234, buf), "-1234"));
+	}

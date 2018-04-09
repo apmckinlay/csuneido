@@ -436,47 +436,43 @@ bool Table::output(const Record& r)
 #include "testing.h"
 #include "tempdb.h"
 
-class test_qtable : public Tests
+static void adm(int tran, const char* s)
 	{
-	void adm(const char* s)
-		{
-		database_admin(s);
-		}
-	int tran = 0;
-	void req(const char* s)
-		{
-		except_if(! database_request(tran, s), "FAILED: " << s);
-		}
+	database_admin(s);
+	}
 
-	TEST(0, main)
-		{
-		TempDB tempdb;
+static void req(int tran, const char* s)
+	{
+	except_if(! database_request(tran, s), "FAILED: " << s);
+	}
 
-		tran = theDB()->transaction(READWRITE);
-		// so trigger searches won't give error
-		adm("create stdlib (group, name, text) key(name)");
+TEST(qtable)
+	{
+	TempDB tempdb;
 
-		adm("create lines (hdrnum, linenum, desc, amount) key(linenum) index(hdrnum)");
-		req("insert{hdrnum: 1, linenum: 1, desc: \"now\", amount: 10} into lines");
-		req("insert{hdrnum: 1, linenum: 2, desc: \"is\", amount: 20} into lines");
-		req("insert{hdrnum: 1, linenum: 3, desc: \"the\", amount: 30} into lines");
-		req("insert{hdrnum: 1, linenum: 4, desc: \"time\", amount: 40} into lines");
-		req("insert{hdrnum: 1, linenum: 5, desc: \"for\", amount: 50} into lines");
-		req("insert{hdrnum: 1, linenum: 6, desc: \"all\", amount: 60} into lines");
-		req("insert{hdrnum: 1, linenum: 7, desc: \"good\", amount: 70} into lines");
-		req("insert{hdrnum: 2, linenum: 8, desc: \"men\", amount: 80} into lines");
-		req("insert{hdrnum: 2, linenum: 9, desc: \"to\", amount: 90} into lines");
-		req("insert{hdrnum: 3, linenum: 10, desc: \"come\", amount: 100} into lines");
+	int tran = theDB()->transaction(READWRITE);
+	// so trigger searches won't give error
+	adm(tran, "create stdlib (group, name, text) key(name)");
 
-		Table table("lines");
-		SuValue* one = new SuNumber(1);
-		gcstring onepacked = one->pack();
-		Iselect oneisel;
-		oneisel.org.x = oneisel.end.x = onepacked;
-		float f = table.iselsize(lisp(gcstring("linenum")), lisp(oneisel));
-		verify(0 < f && f < .2); // should be .1
-		f = table.iselsize(lisp(gcstring("hdrnum")), lisp(oneisel));
-		verify(.6 < f && f < .8); // should be .7
-		}
-	};
-REGISTER(test_qtable);
+	adm(tran, "create lines (hdrnum, linenum, desc, amount) key(linenum) index(hdrnum)");
+	req(tran, "insert{hdrnum: 1, linenum: 1, desc: \"now\", amount: 10} into lines");
+	req(tran, "insert{hdrnum: 1, linenum: 2, desc: \"is\", amount: 20} into lines");
+	req(tran, "insert{hdrnum: 1, linenum: 3, desc: \"the\", amount: 30} into lines");
+	req(tran, "insert{hdrnum: 1, linenum: 4, desc: \"time\", amount: 40} into lines");
+	req(tran, "insert{hdrnum: 1, linenum: 5, desc: \"for\", amount: 50} into lines");
+	req(tran, "insert{hdrnum: 1, linenum: 6, desc: \"all\", amount: 60} into lines");
+	req(tran, "insert{hdrnum: 1, linenum: 7, desc: \"good\", amount: 70} into lines");
+	req(tran, "insert{hdrnum: 2, linenum: 8, desc: \"men\", amount: 80} into lines");
+	req(tran, "insert{hdrnum: 2, linenum: 9, desc: \"to\", amount: 90} into lines");
+	req(tran, "insert{hdrnum: 3, linenum: 10, desc: \"come\", amount: 100} into lines");
+
+	Table table("lines");
+	SuValue* one = new SuNumber(1);
+	gcstring onepacked = one->pack();
+	Iselect oneisel;
+	oneisel.org.x = oneisel.end.x = onepacked;
+	float f = table.iselsize(lisp(gcstring("linenum")), lisp(oneisel));
+	verify(0 < f && f < .2); // should be .1
+	f = table.iselsize(lisp(gcstring("hdrnum")), lisp(oneisel));
+	verify(.6 < f && f < .8); // should be .7
+	}

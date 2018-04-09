@@ -121,7 +121,7 @@ public:
 	DbrStatus status() override
 		{ return status_; }
 	const char* last_good_commit() override;
-	bool rebuild(bool (*progress)(int), bool log = true) override;
+	bool rebuild(bool (*progress)(int), bool log) override;
 private:
 	bool rebuild_copy(char* newfile, bool (*progress)(int));
 
@@ -682,8 +682,6 @@ void dbdump1(Ostream& log, Mmfile& mmf, Mmfile::iterator& iter, ulong& cksum, Bi
 
 struct Cleanup
 	{
-	Cleanup()
-		{ }
 	~Cleanup()
 		{
 		remove("tempdb");
@@ -691,57 +689,7 @@ struct Cleanup
 		}
 	};
 
-class test_recover : public Tests
-	{
-	TEST(1, recreate)
-		{
-		Cleanup cleanup;
-		{ TempDB tempdb(false);
-		const char* table = "test_table";
-		create(table);
-		destroy(table);
-		create(table);
-		output(table, 10);
-		}
-
-		rebuild();
-		}
-	TEST(2, rename)
-		{
-		Cleanup cleanup;
-		TempDB tempdb(false);
-		const char* table = "test_table";
-		const char* table2 = "xtest_table";
-		create(table);
-		output(table, 10);
-		thedb->rename_table(table, table2);
-
-		tempdb.close();
-		rebuild();
-		tempdb.open();
-
-		verify(thedb->get_table(table2));
-		verify(! thedb->get_table(table));
-		}
-	TEST(3, rename_create_destroy)
-		{
-		TempDB tempdb(false);
-		Cleanup cleanup;
-		const char* table = "test_table";
-		const char* table2 = "xtest_table";
-		create(table);
-		output(table, 10);
-		dostuff(table, table2);
-		tempdb.close();
-		rebuild();
-		check();
-		tempdb.open();
-		dostuff(table, table2);
-		tempdb.close();
-		rebuild();
-		check();
-		}
-	void create(const char* table)
+	static void create(const char* table)
 		{
 		thedb->add_table(table);
 		thedb->add_column(table, "one");
@@ -749,52 +697,102 @@ class test_recover : public Tests
 		thedb->add_column(table, "three");
 		thedb->add_index(table, "one", true);
 		}
-	void output(const char* table, int n)
+	static Record record(int n)
+		{
+		Record r;
+		r.addval(n);
+		return r;
+		}
+	static void output(const char* table, int n)
 		{
 		int tran = thedb->transaction(READWRITE);
 		for (int i = 0; i < n; ++i)
 			thedb->add_record(tran, table, record(i));
 		verify(thedb->commit(tran));
 		}
-	Record record(int n)
+	static void drop(const char* table)
 		{
-		Record r;
-		r.addval(n);
-		return r;
+		thedb->remove_table(table);
 		}
-	void dostuff(const char* table, const char* table2)
+	static void dostuff(const char* table, const char* table2)
 		{
 		thedb->rename_table(table, table2);
 		create(table);
 		output(table, 1);
-		destroy(table);
+		drop(table); 
 		thedb->rename_table(table2, table);
 		}
-	void check()
+	static void check()
 		{
 		DbRecover* dbr = DbRecover::check("tempdb");
 		assert_eq(dbr->status(), DBR_OK);
 		dbr->check_indexes();
 		assert_eq(dbr->status(), DBR_OK);
-		verify(! alerts);
+		verify(!alerts);
 		delete dbr;
 		}
-	void rebuild()
+	static void rebuild()
 		{
 		DbRecover* dbr = DbRecover::check("tempdb");
 		assert_eq(dbr->status(), DBR_OK);
 		dbr->check_indexes();
 		assert_eq(dbr->status(), DBR_OK);
 		verify(dbr->rebuild(null_progress, false));
-		verify(! alerts);
+		verify(!alerts);
 		delete dbr;
 		}
-	void destroy(const char* table)
+
+	TEST(recover_recreate)
 		{
-		thedb->remove_table(table);
+		Cleanup cleanup;
+		{ TempDB tempdb(false);
+		const char* table = "test_table";
+		create(table);
+		drop(table);
+		create(table);
+		output(table, 10);
+		}
+		rebuild();
 		}
 
-	TEST(9, translate)
+	TEST(recover_rename)
+		{
+		Cleanup cleanup;
+		TempDB tempdb(false);
+		const char* table = "test_table";
+		const char* table2 = "xtest_table";
+		create(table);
+		output(table, 10);
+		thedb->rename_table(table, table2);
+
+		tempdb.close();
+		rebuild();
+		TempDB::open();
+
+		verify(thedb->get_table(table2));
+		verify(! thedb->get_table(table));
+		}
+
+	TEST(recover_rename_create_destroy)
+		{
+		TempDB tempdb(false);
+		Cleanup cleanup;
+		const char* table = "test_table";
+		const char* table2 = "xtest_table";
+		create(table);
+		output(table, 10);
+		dostuff(table, table2);
+		tempdb.close();
+		rebuild();
+		check();
+		TempDB::open();
+		dostuff(table, table2);
+		tempdb.close();
+		rebuild();
+		check();
+		}
+
+	TEST(recover_translate)
 		{
 		Translate tr(10);
 		tr.add(80, 88);
@@ -804,5 +802,3 @@ class test_recover : public Tests
 		assert_eq(tr[4500 * MB], 4600 * MB);
 		assert_eq(tr[80], 88);
 		}
-	};
-REGISTER(test_recover);

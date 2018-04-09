@@ -538,191 +538,193 @@ void Database::checksum(void* buf, size_t n)
 	cksum = ::checksum(cksum, buf, n);
 	}
 
-// tests ============================================================
+// tests ------------------------------------------------------------
 
 #include "testing.h"
 #include "tempdb.h"
 
 #define BEGIN \
 	{ TempDB tempdb;
+
 #define SETUP \
 	BEGIN \
 	setup();
+
 #define END \
-	verify(thedb->final.empty()); \
-	verify(thedb->trans.empty()); \
+	verify(thedb->final_empty()); \
+	verify(thedb->trans_empty()); \
 	}
 
-class test_transaction : public Tests
+static Record record(const char* s)
 	{
-	TEST(0, basics)
-		{
-		BEGIN
-		int i = thedb->transaction(READONLY);
-		verify(thedb->transaction(READWRITE) == i + 1);
-		verify(thedb->trans[i].type == READONLY);
-		verify(thedb->trans[i].asof == i);
-		verify(thedb->trans[i + 1].type == READWRITE);
-		verify(thedb->trans[i + 1].asof == i + 1);
-		verify(thedb->commit(i + 1));
-		thedb->abort(i);
-		END
-		}
-	TEST(1, finalization)
-		{
-		SETUP
-		int t0 = thedb->transaction(READWRITE);
-		thedb->add_record(t0, "test", record("ann"));
-		thedb->commit(t0);
-		verify(thedb->final.empty());
+	Record r;
+	r.addval(s);
+	return r;
+	}
+static void setup()
+	{
+	thedb->add_table("test");
+	thedb->add_column("test", "name");
+	thedb->add_index("test", "name", true);
+	int t = thedb->transaction(READWRITE);
+	thedb->add_record(t, "test", record("fred"));
+	verify(thedb->commit(t));
+	}
+static Record key(const char* s)
+	{
+	Record r;
+	r.addval(s);
+	return r;
+	}
 
-		int t1 = thedb->transaction(READONLY);
-			assert_eq(thedb->trans.begin()->first, t1);
+TEST(transaction)
+	{
+	BEGIN
+	int i = thedb->transaction(READONLY);
+	verify(thedb->transaction(READWRITE) == i + 1);
+	verify(thedb->trans[i].type == READONLY);
+	verify(thedb->trans[i].asof == i);
+	verify(thedb->trans[i + 1].type == READWRITE);
+	verify(thedb->trans[i + 1].asof == i + 1);
+	verify(thedb->commit(i + 1));
+	thedb->abort(i);
+	END
+	}
 
-		int t2 = thedb->transaction(READWRITE);
-		thedb->add_record(t2, "test", record("joe"));
-		int t4 = thedb->transaction(READWRITE);
-		thedb->add_record(t4, "test", record("sue"));
+TEST(transaction_finalization)
+	{
+	SETUP
+	int t0 = thedb->transaction(READWRITE);
+	thedb->add_record(t0, "test", record("ann"));
+	thedb->commit(t0);
+	verify(thedb->final.empty());
 
-		thedb->commit(t2);
-			assert_eq(thedb->final.size(), 1);
-			assert_eq(thedb->final.begin()->tran, t2);
+	int t1 = thedb->transaction(READONLY);
+		assert_eq(thedb->trans.begin()->first, t1);
 
-		int t3 = thedb->transaction(READONLY);
-			assert_eq(thedb->trans.begin()->first, t1);
+	int t2 = thedb->transaction(READWRITE);
+	thedb->add_record(t2, "test", record("joe"));
+	int t4 = thedb->transaction(READWRITE);
+	thedb->add_record(t4, "test", record("sue"));
 
-		thedb->commit(t4);
-			assert_eq(thedb->final.size(), 2);
-			assert_eq(thedb->final.begin()->tran, t2);
+	thedb->commit(t2);
+		assert_eq(thedb->final.size(), 1);
+		assert_eq(thedb->final.begin()->tran, t2);
 
-		int t5 = thedb->transaction(READONLY);
-			assert_eq(thedb->trans.begin()->first, t1);
-		thedb->commit(t5); // shouldn't finalize anything
-			assert_eq(thedb->final.size(), 2);
-		thedb->commit(t1); // should finalize t2
-			assert_eq(thedb->trans.begin()->first, t3);
-			assert_eq(thedb->final.size(), 1);
-			assert_eq(thedb->final.begin()->tran, t4);
-		thedb->commit(t3); // should finalize t4
-		END
-		}
-	TEST(3, visibility)
-		{
-		SETUP
+	int t3 = thedb->transaction(READONLY);
+		assert_eq(thedb->trans.begin()->first, t1);
 
-		int t1 = thedb->transaction(READWRITE);
-		thedb->update_record(t1, "test", "name", key("fred"), record("joe"));
+	thedb->commit(t4);
+		assert_eq(thedb->final.size(), 2);
+		assert_eq(thedb->final.begin()->tran, t2);
 
-		int t2 = thedb->transaction(READONLY);
-		Record r = thedb->get_index("test", "name")->begin(t2)->key;
-		verify(r.getstr(0) == "fred"); // old value, not uncommitted value
+	int t5 = thedb->transaction(READONLY);
+		assert_eq(thedb->trans.begin()->first, t1);
+	thedb->commit(t5); // shouldn't finalize anything
+		assert_eq(thedb->final.size(), 2);
+	thedb->commit(t1); // should finalize t2
+		assert_eq(thedb->trans.begin()->first, t3);
+		assert_eq(thedb->final.size(), 1);
+		assert_eq(thedb->final.begin()->tran, t4);
+	thedb->commit(t3); // should finalize t4
+	END
+	}
 
-		verify(thedb->commit(t1));
+TEST(transaction_visibility)
+	{
+	SETUP
 
-		int t3 = thedb->transaction(READONLY);
-		r = thedb->get_index("test", "name")->begin(t3)->key;
-		verify(r.getstr(0) == "joe"); // new value
+	int t1 = thedb->transaction(READWRITE);
+	thedb->update_record(t1, "test", "name", key("fred"), record("joe"));
 
-		int t4 = thedb->transaction(READWRITE);
-		thedb->remove_record(t4, "test", "name", key("joe"));
-		verify(thedb->commit(t4));
+	int t2 = thedb->transaction(READONLY);
+	Record r = thedb->get_index("test", "name")->begin(t2)->key;
+	verify(r.getstr(0) == "fred"); // old value, not uncommitted value
 
-		r = thedb->get_index("test", "name")->begin(t3)->key;
-		verify(r.getstr(0) == "joe"); // new value
-		verify(thedb->commit(t3));
+	verify(thedb->commit(t1));
 
-		int t5 = thedb->transaction(READONLY);
-		verify(thedb->get_index("test", "name")->begin(t5).eof()); // gone
-		verify(thedb->commit(t5));
+	int t3 = thedb->transaction(READONLY);
+	r = thedb->get_index("test", "name")->begin(t3)->key;
+	verify(r.getstr(0) == "joe"); // new value
 
-		r = thedb->get_index("test", "name")->begin(t2)->key;
-		verify(r.getstr(0) == "fred"); // still old value, operating as-of start time
-		verify(thedb->commit(t2));
+	int t4 = thedb->transaction(READWRITE);
+	thedb->remove_record(t4, "test", "name", key("joe"));
+	verify(thedb->commit(t4));
 
-		END
-		}
-	TEST(4, reads)
-		{
-		SETUP
+	r = thedb->get_index("test", "name")->begin(t3)->key;
+	verify(r.getstr(0) == "joe"); // new value
+	verify(thedb->commit(t3));
 
-		{ int t = thedb->transaction(READONLY);
-		thedb->get_index("test", "name")->begin(t);
-		verify(thedb->trans[t].reads.empty());
-		thedb->commit(t); }
+	int t5 = thedb->transaction(READONLY);
+	verify(thedb->get_index("test", "name")->begin(t5).eof()); // gone
+	verify(thedb->commit(t5));
 
-		{ int t = thedb->transaction(READWRITE);
-		thedb->get_index("test", "name")->begin(t, key("a"), key("z"));
-		Transaction& tran = thedb->trans[t];
-		verify(tran.reads.size() == 1);
-		TranRead& trd = tran.reads.back();
-		assert_eq(trd.org, key("a"));
-		verify(trd.end.hasprefix(key("fred")));
-		thedb->commit(t); }
+	r = thedb->get_index("test", "name")->begin(t2)->key;
+	verify(r.getstr(0) == "fred"); // still old value, operating as-of start time
+	verify(thedb->commit(t2));
 
-		{ int t = thedb->transaction(READWRITE);
-		Index::iterator iter = thedb->get_index("test", "name")->iter(t, key("a"), key("z"));
-		--iter;
-		Transaction& tran = thedb->trans[t];
-		verify(tran.reads.size() == 1);
-		TranRead& trd = tran.reads.back();
-		assert_eq(trd.end, key("z"));
-		verify(trd.org.hasprefix(key("fred")));
-		thedb->commit(t); }
+	END
+	}
 
-		END
-		}
-	TEST(5, conflicts)
-		{
-		// conflicting deletes (or updates)
-		SETUP
-		int t1 = thedb->transaction(READWRITE);
-		thedb->remove_record(t1, "test", "name", key("fred"));
-		int t2 = thedb->transaction(READWRITE);
-		xassert(thedb->remove_record(t2, "test", "name", key("fred")));
-		verify(! thedb->commit(t2));
-		verify(thedb->commit(t1));
-		END
+TEST(transaction_reads)
+	{
+	SETUP
 
-		// conflicting inserts (or updates)
-		SETUP
-		int t1 = thedb->transaction(READWRITE);
-		thedb->add_record(t1, "test", record("joe"));
-		int t2 = thedb->transaction(READWRITE);
-		thedb->add_record(t2, "test", record("joe"));
-		verify(thedb->commit(t2));
-		verify(! thedb->commit(t1));
-		END
+	{ int t = thedb->transaction(READONLY);
+	thedb->get_index("test", "name")->begin(t);
+	verify(thedb->trans[t].reads.empty());
+	thedb->commit(t); }
 
-		// read validation problem
-		SETUP
-		int t = thedb->transaction(READWRITE);
-		verify(thedb->get_index("test", "name")->begin(t, key("joe")).eof());
-		thedb->add_record(t, "test", record("joe"));
-		verify(! thedb->get_index("test", "name")->begin(t, key("joe")).eof());
-		verify(thedb->commit(t));
-		END
-		}
-private:
-	void setup()
-		{
-		thedb->add_table("test");
-		thedb->add_column("test", "name");
-		thedb->add_index("test", "name", true);
-		int t = thedb->transaction(READWRITE);
-		thedb->add_record(t, "test", record("fred"));
-		verify(thedb->commit(t));
-		}
-	Record record(const char* s)
-		{
-		Record r;
-		r.addval(s);
-		return r;
-		}
-	Record key(const char* s)
-		{
-		Record r;
-		r.addval(s);
-		return r;
-		}
-	};
-REGISTER(test_transaction);
+	{ int t = thedb->transaction(READWRITE);
+	thedb->get_index("test", "name")->begin(t, key("a"), key("z"));
+	Transaction& tran = thedb->trans[t];
+	verify(tran.reads.size() == 1);
+	TranRead& trd = tran.reads.back();
+	assert_eq(trd.org, key("a"));
+	verify(trd.end.hasprefix(key("fred")));
+	thedb->commit(t); }
+
+	{ int t = thedb->transaction(READWRITE);
+	Index::iterator iter = thedb->get_index("test", "name")->iter(t, key("a"), key("z"));
+	--iter;
+	Transaction& tran = thedb->trans[t];
+	verify(tran.reads.size() == 1);
+	TranRead& trd = tran.reads.back();
+	assert_eq(trd.end, key("z"));
+	verify(trd.org.hasprefix(key("fred")));
+	thedb->commit(t); }
+
+	END
+	}
+
+TEST(transaction_conflicts)
+	{
+	// conflicting deletes (or updates)
+	SETUP
+	int t1 = thedb->transaction(READWRITE);
+	thedb->remove_record(t1, "test", "name", key("fred"));
+	int t2 = thedb->transaction(READWRITE);
+	xassert(thedb->remove_record(t2, "test", "name", key("fred")));
+	verify(! thedb->commit(t2));
+	verify(thedb->commit(t1));
+	END
+
+	// conflicting inserts (or updates)
+	SETUP
+	int t1 = thedb->transaction(READWRITE);
+	thedb->add_record(t1, "test", record("joe"));
+	int t2 = thedb->transaction(READWRITE);
+	thedb->add_record(t2, "test", record("joe"));
+	verify(thedb->commit(t2));
+	verify(! thedb->commit(t1));
+	END
+
+	// read validation problem
+	SETUP
+	int t = thedb->transaction(READWRITE);
+	verify(thedb->get_index("test", "name")->begin(t, key("joe")).eof());
+	thedb->add_record(t, "test", record("joe"));
+	verify(! thedb->get_index("test", "name")->begin(t, key("joe")).eof());
+	verify(thedb->commit(t));
+	END
+	}

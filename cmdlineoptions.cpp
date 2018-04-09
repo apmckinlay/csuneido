@@ -57,10 +57,8 @@ const char* CmdLineOptions::parse(const char* str)
 				argstr = "";
 			break ;
 		case TEST :
-			if (*s == '_')
-				++s;
 			if (nullptr == (argstr = get_word()))
-				action = TESTS;
+				argstr = ""; // all
 			break ;
 		case BENCH :
 			if (nullptr == (argstr = get_word()))
@@ -89,7 +87,6 @@ const char* CmdLineOptions::parse(const char* str)
 		case SERVICE :
 			service = s;
 			break ;
-		case TESTS :
 		case CHECK :
 		case REBUILD :
 		case DBDUMP :
@@ -135,8 +132,6 @@ const char* CmdLineOptions::parse(const char* str)
 			}
 		case HELP :
 			alert("options:\n"
-				"	-b[ench]\n"
-				"	-b[ench] name\n"
 				"	-check\n"
 				"	-c[heck]s[tart]\n"
 				"	-r[ebuild]\n"
@@ -144,8 +139,8 @@ const char* CmdLineOptions::parse(const char* str)
 				"	-c[compact]e[xit]\n"
 				"	-d[ump] [tablename]\n"
 				"	-l[oad] [tablename]\n"
-				"	-t[ests]\n"
-				"	-test name\n"
+				"	-t[est] [prefix]\n"
+				"	-b[ench] [prefix]\n"
 				"	-s[erver][=name]\n"
 				"	-c[lient] ipaddress\n"
 				"	-p[ort] #\n"
@@ -193,9 +188,7 @@ static struct { const char* str; int num; } options[] = {
 	{ "-repl", REPL },
 	{ "-rebuild", REBUILD }, { "-r", REBUILD },
 	{ "-timeout", TIMEOUT }, { "-to", TIMEOUT },
-	{ "-tests", TESTS },
-	{ "-test", TEST },
-	{ "-t", TESTS },
+	{ "-test", TEST }, { "-t", TEST },
 	{ "-port", PORT }, { "-p", PORT },
 	{ "-help", HELP }, { "-?", HELP }, { "-h", HELP },
 	{ "-version", VERSION }, { "-v", VERSION },

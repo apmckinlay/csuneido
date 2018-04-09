@@ -36,7 +36,6 @@ public:
 	explicit Dnum(int n);
 	explicit Dnum(const char* s);
 
-	friend struct test_dnum;
 	friend bool operator==(const Dnum& x, const Dnum& y);
 	friend Ostream& operator<<(Ostream& os, const Dnum& dn);
 	char* tostr(char* dst, int len) const;
@@ -72,6 +71,8 @@ private:
 	friend bool align(Dnum& x, Dnum& y);
 	friend Dnum uadd(const Dnum& x, const Dnum& y);
 	friend Dnum usub(const Dnum& x, const Dnum& y);
+	friend static void test_dnum_misc();
+	friend static bool almostSame(const Dnum& x, const Dnum& y);
 
 	uint64_t coef;
 	int8_t sign;

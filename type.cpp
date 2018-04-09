@@ -549,40 +549,36 @@ Value TypeParams::get(const char*&, Value)
 
 #include "testing.h"
 
-class test_types : public Tests
+static void test(Type* type, int size, int size2, Value x)
 	{
-	TEST(0, main)
-		{
-		test(new TypeBool, sizeof (int), 0, SuTrue);
-		test(new TypeBool, sizeof (int), 0, SuFalse);
-		test(new TypeInt<short>, sizeof (short), 0, 123);
-		test(new TypeInt<short>, sizeof (short), 0, 0);
-		test(new TypeInt<short>, sizeof (short), 0, -123);
-		test(new TypeInt<long>, sizeof (long), 0, 123);
-		test(new TypeInt<long>, sizeof (long), 0, 0);
-		test(new TypeInt<long>, sizeof (long), 0, -123);
-		test(new TypeOpaquePointer, sizeof (long), 0, 123);
-		test(new TypeOpaquePointer, sizeof (long), 0, 0);
-		test(new TypeOpaquePointer, sizeof (long), 0, -123);
-		test(new TypeFloat, sizeof (float), 0, 123);
-		test(new TypeFloat, sizeof (float), 0, new SuNumber("123.456"));
-		test(new TypeDouble, sizeof (double), 0, 123);
-		test(new TypeDouble, sizeof (double), 0, new SuNumber("123.456"));
-		}
-	static void test(Type* type, int size, int size2, Value x)
-		{
-		char buf[64];
-		char buf2[64];
-		char* dst = buf;
-		char* dst2 = buf2;
-		char* lim2 = buf2 + sizeof buf2;
+	char buf[64];
+	char buf2[64];
+	char* dst = buf;
+	char* dst2 = buf2;
+	char* lim2 = buf2 + sizeof buf2;
 
-		assert_eq(type->size(), size);
-		type->put(dst, dst2, lim2, x);
-		verify(dst == buf + size);
-		verify(dst2 == buf2 + size2);
-		const char* src = buf;
-		assert_eq(type->get(src, Value()), x);
-		}
-	};
-REGISTER(test_types);
+	assert_eq(type->size(), size);
+	type->put(dst, dst2, lim2, x);
+	verify(dst == buf + size);
+	verify(dst2 == buf2 + size2);
+	const char* src = buf;
+	assert_eq(type->get(src, Value()), x);
+	}
+TEST(type)
+	{
+	test(new TypeBool, sizeof (int), 0, SuTrue);
+	test(new TypeBool, sizeof (int), 0, SuFalse);
+	test(new TypeInt<short>, sizeof (short), 0, 123);
+	test(new TypeInt<short>, sizeof (short), 0, 0);
+	test(new TypeInt<short>, sizeof (short), 0, -123);
+	test(new TypeInt<long>, sizeof (long), 0, 123);
+	test(new TypeInt<long>, sizeof (long), 0, 0);
+	test(new TypeInt<long>, sizeof (long), 0, -123);
+	test(new TypeOpaquePointer, sizeof (long), 0, 123);
+	test(new TypeOpaquePointer, sizeof (long), 0, 0);
+	test(new TypeOpaquePointer, sizeof (long), 0, -123);
+	test(new TypeFloat, sizeof (float), 0, 123);
+	test(new TypeFloat, sizeof (float), 0, new SuNumber("123.456"));
+	test(new TypeDouble, sizeof (double), 0, 123);
+	test(new TypeDouble, sizeof (double), 0, new SuNumber("123.456"));
+	}

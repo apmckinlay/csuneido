@@ -158,34 +158,31 @@ PRIM(su_symdump, "DumpSymbols()");
 
 #include "testing.h"
 
-class test_symbols : public Tests
+TEST(symbols)
 	{
-	TEST(0, main)
-		{
-		const char* strs[] = { "one", "two", "three", "four" };
-		const int n = sizeof (strs) / sizeof (char*);
-		ushort nums[n];
-		for (int i = 0; i < n; ++i)
-			nums[i] = symnum(strs[i]);
+	const char* strs[] = { "one", "two", "three", "four" };
+	const int n = sizeof (strs) / sizeof (char*);
+	ushort nums[n];
+	for (int i = 0; i < n; ++i)
+		nums[i] = symnum(strs[i]);
 
-		for (int i = 0; i < n; ++i)
-			{
-			assert_eq(nums[i], symnum(strs[i]));
-			verify(symbol_existing(strs[i]));
-			verify(0 == strcmp(strs[i], symstr(nums[i])));
-			Value sym = symbol(nums[i]);
-			assert_eq(sym.gcstr(), strs[i]);
-			verify(sym.sameAs(symbol(strs[i])));
-			}
-		}
-	TEST(1, empty_string)
+	for (int i = 0; i < n; ++i)
 		{
-		auto s = _strdup("");
-		auto t = _strdup("");
-
-		Value x = symbol(s);
-		Value y = symbol(t);
-		assert_eq(x.ptr(), y.ptr());
+		assert_eq(nums[i], symnum(strs[i]));
+		verify(symbol_existing(strs[i]));
+		verify(0 == strcmp(strs[i], symstr(nums[i])));
+		Value sym = symbol(nums[i]);
+		assert_eq(sym.gcstr(), strs[i]);
+		verify(sym.sameAs(symbol(strs[i])));
 		}
-	};
-REGISTER(test_symbols);
+	}
+
+TEST(symbols_empty_string)
+	{
+	auto s = _strdup("");
+	auto t = _strdup("");
+
+	Value x = symbol(s);
+	Value y = symbol(t);
+	assert_eq(x.ptr(), y.ptr());
+	}

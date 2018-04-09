@@ -21,68 +21,46 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "except.h"
+
+// tests ------------------------------------------------------------
+
+#define TEST(name) \
+	static void test_##name(); \
+	static Test testcase##name(#name, test_##name); \
+	static void test_##name()
+
+using Tfn = void(*)();
+
+struct Test
+	{
+	Test(const char* name, Tfn f);
+
+	const char* name;
+	Tfn fn;
+	};
+
 class TestObserver
 	{
 public:
 	virtual ~TestObserver() = default;
-	virtual void start_group(const char* group)
+	virtual void start_test(const char* test)
 		{ }
-	virtual void start_test(const char* group, const char* test)
-		{ }
-	virtual void end_test(const char* group, const char* test, const char* error)
-		{ }
-	virtual void end_group(const char* group, int nfailed)
+	virtual void end_test(const char* test, const char* error)
 		{ }
 	virtual void end_all(int nfailed)
 		{ }
 	};
 
-#define BASE(i) \
-	virtual const char* testname##i() { return 0; } \
-	virtual void test##i() { }
+int run_tests(TestObserver& to, const char* prefix);
 
-class Tests
-	{
-public:
-	virtual ~Tests() = default;
-	int runtests(TestObserver&);
-	BASE(0) BASE(1) BASE(2) BASE(3) BASE(4) BASE(5)
-	BASE(6) BASE(7) BASE(8) BASE(9) BASE(10)
-	const char* group = 0;
-	};
+// assertions -------------------------------------------------------
 
-#define TEST(i,name) \
-	const char* testname##i() override { return #name; } \
-	void test##i() override
-
-#define TESTS(i,name) \
-	const char* testname##i() override { return #name; } \
-	void test##i() override { name t; t.group = #name; t.run(); }
-
-class TestRegister
-	{
-public:
-	TestRegister(const char* n, Tests* (*f)());
-	static int runtest(const char* name, TestObserver&);
-	static int runall(TestObserver&);
-private:
-	static TestRegister* findtest(const char* name);
-	const char* name;
-	Tests* (*makefn)();
-	};
-
-#define REGISTER(name) \
-	static Tests* make_##name() { auto t = new (name); t->group = #name; return t; } \
-	static TestRegister register_##name(#name, make_##name)
-
-// ReSharper disable once CppUnusedIncludeDirective
-#include "except.h"
-
-// WARNING: error evaluates args a second time
+// WARNING: error message evaluates args a second time
 #define assert_eq(x, y) except_if(! ((x) == (y)), \
 	"error: " << #x << " != " << #y << " (" << (x) << " != " << (y) << ")")
 
-// WARNING: error evaluates args a second time
+// WARNING: error message evaluates args a second time
 #define assert_neq(x, y) except_if((x) == (y), \
 	"error: " << #x << " == " << #y << " (" << (x) << " == " << (y) << ")")
 
@@ -94,11 +72,13 @@ private:
 		except_err("error: expected exception from " #expr); \
 	} while(false)
 
+// benchmarks -------------------------------------------------------
+
 using Bfn = void(*)(long long);
 
 #define BENCHMARK(name) \
 	void bench_##name(long long nreps); \
-	static Benchmark tmp##name(#name, bench_##name); \
+	static Benchmark benchmark##name(#name, bench_##name); \
 	void bench_##name(long long nreps)
 
 struct Benchmark
@@ -108,8 +88,5 @@ struct Benchmark
 	const char* name;
 	Bfn fn;
 	};
-
-extern Benchmark* benchmarks[];
-extern int n_benchmarks;
 
 void run_benchmarks(Ostream& os, const char* prefix);

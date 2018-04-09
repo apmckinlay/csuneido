@@ -3763,36 +3763,7 @@ d();  } }\n\
 					 16\n" }
 	};
 
-class test_compile : public Tests
-	{
-	TEST(0, compile)
-		{
-		int i;
-		for (i = 0; i < sizeof cmpltests / sizeof (Cmpltest); ++i)
-			process(i, cmpltests[i].query, cmpltests[i].result);
-		}
-
-	void process(int i, const char* code, const char* result);
-	TEST(1, function)
-		{
-		const char* s = "function (a, b = 0, c = false, d = 123, e = 'hello') { }";
-		SuFunction* fn = force<SuFunction*>(compile(s));
-		verify(fn->nparams == 5);
-		verify(fn->ndefaults == 4);
-		verify(fn->locals[0] == symnum("a"));
-		verify(fn->locals[1] == symnum("b"));
-		verify(fn->locals[2] == symnum("c"));
-		verify(fn->locals[3] == symnum("d"));
-		verify(fn->locals[4] == symnum("e"));
-		verify(fn->literals[0] == SuZero);
-		verify(fn->literals[1] == SuFalse);
-		verify(fn->literals[2] == 123);
-		verify(fn->literals[3] == Value("hello"));
-		}
-	};
-REGISTER(test_compile);
-
-void test_compile::process(int i, const char* code, const char* result)
+static void process(int i, const char* code, const char* result)
 	{
 	char buf[4000];
 	strcpy(buf, "function () {\n");
@@ -3814,17 +3785,36 @@ void test_compile::process(int i, const char* code, const char* result)
 		except(i << ": " << code << "\n\t=> " << result << "\n\t!= '" << output << "'");
 	}
 
-class test_compile2 : public Tests
+TEST(compile)
 	{
-	TEST(0, main)
-		{
-		compile("function (x) { if x\n{ } }");
-		compile("function () {\n for x in F()\n { } }");
-		compile("function () { x \n * y }");
-		compile("function () { x \n ? y : z }");
-		compile("function () { [1, x, a: y, b: 4] }");
-		compile("function () { if (A) B else C }");
-		compile("function (.x) { }");
-		}
-	};
-REGISTER(test_compile2);
+	for (int i = 0; i < sizeof cmpltests / sizeof (Cmpltest); ++i)
+		process(i, cmpltests[i].query, cmpltests[i].result);
+	}
+
+TEST(compile_function)
+	{
+	const char* s = "function (a, b = 0, c = false, d = 123, e = 'hello') { }";
+	SuFunction* fn = force<SuFunction*>(compile(s));
+	verify(fn->nparams == 5);
+	verify(fn->ndefaults == 4);
+	verify(fn->locals[0] == symnum("a"));
+	verify(fn->locals[1] == symnum("b"));
+	verify(fn->locals[2] == symnum("c"));
+	verify(fn->locals[3] == symnum("d"));
+	verify(fn->locals[4] == symnum("e"));
+	verify(fn->literals[0] == SuZero);
+	verify(fn->literals[1] == SuFalse);
+	verify(fn->literals[2] == 123);
+	verify(fn->literals[3] == Value("hello"));
+	}
+
+TEST(compile2)
+	{
+	compile("function (x) { if x\n{ } }");
+	compile("function () {\n for x in F()\n { } }");
+	compile("function () { x \n * y }");
+	compile("function () { x \n ? y : z }");
+	compile("function () { [1, x, a: y, b: 4] }");
+	compile("function () { if (A) B else C }");
+	compile("function (.x) { }");
+	}

@@ -100,18 +100,14 @@ bool Auth::auth(const gcstring& nonce, const gcstring& data)
 
 #include "testing.h"
 
-class test_auth : public Tests
+TEST(auth)
 	{
-	TEST(0, token)
-		{
-		gcstring t = Auth::token();
-		assert_eq(Auth::TOKEN_SIZE, t.size());
-		gcstring t2 = Auth::token();
-		assert_neq(t, t2);
-		verify(is_token(t));
-		verify(!is_token(t));
-		verify(is_token(t2));
-		verify(!is_token(t2));
-		}
-	};
-REGISTER(test_auth);
+	gcstring t = Auth::token();
+	assert_eq(Auth::TOKEN_SIZE, t.size());
+	gcstring t2 = Auth::token();
+	assert_neq(t, t2);
+	verify(is_token(t));
+	verify(!is_token(t));
+	verify(is_token(t2));
+	verify(!is_token(t2));
+	}

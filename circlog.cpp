@@ -84,16 +84,12 @@ static void clear()
 	std::fill(queue, queue + QSIZE, "");
 	}
 
-class test_circlog : public Tests
+TEST(circlog)
 	{
-	TEST(0, "main")
-		{
-		clear();
-		assert_eq(circ_log_get(), "");
-		circ_log("one");
-		assert_eq(circ_log_get(), "one\n");
-		circ_log("two");
-		assert_eq(circ_log_get(), "one\ntwo\n");
-		}
-	};
-REGISTER(test_circlog);
+	clear();
+	assert_eq(circ_log_get(), "");
+	circ_log("one");
+	assert_eq(circ_log_get(), "one\n");
+	circ_log("two");
+	assert_eq(circ_log_get(), "one\ntwo\n");
+	}

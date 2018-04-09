@@ -58,24 +58,22 @@ TempDest::~TempDest()
 	free();
 	}
 
+//-------------------------------------------------------------------
+
 #include "testing.h"
 
-class test_tempdest : public Tests
+TEST(tempdest)
 	{
-	TEST(0, main)
-		{
-		int orig_alloced = tempdest_inuse;
-		TempDest td;
-		td.allocadr(4000);
-		td.allocadr(4000);
-		td.free();
-		verify(tempdest_inuse == orig_alloced);
-		}
-	TEST(1, capacity)
-		{
-		TempDest td;
-		for (int i = 0; i < 100 * 1024; ++i)
-			td.alloc(4096);
-		}
-	};
-REGISTER(test_tempdest);
+	int orig_alloced = tempdest_inuse;
+	TempDest td;
+	td.allocadr(4000);
+	td.allocadr(4000);
+	td.free();
+	verify(tempdest_inuse == orig_alloced);
+	}
+TEST(tempdest_capacity)
+	{
+	TempDest td;
+	for (int i = 0; i < 100 * 1024; ++i)
+		td.alloc(4096);
+	}

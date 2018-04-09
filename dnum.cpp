@@ -24,7 +24,6 @@
 #include "ostreamstr.h"
 #include "gcstring.h"
 #include "pack.h"
-#include <climits>
 #include "except.h"
 #include <intrin.h> // for _BitScanForward/Reverse
 
@@ -918,336 +917,331 @@ Dnum Dnum::unpack(const gcstring& s)
 
 #include "testing.h"
 #include "list.h"
-#include <chrono>
 #include <utility>
 using namespace std::rel_ops;
-
-struct test_dnum : Tests
-	{
-	TEST(0, "constructors")
-		{
-		// int
-		assert_eq(Dnum::ZERO.show(), "z0e0");
-		assert_eq(Dnum::ONE.show(), "+.1e1");
-		assert_eq(Dnum(0), Dnum::ZERO);
-		assert_eq(Dnum(1234).show(), "+.1234e4");
-
-		// string
-		xassert(Dnum("."));
-		xassert(Dnum("1.2.3"));
-		xassert(Dnum("1111111111111111111111")); // overflow
-		xassert(Dnum("-+1"));
-		parse("0", "z0e0");
-		parse("0.", "z0e0");
-		parse(".0", "z0e0");
-		parse("0.0", "z0e0");
-		parse("-0.0e9", "z0e0");
-		parse("9999999999999999", "+.9999999999999999e16");
-		parse("1", "+.1e1");
-		parse("1234", "+.1234e4");
-		parse(".001", "+.1e-2");
-		parse("-12.34", "-.1234e2");
-		parse("0012.3400", "+.1234e2");
-		parse("0012.3400e2", "+.1234e4");
-		parse("123000", "+.123e6");
-		parse("100.1", "+.1001e3");
-		parse("1e18", "+.1e19");
-		parse(".9e-9", "+.9e-9");
-		parse("-1e-11", "-.1e-10");
-		parse("-12.34e56", "-.1234e58");
-
-		assert_eq(Dnum("1e999"), Dnum::INF);
-		assert_eq(Dnum("1e-999"), Dnum::ZERO);
-		assert_eq(Dnum("0e999"), Dnum::ZERO);
-		}
-	static void parse(const char* s, const char* expected)
-		{
-		gcstring ns = Dnum(s).show();
-		except_if(ns != expected,
-			"parse " << s << " got " << ns << " expected " << expected);
-		}
-	TEST(1, "to string")
-		{
-		str(Dnum::ZERO, "0");
-		str(Dnum::ONE, "1");
-		str(Dnum::INF, "inf");
-		str(Dnum::MINUS_INF, "-inf");
-		str(Dnum(1234), "1234");
-		str(Dnum(-1234), "-1234");
-		str("1e9");
-		str("1.23e9");
-		str("-123.456");
-		str(".000123");
-		}
-	static void str(const Dnum dn, const char* expected)
-		{
-		char buf[Dnum::STRLEN];
-		(void) dn.tostr(buf, sizeof buf);
-		except_if(0 != strcmp(buf, expected),
-			"tostr\n" << buf << " result\n" << expected << " expected");
-		}
-	static void str(const char* s)
-		{
-		Dnum n(s);
-		str(n, s);
-		}
-
-	TEST(2, "misc")
-		{
-		assert_eq(clz64(0), 64);
-		assert_eq(clz64(0xa), 60);
-		assert_eq(clz64(0xff22334455ull), 24);
-		assert_eq(clz64(0xff22334455667788ull), 0);
-
-		assert_eq(ilog10(0), 0);
-		assert_eq(ilog10(9), 0);
-		assert_eq(ilog10(10), 1);
-		assert_eq(ilog10(99), 1);
-		assert_eq(ilog10(100), 2);
-		assert_eq(ilog10(UINT64_MAX), 19);
-		uint64_t n = 1;
-		for (int i = 0; i < 20; ++i, n *= 10)
-			assert_eq(ilog10(n), i);
-
-		assert_eq(maxShift(1), MAX_SHIFT);
-		assert_eq(maxShift(9), MAX_SHIFT);
-		assert_eq(maxShift(99), MAX_SHIFT - 1);
-		assert_eq(maxShift(999'999'999'999'999ull), 1);
-		assert_eq(maxShift(1'000'999'999'999'999ull), 0);
-		assert_eq(maxShift(9'999'999'999'999'999ull), 0);
-		assert_eq(maxShift(UINT64_MAX), 0);
-
-		// normalization
-		assert_eq(Dnum(POS, 1, 999), Dnum::INF); // exponent overflow
-		assert_eq(Dnum(NEG, 1, 999), Dnum::MINUS_INF); // exponent overflow
-		assert_eq(Dnum(POS, 1, -999), Dnum::ZERO); // exponent underflow
-		assert_eq(Dnum(NEG, 1, -999), Dnum::ZERO); // exponent underflow
-		assert_eq(Dnum("1e127"), Dnum::INF); // exponent overflow
-
-		// unary minus
-		assert_eq((-Dnum("0")).show(), "z0e0");
-		assert_eq((-Dnum("+123")).to_gcstr(), "-123");
-		assert_eq((-Dnum("-123")).to_gcstr(), "123");
-
-		// abs
-		assert_eq(Dnum("0").abs().show(), "z0e0");
-		assert_eq(Dnum("123").abs().to_gcstr(), "123");
-		assert_eq(Dnum("-123").abs().to_gcstr(), "123");
-		}
-
-	TEST(3, "cmp")
-		{
-		Dnum::cmp(Dnum("123.4"), Dnum("123.45"));
-		const char* nums[] = { "-inf", "-1e9", "-123.45", "-123", "-100", "-1e-9", 
-			"0", "1e-9", "100", "123", "123.45", "1e9", "inf" };
-		int i = 0;
-		for (auto x : nums)
-			{
-			int j = 0;
-			for (auto y : nums)
-				{
-				cmp(x, y, CMP(i, j));
-				cmp(y, x, CMP(j, i));
-				++j;
-				}
-			++i;
-			}
-		cmp(Dnum(POS, 1000, 0), Dnum(POS, 1, 3), 0);
-		}
-	template <typename X, typename Y>
-	static void cmp(X x_, Y y_, int c)
-		{
-		Dnum x(x_);
-		Dnum y(y_);
-		except_if(Dnum::cmp(x, y) != (c),
-			(x) << " <=> " << (y) << " = " << Dnum::cmp(x, y));
-		}
-
-	TEST(4, "mul")
-		{
-		// special cases (no actual math)
-		mul(0, 0, 0);
-		mul(0, 123, 0);
-		mul(0, "inf", 0);
-		mul("inf", 123, "inf");
-		mul("inf", "inf", "inf");
-
-		// fast, single multiply
-		const int nums[] = { 0, 1, -1, 100, 1234, 9999, -1234 };
-		for (auto x : nums)
-			for (auto y : nums)
-				mul(x, y, x * y);
-		Dnum z("4294967295");
-		mul(z, z, "1844674406511962e4");
-
-		mul("112233445566", "112233445566", "1259634630361629e7");
-
-		mul("1111111111111111", "1111111111111111", "1.234567901234568e30");
-
-		mul(Dnum::MAX_INT, Dnum::MAX_INT, "9.999999999999998e31");
-		mul(Dnum::MAX_INT, Dnum::ONE, Dnum::MAX_INT);
-		mul(Dnum::MAX_INT, "1111111111111111", "1.111111111111111e31");
-	
-		mul("2e99", "2e99", "inf"); // exp overflow
-		}
-	template <typename X, typename Y, typename E>
-	static void mul(X x, Y y, E expected)
-		{
-		Dnum dx(x);
-		Dnum dy(y);
-		Dnum e(expected);
-		Dnum p = dx * dy;
-		except_if(!almostSame(p, e),
-			dx << " * " << dy << "\n" << p << " result\n" << e << " expected");
-		p = dy * dx;
-		except_if(!almostSame(p, e),
-			dy << " * " << dx << "\n" << p << " result\n" << e << " expected");
-		}
-
-	TEST(5, "div")
-		{
-		// ctz
-		assert_eq(ctz32(0), 32);
-		assert_eq(ctz32(0xfe8), 3);
-		assert_eq(ctz32(1), 0);
-
-		// minCoef
-		min(123, 123, 0);
-		min(123000, 123, 3);
-		min(1024, 1024, 0);
-		min(1000001, 1000001, 0);
-		for (int i = 0; i < 19; ++i)
-			min(pow10[i], 1, i);
-
-		// special cases (no actual math)
-		div("0", "0", "0");
-		div("123", "0", "inf");
-		div("123", "inf", "0");
-		div("inf", "123", "inf");
-		div("inf", "inf", "1");
-		div("123456", "1e3", "123.456");
-
-		// divides evenly
-		div("123", "123", "1");
-		div("4444", "2222", "2");
-		div("2222", "4444", ".5");
-		div("1", "16", ".0625");
-		div("123000", ".000123", "1e9");
-
-		// long division
-		div("1", "3", ".3333333333333333");
-		div("2", "3", ".6666666666666666");
-		div("11", "17", ".6470588235294118");
-		div("1234567890123456", "9876543210987654", ".1249999988609374");
-		div("1", "3333333333333333", "3e-16");
-		div("12", ".4444444444444444", "27");
-
-		// exp overflow
-		div("1e99", "1e-99", "inf");
-		div("1e-99", "1e99", "0");
-		}
-	static void min(uint64_t coef, uint64_t out, int exp)
-		{
-		int e = minCoef(coef, 0);
-		assert_eq(e, exp);
-		assert_eq(coef, out);
-		}
-	static void div(const char* x, const char* y, const char* expected)
-		{
-		Dnum q = Dnum(x) / Dnum(y);
-		Dnum e(expected);
-		except_if(! almostSame(q, e),
-			x << " / " << y << "\n" << q << " result\n" << e << " expected");
-		}
-
-	TEST(6, "add/sub")
-		{
-		// special cases
-		addsub(123, 0, 123);
-		addsub("inf", "-inf", 0);
-		addsub("inf", 123, "inf");
-		addsub("-inf", 123, "-inf");
-		assert_eq(Dnum::INF + Dnum::INF, Dnum::INF);
-		assert_eq(Dnum::MINUS_INF + Dnum::MINUS_INF, Dnum::MINUS_INF);
-		assert_eq(Dnum::INF - Dnum::INF, Dnum::ZERO);
-		assert_eq(Dnum::MINUS_INF - Dnum::MINUS_INF, Dnum::ZERO);
-
-		const int nums[] = { 0, 1, 12, 99, 100, 123, 1000, 1234, 9999 };
-		for (auto x : nums)
-			for (auto y : nums)
-				{
-				addsub(x, y, x + y);
-				addsub(x, -y, x - y);
-				}
-
-		addsub("1e4", "2e2", 10200); // align
-		addsub("2e4", "1e2", 20100); // align
-		addsub("1e30", 999, "1e30"); // can't align
-		addsub("1e15", 3, "1000000000000003");
-		addsub("1e16", 33, "10000000000000030"); // dropped digit
-		addsub("1e16", 37, "10000000000000040"); // round dropped digit
-		addsub("1111111111111111", "2222222222222222e-4", "1111333333333333");
-		addsub("1111111111111111", "6666666666666666e-4", "1111777777777778");
-
-		assert_eq(Dnum("7777777777777777") + Dnum("7777777777777777"),
-			Dnum("15555555555555550")); // overflow handled by normalization
-		assert_eq(Dnum::MAX_INT + Dnum::MAX_INT, Dnum("2e16")); // overflow
-		}
-	template <typename X, typename Y, typename Z>
-	static void addsub(X x_, Y y_, Z sum_)
-		{
-		Dnum x(x_);
-		Dnum y(y_);
-		Dnum sum(sum_);
-		Dnum z = x + y; // add
-		except_if(z != sum,
-			x << " + " << y << "\n" << z << " result\n" << sum << " expected");
-		z = y + x; // add reverse
-		except_if(z != sum,
-			y << " + " << x << "\n" << z << " result\n" << sum << " expected");
-		z = -x + -y; // add negatives
-		except_if(z != -sum,
-			-x << " + " << -y << "\n" << z << " result\n" << -sum << " expected");
-		z = sum - y; // subtract
-		except_if(z != x,
-			sum << " - " << y << "\n" << z << " result\n" << x << " expected");
-		}
-
-	TEST(7, "packing")
-		{
-		const char* nums[] = { "-inf", "-1e9", "-123.45", "-123", "-100",
-			"-1e-9", "0", "1e-9", ".123", "100", "123", "123.45", "98765432", 
-			"98765432.12345678", "1e9", "inf" };
-		List<gcstring> packed;
-		for (auto s : nums)
-			{
-			Dnum dn(s);
-			int n = dn.packsize();
-			verify(n < 20);
-			char buf[20];
-			dn.pack(buf);
-			gcstring p(buf, n);
-			packed.add(p);
-			Dnum d2 = Dnum::unpack(p);
-			assert_eq(d2, dn);
-			}
-		for (int i = 0; i < packed.size(); ++i)
-			for (int j = 0; j < packed.size(); ++j)
-				except_if(CMP(packed[i], packed[j]) != CMP(i, j),
-					"packed " << nums[i] << " <=> " << nums[j]);
-		}
 
 #define TRUNC(n) ((n) / 10)
 #define ROUND(n) (((n) + 5) / 10)
 
-	// for tests, rounds off last digit
-	static bool almostSame(const Dnum& x, const Dnum& y)
+// for tests, rounds off last digit
+static bool almostSame(const Dnum& x, const Dnum& y)
+	{
+	return x.sign == y.sign && x.exp == y.exp &&
+		(TRUNC(x.coef) == TRUNC(y.coef) || ROUND(x.coef) == ROUND(y.coef));
+	}
+
+static void parse(const char* s, const char* expected)
+	{
+	gcstring ns = Dnum(s).show();
+	except_if(ns != expected,
+		"parse " << s << " got " << ns << " expected " << expected);
+	}
+TEST(dnum_constructors)
+	{
+	// int
+	assert_eq(Dnum::ZERO.show(), "z0e0");
+	assert_eq(Dnum::ONE.show(), "+.1e1");
+	assert_eq(Dnum(0), Dnum::ZERO);
+	assert_eq(Dnum(1234).show(), "+.1234e4");
+
+	// string
+	xassert(Dnum("."));
+	xassert(Dnum("1.2.3"));
+	xassert(Dnum("1111111111111111111111")); // overflow
+	xassert(Dnum("-+1"));
+	parse("0", "z0e0");
+	parse("0.", "z0e0");
+	parse(".0", "z0e0");
+	parse("0.0", "z0e0");
+	parse("-0.0e9", "z0e0");
+	parse("9999999999999999", "+.9999999999999999e16");
+	parse("1", "+.1e1");
+	parse("1234", "+.1234e4");
+	parse(".001", "+.1e-2");
+	parse("-12.34", "-.1234e2");
+	parse("0012.3400", "+.1234e2");
+	parse("0012.3400e2", "+.1234e4");
+	parse("123000", "+.123e6");
+	parse("100.1", "+.1001e3");
+	parse("1e18", "+.1e19");
+	parse(".9e-9", "+.9e-9");
+	parse("-1e-11", "-.1e-10");
+	parse("-12.34e56", "-.1234e58");
+
+	assert_eq(Dnum("1e999"), Dnum::INF);
+	assert_eq(Dnum("1e-999"), Dnum::ZERO);
+	assert_eq(Dnum("0e999"), Dnum::ZERO);
+	}
+
+static void str(const Dnum dn, const char* expected)
+	{
+	char buf[Dnum::STRLEN];
+	(void) dn.tostr(buf, sizeof buf);
+	except_if(0 != strcmp(buf, expected),
+		"tostr\n" << buf << " result\n" << expected << " expected");
+	}
+static void str(const char* s)
+	{
+	Dnum n(s);
+	str(n, s);
+	}
+TEST(dnum_tostr)
+	{
+	str(Dnum::ZERO, "0");
+	str(Dnum::ONE, "1");
+	str(Dnum::INF, "inf");
+	str(Dnum::MINUS_INF, "-inf");
+	str(Dnum(1234), "1234");
+	str(Dnum(-1234), "-1234");
+	str("1e9");
+	str("1.23e9");
+	str("-123.456");
+	str(".000123");
+	}
+
+TEST(dnum_misc)
+	{
+	assert_eq(clz64(0), 64);
+	assert_eq(clz64(0xa), 60);
+	assert_eq(clz64(0xff22334455ull), 24);
+	assert_eq(clz64(0xff22334455667788ull), 0);
+
+	assert_eq(ilog10(0), 0);
+	assert_eq(ilog10(9), 0);
+	assert_eq(ilog10(10), 1);
+	assert_eq(ilog10(99), 1);
+	assert_eq(ilog10(100), 2);
+	assert_eq(ilog10(UINT64_MAX), 19);
+	uint64_t n = 1;
+	for (int i = 0; i < 20; ++i, n *= 10)
+		assert_eq(ilog10(n), i);
+
+	assert_eq(maxShift(1), MAX_SHIFT);
+	assert_eq(maxShift(9), MAX_SHIFT);
+	assert_eq(maxShift(99), MAX_SHIFT - 1);
+	assert_eq(maxShift(999'999'999'999'999ull), 1);
+	assert_eq(maxShift(1'000'999'999'999'999ull), 0);
+	assert_eq(maxShift(9'999'999'999'999'999ull), 0);
+	assert_eq(maxShift(UINT64_MAX), 0);
+
+	// normalization
+	assert_eq(Dnum(POS, 1, 999), Dnum::INF); // exponent overflow
+	assert_eq(Dnum(NEG, 1, 999), Dnum::MINUS_INF); // exponent overflow
+	assert_eq(Dnum(POS, 1, -999), Dnum::ZERO); // exponent underflow
+	assert_eq(Dnum(NEG, 1, -999), Dnum::ZERO); // exponent underflow
+	assert_eq(Dnum("1e127"), Dnum::INF); // exponent overflow
+
+	// unary minus
+	assert_eq((-Dnum("0")).show(), "z0e0");
+	assert_eq((-Dnum("+123")).to_gcstr(), "-123");
+	assert_eq((-Dnum("-123")).to_gcstr(), "123");
+
+	// abs
+	assert_eq(Dnum("0").abs().show(), "z0e0");
+	assert_eq(Dnum("123").abs().to_gcstr(), "123");
+	assert_eq(Dnum("-123").abs().to_gcstr(), "123");
+	}
+
+template <typename X, typename Y>
+static void cmp(X x_, Y y_, int c)
+	{
+	Dnum x(x_);
+	Dnum y(y_);
+	except_if(Dnum::cmp(x, y) != (c),
+		(x) << " <=> " << (y) << " = " << Dnum::cmp(x, y));
+	}
+TEST(dnum_cmp)
+	{
+	Dnum::cmp(Dnum("123.4"), Dnum("123.45"));
+	const char* nums[] = { "-inf", "-1e9", "-123.45", "-123", "-100", "-1e-9", 
+		"0", "1e-9", "100", "123", "123.45", "1e9", "inf" };
+	int i = 0;
+	for (auto x : nums)
 		{
-		return x.sign == y.sign && x.exp == y.exp &&
-			(TRUNC(x.coef) == TRUNC(y.coef) || ROUND(x.coef) == ROUND(y.coef));
+		int j = 0;
+		for (auto y : nums)
+			{
+			cmp(x, y, CMP(i, j));
+			cmp(y, x, CMP(j, i));
+			++j;
+			}
+		++i;
 		}
-	};
-	REGISTER(test_dnum);
+	}
+
+template <typename X, typename Y, typename E>
+static void mul(X x, Y y, E expected)
+	{
+	Dnum dx(x);
+	Dnum dy(y);
+	Dnum e(expected);
+	Dnum p = dx * dy;
+	except_if(!almostSame(p, e),
+		dx << " * " << dy << "\n" << p << " result\n" << e << " expected");
+	p = dy * dx;
+	except_if(!almostSame(p, e),
+		dy << " * " << dx << "\n" << p << " result\n" << e << " expected");
+	}
+TEST(dnum_mul)
+	{
+	// special cases (no actual math)
+	mul(0, 0, 0);
+	mul(0, 123, 0);
+	mul(0, "inf", 0);
+	mul("inf", 123, "inf");
+	mul("inf", "inf", "inf");
+
+	// fast, single multiply
+	const int nums[] = { 0, 1, -1, 100, 1234, 9999, -1234 };
+	for (auto x : nums)
+		for (auto y : nums)
+			mul(x, y, x * y);
+	Dnum z("4294967295");
+	mul(z, z, "1844674406511962e4");
+
+	mul("112233445566", "112233445566", "1259634630361629e7");
+
+	mul("1111111111111111", "1111111111111111", "1.234567901234568e30");
+
+	mul(Dnum::MAX_INT, Dnum::MAX_INT, "9.999999999999998e31");
+	mul(Dnum::MAX_INT, Dnum::ONE, Dnum::MAX_INT);
+	mul(Dnum::MAX_INT, "1111111111111111", "1.111111111111111e31");
+	
+	mul("2e99", "2e99", "inf"); // exp overflow
+	}
+
+static void min(uint64_t coef, uint64_t out, int exp)
+	{
+	int e = minCoef(coef, 0);
+	assert_eq(e, exp);
+	assert_eq(coef, out);
+	}
+static void div(const char* x, const char* y, const char* expected)
+	{
+	Dnum q = Dnum(x) / Dnum(y);
+	Dnum e(expected);
+	except_if(!almostSame(q, e),
+		x << " / " << y << "\n" << q << " result\n" << e << " expected");
+	}
+TEST(dnum_div)
+	{
+	// ctz
+	assert_eq(ctz32(0), 32);
+	assert_eq(ctz32(0xfe8), 3);
+	assert_eq(ctz32(1), 0);
+
+	// minCoef
+	min(123, 123, 0);
+	min(123000, 123, 3);
+	min(1024, 1024, 0);
+	min(1000001, 1000001, 0);
+	for (int i = 0; i < 19; ++i)
+		min(pow10[i], 1, i);
+
+	// special cases (no actual math)
+	div("0", "0", "0");
+	div("123", "0", "inf");
+	div("123", "inf", "0");
+	div("inf", "123", "inf");
+	div("inf", "inf", "1");
+	div("123456", "1e3", "123.456");
+
+	// divides evenly
+	div("123", "123", "1");
+	div("4444", "2222", "2");
+	div("2222", "4444", ".5");
+	div("1", "16", ".0625");
+	div("123000", ".000123", "1e9");
+
+	// long division
+	div("1", "3", ".3333333333333333");
+	div("2", "3", ".6666666666666666");
+	div("11", "17", ".6470588235294118");
+	div("1234567890123456", "9876543210987654", ".1249999988609374");
+	div("1", "3333333333333333", "3e-16");
+	div("12", ".4444444444444444", "27");
+
+	// exp overflow
+	div("1e99", "1e-99", "inf");
+	div("1e-99", "1e99", "0");
+	}
+
+template <typename X, typename Y, typename Z>
+static void addsub(X x_, Y y_, Z sum_)
+	{
+	Dnum x(x_);
+	Dnum y(y_);
+	Dnum sum(sum_);
+	Dnum z = x + y; // add
+	except_if(z != sum,
+		x << " + " << y << "\n" << z << " result\n" << sum << " expected");
+	z = y + x; // add reverse
+	except_if(z != sum,
+		y << " + " << x << "\n" << z << " result\n" << sum << " expected");
+	z = -x + -y; // add negatives
+	except_if(z != -sum,
+		-x << " + " << -y << "\n" << z << " result\n" << -sum << " expected");
+	z = sum - y; // subtract
+	except_if(z != x,
+		sum << " - " << y << "\n" << z << " result\n" << x << " expected");
+	}
+TEST(dnum_addsub)
+	{
+	// special cases
+	addsub(123, 0, 123);
+	addsub("inf", "-inf", 0);
+	addsub("inf", 123, "inf");
+	addsub("-inf", 123, "-inf");
+	assert_eq(Dnum::INF + Dnum::INF, Dnum::INF);
+	assert_eq(Dnum::MINUS_INF + Dnum::MINUS_INF, Dnum::MINUS_INF);
+	assert_eq(Dnum::INF - Dnum::INF, Dnum::ZERO);
+	assert_eq(Dnum::MINUS_INF - Dnum::MINUS_INF, Dnum::ZERO);
+
+	const int nums[] = { 0, 1, 12, 99, 100, 123, 1000, 1234, 9999 };
+	for (auto x : nums)
+		for (auto y : nums)
+			{
+			addsub(x, y, x + y);
+			addsub(x, -y, x - y);
+			}
+
+	addsub("1e4", "2e2", 10200); // align
+	addsub("2e4", "1e2", 20100); // align
+	addsub("1e30", 999, "1e30"); // can't align
+	addsub("1e15", 3, "1000000000000003");
+	addsub("1e16", 33, "10000000000000030"); // dropped digit
+	addsub("1e16", 37, "10000000000000040"); // round dropped digit
+	addsub("1111111111111111", "2222222222222222e-4", "1111333333333333");
+	addsub("1111111111111111", "6666666666666666e-4", "1111777777777778");
+
+	assert_eq(Dnum("7777777777777777") + Dnum("7777777777777777"),
+		Dnum("15555555555555550")); // overflow handled by normalization
+	assert_eq(Dnum::MAX_INT + Dnum::MAX_INT, Dnum("2e16")); // overflow
+	}
+
+TEST(dnum_packing)
+	{
+	const char* nums[] = { "-inf", "-1e9", "-123.45", "-123", "-100",
+		"-1e-9", "0", "1e-9", ".123", "100", "123", "123.45", "98765432", 
+		"98765432.12345678", "1e9", "inf" };
+	List<gcstring> packed;
+	for (auto s : nums)
+		{
+		Dnum dn(s);
+		int n = dn.packsize();
+		verify(n < 20);
+		char buf[20];
+		dn.pack(buf);
+		gcstring p(buf, n);
+		packed.add(p);
+		Dnum d2 = Dnum::unpack(p);
+		assert_eq(d2, dn);
+		}
+	for (int i = 0; i < packed.size(); ++i)
+		for (int j = 0; j < packed.size(); ++j)
+			except_if(CMP(packed[i], packed[j]) != CMP(i, j),
+				"packed " << nums[i] << " <=> " << nums[j]);
+	}
 
 BENCHMARK(dnum_div)
 	{

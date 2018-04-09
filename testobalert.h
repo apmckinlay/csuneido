@@ -35,19 +35,19 @@ public:
 		OstreamFile os("test.log", "w"); // truncate
 		}
 
-	void start_test(const char* group, const char* test) override
+	void start_test(const char* test) override
 		{
 		OstreamFile os("test.log", "a");
-		os << group << ' ' << test << endl;
+		os << test << endl;
 		}
 
-	void end_test(const char* group, const char* test, const char* error) override
+	void end_test(const char* test, const char* error) override
 		{
 		if (error)
 			{
 			OstreamFile os("test.log", "a");
 			os << error << endl;
-			errs << group << ' ' << test << " FAILED " << error << endl;
+			errs << test << " FAILED: " << error << endl;
 			}
 		++ntests;
 		}

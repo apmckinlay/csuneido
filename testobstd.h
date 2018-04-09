@@ -30,22 +30,16 @@ public:
 	TestObserverStd() : ntests(0)
 		{ }
 
-	void start_group(const char* group) override
-		{ cout << group << endl; }
-
-	void start_test(const char* group, const char* test) override
+	void start_test(const char* test) override
 		{ cout << "    " << test << " "; cout.flush(); }
 
-	void end_test(const char* group, const char* test, const char* error) override
+	void end_test(const char* test, const char* error) override
 		{
 		if (error)
 			cout << "FAILED " << error;
 		cout << endl;
 		++ntests;
 		}
-
-	void end_group(const char* group, int nfailed) override
-		{ }
 
 	void end_all(int nfailed) override
 		{

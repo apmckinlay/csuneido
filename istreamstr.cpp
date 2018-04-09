@@ -63,26 +63,21 @@ int IstreamStr::read_(char* buf, int n)
 	{ return imp->read(buf, n); }
 
 #include "testing.h"
-#include "except.h"
 
-class test_istreamstr : public Tests
+TEST(istreamstr)
 	{
-	TEST(0, main)
-		{
-		IstreamStr iss("hello\nworld\n");
-		const int bufsize = 20;
-		char buf[bufsize];
-		iss.getline(buf, bufsize);
-		verify(iss);
-		verify(0 == strcmp("hello", buf));
-		verify('w' == iss.peek());
-		verify('w' == iss.get());
-		iss.putback('W');
-		iss.getline(buf, bufsize);
-		verify(iss);
-		verify(0 == strcmp("World", buf));
-		iss.getline(buf, bufsize);
-		verify(iss.eof());
-		}
-	};
-REGISTER(test_istreamstr);
+	IstreamStr iss("hello\nworld\n");
+	const int bufsize = 20;
+	char buf[bufsize];
+	iss.getline(buf, bufsize);
+	verify(iss);
+	verify(0 == strcmp("hello", buf));
+	verify('w' == iss.peek());
+	verify('w' == iss.get());
+	iss.putback('W');
+	iss.getline(buf, bufsize);
+	verify(iss);
+	verify(0 == strcmp("World", buf));
+	iss.getline(buf, bufsize);
+	verify(iss.eof());
+	}

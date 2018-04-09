@@ -1304,7 +1304,10 @@ Expr* QueryParser::term()
 	return t;
 	}
 
+// tests ------------------------------------------------------------
+
 #include "testing.h"
+#include "tempdb.h"
 
 struct Qptest
 	{
@@ -1312,166 +1315,161 @@ struct Qptest
 	const char* result;
 	};
 
-static Qptest qptests[] =
-	{
-		{ "inven", "inven" },
-		{ "inven sort item", "inven SORT (item)" },
-		{ "inven sort qty", "inven SORT (qty)" },
+static Qptest qptests[] = {
+	{ "inven", "inven" },
+	{ "inven sort item", "inven SORT (item)" },
+	{ "inven sort qty", "inven SORT (qty)" },
 
-		{ "trans union hist", "(trans) UNION-LOOKUP (hist) " },
-		{ "trans union hist sort item", "(trans) UNION-LOOKUP (hist)  SORT (item)" },
-		{ "trans union hist sort date", "(trans) UNION-LOOKUP (hist)  SORT (date)" },
+	{ "trans union hist", "(trans) UNION-LOOKUP (hist) " },
+	{ "trans union hist sort item", "(trans) UNION-LOOKUP (hist)  SORT (item)" },
+	{ "trans union hist sort date", "(trans) UNION-LOOKUP (hist)  SORT (date)" },
 
-		{ "trans join inven", "(trans) JOIN n:1 on (item) (inven)" },
-		{ "trans join inven sort item", "(trans) JOIN n:1 on (item) (inven) SORT (item)" },
-		{ "trans join inven sort date", "(trans) JOIN n:1 on (item) (inven) SORT (date)" },
+	{ "trans join inven", "(trans) JOIN n:1 on (item) (inven)" },
+	{ "trans join inven sort item", "(trans) JOIN n:1 on (item) (inven) SORT (item)" },
+	{ "trans join inven sort date", "(trans) JOIN n:1 on (item) (inven) SORT (date)" },
 
-		{ "trans join customer", "(trans) JOIN n:1 on (id) (customer)" },
-		{ "trans join customer sort id", "(trans) JOIN n:1 on (id) (customer) SORT (id)" },
-		{ "trans join customer sort name", "(trans) JOIN n:1 on (id) (customer) SORT (name)" },
-		{ "trans join customer join inven", "((trans) JOIN n:1 on (id) (customer)) JOIN n:1 on (item) (inven)" },
+	{ "trans join customer", "(trans) JOIN n:1 on (id) (customer)" },
+	{ "trans join customer sort id", "(trans) JOIN n:1 on (id) (customer) SORT (id)" },
+	{ "trans join customer sort name", "(trans) JOIN n:1 on (id) (customer) SORT (name)" },
+	{ "trans join customer join inven", "((trans) JOIN n:1 on (id) (customer)) JOIN n:1 on (item) (inven)" },
 
-		{ "trans join inven join customer", "((trans) JOIN n:1 on (item) (inven)) JOIN n:1 on (id) (customer)" },
+	{ "trans join inven join customer", "((trans) JOIN n:1 on (item) (inven)) JOIN n:1 on (id) (customer)" },
 
-		{ "inven join trans join customer", "((inven) JOIN 1:n on (item) (trans)) JOIN n:1 on (id) (customer)" },
-		{ "customer join trans join inven", "((customer) JOIN 1:n on (id) (trans)) JOIN n:1 on (item) (inven)" },
+	{ "inven join trans join customer", "((inven) JOIN 1:n on (item) (trans)) JOIN n:1 on (id) (customer)" },
+	{ "customer join trans join inven", "((customer) JOIN 1:n on (id) (trans)) JOIN n:1 on (item) (inven)" },
 
-		{ "trans union hist join inven", "((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (item) (inven)" },
-		{ "trans union hist join inven sort item", "((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (item) (inven) SORT (item)" },
-		{ "trans union hist join inven sort date", "((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (item) (inven) SORT (date)" },
+	{ "trans union hist join inven", "((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (item) (inven)" },
+	{ "trans union hist join inven sort item", "((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (item) (inven) SORT (item)" },
+	{ "trans union hist join inven sort date", "((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (item) (inven) SORT (date)" },
 
-		{ "trans union hist join customer", "((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (id) (customer)" },
-		{ "trans union hist join customer sort item", "((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (id) (customer) SORT (item)"  },
-		{ "trans union hist join customer sort id", "((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (id) (customer) SORT (id)" },
-		{ "trans union hist join customer join inven", "(((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (id) (customer)) JOIN n:1 on (item) (inven)" },
-		{ "trans union hist join customer join inven sort item", "(((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (id) (customer)) JOIN n:1 on (item) (inven) SORT (item)" },
-		{ "trans union hist join customer join inven sort date", "(((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (id) (customer)) JOIN n:1 on (item) (inven) SORT (date)" },
+	{ "trans union hist join customer", "((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (id) (customer)" },
+	{ "trans union hist join customer sort item", "((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (id) (customer) SORT (item)"  },
+	{ "trans union hist join customer sort id", "((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (id) (customer) SORT (id)" },
+	{ "trans union hist join customer join inven", "(((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (id) (customer)) JOIN n:1 on (item) (inven)" },
+	{ "trans union hist join customer join inven sort item", "(((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (id) (customer)) JOIN n:1 on (item) (inven) SORT (item)" },
+	{ "trans union hist join customer join inven sort date", "(((trans) UNION-LOOKUP (hist) ) JOIN n:1 on (id) (customer)) JOIN n:1 on (item) (inven) SORT (date)" },
 
-		{ "inven where item", "inven WHERE item" },
-		{ "trans union hist where item", "(trans) UNION-LOOKUP (hist)  WHERE item" },
+	{ "inven where item", "inven WHERE item" },
+	{ "trans union hist where item", "(trans) UNION-LOOKUP (hist)  WHERE item" },
 
-		{ "trans join customer where name", "(trans) JOIN n:1 on (id) (customer) WHERE name" },
-		{ "trans join customer where date", "(trans) JOIN n:1 on (id) (customer) WHERE date" },
-		{ "trans join customer where id", "(trans) JOIN n:1 on (id) (customer) WHERE id" },
+	{ "trans join customer where name", "(trans) JOIN n:1 on (id) (customer) WHERE name" },
+	{ "trans join customer where date", "(trans) JOIN n:1 on (id) (customer) WHERE date" },
+	{ "trans join customer where id", "(trans) JOIN n:1 on (id) (customer) WHERE id" },
 
-		{ "hist union trans where date = 1", "(hist) UNION-LOOKUP (trans)  WHERE (date == 1)" },
-		{ "hist join inven where date = 1", "(hist) JOIN n:1 on (item) (inven) WHERE (date == 1)" },
-		{ "hist join inven where qty = 1", "(hist) JOIN n:1 on (item) (inven) WHERE (qty == 1)" },
-		{ "hist join inven where date < qty", "(hist) JOIN n:1 on (item) (inven) WHERE (date < qty)" },
-		{ "hist join inven where date = 1 and qty = 2 and date < qty", "(hist) JOIN n:1 on (item) (inven) WHERE ((date == 1) and (qty == 2) and (date < qty))" },
+	{ "hist union trans where date = 1", "(hist) UNION-LOOKUP (trans)  WHERE (date == 1)" },
+	{ "hist join inven where date = 1", "(hist) JOIN n:1 on (item) (inven) WHERE (date == 1)" },
+	{ "hist join inven where qty = 1", "(hist) JOIN n:1 on (item) (inven) WHERE (qty == 1)" },
+	{ "hist join inven where date < qty", "(hist) JOIN n:1 on (item) (inven) WHERE (date < qty)" },
+	{ "hist join inven where date = 1 and qty = 2 and date < qty", "(hist) JOIN n:1 on (item) (inven) WHERE ((date == 1) and (qty == 2) and (date < qty))" },
 
-		{ "inven where item = 1 where qty = 2", "inven WHERE (item == 1) WHERE (qty == 2)" },
-		{ "inven where item = 1 join trans where qty = 2", "(inven WHERE (item == 1)) JOIN 1:n on (item) (trans) WHERE (qty == 2)" },
+	{ "inven where item = 1 where qty = 2", "inven WHERE (item == 1) WHERE (qty == 2)" },
+	{ "inven where item = 1 join trans where qty = 2", "(inven WHERE (item == 1)) JOIN 1:n on (item) (trans) WHERE (qty == 2)" },
 
-		{ "hist project id,date", "hist PROJECT (id,date)" },
-		{ "hist project date", "hist PROJECT (date)" },
-		{ "hist project id", "hist PROJECT (id)" },
-		{ "hist project date,cost sort cost", "hist PROJECT (date,cost) SORT (cost)" },
+	{ "hist project id,date", "hist PROJECT (id,date)" },
+	{ "hist project date", "hist PROJECT (date)" },
+	{ "hist project id", "hist PROJECT (id)" },
+	{ "hist project date,cost sort cost", "hist PROJECT (date,cost) SORT (cost)" },
 
-		{ "customer join hist sort date", "(customer) JOIN 1:n on (id) (hist) SORT (date)" },
-		{ "customer join hist sort item", "(customer) JOIN 1:n on (id) (hist) SORT (item)" },
-		{ "customer join hist sort name", "(customer) JOIN 1:n on (id) (hist) SORT (name)" },
+	{ "customer join hist sort date", "(customer) JOIN 1:n on (id) (hist) SORT (date)" },
+	{ "customer join hist sort item", "(customer) JOIN 1:n on (id) (hist) SORT (item)" },
+	{ "customer join hist sort name", "(customer) JOIN 1:n on (id) (hist) SORT (name)" },
 
-		{ "customer times inven", "(customer) TIMES (inven)" },
-		{ "customer times inven sort item", "(customer) TIMES (inven) SORT (item)" },
-		{ "inven times customer", "(inven) TIMES (customer)" },
-		{ "inven times customer sort id", "(inven) TIMES (customer) SORT (id)" },
+	{ "customer times inven", "(customer) TIMES (inven)" },
+	{ "customer times inven sort item", "(customer) TIMES (inven) SORT (item)" },
+	{ "inven times customer", "(inven) TIMES (customer)" },
+	{ "inven times customer sort id", "(inven) TIMES (customer) SORT (id)" },
 
-		{ "customer join alias", "(customer) JOIN 1:1 on (id) (alias)" },
-		{ "customer join hist", "(customer) JOIN 1:n on (id) (hist)" },
-		{ "hist join customer", "(hist) JOIN n:1 on (id) (customer)" },
-		{ "customer join supplier", "(customer) JOIN n:n on (name,city) (supplier)" },
-		{ "customer join by (id) hist", "(customer) JOIN 1:n on (id) (hist)" },
-		{ "customer join by (name, city) supplier", "(customer) JOIN n:n on (name,city) (supplier)" },
+	{ "customer join alias", "(customer) JOIN 1:1 on (id) (alias)" },
+	{ "customer join hist", "(customer) JOIN 1:n on (id) (hist)" },
+	{ "hist join customer", "(hist) JOIN n:1 on (id) (customer)" },
+	{ "customer join supplier", "(customer) JOIN n:n on (name,city) (supplier)" },
+	{ "customer join by (id) hist", "(customer) JOIN 1:n on (id) (hist)" },
+	{ "customer join by (name, city) supplier", "(customer) JOIN n:n on (name,city) (supplier)" },
 
-		{ "hist intersect trans", "(hist) INTERSECT (trans) " },
-		{ "hist intersect trans sort item", "(hist) INTERSECT (trans)  SORT (item)" },
-		{ "trans intersect hist", "(trans) INTERSECT (hist) " },
-		{ "trans intersect hist sort date", "(trans) INTERSECT (hist)  SORT (date)" },
-		{ "trans union (hist where date = 1)", "(trans) UNION-LOOKUP (hist WHERE (date == 1)) " }
+	{ "hist intersect trans", "(hist) INTERSECT (trans) " },
+	{ "hist intersect trans sort item", "(hist) INTERSECT (trans)  SORT (item)" },
+	{ "trans intersect hist", "(trans) INTERSECT (hist) " },
+	{ "trans intersect hist sort date", "(trans) INTERSECT (hist)  SORT (date)" },
+	{ "trans union (hist where date = 1)", "(trans) UNION-LOOKUP (hist WHERE (date == 1)) " }
 	};
 
-class test_qparser : public  Tests
+static void adm(const char* s)
 	{
-	static void adm(const char* s)
-		{
-		database_admin(s);
-		}
-	int tran = 0;
-	void req(const char* s) const
-		{
-		except_if(! database_request(tran, s), "FAILED: " << s);
-		}
-	TEST(0, main)
-		{
-		tran = theDB()->transaction(READWRITE);
-		//create hist file
-		database_admin("drop hist");
-		adm("create hist (date,item,id,cost) index(date) key(date,item,id)");
-		req("insert{date: 970101, item: \"disk\", id: \"a\", cost: 100} into hist");
-		req("insert{date: 970101, item: \"disk\", id: \"e\", cost: 200} into hist");
-		req("insert{date: 970102, item: \"mouse\", id: \"c\", cost: 200} into hist");
-		req("insert{date: 970103, item: \"pencil\", id: \"e\", cost: 300} into hist");
+	database_admin(s);
+	}
+static void req(int tran, const char* s)
+	{
+	except_if(! database_request(tran, s), "FAILED: " << s);
+	}
+static void testone(int i, const char* query, const char* result)
+	{
+	Query* q = parse_query(query);
+	OstreamStr out;
+	out << *q;
+	except_if(0 != strcmp(result, out.str()),
+		i << ": " << query << "\n\t=> " << result << "\n\t!= '" << out.str() << "'");
+	}
+TEST(qparser)
+	{
+	TempDB tempdb;
 
-		//create customer file
-		database_admin("drop customer");
-		adm("create customer (id:string,name:string,city:string) key(id)");
-		req("insert{id: \"a\", name: \"axon\", city: \"saskatoon\"} into customer");
-		req("insert{id: \"c\", name: \"calac\", city: \"calgary\"} into customer");
-		req("insert{id: \"e\", name: \"emerald\", city: \"vancouver\"} into customer");
-		req("insert{id: \"i\", name: \"intercon\", city: \"saskatoon\"} into customer");
+	int tran = thedb->transaction(READWRITE);
 
-		//create trans file
-		database_admin("drop trans");
-		adm("create trans (date:int,item:string,id:string,cost:number) index(item) key(date,item,id)");
-		req("insert{item: \"mouse\", id: \"e\", cost: 200, date: 960204} into trans");
-		req("insert{item: \"disk\", id: \"a\", cost: 100, date: 970101} into trans");
-		req("insert{item: \"mouse\", id: \"c\", cost: 300, date: 970101} into trans");
-		req("insert{item: \"eraser\", id: \"c\", cost: 150, date: 970201} into trans");
+	//create hist file
+	adm("create hist (date, item, id, cost) index(date) key(date, item, id)");
+	req(tran, "insert{date: 970101, item: \"disk\", id: \"a\", cost: 100} into hist");
+	req(tran, "insert{date: 970101, item: \"disk\", id: \"e\", cost: 200} into hist");
+	req(tran, "insert{date: 970102, item: \"mouse\", id: \"c\", cost: 200} into hist");
+	req(tran, "insert{date: 970103, item: \"pencil\", id: \"e\", cost: 300} into hist");
 
-		//create supplier file
-		database_admin("drop supplier");
-		adm("create supplier (supplier:string, name:string, city:string) index(city) key(supplier)");
-		req("insert{supplier: \"mec\", name: \"mtnequipcoop\", city: \"calgary\"} into supplier");
-		req("insert{supplier: \"hobo\", name: \"hoboshop\", city: \"saskatoon\"} into supplier");
-		req("insert{supplier: \"ebs\", name: \"ebssait&sport\", city: \"saskatoon\"} into supplier");
-		req("insert{supplier: \"taiga\", name: \"taigaworks\", city: \"vancouver\"} into supplier");
+	//create customer file
+	adm("create customer (id, name, city) key(id)");
+	req(tran, "insert{id: \"a\", name: \"axon\", city: \"saskatoon\"} into customer");
+	req(tran, "insert{id: \"c\", name: \"calac\", city: \"calgary\"} into customer");
+	req(tran, "insert{id: \"e\", name: \"emerald\", city: \"vancouver\"} into customer");
+	req(tran, "insert{id: \"i\", name: \"intercon\", city: \"saskatoon\"} into customer");
 
-		//create inven file
-		database_admin("drop inven");
-		adm("create inven (item:string, qty:number) key(item)");
-		req("insert{item: \"disk\", qty: 5} into inven");
-		req("insert{item: \"mouse\", qty:2} into inven");
-		req("insert{item: \"pencil\", qty: 7} into inven");
+	//create trans file
+	adm("create trans (date, item, id, cost) index(item) key(date, item, id)");
+	req(tran, "insert{item: \"mouse\", id: \"e\", cost: 200, date: 960204} into trans");
+	req(tran, "insert{item: \"disk\", id: \"a\", cost: 100, date: 970101} into trans");
+	req(tran, "insert{item: \"mouse\", id: \"c\", cost: 300, date: 970101} into trans");
+	req(tran, "insert{item: \"eraser\", id: \"c\", cost: 150, date: 970201} into trans");
 
-		//create alias file
-		database_admin("drop alias");
-		adm("create alias(id, name2) key(id)");
-		req("insert{id: \"a\", name2: \"abc\"} into alias");
-		req("insert{id: \"c\", name2: \"trical\"} into alias");
+	//create supplier file
+	adm("create supplier (supplier, name, city) index(city) key(supplier)");
+	req(tran, "insert{supplier: \"mec\", name: \"mtnequipcoop\", city: \"calgary\"} into supplier");
+	req(tran, "insert{supplier: \"hobo\", name: \"hoboshop\", city: \"saskatoon\"} into supplier");
+	req(tran, "insert{supplier: \"ebs\", name: \"ebssait&sport\", city: \"saskatoon\"} into supplier");
+	req(tran, "insert{supplier: \"taiga\", name: \"taigaworks\", city: \"vancouver\"} into supplier");
 
-		verify(theDB()->commit(tran));
+	//create inven file
+	adm("create inven (item, qty) key(item)");
+	req(tran, "insert{item: \"disk\", qty: 5} into inven");
+	req(tran, "insert{item: \"mouse\", qty:2} into inven");
+	req(tran, "insert{item: \"pencil\", qty: 7} into inven");
 
-		for (int i = 0; i < sizeof qptests / sizeof (Qptest); ++i)
-			testone(i, qptests[i].query, qptests[i].result);
+	//create alias file
+	adm("create alias(id, name2) key(id)");
+	req(tran, "insert{id: \"a\", name2: \"abc\"} into alias");
+	req(tran, "insert{id: \"c\", name2: \"trical\"} into alias");
 
-		adm("drop hist");
-		adm("drop customer");
-		adm("drop trans");
-		adm("drop supplier");
-		adm("drop inven");
-		adm("drop alias");
-		}
-	void testone(int i, const char* query, const char* result)
-		{
-		Query* q = parse_query(query);
-		OstreamStr out;
-		out << *q;
-		except_if(0 != strcmp(result, out.str()),
-			i << ": " << query << "\n\t=> " << result << "\n\t!= '" << out.str() << "'");
-		}
-	TEST(2, joinby)
-		{
-		xassert(parse_query("tables join by (x) indexes"));
-		}
-	};
+	verify(thedb->commit(tran));
+
+	for (int i = 0; i < sizeof qptests / sizeof (Qptest); ++i)
+		testone(i, qptests[i].query, qptests[i].result);
+
+	adm("drop hist");
+	adm("drop customer");
+	adm("drop trans");
+	adm("drop supplier");
+	adm("drop inven");
+	adm("drop alias");
+	}
+
+TEST(qparser_joinby)
+	{
+	TempDB tempdb;
+
+	xassert(parse_query("tables join by (x) indexes"));
+	}

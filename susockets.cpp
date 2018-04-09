@@ -396,14 +396,10 @@ Value SuServerInstance::call(Value self, Value member,
 //#include "testing.h"
 //#include "compile.h"
 //
-//class test_socketserver : public Tests
+//TEST(susockets_server)
 //	{
-//	TEST(1, "construct")
-//		{
-//		Value x = compile("SocketServer {\n"
-//			"Name: Test\n"
-//			"Port: 1234 }");
-//		x.call(x, CALL_CLASS);
-//		}
-//	};
-//REGISTER(test_socketserver);
+//	Value x = compile("SocketServer {\n"
+//		"Name: Test\n"
+//		"Port: 1234 }");
+//	x.call(x, CALL_CLASS);
+//	}

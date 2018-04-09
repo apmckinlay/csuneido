@@ -161,18 +161,10 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 	case DBDUMP :
 		dbdump();
 		exit(EXIT_SUCCESS);
-	case TESTS :
-		{
-		TestObserverAlert to;
-		int nfailed = TestRegister::runall(to);
-		if (! *cmdline)
-			exit(nfailed == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
-		break ;
-		}
 	case TEST :
 		{
 		TestObserverAlert to;
-		int nfailed = TestRegister::runtest(CATSTRA("test_", cmdlineoptions.argstr), to);
+		int nfailed = run_tests(to, cmdlineoptions.argstr);
 		exit(nfailed == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
 		}
 	case BENCH :

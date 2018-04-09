@@ -292,101 +292,99 @@ Record Row::to_record(const Header& hdr) const
 
 #include "testing.h"
 
-class test_row : public Tests
+static SuString str(const gcstring& packed)
+	{ return SuString(::unpack(packed).gcstr()); }
+TEST(row_create)
 	{
-	TEST(1, create)
-		{
-		Lisp<Fields> hdr;
+	Lisp<Fields> hdr;
 
-		Fields r;
-		r.append("sin");
-		r.append("sex");
-		r.append("name");
-		r.append("age");
-		r.append("phone");
-		hdr.push(r);
-		hdr.push(r); // twice like union
+	Fields r;
+	r.append("sin");
+	r.append("sex");
+	r.append("name");
+	r.append("age");
+	r.append("phone");
+	hdr.push(r);
+	hdr.push(r); // twice like union
 
-		Header header(hdr, Fields());
+	Header header(hdr, Fields());
 
-		Record s;
-		s.addval("123-456-789");
-		s.addval("male");
-		s.addval("fred");
-		s.addval("42");
-		s.addval("249-5050");
-		Records data;
-		data.push(s);
-		data.push(Record((void*) 0)); // twice like union
+	Record s;
+	s.addval("123-456-789");
+	s.addval("male");
+	s.addval("fred");
+	s.addval("42");
+	s.addval("249-5050");
+	Records data;
+	data.push(s);
+	data.push(Record((void*) 0)); // twice like union
 
-		Row row(data);
+	Row row(data);
 
-		verify(row.getstr(header, "name") == "fred");
-		verify(row.getstr(header, "age") == "42");
-		verify(row.getstr(header, "phone") == "249-5050");
-		verify(row.getstr(header, "sin") == "123-456-789");
-		verify(row.getstr(header, "sex") == "male");
+	verify(row.getstr(header, "name") == "fred");
+	verify(row.getstr(header, "age") == "42");
+	verify(row.getstr(header, "phone") == "249-5050");
+	verify(row.getstr(header, "sin") == "123-456-789");
+	verify(row.getstr(header, "sex") == "male");
 
-		Row::iterator iter = row.begin(header);
-		std::pair<gcstring,gcstring> p;
-		p = *iter; verify(p.first == "sin" && str(p.second) == "123-456-789"); ++iter;
-		p = *iter; verify(p.first == "sex" && str(p.second) == "male"); ++iter;
-		p = *iter; verify(p.first == "name" && str(p.second) == "fred"); ++iter;
-		p = *iter; verify(p.first == "age" && str(p.second) == "42"); ++iter;
-		p = *iter; verify(p.first == "phone" && str(p.second) == "249-5050"); ++iter;
-		verify(iter == row.end());
-		}
-	SuString str(const gcstring& packed)
-		{ return SuString(::unpack(packed).gcstr()); }
+	Row::iterator iter = row.begin(header);
+	std::pair<gcstring,gcstring> p;
+	p = *iter; verify(p.first == "sin" && str(p.second) == "123-456-789"); ++iter;
+	p = *iter; verify(p.first == "sex" && str(p.second) == "male"); ++iter;
+	p = *iter; verify(p.first == "name" && str(p.second) == "fred"); ++iter;
+	p = *iter; verify(p.first == "age" && str(p.second) == "42"); ++iter;
+	p = *iter; verify(p.first == "phone" && str(p.second) == "249-5050"); ++iter;
+	verify(iter == row.end());
+	}
 
-	TEST(2, equal)
-		{
-		Header hdr(mkhdr("a", "b", "c"));
+static Header mkhdr(const char* a, const char* b, const char* c)
+	{
+	Fields f;
+	f.append(a);
+	f.append(b);
+	f.append(c);
+	Lisp<Fields> h;
+	h.push(f);
+	return Header(h, f);
+	}
+TEST(row_equal)
+	{
+	Header hdr(mkhdr("a", "b", "c"));
 
-		Row x; // empty
+	Row x; // empty
 
-		Record r;
-		r.addval("one");
-		r.addval("two");
-		Records d;
-		d.push(r);
-		Row y(d);
+	Record r;
+	r.addval("one");
+	r.addval("two");
+	Records d;
+	d.push(r);
+	Row y(d);
 
-		verify(equal(hdr, x, x));
-		verify(equal(hdr, y, y));
-		verify(! equal(hdr, y, x));
-		verify(! equal(hdr, x, y));
-		}
-	Header mkhdr(const char* a, const char* b, const char* c)
-		{
-		Fields f;
-		f.append(a);
-		f.append(b);
-		f.append(c);
-		Lisp<Fields> h;
-		h.push(f);
-		return Header(h, f);
-		}
-	TEST(3, to_heap)
-		{
-		Records d;
-		Record r1;
-		r1.addval("one");
-		r1.addval("two");
-		d.push(r1);
-		Record r2;
-		r2.addval("three");
-		r2.addval("four");
-		d.push(r2);
-		Row y(d);
-		Row z(y);
-		z.to_heap();
-		assert_eq(y, z);
-		}
-	TEST(4, timestamp)
-		{
-		verify(mkhdr("a", "b", "c").timestamp_field() == -1);
-		verify(mkhdr("a", "b_TS", "c_TS").timestamp_field() == symnum("b_TS"));
-		}
-	};
-REGISTER(test_row);
+	verify(equal(hdr, x, x));
+	verify(equal(hdr, y, y));
+	verify(! equal(hdr, y, x));
+	verify(! equal(hdr, x, y));
+	}
+
+TEST(row_to_heap)
+	{
+	Records d;
+	Record r1;
+	r1.addval("one");
+	r1.addval("two");
+	d.push(r1);
+	Record r2;
+	r2.addval("three");
+	r2.addval("four");
+	d.push(r2);
+	Row y(d);
+	Row z(y);
+	z.to_heap();
+	assert_eq(y, z);
+	}
+
+TEST(row_timestamp)
+	{
+	verify(mkhdr("a", "b", "c").timestamp_field() == -1);
+	verify(mkhdr("a", "b_TS", "c_TS").timestamp_field() == symnum("b_TS"));
+	}

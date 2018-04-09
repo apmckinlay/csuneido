@@ -302,105 +302,103 @@ int Mmfile::lru_chunk()
 #include <stdio.h> // for remove
 #include <string.h>
 
-void add(Mmfile& m, const char* s)
+static void add(Mmfile& m, const char* s)
 	{ strcpy(static_cast<char*>(m.adr(m.alloc(strlen(s) + 1, 1))), s); }
 
-class test_mmfile : public Tests
+TEST(mmfile)
 	{
-	TEST(1, main)
+	remove("testmm");
+	{ Mmfile m("testmm", true);
+	//~ for (int i = 0; i < 1100; ++i)
+		//~ m.alloc(4000000, 1, false);
+	Mmfile::iterator begin = m.end();
+
+	static const char* data[] =
+		{ "andrew", "leeann", "ken sparrow", "tracy" };
+	const int ndata = sizeof data / sizeof (char*);
+
+	int i;
+	for (i = 0; i < ndata; ++i)
+		add(m, data[i]);
+
+	char* p = (char*) *begin;
+	for (i = 0; i < ndata; ++i)
 		{
-		remove("testmm");
-		{ Mmfile m("testmm", true);
-		//~ for (int i = 0; i < 1100; ++i)
-			//~ m.alloc(4000000, 1, false);
-		Mmfile::iterator begin = m.end();
-
-		static const char* data[] =
-			{ "andrew", "leeann", "ken sparrow", "tracy" };
-		const int ndata = sizeof data / sizeof (char*);
-
-		int i;
-		for (i = 0; i < ndata; ++i)
-			add(m, data[i]);
-
-		char* p = (char*) *begin;
-		for (i = 0; i < ndata; ++i)
-			{
-			verify(0 == strcmp(p, data[i]));
-			p = p + m.length(p) + MM_OVERHEAD;
-			}
-
-		Mmfile::iterator iter;
-		for (i = 0, iter = begin; iter != m.end(); ++iter, ++i)
-			verify(0 == strcmp((char*) *iter, data[i]));
-		assert_eq(i, ndata);
-
-		for (i = ndata - 1, iter = m.end(); iter != begin; --i)
-			verify(0 == strcmp((char*) *--iter, data[i]));
-		assert_eq(i, -1);
-
-		} verify(0 == remove("testmm"));
+		verify(0 == strcmp(p, data[i]));
+		p = p + m.length(p) + MM_OVERHEAD;
 		}
-	TEST(2, chunks)
-		{
-		const int chunk_size = 65536;
-		remove("testmm");
-		{ Mmfile m("testmm", true);
-		m.set_chunk_size(chunk_size);
 
-		Mmoffset o = m.alloc(65000, 1);
-		verify(o < chunk_size);
-		o = m.alloc(5000, 1);
-		verify(o > chunk_size);
+	Mmfile::iterator iter;
+	for (i = 0, iter = begin; iter != m.end(); ++iter, ++i)
+		verify(0 == strcmp((char*) *iter, data[i]));
+	assert_eq(i, ndata);
 
-		int n;
-		Mmfile::iterator iter;
-		for (n = 0, iter = m.begin(); iter != m.end(); ++iter)
-			++n;
-		assert_eq(n, 2);
+	for (i = ndata - 1, iter = m.end(); iter != begin; --i)
+		verify(0 == strcmp((char*) *--iter, data[i]));
+	assert_eq(i, -1);
 
-		for (n = 0, iter = m.end(); iter != m.begin(); --iter)
-			++n;
-		assert_eq(n, 2);
+	} verify(0 == remove("testmm"));
+	}
 
-		} verify(0 == remove("testmm"));
-		}
-	TEST(4, unmap)
-		{
-		remove("testmm");
-		{ Mmfile m("testmm", true);
-		const int CHUNK_SIZE = 65536;
-		m.set_chunk_size(CHUNK_SIZE);
-		m.set_max_chunks_mapped(2);
-		const int N = CHUNK_SIZE - 500;
+TEST(mmfile_chunks)
+	{
+	const int chunk_size = 65536;
+	remove("testmm");
+	{ Mmfile m("testmm", true);
+	m.set_chunk_size(chunk_size);
 
-		// NOTE: chunk 0 is referenced by every alloc via set_filesize
+	Mmoffset o = m.alloc(65000, 1);
+	verify(o < chunk_size);
+	o = m.alloc(5000, 1);
+	verify(o > chunk_size);
 
-		void* p = m.adr(m.alloc(N, 1));
-		memset(p, 'a', N);
-		verify(m.base[0]); verify(! m.base[1]); verify(! m.base[2]);
+	int n;
+	Mmfile::iterator iter;
+	for (n = 0, iter = m.begin(); iter != m.end(); ++iter)
+		++n;
+	assert_eq(n, 2);
 
-		p = m.adr(m.alloc(N, 1));
-		memset(p, 'b', N);
-		verify(m.base[0]); verify(m.base[1]); verify(! m.base[2]);
+	for (n = 0, iter = m.end(); iter != m.begin(); --iter)
+		++n;
+	assert_eq(n, 2);
 
-		p = m.adr(m.alloc(N, 1));
-		memset(p, 'c', N);
-		verify(m.base[0]); verify(! m.base[1]); verify(m.base[2]);
+	} verify(0 == remove("testmm"));
+	}
 
-		char* s = (char*) m.adr(100);
-		verify(*s == 'a');
-		verify(m.base[0]); verify(! m.base[1]); verify(m.base[2]);
+TEST(mmfile_unmap)
+	{
+	remove("testmm");
+	{ Mmfile m("testmm", true);
+	const int CHUNK_SIZE = 65536;
+	m.set_chunk_size(CHUNK_SIZE);
+	m.set_max_chunks_mapped(2);
+	const int N = CHUNK_SIZE - 500;
 
-		s = (char*) m.adr(CHUNK_SIZE + 100);
-		verify(*s == 'b');
-		verify(m.base[0]); verify(m.base[1]); verify(! m.base[2]);
+	// NOTE: chunk 0 is referenced by every alloc via set_filesize
 
-		s = (char*) m.adr(2 * CHUNK_SIZE + 100);
-		verify(*s == 'c');
-		verify(! m.base[0]); verify(m.base[1]); verify(m.base[2]);
+	void* p = m.adr(m.alloc(N, 1));
+	memset(p, 'a', N);
+	verify(m.base[0]); verify(! m.base[1]); verify(! m.base[2]);
 
-		} verify(0 == remove("testmm"));
-		}
-	};
-REGISTER(test_mmfile);
+	p = m.adr(m.alloc(N, 1));
+	memset(p, 'b', N);
+	verify(m.base[0]); verify(m.base[1]); verify(! m.base[2]);
+
+	p = m.adr(m.alloc(N, 1));
+	memset(p, 'c', N);
+	verify(m.base[0]); verify(! m.base[1]); verify(m.base[2]);
+
+	char* s = (char*) m.adr(100);
+	verify(*s == 'a');
+	verify(m.base[0]); verify(! m.base[1]); verify(m.base[2]);
+
+	s = (char*) m.adr(CHUNK_SIZE + 100);
+	verify(*s == 'b');
+	verify(m.base[0]); verify(m.base[1]); verify(! m.base[2]);
+
+	s = (char*) m.adr(2 * CHUNK_SIZE + 100);
+	verify(*s == 'c');
+	verify(! m.base[0]); verify(m.base[1]); verify(m.base[2]);
+
+	} verify(0 == remove("testmm"));
+	}

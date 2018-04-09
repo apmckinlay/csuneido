@@ -842,31 +842,27 @@ void Proc::clear_unused()
 
 #include "testing.h"
 
-class test_catch_match : public Tests
+TEST(interp_catch_match)
 	{
-	TEST(1, main)
-		{
-		verify(catch_match("", "exception"));
-		verify(catch_match("*", "exception"));
-		verify(catch_match("e", "exception"));
-		verify(catch_match("*e", "exception"));
-		verify(catch_match("*p", "exception"));
-		verify(catch_match("exce", "exception"));
-		verify(catch_match("exception", "exception"));
-		verify(catch_match("*exception", "exception"));
-		verify(! catch_match("x", "exception"));
-		verify(! catch_match("*y", "exception"));
-		verify(! catch_match("ee", "exception"));
-		verify(catch_match("a|e", "exception"));
-		verify(catch_match("a|*t", "exception"));
-		verify(catch_match("abc|exc", "exception"));
-		verify(catch_match("abc|*ion", "exception"));
-		verify(catch_match("exc|ghi", "exception"));
-		verify(catch_match("*cep|ghi", "exception"));
-		verify(catch_match("abc|def|exc", "exception"));
-		verify(catch_match("abc|def|*ep", "exception"));
-		verify(! catch_match("abc|def", "exception"));
-		verify(! catch_match("*abc|*def", "exception"));
-		}
-	};
-REGISTER(test_catch_match);
+	verify(catch_match("", "exception"));
+	verify(catch_match("*", "exception"));
+	verify(catch_match("e", "exception"));
+	verify(catch_match("*e", "exception"));
+	verify(catch_match("*p", "exception"));
+	verify(catch_match("exce", "exception"));
+	verify(catch_match("exception", "exception"));
+	verify(catch_match("*exception", "exception"));
+	verify(! catch_match("x", "exception"));
+	verify(! catch_match("*y", "exception"));
+	verify(! catch_match("ee", "exception"));
+	verify(catch_match("a|e", "exception"));
+	verify(catch_match("a|*t", "exception"));
+	verify(catch_match("abc|exc", "exception"));
+	verify(catch_match("abc|*ion", "exception"));
+	verify(catch_match("exc|ghi", "exception"));
+	verify(catch_match("*cep|ghi", "exception"));
+	verify(catch_match("abc|def|exc", "exception"));
+	verify(catch_match("abc|def|*ep", "exception"));
+	verify(! catch_match("abc|def", "exception"));
+	verify(! catch_match("*abc|*def", "exception"));
+	}

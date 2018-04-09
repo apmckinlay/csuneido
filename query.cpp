@@ -230,7 +230,7 @@ void Query1::best_prefixed(Indexes idxs, const Fields& by,
 		}
 	}
 
-// tests ============================================================
+// tests ------------------------------------------------------------
 
 #include "testing.h"
 #include "thedb.h"
@@ -735,98 +735,97 @@ Querystruct querytests2[] =
 
 extern int tempdest_inuse;
 
-class test_query : public Tests
-	{
 	OstreamStr errs;
-	void adm(const char* s)
+	static void adm(const char* s)
 		{
 		database_admin(s);
 		}
-	int tran = 0;
-	void req(const char* s)
+	static void req(int tran, const char* s)
 		{
 		except_if(! database_request(tran, s), "FAILED: " << s);
 		}
+	static void process(int i);
+	static void process2(int i);
 
-	TEST(0, query)
+	TEST(query)
 		{
 		TempDB tempdb;
 
-		tran = theDB()->transaction(READWRITE);
+		int tran = theDB()->transaction(READWRITE);
 		// so trigger searches won't give error
 		adm("create stdlib (group, name, text) key(name,group)");
 
 		// create customer file
 		adm("create customer (id, name, city) key(id)");
-		req("insert{id: \"a\", name: \"axon\", city: \"saskatoon\"} into customer");
-		req("insert{id: \"c\", name: \"calac\", city: \"calgary\"} into customer");
-		req("insert{id: \"e\", name: \"emerald\", city: \"vancouver\"} into customer");
-		req("insert{id: \"i\", name: \"intercon\", city: \"saskatoon\"} into customer");
+		req(tran, "insert{id: \"a\", name: \"axon\", city: \"saskatoon\"} into customer");
+		req(tran, "insert{id: \"c\", name: \"calac\", city: \"calgary\"} into customer");
+		req(tran, "insert{id: \"e\", name: \"emerald\", city: \"vancouver\"} into customer");
+		req(tran, "insert{id: \"i\", name: \"intercon\", city: \"saskatoon\"} into customer");
 
 		// create hist file
 		adm("create hist (date, item, id, cost) index(date) key(date,item,id)");
-		req("insert{date: 970101, item: \"disk\", id: \"a\", cost: 100} into hist");
-		req("insert{date: 970101, item: \"disk\", id: \"e\", cost: 200} into hist");
-		req("insert{date: 970102, item: \"mouse\", id: \"c\", cost: 200} into hist");
-		req("insert{date: 970103, item: \"pencil\", id: \"e\", cost: 300} into hist");
+		req(tran, "insert{date: 970101, item: \"disk\", id: \"a\", cost: 100} into hist");
+		req(tran, "insert{date: 970101, item: \"disk\", id: \"e\", cost: 200} into hist");
+		req(tran, "insert{date: 970102, item: \"mouse\", id: \"c\", cost: 200} into hist");
+		req(tran, "insert{date: 970103, item: \"pencil\", id: \"e\", cost: 300} into hist");
 
 		// create hist2 file - for leftjoin test
 		adm("create hist2 (date, item, id, cost) key(date) index(id)");
-		req("insert{date: 970101, item: \"disk\", id: \"a\", cost: 100} into hist2");
-		req("insert{date: 970102, item: \"disk\", id: \"e\", cost: 200} into hist2");
-		req("insert{date: 970103, item: \"pencil\", id: \"e\", cost: 300} into hist2");
+		req(tran, "insert{date: 970101, item: \"disk\", id: \"a\", cost: 100} into hist2");
+		req(tran, "insert{date: 970102, item: \"disk\", id: \"e\", cost: 200} into hist2");
+		req(tran, "insert{date: 970103, item: \"pencil\", id: \"e\", cost: 300} into hist2");
 
 		// create trans file
 		adm("create trans (item, id, cost, date) index(item) key(date,item,id)");
-		req("insert{item: \"mouse\", id: \"e\", cost: 200, date: 960204} into trans");
-		req("insert{item: \"disk\", id: \"a\", cost: 100, date: 970101} into trans");
-		req("insert{item: \"mouse\", id: \"c\", cost: 200, date: 970101} into trans");
-		req("insert{item: \"eraser\", id: \"c\", cost: 150, date: 970201} into trans");
+		req(tran, "insert{item: \"mouse\", id: \"e\", cost: 200, date: 960204} into trans");
+		req(tran, "insert{item: \"disk\", id: \"a\", cost: 100, date: 970101} into trans");
+		req(tran, "insert{item: \"mouse\", id: \"c\", cost: 200, date: 970101} into trans");
+		req(tran, "insert{item: \"eraser\", id: \"c\", cost: 150, date: 970201} into trans");
 
 		// create supplier file
 		adm("create supplier (supplier, name, city) index(city) key(supplier)");
-		req("insert{supplier: \"mec\", name: \"mtnequipcoop\", city: \"calgary\"} into supplier");
-		req("insert{supplier: \"hobo\", name: \"hoboshop\", city: \"saskatoon\"} into supplier");
-		req("insert{supplier: \"ebs\", name: \"ebssail&sport\", city: \"saskatoon\"} into supplier");
-		req("insert{supplier: \"taiga\", name: \"taigaworks\", city: \"vancouver\"} into supplier");
+		req(tran, "insert{supplier: \"mec\", name: \"mtnequipcoop\", city: \"calgary\"} into supplier");
+		req(tran, "insert{supplier: \"hobo\", name: \"hoboshop\", city: \"saskatoon\"} into supplier");
+		req(tran, "insert{supplier: \"ebs\", name: \"ebssail&sport\", city: \"saskatoon\"} into supplier");
+		req(tran, "insert{supplier: \"taiga\", name: \"taigaworks\", city: \"vancouver\"} into supplier");
 
 		// create inven file
 		adm("create inven (item, qty) key(item)");
-		req("insert{item: \"disk\", qty: 5} into inven");
-		req("insert{item: \"mouse\", qty:2} into inven");
-		req("insert{item: \"pencil\", qty: 7} into inven");
+		req(tran, "insert{item: \"disk\", qty: 5} into inven");
+		req(tran, "insert{item: \"mouse\", qty:2} into inven");
+		req(tran, "insert{item: \"pencil\", qty: 7} into inven");
 
 		// create alias file
 		adm("create alias(id, name2) key(id)");
-		req("insert{id: \"a\", name2: \"abc\"} into alias");
-		req("insert{id: \"c\", name2: \"trical\"} into alias");
+		req(tran, "insert{id: \"a\", name2: \"abc\"} into alias");
+		req(tran, "insert{id: \"c\", name2: \"trical\"} into alias");
 
 		// create cus, task, co tables
 		adm("create cus(cnum, abbrev, name) key(cnum) key(abbrev)");
-		req("insert { cnum: 1, abbrev: 'a', name: 'axon' } into cus");
-		req("insert { cnum: 2, abbrev: 'b', name: 'bill' } into cus");
-		req("insert { cnum: 3, abbrev: 'c', name: 'cron' } into cus");
-		req("insert { cnum: 4, abbrev: 'd', name: 'dick' } into cus");
+		req(tran, "insert { cnum: 1, abbrev: 'a', name: 'axon' } into cus");
+		req(tran, "insert { cnum: 2, abbrev: 'b', name: 'bill' } into cus");
+		req(tran, "insert { cnum: 3, abbrev: 'c', name: 'cron' } into cus");
+		req(tran, "insert { cnum: 4, abbrev: 'd', name: 'dick' } into cus");
 		adm("create task(tnum, cnum) key(tnum)");
-		req("insert { tnum: 100, cnum: 1 } into task");
-		req("insert { tnum: 101, cnum: 2 } into task");
-		req("insert { tnum: 102, cnum: 3 } into task");
-		req("insert { tnum: 103, cnum: 4 } into task");
-		req("insert { tnum: 104, cnum: 1 } into task");
-		req("insert { tnum: 105, cnum: 2 } into task");
-		req("insert { tnum: 106, cnum: 3 } into task");
-		req("insert { tnum: 107, cnum: 4 } into task");
+		req(tran, "insert { tnum: 100, cnum: 1 } into task");
+		req(tran, "insert { tnum: 101, cnum: 2 } into task");
+		req(tran, "insert { tnum: 102, cnum: 3 } into task");
+		req(tran, "insert { tnum: 103, cnum: 4 } into task");
+		req(tran, "insert { tnum: 104, cnum: 1 } into task");
+		req(tran, "insert { tnum: 105, cnum: 2 } into task");
+		req(tran, "insert { tnum: 106, cnum: 3 } into task");
+		req(tran, "insert { tnum: 107, cnum: 4 } into task");
 		adm("create co(tnum, signed) key(tnum)");
-		req("insert { tnum: 100, signed: 990101 } into co");
-		req("insert { tnum: 102, signed: 990102 } into co");
-		req("insert { tnum: 104, signed: 990103 } into co");
-		req("insert { tnum: 106, signed: 990104 } into co");
+		req(tran, "insert { tnum: 100, signed: 990101 } into co");
+		req(tran, "insert { tnum: 102, signed: 990102 } into co");
+		req(tran, "insert { tnum: 104, signed: 990103 } into co");
+		req(tran, "insert { tnum: 106, signed: 990104 } into co");
 
 		adm("create dates(date) key(date)");
-		req("insert { date: #20010101 } into dates");
-		req("insert { date: #20010102 } into dates");
-		req("insert { date: #20010301 } into dates");
-		req("insert { date: #20010401 } into dates");
+		req(tran, "insert { date: #20010101 } into dates");
+		req(tran, "insert { date: #20010102 } into dates");
+		req(tran, "insert { date: #20010301 } into dates");
+		req(tran, "insert { date: #20010401 } into dates");
 
 		verify(theDB()->commit(tran));
 
@@ -847,7 +846,7 @@ class test_query : public Tests
 			except(errs.str());
 		}
 
-	void process(int i)
+	static void process(int i)
 		{
 		const char* s = querytests[i].query;
 		Query* q = query(s);
@@ -910,7 +909,7 @@ class test_query : public Tests
 		}
 
 	// query(s) without transform
-	void process2(int i)
+	static void process2(int i)
 		{
 		const char* s = querytests2[i].query;
 		int t = theDB()->transaction(READONLY);
@@ -997,115 +996,112 @@ class test_query : public Tests
 		verify(theDB()->commit(t));
 		verify(tempdest_inuse == 0);
 		}
-	TEST(1, order)
-		{
-		TempDB tempdb;
-		Query* q;
 
-		q = query("tables rename tablename to tname sort totalsize");
-		assert_eq(q->ordering(), lisp(gcstring("totalsize")));
+TEST(query_order)
+	{
+	TempDB tempdb;
+	Query* q;
 
-		q = query("tables rename tablename to tname sort table");
-		assert_eq(q->ordering(), lisp(gcstring("table")));
+	q = query("tables rename tablename to tname sort totalsize");
+	assert_eq(q->ordering(), lisp(gcstring("totalsize")));
 
-		q = query("columns project table, field sort table");
-		assert_eq(q->ordering(), lisp(gcstring("table")));
-		}
+	q = query("tables rename tablename to tname sort table");
+	assert_eq(q->ordering(), lisp(gcstring("table")));
+
+	q = query("columns project table, field sort table");
+	assert_eq(q->ordering(), lisp(gcstring("table")));
+	}
+
 #define TESTUP(q) except_if(! query(q)->updateable(), #q "should be updateable")
 #define TESTNUP(q) except_if(query(q)->updateable(), #q "should NOT be updateable")
-	TEST(2, updateable)
-		{
-		TempDB tempdb;
-		TESTUP("tables");
-		TESTNUP("history(tables)");
-		TESTUP("tables extend xyz = 123");
-		TESTUP("tables project table");
-		TESTNUP("columns project table");
-		TESTUP("tables sort totalsize");
-		TESTUP("tables sort reverse totalsize");
-		TESTUP("tables rename totalsize to bytes");
-		TESTUP("tables where totalsize > 1000");
-		TESTNUP("tables summarize count");
-		TESTNUP("tables join columns");
-		TESTNUP("tables union columns");
-		TESTNUP("tables union columns extend xyz = 123");
-		};
-	TEST(3, history)
-		{
-		TempDB tempdb;
-		adm("create cus(cnum, abbrev, name) key(cnum) key(abbrev)");
-
-		tran = theDB()->transaction(READONLY);
-		Query* q = query("history(cus)");
-		q->set_transaction(tran);
-		assert_eq(q->get(NEXT), Query::Eof);
-		q->close(q);
-		verify(theDB()->commit(tran));
-
-		tran = theDB()->transaction(READWRITE);
-		req("insert { cnum: 1, abbrev: 'a', name: 'axon' } into cus");
-		verify(theDB()->commit(tran));
-
-		tran = theDB()->transaction(READONLY);
-		q = query("history(cus)");
-		q->set_transaction(tran);
-		Row row = q->get(NEXT);
-		verify(row != Query::Eof);
-		Header hdr = q->header();
-		q->close(q);
-		verify(theDB()->commit(tran));
-		OstreamStr os;
-		os << "cnum: " << row.getval(hdr, "cnum") <<
-			" abbrev: " << row.getval(hdr, "abbrev") <<
-			" name: " << row.getval(hdr, "name") <<
-			" _action: " << row.getval(hdr, "_action");
-		assert_eq(os.str(), gcstring("cnum: 1 abbrev: \"a\" name: \"axon\" _action: \"create\""));
-		SuDate now;
-		SuDate* date = force<SuDate*>(row.getval(hdr, "_date"));
-		int diff = SuDate::minus_ms(&now, date);
-		if (diff < 0 || 1000 < diff)
-			except_err("diff " << diff);
-		}
-	};
-REGISTER(test_query);
-
-class test_prefixed : public Tests
+TEST(query_updateable)
 	{
-	TEST(0, main)
-		{
-		Fields index_nil;
-		Fields by_nil;
-		Lisp<Fixed> fixed_nil;
-		verify(prefixed(index_nil, by_nil, fixed_nil));
-		Fields index_a = lisp(gcstring("a"));
-		verify(prefixed(index_a, by_nil, fixed_nil));
-		Fields by_a = lisp(gcstring("a"));
-		verify(! prefixed(index_nil, by_a, fixed_nil));
-		verify(prefixed(index_a, by_a, fixed_nil));
-		Fields index_ab = lisp(gcstring("a"), gcstring("b"));
-		verify(prefixed(index_ab, by_nil, fixed_nil));
-		verify(prefixed(index_ab, by_a, fixed_nil));
+	TempDB tempdb;
+	TESTUP("tables");
+	TESTNUP("history(tables)");
+	TESTUP("tables extend xyz = 123");
+	TESTUP("tables project table");
+	TESTNUP("columns project table");
+	TESTUP("tables sort totalsize");
+	TESTUP("tables sort reverse totalsize");
+	TESTUP("tables rename totalsize to bytes");
+	TESTUP("tables where totalsize > 1000");
+	TESTNUP("tables summarize count");
+	TESTNUP("tables join columns");
+	TESTNUP("tables union columns");
+	TESTNUP("tables union columns extend xyz = 123");
+	}
 
-		Fields by_b = lisp(gcstring("b"));
-		verify(! prefixed(index_ab, by_b, fixed_nil));
-		Lisp<Fixed> fixed_a = lisp(Fixed("a", 1));
-		verify(prefixed(index_ab, by_b, fixed_a));
-		Lisp<Fixed> fixed_a2 = lisp(Fixed("a", lisp(Value(1), Value(2))));
-		verify(! prefixed(index_ab, by_b, fixed_a2));
-		Fields index_abc = lisp(gcstring("a"), gcstring("b"), gcstring("c"));
-		Fields by_ac = lisp(gcstring("a"), gcstring("c"));
-		Lisp<Fixed> fixed_b = lisp(Fixed("b", 1));
-		verify(prefixed(index_abc, by_ac, fixed_b));
-		verify(prefixed(index_ab, by_a, fixed_a));
-		verify(prefixed(index_ab, by_a, fixed_b));
-		Fields by_abc = lisp(gcstring("a"), gcstring("b"), gcstring("c"));
-		Lisp<Fixed> fixed_c = lisp(Fixed("c", 1));
-		verify(prefixed(index_ab, by_abc, fixed_c));
+TEST(query_history)
+	{
+	TempDB tempdb;
+	adm("create cus(cnum, abbrev, name) key(cnum) key(abbrev)");
 
-		Fields index_abce = lisp(gcstring("a"), gcstring("b"), gcstring("c"), gcstring("e"));
-		Fields by_acde = lisp(gcstring("a"), gcstring("c"), gcstring("d"), gcstring("e"));
-		Lisp<Fixed> fixed_bd = lisp(Fixed("b", 1), Fixed("d", 2));
-		verify(prefixed(index_abce, by_acde, fixed_bd));
-		}
-	};
-REGISTER(test_prefixed);
+	int tran = theDB()->transaction(READONLY);
+	Query* q = query("history(cus)");
+	q->set_transaction(tran);
+	assert_eq(q->get(NEXT), Query::Eof);
+	q->close(q);
+	verify(theDB()->commit(tran));
+
+	tran = theDB()->transaction(READWRITE);
+	req(tran, "insert { cnum: 1, abbrev: 'a', name: 'axon' } into cus");
+	verify(theDB()->commit(tran));
+
+	tran = theDB()->transaction(READONLY);
+	q = query("history(cus)");
+	q->set_transaction(tran);
+	Row row = q->get(NEXT);
+	verify(row != Query::Eof);
+	Header hdr = q->header();
+	q->close(q);
+	verify(theDB()->commit(tran));
+	OstreamStr os;
+	os << "cnum: " << row.getval(hdr, "cnum") <<
+		" abbrev: " << row.getval(hdr, "abbrev") <<
+		" name: " << row.getval(hdr, "name") <<
+		" _action: " << row.getval(hdr, "_action");
+	assert_eq(os.str(), gcstring("cnum: 1 abbrev: \"a\" name: \"axon\" _action: \"create\""));
+	SuDate now;
+	SuDate* date = force<SuDate*>(row.getval(hdr, "_date"));
+	int diff = SuDate::minus_ms(&now, date);
+	if (diff < 0 || 1000 < diff)
+		except_err("diff " << diff);
+	}
+
+TEST(query_prefixed)
+	{
+	Fields index_nil;
+	Fields by_nil;
+	Lisp<Fixed> fixed_nil;
+	verify(prefixed(index_nil, by_nil, fixed_nil));
+	Fields index_a = lisp(gcstring("a"));
+	verify(prefixed(index_a, by_nil, fixed_nil));
+	Fields by_a = lisp(gcstring("a"));
+	verify(! prefixed(index_nil, by_a, fixed_nil));
+	verify(prefixed(index_a, by_a, fixed_nil));
+	Fields index_ab = lisp(gcstring("a"), gcstring("b"));
+	verify(prefixed(index_ab, by_nil, fixed_nil));
+	verify(prefixed(index_ab, by_a, fixed_nil));
+
+	Fields by_b = lisp(gcstring("b"));
+	verify(! prefixed(index_ab, by_b, fixed_nil));
+	Lisp<Fixed> fixed_a = lisp(Fixed("a", 1));
+	verify(prefixed(index_ab, by_b, fixed_a));
+	Lisp<Fixed> fixed_a2 = lisp(Fixed("a", lisp(Value(1), Value(2))));
+	verify(! prefixed(index_ab, by_b, fixed_a2));
+	Fields index_abc = lisp(gcstring("a"), gcstring("b"), gcstring("c"));
+	Fields by_ac = lisp(gcstring("a"), gcstring("c"));
+	Lisp<Fixed> fixed_b = lisp(Fixed("b", 1));
+	verify(prefixed(index_abc, by_ac, fixed_b));
+	verify(prefixed(index_ab, by_a, fixed_a));
+	verify(prefixed(index_ab, by_a, fixed_b));
+	Fields by_abc = lisp(gcstring("a"), gcstring("b"), gcstring("c"));
+	Lisp<Fixed> fixed_c = lisp(Fixed("c", 1));
+	verify(prefixed(index_ab, by_abc, fixed_c));
+
+	Fields index_abce = lisp(gcstring("a"), gcstring("b"), gcstring("c"), gcstring("e"));
+	Fields by_acde = lisp(gcstring("a"), gcstring("c"), gcstring("d"), gcstring("e"));
+	Lisp<Fixed> fixed_bd = lisp(Fixed("b", 1), Fixed("d", 2));
+	verify(prefixed(index_abce, by_acde, fixed_bd));
+	}

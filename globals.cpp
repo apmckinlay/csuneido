@@ -152,38 +152,35 @@ PRIM(su_globaldump, "DumpGlobals()");
 #include "testing.h"
 #include "random.h"
 
-class test_globals : public Tests
+static char* randname(char* buf)
 	{
-	TEST(1, global)
-		{
-		char buf[512];
-		const int N = 6400;
-		int nums[N];
+	const int N = 8;
+	char* dst = buf;
+	int n = random(N);
+	for (int j = 0; j <= n; ++j)
+		*dst++ = 'a' + random(26);
+	*dst = 0;
+	return buf;
+	}
 
-		srand(1234);
-		int i;
-		for (i = 0; i < N; ++i)
-			{
-			nums[i] = globals(randname(buf));
-			verify(0 == strcmp(buf, globals(nums[i])));
-			}
+TEST(globals)
+	{
+	char buf[512];
+	const int N = 6400;
+	int nums[N];
 
-		srand(1234);
-		for (i = 0; i < N; ++i)
-			{
-			verify(nums[i] == globals(randname(buf)));
-			verify(0 == strcmp(buf, globals(nums[i])));
-			}
-		}
-	char* randname(char* buf)
+	srand(1234);
+	int i;
+	for (i = 0; i < N; ++i)
 		{
-		const int N = 8;
-		char* dst = buf;
-		int n = random(N);
-		for (int j = 0; j <= n; ++j)
-			*dst++ = 'a' + random(26);
-		*dst = 0;
-		return buf;
+		nums[i] = globals(randname(buf));
+		verify(0 == strcmp(buf, globals(nums[i])));
 		}
-	};
-REGISTER(test_globals);
+
+	srand(1234);
+	for (i = 0; i < N; ++i)
+		{
+		verify(nums[i] == globals(randname(buf)));
+		verify(0 == strcmp(buf, globals(nums[i])));
+		}
+	}

@@ -44,7 +44,6 @@ class test_mmfile;
 class Mmfile
 	{
 public:
-	friend class test_mmfile;
 	explicit Mmfile(const char* filename, bool create = false, bool readonly = false);
 	~Mmfile();
 	Mmoffset alloc(size_t n, char type, bool zero = true);
@@ -100,6 +99,8 @@ private:
 	void set_file_size(Mmoffset fs);
 	int lru_chunk();
 	void evict_chunk();
+	friend static void test_mmfile_chunks();
+	friend static void test_mmfile_unmap();
 
 	enum { MB_MAX_DB = 16 * 1024 }; // 16 gb
 	enum { MAX_CHUNKS = MB_MAX_DB / MB_PER_CHUNK };

@@ -151,62 +151,64 @@ void SuBlock::persist()
 	persisted = true;
 	}
 
+// tests ------------------------------------------------------------
+
 #include "testing.h"
 
 const char* eval(const char* s); // in builtins.cpp
 
-class test_block : public Tests
+TEST(sublock_simple)
 	{
-	TEST(0, simple)
-		{
-		auto s = eval("\
-			s = '';\
-			b = { s $= 'abc' };\
-			b();\
-			s");
-		if (0 != strcmp(s, "abc"))
-			except("'" << s << "'" << " != " << "'abc'");
-		}
-	TEST(1, persist1)
-		{
-		auto s = eval("\
-			s = '';\
-			b = { Object(b); s $= 'abc' };\
-			b();\
-			s");
-		if (0 != strcmp(s, "abc"))
-			except("'" << s << "'" << " != " << "'abc'");
-		}
-	TEST(2, persist2)
-		{
-		auto s = eval("\
-			s = '';\
-			persist = function (b) { Object(b) };\
-			b = { persist(b); s $= 'abc' };\
-			b();\
-			s");
-		if (0 != strcmp(s, "abc"))
-			except("'" << s << "'" << " != " << "'abc'");
-		}
-	TEST(3, persist3)
-		{
-		auto s = eval("\
-			doit = function (block) { block() };\
-			wrap = function (@args) { 'abc' };\
-			s = '';\
-			doit() { s = wrap() { } };\
-			s");
-		if (0 != strcmp(s, "abc"))
-			except("'" << s << "'" << " != " << "'abc'");
-		}
-	TEST(4, blockreturn)
-		{
-		auto s = eval("\
-			b = { return 'good' };\
-			b();\
-			return 'bad'");
-		if (0 != strcmp(s, "good"))
-			except("'" << s << "'" << " != " << "'good'");
-		}
-	};
-REGISTER(test_block);
+	auto s = eval("\
+		s = '';\
+		b = { s $= 'abc' };\
+		b();\
+		s");
+	if (0 != strcmp(s, "abc"))
+		except("'" << s << "'" << " != " << "'abc'");
+	}
+
+TEST(sublock_persist1)
+	{
+	auto s = eval("\
+		s = '';\
+		b = { Object(b); s $= 'abc' };\
+		b();\
+		s");
+	if (0 != strcmp(s, "abc"))
+		except("'" << s << "'" << " != " << "'abc'");
+	}
+
+TEST(sublock_persist2)
+	{
+	auto s = eval("\
+		s = '';\
+		persist = function (b) { Object(b) };\
+		b = { persist(b); s $= 'abc' };\
+		b();\
+		s");
+	if (0 != strcmp(s, "abc"))
+		except("'" << s << "'" << " != " << "'abc'");
+	}
+
+TEST(sublock_persist3)
+	{
+	auto s = eval("\
+		doit = function (block) { block() };\
+		wrap = function (@args) { 'abc' };\
+		s = '';\
+		doit() { s = wrap() { } };\
+		s");
+	if (0 != strcmp(s, "abc"))
+		except("'" << s << "'" << " != " << "'abc'");
+	}
+
+TEST(sublock_blockreturn)
+	{
+	auto s = eval("\
+		b = { return 'good' };\
+		b();\
+		return 'bad'");
+	if (0 != strcmp(s, "good"))
+		except("'" << s << "'" << " != " << "'good'");
+	}

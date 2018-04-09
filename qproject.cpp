@@ -465,53 +465,49 @@ void Project::close(Query* q)
 
 extern int tempdest_inuse;
 
-class test_project : public Tests
+static int count(Dir dir)
 	{
-	TEST(1, count)
-		{
-		TempDB tempdb;
+	Query* q = query("columns project table join tables project nextfield");
+	int tran = thedb->transaction(READONLY);
+	q->set_transaction(tran);
+	int n = 0;
+	while (Query::Eof != q->get(dir))
+		++n;
+	q->close(q);
+	verify(thedb->commit(tran));
+	verify(tempdest_inuse == 0);
+	return n;
+	}
+TEST(qproject_count)
+	{
+	TempDB tempdb;
 
-		verify(count(NEXT) == count(PREV));
-		}
-	int count(Dir dir)
-		{
-		Query* q = query("columns project table join tables project nextfield");
-		int tran = thedb->transaction(READONLY);
-		q->set_transaction(tran);
-		int n = 0;
-		while (Query::Eof != q->get(dir))
-			++n;
-		q->close(q);
-		verify(thedb->commit(tran));
-		verify(tempdest_inuse == 0);
-		return n;
-		}
-	TEST(2, bidir)
-		{
-		TempDB tempdb;
+	verify(count(NEXT) == count(PREV));
+	}
 
-		bidir(NEXT, PREV);
-		bidir(PREV, NEXT);
-		}
-	void bidir(Dir dir1, Dir dir2)
+static void bidir(Dir dir1, Dir dir2)
+	{
+	Query* q = query("columns project table");
+	int tran = thedb->transaction(READONLY);
+	q->set_transaction(tran);
+	while (true)
 		{
-		Query* q = query("columns project table");
-		int tran = thedb->transaction(READONLY);
-		q->set_transaction(tran);
-		while (true)
-			{
-			Row row1, row2;
-			if (Query::Eof == (row1 = q->get(dir1)))
-				break ;
-			if (Query::Eof == (row2 = q->get(dir1)))
-				break ;
-			verify(row1 == q->get(dir2));
-			verify(row2 == q->get(dir1));
-			}
-		q->close(q);
-		verify(thedb->commit(tran));
-		verify(tempdest_inuse == 0);
+		Row row1, row2;
+		if (Query::Eof == (row1 = q->get(dir1)))
+			break ;
+		if (Query::Eof == (row2 = q->get(dir1)))
+			break ;
+		verify(row1 == q->get(dir2));
+		verify(row2 == q->get(dir1));
 		}
-	};
+	q->close(q);
+	verify(thedb->commit(tran));
+	verify(tempdest_inuse == 0);
+	}
+TEST(qproject_bidir)
+	{
+	TempDB tempdb;
 
-REGISTER(test_project);
+	bidir(NEXT, PREV);
+	bidir(PREV, NEXT);
+	}

@@ -263,242 +263,240 @@ Record k(ulong recnum)
 	return r;
 	}
 
-class test_index : public Tests
+static Record record(const char* s)
 	{
-	TEST(0, standalone)
+	Record r;
+	r.addval(s);
+	return r;
+	}
+static Record record(const char* s, const char* t)
+	{
+	Record r;
+	r.addval(s);
+	r.addval(t);
+	return r;
+	}
+static Record key(const char* s)
+	{
+	Record r;
+	r.addval(s);
+	return r;
+	}
+static Record key(const char* s, const char* t)
+	{
+	Record r;
+	r.addval(s);
+	r.addval(t);
+	return r;
+	}
+static Record key1(const Record& r)
+	{
+	Record k;
+	k.addraw(r.getraw(0));
+	return k;
+	}
+static Record key2(const Record& r)
+	{
+	Record k;
+	k.addraw(r.getraw(0));
+	k.addraw(r.getraw(1));
+	return k;
+	}
+
+TEST(index_standalone)
+	{
+	TempDB tempdb;
+
+	Index f(thedb, 0, "", false);
+
+	const int N = 4000;
+
+	int tran = thedb->transaction(READWRITE);
+
+	//insert
+	int i;
+	for (i = 0; i < N; ++i)
 		{
-		TempDB tempdb;
+		verify(f.insert(tran, Vslot(k(i))));
+   		}
 
-		Index f(thedb, 0, "", false);
-
-		const int N = 4000;
-
-		int tran = thedb->transaction(READWRITE);
-
-		//insert
-		int i;
-		for (i = 0; i < N; ++i)
-			{
-			verify(f.insert(tran, Vslot(k(i))));
-   			}
-
-		//find
-		for (i = 0; i < N; ++i)
-			{
-			verify(! nil(f.find(tran, k(i))));
-			}
-
-		//iterate
+	//find
+	for (i = 0; i < N; ++i)
 		{
-		int n = 0;
-		for (Index::iterator iter = f.begin(tran); ! iter.eof(); ++iter, ++n)
-			{
-			Record key = iter->key;
-			verify(0 <= kk(key) && kk(key) < N);
-			}
-		assert_eq(n, N);
+		verify(! nil(f.find(tran, k(i))));
 		}
 
-		//reverse iterate
+	//iterate
+	{
+	int n = 0;
+	for (Index::iterator iter = f.begin(tran); ! iter.eof(); ++iter, ++n)
 		{
-		int n = 0;
-		Index::iterator iter = f.iter(tran);
-		for (--iter; ! iter.eof(); --iter, ++n)
-			{
-			Record key = iter->key;
-			verify(0 <= kk(key) && kk(key) < N);
-			}
-		assert_eq(n, N);
+		Record key = iter->key;
+		verify(0 <= kk(key) && kk(key) < N);
 		}
+	assert_eq(n, N);
+	}
 
-		//erase
-		srand(1234);
-		for (i = 0; i < N; i += 2)
-			{ verify(f.erase(k(i))); rand(); }
-		//find
-		srand(1234);
-		for (i = 0; i < N; i += 2)
-			{
-			verify(nil(f.find(tran, k(i))));
-			verify(! nil(f.find(tran, k(i+1))));
-			}
-		//erase
-		srand(1234);
-		for (i = 1; i < N; i += 2)
-			{ rand(); verify(f.erase(k(i))); }
-
-		verify(thedb->commit(tran));
-		}
-	TEST(1, single)
+	//reverse iterate
+	{
+	int n = 0;
+	Index::iterator iter = f.iter(tran);
+	for (--iter; ! iter.eof(); --iter, ++n)
 		{
-		TempDB tempdb;
-
-		thedb->add_table("test");
-		thedb->add_column("test", "name");
-		thedb->add_index("test", "name", false);
-
-		Record recs[] =
-			{
-			record("andrew"),
-			record("fred"),
-			record("fred"),
-			record("leeann"),
-			record("leeann"),
-			record("tracy")
-			};
-		size_t n = sizeof (recs) / sizeof (Record);
-		int i;
-		Index::iterator iter;
-
-		int t = thedb->transaction(READWRITE);
-		for (i = 0; i < n; ++i)
-			thedb->add_record(t, "test", recs[i]);
-		verify(thedb->commit(t));
-
-		Index* index = thedb->get_index("test", "name");
-		verify(index);
-
-		t = thedb->transaction(READONLY);
-
-		// find
-		verify(nil(index->find(t, key(""))));
-		verify(nil(index->find(t, key("joe"))));
-		verify(nil(index->find(t, key("z"))));
-		for (i = 0; i < n; ++i)
-			verify(! nil(index->find(t, key1(recs[i]))));
-
-		// iterate range
-		for (iter = index->begin(t), i = 0; i < n; ++iter, ++i)
-			verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
-		for (iter = index->begin(t, key("f"), key("m")), i = 1; i <= 4; ++iter, ++i)
-			verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
-		for (iter = index->begin(t, key("fred"), key("leeann")), i = 1; i <= 4; ++iter, ++i)
-			verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
-		for (iter = index->begin(t, key("fred")), i = 1; i <= 2; ++iter, ++i)
-			verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
-
-		// reverse iterate range
-		for (iter = index->iter(t), --iter, i = n-1; i >= 0; --iter, --i)
-			verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
-		for (iter = index->iter(t, key("f"), key("m")), --iter, i = 4; i >= 1; --iter, --i)
-			verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
-		for (iter = index->iter(t, key("fred"), key("leeann")), --iter, i = 4; i >= 1; --iter, --i)
-			verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
-		for (iter = index->iter(t, key("fred")), --iter, i = 2; i >= 1; --iter, --i)
-			verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
-
-		// empty ranges
-		iter = index->begin(t, key("mike"));
-		verify(iter.eof());
-		iter = index->begin(t, key("m"), key("r"));
-		verify(iter.eof());
-
-		verify(thedb->commit(t));
+		Record key = iter->key;
+		verify(0 <= kk(key) && kk(key) < N);
 		}
-	TEST(2, multi)
+	assert_eq(n, N);
+	}
+
+	//erase
+	srand(1234);
+	for (i = 0; i < N; i += 2)
+		{ verify(f.erase(k(i))); rand(); }
+	//find
+	srand(1234);
+	for (i = 0; i < N; i += 2)
 		{
-		TempDB tempdb;
-
-		thedb->add_table("test");
-		thedb->add_column("test", "city");
-		thedb->add_column("test", "name");
-		thedb->add_index("test", "city,name", true);
-
-		Record recs[] =
-			{
-			record("calgary", "fred"),
-			record("calgary", "leeann"),
-			record("calgary", "tracy"),
-			record("saskatoon", "andrew"),
-			record("saskatoon", "fred"),
-			record("saskatoon", "leeann"),
-			};
-		size_t n = sizeof (recs) / sizeof (Record);
-		int i;
-		Index::iterator iter;
-
-		int t = thedb->transaction(READWRITE);
-		for (i = 0; i < n; ++i)
-			thedb->add_record(t, "test", recs[i]);
-		verify(thedb->commit(t));
-
-		Index* index = thedb->get_index("test", "city,name");
-		verify(index);
-
-		t = thedb->transaction(READONLY);
-
-		// find
-		verify(nil(index->find(t, key(""))));
-		verify(nil(index->find(t, key("montreal"))));
-		verify(nil(index->find(t, key("zealand"))));
-		verify(nil(index->find(t, key("calgary", "andrew"))));
-		verify(nil(index->find(t, key("saskatoon", "tracy"))));
-		for (i = 0; i < n; ++i)
-			verify(! nil(index->find(t, key2(recs[i]))));
-
-		// iterate range
-		for (iter = index->begin(t), i = 0; i < n; ++iter, ++i)
-			verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
-		for (iter = index->begin(t, key("calgary")), i = 0; i <= 2; ++iter, ++i)
-			verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
-		for (iter = index->begin(t, key("saskatoon")), i = 3; i <= 5; ++iter, ++i)
-			verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
-		for (iter = index->begin(t, key("calgary", "leeann"), key("saskatoon", "fred")),
-			i = 1; i <= 4; ++iter, ++i)
-			verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
-
-		// reverse iterate range
-		for (iter = index->iter(t), --iter, i = n-1; i >= 0; --iter, --i)
-			verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
-		for (iter = index->iter(t, key("calgary")), --iter, i = 2; i >= 0; --iter, --i)
-			verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
-		for (iter = index->iter(t, key("saskatoon")), --iter, i = 5; i >= 3; --iter, --i)
-			verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
-		for (iter = index->iter(t, key("calgary", "leeann"), key("saskatoon", "fred")),
-			--iter, i = 4; i >= 1; --iter, --i)
-			verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
-
-		verify(thedb->commit(t));
+		verify(nil(f.find(tran, k(i))));
+		verify(! nil(f.find(tran, k(i+1))));
 		}
-private:
-	static Record record(const char* s)
+	//erase
+	srand(1234);
+	for (i = 1; i < N; i += 2)
+		{ rand(); verify(f.erase(k(i))); }
+
+	verify(thedb->commit(tran));
+	}
+
+TEST(index_single)
+	{
+	TempDB tempdb;
+
+	thedb->add_table("test");
+	thedb->add_column("test", "name");
+	thedb->add_index("test", "name", false);
+
+	Record recs[] =
 		{
-		Record r;
-		r.addval(s);
-		return r;
-		}
-	static Record record(const char* s, const char* t)
+		record("andrew"),
+		record("fred"),
+		record("fred"),
+		record("leeann"),
+		record("leeann"),
+		record("tracy")
+		};
+	size_t n = sizeof (recs) / sizeof (Record);
+	int i;
+	Index::iterator iter;
+
+	int t = thedb->transaction(READWRITE);
+	for (i = 0; i < n; ++i)
+		thedb->add_record(t, "test", recs[i]);
+	verify(thedb->commit(t));
+
+	Index* index = thedb->get_index("test", "name");
+	verify(index);
+
+	t = thedb->transaction(READONLY);
+
+	// find
+	verify(nil(index->find(t, key(""))));
+	verify(nil(index->find(t, key("joe"))));
+	verify(nil(index->find(t, key("z"))));
+	for (i = 0; i < n; ++i)
+		verify(! nil(index->find(t, key1(recs[i]))));
+
+	// iterate range
+	for (iter = index->begin(t), i = 0; i < n; ++iter, ++i)
+		verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
+	for (iter = index->begin(t, key("f"), key("m")), i = 1; i <= 4; ++iter, ++i)
+		verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
+	for (iter = index->begin(t, key("fred"), key("leeann")), i = 1; i <= 4; ++iter, ++i)
+		verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
+	for (iter = index->begin(t, key("fred")), i = 1; i <= 2; ++iter, ++i)
+		verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
+
+	// reverse iterate range
+	for (iter = index->iter(t), --iter, i = n-1; i >= 0; --iter, --i)
+		verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
+	for (iter = index->iter(t, key("f"), key("m")), --iter, i = 4; i >= 1; --iter, --i)
+		verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
+	for (iter = index->iter(t, key("fred"), key("leeann")), --iter, i = 4; i >= 1; --iter, --i)
+		verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
+	for (iter = index->iter(t, key("fred")), --iter, i = 2; i >= 1; --iter, --i)
+		verify(! iter.eof() && iter->key.hasprefix(key1(recs[i])));
+
+	// empty ranges
+	iter = index->begin(t, key("mike"));
+	verify(iter.eof());
+	iter = index->begin(t, key("m"), key("r"));
+	verify(iter.eof());
+
+	verify(thedb->commit(t));
+	}
+
+TEST(index_multi)
+	{
+	TempDB tempdb;
+
+	thedb->add_table("test");
+	thedb->add_column("test", "city");
+	thedb->add_column("test", "name");
+	thedb->add_index("test", "city,name", true);
+
+	Record recs[] =
 		{
-		Record r;
-		r.addval(s);
-		r.addval(t);
-		return r;
-		}
-	static Record key(const char* s)
-		{
-		Record r;
-		r.addval(s);
-		return r;
-		}
-	static Record key(const char* s, const char* t)
-		{
-		Record r;
-		r.addval(s);
-		r.addval(t);
-		return r;
-		}
-	static Record key1(const Record& r)
-		{
-		Record k;
-		k.addraw(r.getraw(0));
-		return k;
-		}
-	static Record key2(const Record& r)
-		{
-		Record k;
-		k.addraw(r.getraw(0));
-		k.addraw(r.getraw(1));
-		return k;
-		}
-	};
-REGISTER(test_index);
+		record("calgary", "fred"),
+		record("calgary", "leeann"),
+		record("calgary", "tracy"),
+		record("saskatoon", "andrew"),
+		record("saskatoon", "fred"),
+		record("saskatoon", "leeann"),
+		};
+	size_t n = sizeof (recs) / sizeof (Record);
+	int i;
+	Index::iterator iter;
+
+	int t = thedb->transaction(READWRITE);
+	for (i = 0; i < n; ++i)
+		thedb->add_record(t, "test", recs[i]);
+	verify(thedb->commit(t));
+
+	Index* index = thedb->get_index("test", "city,name");
+	verify(index);
+
+	t = thedb->transaction(READONLY);
+
+	// find
+	verify(nil(index->find(t, key(""))));
+	verify(nil(index->find(t, key("montreal"))));
+	verify(nil(index->find(t, key("zealand"))));
+	verify(nil(index->find(t, key("calgary", "andrew"))));
+	verify(nil(index->find(t, key("saskatoon", "tracy"))));
+	for (i = 0; i < n; ++i)
+		verify(! nil(index->find(t, key2(recs[i]))));
+
+	// iterate range
+	for (iter = index->begin(t), i = 0; i < n; ++iter, ++i)
+		verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
+	for (iter = index->begin(t, key("calgary")), i = 0; i <= 2; ++iter, ++i)
+		verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
+	for (iter = index->begin(t, key("saskatoon")), i = 3; i <= 5; ++iter, ++i)
+		verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
+	for (iter = index->begin(t, key("calgary", "leeann"), key("saskatoon", "fred")),
+		i = 1; i <= 4; ++iter, ++i)
+		verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
+
+	// reverse iterate range
+	for (iter = index->iter(t), --iter, i = n-1; i >= 0; --iter, --i)
+		verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
+	for (iter = index->iter(t, key("calgary")), --iter, i = 2; i >= 0; --iter, --i)
+		verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
+	for (iter = index->iter(t, key("saskatoon")), --iter, i = 5; i >= 3; --iter, --i)
+		verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
+	for (iter = index->iter(t, key("calgary", "leeann"), key("saskatoon", "fred")),
+		--iter, i = 4; i >= 1; --iter, --i)
+		verify(! iter.eof() && iter->key.hasprefix(key2(recs[i])));
+
+	verify(thedb->commit(t));
+	}
