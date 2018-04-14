@@ -50,11 +50,10 @@
  * since with /O2 VC++ will use a single call to get quotient and remainder.
  */
 
-#define CHECKING false
-#if CHECKING
-#define CHECK(cond) verify(cond)
-#else
+#if NDEBUG
 #define CHECK(cond)
+#else
+#define CHECK(cond) verify(cond)
 #endif
 
 typedef struct
@@ -618,7 +617,8 @@ namespace
 		
 	uint64_t div2(uint64_t x, uint64_t y, int& exp)
 		{
-		//PRE x maxCoef, x != 0, y mincoef, y != 0
+		CHECK(x != 0 && x * 10 > COEF_MAX); // x max coef
+		CHECK(y != 0 && y != 1 && y % 10 != 0); // y min coef
 		uint64_t q = 0;
 		while (true)
 			{
@@ -721,12 +721,12 @@ Dnum operator/(const Dnum& x, const Dnum& y)
 		}
 	if (y.isInf())
 		return Dnum::ZERO;
-	if (y.coef == 1)
-		return Dnum(sign, x.coef, x.exp - y.exp);
 
 	uint64_t ycoef = y.coef;
 	int yexp = minCoef(ycoef, y.exp);
 	int exp = x.exp - yexp + MAX_DIGITS;
+	if (ycoef == 1)
+		return Dnum(sign, x.coef, exp);
 	uint64_t q = div2(x.coef, ycoef, exp);
 	return Dnum(sign, q, exp);
 	}
@@ -1141,6 +1141,8 @@ TEST(dnum_div)
 	// special cases (no actual math)
 	div("0", "0", "0");
 	div("123", "0", "inf");
+	div("123", "1", "123");
+	div("123", "10", "12.3");
 	div("123", "inf", "0");
 	div("inf", "123", "inf");
 	div("inf", "inf", "1");
