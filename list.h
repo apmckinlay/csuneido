@@ -168,6 +168,12 @@ public:
 		cap = siz = 0;
 		return *this;
 		}
+	void swap(List& that)
+		{
+		std::swap(data, that.data);
+		std::swap(cap, that.cap);
+		std::swap(siz, that.siz);
+		}
 
 	// returns a move-able copy, shrunk to fit
 	List copy() const

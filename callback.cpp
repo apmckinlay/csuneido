@@ -150,14 +150,15 @@ void Callback::put(char*& dst, char*& dst2, const char* lim2, Value x)
 	dst += sizeof (void*);
 	}
 
-static List<void*> to_free;
+static List<void*> to_free1;
+static List<void*> to_free2;
 
 Value su_ClearCallback()
 	{
 	Value x = TOP();
 	Cb* cb = callbacks.find(x);
 	if (cb)
-		to_free.add(cb->fn);
+		to_free1.add(cb->fn);
 	callbacks.erase(x);
 	return cb ? SuTrue : SuFalse;
 	}
@@ -165,9 +166,13 @@ PRIM(su_ClearCallback, "ClearCallback(value)");
 
 void free_callbacks()
 	{
-	for (auto x : to_free)
+	// alternate between two to_free lists so there is a guaranteed delay
+	to_free1.swap(to_free2);
+	if (to_free1.empty())
+		return;
+	for (auto x : to_free1)
 		heap.free(x);
-	to_free.clear();
+	to_free1.clear();
 	}
 
 // called by the functions created by make_callback
@@ -230,8 +235,8 @@ void Callback::out(Ostream& os) const
 Value su_callbacks()
 	{
 	SuObject* ob = new SuObject;
-	for (CbHash::iterator it = callbacks.begin(); it != callbacks.end(); ++it)
-		ob->add(it->key);
+	for (auto& callback : callbacks)
+		ob->add(callback.key);
 	return ob;
 	}
 PRIM(su_callbacks, "Callbacks()");

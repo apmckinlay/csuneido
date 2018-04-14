@@ -26,8 +26,6 @@
 #include "fibers.h"
 #include "sunapp.h"
 
-void free_callbacks();
-
 static void shutdown(int);
 
 void message_loop(HWND hdlg)
@@ -37,7 +35,7 @@ void message_loop(HWND hdlg)
 
 	for (;;)
 		{
-		while (! PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+		while (! PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 			{
 			SleepEx(0, true); // run completion routines (may unblock fibers)
 			if (! Fibers::yield())
@@ -75,8 +73,6 @@ void message_loop(HWND hdlg)
 
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-
-		free_callbacks();
 		}
 	}
 

@@ -70,12 +70,21 @@ bool is_server = false;
 bool is_client = false;
 CmdLineOptions cmdlineoptions;
 
+void free_callbacks();
+
+static VOID CALLBACK free_callbacks_timer(
+	HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
+	{
+	free_callbacks();
+	}
+
 int pascal WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpszCmdLine, int)
 	{
 	init(hInstance, lpszCmdLine);
 
-	RegisterHotKey(0, 0, MOD_CONTROL, VK_CANCEL);
+	RegisterHotKey(nullptr, 0, MOD_CONTROL, VK_CANCEL);
 
+	SetTimer(nullptr, 0, 50, free_callbacks_timer);
 	message_loop(); // doesn't return
 
 	return 0;
