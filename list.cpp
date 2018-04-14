@@ -22,6 +22,8 @@
 
 #include "list.h"
 
+// tests ------------------------------------------------------------
+
 #include "testing.h"
 
 static List<int> f()
@@ -106,3 +108,12 @@ TEST(list_erase)
 	assert_eq(12, v.popfront());
 	assert_eq(List<int>({ 56 }), v);
 	}
+
+TEST(list_overflow)
+	{
+	List<int> v;
+	for (int i = 0; i < USHRT_MAX - 1; ++i)
+		v.add(i);
+	xassert(v.add(99999));
+	}
+

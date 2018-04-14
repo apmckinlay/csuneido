@@ -27,11 +27,12 @@
 
 /*
 Simple list template similar to std::vector.
-Uses int16_t for size (for compactness) so limit is 32k elements.
+Uses uint16_t for size (for compactness) so limit is 64k elements.
+cap(acity) is set to USHRT_MAX when read-only.
 Intended for garbage collection so no destructor handling.
 Unlike vector, assignment and copy constructor do NOT copy.
 Instead they set both source and target to readonly and share data.
-Move assignment and copy constructor do not set readonly.
+Move assignment and constructor do not set readonly.
 Throws exception for readonly violation.
 Keeps elements in added order wherever reasonable.
  */
@@ -207,8 +208,14 @@ public:
 private:
 	void grow()
 		{
-		verify(0 <= cap && 2 * (int)cap <= SHRT_MAX);
-		cap = (cap == 0) ? 8 : 2 * cap;
+		if (cap < 8)
+			cap = 8;
+		else if (cap < MAXCAP / 2)
+			cap = 2 * cap;
+		else if (cap < MAXCAP)
+			cap = MAXCAP;
+		else
+			except("list cannot exceed " << MAXCAP << " elements");
 		T* d = static_cast<T*>(::operator new (sizeof(T) * cap));
 		memcpy(d, data, sizeof(T) * siz);
 		data = d;
@@ -224,8 +231,7 @@ private:
 		}
 	void make_readonly() const
 		{
-		if (cap > 0)
-			cap = -cap;
+		cap = READONLY;
 		}
 	void sharewith(const List& other) const
 		{
@@ -235,11 +241,13 @@ private:
 		other.make_readonly();
 		}
 	bool readonly()
-		{ return cap < 0; }
+		{ return cap == READONLY; }
 
 	T* data = nullptr;
-	mutable int16_t cap = 0; // capacity of data, negative if readonly so mutable
-	int16_t siz = 0; // current number of elements
+	mutable uint16_t cap = 0; // capacity of data, negative if readonly so mutable
+	uint16_t siz = 0; // current number of elements
+	static const uint16_t READONLY = USHRT_MAX;
+	static const uint16_t MAXCAP = USHRT_MAX - 1;
 	};
 
 #ifndef _WIN64
