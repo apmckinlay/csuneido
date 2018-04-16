@@ -21,45 +21,42 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "testing.h"
-#include <cstring>
 #include "exceptimp.h"
+#include "fatal.h"
+#include "gsl-lite.h"
 
 // tests ------------------------------------------------------------
 
 const int MAX_TESTS = 200;
-static Test* newtests[MAX_TESTS];
+static Test* tests[MAX_TESTS];
 int n_tests = 0;
 
 Test::Test(const char* n, Tfn f) : name(n), fn(f)
 	{
-	if (n_tests < MAX_TESTS)
-		newtests[n_tests++] = this;
+	if (n_tests >= MAX_TESTS)
+		fatal("too many TEST's - increase MAX_TESTS");
+	tests[n_tests++] = this;
 	}
 
 int run_tests(TestObserver& to, const char* prefix)
 	{
 	int nfailed = 0;
-	for (int i = 0; i < n_tests; ++i)
-		if (has_prefix(newtests[i]->name, prefix))
+	for (auto t : gsl::span<Test*>(tests, n_tests))
+		if (has_prefix(t->name, prefix))
 			{
 			const char* error = nullptr;
-			to.start_test(newtests[i]->name);
+			to.start_test(t->name);
 			try
 				{
-				newtests[i]->fn();
+				t->fn();
 				}
 			catch (const Except& e)
 				{
 				++nfailed;
 				error = e.str();
 				}
-			to.end_test(newtests[i]->name, error);
+			to.end_test(t->name, error);
 			}
-	if (n_tests >= MAX_TESTS)
-		{
-		to.end_test("", "MAX_TESTS NOT LARGE ENOUGH");
-		++nfailed;
-		}
 	to.end_all(nfailed);
 	return nfailed;
 	}
@@ -75,7 +72,8 @@ int n_benchmarks = 0;
 
 Benchmark::Benchmark(const char* n, Bfn f) : name(n), fn(f)
 	{
-	verify(n_benchmarks < MAX_BENCHMARKS);
+	if (n_benchmarks >= MAX_BENCHMARKS)
+		fatal("too many BENCHMARK's - increase MAX_BENCHMARKS");
 	benchmarks[n_benchmarks++] = this;
 	}
 
@@ -103,7 +101,7 @@ void run_benchmark(Ostream& os, Benchmark* b)
 		b->fn(nreps);
 		auto t2 = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::nano> dur = t2 - t1;
-		os << int(dur.count() / nreps + .5) << " ns  ";
+		os << lround(dur.count() / nreps) << " ns  ";
 		}
 	catch (const Except& e)
 		{
@@ -114,7 +112,7 @@ void run_benchmark(Ostream& os, Benchmark* b)
 
 void run_benchmarks(Ostream& os, const char* prefix)
 	{
-	for (int i = 0; i < n_benchmarks; ++i)
-		if (has_prefix(benchmarks[i]->name, prefix))
-			run_benchmark(os, benchmarks[i]);
+	for (auto b : gsl::span<Benchmark*>(benchmarks, n_benchmarks))
+		if (has_prefix(b->name, prefix))
+			run_benchmark(os, b);
 	}

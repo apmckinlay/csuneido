@@ -25,15 +25,15 @@
 #include "gsl-lite.h"
 #include "func.h"
 
-const int MAXBUILTINS = 100;
+const int MAX_BUILTINS = 100;
 int nbuiltins = 0;
-Builtin* builtins[MAXBUILTINS];
+Builtin* builtins[MAX_BUILTINS];
 
 Builtin::Builtin(BuiltinFn f, const char* n, const char* p) 
 	: fn(f), name(n), params(p)
 	{
-	if (nbuiltins >= MAXBUILTINS)
-		fatal("too many BUILTIN functions - increase MAXBUILTINS");
+	if (nbuiltins >= MAX_BUILTINS)
+		fatal("too many BUILTIN functions - increase MAX_BUILTINS");
 	builtins[nbuiltins++] = this;
 	}
 
