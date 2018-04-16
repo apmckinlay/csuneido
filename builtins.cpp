@@ -95,15 +95,6 @@ Value su_msgloop()
 	}
 PRIM(su_msgloop, "MessageLoop(hdlg)");
 
-// for compatibility with old stdlib
-Value su_setaccels()
-	{
-	int nargs = 2;
-	SetWindowLong((HWND) ARG(0).integer(), GWL_USERDATA,  ARG(1).integer());
-	return Value();
-	}
-PRIM(su_setaccels, "SetAccelerators(hwnd, haccels)");
-
 Value su_exit()
 	{
 	const int nargs = 1;
