@@ -1,9 +1,8 @@
-#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
  *
- * Copyright (c) 2004 Suneido Software Corp.
+ * Copyright (c) 2000 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,16 +20,30 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "builtin.h"
+#include "fatal.h"
+#include "gsl-lite.h"
 #include "func.h"
 
-typedef Value (*PrimFn)();
+const int MAXBUILTINS = 100;
+int nbuiltins = 0;
+Builtin* builtins[MAXBUILTINS];
 
-struct Prim
+Builtin::Builtin(BuiltinFn f, const char* n, const char* p) 
+	: fn(f), name(n), params(p)
 	{
-	Prim(PrimFn fn, const char* decl);
+	if (nbuiltins >= MAXBUILTINS)
+		fatal("too many BUILTIN functions - increase MAXBUILTINS");
+	builtins[nbuiltins++] = this;
+	}
 
-	PrimFn fn;
-	const char* decl;
-	};
+void builtin(int gnum, Value value); // in library.cpp
 
-#define PRIM(fn, decl) static Prim prim##fn(fn, decl)
+void install_builtin_functions()
+	{
+	for (auto b : gsl::span<Builtin*>(builtins, nbuiltins))
+		{
+		auto p = new BuiltinFunc(b->name, b->params, b->fn);
+		builtin(p->named.num, p);
+		}
+	}

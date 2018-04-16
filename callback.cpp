@@ -30,7 +30,7 @@
 #include "hashmap.h"
 #include "sublock.h"
 #include "suobject.h"
-#include "prim.h"
+#include "builtin.h"
 #include "heap.h"
 #include "list.h"
 #include "suinstance.h"
@@ -153,7 +153,7 @@ void Callback::put(char*& dst, char*& dst2, const char* lim2, Value x)
 static List<void*> to_free1;
 static List<void*> to_free2;
 
-Value su_ClearCallback()
+BUILTIN(ClearCallback, "(value)")
 	{
 	Value x = TOP();
 	Cb* cb = callbacks.find(x);
@@ -162,7 +162,6 @@ Value su_ClearCallback()
 	callbacks.erase(x);
 	return cb ? SuTrue : SuFalse;
 	}
-PRIM(su_ClearCallback, "ClearCallback(value)");
 
 void free_callbacks()
 	{
@@ -232,11 +231,10 @@ void Callback::out(Ostream& os) const
 */
 	}
 
-Value su_callbacks()
+BUILTIN(Callbacks, "()")
 	{
 	SuObject* ob = new SuObject;
 	for (auto& callback : callbacks)
 		ob->add(callback.key);
 	return ob;
 	}
-PRIM(su_callbacks, "Callbacks()");

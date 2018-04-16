@@ -468,6 +468,9 @@
     <ClCompile Include="..\dnum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\builtin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\suneido.rc">
@@ -691,9 +694,6 @@
     <ClInclude Include="..\port.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\prim.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\qcompatible.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -905,6 +905,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\charmatcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\builtin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

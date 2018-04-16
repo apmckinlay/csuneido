@@ -3,7 +3,7 @@
  * This file is part of Suneido - The Integrated Application Platform
  * see: http://www.suneido.com for more information.
  *
- * Copyright (c) 2000 Suneido Software Corp.
+ * Copyright (c) 2004 Suneido Software Corp.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,24 +21,22 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "type.h"
-#include "func.h"
+#include "value.h"
 
-// allows Suneido user code to call dll functions
-class Dll : public BuiltinFuncs
+typedef Value (*BuiltinFn)();
+
+struct Builtin
 	{
-public:
-	Dll(short rtype, char* library, char* name, TypeItem* p, ushort* ns, short n);
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
-	void out(Ostream&) const override;
-	const char* type() const override
-		{ return "Dll"; }
-private:
-	short dll;
-	short fn;
-	TypeParams params;
-	short rtype;
-	void* pfn;
-	bool trace;
+	Builtin(BuiltinFn fn, const char* name, const char* decl);
+
+	BuiltinFn fn;
+	const char* name;
+	const char* params;
 	};
+
+#define BUILTIN(name, decl) \
+	static Value su_##name(); \
+	static Builtin builtin_##name(su_##name, #name, decl); \
+	static Value su_##name()
+
+void install_builtin_functions();

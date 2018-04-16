@@ -30,7 +30,7 @@
 class SuValue;
 class Func;
 class SuFunction;
-class BuiltinFunc;
+class BuiltinFuncs;
 
 // used for expression evaluation and function arguments
 class Stack
@@ -85,7 +85,7 @@ public:
 
 	Frame() // to allow array
 		{ }
-	Frame(BuiltinFunc*, Value self);
+	Frame(BuiltinFuncs*, Value self);
 	Frame(SuFunction*, Value self);
 	Frame(Frame* fp, int pc, int first, int nargs, Value self);
 
@@ -149,7 +149,7 @@ struct Framer
 		{
 		new(nextfp()) Frame(fn, self);
 		}
-	Framer(BuiltinFunc* prim, Value self)
+	Framer(BuiltinFuncs* prim, Value self)
 		{
 		new(nextfp()) Frame(prim, self);
 		}

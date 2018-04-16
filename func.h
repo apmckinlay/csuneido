@@ -28,7 +28,7 @@ const char DOT = 1;
 const char DYN = 2;
 const char PUB = 4;
 
-// abstract base class for BuiltinFunc and SuFunction
+// abstract base class for BuiltinFuncs and SuFunction
 class Func : public SuValue
 	{
 public:
@@ -52,20 +52,20 @@ private:
 	Value params();
 	};
 
-// abstract base class for Primitive and Dll
-class BuiltinFunc : public Func
+// abstract base class for built-in functions
+class BuiltinFuncs : public Func
 	{
 	const char* type() const override
 		{ return "BuiltinFunction"; }
 	};
 
-typedef Value (*PrimFn)();
+typedef Value (*BuiltinFn)();
 
 // built-in functions
-class Primitive : public BuiltinFunc
+class BuiltinFunc : public BuiltinFuncs
 	{
 public:
-	Primitive(const char* decl, PrimFn f);
+	BuiltinFunc(const char* name, const char* params, BuiltinFn f);
 	Value call(Value self, Value member, 
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	void out(Ostream& out) const override;

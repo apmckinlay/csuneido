@@ -57,16 +57,14 @@ SuObject* get_mac_addresses()
 	return list;
 	}
 
-#include "prim.h"
+#include "builtin.h"
 
-Value su_get_mac_address()
+BUILTIN(GetMacAddress, "()")
 	{
 	return new SuString(get_mac_address());
 	}
-PRIM(su_get_mac_address, "GetMacAddress()");
 
-Value su_get_mac_addresses()
+BUILTIN(GetMacAddresses, "()")
 	{
 	return get_mac_addresses();
 	}
-PRIM(su_get_mac_addresses, "GetMacAddresses()");

@@ -114,6 +114,7 @@
     <ClCompile Include="..\btree.cpp" />
     <ClCompile Include="..\buffer.cpp" />
     <ClCompile Include="..\build.cpp" />
+    <ClCompile Include="..\builtin.cpp" />
     <ClCompile Include="..\builtinargs.cpp" />
     <ClCompile Include="..\builtins.cpp" />
     <ClCompile Include="..\cachemap.cpp" />
@@ -342,7 +343,7 @@
     <ClInclude Include="..\pack.h" />
     <ClInclude Include="..\permheap.h" />
     <ClInclude Include="..\port.h" />
-    <ClInclude Include="..\prim.h" />
+    <ClInclude Include="..\builtin.h" />
     <ClInclude Include="..\qcompatible.h" />
     <ClInclude Include="..\qdifference.h" />
     <ClInclude Include="..\qexpr.h" />

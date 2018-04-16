@@ -129,10 +129,10 @@ const char* symstr(int i)
 		: itostr(i, salloc(8), 10);
 	}
 
-#include "prim.h"
+#include "builtin.h"
 #include "ostreamstr.h"
 
-Value su_syminfo()
+BUILTIN(SymbolsInfo, "()")
 	{
 	int n_symbols = symbols.size() / sizeof (SuSymbol);
 	OstreamStr os;
@@ -140,11 +140,10 @@ Value su_syminfo()
 		"Size " << names.size() << " (max " << NAMES_SPACE << ")";
 	return new SuString(os.str());
 	}
-PRIM(su_syminfo, "SymbolsInfo()");
 
 #include "ostreamfile.h"
 
-Value su_symdump()
+BUILTIN(DumpSymbols, "()")
 	{
 	OstreamFile f("symbols.txt");
 	for (SuSymbol* ss = (SuSymbol*) symbols.begin();
@@ -152,9 +151,8 @@ Value su_symdump()
 		f << ss->gcstr() << endl;
 	return Value();
 	}
-PRIM(su_symdump, "DumpSymbols()");
 
-// test =============================================================
+// tests ------------------------------------------------------------
 
 #include "testing.h"
 

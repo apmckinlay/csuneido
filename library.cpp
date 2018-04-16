@@ -118,9 +118,9 @@ Lisp<gcstring> libraries()
 
 // builtin functions for libraries
 
-#include "prim.h"
+#include "builtin.h"
 
-Value su_use()
+BUILTIN(Use, "(string)")
 	{
 	gcstring lib = TOP().gcstr();
 	if (member(libdb()->libraries(), lib))
@@ -146,9 +146,8 @@ Value su_use()
 	globals.clear();
 	return SuTrue;
 	}
-PRIM(su_use, "Use(string)");
 
-Value su_unuse()
+BUILTIN(Unuse, "(string)")
 	{
 	gcstring lib = TOP().gcstr();
 	if (lib == "stdlib" || ! member(libdb()->libraries(), lib))
@@ -160,20 +159,18 @@ Value su_unuse()
 	globals.clear();
 	return SuTrue;
 	}
-PRIM(su_unuse, "Unuse(string)");
 
 #include "suobject.h"
 
-Value su_libraries()
+BUILTIN(Libraries, "()")
 	{
 	SuObject* ob = new SuObject();
 	for (Lisp<gcstring> l = libdb()->libraries(); ! nil(l); ++l)
 		ob->add(new SuString(*l));
 	return ob;
 	}
-PRIM(su_libraries, "Libraries()");
 
-Value unload()
+BUILTIN(Unload, "(name = false)")
 	{
 	if (TOP() == SuFalse)
 		{
@@ -189,9 +186,8 @@ Value unload()
 		}
 	return Value();
 	}
-PRIM(unload, "Unload(name = false)");
 
-Value libraryOverride()
+BUILTIN(LibraryOverride, "(lib, name, text = '')")
 	{
 	const int nargs = 3;
 	gcstring lib = ARG(0).gcstr();
@@ -213,9 +209,8 @@ Value libraryOverride()
 	globals.put(name.str(), Value());
 	return Value();
 	}
-PRIM(libraryOverride, "LibraryOverride(lib, name, text = '')");
 
-Value libraryOverrideClear()
+BUILTIN(LibraryOverrideClear, "()")
 	{
 	TRACE(LIBRARIES, "LibraryOverrideClear");
 	for (auto [key,val] : override)
@@ -228,11 +223,10 @@ Value libraryOverrideClear()
 	override.clear();
 	return Value();
 	}
-PRIM(libraryOverrideClear, "LibraryOverrideClear()");
 
 #include <ctype.h>
 
-Value builtinNames()
+BUILTIN(BuiltinNames, "()")
 	{
 	SuObject* c = new SuObject();
 	for (auto [key,val] : builtins)
@@ -244,7 +238,6 @@ Value builtinNames()
 		}
 	return c;
 	}
-PRIM(builtinNames, "BuiltinNames()");
 
 // low level libget used by dbmslocal
 

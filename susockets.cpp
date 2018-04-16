@@ -37,7 +37,8 @@
 #include "builtinargs.h"
 #include "exceptimp.h"
 #include "readline.h"
-#include "prim.h"
+#include "builtin.h"
+#include "func.h"
 
 
 // SuSocketClient ===================================================
@@ -152,7 +153,7 @@ void SuSocketClient::finalize()
 	sc = nullptr;
 	}
 
-Value suSocketClient()
+BUILTIN(SocketClient, "(ipaddress, port, timeout=60, timeoutConnect=0, block=false)")
 	{
 	const int nargs = 5;
 	auto ipaddr = ARG(0).str();
@@ -171,7 +172,6 @@ Value suSocketClient()
 	PUSH(sc);
 	return block.call(block, CALL, 1);
 	}
-PRIM(suSocketClient, "SocketClient(ipaddress, port, timeout=60, timeoutConnect=0, block=false)");
 
 // SuSocketServer =====================================================
 // the base for user defined Server classes
@@ -206,7 +206,7 @@ private:
 	SocketConnect* sc;
 	};
 
-class CallClass : public BuiltinFunc
+class CallClass : public BuiltinFuncs
 	{
 public:
 	Value call(Value self, Value member,

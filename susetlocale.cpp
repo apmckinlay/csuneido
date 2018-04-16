@@ -24,11 +24,11 @@
 #include "value.h"
 #include "interp.h"
 #include "sustring.h"
-#include "prim.h"
+#include "builtin.h"
 
 void scanner_locale_changed();
 
-Value su_setlocale()
+BUILTIN(SetLocale, "(category, locale=0)")
 	{
 	const int nargs = 2;
 	int category = ARG(0).integer();
@@ -42,4 +42,3 @@ Value su_setlocale()
 
 	return s ? Value(new SuString(s)) : Value(0);
 	}
-PRIM(su_setlocale, "SetLocale(category, locale=0)");

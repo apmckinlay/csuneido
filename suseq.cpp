@@ -267,9 +267,9 @@ Value SuSeqIter::call(Value self, Value member,
 		method_not_found(type(), member);
 	}
 
-#include "prim.h"
+#include "builtin.h"
 
-Value su_seq()
+BUILTIN(Seq, "(from = false, to = false, by = 1)")
 	{
 	const int nargs = 3;
 	Value from = ARG(0);
@@ -287,20 +287,17 @@ Value su_seq()
 		}
 	return new SuSeq(new SuSeqIter(from, to, by));
 	}
-PRIM(su_seq, "Seq(from = false, to = false, by = 1)");
 
 // Sequence =========================================================
 
-Value su_sequence()
+BUILTIN(Sequence, "(iter)")
 	{
 	const int nargs = 1;
 	return new SuSeq(ARG(0));
 	}
-PRIM(su_sequence, "Sequence(iter)");
 
-Value su_seq_q()
+BUILTIN(SeqQ, "(value)")
 	{
 	const int nargs = 1;
 	return val_cast<SuSeq*>(ARG(0)) ? SuTrue : SuFalse;
 	}
-PRIM(su_seq_q, "Seq?(value)");

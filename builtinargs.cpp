@@ -22,7 +22,7 @@
 
 /*
 This is the current preferred method of argument handling
-for built-in functions/methods that require more than PRIM
+for built-in functions/methods that require more than BUILTIN
 Used by BuiltinClass
 - does argseach
 - handles getting arguments from named or unnamed

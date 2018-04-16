@@ -379,7 +379,7 @@ static void repl()
 	AttachConsole(pid); // need to use start/w
 	static OstreamCon con;
 	globals["Suneido"].putdata("Print",
-		new Primitive("PrintCon(string)", print));
+		new BuiltinFunc("PrintCon", "(string)", print));
 	HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
 	con << "Built:  " << build << endl;
 	run("Init.Repl()");

@@ -147,7 +147,7 @@ Value cat(Value x, Value y)
 	return new SuString(result);
 	}
 
-Frame::Frame(BuiltinFunc* p, Value s) :
+Frame::Frame(BuiltinFuncs* p, Value s) :
 	prim(p), self(s), rule(tls().proc->fp[-1].rule)
 	{ }
 

@@ -43,7 +43,7 @@
 #include "construct.h"
 #include <ctime> // for time for srand
 #include "type.h"
-#include "prim.h"
+#include "builtin.h"
 #include "fatal.h"
 #include "gc.h"
 #include "errlog.h"
@@ -77,25 +77,23 @@ const char* eval(const char* s)
 	return str;
 	}
 
-// primitives -------------------------------------------------------
+// built-in functions -----------------------------------------------
 
-Value su_fatal()
+BUILTIN(Fatal, "(s = '')")
 	{
 	const int nargs = 1;
 	fatal(ARG(0).str());
 }
-PRIM(su_fatal, "Fatal(s = '')");
 
-Value su_msgloop()
+BUILTIN(MessageLoop, "(hdlg)")
 	{
 	int nargs = 1;
 	HWND hwnd = (HWND) ARG(0).integer();
 	message_loop(hwnd);
 	return Value();
 	}
-PRIM(su_msgloop, "MessageLoop(hdlg)");
 
-Value su_exit()
+BUILTIN(Exit, "(status = 0)")
 	{
 	const int nargs = 1;
 	if (ARG(0) == SuTrue)
@@ -103,28 +101,25 @@ Value su_exit()
 	PostQuitMessage(ARG(0).integer());
 	return Value();
 	}
-PRIM(su_exit, "Exit(status = 0)");
 
-Value errorlog()
+BUILTIN(ErrorLog, "(string)")
 	{
 	const int nargs = 1;
 	errlog(ARG(0).str());
 	return Value();
 	}
-PRIM(errorlog, "ErrorLog(string)");
 
 #if defined(__clang__)
 #pragma clang diagnostic ignored "-Winfinite-recursion"
 #elif defined(_MSC_VER)
 #pragma warning(disable:4717) // stack overflow
 #endif
-Value stackoverflow()
+BUILTIN(StackOverflow, "()")
 	{
-	return stackoverflow();
+	return su_StackOverflow();
 	}
-PRIM(stackoverflow, "StackOverflow()");
 
-Value trace()
+BUILTIN(Trace, "(value, block = false)")
 	{
 	const int nargs = 2;
 	int prev_trace_level = trace_level;
@@ -154,29 +149,25 @@ Value trace()
 		}
 	return Value();
 	}
-PRIM(trace, "Trace(value, block = false)");
 
-Value gcdump()
+BUILTIN(GC_dump, "()")
 	{
 	GC_dump();
 	return Value();
 	}
-PRIM(gcdump, "GC_dump()");
 
-Value gccollect()
+BUILTIN(GC_collect, "()")
 	{
 	GC_gcollect();
 	return Value();
 	}
-PRIM(gccollect, "GC_collect()");
 
-Value display()
+BUILTIN(Display, "(value)")
 	{
 	OstreamStr os;
 	os << TOP();
 	return new SuString(os.str());
 	}
-PRIM(display, "Display(value)");
 
 struct Synch
 	{
@@ -186,16 +177,15 @@ struct Synch
 		{ --tls().synchronized; }
 	};
 
-Value synchronized()
+BUILTIN(Synchronized, "(block)")
 	{
 	const int nargs = 1;
 	KEEPSP
 	Synch synch;
 	return ARG(0).call(ARG(0), CALL);
 	}
-PRIM(synchronized, "Synchronized(block)");
 
-Value frame()
+BUILTIN(Frame, "(offset)")
 	{
 	int i = 1 + abs(TOP().integer()); // + 1 to skip this frame
 	if (tls().proc->fp - i <= tls().proc->frames)
@@ -205,9 +195,8 @@ Value frame()
 	else
 		return tls().proc->fp[-i].prim;
 	}
-PRIM(frame, "Frame(offset)");
 
-Value locals()
+BUILTIN(Locals, "(offset)")
 	{
 	static Value SYM_THIS("this");
 
@@ -225,9 +214,8 @@ Value locals()
 		}
 	return ob;
 	}
-PRIM(locals, "Locals(offset)");
 
-Value buffer()
+BUILTIN(Buffer, "(size, string='')")
 	{
 	const int nargs = 2;
 	int n;
@@ -237,77 +225,67 @@ Value buffer()
 		except("Buffer size must be greater than zero");
 	return new SuBuffer(n, ARG(1).gcstr());
 	}
-PRIM(buffer, "Buffer(size, string='')");
 
-Value objectq() //TODO don't include instances
-	{
+BUILTIN(ObjectQ, "(value)")
+	{ //TODO don't include instances
 	Value x = TOP();
 	return x.ob_if_ob() || val_cast<SuInstance*>(x)
 		? SuTrue : SuFalse;
 	}
-PRIM(objectq, "Object?(value)");
 
-Value classq()
+BUILTIN(ClassQ, "(value)")
 	{
 	return val_cast<SuClass*>(TOP())
 		? SuTrue : SuFalse;
 	}
-PRIM(classq, "Class?(value)");
 
-Value numberq()
+BUILTIN(NumberQ, "(value)")
 	{
 	Value x = TOP();
 	return x.is_int() || val_cast<SuNumber*>(x)
 		? SuTrue : SuFalse;
 	}
-PRIM(numberq, "Number?(value)");
 
-Value stringq()
+BUILTIN(StringQ, "(value)")
 	{
 	return val_cast<SuString*>(TOP())
 		? SuTrue : SuFalse;
 	}
-PRIM(stringq, "String?(value)");
 
-Value booleanq()
+BUILTIN(BooleanQ, "(value)")
 	{
 	return val_cast<SuBoolean*>(TOP())
 		? SuTrue : SuFalse;
 	}
-PRIM(booleanq, "Boolean?(value)");
 
-Value functionq()
+BUILTIN(FunctionQ, "(value)")
 	{
 	Value x = TOP();
 	return val_cast<Func*>(x) || val_cast<SuMethod*>(x)
 		? SuTrue : SuFalse;
 	}
-PRIM(functionq, "Function?(value)");
 
-Value dateq()
+BUILTIN(DateQ, "(value)")
 	{
 	return val_cast<SuDate*>(TOP())
 		? SuTrue : SuFalse;
 	}
-PRIM(dateq, "Date?(value)");
 
-Value recordq()
+BUILTIN(RecordQ, "(value)")
 	{
 	return val_cast<SuRecord*>(TOP())
 		? SuTrue : SuFalse;
 	}
-PRIM(recordq, "Record?(value)");
 
-Value name()
+BUILTIN(Name, "(value)")
 	{
 	if (auto named = TOP().get_named())
 		return new SuString(named->name());
 	else
 		return SuEmptyString;
 	}
-PRIM(name, "Name(value)");
 
-Value memcopy()
+BUILTIN(Memcopy, "(address, size)")
 	{
 	const int nargs = 2;
 	if (SuString* s = val_cast<SuString*>(ARG(0)))
@@ -325,24 +303,21 @@ Value memcopy()
 		return new SuString(p, n);
 		}
 	}
-PRIM(memcopy, "Memcopy(address, size)");
 
-Value su_string_from()
+BUILTIN(StringFrom, "(address)")
 	{
 	const int nargs = 1;
 	char* s = (char*) ARG(0).integer();
 	return new SuString(s);
 	}
-PRIM(su_string_from, "StringFrom(address)");
 
-extern const char* cmdline;
-Value su_cmdline()
+BUILTIN(Cmdline, "()")
 	{
+	extern const char* cmdline;
 	return new SuString(cmdline);
 	}
-PRIM(su_cmdline, "Cmdline()");
 
-Value su_random()
+BUILTIN(Random, "(limit)")
 	{
 	static bool first = true;
 	if (first)
@@ -353,60 +328,52 @@ Value su_random()
 	int limit = TOP().integer();
 	return limit == 0 ? 0 : random(limit);
 	}
-PRIM(su_random, "Random(range)");
 
-Value su_timestamp()
+BUILTIN(Timestamp, "()")
 	{
 	return dbms()->timestamp();
 	}
-PRIM(su_timestamp, "Timestamp()");
 
-extern bool is_server;
-Value su_serverq()
+extern bool is_client, is_server;
+
+BUILTIN(ServerQ, "()")
 	{
 	return is_server ? SuTrue : SuFalse;
 	}
-PRIM(su_serverq, "Server?()");
 
-Value su_serverip()
+BUILTIN(ServerIP, "()")
 	{
 	return new SuString(get_dbms_server_ip());
 	}
-PRIM(su_serverip, "ServerIP()");
 
-extern int su_port;
-extern bool is_client, is_server;
-Value su_serverport()
+BUILTIN(ServerPort, "()")
 	{
+	extern int su_port;
 	return (is_client || is_server) ? su_port : SuEmptyString;
 	}
-PRIM(su_serverport, "ServerPort()");
 
-Value su_exepath()
+BUILTIN(ExePath, "()")
 	{
 	char exefile[1024];
 	get_exe_path(exefile, sizeof exefile);
 	return new SuString(exefile);
 	}
-PRIM(su_exepath, "ExePath()");
 
-Value su_built()
+BUILTIN(Built, "()")
 	{
 	return new SuString(build);
 	}
-PRIM(su_built, "Built()");
 
 #include <process.h>
 
-Value su_system()
+BUILTIN(System, "(command)")
 	{
 	const int nargs = 1;
 	const char* cmd = ARG(0) == Value(0) ? nullptr : ARG(0).str();
 	return system(cmd);
 	}
-PRIM(su_system, "System(command)");
 
-Value su_pack()
+BUILTIN(Pack, "(value)")
 	{
 	const int nargs = 1;
 	int len = ARG(0).packsize();
@@ -414,40 +381,35 @@ Value su_pack()
 	ARG(0).pack(buf);
 	return SuString::noalloc(buf, len);
 	}
-PRIM(su_pack, "Pack(value)");
 
 #include "pack.h"
 
-Value su_unpack()
+BUILTIN(Unpack, "(string)")
 	{
 	const int nargs = 1;
 	gcstring s = ARG(0).gcstr();
 	return unpack(s);
 	}
-PRIM(su_unpack, "Unpack(string)");
 
-Value su_memory_arena()
+BUILTIN(MemoryArena, "()")
 	{
 	return GC_get_heap_size();
 	}
-PRIM(su_memory_arena, "MemoryArena()");
 
-Value su_type()
+BUILTIN(Type, "(value)")
 	{
 	const int nargs = 1;
 	return new SuString(ARG(0).type());
 	}
-PRIM(su_type, "Type(value)");
 
-Value su_getenv()
+BUILTIN(Getenv, "(string)")
 	{
 	const int nargs = 1;
 	char* s = getenv(ARG(0).str());
 	return s ? new SuString(s) : SuEmptyString;
 	}
-PRIM(su_getenv, "Getenv(string)");
 
-Value su_winerr()
+BUILTIN(WinErr, "(number)")
 	{
 	const int nargs = 1;
 	void *buf;
@@ -460,13 +422,11 @@ Value su_winerr()
 	LocalFree(buf);
 	return new SuString(s.trim());
 	}
-PRIM(su_winerr, "WinErr(number)");
 
-Value su_unixtime()
+BUILTIN(UnixTime, "()")
 	{
 	return new SuNumber(time(NULL));
 	}
-PRIM(su_unixtime, "UnixTime()");
 
 static Value call(Value fn)
 	{
@@ -474,7 +434,7 @@ static Value call(Value fn)
 	return fn.call(fn, CALL);
 	}
 
-Value su_finally()
+BUILTIN(Finally, "(main_block, final_block)")
 	{
 	const int nargs = 2;
 	Value main_block = ARG(0);
@@ -498,47 +458,41 @@ Value su_finally()
 		throw;
 		}
 	}
-PRIM(su_finally, "Finally(main_block, final_block)");
 
-Value su_sameq()
+BUILTIN(SameQ, "(x, y)")
 	{
 	const int nargs = 2;
 	return ARG(0).sameAs(ARG(1)) ? SuTrue : SuFalse;
 	}
-PRIM(su_sameq, "Same?(x, y)");
 
-Value su_hash()
+BUILTIN(Hash, "(value)")
 	{
 	const int nargs = 1;
 	return ARG(0).hash();
 	}
-PRIM(su_hash, "Hash(value)");
 
 // rich edit --------------------------------------------------------
 #include "rich.h"
 
-Value su_richedit_ole()
+BUILTIN(RichEditOle, "(hwnd)")
 	{
 	const int nargs = 1;
 	RichEditOle(ARG(0).integer());
 	return Value();
 	}
-PRIM(su_richedit_ole, "RichEditOle(hwnd)");
 
-Value su_richedit_get()
+BUILTIN(RichEditGet, "(hwnd)")
 	{
 	const int nargs = 1;
 	return new SuString(RichEditGet((HWND) ARG(0).integer()));
 	}
-PRIM(su_richedit_get, "RichEditGet(hwnd)");
 
-Value su_richedit_put()
+BUILTIN(RichEditPut, "(hwnd, string)")
 	{
 	const int nargs = 2;
 	RichEditPut((HWND) ARG(0).integer(), ARG(1).gcstr());
 	return Value();
 	}
-PRIM(su_richedit_put, "RichEditPut(hwnd, string)");
 
 // spawn
 
@@ -648,8 +602,6 @@ public:
 
 // ------------------------------------------------------------------
 
-Value su_exit();
-
 Value NEW;
 Value CALL;
 Value PARAMS;
@@ -664,20 +616,10 @@ Value SuFalse;
 Value SuEmptyString;
 
 void builtin(int gnum, Value value); // in library.cpp
+
 void builtin(const char* name, Value value)
 	{
 	builtin(globals(name), value);
-	}
-
-const int MAXPRIMS = 100;
-int nprims = 0;
-Prim* prims[MAXPRIMS];
-
-Prim::Prim(PrimFn f, const char* d) : fn(f), decl(d)
-	{
-	if (nprims >= MAXPRIMS)
-		fatal("too many primitives - increase MAXPRIMS in builtins.cpp");
-	prims[nprims++] = this;
 	}
 
 #define BUILTIN_CLASS(name, clazz) extern Value clazz(); builtin(name, clazz());
@@ -702,7 +644,7 @@ void builtins()
 	// struct, dll, callback types
 	builtin("bool", new TypeBool);
 
-	// TODO remove char/short/long once switch over is complete
+	// TODO remove char/short/long once switched over to int8/16/32/64
 	builtin("char", new TypeInt<char>);
 	builtin("short", new TypeInt<short>);
 	builtin("long", new TypeInt<long>);
@@ -749,9 +691,5 @@ void builtins()
 	BUILTIN_CLASS("QueryScanner", su_queryscanner);
 	BUILTIN_CLASS("Thread", su_Thread);
 
-	for (int i = 0; i < nprims; ++i)
-		{
-		Primitive* p = new Primitive(prims[i]->decl, prims[i]->fn);
-		builtin(p->named.num, p);
-		}
+	install_builtin_functions();
 	}

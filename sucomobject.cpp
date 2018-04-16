@@ -373,9 +373,9 @@ Value SuCOMobject::call(Value self, Value member,
 
 // su_COMobject() ===================================================
 
-#include "prim.h"
+#include "builtin.h"
 
-Value su_COMobject()
+BUILTIN(COMobject, "(progid)")
 	{
 	const int nargs = 1;
 	HRESULT hr;
@@ -413,4 +413,3 @@ Value su_COMobject()
 		}
 	return SuFalse;
 	}
-PRIM(su_COMobject, "COMobject(progid)");

@@ -124,30 +124,30 @@ void Globals::pop(ushort i)
 	ph.free(s);
 	}
 
-#include "prim.h"
+#include "builtin.h"
 
 #include "ostreamstr.h"
 #include "sustring.h"
 
-Value su_globalinfo()
+BUILTIN(GlobalsInfo, "()")
 	{
 	OstreamStr os;
 	os << "Globals: Count " << names.size() << " (max " << USHRT_MAX << "), " <<
 		"Size " << ph.size() << " (max " << NAMES_SPACE << ")";
 	return new SuString(os.str());
 	}
-PRIM(su_globalinfo, "GlobalsInfo()");
 
 #include "ostreamfile.h"
 
-Value su_globaldump()
+BUILTIN(DumpGlobals, "()")
 	{
 	OstreamFile f("globals.txt");
 	for (int i = 0; i < names.size(); ++i)
 		f << names[i] << endl;
 	return Value();
 	}
-PRIM(su_globaldump, "DumpGlobals()");
+
+// tests ------------------------------------------------------------
 
 #include "testing.h"
 #include "random.h"

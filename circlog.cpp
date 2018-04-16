@@ -24,7 +24,7 @@
 #include "gcstring.h"
 #include "value.h"
 #include "interp.h"
-#include "prim.h"
+#include "builtin.h"
 #include "sustring.h"
 #include "ostreamstr.h"
 #include "buffer.h"
@@ -53,7 +53,7 @@ gcstring circ_log_get()
 	return buf.gcstr();
 	}
 
-Value su_circ_log()
+BUILTIN(CircLog, "(string=false)")
 	{
 	int nargs = 1;
 	if (ARG(0) == SuFalse)
@@ -61,7 +61,6 @@ Value su_circ_log()
 	circ_log(ARG(0).gcstr());
 	return Value();
 	}
-PRIM(su_circ_log, "CircLog(string=false)");
 
 static OstreamStr os(500);
 
@@ -75,6 +74,8 @@ void circlogos_()
 	circ_log(os.gcstr());
 	os.clear();
 	}
+
+// tests ------------------------------------------------------------
 
 #include "testing.h"
 

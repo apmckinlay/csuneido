@@ -217,18 +217,24 @@ void Func::out(Ostream& out) const
 #include "globals.h"
 #include "scanner.h"
 
-Primitive::Primitive(const char* decl, PrimFn f)
+BuiltinFunc::BuiltinFunc(const char* name, const char* paramstr, BuiltinFn f)
 	{
 	pfn = f;
 	ndefaults = 0;
 	rest = false;
-	literals = 0;
+	literals = nullptr;
 	nparams = 0;
 
-	Scanner scanner(decl);
-	verify(scanner.next() == T_IDENTIFIER);
-	verify(isupper(scanner.value[0]));
-	named.num = globals(scanner.value);
+	verify(isupper(*name));
+	if (name[strlen(name) - 1] == 'Q')
+		{
+		char* s = STRDUPA(name);
+		s[strlen(name) - 1] = '?';
+		name = s;
+		}
+	named.num = globals(name);
+
+	Scanner scanner(paramstr);
 	verify(scanner.next() == '(');
 	const int maxparams = 20;
 	ushort params[maxparams];
@@ -253,12 +259,12 @@ Primitive::Primitive(const char* decl, PrimFn f)
 			else if (token == T_IDENTIFIER && scanner.keyword == K_FALSE)
 				x = SuFalse;
 			else
-				fatal("invalid parameters for Primitive:", decl);
+				fatal("invalid parameters for Primitive:", paramstr);
 			defaults[ndefaults++] = x;
 			token = scanner.next();
 			}
 		else if (ndefaults > 0)
-			fatal("invalid parameters for Primitive:", decl);
+			fatal("invalid parameters for Primitive:", paramstr);
 		if (token == ',')
 			token = scanner.next();
 		}
@@ -272,7 +278,7 @@ Primitive::Primitive(const char* decl, PrimFn f)
 	memcpy(locals, params, nparams * sizeof (ushort));
 	}
 
-Value Primitive::call(Value self, Value member, 
+Value BuiltinFunc::call(Value self, Value member,
 	short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (member != CALL)
@@ -282,7 +288,7 @@ Value Primitive::call(Value self, Value member,
 	return pfn();
 	}
 
-void Primitive::out(Ostream& out) const
+void BuiltinFunc::out(Ostream& out) const
 	{
 	out << named.name() << " /* builtin function */";
 	}

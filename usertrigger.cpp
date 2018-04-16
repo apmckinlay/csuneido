@@ -94,9 +94,9 @@ struct DisabledTriggers
 	int n;
 	};
 
-#include "prim.h"
+#include "builtin.h"
 
-Value su_do_without_triggers()
+BUILTIN(DoWithoutTriggers, "(object, block)")
 	{
 	int nargs = 2;
 
@@ -115,4 +115,3 @@ Value su_do_without_triggers()
 	Value block = ARG(1);
 	return block.call(block, CALL);
 	}
-PRIM(su_do_without_triggers, "DoWithoutTriggers(object, block)");
