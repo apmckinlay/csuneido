@@ -432,15 +432,6 @@ Value su_memory_arena()
 	}
 PRIM(su_memory_arena, "MemoryArena()");
 
-bool autowaitcursor = true; // used in awcursor.h
-
-Value su_nowaitcursor()
-	{
-	autowaitcursor = false;
-	return Value();
-	}
-PRIM(su_nowaitcursor, "NoWaitCursor()");
-
 Value su_type()
 	{
 	const int nargs = 1;

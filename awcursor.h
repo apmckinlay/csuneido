@@ -35,8 +35,6 @@ struct WinHook
 	HHOOK hook;
 	};
 
-extern bool autowaitcursor;
-
 class AutoWaitCursor
 	{
 public:
@@ -53,7 +51,6 @@ public:
 			}
 
 		ticks = 5; // start the timer
-		autowaitcursor = true;
 		prev_cursor = 0;
 		}
 	~AutoWaitCursor()
@@ -75,7 +72,7 @@ private:
 		for (;;)
 			{
 			Sleep(25); // milliseconds
-			if (ticks > 0 && --ticks == 0 && autowaitcursor)
+			if (ticks > 0 && --ticks == 0)
 				prev_cursor = SetCursor(wait_cursor);
 			}
 		}
