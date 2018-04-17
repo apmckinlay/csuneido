@@ -31,11 +31,13 @@
  * Dnum is a decimal floating point implementation
  * using a 64 bit unsigned integer for the coefficient
  * and signed 8 bit integers for the sign and exponent.
- * Max coefficient is 16 decimal digits (not 2^64 - 1 which is 1.8...e19)
+ * Precision is 16 digits. 
+ * Operations like multiply and divide may not be exact in last digit.
+ * Max coefficient is 16 decimal digits (not full >18 digit range of 64 bit)
  * 16 digits allows splitting into two 8 digit values which fit in 32 bit.
  * Assumed decimal point is to the left of the coefficient.
  * i.e. if exponent is 0, then 0 <= value < 1
- * Zero is represented with a sign of 0. (Zeroed value is zero.)
+ * Zero is represented with a sign of 0 (Zeroed value is zero)
  * Infinite is represented by a sign of +2 or -2
  * Values are normalized with a maximum coefficient
  * i.e. no leading zero decimal digits
@@ -88,6 +90,28 @@ const Dnum Dnum::INF{ POS_INF, 1, 0 };
 const Dnum Dnum::MINUS_INF{ NEG_INF, 1, 0 };
 const Dnum Dnum::MAX_INT{ POS, COEF_MAX, 16 };
 
+int clz64(uint64_t n)
+	{
+#if _MSC_VER
+	unsigned long idx;
+	if (_BitScanReverse(&idx, HI32(n)))
+		return 31 - idx;
+	if (_BitScanReverse(&idx, LO32(n)))
+		return 63 - idx;
+	return 64;
+#elif __GNUC__
+	return n == 0 ? 64 : __builtin_clzll(n);
+#else
+	int c = 0;
+	while (n != 0)
+		{
+		n >>= 1; // shift right assuming more leading zeros
+		++c;
+		}
+	return 64 - c;
+#endif
+	}
+
 namespace
 	{
 	uint64_t pow10[20] = {
@@ -134,28 +158,6 @@ namespace
 		500000000000000000ull,
 		5000000000000000000ull 
 		};
-
-	int clz64(uint64_t n)
-		{
-#if _MSC_VER
-		unsigned long idx;
-		if (_BitScanReverse(&idx, HI32(n)))
-			return 31 - idx;
-		if (_BitScanReverse(&idx, LO32(n)))
-			return 63 - idx;
-		return 64;
-#elif __GNUC__
-		return n == 0 ? 64 : __builtin_clzll(n);
-#else
-		int c = 0;
-		while (n != 0)
-			{
-			n >>= 1; // shift right assuming more leading zeros
-			++c;
-			}
-		return 64 - c;
-#endif
-		}
 
 	// returns 0 to 20
 	int ilog10(uint64_t x)
@@ -366,8 +368,8 @@ char* Dnum::tostr(char* buf, int len) const
 	//uint64_t c = coef;
 	char digits[17];
 	char* d = digits;
-	uint32_t hi = uint32_t(coef / E8); // 8 digits
-	uint32_t lo = uint32_t(coef % E8); // 8 digits
+	uint32_t hi = coef / E8; // 8 digits
+	uint32_t lo = coef % E8; // 8 digits
 	PUT(hi, E7);
 	PUT(hi, E6);
 	PUT(hi, E5);
@@ -386,13 +388,6 @@ char* Dnum::tostr(char* buf, int len) const
 	PUT(lo, 1);
 	while (d > digits && d[-1] == '0')
 		--d;
-	//for (int i = MAX_SHIFT; i >= 0 && c != 0; --i) 
-	//	{
-	//	auto p = pow10[i];
-	//	int digit = c / p;
-	//	c %= p;
-	//	*d++ = '0' + digit;
-	//	}
 	*d = 0;
 	int ndigits = d - digits;
 	int e = exp - ndigits;
@@ -491,7 +486,7 @@ gcstring Dnum::show() const
 			int digit = int(c / p);
 			c %= p;
 			CHECK(0 <= digit && digit <= 9);
-			os << static_cast<char>('0' + digit);
+			os << char('0' + digit);
 			}
 		}
 	os << 'e' << exp;
@@ -571,148 +566,29 @@ Dnum operator*(const Dnum& x, const Dnum& y)
 	if (x.isInf() || y.isInf())
 		return inf(sign);
 	int e = x.exp + y.exp;
-	if (x.coef == 1)
-		return Dnum(sign, y.coef, e);
-	if (y.coef == 1)
-		return Dnum(sign, x.coef, e);
 
-	uint32_t xhi = uint32_t(x.coef / E8); // 8 digits
-	uint32_t xlo = uint32_t(x.coef % E8); // 8 digits
+	// split unevenly to use full 64 bit range to get more precision
+	// and avoid needing xlo * ylo
+	uint64_t xhi = x.coef / E7; // 9 digits
+	uint32_t xlo = x.coef % E7; // 7 digits
+	uint64_t yhi = y.coef / E7; // 9 digits
+	uint32_t ylo = y.coef % E7; // 7 digits
 
-	uint32_t yhi = uint32_t(y.coef / E8); // 8 digits
-	uint32_t ylo = uint32_t(y.coef % E8); // 8 digits
-
-	uint64_t c = static_cast<uint64_t>(xhi) * yhi;
-	if (xlo == 0)
-		{
-		if (ylo != 0)
-			c += (static_cast<uint64_t>(xhi) * ylo) / E8;
-		}
-	else if (ylo == 0)
-		c += (static_cast<uint64_t>(xlo) * yhi) / E8;
-	else
-		{
-		auto mid1 = (static_cast<uint64_t>(xlo)) * yhi;
-		auto mid2 = (static_cast<uint64_t>(ylo)) * xhi;
-		c += (mid1 + mid2) / E8;
-		}
-	return Dnum(sign, c, e);
+	uint64_t c = xhi * yhi;
+	if (xlo || ylo)
+		c += (xlo * yhi + ylo * xhi) / E7;
+	return Dnum(sign, c, e - 2);
 	}
 
 // divide -----------------------------------------------------------
 
-namespace
-	{
-	bool mul10safe(uint64_t n)
-		{
-		return n <= UINT64_MAX / 10;
-		}
-
-	// the maximum we can safely shift left (*10)
-	int maxShift64(uint64_t x)
-		{
-		int i = ilog10(x);
-		return i > 18 ? 0 : 18 - i;
-		}
-		
-	uint64_t div2(uint64_t x, uint64_t y, int& exp)
-		{
-		CHECK(x != 0 && x * 10 > COEF_MAX); // x max coef
-		CHECK(y != 0 && y != 1 && y % 10 != 0); // y min coef
-		uint64_t q = 0;
-		while (true)
-			{
-			// ensure x > y so q2 > 0
-			if (x < y)
-				{
-				if (!mul10safe(q))
-					break;
-				y /= 10; // drop least significant digit
-				q *= 10;
-				--exp;
-				}
-
-			uint64_t q2 = x / y;
-			x %= y;
-			CHECK(q2 != 0);
-			q += q2;
-			if (x == 0)
-				break;
-
-			// shift x (and q) to the left (max coef)
-			// use full 64 bit extra range to reduce iterations
-			int p = maxShift64(x > q ? x : q);
-			if (p == 0)
-				break;
-			exp -= p;
-			uint64_t pow = pow10[p];
-			x *= pow;
-			q *= pow;
-			}
-		return q;
-		}
-
-	// count trailing (least significant) zero bits
-	int ctz32(uint32_t x)
-		{
-#if _MSC_VER
-		unsigned long idx;
-		if (_BitScanForward(&idx, LO32(x)))
-			return idx;
-		return 32;
-#elif __GNUC__
-		return n == 0 ? 32 : __builtin_ctz(x);
-#else
-		int n = 32;
-		while (x != 0)
-			{
-			--n;
-			x += x;
-			}
-		return n; 
-#endif
-		}
-
-	// "shift" coef right as far as possible, i.e. trim trailing decimal zeroes
-	// returns new (larger) exponent
-	// minimize slow % operations by using factor of 2 in 10 (ctz)
-	// try big steps first to minimize iteration
-	int minCoef(uint64_t& coef, int exp)
-		{
-		// 16 decimal digits = at most 15 trailing decimal zeros
-		CHECK(coef != 0);
-		int tz = ctz32(LO32(coef));
-		if (tz >= 8 && (coef % E8) == 0)
-			{
-			coef /= E8;
-			exp += 8;
-			tz -= 8;
-			}
-		if (tz >= 4 && (coef % E4) == 0)
-			{
-			coef /= E4;
-			exp += 4;
-			tz -= 4;
-			}
-		while (tz > 0 && (coef % 10) == 0)
-			{
-			coef /= 10;
-			exp += 1;
-			tz -= 1;
-			}
-		CHECK(coef % 10 != 0);
-		return exp;
-		}
-	}
+uint64_t div128(uint64_t, uint64_t);
 
 Dnum operator/(const Dnum& x, const Dnum& y)
 	{
-	// special cases
-	if (x.isZero())
-		return Dnum::ZERO;
-	if (y.isZero())
-		return inf(x.sign);
 	int sign = x.sign * y.sign;
+	if (sign == 0)
+		return x.isZero() ? Dnum::ZERO : /* y.isZero() */ inf(x.sign);
 	if (x.isInf())
 		{
 		if (y.isInf())
@@ -722,13 +598,8 @@ Dnum operator/(const Dnum& x, const Dnum& y)
 	if (y.isInf())
 		return Dnum::ZERO;
 
-	uint64_t ycoef = y.coef;
-	int yexp = minCoef(ycoef, y.exp);
-	int exp = x.exp - yexp + MAX_DIGITS;
-	if (ycoef == 1)
-		return Dnum(sign, x.coef, exp);
-	uint64_t q = div2(x.coef, ycoef, exp);
-	return Dnum(sign, q, exp);
+	uint64_t q = div128(x.coef, y.coef);
+	return Dnum(sign, q, x.exp - y.exp);
 	}
 
 // add/sub ----------------------------------------------------------
@@ -803,8 +674,8 @@ namespace
 		// split 8 digits (32 bits) - 8 digits (32 bits)
 		// so each half can be handled as 32 bit
 		// and lower precision can be handled in one half
-		uint32_t hi = uint32_t(coef / E8); // 8 digits
-		uint32_t lo = uint32_t(coef % E8); // 8 digits
+		uint32_t hi = coef / E8; // 8 digits
+		uint32_t lo = coef % E8; // 8 digits
 
 		bytes[0] = hi / E6; // most significant
 		CHECK(bytes[0]);
@@ -891,7 +762,7 @@ Dnum Dnum::unpack(const gcstring& s)
 		unreachable();
 		}
 	CHECK(s.size() > 2);
-	int8_t exp = static_cast<int8_t>(src[1] ^ 0x80);
+	int8_t exp = src[1] ^ 0x80;
 	exp ^= x;
 	uint32_t hi = 0;
 	uint32_t lo = 0;
@@ -909,7 +780,7 @@ Dnum Dnum::unpack(const gcstring& s)
 	case 1: ADD(hi, E6); break;
 	default: unreachable();
 		}
-	uint64_t coef = static_cast<uint64_t>(hi) * E8 + lo;
+	uint64_t coef = uint64_t(hi) * E8 + lo;
 	return Dnum(sign, coef, exp);
 	}
 
@@ -1102,6 +973,11 @@ TEST(dnum_mul)
 	mul("112233445566", "112233445566", "1259634630361629e7");
 
 	mul("1111111111111111", "1111111111111111", "1.234567901234568e30");
+	mul("100000001", "100000001", "100000002e8");
+	mul("1000000001", "1000000001", "1000000002e9");
+	mul("123456789", "123456789", "1524157875019052e1");
+	mul("1234567899", "1234567899", "1524157897241274e3");
+	mul(".9999999999999999", ".9999999999999999", ".9999999999999998");
 
 	mul(Dnum::MAX_INT, Dnum::MAX_INT, "9.999999999999998e31");
 	mul(Dnum::MAX_INT, Dnum::ONE, Dnum::MAX_INT);
@@ -1110,12 +986,6 @@ TEST(dnum_mul)
 	mul("2e99", "2e99", "inf"); // exp overflow
 	}
 
-static void min(uint64_t coef, uint64_t out, int exp)
-	{
-	int e = minCoef(coef, 0);
-	assert_eq(e, exp);
-	assert_eq(coef, out);
-	}
 static void div(const char* x, const char* y, const char* expected)
 	{
 	Dnum q = Dnum(x) / Dnum(y);
@@ -1125,28 +995,15 @@ static void div(const char* x, const char* y, const char* expected)
 	}
 TEST(dnum_div)
 	{
-	// ctz
-	assert_eq(ctz32(0), 32);
-	assert_eq(ctz32(0xfe8), 3);
-	assert_eq(ctz32(1), 0);
-
-	// minCoef
-	min(123, 123, 0);
-	min(123000, 123, 3);
-	min(1024, 1024, 0);
-	min(1000001, 1000001, 0);
-	for (int i = 0; i < 19; ++i)
-		min(pow10[i], 1, i);
-
 	// special cases (no actual math)
 	div("0", "0", "0");
 	div("123", "0", "inf");
 	div("123", "1", "123");
 	div("123", "10", "12.3");
+	div("123456", "1e3", "123.456");
 	div("123", "inf", "0");
 	div("inf", "123", "inf");
 	div("inf", "inf", "1");
-	div("123456", "1e3", "123.456");
 
 	// divides evenly
 	div("123", "123", "1");
@@ -1162,6 +1019,7 @@ TEST(dnum_div)
 	div("1234567890123456", "9876543210987654", ".1249999988609374");
 	div("1", "3333333333333333", "3e-16");
 	div("12", ".4444444444444444", "27");
+	div(".9999999999999999", ".9999999999999999", "1");
 
 	// exp overflow
 	div("1e99", "1e-99", "inf");
@@ -1299,9 +1157,7 @@ BENCHMARK(dnum_pack)
 	char buf[20];
 	while (nreps-- > 0)
 		{
-		int n = x.packsize();
 		x.pack(buf);
-		(void) Dnum::unpack(gcstring::noalloc(buf, n));
 		prev_coef = 0; // clear cache
 		}
 	}
@@ -1312,9 +1168,26 @@ BENCHMARK(dnum_pack2)
 	char buf[20];
 	while (nreps-- > 0)
 		{
-		int n = x.packsize();
 		x.pack(buf);
-		(void) Dnum::unpack(gcstring::noalloc(buf, n));
 		prev_coef = 0; // clear cache
 		}
+	}
+BENCHMARK(dnum_unpack)
+	{
+	Dnum x(12345678);
+	char buf[20];
+	int n = x.packsize();
+	x.pack(buf);
+	while (nreps-- > 0)
+		(void) Dnum::unpack(gcstring::noalloc(buf, n));
+	}
+
+BENCHMARK(dnum_unpack2)
+	{
+	Dnum x("9876543210987654");
+	char buf[20];
+	int n = x.packsize();
+	x.pack(buf);
+	while (nreps-- > 0)
+		(void) Dnum::unpack(gcstring::noalloc(buf, n));
 	}

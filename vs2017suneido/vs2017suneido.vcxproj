@@ -144,6 +144,7 @@
     <ClCompile Include="..\dbserver.cpp" />
     <ClCompile Include="..\dbserverdata.cpp" />
     <ClCompile Include="..\debug.cpp" />
+    <ClCompile Include="..\div128.cpp" />
     <ClCompile Include="..\dll.cpp" />
     <ClCompile Include="..\dnum.cpp" />
     <ClCompile Include="..\dump.cpp" />
