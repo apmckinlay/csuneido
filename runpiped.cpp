@@ -163,12 +163,11 @@ int RunPiped::exitvalue()
 
 #ifndef TEST
 #include "builtinclass.h"
-#include "sufinalize.h"
 #include "sustring.h"
 #include "ostreamstr.h"
 #include "readline.h"
 
-class SuRunPiped : public SuFinalize
+class SuRunPiped : public SuValue
 	{
 public:
 	void init(const gcstring& c)
@@ -204,7 +203,6 @@ private:
 	Value ExitValue(BuiltinArgs&);
 
 	void ckopen();
-	void finalize() override;
 	void write(BuiltinArgs&);
 	RunPiped* rp = nullptr;
 	gcstring cmd;
@@ -327,15 +325,9 @@ void SuRunPiped::ckopen()
 
 void SuRunPiped::close()
 	{
-	removefinal();
-	finalize();
-	}
-
-void SuRunPiped::finalize()
-	{
 	if (rp)
 		delete rp;
-	rp = 0;
+	rp = nullptr;
 	}
 
 #else // TEST

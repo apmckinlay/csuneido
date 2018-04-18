@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include "sufinalize.h"
 #include "readline.h"
 #include <algorithm>
 using std::min;
@@ -38,7 +37,7 @@ using std::min;
 #define FSEEK64 fseeko64
 #endif
 
-class SuFile : public SuFinalize
+class SuFile : public SuValue
 	{
 public:
 	void init(const char* filename, const char* mode);
@@ -69,7 +68,6 @@ private:
 	Value Close(BuiltinArgs&);
 
 	void ckopen(const char* action);
-	void finalize() override;
 
 	const char* filename = nullptr;
 	const char* mode = nullptr;
@@ -249,13 +247,7 @@ void SuFile::ckopen(const char* action)
 
 void SuFile::close()
 	{
-	removefinal();
-	finalize();
-	}
-
-void SuFile::finalize()
-	{
 	if (f)
 		fclose(f);
-	f = 0;
+	f = nullptr;
 	}

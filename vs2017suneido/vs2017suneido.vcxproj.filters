@@ -333,9 +333,6 @@
     <ClCompile Include="..\sufile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sufinalize.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\sufunction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -24,10 +24,9 @@
 #include <wincrypt.h>
 #include "builtinclass.h"
 #include "gcstring.h"
-#include "sufinalize.h"
 #include "sustring.h"
 
-class Md5 : public SuFinalize
+class Md5 : public SuValue
 	{
 public:
 	Md5()
@@ -49,7 +48,7 @@ public:
 		}
 	void update(gcstring gcstr);
 	gcstring value();
-	void finalize() override;
+	void close();
 
 private:
 	Value Update(BuiltinArgs&);
@@ -109,6 +108,7 @@ gcstring Md5::value()
 	if (! CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*) out.ptr(), &dwHashLen, 0))
 		except("Md5: CryptGetHashParam failed");
 	verify(dwHashLen == MD5_SIZE);
+	close();
 	return out;
 	}
 
@@ -118,7 +118,7 @@ Value Md5::ValueFn(BuiltinArgs& args)
 	return new SuString(value());
 	}
 
-void Md5::finalize()
+void Md5::close()
 	{
 	CryptDestroyHash(hHash);
 	CryptReleaseContext(hCryptProv, 0);

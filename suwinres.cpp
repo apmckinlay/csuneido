@@ -37,16 +37,10 @@ Value SuWinRes::call(Value self, Value member,
 	if (member == Close)
 		{
 		NOARGS("handle.Close()");
-		removefinal();
 		return close() ? SuTrue : SuFalse;
 		}
 	else
 		return SuValue::call(self, member, nargs, nargnames, argnames, each);
-	}
-
-void SuWinRes::finalize()
-	{
-	close();
 	}
 
 //===================================================================

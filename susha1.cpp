@@ -24,11 +24,10 @@
 #include <wincrypt.h>
 #include "builtinclass.h"
 #include "gcstring.h"
-#include "sufinalize.h"
 #include "sustring.h"
 #include "except.h"
 
-class Sha1 : public SuFinalize
+class Sha1 : public SuValue
 	{
 public:
 	Sha1()
@@ -49,13 +48,13 @@ public:
 			};
 		return gsl::make_span(methods);
 		}
-	void update(gcstring gcstr) const;
-	gcstring value() const;
-	void finalize() override;
+	void update(gcstring gcstr);
+	gcstring value();
 
 private:
 	Value Update(BuiltinArgs&);
 	Value ValueFn(BuiltinArgs&);
+	void close();
 
 	HCRYPTPROV hCryptProv;
 	HCRYPTHASH hHash;
@@ -96,7 +95,7 @@ Value Sha1::Update(BuiltinArgs& args)
 	return this;
 	}
 
-void Sha1::update(gcstring s) const
+void Sha1::update(gcstring s)
 	{
 	if (! CryptHashData(hHash, (BYTE*) s.ptr(), s.size(), 0))
 		except("Sha1: CryptHashData failed");
@@ -104,13 +103,14 @@ void Sha1::update(gcstring s) const
 
 const int SHA1_SIZE = 20;
 
-gcstring Sha1::value() const
+gcstring Sha1::value()
 	{
 	DWORD dwHashLen = SHA1_SIZE;
 	gcstring out(dwHashLen);
 	if (! CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*) out.ptr(), &dwHashLen, 0))
 		except("Sha1: CryptGetHashParam failed");
 	verify(dwHashLen == SHA1_SIZE);
+	close();
 	return out;
 	}
 
@@ -120,7 +120,7 @@ Value Sha1::ValueFn(BuiltinArgs& args)
 	return new SuString(value());
 	}
 
-void Sha1::finalize()
+void Sha1::close()
 	{
 	CryptDestroyHash(hHash);
 	CryptReleaseContext(hCryptProv, 0);

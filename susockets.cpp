@@ -22,7 +22,6 @@
 
 #include "susockets.h"
 #include "sockets.h"
-#include "sufinalize.h"
 #include "suinstance.h"
 #include "suobject.h"
 #include "symbols.h"
@@ -43,7 +42,7 @@
 
 // SuSocketClient ===================================================
 
-class SuSocketClient : public SuFinalize
+class SuSocketClient : public SuValue
 	{
 public:
 	explicit SuSocketClient(SocketConnect* s);
@@ -52,7 +51,6 @@ public:
 		short nargs, short nargnames, ushort* argnames, int each) override;
 	void close();
 private:
-	void finalize() override;
 	void ckopen(const char* action);
 
 	SocketConnect* sc;
@@ -141,12 +139,6 @@ void SuSocketClient::ckopen(const char* action)
 	}
 
 void SuSocketClient::close()
-	{
-	removefinal();
-	finalize();
-	}
-
-void SuSocketClient::finalize()
 	{
 	if (sc)
 		sc->close();

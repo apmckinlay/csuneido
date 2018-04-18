@@ -21,16 +21,15 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "sufinalize.h"
+#include "suvalue.h"
 
 // base for Windows resources - SuHandle and SuGdiObj
-class SuWinRes : public SuFinalize
+class SuWinRes : public SuValue
 	{
 public:
 	explicit SuWinRes(void* handle);
 	Value call(Value self, Value member,
 		short nargs, short nargnames, ushort* argnames, int each) override;
-	void finalize() override;
 	void* handle() const
 		{ return h; }
 protected:

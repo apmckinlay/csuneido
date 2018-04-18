@@ -228,7 +228,6 @@
     <ClCompile Include="..\sudate.cpp" />
     <ClCompile Include="..\sudb.cpp" />
     <ClCompile Include="..\sufile.cpp" />
-    <ClCompile Include="..\sufinalize.cpp" />
     <ClCompile Include="..\sufunction.cpp" />
     <ClCompile Include="..\suinstance.cpp" />
     <ClCompile Include="..\sumd5.cpp" />
