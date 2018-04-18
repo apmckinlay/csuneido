@@ -787,6 +787,7 @@ Dnum Dnum::unpack(const gcstring& s)
 // tests ------------------------------------------------------------
 
 #include "testing.h"
+#include "porttest.h"
 #include "list.h"
 #include <utility>
 using namespace std::rel_ops;
@@ -1103,6 +1104,8 @@ TEST(dnum_packing)
 				"packed " << nums[i] << " <=> " << nums[j]);
 	}
 
+//-------------------------------------------------------------------
+
 BENCHMARK(dnum_div)
 	{
 	Dnum x(12345678);
@@ -1190,4 +1193,77 @@ BENCHMARK(dnum_unpack2)
 	x.pack(buf);
 	while (nreps-- > 0)
 		(void) Dnum::unpack(gcstring::noalloc(buf, n));
+	}
+
+// ------------------------------------------------------------------
+
+TEST(dnum_port)
+	{
+	OstreamStr os;
+	if (! PortTest::run_file("dnum.test", os))
+		except(os.gcstr());
+	}
+
+static bool ck(Dnum x, Dnum y, Ostream& os)
+	{
+	if (almostSame(x, y))
+		return true;
+	os << x << " result\n" << y << " expected" << endl;
+	return false;
+	}
+
+#define CK(x, y) ck(x, y, os)
+
+PORTTEST(dnum_add)
+	{
+	verify(args.size() == 3);
+	Dnum x(args[0]);
+	Dnum y(args[1]);
+	Dnum z(args[2]);
+	return CK(x + y, z) && CK(y + x, z);
+	}
+
+PORTTEST(dnum_sub)
+	{
+	verify(args.size() == 3);
+	Dnum x(args[0]);
+	Dnum y(args[1]);
+	Dnum z(args[2]);
+	return CK(x - y, z) && (z.isZero() || CK(y - x, -z));
+	}
+
+PORTTEST(dnum_mul)
+	{
+	verify(args.size() == 3);
+	Dnum x(args[0]);
+	Dnum y(args[1]);
+	Dnum z(args[2]);
+	return CK(x * y, z) && CK(y * x, z);
+	}
+
+PORTTEST(dnum_div)
+	{
+	verify(args.size() == 3);
+	Dnum x(args[0]);
+	Dnum y(args[1]);
+	Dnum z(args[2]);
+	return CK(x / y, z);
+	}
+
+PORTTEST(dnum_cmp)
+	{
+	int n = args.size();
+	for (int i = 0; i < n; ++i)
+		{
+		Dnum x(args[i]);
+		if (Dnum::cmp(x, x) != 0)
+			return false;
+		for (int j = i + 1; j < n; ++j)
+			{
+			Dnum y(args[j]);
+			if (Dnum::cmp(x, y) != -1 || Dnum::cmp(y, x) != +1)
+				return false;
+			}
+		}
+	return true;
 	}

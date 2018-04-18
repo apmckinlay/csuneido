@@ -474,6 +474,9 @@
     <ClCompile Include="..\div128.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\porttest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\suneido.rc">

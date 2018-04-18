@@ -183,6 +183,7 @@
     <ClCompile Include="..\ostreamstr.cpp" />
     <ClCompile Include="..\pack.cpp" />
     <ClCompile Include="..\permheap.cpp" />
+    <ClCompile Include="..\porttest.cpp" />
     <ClCompile Include="..\portwin32.cpp" />
     <ClCompile Include="..\qcompatible.cpp" />
     <ClCompile Include="..\qdifference.cpp" />
