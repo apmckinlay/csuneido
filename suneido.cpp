@@ -180,6 +180,8 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		{
 		OstreamStr os;
 		run_benchmarks(os, cmdlineoptions.argstr);
+		{ OstreamFile log("bench.log", "w");
+		log << os.gcstr(); }
 		alert(os.str());
 		exit(EXIT_SUCCESS);
 		}
