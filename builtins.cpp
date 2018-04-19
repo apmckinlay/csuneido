@@ -471,6 +471,24 @@ BUILTIN(Hash, "(value)")
 	return ARG(0).hash();
 	}
 
+#define RC(name) \
+	extern int name##_count; \
+	if (name##_count) \
+		ob->put(#name, name##_count)
+
+BUILTIN(ResourceCounts, "()")
+	{
+	auto ob = new SuObject();
+	RC(handle);
+	RC(gdiobj);
+	RC(File);
+	RC(RunPiped);
+	RC(Md5);
+	RC(Sha1);
+	RC(socket);
+	return ob;
+	}
+
 // rich edit --------------------------------------------------------
 #include "rich.h"
 

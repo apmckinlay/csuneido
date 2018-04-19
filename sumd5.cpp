@@ -26,6 +26,8 @@
 #include "gcstring.h"
 #include "sustring.h"
 
+int Md5_count = 0;
+
 class Md5 : public SuValue
 	{
 public:
@@ -36,6 +38,7 @@ public:
 				except("Md5: CryptAcquireContext failed");
 		if (! CryptCreateHash(hCryptProv, CALG_MD5, 0, 0, &hHash))
 			except("Md5: CryptCreateHash failed");
+		++Md5_count;
 		}
 	static auto methods()
 		{
@@ -122,4 +125,5 @@ void Md5::close()
 	{
 	CryptDestroyHash(hHash);
 	CryptReleaseContext(hCryptProv, 0);
+	--Md5_count;
 	}

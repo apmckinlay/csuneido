@@ -25,6 +25,7 @@
 #include "value.h"
 #include "win.h"
 #include "noargs.h"
+#include "errlog.h"
 
 SuWinRes::SuWinRes(void* handle) : h(handle)
 	{ }
@@ -45,8 +46,12 @@ Value SuWinRes::call(Value self, Value member,
 
 //===================================================================
 
+int handle_count = 0;
+
 SuHandle::SuHandle(void* handle) : SuWinRes(handle)
-	{ }
+	{
+	++handle_count;
+	}
 
 void SuHandle::out(Ostream& os) const
 	{
@@ -55,6 +60,7 @@ void SuHandle::out(Ostream& os) const
 
 bool SuHandle::close()
 	{
+	--handle_count;
 	bool ok = h && CloseHandle((HANDLE) h);
 	h = 0;
 	return ok;
@@ -62,8 +68,12 @@ bool SuHandle::close()
 
 //===================================================================
 
+int gdiobj_count = 0;
+
 SuGdiObj::SuGdiObj(void* handle) : SuWinRes(handle)
-	{ }
+	{
+	++gdiobj_count;
+	}
 
 void SuGdiObj::out(Ostream& os) const
 	{
@@ -77,6 +87,7 @@ int SuGdiObj::integer() const
 
 bool SuGdiObj::close()
 	{
+	--gdiobj_count;
 	bool ok = h && DeleteObject((HGDIOBJ) h);
 	h = 0;
 	return ok;

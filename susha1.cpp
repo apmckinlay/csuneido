@@ -27,6 +27,8 @@
 #include "sustring.h"
 #include "except.h"
 
+int Sha1_count = 0;
+
 class Sha1 : public SuValue
 	{
 public:
@@ -37,6 +39,7 @@ public:
 				except("Sha1: CryptAcquireContext failed");
 		if (! CryptCreateHash(hCryptProv, CALG_SHA1, 0, 0, &hHash))
 			except("Sha1: CryptCreateHash failed");
+		++Sha1_count;
 		}
 
 	static auto methods()
@@ -124,6 +127,7 @@ void Sha1::close()
 	{
 	CryptDestroyHash(hHash);
 	CryptReleaseContext(hCryptProv, 0);
+	--Sha1_count;
 	}
 
 // for auth

@@ -33,6 +33,8 @@
 #include <algorithm>
 using std::min;
 
+int socket_count = 0;
+
 //#define FILE_LOGGING
 
 #ifdef FILE_LOGGING
@@ -142,6 +144,7 @@ void socketServer(const char* title, int port, NewServerConnection newServerConn
 	serverData[port] = new ServerData(sock, newServerConn, arg);
 	verify(CreateThread(nullptr, 4096, acceptor,
 		static_cast<void*>(serverData[port]), 0, nullptr));
+	++socket_count;
 	}
 
 static void CALLBACK finishAccept(ULONG_PTR p);
@@ -163,7 +166,7 @@ static DWORD WINAPI acceptor(LPVOID p)
 
 			return 0; // end thread
 			}
-		QueueUserAPC(finishAccept, data.mainThread, 	static_cast<ULONG_PTR>(sock));
+		QueueUserAPC(finishAccept, data.mainThread, static_cast<ULONG_PTR>(sock));
 		}
 	}
 
@@ -305,6 +308,7 @@ SocketConnect* socketClientSync(const char* addr, int port, int timeout, int tim
 		ioctlsocket(sock, FIONBIO, &Blocking);
 		}
 	closer.disable();
+	++socket_count;
 	return new SocketConnectSync(sock, timeout);
 	}
 
@@ -391,6 +395,7 @@ bool SocketConnectSync::readline(char* dst, int n)
 void SocketConnectSync::close()
 	{
 	end(sock);
+	--socket_count;
 	}
 
 // async via overlapped ----------------------------------------------------------
@@ -483,6 +488,7 @@ SocketConnect* socketClientAsync(
 
 	closer.disable();
 	LOG("async connected");
+	++socket_count;
 	return new SocketConnectAsync(sock, timeout);
 	}
 
@@ -676,6 +682,7 @@ void SocketConnectAsync::close()
 	end(sock);
 	sock = 0;
 	LOG("async closed" << endl);
+	--socket_count;
 	}
 
 static const char* getadr(SOCKET sock);

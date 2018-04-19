@@ -33,6 +33,8 @@
 	ExitProcess(0); } while (false)
 #endif
 
+int RunPiped_count = 0;
+
 class RunPiped
 	{
 public:
@@ -101,6 +103,7 @@ RunPiped::RunPiped(char* cmd)
 
 	CloseHandle(hChildStdinRd);
 	CloseHandle(hChildStdoutWr);
+	++RunPiped_count;
 	}
 
 void RunPiped::write(const char* buf, int len)
@@ -140,6 +143,7 @@ void RunPiped::close()
 		closewrite();
 	CloseHandle(hChildStdoutRd);
 	hChildStdoutRd = 0;
+	--RunPiped_count;
 	}
 
 RunPiped::~RunPiped()

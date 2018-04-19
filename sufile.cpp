@@ -37,6 +37,8 @@ using std::min;
 #define FSEEK64 fseeko64
 #endif
 
+int File_count = 0;
+
 class SuFile : public SuValue
 	{
 public:
@@ -124,6 +126,7 @@ void SuFile::init(const char* fn, const char* m)
 
 	if (*filename == 0 || nullptr == (f = fopen(filename, mode)))
 		except("File: can't open '" << filename << "' in mode '" << mode << "'");
+	++File_count;
 	}
 
 Value SuFile::Read(BuiltinArgs& args)
@@ -250,4 +253,5 @@ void SuFile::close()
 	if (f)
 		fclose(f);
 	f = nullptr;
+	--File_count;
 	}
