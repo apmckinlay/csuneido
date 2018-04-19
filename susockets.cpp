@@ -39,7 +39,6 @@
 #include "builtin.h"
 #include "func.h"
 
-
 // SuSocketClient ===================================================
 
 class SuSocketClient : public SuValue
