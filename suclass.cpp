@@ -111,7 +111,9 @@ Value SuClass::call(Value self, Value member,
 		sp[-i] = member;
 		return self.call(self, DEFAULT, nargs + 1, nargnames, argnames, each);
 		}
-	method_not_found(type(), member);
+	else
+		member = ARG(0);
+	method_not_found(self.type(), member);
 	}
 
 UserDefinedMethods::UserDefinedMethods(const char* name) : gnum(globals(name))
