@@ -264,7 +264,7 @@ Value SuString::call(Value self, Value member,
 	static UserDefinedMethods udm("Strings");
 	if (Value c = udm(member))
 		return c.call(self, member, nargs, nargnames, argnames, each);
-	method_not_found("string", member);
+	method_not_found("String", member);
 	}
 
 Value SuString::Call(short nargs, short nargnames, ushort* argnames, int each)

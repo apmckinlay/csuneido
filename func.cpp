@@ -38,7 +38,7 @@ Value Func::call(Value self, Value member,
 	if (member == PARAMS)
 		return params();
 	else
-		method_not_found("function", member);
+		method_not_found("Function", member);
 	}
 
 Value Func::params()

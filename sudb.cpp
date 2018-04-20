@@ -446,7 +446,7 @@ Value SuTransaction::call(Value self, Value member,
 		static UserDefinedMethods udm("Transactions");
 		if (Value c = udm(member))
 			return c.call(self, member, nargs, nargnames, argnames, each);
-		method_not_found("transaction", member);
+		method_not_found("Transaction", member);
 		}
 	}
 
@@ -646,7 +646,7 @@ Value SuQuery::call(Value, Value member,
 		return Value();
 		}
 	else
-		method_not_found("query", member);
+		method_not_found("Query", member);
 	}
 
 Value SuQuery::get(Dir dir)

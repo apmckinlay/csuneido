@@ -488,7 +488,7 @@ Value SuObject::call(Value self, Value member,
 	static UserDefinedMethods udm("Objects");
 	if (Value c = udm(member))
 		return c.call(self, member, nargs, nargnames, argnames, each);
-	method_not_found("object", member);
+	method_not_found(self.type(), member);
 	}
 
 // Suneido methods ==================================================

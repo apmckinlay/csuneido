@@ -138,7 +138,7 @@ Value SuDate::call(Value self, Value member,
 	static UserDefinedMethods udm("Dates");
 	if (Value c = udm(member))
 		return c.call(self, member, nargs, nargnames, argnames, each);
-	method_not_found("date", member);
+	method_not_found("Date", member);
 	}
 
 static void adjust(int& n, int& n2, int range)

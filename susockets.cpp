@@ -128,7 +128,7 @@ Value SuSocketClient::call(Value self, Value member,
 		return Value();
 		}
 	else
-		method_not_found("socketClient", member);
+		method_not_found("SocketClient", member);
 	}
 
 void SuSocketClient::ckopen(const char* action)
