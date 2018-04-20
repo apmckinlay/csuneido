@@ -57,7 +57,7 @@ protected:
 	Value callSuper(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
 	virtual Value mbclass() = 0; // SuInstance.myclass or SuClass this
 	virtual Value parent() = 0; // SuInstance.myclass or SuClass.base
-	virtual bool readonly() = 0; 
+	virtual bool readonly() = 0;
 
 	Hmap<Value, Value> data;
 	};
