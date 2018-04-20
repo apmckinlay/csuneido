@@ -43,7 +43,6 @@ public:
 
 	void out(Ostream&) const override;
 	gcstring to_gcstr() const override;
-	const char* type() const override;
 
 private:
 	Value Copy(short nargs, short nargnames, ushort* argnames, int each);

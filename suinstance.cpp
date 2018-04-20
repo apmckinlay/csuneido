@@ -115,12 +115,6 @@ gcstring SuInstance::to_gcstr() const
 		return SuValue::to_gcstr(); // throw "can't convert"
 	}
 
-//TODO remove this method and use default of "Instance"
-const char * SuInstance::type() const
-	{
-	return "Object";
-	}
-
 Value SuInstance::Copy(short nargs, short nargnames, ushort * argnames, int each)
 	{
 	NOARGS("instance.Copy()");
