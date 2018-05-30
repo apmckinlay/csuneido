@@ -30,11 +30,11 @@ using namespace std;
 #include "pack.h"
 #include "sustring.h"
 #include "suobject.h"
-#include "globals.h"
 #include <math.h>
 #include <errno.h>
 #include "itostr.h"
 #include "gc.h"
+#include "func.h"
 
 SuNumber SuNumber::one(1);
 SuNumber SuNumber::zero(0L);
@@ -965,7 +965,6 @@ char* SuNumber::format(char* buf) const
 	if (sign == MINUS)
 		{ *s++ = '-'; ++start; }
 
-
 	if (-1 <= exp && exp <= NDIGITS + 1)
 		{
 		short i = 0;
@@ -1374,8 +1373,10 @@ Value SuNumber::call(Value self, Value member,
 	static Value ROUND_UP("RoundUp");
 	static Value ROUND_DOWN("RoundDown");
 
+
 	if (member == FORMAT)
 		{
+		argseach(nargs, nargnames, argnames, each);
 		if (nargs != 1)
 			except("usage: number.Format(string)");
 		auto format = ARG(0).str();
@@ -1456,6 +1457,7 @@ Value SuNumber::call(Value self, Value member,
 		}
 	else if (member == POW)
 		{
+		argseach(nargs, nargnames, argnames, each);
 		if (nargs != 1)
 			except("usage: number.Pow(number)");
 		return from_double(pow(to_double(), ARG(0).number()->to_double()));
@@ -1483,18 +1485,21 @@ Value SuNumber::call(Value self, Value member,
 		}
 	else if (member == ROUND)
 		{
+		argseach(nargs, nargnames, argnames, each);
 		if (nargs != 1)
 			except("usage: number.Round(number)");
 		return round(this, ARG(0).integer(), 'h');
 		}
 	else if (member == ROUND_UP)
 		{
+		argseach(nargs, nargnames, argnames, each);
 		if (nargs != 1)
 			except("usage: number.Round(number)");
 		return round(this, ARG(0).integer(), 'u');
 		}
 	else if (member == ROUND_DOWN)
 		{
+		argseach(nargs, nargnames, argnames, each);
 		if (nargs != 1)
 			except("usage: number.Round(number)");
 		return round(this, ARG(0).integer(), 'd');

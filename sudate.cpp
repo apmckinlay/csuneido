@@ -647,6 +647,7 @@ Value SuDate::FormatEn(short nargs, short nargnames, ushort* argnames, int each)
 	{
 	if (nargs != 1)
 		except("usage: date.Format(format)");
+	argseach(nargs, nargnames, argnames, each);
 	return format(date, time, ARG(0).str());
 	}
 
