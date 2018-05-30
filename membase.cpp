@@ -181,7 +181,7 @@ Value MemBase::MethodQ(BuiltinArgs& args)
 	{
 	args.usage("class.MethodQ(name)");
 	Value x = method_lookup(args);
-	return x ? SuTrue : SuFalse;
+	return x && x != SuFalse ? SuTrue : SuFalse;
 	}
 
 Value MemBase::MethodClass(BuiltinArgs& args)
