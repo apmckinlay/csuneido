@@ -188,6 +188,7 @@ static void deleteFiber(Fiber& f, int i, const char* from_fn)
 void Fibers::create(void (_stdcall *fiber_proc)(void* arg), void* arg)
 	{
 	void* f = CreateFiber(0, fiber_proc, arg);
+	//TODO if CreateFiber fails, delete all the REUSE fibers and try again
 	verify(f);
 	for (int i = 1; i < MAXFIBERS; ++i)
 		if (fibers[i].status == Fiber::REUSE)
