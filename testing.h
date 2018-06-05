@@ -40,19 +40,18 @@ struct Test
 	Tfn fn;
 	};
 
-class TestObserver
-	{
-public:
-	virtual ~TestObserver() = default;
-	virtual void start_test(const char* test)
-		{ }
-	virtual void end_test(const char* test, const char* error)
-		{ }
-	virtual void end_all(int nfailed)
-		{ }
-	};
+bool run_tests(const char* prefix);
 
-int run_tests(TestObserver& to, const char* prefix);
+struct Testing
+	{
+	Testing();
+	~Testing();
+
+	Ostream& log;
+	Ostream& err;
+	int ntests = 0;
+	int nfails = 0;
+	};
 
 // assertions -------------------------------------------------------
 

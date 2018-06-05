@@ -185,6 +185,7 @@
     <ClCompile Include="..\permheap.cpp" />
     <ClCompile Include="..\porttest.cpp" />
     <ClCompile Include="..\portwin32.cpp" />
+    <ClCompile Include="..\ptmethod.cpp" />
     <ClCompile Include="..\qcompatible.cpp" />
     <ClCompile Include="..\qdifference.cpp" />
     <ClCompile Include="..\qexpr.cpp" />
@@ -403,8 +404,6 @@
     <ClInclude Include="..\tempdb.h" />
     <ClInclude Include="..\tempdest.h" />
     <ClInclude Include="..\testing.h" />
-    <ClInclude Include="..\testobalert.h" />
-    <ClInclude Include="..\testobstd.h" />
     <ClInclude Include="..\thedb.h" />
     <ClInclude Include="..\tr.h" />
     <ClInclude Include="..\trace.h" />

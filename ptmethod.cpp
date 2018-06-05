@@ -1,4 +1,3 @@
-#pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
 * This file is part of Suneido - The Integrated Application Platform
 * see: http://www.suneido.com for more information.
@@ -21,23 +20,23 @@
 * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "porttest.h"
+#include "value.h"
+#include "sustring.h"
+#include "compile.h"
+#include "interp.h"
+#include "ostreamstr.h"
 
-#include "ostream.h"
-#include "list.h"
-#include "testing.h"
+#define TOVAL(i) (str[i] ? new SuString(args[i]) : compile(args[i]))
 
-using PTfn = char* (*)(const List<const char*>& args, const List<bool>& str);
-
-struct PortTest
+PORTTEST(method)
 	{
-	PortTest(const char* name, PTfn fn);
-	static void run(Testing& t);
-
-	const char* name;
-	PTfn fn;
-	};
-
-#define PORTTEST(name) \
-	static char* name(const List<const char*>& args, const List<bool>& str); \
-	PortTest pt_##name(#name, name); \
-	static char* name(const List<const char*>& args, const List<bool>& str)
+	Value ob = TOVAL(0);
+	auto method = args[1];
+	Value expected = TOVAL(args.size() - 1);
+	KEEPSP
+	for (int i = 2; i < args.size() - 1; ++i)
+		PUSH(TOVAL(i));
+	Value result = ob.call(ob, method, args.size() - 3);
+	return result == expected ? nullptr : OSTR("got: " << result);
+	}

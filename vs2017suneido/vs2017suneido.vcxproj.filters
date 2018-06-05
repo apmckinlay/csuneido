@@ -474,6 +474,9 @@
     <ClCompile Include="..\porttest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\ptmethod.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\suneido.rc">
@@ -866,12 +869,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\testing.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\testobalert.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\testobstd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\thedb.h">

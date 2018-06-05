@@ -24,6 +24,11 @@
 #include "exceptimp.h"
 #include "fatal.h"
 #include "gsl-lite.h"
+#include "ostreamstr.h"
+#include "ostreamfile.h"
+#include "alert.h"
+#include "build.h"
+#include "porttest.h"
 
 // tests ------------------------------------------------------------
 
@@ -38,32 +43,51 @@ Test::Test(const char* n, Tfn f) : name(n), fn(f)
 	tests[n_tests++] = this;
 	}
 
-int run_tests(TestObserver& to, const char* prefix)
+Testing::Testing() 
+	: log(*new OstreamFile("test.log", "w")), err(*new OstreamStr())
+	{}
+
+Testing::~Testing()
 	{
-	int nfailed = 0;
-	for (auto t : gsl::span<Test*>(tests, n_tests))
-		if (has_prefix(t->name, prefix))
+	delete &log;
+	delete &err;
+	}
+
+bool run_tests(const char* prefix)
+	{
+	Testing t;
+	for (auto test : gsl::span<Test*>(tests, n_tests))
+		if (has_prefix(test->name, prefix))
 			{
-			const char* error = nullptr;
-			to.start_test(t->name);
+			++t.ntests;
+			t.log << test->name << endl;
 			try
 				{
-				t->fn();
+				test->fn();
 				}
 			catch (const Except& e)
 				{
-				++nfailed;
-				error = e.str();
+				++t.nfails;
+				t.log << e.str() << endl;
+				t.err << test->name << " FAILED: " << e.str() << endl;
 				}
-			to.end_test(t->name, error);
 			}
-	to.end_all(nfailed);
-	return nfailed;
+	PortTest::run(t);
+	char* errs = (dynamic_cast<OstreamStr&>(t.err)).str();
+
+	char* nt = OSTR(t.ntests << " test" << (t.ntests > 1 ? "s" : "") << ' ');
+	if (t.nfails == 0)
+		alert("Built: " << build << "\n\n" <<
+			errs << endl << nt << "ALL SUCCESSFUL");
+	else
+		alert("Built: " << build << "\n\n" <<
+			errs << endl << nt <<
+			t.nfails << " FAILURE" << (t.nfails == 1 ? "" : "S"));
+	return t.nfails > 0;
 	}
 
 // benchmarks =======================================================
 
-#include "ostreamstr.h"
 #include <chrono>
 
 const int MAX_BENCHMARKS = 100;

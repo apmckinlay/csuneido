@@ -44,12 +44,13 @@
 #include <stdio.h> // for remove
 #include "fatal.h"
 #include "sustring.h"
-#include "testobalert.h"
 #include "unhandled.h"
 #include "msgloop.h"
 #include "port.h" // for fork_rebuild for start_check
 #include "exceptimp.h"
 #include "build.h"
+#include "ostreamstr.h"
+#include "ostreamfile.h"
 
 #include "suservice.h"
 #include <fcntl.h>
@@ -172,9 +173,8 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 		exit(EXIT_SUCCESS);
 	case TEST :
 		{
-		TestObserverAlert to;
-		int nfailed = run_tests(to, cmdlineoptions.argstr);
-		exit(nfailed == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
+		bool ok = run_tests(cmdlineoptions.argstr);
+		exit(ok ? EXIT_SUCCESS : EXIT_FAILURE);
 		}
 	case BENCH :
 		{

@@ -39,3 +39,5 @@ public:
 private:
 	Buffer* buf;
 	};
+
+#define OSTR(stuff) ((OstreamStr&) (OstreamStr() << "" << stuff)).str()

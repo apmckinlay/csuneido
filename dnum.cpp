@@ -1197,22 +1197,7 @@ BENCHMARK(dnum_unpack2)
 
 // ------------------------------------------------------------------
 
-TEST(dnum_port)
-	{
-	OstreamStr os;
-	if (! PortTest::run_file("dnum.test", os))
-		except(os.gcstr());
-	}
-
-static bool ck(Dnum x, Dnum y, Ostream& os)
-	{
-	if (almostSame(x, y))
-		return true;
-	os << x << " result\n" << y << " expected" << endl;
-	return false;
-	}
-
-#define CK(x, y) ck(x, y, os)
+#define CK(x, y) if (!almostSame(x, y)) return OSTR("got " << (x))
 
 PORTTEST(dnum_add)
 	{
@@ -1220,7 +1205,9 @@ PORTTEST(dnum_add)
 	Dnum x(args[0]);
 	Dnum y(args[1]);
 	Dnum z(args[2]);
-	return CK(x + y, z) && CK(y + x, z);
+	CK(x + y, z);
+	CK(y + x, z);
+	return nullptr;
 	}
 
 PORTTEST(dnum_sub)
@@ -1229,7 +1216,10 @@ PORTTEST(dnum_sub)
 	Dnum x(args[0]);
 	Dnum y(args[1]);
 	Dnum z(args[2]);
-	return CK(x - y, z) && (z.isZero() || CK(y - x, -z));
+	CK(x - y, z);
+	if (!z.isZero())
+		CK(y - x, -z);
+	return nullptr;
 	}
 
 PORTTEST(dnum_mul)
@@ -1238,7 +1228,9 @@ PORTTEST(dnum_mul)
 	Dnum x(args[0]);
 	Dnum y(args[1]);
 	Dnum z(args[2]);
-	return CK(x * y, z) && CK(y * x, z);
+	CK(x * y, z);
+	CK(y * x, z);
+	return nullptr;
 	}
 
 PORTTEST(dnum_div)
@@ -1247,7 +1239,8 @@ PORTTEST(dnum_div)
 	Dnum x(args[0]);
 	Dnum y(args[1]);
 	Dnum z(args[2]);
-	return CK(x / y, z);
+	CK(x / y, z);
+	return nullptr;
 	}
 
 PORTTEST(dnum_cmp)
@@ -1257,13 +1250,13 @@ PORTTEST(dnum_cmp)
 		{
 		Dnum x(args[i]);
 		if (Dnum::cmp(x, x) != 0)
-			return false;
+			return OSTR(x << " not equal to itself");
 		for (int j = i + 1; j < n; ++j)
 			{
 			Dnum y(args[j]);
 			if (Dnum::cmp(x, y) != -1 || Dnum::cmp(y, x) != +1)
-				return false;
+				return OSTR(x << " not less than " << y);
 			}
 		}
-	return true;
+	return nullptr;
 	}

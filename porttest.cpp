@@ -50,6 +50,7 @@ static PortTest* find(const char* name)
 	return nullptr;
 	}
 
+// assumes suneido_tests is a peer of the current directory
 #define TESTDIR "../suneido_tests/"
 
 List<gcstring> test_files()
@@ -89,28 +90,44 @@ char* read_file(gcstring file)
 
 struct Parser
 	{
-	Parser(Ostream& o, const char* s) : scan(s), os(o)
+	Parser(Testing& t_, const char* f, const char* s) 
+		: filename(f), scan(s), t(t_)
 		{
 		next(true);
 		}
-	bool run() {
-		bool ok = true;
+
+	void run()
+		{
 		while (tok != Eof)
-			ok = run1() && ok;
-		return ok;
+			run1();
+		if (!missing.empty())
+			{
+			t.err << filename << " MISSING FIXTURES: ";
+			t.log << filename << " MISSING FIXTURES: ";
+			for (gcstring s : missing)
+				{
+				t.err << s << " ";
+				t.log << s << " ";
+				}
+			t.err << endl;
+			t.log << endl;
+			}
 		}
 
-	bool run1()
+	void run1()
 		{
 		match('@', false);
-		auto name = dupstr(scan.value);
+		auto name = gcstring(scan.value);
 		match(T_IDENTIFIER, true);
-		os << "@" << name << ":" << endl;
-		PortTest* pt = find(name);
+		PortTest* pt = find(name.str());
+		if (pt)
+			t.log << filename << ": @" << name << " " << comment << endl;
+		else
+			missing.add(name);
 		int n = 0;
-		bool ok = true;
 		while (tok != EOF && tok != '@') {
 			List<const char*> args;
+			List<bool> str;
 			while (true) {
 				const char* text = dupstr(scan.value);
 				if (tok == I_SUB)
@@ -119,29 +136,30 @@ struct Parser
 					text = (gcstring("-") + scan.value).str();
 					}
 				args.add(text);
+				str.add(tok == T_STRING);
 				next(false);
 				if (tok == ',')
 					next(true);
 				if (tok == EOF || tok == T_NEWLINE)
 					break;
 				}
-			if (!pt)
+			if (pt)
 				{
-				ok = false;
-				os << "\tMISSING TEST FIXTURE" << endl;
+				if (char* errinfo = pt->fn(args, str))
+					{
+					++t.nfails;
+					t.err << filename << ": @" << name << " " << comment << endl;
+					t.err << "\tFAILED: " << args << " " << errinfo << endl;
+					t.log << "\tFAILED: " << args << " " << errinfo << endl;
+					}
+				else
+					n++;
 				}
-			else if (!pt->fn(args, os))
-				{
-				ok = false;
-				os << "\tFAILED: " << args << endl;
-				}
-			else
-				n++;
 			next(true);
 			}
 		if (pt)
-			os << "\t" << n << " passed" << endl;
-		return ok;
+			t.log << "\t" << n << " passed" << endl;
+		++t.ntests;
 		}
 
 	void match(int expected, bool skip)
@@ -153,15 +171,22 @@ struct Parser
 
 	void next(bool skip) 
 		{
+		comment = "";
+		bool nl = false;
 		while (true) {
-			tok = scan.next();
+			tok = scan.nextall();
 			switch (tok)
 				{
 			case T_NEWLINE:
 				if (!skip)
 					return;
+				nl = true;
 			case T_WHITE:
+				continue;
 			case T_COMMENT:
+				if (!nl)
+					comment = gcstring(scan.source + scan.prev,
+						scan.si - scan.prev);
 				continue;
 			default:
 				return;
@@ -169,14 +194,25 @@ struct Parser
 			}
 		}
 
+	const char* filename;
 	Scanner scan;
 	int tok = 0;
-	Ostream& os;
+	Testing& t;
+	gcstring comment = "";
+	ListSet<gcstring> missing;
 	};
 
-bool PortTest::run_file(const char* filename, Ostream& os)
+static void run_file(Testing& t, const char* filename)
 	{
-	os << "<" << filename << ">" << endl;
-	Parser parser(os, read_file(filename));
-	return parser.run();
+	Parser parser(t, filename, read_file(filename));
+	parser.run();
+	}
+
+#include "ostreamstr.h"
+
+void PortTest::run(Testing& t)
+	{
+	OstreamStr os;
+	for (auto f : test_files())
+		run_file(t, f.str());
 	}
