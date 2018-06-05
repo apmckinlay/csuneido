@@ -457,6 +457,8 @@ int Scanner::keywords(const char* s)
 	return p.first < p.second ? p.first->id : 0;
 	}
 
+//-------------------------------------------------------------------
+
 #include "testing.h"
 #include "gcstring.h"
 
