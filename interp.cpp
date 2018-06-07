@@ -840,6 +840,8 @@ void Proc::clear_unused()
 	stack.clear_unused();
 	}
 
+//-------------------------------------------------------------------
+
 #include "testing.h"
 
 TEST(interp_catch_match)
