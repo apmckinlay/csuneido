@@ -281,6 +281,7 @@ int Scanner::nextall()
 				++si;
 			buf.clear().add(source + prev, si - prev);
 			value = buf.str();
+			len = buf.size();
 			keyword = keywords(value);
 			if (source[si] != ':' ||
 				! (keyword == I_IS || keyword == I_ISNT ||

@@ -24,9 +24,10 @@
 
 #include "ostream.h"
 #include "list.h"
+#include "gcstring.h"
 #include "testing.h"
 
-using PTfn = char* (*)(const List<const char*>& args, const List<bool>& str);
+using PTfn = const char* (*)(const List<gcstring>& args, const List<bool>& str);
 
 struct PortTest
 	{
@@ -38,6 +39,6 @@ struct PortTest
 	};
 
 #define PORTTEST(name) \
-	static char* name(const List<const char*>& args, const List<bool>& str); \
-	PortTest pt_##name(#name, name); \
-	static char* name(const List<const char*>& args, const List<bool>& str)
+	const char* pt_##name(const List<gcstring>& args, const List<bool>& str); \
+	PortTest pti_##name(#name, pt_##name); \
+	const char* pt_##name(const List<gcstring>& args, const List<bool>& str)

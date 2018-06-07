@@ -3818,3 +3818,27 @@ TEST(compile2)
 	compile("function () { if (A) B else C }");
 	compile("function (.x) { }");
 	}
+
+#include "porttest.h"
+
+PORTTEST(compile)
+	{
+	auto s = args[0].str();
+	auto type = args[1];
+	auto expected = args[2];
+	try
+		{
+		Value x = compile(s);
+		if (type != x.type())
+			return OSTR("got: " << x.type());
+		auto result = OSTR(x);
+		if (expected != result)
+			return OSTR("got: " << result); 
+		}
+	catch (Except& e)
+		{
+		if (type != "Exception" || !e.gcstr().has(expected))
+			return e.str();
+		}
+	return nullptr;
+	}

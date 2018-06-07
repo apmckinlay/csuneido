@@ -474,7 +474,7 @@
     <ClCompile Include="..\porttest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ptmethod.cpp">
+    <ClCompile Include="..\ptexecute.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

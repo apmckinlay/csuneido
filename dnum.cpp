@@ -1202,9 +1202,9 @@ BENCHMARK(dnum_unpack2)
 PORTTEST(dnum_add)
 	{
 	verify(args.size() == 3);
-	Dnum x(args[0]);
-	Dnum y(args[1]);
-	Dnum z(args[2]);
+	Dnum x(args[0].str());
+	Dnum y(args[1].str());
+	Dnum z(args[2].str());
 	CK(x + y, z);
 	CK(y + x, z);
 	return nullptr;
@@ -1213,9 +1213,9 @@ PORTTEST(dnum_add)
 PORTTEST(dnum_sub)
 	{
 	verify(args.size() == 3);
-	Dnum x(args[0]);
-	Dnum y(args[1]);
-	Dnum z(args[2]);
+	Dnum x(args[0].str());
+	Dnum y(args[1].str());
+	Dnum z(args[2].str());
 	CK(x - y, z);
 	if (!z.isZero())
 		CK(y - x, -z);
@@ -1225,9 +1225,9 @@ PORTTEST(dnum_sub)
 PORTTEST(dnum_mul)
 	{
 	verify(args.size() == 3);
-	Dnum x(args[0]);
-	Dnum y(args[1]);
-	Dnum z(args[2]);
+	Dnum x(args[0].str());
+	Dnum y(args[1].str());
+	Dnum z(args[2].str());
 	CK(x * y, z);
 	CK(y * x, z);
 	return nullptr;
@@ -1236,9 +1236,9 @@ PORTTEST(dnum_mul)
 PORTTEST(dnum_div)
 	{
 	verify(args.size() == 3);
-	Dnum x(args[0]);
-	Dnum y(args[1]);
-	Dnum z(args[2]);
+	Dnum x(args[0].str());
+	Dnum y(args[1].str());
+	Dnum z(args[2].str());
 	CK(x / y, z);
 	return nullptr;
 	}
@@ -1248,12 +1248,12 @@ PORTTEST(dnum_cmp)
 	int n = args.size();
 	for (int i = 0; i < n; ++i)
 		{
-		Dnum x(args[i]);
+		Dnum x(args[i].str());
 		if (Dnum::cmp(x, x) != 0)
 			return OSTR(x << " not equal to itself");
 		for (int j = i + 1; j < n; ++j)
 			{
-			Dnum y(args[j]);
+			Dnum y(args[j].str());
 			if (Dnum::cmp(x, y) != -1 || Dnum::cmp(y, x) != +1)
 				return OSTR(x << " not less than " << y);
 			}

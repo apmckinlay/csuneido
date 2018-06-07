@@ -1286,3 +1286,30 @@ TEST(regex_nextPossible)
 	assert_eq(eCharClass2.nextPossible("AC1\n", 3, 4), 5);
 	assert_eq(eCharClass2.nextPossible("AC1\n", 4, 4), 5);
 	}
+
+#include "porttest.h"
+#include "ostreamstr.h"
+
+PORTTEST(regex_match)
+	{
+	const char* pat = rx_compile(args[1]);
+	Rxpart parts[MAXPARTS];
+	bool ok = rx_match(args[0], pat, parts);
+	if (args.size() > 2)
+		{
+		if (args[2] == "true")
+			{ }
+		else if (args[2] == "false")
+			ok = !ok;
+		else if (ok)
+			{
+			for (int i = 0; i < args.size() - 2; ++i)
+				{
+				gcstring s = gcstring::noalloc(parts[i].s, parts[i].n);
+				if (s != args[i + 2])
+					return OSTR("part " << i << " got: " + s);
+				}
+			}
+		}
+	return ok ? nullptr : "";
+	}

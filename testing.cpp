@@ -83,7 +83,7 @@ bool run_tests(const char* prefix)
 		alert("Built: " << build << "\n\n" <<
 			errs << endl << nt <<
 			t.nfails << " FAILURE" << (t.nfails == 1 ? "" : "S"));
-	return t.nfails > 0;
+	return t.nfails == 0;
 	}
 
 // benchmarks =======================================================

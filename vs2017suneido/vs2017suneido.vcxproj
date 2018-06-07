@@ -185,7 +185,7 @@
     <ClCompile Include="..\permheap.cpp" />
     <ClCompile Include="..\porttest.cpp" />
     <ClCompile Include="..\portwin32.cpp" />
-    <ClCompile Include="..\ptmethod.cpp" />
+    <ClCompile Include="..\ptexecute.cpp" />
     <ClCompile Include="..\qcompatible.cpp" />
     <ClCompile Include="..\qdifference.cpp" />
     <ClCompile Include="..\qexpr.cpp" />

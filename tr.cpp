@@ -168,3 +168,11 @@ TEST(tr_expandRanges)
 	assert_eq(s[255], '\xff');
 	}
 
+#include "porttest.h"
+#include "ostreamstr.h"
+
+PORTTEST(tr)
+	{
+	auto result = tr(args[0], args[1], args[2]).str();
+	return result == args[3] ? nullptr : OSTR("got: " << result);
+	}

@@ -22,7 +22,7 @@
 
 #include "porttest.h"
 #include "gcstring.h"
-#include "except.h"
+#include "exceptimp.h"
 #include <cstdio>
 #include <io.h>
 #include "list.h"
@@ -99,7 +99,7 @@ struct Parser
 	void run()
 		{
 		while (tok != Eof)
-			run1();
+			run_fixture();
 		if (!missing.empty())
 			{
 			t.err << filename << " MISSING FIXTURES: ";
@@ -114,7 +114,7 @@ struct Parser
 			}
 		}
 
-	void run1()
+	void run_fixture()
 		{
 		match('@', false);
 		auto name = gcstring(scan.value);
@@ -124,16 +124,17 @@ struct Parser
 			t.log << filename << ": @" << name << " " << comment << endl;
 		else
 			missing.add(name);
-		int n = 0;
+		n = 0;
+		first = true;
 		while (tok != EOF && tok != '@') {
-			List<const char*> args;
-			List<bool> str;
+			args.clear();
+			str.clear();
 			while (true) {
-				const char* text = dupstr(scan.value);
+				gcstring text = gcstring(scan.value, scan.len);
 				if (tok == I_SUB)
 					{
 					next(false);
-					text = (gcstring("-") + scan.value).str();
+					text = gcstring("-") + scan.value;
 					}
 				args.add(text);
 				str.add(tok == T_STRING);
@@ -144,22 +145,36 @@ struct Parser
 					break;
 				}
 			if (pt)
-				{
-				if (char* errinfo = pt->fn(args, str))
-					{
-					++t.nfails;
-					t.err << filename << ": @" << name << " " << comment << endl;
-					t.err << "\tFAILED: " << args << " " << errinfo << endl;
-					t.log << "\tFAILED: " << args << " " << errinfo << endl;
-					}
-				else
-					n++;
-				}
+				run_case(name, pt);
 			next(true);
 			}
 		if (pt)
 			t.log << "\t" << n << " passed" << endl;
 		++t.ntests;
+		}
+
+	void run_case(gcstring name, PortTest* pt)
+		{
+		const char* errinfo;
+		try
+			{
+			errinfo = pt->fn(args, str);
+			}
+		catch (const Except& e)
+			{
+			errinfo = ("\n\tthrew " + e.gcstr()).str();
+			}
+		if (errinfo)
+			{
+			++t.nfails;
+			if (first)
+				t.err << filename << ": @" << name << " " << comment << endl;
+			first = false;
+			t.err << "\tFAILED: " << args << " " << errinfo << endl;
+			t.log << "\tFAILED: " << args << " " << errinfo << endl;
+			}
+		else
+			n++;
 		}
 
 	void match(int expected, bool skip)
@@ -200,6 +215,10 @@ struct Parser
 	Testing& t;
 	gcstring comment = "";
 	ListSet<gcstring> missing;
+	bool first = true;
+	List<gcstring> args;
+	List<bool> str;
+	int n = 0;
 	};
 
 static void run_file(Testing& t, const char* filename)
@@ -215,4 +234,9 @@ void PortTest::run(Testing& t)
 	OstreamStr os;
 	for (auto f : test_files())
 		run_file(t, f.str());
+	}
+
+PORTTEST(ptest)
+	{
+	return args[0] == args[1] ? nullptr : "";
 	}
