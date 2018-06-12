@@ -69,6 +69,7 @@ public:
 	void pack(char* buf) const override;
 	static SuNumber* unpack(const gcstring& s);
 
+	// handles 0x...
 	static Value literal(const char* s);
 
 	explicit SuNumber(long);
@@ -76,9 +77,6 @@ public:
 	explicit SuNumber(const char* buf);
 	explicit SuNumber(const SuNumber* x)
 		{ *this = *x; }
-	explicit SuNumber(random_class);
-
-	char* format(char* buf) const;
 
 	char* mask(char* buf, const char* mask) const;
 
@@ -87,7 +85,6 @@ public:
 	static SuNumber* from_double(double x);
 
 	friend int cmp(const SuNumber*, const SuNumber*);
-	friend bool close(const SuNumber*, const SuNumber*);
 	friend SuNumber* add(const SuNumber*, const SuNumber*);
 	friend SuNumber* sub(const SuNumber*, const SuNumber*);
 	friend SuNumber* mul(const SuNumber*, const SuNumber*);
@@ -98,8 +95,15 @@ public:
 private:
 	SuNumber(char s, schar e);
 	SuNumber(char s, schar e, const short* d);
+	explicit SuNumber(random_class);
+	char* format(char* buf) const;
+	friend bool close(const SuNumber*, const SuNumber*);
+	friend static void test_sunumber_str();
 	friend static void test_sunumber_toint();
 	friend static void test_sunumber_tofrac();
+	friend static void test_sunumber_mul();
+	friend static void test_sunumber_div();
+	friend static void test_sunumber_add_sub();
 	SuNumber& toint();
 	SuNumber& tofrac();
 	void check() const;
@@ -136,24 +140,4 @@ private:
 inline SuNumber* neg(const SuNumber* x)
 	{ return (new SuNumber(x))->negate(); }
 
-inline bool operator==(const SuNumber& x, const SuNumber& y)
-	{ return cmp(&x, &y) == 0; }
-
-inline bool operator<(const SuNumber& x, const SuNumber& y)
-	{ return cmp(&x, &y) < 0; }
-
-inline SuNumber& operator+(const SuNumber& x, const SuNumber& y)
-	{ return *add(&x, &y); }
-
-inline SuNumber& operator-(const SuNumber& x, const SuNumber& y)
-	{ return *sub(&x, &y); }
-
-inline SuNumber& operator*(const SuNumber& x, const SuNumber& y)
-	{ return *mul(&x, &y); }
-
-inline SuNumber& operator/(const SuNumber& x, const SuNumber& y)
-	{ return *div(&x, &y); }
-
 int numlen(const char* s);
-
-SuNumber* neg(Value x);

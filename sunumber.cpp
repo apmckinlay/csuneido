@@ -42,6 +42,24 @@ SuNumber SuNumber::minus_one(-1);
 SuNumber SuNumber::infinity(PLUS, SCHAR_MAX);
 SuNumber SuNumber::minus_infinity(MINUS, SCHAR_MAX);
 
+inline bool operator==(const SuNumber& x, const SuNumber& y)
+	{ return cmp(&x, &y) == 0; }
+
+inline bool operator<(const SuNumber& x, const SuNumber& y)
+	{ return cmp(&x, &y) < 0; }
+
+inline SuNumber& operator+(const SuNumber& x, const SuNumber& y)
+	{ return *add(&x, &y); }
+
+inline SuNumber& operator-(const SuNumber& x, const SuNumber& y)
+	{ return *sub(&x, &y); }
+
+inline SuNumber& operator*(const SuNumber& x, const SuNumber& y)
+	{ return *mul(&x, &y); }
+
+inline SuNumber& operator/(const SuNumber& x, const SuNumber& y)
+	{ return *div(&x, &y); }
+
 // misc. routines --------------------------------------------
 
 SuNumber::SuNumber(char s, schar e) : sign(s), exp(e)
@@ -280,11 +298,6 @@ int64 SuNumber::bigint() const
 		result += digits[i];
 		}
 	return sign == PLUS ? result : -result;
-	}
-
-SuNumber* neg(Value x)
-	{
-	return neg(force<SuNumber*>(x));
 	}
 
 // add --------------------------------------------------------------
@@ -813,6 +826,12 @@ SuNumber::SuNumber(const char* s)
 	sign = (*s == '-' ? MINUS : PLUS);
 	if (*s == '-' || *s == '+')
 		++s;
+
+	if (0 == strcmp(s, "inf"))
+		{
+		*this = sign == PLUS ? SuNumber::infinity : SuNumber::minus_infinity;
+		return;
+		}
 
 	// skip leading zeroes
 	while (*s == '0')
