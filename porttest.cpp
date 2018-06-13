@@ -229,11 +229,12 @@ static void run_file(Testing& t, const char* filename)
 
 #include "ostreamstr.h"
 
-void PortTest::run(Testing& t)
+void PortTest::run(Testing& t, const char* prefix)
 	{
 	OstreamStr os;
 	for (auto f : test_files())
-		run_file(t, f.str());
+		if (f.has_prefix(prefix))
+			run_file(t, f.str());
 	}
 
 PORTTEST(ptest)

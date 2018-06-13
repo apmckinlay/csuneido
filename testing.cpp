@@ -72,7 +72,7 @@ bool run_tests(const char* prefix)
 				t.err << test->name << " FAILED: " << e.str() << endl;
 				}
 			}
-	PortTest::run(t);
+	PortTest::run(t, prefix);
 	char* errs = (dynamic_cast<OstreamStr&>(t.err)).str();
 
 	char* nt = OSTR(t.ntests << " test" << (t.ntests > 1 ? "s" : "") << ' ');

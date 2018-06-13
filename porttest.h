@@ -32,7 +32,7 @@ using PTfn = const char* (*)(const List<gcstring>& args, const List<bool>& str);
 struct PortTest
 	{
 	PortTest(const char* name, PTfn fn);
-	static void run(Testing& t);
+	static void run(Testing& t, const char* prefix);
 
 	const char* name;
 	PTfn fn;
