@@ -60,6 +60,10 @@ struct Testing
 	"error: " << #x << " != " << #y << " (" << (x) << " != " << (y) << ")")
 
 // WARNING: error message evaluates args a second time
+#define assert_streq(x, y) except_if(0 != strcmp((x), (y)), \
+	"error: " << #x << " != " << #y << " (" << (x) << " != " << (y) << ")")
+
+// WARNING: error message evaluates args a second time
 #define assert_neq(x, y) except_if((x) == (y), \
 	"error: " << #x << " == " << #y << " (" << (x) << " == " << (y) << ")")
 

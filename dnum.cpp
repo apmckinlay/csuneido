@@ -81,13 +81,22 @@ enum { NEG_INF = -2, NEG = -1, POS = +1, POS_INF = +2 };
 #define E6 1'000'000
 #define E7 10'000'000
 #define E8 100'000'000
+#define E16 1000'0000'0000'0000
+
+Dnum Dnum::inf(int sign)
+	{
+	Dnum dn;
+	dn.sign = sign < 0 ? NEG_INF : POS_INF;
+	dn.coef = 1;
+	return dn;
+	}
 
 const Dnum Dnum::ZERO;
 const Dnum Dnum::ONE(1);
 const Dnum Dnum::MINUS_ONE(-1);
 // infinite coefficient isn't used, just has to be non-zero for constructor
-const Dnum Dnum::INF{ POS_INF, 1, 0 };
-const Dnum Dnum::MINUS_INF{ NEG_INF, 1, 0 };
+const Dnum Dnum::INF = inf(+1);
+const Dnum Dnum::MINUS_INF = inf(-1);
 const Dnum Dnum::MAX_INT{ POS, COEF_MAX, 16 };
 
 int clz64(uint64_t n)
@@ -183,6 +192,7 @@ namespace
 		{
 		int i = maxShift(coef);
 		coef *= pow10[i];
+		CHECK(E16 <= coef && coef <= COEF_MAX);
 		return i;
 		}
 	}
@@ -191,11 +201,10 @@ namespace
 
 #define SETINF() do { \
 	sign = s < 0 ? NEG_INF : POS_INF; \
-	coef = UINT64_MAX; \
+	coef = 1; \
 	exp = 0; \
 	} while (false)
 
-// used for results of operations, normalizes to max coefficient
 Dnum::Dnum(int s, uint64_t c, int e)
 	{
 	if (s == 0 || c == 0 || e < INT8_MIN)
@@ -220,12 +229,13 @@ Dnum::Dnum(int s, uint64_t c, int e)
 			sign = SIGN(s);
 			coef = c;
 			exp = e;
+			CHECK(E16 <= coef && coef <= COEF_MAX);
 			}
 		}
 	}
 
 Dnum::Dnum(int n) 
-	: coef(n < 0 ? -n : n), sign(n < 0 ? NEG : n > 0 ? POS : 0)
+	: coef(n < 0 ? -int64_t(n) : n), sign(n < 0 ? NEG : n > 0 ? POS : 0)
 	{
 	if (coef == 0)
 		exp = 0;
@@ -233,15 +243,28 @@ Dnum::Dnum(int n)
 		exp = MAX_DIGITS - maxCoef(coef);
 	}
 
+Dnum::Dnum(int64_t n)
+	{
+	if (n == 0)
+		*this = ZERO;
+	else
+		{
+		if (n > 0)
+			sign = POS;
+		else
+			{
+			n = -n;
+			sign = NEG;
+			}
+		int p = maxShift(n);
+		coef = n * pow10[p];
+		exp = MAX_DIGITS - p;
+		CHECK(E16 <= coef && coef <= COEF_MAX);
+		}
+	}
+
 namespace 
 	{
-	Dnum inf(int sign)
-		{
-		return sign > 0 ? Dnum::INF
-			: sign < 0 ? Dnum::MINUS_INF
-			: Dnum::ZERO;
-		}
-
 	bool match(const char*& s, char c)
 		{
 		if (*s != c)
@@ -264,30 +287,32 @@ namespace
 		// skip leading zeroes, no effect on result
 		for (; *s == '0'; ++s)
 			digits = true;
+		if (*s == '.' && s[1])
+			digits = false;
 
 		uint64_t n = 0;
-		for (int i = MAX_SHIFT; ; ++s)
+		int p = MAX_SHIFT;
+		while (true)
 			{
 			if (isdigit(*s))
 				{
 				digits = true;
-				if (*s != '0')
-					{
-					if (i < 0)
-						except("too many digits");
-					n += (*s - '0') * pow10[i];
-					}
-				--i;
+				// ignore extra decimal places
+				if (*s != '0' && p >= 0)
+					n += (*s - '0') * pow10[p];
+				--p;
+				++s;
 				}
 			else if (before_decimal)
 				{
 				// decimal point or end
-				exp = MAX_SHIFT - i;
+				exp = MAX_SHIFT - p;
 				if (*s != '.')
 					break;
+				++s;
 				before_decimal = false;
 				if (!digits)
-					for (; s[1] == '0'; ++s, --exp)
+					for (; *s == '0'; ++s, --exp)
 						digits = true;
 				}
 			else
@@ -313,7 +338,7 @@ namespace
 		}
 	}
 
-// accepts "inf" and "-inf"
+// accepts "inf", "+inf", and "-inf"
 // throws for invalid
 // result is left aligned with maximum coef
 // returns INF if exponent too large, ZERO if exponent too small
@@ -339,7 +364,10 @@ Dnum::Dnum(const char* s)
 	else if (e > INT8_MAX)
 		*this = inf(sign);
 	else
+		{
 		exp = e;
+		CHECK(E16 <= coef && coef <= COEF_MAX);
+		}
 	}
 
 namespace
@@ -354,20 +382,9 @@ namespace
 
 #define PUT(n, p) *d++ = '0' + ((n) / (p)); (n) %= (p)
 
-char* Dnum::tostr(char* buf, int len) const
+int Dnum::getdigits(char* buf) const
 	{
-	verify(len >= STRLEN);
-	char* dst = buf;
-	if (isZero())
-		return strcpy(dst, "0");
-	if (sign < 0)
-		*dst++ = '-';
-	if (isInf())
-		return strcpy(dst, "inf"), buf;
-
-	//uint64_t c = coef;
-	char digits[17];
-	char* d = digits;
+	char* d = buf;
 	uint32_t hi = coef / E8; // 8 digits
 	uint32_t lo = coef % E8; // 8 digits
 	PUT(hi, E7);
@@ -386,19 +403,29 @@ char* Dnum::tostr(char* buf, int len) const
 	PUT(lo, E2);
 	PUT(lo, E1);
 	PUT(lo, 1);
-	while (d > digits && d[-1] == '0')
+	while (d > buf && d[-1] == '0')
 		--d;
 	*d = 0;
-	int ndigits = d - digits;
+	return d - buf;
+	}
+
+inline const int MAX_LEADING_ZEROS = 7;
+
+char* Dnum::tostr(char* buf, int len) const
+	{
+	verify(len >= STRLEN);
+	char* dst = buf;
+	if (isZero())
+		return strcpy(dst, "0");
+	if (sign < 0)
+		*dst++ = '-';
+	if (isInf())
+		return strcpy(dst, "inf");
+
+	char digits[17];
+	int ndigits = getdigits(digits);
 	int e = exp - ndigits;
-	if (0 <= e && e <= 4)
-		{
-		// decimal to the right
-		dst = append(dst, digits);
-		for (int i = 0; i < e; ++i)
-			*dst++ = '0';
-		}
-	else if (-ndigits - 4 < e && e <= -ndigits)
+	if (-MAX_LEADING_ZEROS <= exp && exp <= 0)
 		{
 		// decimal to the left
 		*dst++ = '.';
@@ -416,6 +443,13 @@ char* Dnum::tostr(char* buf, int len) const
 				*dst++ = '.';
 			*dst++ = digits[i];
 			}
+		}
+	else if (0 < exp && exp <= MAX_DIGITS)
+		{
+		// decimal to the right
+		dst = append(dst, digits);
+		for (int i = 0; i < e; ++i)
+			*dst++ = '0';
 		}
 	else
 		{
@@ -564,7 +598,7 @@ Dnum operator*(const Dnum& x, const Dnum& y)
 	if (sign == 0)
 		return Dnum::ZERO;
 	if (x.isInf() || y.isInf())
-		return inf(sign);
+		return Dnum::inf(sign);
 	int e = x.exp + y.exp;
 
 	// split unevenly to use full 64 bit range to get more precision
@@ -588,12 +622,12 @@ Dnum operator/(const Dnum& x, const Dnum& y)
 	{
 	int sign = x.sign * y.sign;
 	if (sign == 0)
-		return x.isZero() ? Dnum::ZERO : /* y.isZero() */ inf(x.sign);
+		return x.isZero() ? Dnum::ZERO : /* y.isZero() */ Dnum::inf(x.sign);
 	if (x.isInf())
 		{
 		if (y.isInf())
 			return sign < 0 ? Dnum::MINUS_ONE : Dnum::ONE;
-		return inf(sign);
+		return Dnum::inf(sign);
 		}
 	if (y.isInf())
 		return Dnum::ZERO;
@@ -606,15 +640,13 @@ Dnum operator/(const Dnum& x, const Dnum& y)
 
 Dnum operator+(const Dnum& x, const Dnum& y)
 	{
-	if (x.isZero())
+	if (x.sign == 0)
 		return y;
-	if (y.isZero())
+	if (y.sign == 0)
 		return x;
-	if (x.sign == POS_INF)
-		return y.sign == NEG_INF ? Dnum::ZERO : x;
-	if (x.sign == NEG_INF)
-		return y.sign == POS_INF ? Dnum::ZERO : x;
-	if (y.isInf())
+	if (x.sign == POS_INF || x.sign == NEG_INF)
+		return (y.sign == -x.sign) ? Dnum::ZERO : x;
+	if (y.sign == POS_INF || y.sign == NEG_INF)
 		return y;
 
 	Dnum yy(y), xx(x);
@@ -641,12 +673,14 @@ bool align(Dnum& x, Dnum& y)
 	return true;
 	}
 
+// x and y must be aligned
 Dnum uadd(const Dnum& x, const Dnum& y)
 	{
 	// won't overflow 64 bit since we're only using 16 digits
 	return Dnum(x.sign, x.coef + y.coef, x.exp);
 	}
 
+// x and y must be aligned
 Dnum usub(const Dnum& x, const Dnum& y)
 	{
 	return x.coef > y.coef
@@ -784,6 +818,146 @@ Dnum Dnum::unpack(const gcstring& s)
 	return Dnum(sign, coef, exp);
 	}
 
+static double dpow10[] = {
+	1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12,
+	1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22, 1e23,
+	1e24, 1e25, 1e26, 1e27, 1e28, 1e29, 1e30, 1e31, 1e32, 1e33, 1e34,
+	1e35, 1e36, 1e37, 1e38, 1e39, 1e40, 1e41, 1e42, 1e43, 1e44, 1e45,
+	1e46, 1e47, 1e48, 1e49, 1e50, 1e51, 1e52, 1e53, 1e54, 1e55, 1e56,
+	1e57, 1e58, 1e59, 1e60, 1e61, 1e62, 1e63, 1e64, 1e65, 1e66, 1e67,
+	1e68, 1e69, 1e70, 1e71, 1e72, 1e73, 1e74, 1e75, 1e76, 1e77, 1e78,
+	1e79, 1e80, 1e81, 1e82, 1e83, 1e84, 1e85, 1e86, 1e87, 1e88, 1e89,
+	1e90, 1e91, 1e92, 1e93, 1e94, 1e95, 1e96, 1e97, 1e98, 1e99, 1e100,
+	1e101, 1e102, 1e103, 1e104, 1e105, 1e106, 1e107, 1e108, 1e109, 1e110,
+	1e111, 1e112, 1e113, 1e114, 1e115, 1e116, 1e117, 1e118, 1e119, 1e120,
+	1e121, 1e122, 1e123, 1e124, 1e125, 1e126, 1e127, 1e128, 1e129, 1e130,
+	1e131, 1e132, 1e133, 1e134, 1e135, 1e136, 1e137, 1e138, 1e139, 1e140,
+	1e141, 1e142, 1e143, 1e144
+	};
+
+double Dnum::to_double() const
+	{
+	switch (sign)
+		{
+	case 0:
+		return 0.0;
+	case NEG_INF:
+		return -INFINITY;
+	case POS_INF:
+		return INFINITY;
+	default:
+		int e = exp - MAX_DIGITS;
+		return sign * (e < 0 ? coef / dpow10[-e] : coef * dpow10[e]);
+		}
+	}
+
+Dnum Dnum::from_double(double d) { // needed for math/trig functions
+	if (isnan(d))
+		except("can't convert NaN to number");
+	if (isinf(d))
+		return d < 0 ? MINUS_INF : INF;
+	// probably not the most efficient, but simple
+	char buf[_CVTBUFSIZE];
+	_gcvt(d, MAX_DIGITS, buf);
+	return Dnum(buf);
+	}
+
+Dnum Dnum::round(int r, RoundingMode mode) const
+	{
+	if (isZero() || isInf() || r >= MAX_DIGITS)
+		return *this;
+	if (r <= -MAX_DIGITS)
+		return ZERO;
+	Dnum n(sign, coef, exp + r); // multiply by 10^r
+	n = n.integer(mode);
+	if (n.sign == POS || n.sign == NEG) // i.e. not zero or inf
+		return Dnum(n.sign, n.coef, n.exp - r);
+	return n;
+	}
+
+Dnum Dnum::integer(RoundingMode mode) const
+	{
+	if (sign == 0 || sign == NEG_INF || sign == POS_INF || exp >= MAX_DIGITS)
+		return *this;
+	if (exp <= 0) {
+		if (mode == RoundingMode::UP ||
+			(mode == RoundingMode::HALF_UP && exp == 0 && coef >= ONE.coef * 5))
+			return Dnum(sign, ONE.coef, exp + 1);
+		return ZERO;
+		}
+	int e = MAX_DIGITS - exp;
+	uint64_t frac = coef % pow10[e];
+	if (frac == 0)
+		return *this;
+	uint64_t i = coef - frac;
+	if ((mode == RoundingMode::UP && frac > 0) ||
+		(mode == RoundingMode::HALF_UP && frac >= halfpow10[e]))
+		return Dnum(sign, i + pow10[e], exp); // normalize
+	return Dnum(sign, i, exp); //TODO doesn't need to normalize
+	}
+
+Dnum Dnum::frac() const
+	{
+	if (sign == 0 || sign == NEG_INF || sign == POS_INF || exp >= MAX_DIGITS)
+		return ZERO;
+	if (exp <= 0)
+		return *this;
+	int64_t frac = coef % pow10[MAX_DIGITS - exp];
+	return frac == coef ? *this : Dnum(sign, frac, exp);
+	}
+
+int32_t Dnum::to_int32() const
+	{
+	int64_t n = to_int64();
+	if (INT32_MIN <= n && n <= INT32_MAX)
+		return int32_t(n);
+	except("can't convert number to integer " << *this);
+	}
+
+int64_t Dnum::to_int64() const
+	{
+	if (sign == 0)
+		return 0;
+	if (sign != NEG_INF && sign != POS_INF) {
+		if (0 < exp && exp < MAX_DIGITS &&
+			(coef % pow10[MAX_DIGITS - exp]) == 0)
+			return sign * (coef / pow10[MAX_DIGITS - exp]); // usual case
+		if (exp == MAX_DIGITS)
+			return sign * coef;
+		if (exp == MAX_DIGITS + 1)
+			return sign * (coef * 10);
+		if (exp == MAX_DIGITS + 2)
+			return sign * (coef * 100);
+		if (exp == MAX_DIGITS + 3 && coef < INT64_MAX / 1000)
+			return sign * (coef * 1000);
+		}
+	except("can't convert number to integer " << *this);
+	}
+
+/** @return integer value if in range, else Integer.MIN_VALUE */
+int Dnum::intOrMin() const {
+	if (sign == 0)
+		return 0;
+	if (sign != NEG_INF && sign != POS_INF &&
+		0 < exp && exp <= 10 &&
+		(coef % pow10[MAX_DIGITS - exp]) == 0) {
+		int64_t n = sign * (coef / pow10[MAX_DIGITS - exp]);
+		if (INT_MIN < n && n <= INT_MAX)
+			return int(n);
+		}
+	return INT_MIN;
+	}
+
+size_t Dnum::hashfn() const
+	{
+	const size_t prime = 31;
+	size_t result = 1;
+	result = prime * result + (coef ^ (coef >> 32));
+	result = prime * result + exp;
+	result = prime * result + sign;
+	return result;
+	}
+
 // tests ------------------------------------------------------------
 
 #include "testing.h"
@@ -815,11 +989,11 @@ TEST(dnum_constructors)
 	assert_eq(Dnum::ONE.show(), "+.1e1");
 	assert_eq(Dnum(0), Dnum::ZERO);
 	assert_eq(Dnum(1234).show(), "+.1234e4");
+	assert_eq(Dnum(INT_MIN).to_int32(), INT_MIN);
 
 	// string
 	xassert(Dnum("."));
 	xassert(Dnum("1.2.3"));
-	xassert(Dnum("1111111111111111111111")); // overflow
 	xassert(Dnum("-+1"));
 	parse("0", "z0e0");
 	parse("0.", "z0e0");
@@ -839,6 +1013,12 @@ TEST(dnum_constructors)
 	parse(".9e-9", "+.9e-9");
 	parse("-1e-11", "-.1e-10");
 	parse("-12.34e56", "-.1234e58");
+	parse(".1234567890123456789", "+.1234567890123456e0");
+	parse("11111111111111111111", "+.1111111111111111e20");
+	parse(".001", "+.1e-2");
+	parse("0.001", "+.1e-2");
+	parse(".000000000000000000001", "+.1e-20");
+	parse("0.000000000000000000001", "+.1e-20");
 
 	assert_eq(Dnum("1e999"), Dnum::INF);
 	assert_eq(Dnum("1e-999"), Dnum::ZERO);
@@ -865,8 +1045,10 @@ TEST(dnum_tostr)
 	str(Dnum::MINUS_INF, "-inf");
 	str(Dnum(1234), "1234");
 	str(Dnum(-1234), "-1234");
-	str("1e9");
-	str("1.23e9");
+	str(Dnum("1e15"), "1000000000000000");
+	str(Dnum("1.23e9"), "1230000000");
+	str("1e16");
+	str("1.23e16");
 	str("-123.456");
 	str(".000123");
 	}
@@ -1102,6 +1284,113 @@ TEST(dnum_packing)
 		for (int j = 0; j < packed.size(); ++j)
 			except_if(CMP(packed[i], packed[j]) != CMP(i, j),
 				"packed " << nums[i] << " <=> " << nums[j]);
+	}
+
+TEST(dnum_to_double)
+	{
+	const char* exact[] = { "0", "1", "-1", "1e9", "123456", "1234567890123456" };
+	for (auto s : exact)
+		{
+		Dnum x(s);
+		double n = strtod(s, nullptr);
+		assert_eq(n, x.to_double());
+		assert_eq(n, x.to_double());
+		}
+	const char* approx[] = { ".1", "-1.23e99", "4.56e-99" };
+	for (auto s : approx)
+		{
+		double x = Dnum(s).to_double();
+		double y = strtod(s, nullptr);
+		verify(abs(1 - x / y) < 1e-15);
+		}
+	}
+
+TEST(dnum_from_double)
+	{
+	assert_eq(Dnum::from_double(-INFINITY), Dnum::MINUS_INF);
+	assert_eq(Dnum::from_double(INFINITY), Dnum::INF);
+	assert_eq(Dnum::from_double(0.0), Dnum::ZERO);
+	assert_eq(Dnum::from_double(123.456e9), Dnum("123.456e9"));
+	assert_eq(Dnum::from_double(0.37161106994968846), Dnum("0.3716110699496885"));
+	assert_eq(Dnum::from_double(37161106994968846.0), Dnum("37161106994968850"));
+	}
+
+TEST(dnum_integer)
+	{
+	const char* same[] = { "0", "123", "123e9", "12e34" };
+	for (auto s : same)
+		{
+		Dnum n(s);
+		assert_eq(n.integer(), n);
+		}
+	const char* data[][2] = { { ".123", "0" },{ "123.456", "123" },{ "1e-99", "0" } };
+	for (auto d : data)
+		assert_eq(Dnum(d[0]).integer(), Dnum(d[1]));
+	}
+
+TEST(dnum_round)
+	{
+	auto UP = Dnum::RoundingMode::UP;
+	auto DOWN = Dnum::RoundingMode::DOWN;
+	auto HALF_UP = Dnum::RoundingMode::HALF_UP;
+	using Mode = Dnum::RoundingMode;
+
+	Dnum data[] = { Dnum::ZERO, Dnum::INF, Dnum::MINUS_INF };
+	Mode modes[] = { DOWN, HALF_UP, UP };
+	int digits[] = { 2, 0, -2 };
+	for (Dnum n : data)
+		for (Mode mode : modes)
+			for (int d : digits)
+				assert_eq(n.round(d, mode), n);
+
+	Dnum n("1256.5634");
+	for (Mode mode : modes)
+		{
+		assert_eq(n.round(99, mode), n);
+		assert_eq(n.round(-99, mode), Dnum::ZERO);
+		}
+
+	assert_eq(n.round(2, DOWN), Dnum("1256.56"));
+	assert_eq(n.round(2, HALF_UP), Dnum("1256.56"));
+	assert_eq(n.round(2, UP), Dnum("1256.57"));
+
+	assert_eq(n.round(0, DOWN), Dnum("1256"));
+	assert_eq(n.round(0, HALF_UP), Dnum("1257"));
+	assert_eq(n.round(0, UP), Dnum("1257"));
+
+	assert_eq(n.round(-2, DOWN), Dnum("1200"));
+	assert_eq(n.round(-2, HALF_UP), Dnum("1300"));
+	assert_eq(n.round(-2, UP), Dnum("1300"));
+
+	assert_eq(Dnum(".08").round(1, HALF_UP), Dnum(".1"));
+	assert_eq(Dnum(".08").round(0, HALF_UP), Dnum::ZERO);
+	}
+
+TEST(to_int64)
+	{
+	int64_t data[] = { 0, 1, -1, 123, -123, INT_MAX, INT_MIN,
+		1234'5678'9012'3456L, -9999'9999'9999'9999L };
+	for (auto n : data)
+		assert_eq(Dnum(n).to_int64(), n);
+
+	assert_eq(Dnum(".99e17").to_int64(), 99000000000000000L);
+	assert_eq(Dnum("-.99e17").to_int64(), -99000000000000000L);
+	assert_eq(Dnum(".99e18").to_int64(), 990000000000000000L);
+	assert_eq(Dnum(".91e19").to_int64(), 9100000000000000000L);
+
+	xassert(Dnum(".99e19").to_int64());
+	xassert(Dnum("1e20").to_int64());
+	xassert(Dnum("1.5").to_int64());
+	}
+
+TEST(intOrMin)
+	{
+	assert_eq(Dnum::ZERO.intOrMin(), 0);
+	assert_eq(Dnum(123).intOrMin(), 123);
+	assert_eq(Dnum(-123).intOrMin(), -123);
+	assert_eq(Dnum(INT_MAX).intOrMin(), INT_MAX);
+	assert_eq(Dnum(INT_MIN - 1LL).intOrMin(), INT_MIN);
+	assert_eq(Dnum(INT_MAX + 1LL).intOrMin(), INT_MIN);
 	}
 
 //-------------------------------------------------------------------

@@ -716,19 +716,8 @@ Value SuDate::MinusSeconds(short nargs, short nargnames, ushort* argnames, int e
 	{
 	if (nargs != 1 || nargnames != 0)
 		except("usage: date.MinusSeconds(date)");
-
 	long long ms = minus_ms(this, force<SuDate*>(ARG(0)));
-
-	char buf[40];
-	i64tostr(ms / 1000, buf); // seconds
-	int n = strlen(buf);
-	buf[n++] = '.';
-	ms %= 1000;
-	buf[n++] = '0' + ms / 100;
-	buf[n++] = '0' + (ms % 100) / 10;
-	buf[n++] = '0' + ms % 10;
-	buf[n] = 0;
-	return new SuNumber(buf);
+	return SuNumber::from_double(double(ms) / 1000);
 	}
 
 Value SuDate::Year(short nargs, short nargnames, ushort* argnames, int each)

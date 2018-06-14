@@ -369,6 +369,8 @@ bool Compiler::anyName() const
 
 Value Compiler::number()
 	{
+	if (token != T_NUMBER)
+		syntax_error_();
 	Value result = SuNumber::literal(scanner.value);
 	match(T_NUMBER);
 	return result;

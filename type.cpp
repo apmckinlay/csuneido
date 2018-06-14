@@ -562,7 +562,8 @@ static void test(Type* type, int size, int size2, Value x)
 	verify(dst == buf + size);
 	verify(dst2 == buf2 + size2);
 	const char* src = buf;
-	assert_eq(type->get(src, Value()), x);
+	Value result = type->get(src, Value());
+	assert_eq(result, x);
 	}
 TEST(type)
 	{
@@ -578,7 +579,7 @@ TEST(type)
 	test(new TypeOpaquePointer, sizeof (long), 0, 0);
 	test(new TypeOpaquePointer, sizeof (long), 0, -123);
 	test(new TypeFloat, sizeof (float), 0, 123);
-	test(new TypeFloat, sizeof (float), 0, new SuNumber("123.456"));
+	test(new TypeFloat, sizeof (float), 0, new SuNumber("123.125")); // exact
 	test(new TypeDouble, sizeof (double), 0, 123);
 	test(new TypeDouble, sizeof (double), 0, new SuNumber("123.456"));
 	}

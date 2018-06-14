@@ -38,7 +38,7 @@ Ostream& osexcept();
 	((osexcept() << msg), except_err_())  // NOLINT
 
 #define except_if(e, msg) \
-	((e) ? except(msg) : (void) 0)
+	((e) ? except_err(msg) : (void) 0)
 
 #define FILE__ (strrchr("\\" __FILE__, '\\') + 1)
 

@@ -1,143 +1,102 @@
 #pragma once
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
- * This file is part of Suneido - The Integrated Application Platform
- * see: http://www.suneido.com for more information.
- *
- * Copyright (c) 2000 Suneido Software Corp.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation - version 2.
- *
- * This program is distributed in the hope that it will be
- * useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE.  See the GNU General Public License in the file COPYING
- * for more details.
- *
- * You should have received a copy of the GNU General Public
- * License along with this program; if not, write to the Free
- * Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA
+* This file is part of Suneido - The Integrated Application Platform
+* see: http://www.suneido.com for more information.
+*
+* Copyright (c) 2000 Suneido Software Corp.
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation - version 2.
+*
+* This program is distributed in the hope that it will be
+* useful, but WITHOUT ANY WARRANTY; without even the implied
+* warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+* PURPOSE.  See the GNU General Public License in the file COPYING
+* for more details.
+*
+* You should have received a copy of the GNU General Public
+* License along with this program; if not, write to the Free
+* Software Foundation, Inc., 59 Temple Place - Suite 330,
+* Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <limits.h>
-#include <string.h>
-#include "std.h"
 #include "suvalue.h"
+#include "dnum.h"
+#include "gcstring.h"
 
-class Ostream;
-
-enum Sign { MINUS = 0, PLUS = 1 };
-
-const int NDIGITS = 4;	// 16 decimal digits
-const int MAXDIGITS = 16;
-class random_class { };
-
-// decimal representation, floating point number values
 class SuNumber : public SuValue
 	{
-private:
-	char sign;
-	schar exp;	// exponent
-	short digits[NDIGITS];	// most significant digit first
 public:
-	void* operator new(size_t n);
-	void* operator new(size_t n, void* p)
-		{ return p; }
-	friend Ostream& operator<<(Ostream&, const SuNumber&);
+	SuNumber(Dnum d) : dn(d)
+		{}
+	explicit SuNumber(long n) : dn(n)
+		{}
+	explicit SuNumber(const char* buf) : dn(buf)
+		{}
 
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
-
-	int integer() const override;
-	int64 bigint() const;
-	gcstring to_gcstr() const override;
-	void out(Ostream& os) const override;
-	size_t hashfn() const override;
-	int symnum() const override;
-	bool int_if_num(int* pn) const override;
-
-	SuNumber* number() override
-		{ return this; }
-
-	int order() const override;
-	bool lt(const SuValue& x) const override;
-	bool eq(const SuValue& x) const override;
-
-	size_t packsize() const override;
-	void pack(char* buf) const override;
-	static SuNumber* unpack(const gcstring& s);
+	static SuNumber* from_int64(int64 n)
+		{ return new SuNumber(Dnum(n)); }
 
 	// handles 0x...
 	static Value literal(const char* s);
 
-	explicit SuNumber(long);
-	static SuNumber* from_int64(int64);
-	explicit SuNumber(const char* buf);
-	explicit SuNumber(const SuNumber* x)
-		{ *this = *x; }
+	void out(Ostream&) const override;
+	void* operator new(size_t n);  // NOLINT
+	void* operator new(size_t n, void* p)
+		{ return p; }
 
-	char* mask(char* buf, const char* mask) const;
+	int order() const override;
+	bool lt(const SuValue& y) const override;
+	bool eq(const SuValue& y) const override;
 
-	double to_double() const;
-	static SuNumber* from_float(float x);
-	static SuNumber* from_double(double x);
+	friend int cmp(const SuNumber* x, const SuNumber* y)
+		{ return Dnum::cmp(x->dn, y->dn); }
+	friend SuNumber* add(const SuNumber* x, const SuNumber* y)
+		{ return new SuNumber(x->dn + y->dn); }
+	friend SuNumber* sub(const SuNumber* x, const SuNumber* y)
+		{ return new SuNumber(x->dn - y->dn); }
+	friend SuNumber* mul(const SuNumber* x, const SuNumber* y)
+		{ return new SuNumber(x->dn * y->dn); }
+	friend SuNumber* div(const SuNumber* x, const SuNumber* y)
+		{ return new SuNumber(x->dn / y->dn); }
+	friend SuNumber* neg(const SuNumber* x)
+		{ return new SuNumber(-x->dn); }
 
-	friend int cmp(const SuNumber*, const SuNumber*);
-	friend SuNumber* add(const SuNumber*, const SuNumber*);
-	friend SuNumber* sub(const SuNumber*, const SuNumber*);
-	friend SuNumber* mul(const SuNumber*, const SuNumber*);
-	friend SuNumber* div(const SuNumber*, const SuNumber*);
-	friend SuNumber* neg(const SuNumber* x);
+	Value call(Value self, Value member,
+		short nargs, short nargnames, ushort* argnames, int each) override;
+
+	// buf must be larger than mask
+	char* format(char* buf, const char* mask) const;
+
+	SuNumber* number() override
+		{ return this; }
+
+	int integer() const override;
+	int64 bigint() const
+		{ return dn.to_int64(); }
+	gcstring to_gcstr() const override
+		{ return dn.to_gcstr(); }
+	size_t hashfn() const override;
+	int symnum() const override;
+	bool int_if_num(int* pn) const override;
+	double to_double() const
+		{ return dn.to_double(); }
+	static SuNumber* from_double(double x)
+		{ return new SuNumber(Dnum::from_double(x)); }
+	static SuNumber* from_float(float x)
+		{ return new SuNumber(Dnum::from_double(x)); }
+	SuNumber* round(int digits, Dnum::RoundingMode mode) const
+		{ return new SuNumber(dn.round(digits, mode)); }
+
+	size_t packsize() const override;
+	void pack(char* buf) const override;
+	static Value unpack(const gcstring& buf);
 
 	static SuNumber zero, one, minus_one, infinity, minus_infinity;
+
 private:
-	SuNumber(char s, schar e);
-	SuNumber(char s, schar e, const short* d);
-	explicit SuNumber(random_class);
-	char* format(char* buf) const;
-	friend bool close(const SuNumber*, const SuNumber*);
-	friend static void test_sunumber_str();
-	friend static void test_sunumber_toint();
-	friend static void test_sunumber_tofrac();
-	friend static void test_sunumber_mul();
-	friend static void test_sunumber_div();
-	friend static void test_sunumber_add_sub();
-	SuNumber& toint();
-	SuNumber& tofrac();
-	void check() const;
-	bool is_zero() const
-		{ return exp == SCHAR_MIN; }
-	bool is_infinity() const	// plus or minus infinity
-		{ return exp == SCHAR_MAX; }
-	SuNumber* negate()
-		{
-		if (! is_zero())
-			sign = 1 - sign;
-		return this;
-		}
-	void shift_right();
-	void shift_left();
-	friend int ucmp(const SuNumber*, const SuNumber*);
-	friend SuNumber* uadd(const SuNumber*, const SuNumber*);
-	friend SuNumber* usub(const SuNumber*, const SuNumber*, SuNumber*);
-	friend SuNumber* round(SuNumber*, int digits, char mode);
-	long first9() const
-		{ return digits[0] * 100000L + digits[1] * 10L + digits[2] / 1000; }
-	long first8() const
-		{ return digits[0] * 10000L + digits[1]; }
-	long first5() const
-		{ return digits[0] * 10L + digits[1] / 1000; }
-	void operator -=(const SuNumber& y)
-		{
-		SuNumber tmp(this);
-		(void) usub(&tmp, &y, this);
-		}
-	void product(const SuNumber&, short);
+	Dnum dn;
 	};
 
-inline SuNumber* neg(const SuNumber* x)
-	{ return (new SuNumber(x))->negate(); }
-
-int numlen(const char* s);
+int numlen(const char* s); // in numlen.cpp
