@@ -110,6 +110,14 @@ gcstring SuValue::pack() const
 	return gcstring::noalloc(buf, n);
 	}
 
+gcstring packlong(int x)
+	{
+	int n = packsize(x);
+	char* buf = salloc(n);
+	packlong(buf, x);
+	return gcstring::noalloc(buf, n);
+	}
+
 Ostream& operator<<(Ostream& out, SuValue* x)
 	{
 	if (x)
