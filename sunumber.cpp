@@ -202,52 +202,65 @@ bool SuNumber::int_if_num(int * pn) const
 //===================================================================
 // pack/unpack - OLD format
 
-/** 16 digits - maximum precision that cSuneido handles */
-static const int64_t MAX_PREC = 9999999999999999L;
-static const int64_t MAX_PREC_DIV_10 = 999999999999999L;
+static int pow10[] = { 1, 10, 100, 1000 };
 
-static int packshorts(int64_t n) {
-	int i = 0;
-	for (; n != 0; ++i)
-		n /= 10000;
-	verify(i <= 4); // cSuneido limit
-	return i;
+#define E4	1'0000
+#define E8	1'0000'0000
+
+static uint64_t prev_n;
+static int prev_e;
+static int pack_e;
+static int dig0, dig1, dig2, dig3;
+static int ndigits;
+
+static void packinfo(uint64_t n, int e)
+	{
+	if (n == prev_n && e == prev_e)
+		return;
+	prev_n = n;
+	prev_e = e;
+
+	int p = e > 0 ? 4 - (e % 4) : abs(e) % 4;
+	if (p != 4)
+		{
+		n /= pow10[p]; // may lose up to 3 digits of precision
+		e += p;
+		}
+	pack_e = e / 4;
+
+	// split 8 digits (32 bits) - 8 digits (32 bits)
+	// so each half can be handled as 32 bit
+	// and lower precision can be handled in one half
+	uint32_t hi = n / E8; // 8 digits
+	uint32_t lo = n % E8; // 8 digits
+
+	dig0 = hi / E4;
+	dig1 = hi % E4;
+	if (lo)
+		{
+		dig2 = lo / E4;
+		dig3 = lo % E4;
+		}
+	else
+		dig2 = dig3 = 0;
+	ndigits =
+		(dig3 != 0) ? 4 :
+		(dig2 != 0) ? 3 :
+		(dig1 != 0) ? 2 : 1;
 	}
 
-static int packSizeNum(int64_t n, int e) {
-	if (n == 0)
-		return 1;
-	if (n < 0)
-		n = -n;
-	// strip trailing zeroes
-	while ((n % 10) == 0)
-		{
-		n /= 10;
-		e++;
-		}
-	// adjust e to a multiple of 4 (to match old format)
-	while ((e % 4) != 0 && n < MAX_PREC_DIV_10)
-		{
-		n *= 10;
-		--e;
-		}
-	while ((e % 4) != 0 || n > MAX_PREC)
-		{
-		n /= 10;
-		++e;
-		}
-	int ps = packshorts(n);
-	e = e / 4 + ps;
-	if (e >= SCHAR_MAX)
-		return 2;
-	return 2 /* tag and exponent */ + 2 * ps;
+static int packSizeNum(uint64_t n, int e) {
+	packinfo(n, e);
+	return 2 /* tag and exponent */ + 2 * ndigits;
 	}
 
 size_t SuNumber::packsize() const
 	{
+	if (dn.isZero())
+		return 1;
 	if (dn.isInf())
 		return 2;
-	return packSizeNum(dn.getcoef(), dn.getexp() - Dnum::MAX_DIGITS);
+	return packSizeNum(dn.getcoef(), dn.getexp());
 	}
 
 //-------------------------------------------------------------------
@@ -259,71 +272,57 @@ static int8_t scale(int e, bool minus) {
 	return eb;
 	}
 
-static short digit(int64_t n, bool minus) {
-	return minus ? ~(n & 0xffff) : n;
-	}
-
-static void packLongPart(char* dst, int64_t n, bool minus) {
-	short sh[4];
-	int i;
-	for (i = 0; n != 0; ++i)
+static void packNum(bool minus, uint64_t n, int e, char* dst) {
+	packinfo(n, e);
+	*dst++ = scale(pack_e, minus);
+	int d0 = dig0;
+	int d1 = dig1;
+	int d2 = dig2;
+	int d3 = dig3;
+	if (minus)
 		{
-		sh[i] = digit(n % 10000, minus);
-		n /= 10000;
+		d0 = ~d0;
+		d1 = ~d1;
+		d2 = ~d2;
+		d3 = ~d3;
 		}
-	while (--i >= 0)
+	switch (ndigits)
 		{
-		*dst++ = sh[i] >> 8;
-		*dst++ = sh[i];
+	case 4:
+		dst[7] = d3;
+		dst[6] = d3 >> 8;
+		[[fallthrough]];
+	case 3:
+		dst[5] = d2;
+		dst[4] = d2 >> 8;
+		[[fallthrough]];
+	case 2:
+		dst[3] = d1;
+		dst[2] = d1 >> 8;
+		[[fallthrough]];
+	case 1:
+		dst[1] = d0;
+		dst[0] = d0 >> 8;
+		break;
+	default:
+		;// unreachable
 		}
-	}
-
-static void packNum(int64_t n, int e, char* dst) {
-	bool minus = n < 0;
-	*dst++ = minus ? PACK_MINUS : PACK_PLUS;
-	if (n == 0)
-		return;
-	if (n < 0)
-		n = -n;
-	// strip trailing zeroes
-	while ((n % 10) == 0)
-		{
-		n /= 10;
-		e++;
-		}
-	// make e multiple of 4, and limit precision
-	while ((e % 4) != 0 && n < MAX_PREC_DIV_10)
-		{
-		n *= 10;
-		--e;
-		}
-	while ((e % 4) != 0 || n > MAX_PREC)
-		{
-		n /= 10;
-		++e;
-		}
-	e = e / 4 + packshorts(n);
-	if (e >= SCHAR_MAX)
-		{
-		*dst = minus ? 0 : 0xff;
-		return;
-		}
-	*dst++ = scale(e, minus);
-	packLongPart(dst, n, minus);
 	}
 
 void SuNumber::pack(char* buf) const
 	{
+	int sign = dn.signum();
+	buf[0] = sign < 0 ? PACK_MINUS : PACK_PLUS;
 	if (dn.isInf())
-		packNum(dn.signum(), 4 * SCHAR_MAX, buf);
-	else
-		packNum(dn.signum() * dn.getcoef(), dn.getexp() - Dnum::MAX_DIGITS, buf);
+		buf[1] = sign < 0 ? 0 : '\xff';
+	else if (sign != 0)
+		packNum(sign < 0, dn.getcoef(), dn.getexp(), buf + 1);
 	}
 
 //-------------------------------------------------------------------
 
-static int64_t unpackCoef(const char* src, const char* lim, bool minus) {
-	int64_t n = 0;
+static uint64_t unpackCoef(const char* src, const char* lim, bool minus) {
+	uint64_t n = 0;
 	for (; src + 1 < lim; src += 2) {
 		uint16_t x = (uint8_t(src[0]) << 8) + uint8_t(src[1]);
 		if (minus)
@@ -348,7 +347,7 @@ Value SuNumber::unpack(const gcstring& buf)
 	s = int8_t(s ^ 0x80);
 	int sz = buf.size() - 2;
 	s = -(s - sz / 2) * 4;
-	int64_t n = unpackCoef(buf.ptr() + 2, buf.ptr() + buf.size(), minus);
+	uint64_t n = unpackCoef(buf.ptr() + 2, buf.ptr() + buf.size(), minus);
 	return new SuNumber(Dnum(minus ? -1 : +1, n, -s + Dnum::MAX_DIGITS));
 	//TODO return small immediate int where possible
 	}
@@ -525,7 +524,7 @@ Value SuNumber::call(Value self, Value member,
 
 #include "testing.h"
 
-TEST(sudnum_format)
+TEST(sunum_format)
 	{
 	const char* cases[][3] = {
 		{ "0"		,"###"		,"0"				},
@@ -557,7 +556,7 @@ TEST(sudnum_format)
 		assert_streq(c[2], SuNumber(Dnum(c[0])).format(buf, c[1]));
 	}
 
-TEST(sudnum_packsize)
+TEST(sunum_packsize)
 	{
 	assert_eq(SuNumber(Dnum(1000)).packsize(), 4);
 	assert_eq(SuNumber(Dnum(10000)).packsize(), 4);
@@ -565,20 +564,59 @@ TEST(sudnum_packsize)
 	assert_eq(SuNumber(Dnum(9999999999999999)).packsize(), 10);
 	}
 
-TEST(sudnum_pack_unpack)
+static void testpack(const char* s, const char* expected, int n)
+	{
+	char buf[32];
+	SuNumber x(s);
+	memset(buf, 0x5a, sizeof buf);
+	x.pack(buf);
+	verify(buf[n] == 0x5a);
+	verify(buf[n-1] != 0x5a);
+	except_if(0 != memcmp(buf, expected, n), "pack failed: " << s);
+	}
+#define TESTPACK(s, expected) testpack(s, expected, sizeof (expected) - 1)
+
+TEST(sunum_justpack)
+	{
+	TESTPACK("1", "\x03\x81\x00\x01");
+	TESTPACK("-1", "\x02\x7e\xff\xfe");
+	TESTPACK("12", "\x03\x81\x00\x0c");
+	TESTPACK("123", "\x03\x81\x00\x7b");
+	TESTPACK("1234", "\x03\x81\x04\xd2");
+	TESTPACK("12345", "\x03\x82\x00\x01\x09\x29");
+	TESTPACK(".058", "\x03\x80\x02\x44");
+	}
+
+TEST(sunum_pack_unpack)
 	{
 	char buf[32];
 	const char* data[] = { "0", "inf", "-inf",
+		"1", "10", "100", "1000", "10000",
 		"12", "1234", "123456", "12345678", "123456789",
 		"-12", "-1234", "-123456", "-12345678", "-123456789",
-		".001", "1234567890123456", "-123e-99", "456e99" };
+		"1234567890123456", "-123e-99", "456e99",
+		".1", ".01", ".001", ".0001", ".00001" };
 	for (auto s : data)
 		{
+		memset(buf, 0x5a, sizeof buf);
 		SuNumber x = SuNumber(Dnum(s));
 		int n = x.packsize();
 		verify(n < sizeof buf);
 		x.pack(buf);
+		verify(buf[n] == 0x5a);
+		verify(buf[n - 1] != 0x5a);
 		Value v = SuNumber::unpack(gcstring::noalloc(buf, n));
 		assert_eq(v, Value(&x));
+		}
+	}
+
+BENCHMARK(sunum_pack)
+	{
+	SuNumber x(Dnum("123456.78"));
+	char buf[20];
+	while (nreps-- > 0)
+		{
+		x.pack(buf);
+		prev_n = 0; // clear cache
 		}
 	}
