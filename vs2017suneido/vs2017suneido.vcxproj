@@ -42,7 +42,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <GenerateManifest>false</GenerateManifest>
-    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
   </PropertyGroup>
@@ -243,6 +243,7 @@
     <ClCompile Include="..\suservice.cpp" />
     <ClCompile Include="..\susetlocale.cpp" />
     <ClCompile Include="..\susha1.cpp" />
+    <ClCompile Include="..\susha256.cpp" />
     <ClCompile Include="..\susockets.cpp" />
     <ClCompile Include="..\sustring.cpp" />
     <ClCompile Include="..\suthread.cpp" />

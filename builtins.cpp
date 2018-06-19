@@ -485,6 +485,7 @@ BUILTIN(ResourceCounts, "()")
 	RC(RunPiped);
 	RC(Md5);
 	RC(Sha1);
+	RC(Sha256);
 	RC(socket);
 	return ob;
 	}
@@ -699,6 +700,7 @@ void builtins()
 	BUILTIN_CLASS("Adler32", su_adler32);
 	BUILTIN_CLASS("Md5", su_md5);
 	BUILTIN_CLASS("Sha1", su_sha1);
+	BUILTIN_CLASS("Sha256", su_sha256);
 	BUILTIN_CLASS("SocketServer", suSocketServer);
 	BUILTIN_CLASS("RunPiped", su_runpiped);
 	BUILTIN_CLASS("Query1", su_Query1);
