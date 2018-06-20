@@ -247,6 +247,28 @@ void DbRecoverImp::docheck(bool (*progress)(int))
 	++end;
 	}
 
+// workaround for old packlong bug (e.g. 1230000)
+static bool sloweq(const Record& r1, const Record& r2)
+	{
+	int n = r1.size();
+	if (n != r2.size())
+		return false;
+	for (int i = 0; i < n; ++i)
+		if (r1.getraw(i) != r2.getraw(i))
+			{
+			if (r1.getval(i) != r2.getval(i))
+				return false;
+			else
+				{
+				OstreamStr os;
+				os << " key " << r2.getval(i) << " iter->key " << r1.getval(i);
+				os << " key len " << r2.getraw(i).size() << " iter->key len " << r1.getraw(i).size();
+				errlog(os.str());
+				}
+			}
+	return true;
+	}
+
 DbrStatus DbRecoverImp::check_indexes(bool (*progress)(int))
 	{
 	delete mmf; mmf = 0;
@@ -274,7 +296,7 @@ DbrStatus DbRecoverImp::check_indexes(bool (*progress)(int))
 				cksum += iter->adr();
 				Record rec(iter.data());
 				Record key = project(rec, ix->colnums, rec.off());
-				if (iter->key != key)
+				if (iter->key != key && ! sloweq(iter->key, key))
 					{
 					OstreamStr os;
 					os << "check indexes: " << tbl->name << " " << ix->columns << " data does not match index";
