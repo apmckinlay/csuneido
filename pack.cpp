@@ -147,33 +147,35 @@ size_t packsize(long n)
 		return 1;
 	if (n < 0)
 		n = -n;
+	while (n % 10000 == 0)
+		n /= 10000;
 	if (n < 10000)
 		return 4;
-	else if (n < 100000000)
+	if (n < 100000000)
 		return 6;
-	else
-		return 8;
+	return 8;
 	}
-
-// WARNING: doesn't handle 0x80000000
 
 void packlong(char* buf, long n)
 	{
 	buf[0] = n < 0 ? PACK_MINUS : PACK_PLUS;
 	if (n == 0)
 		return ;
-	ulong x;
+	int e = 0;
+	for (; n % 10000 == 0; n /= 10000)
+		++e;
+	uint32_t x;
 	if (n > 0)
 		{
 		if (n < 10000)
 			{
-			buf[1] = (char) (1 ^ 0x80); // exponent
+			buf[1] = char(e + 1 ^ 0x80); // exponent
 			buf[2] = n >> 8;
 			buf[3] = n;
 			}
 		else if (n < 100000000)
 			{
-			buf[1] = (char) (2 ^ 0x80); // exponent
+			buf[1] = char(e + 2 ^ 0x80); // exponent
 			x = n / 10000;
 			buf[2] = x >> 8;
 			buf[3] = x;
@@ -183,7 +185,7 @@ void packlong(char* buf, long n)
 			}
 		else
 			{
-			buf[1] = (char) (3 ^ 0x80); // exponent
+			buf[1] = char(e + 3 ^ 0x80); // exponent
 			x = n / 100000000;
 			buf[2] = x >> 8;
 			buf[3] = x;
@@ -201,13 +203,13 @@ void packlong(char* buf, long n)
 		n = -n;
 		if (n < 10000)
 			{
-			buf[1] = ~(char) (1 ^ 0x80); // exponent
+			buf[1] = ~char(e + 1 ^ 0x80); // exponent
 			buf[2] = ~(n >> 8);
 			buf[3] = ~n;
 			}
 		else if (n < 100000000)
 			{
-			buf[1] = ~(char) (2 ^ 0x80); // exponent
+			buf[1] = ~char(e + 2 ^ 0x80); // exponent
 			x = n / 10000;
 			buf[2] = ~(x >> 8);
 			buf[3] = ~x;
@@ -217,7 +219,7 @@ void packlong(char* buf, long n)
 			}
 		else
 			{
-			buf[1] = ~(char) (3 ^ 0x80); // exponent
+			buf[1] = ~char(e + 3 ^ 0x80); // exponent
 			x = n / 100000000;
 			buf[2] = ~(x >> 8);
 			buf[3] = ~x;
@@ -232,16 +234,11 @@ void packlong(char* buf, long n)
 		}
 	}
 
-long unpacklong(const gcstring& s)
+// unsigned, min coef
+uint64_t unpacklongpart(const uchar* buf, int sz)
 	{
-	int sz = s.size();
-	if (sz <= 2)
-		return 0;
-	const uchar* buf = (const uchar*) s.ptr();
-	verify(buf[0] == PACK_PLUS || buf[0] == PACK_MINUS);
-	verify(sz == 2 || sz == 4 || sz == 6 || sz == 8);
-	int n = 0;
-	if (s[0] == PACK_PLUS)
+	uint64_t n = 0;
+	if (buf[0] == PACK_PLUS)
 		{
 		if (sz >= 4)
 			n = (buf[2] << 8) | buf[3];
@@ -249,18 +246,40 @@ long unpacklong(const gcstring& s)
 			n = 10000 * n + ((buf[4] << 8) | buf[5]);
 		if (sz >= 8)
 			n = 10000 * n + ((buf[6] << 8) | buf[7]);
+		if (sz >= 10)
+			n = 10000 * n + ((buf[8] << 8) | buf[9]);
 		}
 	else // PACK_MINUS
 		{
 		if (sz >= 4)
-			n = (ushort) ~((buf[2] << 8) + buf[3]);
+			n = (uint16_t) ~((buf[2] << 8) + buf[3]);
 		if (sz >= 6)
-			n = 10000 * n + (ushort) ~((buf[4] << 8) | buf[5]);
+			n = 10000 * n + (uint16_t) ~((buf[4] << 8) | buf[5]);
 		if (sz >= 8)
-			n = 10000 * n + (ushort) ~((buf[6] << 8) | buf[7]);
-		n = -n;
+			n = 10000 * n + (uint16_t) ~((buf[6] << 8) | buf[7]);
+		if (sz >= 10)
+			n = 10000 * n + (uint16_t) ~((buf[8] << 8) | buf[9]);
 		}
 	return n;
+	}
+
+long unpacklong(const gcstring& s)
+	{
+	int sz = s.size();
+	if (sz <= 2)
+		return 0;
+	verify(sz == 4 || sz == 6 || sz == 8);
+	auto buf = (const uchar*) s.ptr();
+	verify(buf[0] == PACK_PLUS || buf[0] == PACK_MINUS);
+	bool minus = buf[0] == PACK_MINUS;
+	int e = uint8_t(buf[1]);
+	if (minus)
+		e = uint8_t(~e);
+	e = int8_t(e ^ 0x80) - (sz - 2) / 2;
+	long n = unpacklongpart(buf, sz);
+	for (; e > 0; --e)
+		n *= 10000;
+	return minus ? -n : n;
 	}
 
 // test =============================================================
@@ -327,8 +346,10 @@ TEST(pack_long)
 	testpack(-1);
 	testpack(1234);
 	testpack(-1234);
+	testpack(12'0000);
+	testpack(12'0000'0000);
 	testpack(12345678);
 	testpack(-12345678);
-	testpack(LONG_MAX);
-	testpack(LONG_MIN + 1); // no positive equivalent to LONG_MIN
+	testpack(INT_MAX);
+	testpack(INT_MIN + 1); // no positive equivalent to INT_MIN
 	}

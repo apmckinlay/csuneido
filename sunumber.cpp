@@ -321,35 +321,34 @@ void SuNumber::pack(char* buf) const
 
 //-------------------------------------------------------------------
 
-static uint64_t unpackCoef(const char* src, const char* lim, bool minus) {
-	uint64_t n = 0;
-	for (; src + 1 < lim; src += 2) {
-		uint16_t x = (uint8_t(src[0]) << 8) + uint8_t(src[1]);
-		if (minus)
-			x = ~x;
-		n = n * 10000 + x;
-		}
-	return n;
-	}
+uint64_t unpacklongpart(const uchar* buf, int sz);
+
+static const int MAX_TO_SHIFT = SHRT_MAX / 10000;
 
 Value SuNumber::unpack(const gcstring& buf)
 	{
 	if (buf.size() < 2)
-		return &SuNumber::zero;
+		return SuZero;
 	bool minus = buf[0] == PACK_MINUS;
-	int s = uint8_t(buf[1]);
-	if (s == 0)
+	int e = uint8_t(buf[1]);
+	if (e == 0)
 		return &SuNumber::minus_infinity;
-	if (s == 255)
+	if (e == 255)
 		return &SuNumber::infinity;
 	if (minus)
-		s = uint8_t(~s);
-	s = int8_t(s ^ 0x80);
-	int sz = buf.size() - 2;
-	s = -(s - sz / 2) * 4;
-	uint64_t n = unpackCoef(buf.ptr() + 2, buf.ptr() + buf.size(), minus);
-	return new SuNumber(Dnum(minus ? -1 : +1, n, -s + Dnum::MAX_DIGITS));
-	//TODO return small immediate int where possible
+		e = uint8_t(~e);
+	e = int8_t(e ^ 0x80);
+	e = (e - (buf.size() - 2) / 2);
+	// unpack min coef for easy conversion to integer
+	uint64_t n = unpacklongpart((const uchar*)buf.ptr(), buf.size());
+	if (e == 1 && n <= MAX_TO_SHIFT)
+		{
+		n *= 10000;
+		--e;
+		}
+	if (e == 0 && n <= SHRT_MAX)
+		return Value(minus ? -short(n) : n);
+	return new SuNumber(Dnum(minus ? -1 : +1, n, 4 * e + Dnum::MAX_DIGITS));
 	}
 
 //===================================================================
@@ -608,6 +607,20 @@ TEST(sunum_pack_unpack)
 		Value v = SuNumber::unpack(gcstring::noalloc(buf, n));
 		assert_eq(v, Value(&x));
 		}
+	}
+
+TEST(sunum_unpack_int)
+	{
+	int data[] = { 0, 1, 123, 1000, 12000, SHRT_MAX };
+	for (auto i : data)
+		for (int sign = +1; sign >= -1; sign -= 2)
+			{
+			int n = i * sign;
+			gcstring s = packlong(n);
+			Value v = unpack(s);
+			except_if(v.ptr() != nullptr, "should unpack to int: " << n);
+			assert_eq(v.integer(), n);
+			}
 	}
 
 BENCHMARK(sunum_pack)
