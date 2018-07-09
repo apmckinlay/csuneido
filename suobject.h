@@ -172,4 +172,4 @@ private:
 	friend class MemBase;
 	};
 
-	Value su_object();
+Value su_object();
