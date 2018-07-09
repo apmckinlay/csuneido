@@ -24,11 +24,45 @@
 #include "value.h"
 #include "gcstring.h"
 #include "list.h"
+#include "suobject.h" // not ideal, but needed for SuObject::iterator
+#include <optional>
+
+class ArgsIter
+	{
+	public:
+		ArgsIter(short n, short na, ushort* an, int each);
+
+		Value getval(const char* name);
+		Value getNamed(const char* name);
+		Value getNextUnnamed();
+		bool hasMoreUnnamed() const;
+		Value getNext();
+		Value call(Value fn, Value self, Value method);
+
+	private:
+		friend class BuiltinArgs;
+		Value arg(int i) const;
+		Value next();
+
+	short nargs;
+		short nargnames;
+		ushort* argnames;
+		int each;
+		int unnamed;
+		SuObject* ob = nullptr;
+		std::optional<SuObject::iterator> oi;
+		Value curname;
+		int i = 0;
+		ListSet<Value> taken;
+	};
 
 class BuiltinArgs
 	{
 public:
-	BuiltinArgs(short& n, short& nn, ushort*& an, int& each);
+	BuiltinArgs(short nargs, short nargnames, ushort* argnames, int each)
+		: ai(nargs, nargnames, argnames, each)
+		{}
+
 	BuiltinArgs& usage(const char* s1, const char* s2 = "", const char* s3 = "")
 		{ msg1 = s1; msg2 = s2; msg3 = s3; return *this; }
 	void exceptUsage() const;
@@ -63,28 +97,35 @@ public:
 		Value val = getval(name);
 		return val ? val.gcstr() : defval;
 		}
-	Value getNamed(const char* name);
+	Value getNamed(const char* name)
+		{ return ai.getNamed(name); }
 	bool hasNamed() const
-		{ return nargnames > 0; }
-	Value getNext();
-	ushort curName() const;
-	Value getNextUnnamed();
-	void end();
+		{ return ai.nargnames > 0; }
+	Value getNext()
+		{ return ai.getNext(); }
+	Value curName() const
+		{ return ai.curname; }
+	Value getNextUnnamed()
+		{ return ai.getNextUnnamed(); }
+	void end() const;
 	bool hasUnnamed() const
-		{ return unnamed > 0; }
-	Value call(Value fn, Value self, Value method);
+		{ return ai.unnamed > 0; }
+	Value call(Value fn, Value self, Value method)
+		{ return ai.call(fn, self, method); }
+	int n_args() const
+		{ return ai.nargs; }
+	int n_argnames() const
+		{ return ai.nargnames; }
+	int n_unnamed() const
+		{ return ai.unnamed; }
 private:
-	Value getval(const char* name);
+	Value getval(const char* name)
+		{ return ai.getval(name); }
 	void ckndef() const;
 
-	short nargs;
-	short nargnames;
-	ushort* argnames;
-	int unnamed;
+	ArgsIter ai;
 	const char* msg1 = "invalid arguments";
 	const char* msg2 = "";
 	const char* msg3 = "";
-	int i = 0;
 	bool def = false;
-	ListSet<int> taken;
 	};

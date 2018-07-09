@@ -540,7 +540,7 @@ public:
 		args.usage("Spawn(mode, command, @args)");
 		int mode = args.getint("mode");
 		auto cmd = args.getstr("command");
-		auto argv = new const char*[nargs];
+		auto argv = new const char*[args.n_unnamed()];
 		int i = 0;
 		argv[i++] = cmd;
 		while (Value arg = args.getNextUnnamed())

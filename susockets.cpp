@@ -232,14 +232,14 @@ Value CallClass::call(Value self, Value member,
 
 	// convert arguments, make name, port, and exit named
 	int na = 0;
-	Value* a = (Value*) _alloca(sizeof (Value) * nargs);
-	ushort* an = (ushort*) _alloca(sizeof (short) * (nargnames + 3));
+	Value* a = (Value*) _alloca(sizeof (Value) * args.n_args());
+	ushort* an = (ushort*) _alloca(sizeof (short) * (args.n_argnames() + 3));
 	short nan = 0;
 	while (Value arg = args.getNext())
 		{
 		a[na++] = arg;
-		if (ushort n = args.curName())
-			an[nan++] = n;
+		if (Value argname = args.curName())
+			an[nan++] = argname.symnum();
 		}
 	KEEPSP
 	for (int i = 0; i < na; ++i)

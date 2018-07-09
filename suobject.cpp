@@ -1311,9 +1311,11 @@ TEST(suobject_list_named)
 	{
 	assert_eq(Value(3), run("#(1, 2, a: 3).Size()"));
 	assert_eq(Value(2), run("#(1, 2, a: 3).Size(list:)"));
+	assert_eq(Value(2), run("#(1, 2, a: 3).Size(@#(list:))"));
 	assert_eq(Value(1), run("#(1, 2, a: 3).Size(named:)"));
 	assert_eq(Value(3), run("#(1, 2, a: 3).Size(list:, named:)"));
 	assert_eq(Value(2), run("#(1, 2, a: 3).Size(list:, named: false)"));
+	assert_eq(Value(2), run("#(1, 2, a: 3).Size(@#(list:, named: false))"));
 	assert_eq(Value(1), run("#(1, 2, a: 3).Size(list: false, named:)"));
 	assert_eq(Value(0), run("#(1, 2, a: 3).Size(list: false, named: false)"));
 

@@ -215,13 +215,13 @@ static const char* query_args(const char* query, BuiltinArgs& args)
 		return query;
 	OstreamStr os;
 	os << query;
-	static int BLOCK = symnum("block");
+	static Value BLOCK("block");
 	while (Value value = args.getNext())
 		{
-		ushort name = args.curName();
+		Value name = args.curName();
 		if (name == BLOCK && dynamic_cast<Func*>(value.ptr()))
 			continue ;
-		os << " where " << symstr(name) << " = " << value;
+		os << " where " << name.gcstr() << " = " << value;
 		}
 	return os.str();
 	}
@@ -445,7 +445,7 @@ Value SuTransaction::call(Value self, Value member,
 		{
 		static UserDefinedMethods udm("Transactions");
 		if (Value c = udm(member))
-			return c.call(self, member, nargs, nargnames, argnames, each);
+			return args.call(c, self, member);
 		method_not_found("Transaction", member);
 		}
 	}

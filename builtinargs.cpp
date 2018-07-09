@@ -51,39 +51,106 @@ for no arguments you can do:
 #include "interp.h"
 #include "except.h"
 
-BuiltinArgs::BuiltinArgs(short& nargs_,
-	short& nargnames_, ushort*& argnames_, int& each)
+// ArgsIter ---------------------------------------------------------
+
+ArgsIter::ArgsIter(short n, short na, ushort* an, int e)
+	: nargs(n), nargnames(na), argnames(an), each(e)
 	{
-	if (nargs_ != 0)
-		argseach(nargs_, nargnames_, argnames_, each);
-	nargs = nargs_;
-	nargnames = nargnames_;
-	argnames = argnames_;
+	if (each >= 0)
+		{
+		verify(nargs == 1);
+		verify(nargnames == 0);
+		ob = ARG(0).object();
+		nargs = ob->size();
+		nargnames = ob->mapsize();
+		oi.emplace(ob->begin());
+		}
 	unnamed = nargs - nargnames;
+	}
+
+Value ArgsIter::arg(int a) const
+	{
+	verify(a < unnamed || !ob);
+	return ob ? ob->get(each + a) : ARG(a);
+	}
+
+Value ArgsIter::next()
+	{
+	curname = Value();
+	if (i >= nargs)
+		return Value();
+	if (ob)
+		{
+		auto p = **oi;
+		if (i >= unnamed)
+			curname = p.first;
+		++*oi; ++i;
+		return p.second;
+		}
+	else
+		{
+		if (i >= unnamed)
+			curname = symbol(argnames[i - unnamed]);
+		return arg(i++);
+		}
 	}
 
 // takes the next unnamed
 // or if no unnamed then looks for a matching named
-Value BuiltinArgs::getval(const char* name)
+Value ArgsIter::getval(const char* name)
 	{
-	if (i < unnamed)
-		return ARG(i++);
-	else
-		return getNamed(name);
+	if (Value x = getNextUnnamed())
+		return x;
+	return getNamed(name);
 	}
 
-Value BuiltinArgs::getNamed(const char* name)
+Value ArgsIter::getNamed(const char* name)
 	{
-	const int sym = symnum(name);
-	int j = 0;
-	for (; j < nargnames; ++j)
-		if (argnames[j] == sym)
-			break;
-	if (j >= nargnames)
-		return Value();
-	taken.add(sym);
-	return ARG(unnamed + j);
+	Value sym = symbol(name);
+	Value x;
+	if (ob)
+		x = ob->get(sym);
+	else
+		{
+		for (int j = 0; j < nargnames; ++j)
+			if (argnames[j] == sym.symnum())
+				x = arg(unnamed + j);
+		}
+	if (x)
+		taken.add(sym);
+	return x;
 	}
+
+Value ArgsIter::getNextUnnamed()
+	{
+	return i < unnamed ? next() : Value();
+	}
+
+bool ArgsIter::hasMoreUnnamed() const
+	{
+	return i < unnamed;
+	}
+
+Value ArgsIter::getNext()
+	{
+	Value x;
+	do
+		x = next();
+		while (x && taken.has(curname));
+	return x;
+	}
+
+// call with the remaining arguments
+Value ArgsIter::call(Value fn, Value self, Value method)
+	{
+	verify(i <= unnamed);
+	verify(taken.empty());
+	return ob
+		? fn.call(self, method, 1, 0, nullptr, i + each)
+		: fn.call(self, method, nargs - i, nargnames, argnames, -1);
+	}
+
+// BuiltinArgs ------------------------------------------------------
 
 Value BuiltinArgs::getValue(const char* name)
 	{
@@ -98,28 +165,10 @@ void BuiltinArgs::ckndef() const
 	verify(! def);
 	}
 
-void BuiltinArgs::end()
+void BuiltinArgs::end() const
 	{
-	if (i < unnamed)
+	if (ai.hasMoreUnnamed())
 		exceptUsage();
-	}
-
-Value BuiltinArgs::getNext()
-	{
-	while (i < nargs && i >= unnamed && taken.has(argnames[i - unnamed]))
-		++i;
-	return i < nargs ? ARG(i++) : Value();
-	}
-
-ushort BuiltinArgs::curName() const
-	{
-	int cur = i - 1;
-	return cur < unnamed ? 0 :  argnames[cur - unnamed];
-	}
-
-Value BuiltinArgs::getNextUnnamed()
-	{
-	return i < unnamed ? ARG(i++) : Value();
 	}
 
 void BuiltinArgs::exceptUsage() const
@@ -127,9 +176,3 @@ void BuiltinArgs::exceptUsage() const
 	except("usage: " << msg1 << msg2 << msg3);
 	}
 
-Value BuiltinArgs::call(Value fn, Value self, Value method)
-	{
-	verify(i <= unnamed);
-	verify(taken.empty());
-	return fn.call(self, method, nargs - i, nargnames, argnames, -1);
-	}
