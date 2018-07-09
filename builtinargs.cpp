@@ -61,7 +61,7 @@ ArgsIter::ArgsIter(short n, short na, ushort* an, int e)
 		verify(nargs == 1);
 		verify(nargnames == 0);
 		ob = ARG(0).object();
-		nargs = ob->size();
+		nargs = ob->size() - each;
 		nargnames = ob->mapsize();
 		oi.emplace(ob->begin());
 		}
