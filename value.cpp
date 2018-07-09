@@ -225,7 +225,7 @@ PORTTEST(compare)
 			{
 			Value y = compile(args[j].str());
 			if (! (x < y) || (y < x))
-				return OSTR("\t\n" << x << " <=> " << y);
+				return OSTR("\n\t" << x << " <=> " << y);
 			}
 		}
 	return nullptr;

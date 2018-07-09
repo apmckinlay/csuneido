@@ -353,3 +353,25 @@ TEST(pack_long)
 	testpack(INT_MAX);
 	testpack(INT_MIN + 1); // no positive equivalent to INT_MIN
 	}
+
+#include "porttest.h"
+#include "compile.h"
+#include "ostreamstr.h"
+
+PORTTEST(compare_packed)
+	{
+	int n = args.size();
+	for (int i = 0; i < n; ++i)
+		{
+		Value x = compile(args[i].str());
+		gcstring px = x.pack();
+		for (int j = i + 1; j < n; ++j)
+			{
+			Value y = compile(args[j].str());
+			gcstring py = y.pack();
+			if (!(px < py) || (py < px))
+				return OSTR("\n\t" << x << " <=> " << y);
+			}
+		}
+	return nullptr;
+	}
