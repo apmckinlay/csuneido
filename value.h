@@ -120,11 +120,14 @@ public:
 		{ return VAL->rangeLen(i, n); }
 
 	size_t packsize() const
-		{ return is_int() ? ::packsize(im.n) : VAL->packsize(); }
+		{ return VAL->packsize(); }
+//		{ return is_int() ? ::packsize(im.n) : VAL->packsize(); }
 	void pack(char* buf) const
-		{ is_int() ? packlong(buf, im.n) : VAL->pack(buf); }
+		{ VAL->pack(buf); }
+//		{ is_int() ? packlong(buf, im.n) : VAL->pack(buf); }
 	gcstring pack() const
-		{ return is_int() ? ::packlong(im.n) : VAL->pack(); }
+		{ return VAL->pack(); }
+//		{ return is_int() ? ::packlong(im.n) : VAL->pack(); }
 
 	const char* type() const
 		{ return is_int() ? "Number" : p ? VAL->type() : "null"; }

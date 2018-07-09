@@ -183,11 +183,16 @@ int SuNumber::symnum() const
 		return SuValue::symnum(); // throw
 	}
 
+// throws if not convertable to int32
 int SuNumber::integer() const
 	{
-	//TODO fix stdlib so this can require integer and throw for out of range
-	int64_t n = dn.integer().to_int64();
-	return (INT_MIN <= n && n <= INT_MAX) ? n : 0;
+	return dn.to_int32();
+	}
+
+// used by type.h for dll interface
+int SuNumber::trunc() const
+	{
+	return dn.integer().to_int32();
 	}
 
 bool SuNumber::int_if_num(int * pn) const

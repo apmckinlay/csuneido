@@ -75,6 +75,7 @@ public:
 	int integer() const override;
 	int64 bigint() const
 		{ return dn.to_int64(); }
+	int trunc() const;
 	gcstring to_gcstr() const override
 		{ return dn.to_gcstr(); }
 	size_t hashfn() const override;

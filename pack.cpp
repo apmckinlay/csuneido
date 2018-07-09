@@ -147,8 +147,8 @@ size_t packsize(long n)
 		return 1;
 	if (n < 0)
 		n = -n;
-	while (n % 10000 == 0)
-		n /= 10000;
+//	while (n % 10000 == 0)
+//		n /= 10000;
 	if (n < 10000)
 		return 4;
 	if (n < 100000000)
@@ -162,8 +162,8 @@ void packlong(char* buf, long n)
 	if (n == 0)
 		return ;
 	int e = 0;
-	for (; n % 10000 == 0; n /= 10000)
-		++e;
+//	for (; n % 10000 == 0; n /= 10000)
+//		++e;
 	uint32_t x;
 	if (n > 0)
 		{
@@ -346,8 +346,8 @@ TEST(pack_long)
 	testpack(-1);
 	testpack(1234);
 	testpack(-1234);
-	testpack(12'0000);
-	testpack(12'0000'0000);
+//	testpack(12'0000);
+//	testpack(12'0000'0000);
 	testpack(12345678);
 	testpack(-12345678);
 	testpack(INT_MAX);

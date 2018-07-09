@@ -51,9 +51,13 @@ public:
 
 inline int toInt(Value x)
 	{
-	return !x ? 0
-		: x == SuTrue ? 1
-		: x.integer();
+	if (!x)
+		return 0; // is this needed?
+	if (x == SuTrue)
+		return 1;
+	if (auto num = val_cast<SuNumber*>(x))
+		return num->trunc();
+	return x.integer();
 	}
 
 // integer Types
