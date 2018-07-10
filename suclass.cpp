@@ -62,7 +62,7 @@ void SuClass::out(Ostream& out) const
 	}
 
 Value SuClass::call(Value self, Value member,
-	short nargs, short nargnames, ushort *argnames, int each)
+	short nargs, short nargnames, uint16_t *argnames, int each)
 	{
 	if (member == INSTANTIATE)
 		{

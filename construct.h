@@ -29,5 +29,5 @@ class Construct : public Func
 public:
 	Construct();
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 	};

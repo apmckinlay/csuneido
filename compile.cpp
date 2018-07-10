@@ -163,7 +163,7 @@ struct PrevLit
 		{ }
 	PrevLit(int a, Value l, int i = -99) : adr(a), il(i), lit(l)
 		{ }
-	ushort adr = 0;
+	uint16_t adr = 0;
 	short il = 0;
 	Value lit;
 	};
@@ -182,12 +182,12 @@ public:
 	SuFunction* function();
 private:
 	SuFunction* fn = nullptr;	// so local functions/classes can set parent
-	vector<uchar> code;
+	vector<uint8_t> code;
 	vector<Debug> db;
 	short last_adr = -1;
 	vector<PrevLit> prevlits; // for emit const expr optimization
 	vector<Value> literals;
-	vector<ushort> locals;
+	vector<uint16_t> locals;
 	short nparams = 0;
 	short ndefaults = 0;
 	bool rest = false;
@@ -199,7 +199,7 @@ private:
 	bool expecting_compound = false;
 	// for loops
 	enum { maxtest = 100 };
-	uchar test[maxtest]{};
+	uint8_t test[maxtest]{};
 	bool it_used = false; // for blocks
 	bool inside_try = false;
 
@@ -227,26 +227,26 @@ private:
 	void mulop();
 	void unop();
 	void expr0(bool newtype = false);
-	void args(short&, vector<ushort>&, const char* delims = "()");
+	void args(short&, vector<uint16_t>&, const char* delims = "()");
 	void args_at(short& nargs, const char* delims);
-	void add_argname(vector<ushort>& argnames, int id);
-	void args_list(short& nargs, const char* delims, vector<ushort>& argnames);
-	void keywordArgShortcut(vector<ushort>& argnames);
+	void add_argname(vector<uint16_t>& argnames, int id);
+	void args_list(short& nargs, const char* delims, vector<uint16_t>& argnames);
+	void keywordArgShortcut(vector<uint16_t>& argnames);
 	bool isKeyword();
 	bool just_name();
 	void record();
-	ushort literal(Value value, bool reuse = false);
+	uint16_t literal(Value value, bool reuse = false);
 	short emit_literal();
-	ushort local(bool init = false);
+	uint16_t local(bool init = false);
 	PrevLit poplits();
-	short emit(short, short = 0, short = 0, short = 0, vector<ushort>* = 0);
+	short emit(short, short = 0, short = 0, short = 0, vector<uint16_t>* = 0);
 	void patch(short);
 	void mark();
 	void params(vector<char>& flags);
-	ushort param();
+	uint16_t param();
 	bool notAllZero(vector<char>& flags);
 	void emit_target(int option, int target);
-	ushort mem(const char* s);
+	uint16_t mem(const char* s);
 	};
 
 Value compile(const char* s, const char* gname, CodeVisitor* visitor)
@@ -538,7 +538,7 @@ Value Compiler::structure()
 	matchnew();
 	match('{');
 	TypeItem memtypes[maxitems];
-	ushort memnames[maxitems];
+	uint16_t memnames[maxitems];
 	short n = 0;
 	for (; token == T_IDENTIFIER; ++n)
 		{
@@ -609,7 +609,7 @@ Value Compiler::dll()
 
 	match('(');
 	TypeItem paramtypes[maxitems];
-	ushort paramnames[maxitems];
+	uint16_t paramnames[maxitems];
 	int n = 0;
 	for (; token != ')'; ++n)
 		{
@@ -670,7 +670,7 @@ Value Compiler::callback()
 	matchnew();
 	match('(');
 	TypeItem paramtypes[maxitems];
-	ushort paramnames[maxitems];
+	uint16_t paramnames[maxitems];
 	short n = 0;
 	for (; token == T_IDENTIFIER; ++n)
 		{
@@ -880,7 +880,7 @@ void FunctionCompiler::params(vector<char>& flags)
 	matchnew(')');
 	}
 
-ushort FunctionCompiler::param()
+uint16_t FunctionCompiler::param()
 	{
 	int before = locals.size();
 	int i = local(INIT);
@@ -1332,7 +1332,7 @@ void FunctionCompiler::statement(short cont, short* pbrk)
 				match('(');
 				if (token != ')')
 					{
-					ushort exception = local(INIT);
+					uint16_t exception = local(INIT);
 					match(T_IDENTIFIER);
 					if (token == ',')
 						{
@@ -1594,7 +1594,7 @@ void FunctionCompiler::unop()
 		match();
 		expr0(true);
 		short nargs = 0;
-		vector<ushort> argnames;
+		vector<uint16_t> argnames;
 		if (token == '(')
 			args(nargs, argnames);
 		emit(I_CALL, MEM, INSTANTIATE, nargs, &argnames);
@@ -1799,7 +1799,7 @@ void FunctionCompiler::expr0(bool newtype)
 					expr();
 				static int g_rangeTo = globals("rangeTo");
 				static int g_rangeLen = globals("rangeLen");
-				vector<ushort> argnames;
+				vector<uint16_t> argnames;
 				emit(I_CALL, GLOBAL,
 					type == T_RANGETO ? g_rangeTo : g_rangeLen,
 					3, &argnames);
@@ -1815,7 +1815,7 @@ void FunctionCompiler::expr0(bool newtype)
 			{
 			static Value NEWVAL("New");
 			short nargs = 0;
-			vector<ushort> argnames;
+			vector<uint16_t> argnames;
 			args(nargs, argnames);
 			if (super)
 				emit(I_SUPER, 0, base);
@@ -1878,7 +1878,7 @@ void FunctionCompiler::expr0(bool newtype)
 		}
 	}
 
-void FunctionCompiler::args(short& nargs, vector<ushort>& argnames, const char* delims)
+void FunctionCompiler::args(short& nargs, vector<uint16_t>& argnames, const char* delims)
 	{
 	nargs = 0;
 	bool just_block = (token == '{');
@@ -1894,7 +1894,7 @@ void FunctionCompiler::args(short& nargs, vector<ushort>& argnames, const char* 
 			match();
 		if (token == '{')
 			{ // take block following args as another arg
-			static ushort n_block = symnum("block");
+			static uint16_t n_block = symnum("block");
 			argnames.push_back(n_block);
 			block();
 			++nargs;
@@ -1918,7 +1918,7 @@ void FunctionCompiler::args_at(short& nargs, const char* delims)
 	match(delims[1]);
 	}
 
-void FunctionCompiler::args_list(short& nargs, const char* delims, vector<ushort>& argnames)
+void FunctionCompiler::args_list(short& nargs, const char* delims, vector<uint16_t>& argnames)
 	{
 	bool key = false;
 	for (nargs = 0; token != delims[1]; ++nargs)
@@ -1961,7 +1961,7 @@ void FunctionCompiler::args_list(short& nargs, const char* delims, vector<ushort
 	match(delims[1]);
 	}
 
-void FunctionCompiler::keywordArgShortcut(vector<ushort>& argnames)
+void FunctionCompiler::keywordArgShortcut(vector<uint16_t>& argnames)
 	{
 	// f(:name) is equivalent to f(name: name)
 	match(':');
@@ -1993,7 +1993,7 @@ bool FunctionCompiler::just_name()
 		}
 	}
 
-void FunctionCompiler::add_argname(vector<ushort>& argnames, int id)
+void FunctionCompiler::add_argname(vector<uint16_t>& argnames, int id)
 	{
 	if (find(argnames.begin(), argnames.end(), id) != argnames.end())
 		syntax_error("duplicate argument name: " << symstr(id));
@@ -2003,7 +2003,7 @@ void FunctionCompiler::add_argname(vector<ushort>& argnames, int id)
 void FunctionCompiler::record()
 	{
 	SuRecord* rec = 0;
-	vector<ushort> argnames;
+	vector<uint16_t> argnames;
 	short nargs;
 	match('[');
 	bool key = false;
@@ -2083,13 +2083,13 @@ static Value symbolOrString(const char* s)
 	return m ? m : new SuString(s);
 	}
 
-ushort FunctionCompiler::mem(const char* s)
+uint16_t FunctionCompiler::mem(const char* s)
 	{
 	return literal(symbolOrString(s));
 	}
 
 // TODO use "reuse" in more places
-ushort FunctionCompiler::literal(Value x, bool reuse)
+uint16_t FunctionCompiler::literal(Value x, bool reuse)
 	{
 	if (reuse)
 		for (int i = 0; i < literals.size(); ++i)
@@ -2100,12 +2100,12 @@ ushort FunctionCompiler::literal(Value x, bool reuse)
 	return literals.size() - 1;
 	}
 
-ushort FunctionCompiler::local(bool init)
+uint16_t FunctionCompiler::local(bool init)
 	{
-	ushort num = symnum(scanner.value);
+	uint16_t num = symnum(scanner.value);
 
 	// for blocks
-	static ushort it_num = symnum("it");
+	static uint16_t it_num = symnum("it");
 	if (0 == strcmp("_", scanner.value))
 		num = it_num;
 	if (num == it_num)
@@ -2137,7 +2137,7 @@ PrevLit FunctionCompiler::poplits()
 	}
 
 short FunctionCompiler::emit(short op, short option, short target,
-	short nargs, vector<ushort>* argnames)
+	short nargs, vector<uint16_t>* argnames)
 	{
 	short adr;
 
@@ -2179,11 +2179,11 @@ short FunctionCompiler::emit(short op, short option, short target,
 		case I_DIV : result = prev1.lit / prev2.lit; break ;
 		case I_CAT : result = new SuString(prev1.lit.to_gcstr() + prev2.lit.to_gcstr()); break ;
 		case I_MOD : result = prev1.lit.integer() % prev2.lit.integer(); break ;
-		case I_LSHIFT : result = (ulong) prev1.lit.integer() << prev2.lit.integer(); break ;
-		case I_RSHIFT : result = (ulong) prev1.lit.integer() >> prev2.lit.integer(); break ;
-		case I_BITAND : result = (ulong) prev1.lit.integer() & (ulong) prev2.lit.integer(); break ;
-		case I_BITOR : result = (ulong) prev1.lit.integer() | (ulong) prev2.lit.integer(); break ;
-		case I_BITXOR : result = (ulong) prev1.lit.integer() ^ (ulong) prev2.lit.integer(); break ;
+		case I_LSHIFT : result = (uint32_t) prev1.lit.integer() << prev2.lit.integer(); break ;
+		case I_RSHIFT : result = (uint32_t) prev1.lit.integer() >> prev2.lit.integer(); break ;
+		case I_BITAND : result = (uint32_t) prev1.lit.integer() & (uint32_t) prev2.lit.integer(); break ;
+		case I_BITOR : result = (uint32_t) prev1.lit.integer() | (uint32_t) prev2.lit.integer(); break ;
+		case I_BITXOR : result = (uint32_t) prev1.lit.integer() ^ (uint32_t) prev2.lit.integer(); break ;
 		default : unreachable();
 			}
 		op = I_PUSH;

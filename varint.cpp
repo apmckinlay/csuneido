@@ -25,7 +25,7 @@
 #include "varint.h"
 #include "except.h"
 
-void push_varint(vector<uchar>& code, int n)
+void push_varint(vector<uint8_t>& code, int n)
 	{
 	verify(n >= 0);
 	while (n > 0x7f)
@@ -36,7 +36,7 @@ void push_varint(vector<uchar>& code, int n)
 	code.push_back(n & 0x7f);
 	}
 
-int varint(uchar* code, int& ci)
+int varint(uint8_t* code, int& ci)
 	{
 	int shift = 0;
 	int n = 0;
@@ -50,7 +50,7 @@ int varint(uchar* code, int& ci)
 	return n;
 	}
 
-int varint(uchar*& code)
+int varint(uint8_t*& code)
 	{
 	int shift = 0;
 	int n = 0;
@@ -70,7 +70,7 @@ int varint(uchar*& code)
 
 static void test(int n)
 	{
-	vector<uchar> code;
+	vector<uint8_t> code;
 	push_varint(code, n);
 	int ci = 0;
 	assert_eq(varint(&code[0], ci), n);

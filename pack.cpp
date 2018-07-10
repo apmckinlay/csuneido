@@ -235,7 +235,7 @@ void packlong(char* buf, long n)
 	}
 
 // unsigned, min coef
-uint64_t unpacklongpart(const uchar* buf, int sz)
+uint64_t unpacklongpart(const uint8_t* buf, int sz)
 	{
 	uint64_t n = 0;
 	if (buf[0] == PACK_PLUS)
@@ -269,7 +269,7 @@ long unpacklong(const gcstring& s)
 	if (sz <= 2)
 		return 0;
 	verify(sz == 4 || sz == 6 || sz == 8);
-	auto buf = (const uchar*) s.ptr();
+	auto buf = (const uint8_t*) s.ptr();
 	verify(buf[0] == PACK_PLUS || buf[0] == PACK_MINUS);
 	bool minus = buf[0] == PACK_MINUS;
 	int e = uint8_t(buf[1]);

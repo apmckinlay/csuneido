@@ -132,15 +132,15 @@ void SuFile::init(const char* fn, const char* m)
 Value SuFile::Read(BuiltinArgs& args)
 	{
 	args.usage("file.Read(nbytes = all)");
-	int64 n = args.getint("nbytes", INT_MAX);
+	int64_t n = args.getint("nbytes", INT_MAX);
 	args.end();
 
 	ckopen("Read");
 	if (feof(f))
 		return SuFalse;
-	int64 pos = FTELL64(f);
+	int64_t pos = FTELL64(f);
 	FSEEK64(f, 0, SEEK_END);
-	int64 end = FTELL64(f);
+	int64_t end = FTELL64(f);
 	FSEEK64(f, pos, SEEK_SET);
 	n = min(n, end - pos);
 	if (n <= 0)
@@ -194,7 +194,7 @@ Value SuFile::Seek(BuiltinArgs& args)
 	{
 	args.usage("file.Seek(offset, origin)");
 	Value arg = args.getValue("offset");
-	int64 offset = arg.is_int() ? (int64) arg.integer() : arg.number()->bigint();
+	int64_t offset = arg.is_int() ? (int64_t) arg.integer() : arg.number()->bigint();
 	gcstring origin_s = args.getgcstr("origin", "set");
 	args.end();
 
@@ -217,7 +217,7 @@ Value SuFile::Tell(BuiltinArgs& args)
 	args.usage("file.Tell()").end();
 
 	ckopen("Tell");
-	int64 offset = FTELL64(f);
+	int64_t offset = FTELL64(f);
 	if (INT_MIN <= offset && offset <= INT_MAX)
 		return (int) offset;
 	else

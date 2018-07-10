@@ -214,7 +214,7 @@ bool Record::prefixgt(const Record& r)
 size_t Record::cursize() const
 	{
 	if (! crep)
-		return sizeof (RecRep<uchar>); // min RecRep size
+		return sizeof (RecRep<uint8_t>); // min RecRep size
 	switch (crep->type)
 		{
 	case 'c' : return crep->cursize();
@@ -228,7 +228,7 @@ size_t Record::cursize() const
 size_t Record::bufsize() const
 	{
 	if (! crep)
-		return sizeof (RecRep<uchar>); // min RecRep size
+		return sizeof (RecRep<uint8_t>); // min RecRep size
 	switch (crep->type)
 		{
 	case 'c' : return crep->sz;
@@ -565,10 +565,10 @@ TEST(record_record)
 TEST(record_mmoffset)
 	{
 	Record r;
-	int64 n = 88888;
+	int64_t n = 88888;
 	r.addmmoffset(n);
 	assert_eq(r.getmmoffset(0), n);
-	n = 4 + (static_cast<int64>(1) << 32);
+	n = 4 + (static_cast<int64_t>(1) << 32);
 	int m = mmoffset_to_int(n);
 	assert_eq(n, int_to_mmoffset(m));
 	r.addmmoffset(n);
@@ -580,7 +580,7 @@ TEST(record_to_from_int)
 	Record r;
 	r.addval("hello");
 
-	int64 n64 = r.to_int64();
+	int64_t n64 = r.to_int64();
 	Record r2 = Record::from_int64(n64, 0);
 	assert_eq(r, r2);
 
@@ -588,7 +588,7 @@ TEST(record_to_from_int)
 	Record r3 = Record::from_int(n, 0);
 	assert_eq(r, r3);
 
-	for (int64 i = 1; i < 16; ++i)
+	for (int64_t i = 1; i < 16; ++i)
 		{
 		Mmoffset mmo = i * 1024 * 1024 * 1024;
 		n = mmoffset_to_tagged_int(mmo);

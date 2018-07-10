@@ -46,7 +46,7 @@ char* itostr(int x, char* buf, int radix)
 	return buf;
 	}
 
-char* u64tostr(uint64 x, char* buf, int radix)
+char* u64tostr(uint64_t x, char* buf, int radix)
 	{
 	char* dst = buf;
 	do
@@ -57,7 +57,7 @@ char* u64tostr(uint64 x, char* buf, int radix)
 	return buf;
 	}
 
-char* i64tostr(int64 x, char* buf, int radix)
+char* i64tostr(int64_t x, char* buf, int radix)
 	{
 	char* dst = buf;
 	if (x < 0)

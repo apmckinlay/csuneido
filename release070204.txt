@@ -33,7 +33,7 @@ fibers.cpp, interp.cpp - added thread (fiber) local storage (TLS) and switched t
 getmacadr.cpp - new
 interp.cpp - improvements to catch_match
 load.cpp - errlog and alert exceptions during load (and continue on)
-named.h - changed int to ushort to avoid sign extension issues
+named.h - changed int to uint16_t to avoid sign extension issues
 port.h, portwin32.cpp - removed get_page_size (no longer used)
 portwin32.cpp, callback.cpp - replaced alloc/free executable with Heap
 prim.h - added missing include

@@ -24,7 +24,7 @@
 #include "std.h"
 #include "except.h"
 
-typedef int64 Mmoffset;
+typedef int64_t Mmoffset;
 
 const int MM_SHIFT = 2;
 
@@ -50,7 +50,7 @@ public:
 		}
 	Mmoffset unpack() const
 		{
-		Mmoffset off = static_cast<int64>(offset) << MM_SHIFT;
+		Mmoffset off = static_cast<int64_t>(offset) << MM_SHIFT;
 		verify(off >= 0);
 		return off;
 		}

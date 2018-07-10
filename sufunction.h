@@ -38,14 +38,14 @@ class SuFunction : public Func
 	{
 public:
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 
 	void source(Ostream&, int ci);
 	int source(int ci, int* pn);
 	void disasm(Ostream&);
 	int disasm1(Ostream&, int);
 
-	uchar* code = nullptr;
+	uint8_t* code = nullptr;
 	int nc = 0;
 	Debug* db = nullptr;
 	short nd = 0;

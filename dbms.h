@@ -84,7 +84,7 @@ public:
 	virtual int request(int tn, const char* s) = 0;
 	virtual Value run(const char* s) = 0;
 	virtual Value sessionid(const char* s) = 0;
-	virtual int64 size() = 0;
+	virtual int64_t size() = 0;
 	virtual int tempdest() = 0;
 	virtual Value timestamp() = 0;
 	virtual gcstring token() = 0;

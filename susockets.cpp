@@ -47,7 +47,7 @@ public:
 	explicit SuSocketClient(SocketConnect* s);
 	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 	void close();
 private:
 	void ckopen(const char* action);
@@ -64,7 +64,7 @@ void SuSocketClient::out(Ostream& os) const
 	}
 
 Value SuSocketClient::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	static Value Read("Read");
 	static Value Readline("Readline");
@@ -192,7 +192,7 @@ public:
 		{ } // dup
 	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 private:
 	SocketConnect* sc;
 	};
@@ -201,7 +201,7 @@ class CallClass : public BuiltinFuncs
 	{
 public:
 	Value call(Value self, Value member,
-		short nargs, short nargnames, ushort* argnames, int each) override;
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 	};
 
 Value SuSocketServer::get(Value m) const
@@ -215,7 +215,7 @@ Value SuSocketServer::get(Value m) const
 	}
 
 Value CallClass::call(Value self, Value member,
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	static Value Name("Name");
 	static Value Port("Port");
@@ -233,7 +233,7 @@ Value CallClass::call(Value self, Value member,
 	// convert arguments, make name, port, and exit named
 	int na = 0;
 	Value* a = (Value*) _alloca(sizeof (Value) * args.n_args());
-	ushort* an = (ushort*) _alloca(sizeof (short) * (args.n_argnames() + 3));
+	uint16_t* an = (uint16_t*) _alloca(sizeof (short) * (args.n_argnames() + 3));
 	short nan = 0;
 	while (Value arg = args.getNext())
 		{
@@ -330,7 +330,7 @@ void SuServerInstance::out(Ostream& os) const
 	}
 
 Value SuServerInstance::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	static Value Read("Read");
 	static Value Readline("Readline");

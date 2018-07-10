@@ -32,7 +32,7 @@ class SuObject;
 class SuTransaction;
 template <class T1, class T2> class Hashmap;
 
-typedef HashMap<ushort,Value> Rules;
+typedef HashMap<uint16_t,Value> Rules;
 
 // database query values
 class SuQuery : public SuValue
@@ -44,8 +44,8 @@ public:
 	SuQuery(const gcstring& s, DbmsQuery* n, SuTransaction* trans = 0);
 	void out(Ostream& os) const override
 		{ os << "Query(\"" << query << "\")"; }
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
+	Value call(Value self, Value member,
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 	void close();
 protected:
 	Value get(Dir);
@@ -71,8 +71,8 @@ Record object_to_record(const Header& hdr, SuObject* ob);
 class TransactionClass : public SuValue
 	{
 public:
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
+	Value call(Value self, Value member,
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 	void out(Ostream& os) const override
 		{ os << "Transaction"; }
 	};
@@ -86,8 +86,8 @@ public:
 	explicit SuTransaction(int tran);
 	void out(Ostream& os) const override
 		{ os << "Transaction" << tran; }
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
+	Value call(Value self, Value member,
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 	bool isdone() const
 		{ return done; }
 
@@ -109,8 +109,8 @@ private:
 // builtin Cursor value
 class CursorClass : public SuValue
 	{
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
+	Value call(Value self, Value member,
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 	void out(Ostream& os) const override
 		{ os << "CursorClass"; }
 	};
@@ -123,8 +123,8 @@ public:
 		{ num = next_num++; }
 	void out(Ostream& os) const override
 		{ os << "Cursor" << num << "(" << query << ")"; }
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
+	Value call(Value self, Value member,
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 private:
 	int num;
 	static int next_num;

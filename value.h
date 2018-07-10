@@ -106,7 +106,7 @@ public:
 		{ return is_int() || ! p ? nullptr : p->ob_if_ob(); }
 
 	Value call(Value self, Value member, short nargs = 0, 
-		short nargnames = 0, ushort* argnames = nullptr, int each = -1)
+		short nargnames = 0, uint16_t* argnames = nullptr, int each = -1)
 		{ return VAL->call(self, member, nargs, nargnames, argnames, each); }
 
 	Value getdata(Value m) const
@@ -149,7 +149,7 @@ public:
 		{ return im.type == INTVAL; }
 
 private:
-	static const short INTVAL = static_cast<ushort>(0xffff);
+	static const short INTVAL = static_cast<uint16_t>(0xffff);
 	union
 		{
 		SuValue* p;
@@ -207,5 +207,5 @@ class UserDefinedMethods
 
 		Value operator()(Value member) const;
 	private:
-		ushort gnum;
+		uint16_t gnum;
 	};

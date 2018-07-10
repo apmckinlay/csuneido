@@ -47,7 +47,7 @@ bool SuValue::eq(const SuValue& y) const
 	} // default is simply compare addresses
 
 size_t SuValue::hashfn() const
-	{ return ((ulong) this >> 4); } // default function just uses address
+	{ return ((uint32_t) this >> 4); } // default function just uses address
 
 size_t SuValue::hashcontrib() const
 	{ return hashfn(); }
@@ -128,7 +128,7 @@ Ostream& operator<<(Ostream& out, SuValue* x)
 	}
 
 Value SuValue::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	if (member == CALL)
 		except("can't call " << type());

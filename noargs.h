@@ -21,7 +21,7 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-void noargs(short nargs, short nargnames, ushort* argnames, int each,
+void noargs(short nargs, short nargnames, uint16_t* argnames, int each,
 	const char* usage);
     
 #define NOARGS(usage) \

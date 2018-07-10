@@ -69,7 +69,7 @@ public:
 	int request(int tn, const char* s) override;
 	Value run(const char* s) override;
 	Value sessionid(const char* s) override;
-	int64 size() override;
+	int64_t size() override;
 	int tempdest() override;
 	Value timestamp() override;
 	gcstring token() override;
@@ -456,7 +456,7 @@ Value DbmsRemote::sessionid(const char* sessionid)
 	return new SuString(tls().fiber_id);
 	}
 
-int64 DbmsRemote::size()
+int64_t DbmsRemote::size()
 	{
 	send(Command::SIZE);
 	return io.getInt();

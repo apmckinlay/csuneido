@@ -31,7 +31,7 @@ SuWinRes::SuWinRes(void* handle) : h(handle)
 	{ }
 
 Value SuWinRes::call(Value self, Value member,
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	static Value Close("Close");
 

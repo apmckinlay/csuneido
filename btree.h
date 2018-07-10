@@ -355,7 +355,7 @@ public:
 		Mmoffset off = NIL;
 		LeafSlot cur;
 		// TODO: make slot.copy support a static buffer to reduce allocation
-		ulong valid = 0;
+		uint32_t valid = 0;
 		};
 	//---------------------------------------------------------------
 	iterator first()
@@ -707,7 +707,7 @@ private:
 	int treelevels;	// not including leaves
 	int nnodes;
 	enum { MAXLEVELS = 20 };
-	ulong modified;
+	uint32_t modified;
 	Dest* dest;
 	};
 

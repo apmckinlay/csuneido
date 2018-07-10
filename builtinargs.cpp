@@ -53,7 +53,7 @@ for no arguments you can do:
 
 // ArgsIter ---------------------------------------------------------
 
-ArgsIter::ArgsIter(short n, short na, ushort* an, int e)
+ArgsIter::ArgsIter(short n, short na, uint16_t* an, int e)
 	: nargs(n), nargnames(na), argnames(an), each(e)
 	{
 	if (each >= 0)

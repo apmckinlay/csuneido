@@ -23,19 +23,12 @@
 
 #include <utility>
 using namespace std::rel_ops;
+#include <cstdint>
 
 template <class T1, class T2> inline void construct(T1* p, const T2& value)
 	{ (void) new (p) T1(value); }
 template <class T> inline void destroy(T* p)
 	{ p->~T(); }
-
-//TODO remove these and use (u)int_(8|16|32|64)_t
-typedef signed char schar;
-typedef unsigned char uchar;
-typedef unsigned short ushort;
-typedef unsigned long ulong;
-typedef long long int64;
-typedef unsigned long long uint64;
 
 template<class T> struct Closer
 	{

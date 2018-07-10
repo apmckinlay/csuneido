@@ -26,7 +26,7 @@
 
 TEST(slots_vslot)
 	{
-	Mmoffset n = (int64) 3 * 1024 * 1024 * 1024;
+	Mmoffset n = (int64_t) 3 * 1024 * 1024 * 1024;
 	Record r;
 	r.addmmoffset(n);
 	assert_eq(r.getmmoffset(0), n);
@@ -37,7 +37,7 @@ TEST(slots_vfslot)
 	{
 	Record r;
 	r.addval("hello");
-	Mmoffset n = (int64) 3 * 1024 * 1024 * 1024;
+	Mmoffset n = (int64_t) 3 * 1024 * 1024 * 1024;
 	VFslot vfs(r, n);
 	assert_eq(vfs.key, r);
 	assert_eq(vfs.adr, n);

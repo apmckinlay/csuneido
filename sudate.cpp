@@ -130,7 +130,7 @@ SuDate::Mfn SuDate::method(Value member)
 	}
 
 Value SuDate::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	argseach(nargs, nargnames, argnames, each);
 	if (auto meth = method(member))
@@ -182,7 +182,7 @@ SuDate::SuDate(int d, int t) : date(d), time(t)
 	DateTime(d, t); // validate
 	}
 
-Value SuDate::instantiate(short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::instantiate(short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	if (nargs == 0)
 		{
@@ -210,13 +210,13 @@ Value SuDate::instantiate(short nargs, short nargnames, ushort* argnames, int ea
 		}
 	else if (nargnames == nargs)
 		{
-		static ushort year = ::symnum("year");
-		static ushort month = ::symnum("month");
-		static ushort day = ::symnum("day");
-		static ushort hour = ::symnum("hour");
-		static ushort minute = ::symnum("minute");
-		static ushort second = ::symnum("second");
-		static ushort millisecond = ::symnum("millisecond");
+		static uint16_t year = ::symnum("year");
+		static uint16_t month = ::symnum("month");
+		static uint16_t day = ::symnum("day");
+		static uint16_t hour = ::symnum("hour");
+		static uint16_t minute = ::symnum("minute");
+		static uint16_t second = ::symnum("second");
+		static uint16_t millisecond = ::symnum("millisecond");
 		DateTime dt;
 		for (int i = 0; i < nargs; ++i)
 			{
@@ -643,7 +643,7 @@ static SuString* format(int date, int time, const char* fmt)
 	return SuString::noalloc(&dst[0], dst.size() - 1);
 	}
 
-Value SuDate::FormatEn(short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::FormatEn(short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	if (nargs != 1)
 		except("usage: date.Format(format)");
@@ -651,15 +651,15 @@ Value SuDate::FormatEn(short nargs, short nargnames, ushort* argnames, int each)
 	return format(date, time, ARG(0).str());
 	}
 
-Value SuDate::Plus(short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::Plus(short nargs, short nargnames, uint16_t* argnames, int each)
 	{
-	static ushort sn_years = ::symnum("years");
-	static ushort sn_months = ::symnum("months");
-	static ushort sn_days = ::symnum("days");
-	static ushort sn_hours = ::symnum("hours");
-	static ushort sn_minutes = ::symnum("minutes");
-	static ushort sn_seconds = ::symnum("seconds");
-	static ushort sn_milliseconds = ::symnum("milliseconds");
+	static uint16_t sn_years = ::symnum("years");
+	static uint16_t sn_months = ::symnum("months");
+	static uint16_t sn_days = ::symnum("days");
+	static uint16_t sn_hours = ::symnum("hours");
+	static uint16_t sn_minutes = ::symnum("minutes");
+	static uint16_t sn_seconds = ::symnum("seconds");
+	static uint16_t sn_milliseconds = ::symnum("milliseconds");
 	const char* usage = "usage: Plus(years:, months:, days:, hours:, minutes:, seconds:, milliseconds:)";
 
 	if (nargs != nargnames)
@@ -693,7 +693,7 @@ Value SuDate::Plus(short nargs, short nargnames, ushort* argnames, int each)
 	return new SuDate(dt.date(), dt.time());
 	}
 
-Value SuDate::MinusDays(short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::MinusDays(short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	if (nargs != 1 || nargnames != 0)
 		except("usage: date.Minus(date)");
@@ -712,7 +712,7 @@ long long SuDate::minus_ms(SuDate* d1, SuDate* d2)
 	return dt1.minus_milliseconds(dt2);
 	}
 
-Value SuDate::MinusSeconds(short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::MinusSeconds(short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	if (nargs != 1 || nargnames != 0)
 		except("usage: date.MinusSeconds(date)");
@@ -720,56 +720,56 @@ Value SuDate::MinusSeconds(short nargs, short nargnames, ushort* argnames, int e
 	return SuNumber::from_double(double(ms) / 1000);
 	}
 
-Value SuDate::Year(short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::Year(short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	NOARGS("date.Year()");
 	DateTime dt(date, time);
 	return dt.year;
 	}
 
-Value SuDate::Month(short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::Month(short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	NOARGS("date.Month()");
 	DateTime dt(date, time);
 	return dt.month;
 	}
 
-Value SuDate::Day(short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::Day(short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	NOARGS("date.Day()");
 	DateTime dt(date, time);
 	return dt.day;
 	}
 
-Value SuDate::Hour(short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::Hour(short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	NOARGS("date.Hour()");
 	DateTime dt(date, time);
 	return dt.hour;
 	}
 
-Value SuDate::Minute(short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::Minute(short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	NOARGS("date.Minute()");
 	DateTime dt(date, time);
 	return dt.minute;
 	}
 
-Value SuDate::Second(short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::Second(short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	NOARGS("date.Second()");
 	DateTime dt(date, time);
 	return dt.second;
 	}
 
-Value SuDate::Millisecond(short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::Millisecond(short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	NOARGS("date.Millisecond()");
 	DateTime dt(date, time);
 	return dt.millisecond;
 	}
 
-Value SuDate::WeekDay(short nargs, short nargnames, ushort* argnames, int each)
+Value SuDate::WeekDay(short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	if (nargs != 0 && nargs != 1)
 		except("usage: date.WeekDay(firstDay = 'Sun')");
@@ -870,7 +870,7 @@ SuDate& SuDate::increment()
 	}
 
 Value SuDateClass::call(Value self, Value member,
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	static Value Begin("Begin");
 	static Value End("End");

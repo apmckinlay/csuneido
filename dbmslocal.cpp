@@ -146,7 +146,7 @@ public:
 	int request(int tn, const char* s) override;
 	Value run(const char* s) override;
 	Value sessionid(const char* s) override;
-	int64 size() override;
+	int64_t size() override;
 	int tempdest() override;
 	Value timestamp() override;
 	gcstring token() override;
@@ -280,7 +280,7 @@ Value DbmsLocal::exec(Value ob)
 	return ::exec(ob);
 	}
 
-int64 DbmsLocal::size()
+int64_t DbmsLocal::size()
 	{
 	return theDB()->mmf->size();
 	}

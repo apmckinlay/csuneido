@@ -49,7 +49,7 @@ static int fiber_count = 0;
 
 struct Fiber
 	{
-	enum Status { READY, BLOCKED, REUSE }; 
+	enum Status { READY, BLOCKED, REUSE };
 	Fiber() : status(REUSE)
 		{ }
 	explicit Fiber(void* f, void* arg = nullptr)
@@ -65,24 +65,24 @@ struct Fiber
 	void* stack_ptr = nullptr;
 	void* stack_end = nullptr;
 	void* arg_ref = nullptr; // prevent it being garbage collected
-	int64 sleep_until = 0;
+	int64_t sleep_until = 0;
 	ThreadLocalStorage tls;
 	};
 
-inline int64 qpfreq()
+inline int64_t qpfreq()
 	{
 	LARGE_INTEGER f;
 	verify(QueryPerformanceFrequency(&f));
 	return f.QuadPart;
 	}
-int64 qpf = qpfreq();
+int64_t qpf = qpfreq();
 
 const int MAXFIBERS = 32;
 static Fiber fibers[MAXFIBERS];
 const int MAIN = 0;
 static Fiber* cur = &fibers[MAIN];
 static int fi = 0; // round robin index into fibers, used by yield
-static int64 run_until;
+static int64_t run_until;
 
 static const int TIME_SLICE_MS = 50;
 

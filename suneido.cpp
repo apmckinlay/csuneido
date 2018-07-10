@@ -55,7 +55,8 @@
 #include "suservice.h"
 #include <fcntl.h>
 
-static_assert(sizeof(int64) == 8, "long long must be 64 bits / 8 bytes");
+static_assert(sizeof(int) == 4, "int must be 32 bits / 4 bytes");
+static_assert(sizeof(short) == 2, "short must be 16 bits / 2 bytes");
 static_assert(sizeof(time_t) == 4, "time_t must be 32 bits / 4 bytes");
 
 void builtins();
@@ -267,11 +268,11 @@ void ckinterrupt()
 
 struct St
 	{
-	St(const char* s_, const char* t_, ulong to) : s(s_), t(t_), timeout(to)
+	St(const char* s_, const char* t_, uint32_t to) : s(s_), t(t_), timeout(to)
 		{ }
 	const char* s;
 	const char* t;
-	ulong timeout;
+	uint32_t timeout;
 	};
 
 typedef int(__stdcall *MSGBOXAPI)(IN HWND hWnd, IN LPCSTR lpText, IN LPCSTR lpCaption,
@@ -306,7 +307,7 @@ DWORD WINAPI message_thread(void* p)
 	}
 
 // timeout is used by fatal
-void message(const char* s, const char* t, ulong timeout_ms = INFINITE)
+void message(const char* s, const char* t, uint32_t timeout_ms = INFINITE)
 	{
 	St st(s, t, timeout_ms);
 	HANDLE thread = CreateThread(nullptr, 0, message_thread, (void*) &st, 0, nullptr);
@@ -396,7 +397,7 @@ static void repl()
 			break;
 		try
 			{
-			Value x = run(buf);		
+			Value x = run(buf);
 			if (x)
 				con << x << endl;
 			}

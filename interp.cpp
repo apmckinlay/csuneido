@@ -55,7 +55,7 @@ static bool catch_match(const char*, const char*);
 int callnest = 0;
 
 Value docall(Value x, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	if (trace_level & TRACE_FUNCTIONS)
 		{
@@ -86,10 +86,10 @@ Value docall(Value x, Value member,
 // to detect: return cond ? f() : g() or: cond ? f() : f(); ...
 bool Frame::jumpToPopReturn()
 	{
-	uchar* save_ip = ip;
+	uint8_t* save_ip = ip;
 	++ip;
 	int jump = fetch_jump();
-	uchar* target = ip + jump;
+	uint8_t* target = ip + jump;
 	ip = save_ip;
 	return *target == I_POP || *target == I_RETURN;
 	}
@@ -98,7 +98,7 @@ bool Frame::jumpToPopReturn()
 	SETSP(oldsp); \
 	PUSH(result); \
 	each = -1; \
-	ip += nargnames * sizeof (ushort); \
+	ip += nargnames * sizeof (uint16_t); \
 	if (! TOP() && *ip != I_POP && *ip != I_RETURN && \
 		(*ip != I_JUMP || ! jumpToPopReturn())) \
 		except(name << " has no return value")
@@ -185,7 +185,7 @@ Value Frame::run()
 		{
 		if ((trace_level & TRACE_OPCODES) && *ip != I_NOP)
 			fn->disasm1(tout(), ip - fn->code);
-		uchar op = *ip++;
+		uint8_t op = *ip++;
 		switch (op)
 			{
 		case I_NOP :
@@ -320,24 +320,24 @@ Value Frame::run()
 		case I_CALL | SUB :
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLSUB(nargs, nargnames, (ushort*) ip);
+			CALLSUB(nargs, nargnames, (uint16_t*) ip);
 			break ;
 		case I_CALL | SUB_SELF :
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLSUBSELF(nargs, nargnames, (ushort*) ip);
+			CALLSUBSELF(nargs, nargnames, (uint16_t*) ip);
 			break ;
 		case I_CALL | MEM :
 			mem = fetch_member();
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLTOP(mem, nargs, nargnames, (ushort*) ip, mem.str());
+			CALLTOP(mem, nargs, nargnames, (uint16_t*) ip, mem.str());
 			break ;
 		case I_CALL | MEM_SELF :
 			mem = fetch_member();
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLX(self, mem, nargs, nargnames, (ushort*) ip, mem.str());
+			CALLX(self, mem, nargs, nargnames, (uint16_t*) ip, mem.str());
 			break ;
 		case I_CALL | AUTO :
 		case I_CALL | DYNAMIC :
@@ -345,12 +345,12 @@ Value Frame::run()
 			arg = get(op);
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLX(arg, CALL, nargs, nargnames, (ushort*) ip, "");
+			CALLX(arg, CALL, nargs, nargnames, (uint16_t*) ip, "");
 			break ;
 		case I_CALL | LITERAL :	// actually STACK not LITERAL
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLTOP(CALL, nargs, nargnames, (ushort*) ip, "");
+			CALLTOP(CALL, nargs, nargnames, (uint16_t*) ip, "");
 			break ;
 		case I_EACH :
 			each = fetch1();
@@ -556,11 +556,11 @@ Value Frame::run()
 			case I_MULEQ :		z = x = x * y; break ;
 			case I_DIVEQ :		z = x = x / y; break ;
 			case I_MODEQ :		z = x = x.integer() % y.integer(); break ;
-			case I_LSHIFTEQ :	z = x = (ulong) x.integer() << y.integer(); break ;
-			case I_RSHIFTEQ :	z = x = (ulong) x.integer() >> y.integer(); break ;
-			case I_BITANDEQ :	z = x = (ulong) x.integer() & (ulong) y.integer(); break ;
-			case I_BITOREQ :	z = x = (ulong) x.integer() | (ulong) y.integer(); break ;
-			case I_BITXOREQ :	z = x = (ulong) x.integer() ^ (ulong) y.integer(); break ;
+			case I_LSHIFTEQ :	z = x = (uint32_t) x.integer() << y.integer(); break ;
+			case I_RSHIFTEQ :	z = x = (uint32_t) x.integer() >> y.integer(); break ;
+			case I_BITANDEQ :	z = x = (uint32_t) x.integer() & (uint32_t) y.integer(); break ;
+			case I_BITOREQ :	z = x = (uint32_t) x.integer() | (uint32_t) y.integer(); break ;
+			case I_BITXOREQ :	z = x = (uint32_t) x.integer() ^ (uint32_t) y.integer(); break ;
 			case I_EQ :			z = x = y; break ;
 			case I_PREINC :		z = x = x + SuOne; break ;
 			case I_PREDEC :		z = x = x - SuOne; break ;
@@ -667,23 +667,23 @@ Value Frame::run()
 			}
 		case I_BITAND :
 			arg = POP();
-			TOP() = (ulong) TOP().integer() & (ulong) arg.integer();
+			TOP() = (uint32_t) TOP().integer() & (uint32_t) arg.integer();
 			break ;
 		case I_BITOR :
 			arg = POP();
-			TOP() = (ulong) TOP().integer() | (ulong) arg.integer();
+			TOP() = (uint32_t) TOP().integer() | (uint32_t) arg.integer();
 			break ;
 		case I_BITXOR :
 			arg = POP();
-			TOP() = (ulong) TOP().integer() ^ (ulong) arg.integer();
+			TOP() = (uint32_t) TOP().integer() ^ (uint32_t) arg.integer();
 			break ;
 		case I_LSHIFT :
 			arg = POP();
-			TOP() = (ulong) TOP().integer() << arg.integer();
+			TOP() = (uint32_t) TOP().integer() << arg.integer();
 			break ;
 		case I_RSHIFT :
 			arg = POP();
-			TOP() = (ulong) TOP().integer() >> arg.integer();
+			TOP() = (uint32_t) TOP().integer() >> arg.integer();
 			break ;
 		default :
 			error("invalid op code " << hex << (short) op);
@@ -753,7 +753,7 @@ inline Value getdata(Value ob, Value m)
 	return x;
 	}
 
-Value Frame::get(uchar op)
+Value Frame::get(uint8_t op)
 	{
 	Value ob;
 	Value x;
@@ -809,14 +809,14 @@ Value Frame::get(uchar op)
 	return x;
 	}
 
-Value dynamic(ushort name)
+Value dynamic(uint16_t name)
 	{
 	for (Frame* f = tls().proc->fp; f >= tls().proc->frames; --f)
 		{
 		if (! f->fn)
 			continue ; // skip primitives
 		short n = f->fn->nlocals;
-		ushort* locals = f->fn->locals;
+		uint16_t* locals = f->fn->locals;
 		for (short i = 0; i < n; ++i)
 			if (locals[i] == name && f->local[i])
 				return f->local[i];

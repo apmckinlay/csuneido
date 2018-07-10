@@ -33,7 +33,7 @@ public:
 	explicit Except(gcstring s);
 	Except(const Except& e, gcstring s);
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 	SuObject* calls() const
 		{ return calls_; }
 	SuFunction* fp_fn() const

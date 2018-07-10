@@ -89,13 +89,13 @@ template<> class TypeInt<long long> : public Type
 	{
 public:
 	int size() override
-		{ return sizeof (int64); }
+		{ return sizeof (int64_t); }
 	void put(char*& dst, char*&, const char*, Value x) override;
 	Value get(const char*& src, Value x) override;
 	void out(Ostream& os) const override;
 	Value result(long hi, long lo) override
 		{
-		int64 n = hi;
+		int64_t n = hi;
 		return (n << 32) + lo;
 		}
 	};

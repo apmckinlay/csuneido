@@ -272,9 +272,9 @@ public:
 	Tbl* get_table(TblNum tblnum);
 	bool recover_index(Record& idxrec);
 	void invalidate_table(TblNum tblnum);
-	Mmoffset alloc(ulong n, char type = MM_OTHER)
+	Mmoffset alloc(uint32_t n, char type = MM_OTHER)
 		{ return mmf->alloc(n, type); }
-	void unalloc(ulong n)
+	void unalloc(uint32_t n)
 		{ mmf->unalloc(n); }
 	void* adr(Mmoffset offset)
 		{ return mmf->adr(offset); }
@@ -361,7 +361,7 @@ private:
 	HashMap<Mmoffset,TranDelete> deleted;	// record address -> delete time
 	HashMap<TblNum,TranTime> table_created;	// table name -> create time
 	std::set<Transaction> final;	// transactions that need to be finalized
-	ulong cksum; // since commit
+	uint32_t cksum; // since commit
 	Lisp<Mmoffset> schema_deletes;
 	int output_type;
 	IndexDest* dest;

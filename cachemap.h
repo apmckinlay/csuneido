@@ -35,14 +35,14 @@ public:
 	Data* get(const Key& key);
 private:
 	int next;
-	ulong clock;
+	uint32_t clock;
 	struct Slot
 		{
 		Slot()
 			{ }
-		Slot(ulong l, Key k, Data d) : lru(l), key(k), data(d)
+		Slot(uint32_t l, Key k, Data d) : lru(l), key(k), data(d)
 			{ }
-		ulong lru = 0;
+		uint32_t lru = 0;
 		Key key;
 		Data data;
 		};

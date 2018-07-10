@@ -36,7 +36,7 @@
 #define TARGET(i)	(short) ((code[i] + (code[i+1] << 8)))
 
 Value SuFunction::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	static Value Disasm("Disasm");
 	static Value Source("Source");

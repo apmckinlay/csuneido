@@ -1414,7 +1414,7 @@
 #   else
 #     define ALIGNMENT 4
 #     define CPP_WORDSZ 32
-#     define STACKBOTTOM ((ptr_t)((ulong)&errno))
+#     define STACKBOTTOM ((ptr_t)((uint32_t)&errno))
 #   endif
 #   define USE_MMAP
 #   define USE_MMAP_ANON
@@ -1426,8 +1426,8 @@
  _end or end Specifies the first location after all data.
  */
     extern int _data[], _end[];
-#   define DATASTART ((ptr_t)((ulong)_data))
-#   define DATAEND ((ptr_t)((ulong)_end))
+#   define DATASTART ((ptr_t)((uint32_t)_data))
+#   define DATAEND ((ptr_t)((uint32_t)_end))
     extern int errno;
 #   define USE_GENERIC_PUSH_REGS
 #   define DYNAMIC_LOADING

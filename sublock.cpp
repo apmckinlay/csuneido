@@ -57,7 +57,7 @@ public:
 		}
 	void out(Ostream& out) const override;
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 	void persist();
 	friend Value suBlock(Frame* frame, int pc, int first, int nparams);
 private:
@@ -94,7 +94,7 @@ private:
 	};
 
 Value SuBlock::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	if (member == CALL)
 		{

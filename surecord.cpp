@@ -95,7 +95,7 @@ SuRecord::SuRecord(const Record& dbrec, const Lisp<int>& fldsyms, SuTransaction*
 			addfield(symstr(*f), rec.getraw(i));
 	}
 
-static ushort basename(const char* field)
+static uint16_t basename(const char* field)
 	{
 	return ::symnum(PREFIXA(field, strlen(field) - 5));
 	}
@@ -123,14 +123,14 @@ void SuRecord::addfield(const char* field, gcstring value)
 		put(field, x);
 	}
 
-void SuRecord::dependencies(ushort mem, gcstring s)
+void SuRecord::dependencies(uint16_t mem, gcstring s)
 	{
 	for (;;)
 		{
 		int i = s.find(',');
 		gcstring t = s.substr(0, i).trim();
-		ushort m = ::symnum(t.str());
-		Lisp<ushort>& d = dependents[m];
+		uint16_t m = ::symnum(t.str());
+		Lisp<uint16_t>& d = dependents[m];
 		if (! d.member(mem))
 			d.push(mem);
 		if (i == -1)
@@ -139,7 +139,7 @@ void SuRecord::dependencies(ushort mem, gcstring s)
 		}
 	}
 
-static ushort depsname(ushort m)
+static uint16_t depsname(uint16_t m)
 	{
 	return ::symnum(CATSTRA(symstr(m), "_deps"));
 	}
@@ -154,14 +154,14 @@ Record SuRecord::to_record(const Header& h)
 		if (*f != -1)
 			getdata(symbol(*f));
 	// - invert stored dependencies
-	typedef HashMap<ushort, Lisp<ushort> > Deps;
+	typedef HashMap<uint16_t, Lisp<uint16_t> > Deps;
 	Deps deps;
-	for (HashMap<ushort,Lisp<ushort> >::iterator it = dependents.begin();
+	for (HashMap<uint16_t,Lisp<uint16_t> >::iterator it = dependents.begin();
 		it != dependents.end(); ++it)
 		{
-		for (Lisp<ushort> m = it->val; ! nil(m); ++m)
+		for (Lisp<uint16_t> m = it->val; ! nil(m); ++m)
 			{
-			ushort d = depsname(*m);
+			uint16_t d = depsname(*m);
 			if (fldsyms.member(d))
 				deps[d].push(it->key);
 			}
@@ -177,11 +177,11 @@ Record SuRecord::to_record(const Header& h)
 			rec.addnil();
 		else if (*f == ts)
 			rec.addval(tsval = dbms()->timestamp());
-		else if (Lisp<ushort>* pd = deps.find(*f))
+		else if (Lisp<uint16_t>* pd = deps.find(*f))
 			{
 			// output dependencies
 			oss.clear();
-			for (Lisp<ushort> d = *pd; ! nil(d); )
+			for (Lisp<uint16_t> d = *pd; ! nil(d); )
 				{
 				oss << symstr(*d);
 				if (! nil(++d))
@@ -208,7 +208,7 @@ void SuRecord::out(Ostream& os) const
 	}
 
 Value SuRecord::call(Value self, Value member,
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	static Value Clear("Clear");
 	static Value Transaction("Transaction");
@@ -251,7 +251,7 @@ Value SuRecord::call(Value self, Value member,
 		for (int i = 0; i < nargs; ++i)
 			{
 			RTRACE(".Invalidate " << ARG(i).str());
-			ushort m = ::symnum(ARG(i).str());
+			uint16_t m = ::symnum(ARG(i).str());
 			invalidate(m);
 			call_observers(m, ".Invalidate");
 			}
@@ -305,10 +305,10 @@ Value SuRecord::call(Value self, Value member,
 			except("usage: record.GetDeps(field)");
 		int mem = ARG(0).symnum();
 		gcstring deps;
-		for (HashMap<ushort,Lisp<ushort> >::iterator it = dependents.begin();
+		for (HashMap<uint16_t,Lisp<uint16_t> >::iterator it = dependents.begin();
 			it != dependents.end(); ++it)
 			{
-			for (Lisp<ushort> m = it->val; ! nil(m); ++m)
+			for (Lisp<uint16_t> m = it->val; ! nil(m); ++m)
 				if (*m == mem)
 					{
 					deps += ",";
@@ -423,7 +423,7 @@ bool SuRecord::erase2(Value m)
 	return result;
 	}
 
-void SuRecord::call_observers(ushort i, const char* why)
+void SuRecord::call_observers(uint16_t i, const char* why)
 	{
 	call_observer(i, why);
 	while (!invalidated.empty())
@@ -431,14 +431,14 @@ void SuRecord::call_observers(ushort i, const char* why)
 			call_observer(x, "invalidate");
 	}
 
-void SuRecord::invalidate_dependents(ushort mem)
+void SuRecord::invalidate_dependents(uint16_t mem)
 	{
 	RTRACE("invalidate dependents of " << symstr(mem));
-	for (Lisp<ushort> m = dependents[mem]; ! nil(m); ++m)
+	for (Lisp<uint16_t> m = dependents[mem]; ! nil(m); ++m)
 		invalidate(*m);
 	}
 
-void SuRecord::invalidate(ushort mem)
+void SuRecord::invalidate(uint16_t mem)
 	{
 	// TODO maybe clear dependencies? (would give a way to safely clear dependencies)
 	RTRACE("invalidate " << symstr(mem));
@@ -458,9 +458,9 @@ bool operator==(Observe o1, Observe o2)
 class TrackObserver
 	{
 public:
-	explicit TrackObserver(SuRecord* r, Value observer, ushort mem) : rec(r)
+	explicit TrackObserver(SuRecord* r, Value observer, uint16_t mem) : rec(r)
 		{ r->active_observers.push(Observe{ observer, mem}); }
-	static bool has(SuRecord* r, Value observer, ushort mem)
+	static bool has(SuRecord* r, Value observer, uint16_t mem)
 		{ return r->active_observers.has(Observe{ observer, mem }); }
 	~TrackObserver()
 		{ rec->active_observers.pop(); }
@@ -468,10 +468,10 @@ private:
 	SuRecord* rec;
 	};
 
-void SuRecord::call_observer(ushort member, const char* why)
+void SuRecord::call_observer(uint16_t member, const char* why)
 	{
 	RTRACE("call observer for " << symstr(member) << " due to " << why);
-	static ushort argname = ::symnum("member");
+	static uint16_t argname = ::symnum("member");
 	for (auto o : observers)
 		{
 		// prevent cycles
@@ -503,7 +503,7 @@ Value SuRecord::getdata(Value m)
 	return result;
 	}
 
-Value SuRecord::get_if_special(ushort i)
+Value SuRecord::get_if_special(uint16_t i)
 	{
 	gcstring name = symstr(i);
 	if (!name.has_suffix("_lower!"))
@@ -518,9 +518,9 @@ Value SuRecord::get_if_special(ushort i)
 	return SuString(s).tolower();
 	}
 
-void SuRecord::add_dependent(ushort src, ushort dst)
+void SuRecord::add_dependent(uint16_t src, uint16_t dst)
 	{
-	Lisp<ushort>& list = dependents[dst];
+	Lisp<uint16_t>& list = dependents[dst];
 	if (! member(list, src))
 		{
 		RTRACE("add dependency for " << symstr(src) << " uses " << symstr(dst));
@@ -542,7 +542,7 @@ private:
 	SuRecord* rec;
 	};
 
-Value SuRecord::call_rule(ushort i, const char* why)
+Value SuRecord::call_rule(uint16_t i, const char* why)
 	{
 	invalid.erase(i);
 
@@ -607,7 +607,7 @@ class MkRecord : public Func
 			named.num = globals("Record");
 			}
 		Value call(Value self, Value member,
-			short nargs, short nargnames, ushort* argnames, int each) override;
+			short nargs, short nargnames, uint16_t* argnames, int each) override;
 	};
 
 Value su_record()
@@ -616,7 +616,7 @@ Value su_record()
 	}
 
 Value MkRecord::call(Value self, Value member,
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	if (member != CALL)
 		return Func::call(self, member, nargs, nargnames, argnames, each);

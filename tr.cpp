@@ -103,7 +103,7 @@ static gcstring expandRanges(const gcstring& s)
 	Buffer dst(n);
 	for (int i = 0; i < n; ++i)
 		if (s[i] == '-' && i > 0 && i + 1 < n)
-			for (uchar c = s[i - 1] + 1; c < (uchar) s[i + 1]; ++c)
+			for (uint8_t c = s[i - 1] + 1; c < (uint8_t) s[i + 1]; ++c)
 				dst .add(c);
 		else
 			dst.add(s[i]);

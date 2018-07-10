@@ -47,7 +47,7 @@ public:
 	void out(Ostream& os) const override
 		{ os << "/* builtin method */"; }
 	Value call(Value self, Value member,
-		short nargs, short nargnames, ushort *argnames, int each) override
+		short nargs, short nargnames, uint16_t *argnames, int each) override
 		{
 		if (member == CALL)
 			{
@@ -95,7 +95,7 @@ template <class T> class BuiltinInstance : public T
 	{
 	typedef Value (T::*MemFun)(BuiltinArgs&);
 	virtual Value call(Value self, Value member,
-		short nargs, short nargnames, ushort *argnames, int each) override
+		short nargs, short nargnames, uint16_t *argnames, int each) override
 		{
 		if (MemFun m = find(member))
 			{
@@ -136,7 +136,7 @@ public:
 		{}
 
 	Value call(Value self, Value member,
-		short nargs, short nargnames, ushort *argnames, int each) override
+		short nargs, short nargnames, uint16_t *argnames, int each) override
 		{
 		BuiltinArgs args(nargs, nargnames, argnames, each);
 		static Value Members("Members");

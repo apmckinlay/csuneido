@@ -21,6 +21,6 @@
  * Boston, MA 02111-1307, USA
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-typedef unsigned long ulong;
+#include <cstdint>
 
-ulong checksum(ulong cksum, const void* buf, int n);
+uint32_t checksum(uint32_t cksum, const void* buf, int n);

@@ -80,7 +80,7 @@ public:
 		{ unauth(); }
 	Value sessionid(const char* s) override
 		{ return dbms->sessionid(s); }
-	int64 size() override
+	int64_t size() override
 		{ unauth(); }
 	int tempdest() override
 		{ unauth(); }

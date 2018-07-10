@@ -102,7 +102,7 @@ Heap::~Heap()
 // WARNING: changes file position
 // can't use GetFileSize because it's limited to 32 bit (4 gb) result
 // can't use GetFileSizeEx because it's not available on older Windows
-int64 getfilesize(void* f)
+int64_t getfilesize(void* f)
 	{
 	LARGE_INTEGER li;
 	li.QuadPart = 0;
@@ -137,7 +137,7 @@ void Mmfile::map(int chunk)
 #endif
 	verify(! base[chunk]);
 
-	int64 end = (int64) (chunk + 1) * chunk_size;
+	int64_t end = (int64_t) (chunk + 1) * chunk_size;
 	fm[chunk] = CreateFileMapping(f,
 		NULL, // no security attributes
 		readonly ? PAGE_READONLY : PAGE_READWRITE,
@@ -146,7 +146,7 @@ void Mmfile::map(int chunk)
 	if (! fm[chunk])
 		fatal("can't create file mapping for database");
 
-	int64 offset = (int64) chunk * chunk_size;
+	int64_t offset = (int64_t) chunk * chunk_size;
 	base[chunk] = (char*) MapViewOfFile(fm[chunk], readonly ? FILE_MAP_READ : FILE_MAP_WRITE,
 		(unsigned) (offset >> 32), (unsigned) (offset & 0xffffffff), chunk_size);
 //~ mlog << "+ " << chunk << " = " << (void*) base[chunk] << endl;

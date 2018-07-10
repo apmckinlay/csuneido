@@ -35,12 +35,12 @@ const int NAMES_SPACE = 1024 * 1024;
 
 #define MISSING	((SuValue*) 1)
 
-static Hmap<const char*, ushort> tbl(INITSIZE);
+static Hmap<const char*, uint16_t> tbl(INITSIZE);
 static std::vector<Value> data;
 static std::vector<char*> names;
 static PermanentHeap ph("global names", NAMES_SPACE);
 
-char* Globals::operator()(ushort j)
+char* Globals::operator()(uint16_t j)
 	{
 	return names[j];
 	}
@@ -51,12 +51,12 @@ Value Globals::operator[](const char* s)
 	}
 
 // returns Value() if MISSING
-Value Globals::get(ushort j)
+Value Globals::get(uint16_t j)
 	{
 	return data[j].ptr() == MISSING ? Value() : data[j];
 	}
 
-void Globals::put(ushort j, Value x)
+void Globals::put(uint16_t j, Value x)
 	{
 	data[j] = x;
 	}
@@ -66,13 +66,13 @@ void Globals::clear()
 	std::fill(data.begin(), data.end(), Value());
 	}
 
-ushort Globals::operator()(const char* s)
+uint16_t Globals::operator()(const char* s)
 	{
-	if (ushort* pi = tbl.find(s))
+	if (uint16_t* pi = tbl.find(s))
 		return *pi;
 	TRACE(GLOBALS, "+ " << s);
 	char* str = strcpy((char*) ph.alloc(strlen(s) + 1), s);
-	ushort num = (ushort) names.size();
+	uint16_t num = (uint16_t) names.size();
 	names.push_back(str);
 	verify(data.size() <= USHRT_MAX);
 	data.push_back(Value());
@@ -81,7 +81,7 @@ ushort Globals::operator()(const char* s)
 	}
 
 // throws if not found
-Value Globals::operator[](ushort j)
+Value Globals::operator[](uint16_t j)
 	{
 	if (Value x = find(j))
 		return x;
@@ -90,7 +90,7 @@ Value Globals::operator[](ushort j)
 	}
 
 // returns the value of a global (number), else Value() if not found
-Value Globals::find(ushort j)
+Value Globals::find(uint16_t j)
 	{
 	if (! data[j])
 		{
@@ -101,18 +101,18 @@ Value Globals::find(ushort j)
 	return get(j); // handles MISSING
 	}
 
-ushort Globals::copy(const char* s)	// called by Compiler::suclass for class : _Base
+uint16_t Globals::copy(const char* s)	// called by Compiler::suclass for class : _Base
 	{
 	Value x(get(s + 1));
 	if (! x)
 		except("can't find " << s);
 	names.push_back(strcpy((char*) ph.alloc(strlen(s) + 1), s));
 	data.push_back(x);
-	return (ushort) data.size() - 1;
+	return (uint16_t) data.size() - 1;
 	}
 
 // remove a global name if it was the last one added
-void Globals::pop(ushort i)
+void Globals::pop(uint16_t i)
 	{
 	if (i != names.size() - 1)
 		return ; // not the last one

@@ -74,12 +74,12 @@ template<>
 void TypeInt<long>::out(Ostream& os) const
 	{ os << "int32"; }
 
-void TypeInt<int64>::out(Ostream& os) const
+void TypeInt<int64_t>::out(Ostream& os) const
 	{ os << "int64"; }
 
-void TypeInt<int64>::put(char*& dst, char*&, const char*, Value x)
+void TypeInt<int64_t>::put(char*& dst, char*&, const char*, Value x)
 	{
-	int64 n;
+	int64_t n;
 	if (! x)
 		n = 0;
 	else if (x.is_int())
@@ -88,14 +88,14 @@ void TypeInt<int64>::put(char*& dst, char*&, const char*, Value x)
 		n = num->bigint();
 	else
 		except("can't convert " << x.type() << " to integer");
-	*((int64*) dst) = n;
-	dst += sizeof (int64);
+	*((int64_t*) dst) = n;
+	dst += sizeof (int64_t);
 	}
 
-Value TypeInt<int64>::get(const char*& src, Value x)
+Value TypeInt<int64_t>::get(const char*& src, Value x)
 	{
-	int64 n = *((int64*) src);
-	src += sizeof (int64);
+	int64_t n = *((int64_t*) src);
+	src += sizeof (int64_t);
 	if (SuNumber* num = val_cast<SuNumber*>(x))
 		if (n == num->bigint())
 			return x;

@@ -94,7 +94,7 @@ int& tblnum(Mmfile* mmf, Mmoffset off)
 	{ return ((int*) mmf->adr(off))[-1]; }
 
 static bool schema(Database& db, HashMap<TblNum,gcstring>& tblnames, Mmoffset o);
-static void dbdump1(Ostream& log, Mmfile& mmf, Mmfile::iterator& iter, ulong& cksum, BitVector& deletes);
+static void dbdump1(Ostream& log, Mmfile& mmf, Mmfile::iterator& iter, uint32_t& cksum, BitVector& deletes);
 
 static int max_tblnum = 0;
 
@@ -159,7 +159,7 @@ void DbRecoverImp::docheck(bool (*progress)(int))
 	//	- find last good commit
 	//	- track all the deletes
 	time_t last_good_shutdown = 0;
-	ulong cksum = checksum(0, 0, 0);
+	uint32_t cksum = checksum(0, 0, 0);
 	bool ok = false;
 	HashMap<int,int> tbl_nextfield;
 	Mmfile::iterator iter = mmf->begin();
@@ -285,11 +285,11 @@ DbrStatus DbRecoverImp::check_indexes(bool (*progress)(int))
 		Record tablerec(tbl_iter.data());
 		gcstring table = tablerec.getstr(T_TABLE);
 		Tbl* tbl = db.ck_get_table(table);
-		int64 prev_cksum = 0;
+		int64_t prev_cksum = 0;
 		for (Lisp<Idx> ix = tbl->idxs; ! nil(ix); ++ix)
 			{
 			int n = 0;
-			int64 cksum = 0;
+			int64_t cksum = 0;
 			Index::iterator iter = ix->index->begin(schema_tran);
 			for (; ! iter.eof(); ++iter, ++n)
 				{
@@ -369,7 +369,7 @@ bool DbRecoverImp::rebuild_copy(char* newfile, bool (*progress)(int))
 
 	Database db(newfile, DBCREATE);
 
-	ulong cksum = checksum(0, 0, 0);
+	uint32_t cksum = checksum(0, 0, 0);
 	Translate tr(ndata);
 	HashMap<TblNum,gcstring> tblnames;
 	HashMap<TblNum,Mmoffset> deleted_tbls, renamed_tbls;
@@ -630,7 +630,7 @@ void dbdump(const char* db, bool append)
 			}
 		}
 	OstreamFile log("dbdump.log", append ? "a" : "w");
-	ulong cksum = checksum(0, 0, 0);
+	uint32_t cksum = checksum(0, 0, 0);
 	for (iter = mmf.begin(); iter != end; ++iter)
 		{
 		dbdump1(log, mmf, iter, cksum, deletes);
@@ -639,7 +639,7 @@ void dbdump(const char* db, bool append)
 		log << "CORRUPT" << endl;
 	}
 
-void dbdump1(Ostream& log, Mmfile& mmf, Mmfile::iterator& iter, ulong& cksum, BitVector& deletes)
+void dbdump1(Ostream& log, Mmfile& mmf, Mmfile::iterator& iter, uint32_t& cksum, BitVector& deletes)
 	{
 	log << iter.offset() << " " << iter.size() << "\t";
 	switch (iter.type())
@@ -741,7 +741,7 @@ struct Cleanup
 		thedb->rename_table(table, table2);
 		create(table);
 		output(table, 1);
-		drop(table); 
+		drop(table);
 		thedb->rename_table(table2, table);
 		}
 	static void check()
@@ -819,7 +819,7 @@ struct Cleanup
 		Translate tr(10);
 		tr.add(80, 88);
 		assert_eq(tr[80], 88);
-		const int64 MB = 1024 * 1024;
+		const int64_t MB = 1024 * 1024;
 		tr.add(4500 * MB, 4600 * MB);
 		assert_eq(tr[4500 * MB], 4600 * MB);
 		assert_eq(tr[80], 88);

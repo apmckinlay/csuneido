@@ -160,7 +160,7 @@ TEST(symbols)
 	{
 	const char* strs[] = { "one", "two", "three", "four" };
 	const int n = sizeof (strs) / sizeof (char*);
-	ushort nums[n];
+	uint16_t nums[n];
 	for (int i = 0; i < n; ++i)
 		nums[i] = symnum(strs[i]);
 

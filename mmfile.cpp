@@ -57,7 +57,7 @@ Mmfile::Mmfile(const char* filename, bool create, bool ro)
 #endif
 	open(filename, create, readonly);
 	verify(file_size >= 0);
-	verify(file_size < (int64) MB_MAX_DB * 1024 * 1024);
+	verify(file_size < (int64_t) MB_MAX_DB * 1024 * 1024);
 	verify((file_size % MM_ALIGN) == 0);
 	if (file_size == 0)
 		{
@@ -68,7 +68,7 @@ Mmfile::Mmfile(const char* filename, bool create, bool ro)
 		{
 		if (0 != memcmp(adr(0), magic, sizeof magic))
 			except("not a valid database file (or old version)");
-		int64 saved_size = get_file_size();
+		int64_t saved_size = get_file_size();
 		// in case the file wasn't truncated last time
 		file_size = min(file_size, saved_size);
 		}

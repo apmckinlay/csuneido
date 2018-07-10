@@ -237,7 +237,7 @@ long kk(Record& r)
 	{
 	return r.getlong(1);
 	}
-Record k(ulong recnum)
+Record k(uint32_t recnum)
 	{
 	srand(recnum);
 	Record r;

@@ -326,7 +326,7 @@ void SuNumber::pack(char* buf) const
 
 //-------------------------------------------------------------------
 
-uint64_t unpacklongpart(const uchar* buf, int sz);
+uint64_t unpacklongpart(const uint8_t* buf, int sz);
 
 static const int MAX_TO_SHIFT = SHRT_MAX / 10000;
 
@@ -345,7 +345,7 @@ Value SuNumber::unpack(const gcstring& buf)
 	e = int8_t(e ^ 0x80);
 	e = (e - (buf.size() - 2) / 2);
 	// unpack min coef for easy conversion to integer
-	uint64_t n = unpacklongpart((const uchar*)buf.ptr(), buf.size());
+	uint64_t n = unpacklongpart((const uint8_t*)buf.ptr(), buf.size());
 	if (e == 1 && n <= MAX_TO_SHIFT)
 		{
 		n *= 10000;
@@ -364,7 +364,7 @@ Value SuNumber::unpack(const gcstring& buf)
 #include "itostr.h"
 
 Value SuNumber::call(Value self, Value member,
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	static Value CHR("Chr");
 	static Value INT("Int");

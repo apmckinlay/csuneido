@@ -24,8 +24,6 @@
 #include <time.h>
 #include "mmoffset.h"
 
-typedef unsigned long ulong;
-
 class Mmfile;
 
 bool check_shutdown(Mmfile* mmf);
@@ -59,7 +57,7 @@ struct Commit
 	size_t size() const
 		{ return sizeof (Commit) + (ncreates + ndeletes) * sizeof (Mmoffset32); }
 
-	ulong cksum;
+	uint32_t cksum;
 	time_t t;
 	int tran;
 	int ncreates;

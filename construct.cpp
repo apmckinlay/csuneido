@@ -38,7 +38,7 @@ Construct::Construct()
 	}
 
 Value Construct::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	if ((nargs != 1 && nargs != 2) || member != CALL)
 		except("usage: Construct(string, suffix='') or Construct(object, suffix='')");

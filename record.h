@@ -90,9 +90,9 @@ private:
 	static void copyrec(const Record& src, Record& dst);
 	union
 		{
-		RecRep<uchar>* crep;
-		RecRep<ushort>* srep;
-		RecRep<ulong>* lrep;
+		RecRep<uint8_t>* crep;
+		RecRep<uint16_t>* srep;
+		RecRep<uint32_t>* lrep;
 		DbRep* dbrep;
 		};
 	};

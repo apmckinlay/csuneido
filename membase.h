@@ -54,7 +54,7 @@ protected:
 
 	Value method_class(Value m);
 	static MemFun<MemBase> method(Value member);
-	Value callSuper(Value self, Value member, short nargs, short nargnames, ushort* argnames, int each);
+	Value callSuper(Value self, Value member, short nargs, short nargnames, uint16_t* argnames, int each);
 	virtual Value mbclass() = 0; // SuInstance.myclass or SuClass this
 	virtual Value parent() = 0; // SuInstance.myclass or SuClass.base
 	virtual bool readonly() = 0;

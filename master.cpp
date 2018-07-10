@@ -28,7 +28,7 @@ private:
 	Mmfile mmf;
 	Mmoffset prevsize;
 	Mmoffset newsize;
-	ulong cksum;
+	uint32_t cksum;
 	int tries;
 OstreamFile out;
 	};

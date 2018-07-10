@@ -36,9 +36,9 @@ struct IndexDest
 	{
 	explicit IndexDest(Mmfile* m) : mmf(m)
 		{ }
-	Mmoffset alloc(ulong n) const
+	Mmoffset alloc(uint32_t n) const
 		{ return mmf->alloc(n, MM_OTHER); }
-	void unalloc(ulong n) const
+	void unalloc(uint32_t n) const
 		{ mmf->unalloc(n); }
 	void* adr(Mmoffset offset) const
 		{ return mmf->adr(offset); }

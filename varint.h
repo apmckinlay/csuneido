@@ -27,9 +27,9 @@
 using namespace std;
 #include "std.h"
 
-extern void push_varint(vector<uchar>& code, int n);
+extern void push_varint(vector<uint8_t>& code, int n);
 
-extern int varint(uchar* code, int& ci);
-extern int varint(uchar*& code);
+extern int varint(uint8_t* code, int& ci);
+extern int varint(uint8_t*& code);
 
 #endif

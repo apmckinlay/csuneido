@@ -30,9 +30,9 @@ template <class Key> struct HashFn
 		{ return key; }
 	};
 
-template <> struct HashFn<int64>
+template <> struct HashFn<int64_t>
 	{
-	size_t operator()(int64 key) const
+	size_t operator()(int64_t key) const
 		{ return static_cast<size_t>(key ^ (key >> 32)); }
 	};
 

@@ -70,7 +70,7 @@ static WinLib& loadlib(char* name)
 	return libs[i];
 	}
 
-Dll::Dll(short rt, char* library, char* name, TypeItem* p, ushort* ns, short n)
+Dll::Dll(short rt, char* library, char* name, TypeItem* p, uint16_t* ns, short n)
 	: params(p,n), rtype(rt), trace(false)
 	{
 	nparams = n;
@@ -120,8 +120,8 @@ static OstreamFile& log()
 
 const int maxbuf = 1024;
 
-Value Dll::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+Value Dll::call(Value self, Value member,
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	static Value Trace("Trace");
 	if (member == Trace)
@@ -136,7 +136,7 @@ Value Dll::call(Value self, Value member,
 
 	char buf[maxbuf];
 	char* dst = buf;
-	const int64 MARKER = 0xaa55aa55aa55aa55;
+	const int64_t MARKER = 0xaa55aa55aa55aa55;
 	char buf2[32000];	// for stuff passed by pointer
 	char* dst2 = buf2;
 	char* lim2 = buf2 + sizeof buf2 - sizeof (MARKER);
@@ -147,7 +147,7 @@ Value Dll::call(Value self, Value member,
 	Value* args = GETSP() - nparams + 1;
 	params.putall(dst, dst2, lim2, args);
 	verify(dst == buf + params_size);
-	*((int64*) dst2) = MARKER;
+	*((int64_t*) dst2) = MARKER;
 
 	if (trace)
 		{
@@ -156,7 +156,7 @@ Value Dll::call(Value self, Value member,
 			log() << *p << " ";
 		log() << endl << "    ";
 		for (char* s = buf2; s < dst2; ++s)
-			log() << hex << (ulong)(uchar) *s << dec << " ";
+			log() << hex << (uint32_t)(uint8_t) *s << dec << " ";
 		log() << endl;
 		}
 
@@ -176,7 +176,7 @@ Value Dll::call(Value self, Value member,
 			loop NEXT
 			}
 	// ReSharper disable once CppEntityNeverUsed
-	ulong f = (ulong) pfn;
+	uint32_t f = (uint32_t) pfn;
 	__asm
 		{
 		mov eax,f
@@ -206,7 +206,7 @@ Value Dll::call(Value self, Value member,
 #warning "replacement for inline assembler required"
 #endif
 
-	verify(*((int64*) dst2) == MARKER);
+	verify(*((int64_t*) dst2) == MARKER);
 
 	trace_level = save_trace_level;
 
@@ -214,7 +214,7 @@ Value Dll::call(Value self, Value member,
 		{
 		log() << "    => " << hex << result << dec << endl;
 		for (char* s = buf2; s < dst2; ++s)
-			log() << hex << (ulong)(uchar) *s << dec << " ";
+			log() << hex << (uint32_t)(uint8_t) *s << dec << " ";
 		}
 
 	// update SuObject args passed by pointer

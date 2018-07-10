@@ -22,8 +22,6 @@
 
 #include "checksum.h"
 
-typedef unsigned char uchar;
-
 // compute the Adler-32 checksum of a data stream
 
 #define BASE 65521L /* largest prime smaller than 65536 */
@@ -36,15 +34,15 @@ typedef unsigned char uchar;
 #define DO8(buf,i)  DO4(buf,i); DO4(buf,i+4)
 #define DO16(buf)   DO8(buf,0); DO8(buf,8)
 
-ulong checksum(ulong adler, const void* p, int len)
+uint32_t checksum(uint32_t adler, const void* p, int len)
 	{
-	ulong s1 = adler & 0xffff;
-	ulong s2 = (adler >> 16) & 0xffff;
+	uint32_t s1 = adler & 0xffff;
+	uint32_t s2 = (adler >> 16) & 0xffff;
 	int k;
 
 	if (p == 0)
 		return 1;
-	uchar* buf = (uchar*) p;
+	uint8_t* buf = (uint8_t*) p;
 
 	while (len > 0)
 		{

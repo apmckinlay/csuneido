@@ -41,7 +41,7 @@ int socket_count = 0;
 #include "qpc.h"
 static int t()
 	{
-	static int64 base = qpc();
+	static int64_t base = qpc();
 	return (qpc() - base) * 1000 / qpf;
 	}
 #include "ostreamfile.h"

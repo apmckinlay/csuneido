@@ -35,7 +35,7 @@ public:
 	explicit SuNumber(const char* buf) : dn(buf)
 		{}
 
-	static SuNumber* from_int64(int64 n)
+	static SuNumber* from_int64(int64_t n)
 		{ return new SuNumber(Dnum(n)); }
 
 	// handles 0x...
@@ -64,7 +64,7 @@ public:
 		{ return new SuNumber(-x->dn); }
 
 	Value call(Value self, Value member,
-		short nargs, short nargnames, ushort* argnames, int each) override;
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 
 	// buf must be larger than mask
 	char* format(char* buf, const char* mask) const;
@@ -73,7 +73,7 @@ public:
 		{ return this; }
 
 	int integer() const override;
-	int64 bigint() const
+	int64_t bigint() const
 		{ return dn.to_int64(); }
 	int trunc() const;
 	gcstring to_gcstr() const override

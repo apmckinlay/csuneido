@@ -48,7 +48,7 @@ public:
 	~Mmfile();
 	Mmoffset alloc(size_t n, char type, bool zero = true);
 	void unalloc(size_t n);
-	int64 size() const
+	int64_t size() const
 		{ return file_size; }
 	void* adr(Mmoffset offset);
 	static char type(void* p);

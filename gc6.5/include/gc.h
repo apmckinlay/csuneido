@@ -965,8 +965,8 @@ extern void GC_thr_init();	/* Needed for Solaris/X86	*/
 #   endif
 #   if defined(_AIX)
       extern int _data[], _end[];
-#     define GC_DATASTART ((GC_PTR)((ulong)_data))
-#     define GC_DATAEND ((GC_PTR)((ulong)_end))
+#     define GC_DATASTART ((GC_PTR)((uint32_t)_data))
+#     define GC_DATAEND ((GC_PTR)((uint32_t)_end))
 #     define GC_INIT() { GC_add_roots(GC_DATASTART, GC_DATAEND); }
 #   endif
 # else

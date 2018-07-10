@@ -34,7 +34,7 @@ struct Named
 	gcstring lib;
 	const Named* parent = nullptr;
 	const char* separator;
-	ushort num = 0;
+	uint16_t num = 0;
 	const char* str = nullptr; // alternative to num to avoid symbol
 	};
 

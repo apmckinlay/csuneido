@@ -152,7 +152,7 @@ char* callStackString()
 	}
 
 Value Except::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	static Value As("As");
 	static Value Callstack("Callstack");

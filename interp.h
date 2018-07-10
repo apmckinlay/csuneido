@@ -74,7 +74,7 @@ class SuRecord;
 struct Rule
 	{
 	SuRecord* rec = nullptr;
-	ushort mem = 0;
+	uint16_t mem = 0;
 	};
 
 // a function or block activation
@@ -94,28 +94,28 @@ public:
 	Func* prim = nullptr;
 	SuFunction* fn = nullptr;
 	Value self;
-	uchar* ip = nullptr;		// instruction pointer
+	uint8_t* ip = nullptr;		// instruction pointer
 	Value* local = nullptr;	// base pointer to args and autos
 	Rule rule; // rule member currently being evaluated - used to auto-register
 	bool created_block = false;
 
 private:
-	uchar fetch_local()
+	uint8_t fetch_local()
 		{ return fetch1(); }
 	short fetch_literal();
 	short fetch_jump()
 		{ return fetch2(); }
 	Value fetch_member();
 	bool jumpToPopReturn();
-	ushort fetch_global()
+	uint16_t fetch_global()
 		{ return fetch2(); }
-	uchar fetch1()
+	uint8_t fetch1()
 		{ return *ip++; }
-	ushort fetch2()
-		{ ushort j = ip[1] * 256 + ip[0]; ip += 2; return j; }
-	Value get(uchar);
+	uint16_t fetch2()
+		{ uint16_t j = ip[1] * 256 + ip[0]; ip += 2; return j; }
+	Value get(uint8_t);
 
-	uchar* catcher = nullptr;
+	uint8_t* catcher = nullptr;
 	Value* catcher_sp = nullptr;
 	int catcher_x = 0;
 
@@ -124,7 +124,7 @@ private:
 	int each = 0;
 	};
 
-Value dynamic(ushort);
+Value dynamic(uint16_t);
 
 enum { NOSUPER = -1 };
 
@@ -173,7 +173,7 @@ extern int callnest;
 
 // call a standalone or member function
 Value docall(Value x, Value member, short nargs = 0, 
-	short nargnames = 0, ushort* argnames = nullptr, int each = -1);
+	short nargnames = 0, uint16_t* argnames = nullptr, int each = -1);
 
 #define ARG(i) tls().proc->stack.getsp()[1 - nargs + i]
 

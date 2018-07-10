@@ -55,7 +55,7 @@ public:
 		{ verify(NULL != iunk); }
 	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, ushort* argnames, int each) override;
+		short nargs, short nargnames, uint16_t* argnames, int each) override;
 	// properties
 	Value getdata(Value) override;
 	void putdata(Value, Value) override;
@@ -326,7 +326,7 @@ void SuCOMobject::putdata(Value member, Value val)
 	}
 
 Value SuCOMobject::call(Value self, Value member, 
-	short nargs, short nargnames, ushort* argnames, int each)
+	short nargs, short nargnames, uint16_t* argnames, int each)
 	{
 	verify_not_released();
 	static Value RELEASE("Release");
