@@ -109,36 +109,6 @@ Value unpackvalue(const char*& buf)
 	return x;
 	}
 
-// Named ============================================================
-
-int packnamesize(const Named& named)
-	{
-	if (named.num == 0)
-		return 1;
-	auto s = named.num < 0x8000 ? globals(named.num) : symstr(named.num);
-	return 1 + strlen(s) + 1;
-	}
-
-enum { NAME_NONE, NAME_SYMBOL, NAME_GLOBAL };
-
-int packname(char* buf, const Named& named)
-	{
-	*buf = named.num == 0 ? NAME_NONE :
-		named.num < 0x8000 ? NAME_GLOBAL : NAME_SYMBOL;
-	if (named.num == 0)
-		return 1;
-	auto s = named.num < 0x8000 ? globals(named.num) : symstr(named.num);
-	return 1 + packstr(buf + 1, s);
-	}
-
-int unpackname(const char* buf, Named& named)
-	{
-	if (*buf == 0)
-		return 1;
-	named.num = *buf == NAME_GLOBAL ? globals(buf + 1) : ::symnum(buf + 1);
-	return 1 + strlen(buf + 1) + 1;
-	}
-
 // long =============================================================
 
 size_t packsize(long n)
