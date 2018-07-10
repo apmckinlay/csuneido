@@ -35,7 +35,7 @@ public:
 		{ }
 	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 	bool eq(const SuValue& x) const override;
 	size_t hashfn() const override;
 	const Named* get_named() const override;

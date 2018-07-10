@@ -37,7 +37,7 @@ public:
 		{ }
 	void out(Ostream&) const override;
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, uint16_t *argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 	Value getdata(Value) override;
 
 	bool hasMethod(Value mem)

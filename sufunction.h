@@ -38,7 +38,7 @@ class SuFunction : public Func
 	{
 public:
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 
 	void source(Ostream&, int ci);
 	int source(int ci, int* pn);

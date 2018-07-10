@@ -74,7 +74,7 @@ class SuRecord;
 struct Rule
 	{
 	SuRecord* rec = nullptr;
-	uint16_t mem = 0;
+	short mem = 0;
 	};
 
 // a function or block activation
@@ -124,7 +124,7 @@ private:
 	int each = 0;
 	};
 
-Value dynamic(uint16_t);
+Value dynamic(short);
 
 enum { NOSUPER = -1 };
 
@@ -173,7 +173,7 @@ extern int callnest;
 
 // call a standalone or member function
 Value docall(Value x, Value member, short nargs = 0, 
-	short nargnames = 0, uint16_t* argnames = nullptr, int each = -1);
+	short nargnames = 0, short* argnames = nullptr, int each = -1);
 
 #define ARG(i) tls().proc->stack.getsp()[1 - nargs + i]
 

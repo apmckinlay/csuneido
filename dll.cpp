@@ -70,7 +70,7 @@ static WinLib& loadlib(char* name)
 	return libs[i];
 	}
 
-Dll::Dll(short rt, char* library, char* name, TypeItem* p, uint16_t* ns, short n)
+Dll::Dll(short rt, char* library, char* name, TypeItem* p, short* ns, short n)
 	: params(p,n), rtype(rt), trace(false)
 	{
 	nparams = n;
@@ -121,7 +121,7 @@ static OstreamFile& log()
 const int maxbuf = 1024;
 
 Value Dll::call(Value self, Value member,
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	static Value Trace("Trace");
 	if (member == Trace)

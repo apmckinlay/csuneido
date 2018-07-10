@@ -35,18 +35,18 @@ public:
 	NAMED
 
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 
 	short nparams = 0;
 	bool rest = false;
-	uint16_t* locals = nullptr;
+	short* locals = nullptr;
 	short ndefaults = 0;
 	Value* literals = nullptr;
 	char* flags = nullptr; // for dot and dyn params
 	bool isMethod = false;
 
 	void out(Ostream& out) const override;
-	void args(short nargs, short nargnames, uint16_t* argnames, int each);
+	void args(short nargs, short nargnames, short* argnames, int each);
 
 private:
 	Value params();
@@ -67,11 +67,11 @@ class BuiltinFunc : public BuiltinFuncs
 public:
 	BuiltinFunc(const char* name, const char* params, BuiltinFn f);
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 	void out(Ostream& out) const override;
 private:
 	Value (*pfn)();
 	};
 
 // expand arguments onto stack for fn(@args)
-void argseach(short& nargs, short& nargnames, uint16_t*& argnames, int& each);
+void argseach(short& nargs, short& nargnames, short*& argnames, int& each);

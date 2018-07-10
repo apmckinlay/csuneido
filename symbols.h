@@ -26,7 +26,7 @@ class SuValue;
 class gcstring;
 
 // return the symbol index for a char* string
-int symnum(const char* s);
+short symnum(const char* s);
 
 Value symbol_existing(const char* s);
 

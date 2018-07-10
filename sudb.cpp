@@ -261,7 +261,7 @@ public:
 		named.num = globals("Query1");
 		}
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override
+		short nargs, short nargnames, short* argnames, int each) override
 		{
 		static Value Params("Params");
 
@@ -303,12 +303,12 @@ Value su_transactions()
 // SuTransaction ------------------------------------------------------
 
 Value TransactionClass::call(Value self, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	if (member == CALL || member == INSTANTIATE)
 		{
-		static uint16_t read = ::symnum("read");
-		static uint16_t update = ::symnum("update");
+		static short read = ::symnum("read");
+		static short update = ::symnum("update");
 		if (nargs < 1 || nargs > 2 || nargnames < 1 ||
 			(argnames[0] != read && argnames[0] != update))
 			except("usage: Transaction(read: [, block ]) or Transaction(update: [, block ])");
@@ -354,7 +354,7 @@ SuTransaction::SuTransaction(int t) : tran(t), done(false), conflict("")
 	{ verify(t > 0); }
 
 Value SuTransaction::call(Value self, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	static Value Query("Query");
 	static Value Complete("Complete");
@@ -489,7 +489,7 @@ void SuTransaction::checkNotEnded(const char* action)
 // SuCursor ------------------------------------------------------
 
 Value CursorClass::call(Value self, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	if (member == CALL || member == INSTANTIATE)
 		{
@@ -530,7 +530,7 @@ struct SetTran
 	};
 
 Value SuCursor::call(Value self, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	static Value Next("Next");
 	static Value Prev("Prev");
@@ -571,7 +571,7 @@ SuQuery::SuQuery(const gcstring& s, DbmsQuery* n, SuTransaction* trans)
 // TODO: check if the controlling transaction is done
 
 Value SuQuery::call(Value, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	static Value NewRecord("NewRecord");
 	static Value Keys("Keys");

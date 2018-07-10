@@ -44,7 +44,7 @@ public:
 	void out(Ostream& os) const override;
 	void outdelims(Ostream& os, const char* delims) const;
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 	void putdata(Value m, Value x) override;
 	Value getdata(Value m) override;
 	Value rangeTo(int i, int j) override;

@@ -51,7 +51,7 @@ MemFun<MemBase> MemBase::method(Value member)
 	}
 
 Value MemBase::callSuper(Value self, Value member,
-	short nargs, short nargnames, uint16_t *argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	short super = tls().proc->super;
 	tls().proc->super = NOSUPER;

@@ -43,7 +43,7 @@ void SuInstance::putdata(Value m, Value v)
 	}
 
 Value SuInstance::call(Value self, Value member,
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	static Value COPY("Copy");
 	static Value DELETE("Delete");
@@ -115,7 +115,7 @@ gcstring SuInstance::to_gcstr() const
 		return SuValue::to_gcstr(); // throw "can't convert"
 	}
 
-Value SuInstance::Copy(short nargs, short nargnames, uint16_t * argnames, int each)
+Value SuInstance::Copy(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("instance.Copy()");
 	SuInstance* cp = new SuInstance(myclass);
@@ -123,7 +123,7 @@ Value SuInstance::Copy(short nargs, short nargnames, uint16_t * argnames, int ea
 	return cp;
 	}
 
-Value SuInstance::Delete(short nargs, short nargnames, uint16_t * argnames, int each)
+Value SuInstance::Delete(short nargs, short nargnames, short* argnames, int each)
 	{
 	//FIXME: duplicate of SuObject::Delete
 	BuiltinArgs args(nargs, nargnames, argnames, each);

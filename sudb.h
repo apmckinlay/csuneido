@@ -45,7 +45,7 @@ public:
 	void out(Ostream& os) const override
 		{ os << "Query(\"" << query << "\")"; }
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 	void close();
 protected:
 	Value get(Dir);
@@ -72,7 +72,7 @@ class TransactionClass : public SuValue
 	{
 public:
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 	void out(Ostream& os) const override
 		{ os << "Transaction"; }
 	};
@@ -87,7 +87,7 @@ public:
 	void out(Ostream& os) const override
 		{ os << "Transaction" << tran; }
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 	bool isdone() const
 		{ return done; }
 
@@ -110,7 +110,7 @@ private:
 class CursorClass : public SuValue
 	{
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 	void out(Ostream& os) const override
 		{ os << "CursorClass"; }
 	};
@@ -124,7 +124,7 @@ public:
 	void out(Ostream& os) const override
 		{ os << "Cursor" << num << "(" << query << ")"; }
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 private:
 	int num;
 	static int next_num;

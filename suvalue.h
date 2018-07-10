@@ -43,7 +43,7 @@ public:
 	virtual size_t hashfn() const;
 	virtual size_t hashcontrib() const;
 
-	virtual int symnum() const;				// creates if necessary
+	virtual short symnum() const;				// creates if necessary
 
 	virtual const char* str_if_str() const;	// defined by SuString
 	virtual gcstring gcstr() const;			// no coerce
@@ -57,7 +57,7 @@ public:
 	SuObject* object();
 
 	virtual Value call(Value self, Value member, short nargs = 0,
-		short nargnames = 0, uint16_t* argnames = nullptr, int each = -1);
+		short nargnames = 0, short* argnames = nullptr, int each = -1);
 
 	virtual Value getdata(Value);
 	virtual void putdata(Value, Value);

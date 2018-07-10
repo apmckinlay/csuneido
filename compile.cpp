@@ -187,7 +187,7 @@ private:
 	short last_adr = -1;
 	vector<PrevLit> prevlits; // for emit const expr optimization
 	vector<Value> literals;
-	vector<uint16_t> locals;
+	vector<short> locals;
 	short nparams = 0;
 	short ndefaults = 0;
 	bool rest = false;
@@ -227,11 +227,11 @@ private:
 	void mulop();
 	void unop();
 	void expr0(bool newtype = false);
-	void args(short&, vector<uint16_t>&, const char* delims = "()");
+	void args(short&, vector<short>&, const char* delims = "()");
 	void args_at(short& nargs, const char* delims);
-	void add_argname(vector<uint16_t>& argnames, int id);
-	void args_list(short& nargs, const char* delims, vector<uint16_t>& argnames);
-	void keywordArgShortcut(vector<uint16_t>& argnames);
+	void add_argname(vector<short>& argnames, int id);
+	void args_list(short& nargs, const char* delims, vector<short>& argnames);
+	void keywordArgShortcut(vector<short>& argnames);
 	bool isKeyword();
 	bool just_name();
 	void record();
@@ -239,7 +239,7 @@ private:
 	short emit_literal();
 	uint16_t local(bool init = false);
 	PrevLit poplits();
-	short emit(short, short = 0, short = 0, short = 0, vector<uint16_t>* = 0);
+	short emit(short, short = 0, short = 0, short = 0, vector<short>* = 0);
 	void patch(short);
 	void mark();
 	void params(vector<char>& flags);
@@ -538,7 +538,7 @@ Value Compiler::structure()
 	matchnew();
 	match('{');
 	TypeItem memtypes[maxitems];
-	uint16_t memnames[maxitems];
+	short memnames[maxitems];
 	short n = 0;
 	for (; token == T_IDENTIFIER; ++n)
 		{
@@ -609,7 +609,7 @@ Value Compiler::dll()
 
 	match('(');
 	TypeItem paramtypes[maxitems];
-	uint16_t paramnames[maxitems];
+	short paramnames[maxitems];
 	int n = 0;
 	for (; token != ')'; ++n)
 		{
@@ -670,7 +670,7 @@ Value Compiler::callback()
 	matchnew();
 	match('(');
 	TypeItem paramtypes[maxitems];
-	uint16_t paramnames[maxitems];
+	short paramnames[maxitems];
 	short n = 0;
 	for (; token == T_IDENTIFIER; ++n)
 		{
@@ -1594,7 +1594,7 @@ void FunctionCompiler::unop()
 		match();
 		expr0(true);
 		short nargs = 0;
-		vector<uint16_t> argnames;
+		vector<short> argnames;
 		if (token == '(')
 			args(nargs, argnames);
 		emit(I_CALL, MEM, INSTANTIATE, nargs, &argnames);
@@ -1799,7 +1799,7 @@ void FunctionCompiler::expr0(bool newtype)
 					expr();
 				static int g_rangeTo = globals("rangeTo");
 				static int g_rangeLen = globals("rangeLen");
-				vector<uint16_t> argnames;
+				vector<short> argnames;
 				emit(I_CALL, GLOBAL,
 					type == T_RANGETO ? g_rangeTo : g_rangeLen,
 					3, &argnames);
@@ -1815,7 +1815,7 @@ void FunctionCompiler::expr0(bool newtype)
 			{
 			static Value NEWVAL("New");
 			short nargs = 0;
-			vector<uint16_t> argnames;
+			vector<short> argnames;
 			args(nargs, argnames);
 			if (super)
 				emit(I_SUPER, 0, base);
@@ -1878,7 +1878,7 @@ void FunctionCompiler::expr0(bool newtype)
 		}
 	}
 
-void FunctionCompiler::args(short& nargs, vector<uint16_t>& argnames, const char* delims)
+void FunctionCompiler::args(short& nargs, vector<short>& argnames, const char* delims)
 	{
 	nargs = 0;
 	bool just_block = (token == '{');
@@ -1894,7 +1894,7 @@ void FunctionCompiler::args(short& nargs, vector<uint16_t>& argnames, const char
 			match();
 		if (token == '{')
 			{ // take block following args as another arg
-			static uint16_t n_block = symnum("block");
+			static short n_block = symnum("block");
 			argnames.push_back(n_block);
 			block();
 			++nargs;
@@ -1918,7 +1918,7 @@ void FunctionCompiler::args_at(short& nargs, const char* delims)
 	match(delims[1]);
 	}
 
-void FunctionCompiler::args_list(short& nargs, const char* delims, vector<uint16_t>& argnames)
+void FunctionCompiler::args_list(short& nargs, const char* delims, vector<short>& argnames)
 	{
 	bool key = false;
 	for (nargs = 0; token != delims[1]; ++nargs)
@@ -1961,7 +1961,7 @@ void FunctionCompiler::args_list(short& nargs, const char* delims, vector<uint16
 	match(delims[1]);
 	}
 
-void FunctionCompiler::keywordArgShortcut(vector<uint16_t>& argnames)
+void FunctionCompiler::keywordArgShortcut(vector<short>& argnames)
 	{
 	// f(:name) is equivalent to f(name: name)
 	match(':');
@@ -1993,7 +1993,7 @@ bool FunctionCompiler::just_name()
 		}
 	}
 
-void FunctionCompiler::add_argname(vector<uint16_t>& argnames, int id)
+void FunctionCompiler::add_argname(vector<short>& argnames, int id)
 	{
 	if (find(argnames.begin(), argnames.end(), id) != argnames.end())
 		syntax_error("duplicate argument name: " << symstr(id));
@@ -2003,7 +2003,7 @@ void FunctionCompiler::add_argname(vector<uint16_t>& argnames, int id)
 void FunctionCompiler::record()
 	{
 	SuRecord* rec = 0;
-	vector<uint16_t> argnames;
+	vector<short> argnames;
 	short nargs;
 	match('[');
 	bool key = false;
@@ -2102,10 +2102,10 @@ uint16_t FunctionCompiler::literal(Value x, bool reuse)
 
 uint16_t FunctionCompiler::local(bool init)
 	{
-	uint16_t num = symnum(scanner.value);
+	short num = symnum(scanner.value);
 
 	// for blocks
-	static uint16_t it_num = symnum("it");
+	static short it_num = symnum("it");
 	if (0 == strcmp("_", scanner.value))
 		num = it_num;
 	if (num == it_num)
@@ -2137,7 +2137,7 @@ PrevLit FunctionCompiler::poplits()
 	}
 
 short FunctionCompiler::emit(short op, short option, short target,
-	short nargs, vector<uint16_t>* argnames)
+	short nargs, vector<short>* argnames)
 	{
 	short adr;
 
@@ -3797,17 +3797,17 @@ TEST(compile_function)
 	{
 	const char* s = "function (a, b = 0, c = false, d = 123, e = 'hello') { }";
 	SuFunction* fn = force<SuFunction*>(compile(s));
-	verify(fn->nparams == 5);
-	verify(fn->ndefaults == 4);
-	verify(fn->locals[0] == symnum("a"));
-	verify(fn->locals[1] == symnum("b"));
-	verify(fn->locals[2] == symnum("c"));
-	verify(fn->locals[3] == symnum("d"));
-	verify(fn->locals[4] == symnum("e"));
-	verify(fn->literals[0] == SuZero);
-	verify(fn->literals[1] == SuFalse);
-	verify(fn->literals[2] == 123);
-	verify(fn->literals[3] == Value("hello"));
+	assert_eq(fn->nparams, 5);
+	assert_eq(fn->ndefaults, 4);
+	assert_eq(fn->locals[0], symnum("a"));
+	assert_eq(fn->locals[1], symnum("b"));
+	assert_eq(fn->locals[2], symnum("c"));
+	assert_eq(fn->locals[3], symnum("d"));
+	assert_eq(fn->locals[4], symnum("e"));
+	assert_eq(fn->literals[0], SuZero);
+	assert_eq(fn->literals[1], SuFalse);
+	assert_eq(fn->literals[2], 123);
+	assert_eq(fn->literals[3], Value("hello"));
 	}
 
 TEST(compile2)

@@ -35,7 +35,7 @@ public:
 		{ return p; }
 
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 
 	void out(Ostream& out) const override;
 
@@ -60,22 +60,22 @@ public:
 	static SuDate* timestamp();
 	static Value parse(const char* s, const char* order = "yMd");
 	static long long minus_ms(SuDate* d1, SuDate* d2);
-	static Value instantiate(short nargs, short nargnames, uint16_t* argnames, int each);
+	static Value instantiate(short nargs, short nargnames, short* argnames, int each);
 private:
-	using Mfn = Value(SuDate::*)(short, short, uint16_t*, int);
+	using Mfn = Value(SuDate::*)(short, short, short*, int);
 	static Mfn method(Value member);
-	Value FormatEn(short nargs, short nargnames, uint16_t* argnames, int each);
-	Value Plus(short nargs, short nargnames, uint16_t* argnames, int each);
-	Value MinusDays(short nargs, short nargnames, uint16_t* argnames, int each);
-	Value MinusSeconds(short nargs, short nargnames, uint16_t* argnames, int each);
-	Value Year(short nargs, short nargnames, uint16_t* argnames, int each);
-	Value Month(short nargs, short nargnames, uint16_t* argnames, int each);
-	Value Day(short nargs, short nargnames, uint16_t* argnames, int each);
-	Value Hour(short nargs, short nargnames, uint16_t* argnames, int each);
-	Value Minute(short nargs, short nargnames, uint16_t* argnames, int each);
-	Value Second(short nargs, short nargnames, uint16_t* argnames, int each);
-	Value Millisecond(short nargs, short nargnames, uint16_t* argnames, int each);
-	Value WeekDay(short nargs, short nargnames, uint16_t* argnames, int each);
+	Value FormatEn(short nargs, short nargnames, short* argnames, int each);
+	Value Plus(short nargs, short nargnames, short* argnames, int each);
+	Value MinusDays(short nargs, short nargnames, short* argnames, int each);
+	Value MinusSeconds(short nargs, short nargnames, short* argnames, int each);
+	Value Year(short nargs, short nargnames, short* argnames, int each);
+	Value Month(short nargs, short nargnames, short* argnames, int each);
+	Value Day(short nargs, short nargnames, short* argnames, int each);
+	Value Hour(short nargs, short nargnames, short* argnames, int each);
+	Value Minute(short nargs, short nargnames, short* argnames, int each);
+	Value Second(short nargs, short nargnames, short* argnames, int each);
+	Value Millisecond(short nargs, short nargnames, short* argnames, int each);
+	Value WeekDay(short nargs, short nargnames, short* argnames, int each);
 
 	int date;
 	int time;
@@ -85,7 +85,7 @@ class SuDateClass : public SuValue
 	{
 public:
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 	void out(Ostream& os) const override;
 	const char* type() const override;
 	};

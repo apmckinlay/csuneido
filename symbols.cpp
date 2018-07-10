@@ -44,7 +44,7 @@ class SuSymbol : public SuString
 public:
 	explicit SuSymbol(const char* s) : SuString(gcstring::noalloc(s))
 		{ }
-	int symnum() const override;
+	short symnum() const override;
 	bool eq(const SuValue& y) const override;
 	};
 
@@ -71,7 +71,7 @@ template<> struct KeyEq<SuSymbol*>
 // The hash set of SuSymbol* used to map char* => SuSymbol
 static Hset<SuSymbol*> symtbl(3000); // enough to open IDE
 
-int SuSymbol::symnum() const
+short SuSymbol::symnum() const
 	{
 	return 0x8000 | (this - (SuSymbol*) symbols.begin());
 	}
@@ -84,7 +84,7 @@ bool SuSymbol::eq(const SuValue& y) const
 		? false : SuString::eq(y);
 	}
 
-int symnum(const char* s)
+short symnum(const char* s)
 	{
 	return 0x8000 | (((SuSymbol*) symbol(s).ptr()) - (SuSymbol*) symbols.begin());
 	}
@@ -160,7 +160,7 @@ TEST(symbols)
 	{
 	const char* strs[] = { "one", "two", "three", "four" };
 	const int n = sizeof (strs) / sizeof (char*);
-	uint16_t nums[n];
+	short nums[n];
 	for (int i = 0; i < n; ++i)
 		nums[i] = symnum(strs[i]);
 

@@ -29,7 +29,7 @@ class SuWinRes : public SuValue
 public:
 	explicit SuWinRes(void* handle);
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 	void* handle() const
 		{ return h; }
 protected:

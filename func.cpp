@@ -33,7 +33,7 @@
 #include "opcodes.h"
 
 Value Func::call(Value self, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	if (member == PARAMS)
 		return params();
@@ -62,7 +62,7 @@ Value Func::params()
 	return new SuString(out.str());
 	}
 
-void Func::args(short nargs, short nargnames, uint16_t* argnames, int each)
+void Func::args(short nargs, short nargnames, short* argnames, int each)
 	{
 	Value* args = GETSP() - nargs + 1;
 	short unamed = nargs - nargnames - (each == -1 ? 0 : 1);
@@ -170,7 +170,7 @@ void Func::args(short nargs, short nargnames, uint16_t* argnames, int each)
 			except("missing argument(s) to " << this);
 	}
 
-void noargs(short nargs, short nargnames, uint16_t* argnames, int each,
+void noargs(short nargs, short nargnames, short* argnames, int each,
 	const char* usage)
 	{
 	argseach(nargs, nargnames, argnames, each);
@@ -179,7 +179,7 @@ void noargs(short nargs, short nargnames, uint16_t* argnames, int each,
 	}
 
 // expand @args
-void argseach(short& nargs, short& nargnames, uint16_t*& argnames, int& each)
+void argseach(short& nargs, short& nargnames, short*& argnames, int& each)
 	{
 	if (each < 0)
 		return ;
@@ -189,7 +189,7 @@ void argseach(short& nargs, short& nargnames, uint16_t*& argnames, int& each)
 	int i = 0;
 	nargs = 0;
 	int vs = ob->vecsize();
-	argnames = new uint16_t[ob->mapsize()];
+	argnames = new short[ob->mapsize()];
 	for (SuObject::iterator iter = ob->begin(); iter != ob->end(); ++iter, ++i)
 		{
 		if (i < each)
@@ -237,7 +237,7 @@ BuiltinFunc::BuiltinFunc(const char* name, const char* paramstr, BuiltinFn f)
 	Scanner scanner(paramstr);
 	verify(scanner.next() == '(');
 	const int maxparams = 20;
-	uint16_t params[maxparams];
+	short params[maxparams];
 	Value defaults[maxparams];
 	int token = scanner.next();
 	while (token != ')')
@@ -269,17 +269,17 @@ BuiltinFunc::BuiltinFunc(const char* name, const char* paramstr, BuiltinFn f)
 			token = scanner.next();
 		}
 
-	locals = new uint16_t[nparams];
+	locals = new short[nparams];
 	if (ndefaults > 0)
 		{
 		literals = new Value[ndefaults];
 		memcpy(literals, defaults, ndefaults * sizeof (Value));
 		}
-	memcpy(locals, params, nparams * sizeof (uint16_t));
+	memcpy(locals, params, nparams * sizeof (short));
 	}
 
 Value BuiltinFunc::call(Value self, Value member,
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	if (member != CALL)
 		return Func::call(self, member, nargs, nargnames, argnames, each);

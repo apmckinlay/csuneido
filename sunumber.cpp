@@ -174,7 +174,7 @@ size_t SuNumber::hashfn() const
 	return dn.hashfn();
 	}
 
-int SuNumber::symnum() const
+short SuNumber::symnum() const
 	{
 	int n = dn.intOrMin();
 	if (0 <= n && n < 0x8000)
@@ -364,7 +364,7 @@ Value SuNumber::unpack(const gcstring& buf)
 #include "itostr.h"
 
 Value SuNumber::call(Value self, Value member,
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	static Value CHR("Chr");
 	static Value INT("Int");

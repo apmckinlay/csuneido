@@ -55,7 +55,7 @@ static bool catch_match(const char*, const char*);
 int callnest = 0;
 
 Value docall(Value x, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	if (trace_level & TRACE_FUNCTIONS)
 		{
@@ -98,7 +98,7 @@ bool Frame::jumpToPopReturn()
 	SETSP(oldsp); \
 	PUSH(result); \
 	each = -1; \
-	ip += nargnames * sizeof (uint16_t); \
+	ip += nargnames * sizeof (short); \
 	if (! TOP() && *ip != I_POP && *ip != I_RETURN && \
 		(*ip != I_JUMP || ! jumpToPopReturn())) \
 		except(name << " has no return value")
@@ -320,24 +320,24 @@ Value Frame::run()
 		case I_CALL | SUB :
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLSUB(nargs, nargnames, (uint16_t*) ip);
+			CALLSUB(nargs, nargnames, (short*) ip);
 			break ;
 		case I_CALL | SUB_SELF :
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLSUBSELF(nargs, nargnames, (uint16_t*) ip);
+			CALLSUBSELF(nargs, nargnames, (short*) ip);
 			break ;
 		case I_CALL | MEM :
 			mem = fetch_member();
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLTOP(mem, nargs, nargnames, (uint16_t*) ip, mem.str());
+			CALLTOP(mem, nargs, nargnames, (short*) ip, mem.str());
 			break ;
 		case I_CALL | MEM_SELF :
 			mem = fetch_member();
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLX(self, mem, nargs, nargnames, (uint16_t*) ip, mem.str());
+			CALLX(self, mem, nargs, nargnames, (short*) ip, mem.str());
 			break ;
 		case I_CALL | AUTO :
 		case I_CALL | DYNAMIC :
@@ -345,12 +345,12 @@ Value Frame::run()
 			arg = get(op);
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLX(arg, CALL, nargs, nargnames, (uint16_t*) ip, "");
+			CALLX(arg, CALL, nargs, nargnames, (short*) ip, "");
 			break ;
 		case I_CALL | LITERAL :	// actually STACK not LITERAL
 			nargs = fetch1();
 			nargnames = fetch1();
-			CALLTOP(CALL, nargs, nargnames, (uint16_t*) ip, "");
+			CALLTOP(CALL, nargs, nargnames, (short*) ip, "");
 			break ;
 		case I_EACH :
 			each = fetch1();
@@ -809,14 +809,14 @@ Value Frame::get(uint8_t op)
 	return x;
 	}
 
-Value dynamic(uint16_t name)
+Value dynamic(short name)
 	{
 	for (Frame* f = tls().proc->fp; f >= tls().proc->frames; --f)
 		{
 		if (! f->fn)
 			continue ; // skip primitives
 		short n = f->fn->nlocals;
-		uint16_t* locals = f->fn->locals;
+		short* locals = f->fn->locals;
 		for (short i = 0; i < n; ++i)
 			if (locals[i] == name && f->local[i])
 				return f->local[i];

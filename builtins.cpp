@@ -526,13 +526,13 @@ public:
 		// so params works
 		nparams = 3;
 		rest = true;
-		locals = new uint16_t[3];
+		locals = new short[3];
 		locals[0] = ::symnum("mode");
 		locals[1] = ::symnum("command");
 		locals[2] = ::symnum("args");
 		}
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override
+		short nargs, short nargnames, short* argnames, int each) override
 		{
 		if (member != CALL)
 			return Func::call(self, member, nargs, nargnames, argnames, each);
@@ -564,11 +564,11 @@ public:
 	MkRec()
 		{ named.num = globals("MkRec"); }
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 	};
 
 Value MkRec::call(Value self, Value member,
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	// pre: last argument is the literal record
 	{
 	Value* args = GETSP() - nargs + 1;
@@ -597,7 +597,7 @@ public:
 	RangeTo()
 		{ named.num = globals("RangeTo"); }
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override
+		short nargs, short nargnames, short* argnames, int each) override
 		{
 		return ARG(0).rangeTo(ARG(1).integer(), ARG(2).integer());
 		}
@@ -610,7 +610,7 @@ public:
 	RangeLen()
 		{ named.num = globals("RangeLen"); }
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override
+		short nargs, short nargnames, short* argnames, int each) override
 		{
 		int len = ARG(2).integer();
 		if (len < 0)

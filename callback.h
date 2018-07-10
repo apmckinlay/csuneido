@@ -29,7 +29,7 @@ class Callback : public TypeMulti
 	{
 public:
 	NAMED
-	Callback(TypeItem* it, uint16_t* ns, short n)	: TypeMulti(it, n)
+	Callback(TypeItem* it, short* ns, short n)	: TypeMulti(it, n)
 		{ mems = dup(ns, n); }
 	int size() override
 		{ return sizeof (void*); }
@@ -39,5 +39,5 @@ public:
 	void out(Ostream& os) const override;
 	long callback(Value fn, const char* src);
 private:
-	uint16_t* mems;
+	short* mems;
 	};

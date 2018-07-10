@@ -64,7 +64,7 @@ public:
 		{ return new SuNumber(-x->dn); }
 
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 
 	// buf must be larger than mask
 	char* format(char* buf, const char* mask) const;
@@ -79,7 +79,7 @@ public:
 	gcstring to_gcstr() const override
 		{ return dn.to_gcstr(); }
 	size_t hashfn() const override;
-	int symnum() const override;
+	short symnum() const override;
 	bool int_if_num(int* pn) const override;
 	double to_double() const
 		{ return dn.to_double(); }

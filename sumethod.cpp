@@ -52,7 +52,7 @@ const Named* SuMethod::get_named() const
 	}
 
 Value SuMethod::call(Value self, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	if (member == CALL)
 		return object.call(object, method, nargs, nargnames, argnames, each);

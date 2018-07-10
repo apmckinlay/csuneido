@@ -26,7 +26,7 @@
 #include "suobject.h"
 #include "symbols.h"
 
-Structure::Structure(TypeItem* it, uint16_t* ms, int n) : TypeMulti(it, n)
+Structure::Structure(TypeItem* it, short* ms, int n) : TypeMulti(it, n)
 	{
 	mems = dup(ms, n);;
 	}
@@ -72,7 +72,7 @@ void Structure::out(Ostream& os) const
 	}
 
 Value Structure::call(Value self, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	static Value SIZE("Size");
 	static Value MODIFY("Modify");
@@ -129,7 +129,7 @@ Value Structure::call(Value self, Value member,
 		if (nargs != 3)
 			except("usage: struct.Modify(address, member, value)");
 		char* dst = (char*) ARG(0).integer();
-		uint16_t mem = ARG(1).symnum();
+		short mem = ARG(1).symnum();
 		int i;
 		for (i = 0; i < nitems; ++i)
 			{

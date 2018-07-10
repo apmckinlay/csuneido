@@ -41,7 +41,7 @@ void SuSeq::out(Ostream& os) const
 	}
 
 Value SuSeq::call(Value self, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	static Value ITER("Iter");
 	static Value COPY("Copy");
@@ -226,7 +226,7 @@ class SuSeqIter : public SuValue
 		SuSeqIter(Value from, Value to, Value by);
 		void out(Ostream& os) const override;
 		Value call(Value self, Value member,
-			short nargs, short nargnames, uint16_t* argnames, int each) override;
+			short nargs, short nargnames, short* argnames, int each) override;
 	private:
 		Value from;
 		Value to;
@@ -245,7 +245,7 @@ void SuSeqIter::out(Ostream& os) const
 	}
 
 Value SuSeqIter::call(Value self, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	static Value NEXT("Next");
 	static Value DUP("Dup");

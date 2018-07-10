@@ -33,7 +33,7 @@ class Record;
 struct Observe
 	{
 	Value fn;
-	uint16_t mem;
+	short mem;
 	};
 
 // database record values
@@ -49,7 +49,7 @@ public:
 
 	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 
 	// putdata has to notify observers of changes
 	void putdata(Value i, Value x) override;
@@ -77,27 +77,27 @@ private:
 
 	void init(const Row& r);
 	void addfield(const char* field, gcstring value);
-	void dependencies(uint16_t mem, gcstring s);
-	void call_observer(uint16_t member, const char* why);
-	void call_observers(uint16_t member, const char* why);
+	void dependencies(short mem, gcstring s);
+	void call_observer(short member, const char* why);
+	void call_observers(short member, const char* why);
 
-	void add_dependent(uint16_t src, uint16_t dst);
-	void invalidate(uint16_t mem);
-	void invalidate_dependents(uint16_t member);
-	Value get_if_special(uint16_t i);
-	Value call_rule(uint16_t i, const char* why);
+	void add_dependent(short src, short dst);
+	void invalidate(short mem);
+	void invalidate_dependents(short member);
+	Value get_if_special(short i);
+	Value call_rule(short i, const char* why);
 
 	Header hdr;
 	SuTransaction* trans = nullptr;
 	Mmoffset recadr = 0;
 	enum { NEW, OLD, DELETED } status = NEW;
 	List<Value> observers;
-	HashMap<uint16_t,Lisp<uint16_t> > dependents;
-	HashMap<uint16_t,bool> invalid;
-	ListSet<uint16_t> invalidated;
+	HashMap<short,Lisp<short> > dependents;
+	HashMap<short,bool> invalid;
+	ListSet<short> invalidated;
 	Lisp<Value> active_rules;
 	List<Observe> active_observers;
-	HashMap<uint16_t,Value> attached_rules;
+	HashMap<short,Value> attached_rules;
 	};
 
 Value su_record();

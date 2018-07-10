@@ -35,7 +35,7 @@ public:
 	Value getdata(Value) override;
 	void putdata(Value, Value) override;
 	Value call(Value self, Value member, short nargs,
-		short nargnames, uint16_t* argnames, int each) override;
+		short nargnames, short* argnames, int each) override;
 
 	bool eq(const SuValue& x) const override;
 	size_t hashfn() const override;
@@ -45,8 +45,8 @@ public:
 	gcstring to_gcstr() const override;
 
 private:
-	Value Copy(short nargs, short nargnames, uint16_t* argnames, int each);
-	Value Delete(short nargs, short nargnames, uint16_t* argnames, int each);
+	Value Copy(short nargs, short nargnames, short* argnames, int each);
+	Value Delete(short nargs, short nargnames, short* argnames, int each);
 	const char* toString() const;
 
 	Value mbclass() override

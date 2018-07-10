@@ -99,7 +99,7 @@ bool SuString::backquote() const
 	return true;
 	}
 
-int SuString::symnum() const
+short SuString::symnum() const
 	{
 	return ::symnum(str());
 	}
@@ -203,14 +203,14 @@ Value SuString::rangeLen(int i, int n)
 	return substr(f, n);
 	}
 
-typedef Value(SuString::*pmfn)(short, short, uint16_t*, int);
+typedef Value(SuString::*pmfn)(short, short, short*, int);
 
 Hmap<Value,pmfn> methods;
 
 #define METHOD(fn) methods[#fn] = &SuString::fn
 
 Value SuString::call(Value self, Value member,
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	static bool first = true;
 	if (first)
@@ -267,7 +267,7 @@ Value SuString::call(Value self, Value member,
 	method_not_found("String", member);
 	}
 
-Value SuString::Call(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Call(short nargs, short nargnames, short* argnames, int each)
 	{
 	// #symbol(ob, ...) => ob.symbol(...)
 	if (nargs < 1)
@@ -282,7 +282,7 @@ Value SuString::Call(short nargs, short nargnames, uint16_t* argnames, int each)
 	return ob.call(ob, this, nargs - 1, nargnames, argnames, each);
 	}
 
-Value SuString::Substr(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Substr(short nargs, short nargnames, short* argnames, int each)
 	{
 	if (nargs < 1 || nargs > 2)
 		except("usage: string(i [,n])");
@@ -299,13 +299,13 @@ Value SuString::Substr(short nargs, short nargnames, uint16_t* argnames, int eac
 	return substr(i, n);
 	}
 
-Value SuString::Size(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Size(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Size()");
 	return size();
 	}
 
-Value SuString::Asc(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Asc(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Asc()");
 	return (uint8_t) *ptr();
@@ -321,7 +321,7 @@ bool isGlobal(const char* s)
 	return true;
 	}
 
-Value SuString::Eval(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Eval(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Eval()");
 	if (isGlobal(str()))
@@ -332,7 +332,7 @@ Value SuString::Eval(short nargs, short nargnames, uint16_t* argnames, int each)
 		return SuEmptyString;
 	}
 
-Value SuString::Eval2(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Eval2(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Eval2()");
 	Value result = isGlobal(str()) ? globals[str()] : 	run(str());
@@ -346,7 +346,7 @@ Value SuString::Eval2(short nargs, short nargnames, uint16_t* argnames, int each
 #include "codecheck.h"
 #include "codevisitor.h"
 
-Value SuString::Compile(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Compile(short nargs, short nargnames, short* argnames, int each)
 	{
 	CodeVisitor* visitor = 0;
 	if (nargs == 1)
@@ -358,7 +358,7 @@ Value SuString::Compile(short nargs, short nargnames, uint16_t* argnames, int ea
 
 #include "dbms.h"
 
-Value SuString::ServerEval(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::ServerEval(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.ServerEval()");
 	return dbms()->run(str());
@@ -366,7 +366,7 @@ Value SuString::ServerEval(short nargs, short nargnames, uint16_t* argnames, int
 
 #include "tr.h"
 
-Value SuString::Tr(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Tr(short nargs, short nargnames, short* argnames, int each)
 	{
 	if (nargs != 1 && nargs != 2)
 		except("usage: string.Tr(from [ , to ] )");
@@ -374,7 +374,7 @@ Value SuString::Tr(short nargs, short nargnames, uint16_t* argnames, int each)
 	return new SuString(tr(gcstr(), ARG(0).gcstr(), to));
 	}
 
-Value SuString::Find(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Find(short nargs, short nargnames, short* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("string.Find(string, pos = 0)");
@@ -386,7 +386,7 @@ Value SuString::Find(short nargs, short nargnames, uint16_t* argnames, int each)
 	return i == -1 ? size() : i;
 	}
 
-Value SuString::FindLast(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::FindLast(short nargs, short nargnames, short* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("string.FindLast(string, pos = size())");
@@ -398,7 +398,7 @@ Value SuString::FindLast(short nargs, short nargnames, uint16_t* argnames, int e
 	return i == -1 ? SuFalse : i;
 	}
 
-Value SuString::Find1of(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Find1of(short nargs, short nargnames, short* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("string.Find1of(string, pos = 0)");
@@ -415,7 +415,7 @@ Value SuString::Find1of(short nargs, short nargnames, uint16_t* argnames, int ea
 	return size();
 	}
 
-Value SuString::FindLast1of(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::FindLast1of(short nargs, short nargnames, short* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("string.FindLast1of(string, pos = size() - 1)");
@@ -431,7 +431,7 @@ Value SuString::FindLast1of(short nargs, short nargnames, uint16_t* argnames, in
 	return SuFalse;
 	}
 
-Value SuString::Findnot1of(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Findnot1of(short nargs, short nargnames, short* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("string.Findnot1of(string, pos = 0)");
@@ -452,7 +452,7 @@ Value SuString::Findnot1of(short nargs, short nargnames, uint16_t* argnames, int
 	return size();
 	}
 
-Value SuString::FindLastnot1of(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::FindLastnot1of(short nargs, short nargnames, short* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("string.FindLastnot1of(string, pos = size() - 1)");
@@ -472,7 +472,7 @@ Value SuString::FindLastnot1of(short nargs, short nargnames, uint16_t* argnames,
 	return SuFalse;
 	}
 
-Value SuString::Match(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Match(short nargs, short nargnames, short* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("string.Match(pattern, pos = false, prev = false) => object");
@@ -501,7 +501,7 @@ Value SuString::Match(short nargs, short nargnames, uint16_t* argnames, int each
 
 // "hello world".Extract(".....$") => "world"
 // "hello world".Extract("(hello|howdy) (\w+)", 2) => "world"
-Value SuString::Extract(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Extract(short nargs, short nargnames, short* argnames, int each)
 	{
 	if (nargs != 1 && nargs != 2)
 		except("usage: string.Extract(pattern, part = 0/1) -> false or string");
@@ -518,7 +518,7 @@ Value SuString::Extract(short nargs, short nargnames, uint16_t* argnames, int ea
 
 // "hello world".Replace("l", "L") => "heLLo worLd"
 // "hello world".Replace(".", "<&>", 5) => "<h><e><l><l><o> world"
-Value SuString::Replace(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Replace(short nargs, short nargnames, short* argnames, int each)
 	{
 	if (nargs < 1 || 3 < nargs)
 		except("usage: string.Replace(pattern, replacement = '', count = false) -> string");
@@ -581,7 +581,7 @@ Value SuString::replace(const gcstring& patarg, Value reparg, int count) const
 	return new SuString(result->gcstr());
 	}
 
-Value SuString::MapN(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::MapN(short nargs, short nargnames, short* argnames, int each)
 	{
 	if (nargs != 2)
 		except("usage: string.MapN(n, block)");
@@ -598,7 +598,7 @@ Value SuString::MapN(short nargs, short nargnames, uint16_t* argnames, int each)
 	return new SuString(dst.gcstr());
 	}
 
-Value SuString::NthLine(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::NthLine(short nargs, short nargnames, short* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("string.NthLine(n)");
@@ -617,7 +617,7 @@ Value SuString::NthLine(short nargs, short nargnames, uint16_t* argnames, int ea
 	return new SuString(gcstring::noalloc(p, t - p));
 	}
 
-Value SuString::Split(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Split(short nargs, short nargnames, short* argnames, int each)
 	{
 	if (nargs != 1 || nargnames != 0)
 		except("usage: string.Split(separator)");
@@ -634,7 +634,7 @@ Value SuString::Split(short nargs, short nargnames, uint16_t* argnames, int each
 	return ob;
 	}
 
-Value SuString::CountChar(short nargs, short nargnames, uint16_t* argnames,
+Value SuString::CountChar(short nargs, short nargnames, short* argnames,
 	int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
@@ -649,7 +649,7 @@ Value SuString::CountChar(short nargs, short nargnames, uint16_t* argnames,
 		[c](char sch) { return sch == c; });
 	}
 
-Value SuString::Detab(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Detab(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Detab()");
 	const char* ss = ptr();
@@ -700,7 +700,7 @@ Value SuString::Detab(short nargs, short nargnames, uint16_t* argnames, int each
 inline bool istab(int col)
 	{ return col > 0 && (col % 4) == 0; }
 
-Value SuString::Entab(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Entab(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Entab()");
 	auto ss = str();
@@ -746,7 +746,7 @@ Value SuString::Entab(short nargs, short nargnames, uint16_t* argnames, int each
 	return new SuString(buf, dst - buf);
 	}
 
-Value SuString::Repeat(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Repeat(short nargs, short nargnames, short* argnames, int each)
 	{
 	if (nargs != 1 || nargnames != 0)
 		except("usage: string.Repeat(count)");
@@ -759,13 +759,13 @@ Value SuString::Repeat(short nargs, short nargnames, uint16_t* argnames, int eac
 	return SuString::noalloc(buf, n * len);
 	}
 
-Value SuString::Numberq(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Numberq(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Number?()");
 	return size() == numlen(str()) ? SuTrue : SuFalse;
 	}
 
-Value SuString::Unescape(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Unescape(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Unescape()");
 
@@ -792,14 +792,14 @@ public:
 	void out(Ostream& os) const override
 		{ os << "StringIter"; }
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 private:
 	gcstring str;
 	int i;
 	};
 
 Value SuStringIter::call(Value self, Value member,
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	static Value NEXT("Next");
 	static Value ITER("Iter");
@@ -822,13 +822,13 @@ Value SuStringIter::call(Value self, Value member,
 		method_not_found(type(), member);
 	}
 
-Value SuString::Iter(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Iter(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Iter()");
 	return new SuStringIter(s);
 	}
 
-Value SuString::Mbstowcs(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Mbstowcs(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Mbstowcs()");
 	auto src = str();
@@ -838,7 +838,7 @@ Value SuString::Mbstowcs(short nargs, short nargnames, uint16_t* argnames, int e
 	return SuString::noalloc(buf, n * 2);
 	}
 
-Value SuString::Wcstombs(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Wcstombs(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Wcstombs()");
 	wchar_t* src = (wchar_t*) str();
@@ -848,7 +848,7 @@ Value SuString::Wcstombs(short nargs, short nargnames, uint16_t* argnames, int e
 	return SuString::noalloc(buf, n);
 	}
 
-Value SuString::Upper(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Upper(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Upper()");
 	char* buf = salloc(size());
@@ -858,7 +858,7 @@ Value SuString::Upper(short nargs, short nargnames, uint16_t* argnames, int each
 	return SuString::noalloc(buf, size());
 	}
 
-Value SuString::Lower(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Lower(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Lower()");
 	return tolower();
@@ -873,7 +873,7 @@ SuString* SuString::tolower() const
 	return SuString::noalloc(buf, size());
 	}
 
-Value SuString::Upperq(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Upperq(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Upper?()");
 	bool result = false;
@@ -885,7 +885,7 @@ Value SuString::Upperq(short nargs, short nargnames, uint16_t* argnames, int eac
 	return result ? SuTrue : SuFalse;
 	}
 
-Value SuString::Lowerq(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Lowerq(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Lower?()");
 	bool result = false;
@@ -897,7 +897,7 @@ Value SuString::Lowerq(short nargs, short nargnames, uint16_t* argnames, int eac
 	return result ? SuTrue : SuFalse;
 	}
 
-Value SuString::Alphaq(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Alphaq(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Alpha?()");
 	if (size() <= 0)
@@ -908,7 +908,7 @@ Value SuString::Alphaq(short nargs, short nargnames, uint16_t* argnames, int eac
 	return SuTrue;
 	}
 
-Value SuString::Numericq(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Numericq(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Numeric?()");
 	if (size() <= 0)
@@ -919,7 +919,7 @@ Value SuString::Numericq(short nargs, short nargnames, uint16_t* argnames, int e
 	return SuTrue;
 	}
 
-Value SuString::AlphaNumq(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::AlphaNumq(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.AlphaNum?()");
 	if (size() <= 0)
@@ -930,7 +930,7 @@ Value SuString::AlphaNumq(short nargs, short nargnames, uint16_t* argnames, int 
 	return SuTrue;
 	}
 
-Value SuString::Hasq(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Hasq(short nargs, short nargnames, short* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("string.Has?(string)");
@@ -939,7 +939,7 @@ Value SuString::Hasq(short nargs, short nargnames, uint16_t* argnames, int each)
 	return s.find(str) == -1 ? SuFalse : SuTrue;
 	}
 
-Value SuString::Prefixq(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Prefixq(short nargs, short nargnames, short* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("string.Prefix?(string, pos = 0)");
@@ -953,7 +953,7 @@ Value SuString::Prefixq(short nargs, short nargnames, uint16_t* argnames, int ea
 	return s.has_prefix(str, pos) ? SuTrue : SuFalse;
 	}
 
-Value SuString::Suffixq(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Suffixq(short nargs, short nargnames, short* argnames, int each)
 	{
 	BuiltinArgs args(nargs, nargnames, argnames, each);
 	args.usage("string.Suffix?(string)");
@@ -962,14 +962,14 @@ Value SuString::Suffixq(short nargs, short nargnames, uint16_t* argnames, int ea
 	return s.has_suffix(str) ? SuTrue : SuFalse;
 	}
 
-Value SuString::Instantiate(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Instantiate(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Instantiate()");
 	s.instantiate();
 	return this;
 	}
 
-Value SuString::Reverse(short nargs, short nargnames, uint16_t* argnames, int each)
+Value SuString::Reverse(short nargs, short nargnames, short* argnames, int each)
 	{
 	NOARGS("string.Reverse()");
 	char* buf = salloc(size());

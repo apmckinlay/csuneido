@@ -50,7 +50,7 @@ public:
 	MkObject()
 		{ named.num = globals("Object"); }
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 	};
 
 Value su_object()
@@ -58,7 +58,7 @@ Value su_object()
 	return new MkObject();
 	}
 
-Value MkObject::call(Value self, Value member, short nargs, short nargnames, uint16_t* argnames, int each)
+Value MkObject::call(Value self, Value member, short nargs, short nargnames, short* argnames, int each)
 	{
 	if (member != CALL)
 		return Func::call(self, member, nargs, nargnames, argnames, each);
@@ -102,7 +102,7 @@ public:
 	void out(Ostream& os) const override
 		{ os << "ObjectIter"; }
 	Value call(Value self, Value member,
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 private:
 	SuObject* object;
 	SuObject::iterator iter;
@@ -478,7 +478,7 @@ bool SuObject::erase2(Value m)
 	}
 
 Value SuObject::call(Value self, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	if (Mfn f = method(member))
 		{
@@ -1053,7 +1053,7 @@ bool SuObject::operator==(const SuObject& ob) const
 // SuObjectIter -------------------------------------------------------
 
 Value SuObjectIter::call(Value self, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	static Value NEXT("Next");
 	static Value DUP("Dup");

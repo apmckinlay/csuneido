@@ -30,7 +30,7 @@
 class ArgsIter
 	{
 	public:
-		ArgsIter(short n, short na, uint16_t* an, int each);
+		ArgsIter(short n, short na, short* an, int each);
 
 		Value getval(const char* name);
 		Value getNamed(const char* name);
@@ -46,7 +46,7 @@ class ArgsIter
 
 	short nargs;
 		short nargnames;
-		uint16_t* argnames;
+		short* argnames;
 		int each;
 		int unnamed;
 		SuObject* ob = nullptr;
@@ -59,7 +59,7 @@ class ArgsIter
 class BuiltinArgs
 	{
 public:
-	BuiltinArgs(short nargs, short nargnames, uint16_t* argnames, int each)
+	BuiltinArgs(short nargs, short nargnames, short* argnames, int each)
 		: ai(nargs, nargnames, argnames, each)
 		{}
 

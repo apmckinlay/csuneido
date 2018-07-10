@@ -31,7 +31,7 @@ public:
 	explicit SuSeq(Value iter);
 	void out(Ostream& os) const override;
 	Value call(Value self, Value member, 
-		short nargs, short nargnames, uint16_t* argnames, int each) override;
+		short nargs, short nargnames, short* argnames, int each) override;
 	void putdata(Value i, Value x) override;
 	Value getdata(Value) override;
 	Value rangeTo(int i, int j) override;

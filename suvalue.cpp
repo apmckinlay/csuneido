@@ -61,7 +61,7 @@ gcstring SuValue::gcstr() const
 gcstring SuValue::to_gcstr() const
 	{ except("can't convert " << type() << " to String"); }
 
-int SuValue::symnum() const
+short SuValue::symnum() const
 	{ except("not a valid member: " << type()); }
 
 bool SuValue::int_if_num(int* pn) const
@@ -128,7 +128,7 @@ Ostream& operator<<(Ostream& out, SuValue* x)
 	}
 
 Value SuValue::call(Value self, Value member, 
-	short nargs, short nargnames, uint16_t* argnames, int each)
+	short nargs, short nargnames, short* argnames, int each)
 	{
 	if (member == CALL)
 		except("can't call " << type());
