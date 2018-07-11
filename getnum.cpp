@@ -37,7 +37,7 @@ int getnum(char type, char*& s)
 		! (isdigit(s[1]) || (s[1] == '-' && isdigit(s[2]))))
 		return ERR;
 	++s;
-	long n = strtol(s, &s, 10);
+	int n = strtol(s, &s, 10);
 	if (n < INT_MIN || INT_MAX < n)
 		return ERR;
 	while (isspace(*s))

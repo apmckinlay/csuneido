@@ -84,8 +84,8 @@ void Master::newstuff()
 			else if (iter.type() == MM_COMMIT)
 				{
 				Commit* commit = (Commit*) *iter;
-				cksum = checksum(cksum, (char*) commit + sizeof (long),
-					iter.size() - sizeof (long));
+				cksum = checksum(cksum, (char*) commit + sizeof (int),
+					iter.size() - sizeof (int));
 				if (commit->cksum != cksum)
 					{
 					out << "checksum doesn't match!" << endl;

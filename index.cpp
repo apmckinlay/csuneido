@@ -233,7 +233,7 @@ const int keysize = 16;
 
 static char buf[128];
 
-long kk(Record& r)
+int kk(Record& r)
 	{
 	return r.getlong(1);
 	}

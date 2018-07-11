@@ -138,9 +138,9 @@ extern "C"
 		{
 		}
 
-	typedef void (*GC_warn_proc)(char* msg, unsigned long arg);
+	typedef void (*GC_warn_proc)(char* msg, unsigned int arg);
 	GC_warn_proc GC_set_warn_proc(GC_warn_proc fn);
-	void warn(char* msg, unsigned long arg)
+	void warn(char* msg, unsigned int arg)
 		{
 		const char* limit = "GC Info: Too close to address space limit: blacklisting ineffective";
 		if (0 == memcmp(msg, limit, strlen(limit)))

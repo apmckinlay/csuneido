@@ -57,7 +57,7 @@ template <class T> struct RecRep
 		size = base + sizeof (short) * (n + 1); // offsets
 		if (size <= USHRT_MAX)
 			return size;
-		return base + sizeof (long) * (n + 1); // offsets
+		return base + sizeof (int) * (n + 1); // offsets
 		}
 	int avail() const
 		{ return off[n-1] - (2 * sizeof (short) + (n + 2) * sizeof (T)); }
@@ -185,7 +185,7 @@ gcstring Record::getstr(int i) const
 	return unpack_gcstr(getraw(i));
 	}
 
-long Record::getlong(int i) const
+int Record::getlong(int i) const
 	{
 	return unpacklong(getraw(i));
 	}
@@ -298,7 +298,7 @@ void Record::addval(const char* s)
 	addval(gcstring::noalloc(s));
 	}
 
-void Record::addval(long n)
+void Record::addval(int n)
 	{
 	packlong(alloc(packsize(n)), n);
 	}

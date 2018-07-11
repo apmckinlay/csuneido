@@ -1012,7 +1012,7 @@ Mmoffset Database::indexes_record(Index* index)
 	}
 
 // tables records
-Record Database::record(TblNum tblnum, const gcstring& tblname, long nrows, long nextfield, long totalsize)
+Record Database::record(TblNum tblnum, const gcstring& tblname, int nrows, int nextfield, int totalsize)
 	{
 	Record r;
 	r.addval(tblnum);
@@ -1025,7 +1025,7 @@ Record Database::record(TblNum tblnum, const gcstring& tblname, long nrows, long
 	}
 
 // columns records
-Record Database::record(TblNum tblnum, const gcstring& column, long field)
+Record Database::record(TblNum tblnum, const gcstring& column, int field)
 	{
 	Record r;
 	r.addval(tblnum);
@@ -1174,7 +1174,7 @@ Tbl* Database::get_table(const Record& table_rec)
 		{
 		Record r(iter.data());
 		gcstring column = r.getstr(C_COLUMN).to_heap();
-		long colnum = r.getlong(C_FLDNUM);
+		int colnum = r.getlong(C_FLDNUM);
 		cols.push(Col(column, colnum));
 		}
 	cols.sort();
@@ -1407,7 +1407,7 @@ static void assertreceq(const Record& r1, const Record& r2)
 			except(r1 << endl << "!=" << endl << r2);
 	}
 
-static Record record(const char* s1, const char* s2, long n)
+static Record record(const char* s1, const char* s2, int n)
 	{
 	Record r;
 	r.addval(s1);
@@ -1415,7 +1415,7 @@ static Record record(const char* s1, const char* s2, long n)
 	r.addval(n);
 	return r;
 	}
-static Record key(long n)
+static Record key(int n)
 	{
 	Record r;
 	r.addval(n);

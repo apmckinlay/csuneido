@@ -32,7 +32,7 @@ using std::min;
 
 #define check2(n)	if ((dst2) + (n) > lim2) except("conversion overflow")
 
-Value Type::result(long, long)
+Value Type::result(int, int)
 	{ error("not a valid return type"); }
 
 void Type::getbyref(const char*& src, Value x)
@@ -63,15 +63,15 @@ void TypeBool::out(Ostream& os) const
 //===================================================================
 
 template<>
-void TypeInt<char>::out(Ostream& os) const
+void TypeInt<int8_t>::out(Ostream& os) const
 	{ os << "int8"; }
 
 template<>
-void TypeInt<short>::out(Ostream& os) const
+void TypeInt<int16_t>::out(Ostream& os) const
 	{ os << "int16"; }
 
 template<>
-void TypeInt<long>::out(Ostream& os) const
+void TypeInt<int32_t>::out(Ostream& os) const
 	{ os << "int32"; }
 
 void TypeInt<int64_t>::out(Ostream& os) const
@@ -125,7 +125,7 @@ Value TypeFloat::get(const char*& src, Value x)
 void TypeFloat::out(Ostream& os) const
 	{ os << "float"; }
 
-Value TypeFloat::result(long, long)
+Value TypeFloat::result(int, int)
 	{
 	float n;
 #if defined(_MSC_VER)
@@ -154,7 +154,7 @@ Value TypeDouble::get(const char*& src, Value x)
 void TypeDouble::out(Ostream& os) const
 	{ os << "double"; }
 
-Value TypeDouble::result(long, long)
+Value TypeDouble::result(int, int)
 	{
 	double n;
 #if defined(_MSC_VER)
@@ -190,7 +190,7 @@ public:
 	void getbyref(const char*& src, Value x) override;
 	void out(Ostream& os) const override
 		{ os << type << '*'; }
-	Value result(long, long n) override;
+	Value result(int, int n) override;
 
 	Type* type;
 	};
@@ -229,7 +229,7 @@ void TypePointer::getbyref(const char*& src, Value x)
 	src += sizeof (void*);
 	}
 
-Value TypePointer::result(long, long n)
+Value TypePointer::result(int, int n)
 	{
 	const char* src = (char*) n;
 	return type->get(src, 0);
@@ -308,7 +308,7 @@ Value TypeString::get(const char*& src, Value x)
 	return x;
 	}
 
-Value TypeString::result(long, long n)
+Value TypeString::result(int, int n)
 	{
 	char* s = (char*) n;
 	if (s)
@@ -569,15 +569,15 @@ TEST(type)
 	{
 	test(new TypeBool, sizeof (int), 0, SuTrue);
 	test(new TypeBool, sizeof (int), 0, SuFalse);
-	test(new TypeInt<short>, sizeof (short), 0, 123);
-	test(new TypeInt<short>, sizeof (short), 0, 0);
-	test(new TypeInt<short>, sizeof (short), 0, -123);
-	test(new TypeInt<long>, sizeof (long), 0, 123);
-	test(new TypeInt<long>, sizeof (long), 0, 0);
-	test(new TypeInt<long>, sizeof (long), 0, -123);
-	test(new TypeOpaquePointer, sizeof (long), 0, 123);
-	test(new TypeOpaquePointer, sizeof (long), 0, 0);
-	test(new TypeOpaquePointer, sizeof (long), 0, -123);
+	test(new TypeInt<int16_t>, sizeof (short), 0, 123);
+	test(new TypeInt<int16_t>, sizeof (short), 0, 0);
+	test(new TypeInt<int16_t>, sizeof (short), 0, -123);
+	test(new TypeInt<int32_t>, sizeof (int), 0, 123);
+	test(new TypeInt<int32_t>, sizeof (int), 0, 0);
+	test(new TypeInt<int32_t>, sizeof (int), 0, -123);
+	test(new TypeOpaquePointer, sizeof (int), 0, 123);
+	test(new TypeOpaquePointer, sizeof (int), 0, 0);
+	test(new TypeOpaquePointer, sizeof (int), 0, -123);
 	test(new TypeFloat, sizeof (float), 0, 123);
 	test(new TypeFloat, sizeof (float), 0, new SuNumber("123.125")); // exact
 	test(new TypeDouble, sizeof (double), 0, 123);

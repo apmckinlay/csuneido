@@ -163,8 +163,8 @@ Value Dll::call(Value self, Value member,
 	int save_trace_level = trace_level;
 	TRACE_CLEAR();
 
-	long result, result2;
-	long nlongs = (dst - buf) / 4;
+	int result, result2;
+	int nlongs = (dst - buf) / 4;
 #ifdef _MSC_VER
 	if (nlongs)
 		__asm

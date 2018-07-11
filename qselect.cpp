@@ -58,12 +58,12 @@
 
 struct FilterTreeSlot
 	{
-	typedef long Key;
+	typedef int Key;
 	Key key = 0;
-	long adr = 0;
+	int adr = 0;
 	FilterTreeSlot()
 		{ }
-	explicit FilterTreeSlot(Key k, long a = 0) : key(k), adr(a)
+	explicit FilterTreeSlot(Key k, int a = 0) : key(k), adr(a)
 		{ }
 	void copy(const FilterTreeSlot& from)
 		{
@@ -79,7 +79,7 @@ typedef Array<FilterTreeSlot,4000/sizeof(FilterTreeSlot)> FilterTreeSlots;
 
 struct FilterLeafSlot
 	{
-	typedef long Key;
+	typedef int Key;
 	Key key = 0;
 	short count = 0;
 	FilterLeafSlot()

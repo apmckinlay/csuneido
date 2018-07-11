@@ -294,7 +294,7 @@ void Mmfile::evict_chunk()
 
 int Mmfile::lru_chunk()
 	{
-	long* p = std::min_element(last_used, last_used + MAX_CHUNKS);
+	int* p = std::min_element(last_used, last_used + MAX_CHUNKS);
 	return p - last_used;
 	}
 

@@ -117,9 +117,9 @@ struct Tbl
 	Lisp<Idx> idxs;
 	TblNum num;
 	gcstring name;
-	long nextfield;
-	long nrecords;
-	long totalsize;
+	int nextfield;
+	int nrecords;
+	int totalsize;
 	int trigger;
 	Lisp<int> flds; // for user defined triggers
 	};
@@ -301,10 +301,10 @@ private:
 	void remove_any_index(const gcstring& table, const gcstring& columns)
 		{ remove_any_index(ck_get_table(table), columns); }
 	void remove_any_index(Tbl* tbl, const gcstring& columns);
-	static Record record(TblNum tblnum, const gcstring& column, long field);
+	static Record record(TblNum tblnum, const gcstring& column, int field);
 	static Record record(TblNum tblnum, const gcstring& columns, Index* index,
 		const gcstring& fktable = "", const gcstring& fkcolumns = "", int fkmode = 0);
-	static Record record(TblNum tblnum, const gcstring& table, long nrows, long nextfield, long totalsize = 100);
+	static Record record(TblNum tblnum, const gcstring& table, int nrows, int nextfield, int totalsize = 100);
 	static Record key(TblNum tblnum);
 	static Record key(const char* table);
 	static Record key(const gcstring& table);

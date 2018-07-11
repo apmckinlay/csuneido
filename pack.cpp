@@ -94,24 +94,24 @@ const char* unpackstr(const char*& buf)
 int packvalue(char* buf, Value x)
 	{
 	int n = x.packsize();
-	cvt_long(buf, n);
-	x.pack(buf + sizeof (long));
-	return sizeof (long) + n;
+	cvt_int32(buf, n);
+	x.pack(buf + sizeof (int));
+	return sizeof (int) + n;
 	}
 
 Value unpackvalue(const char*& buf)
 	{
 	int n;
-	n = cvt_long(buf);
-	buf += sizeof (long);
+	n = cvt_int32(buf);
+	buf += sizeof (int);
 	Value x = ::unpack(buf, n);
 	buf += n;
 	return x;
 	}
 
-// long =============================================================
+// int =============================================================
 
-size_t packsize(long n)
+size_t packsize(int n)
 	{
 	if (n == 0)
 		return 1;
@@ -126,7 +126,7 @@ size_t packsize(long n)
 	return 8;
 	}
 
-void packlong(char* buf, long n)
+void packlong(char* buf, int n)
 	{
 	buf[0] = n < 0 ? PACK_MINUS : PACK_PLUS;
 	if (n == 0)
@@ -233,7 +233,7 @@ uint64_t unpacklongpart(const uint8_t* buf, int sz)
 	return n;
 	}
 
-long unpacklong(const gcstring& s)
+int unpacklong(const gcstring& s)
 	{
 	int sz = s.size();
 	if (sz <= 2)
@@ -246,7 +246,7 @@ long unpacklong(const gcstring& s)
 	if (minus)
 		e = uint8_t(~e);
 	e = int8_t(e ^ 0x80) - (sz - 2) / 2;
-	long n = unpacklongpart(buf, sz);
+	int n = unpacklongpart(buf, sz);
 	for (; e > 0; --e)
 		n *= 10000;
 	return minus ? -n : n;
@@ -295,12 +295,12 @@ TEST(pack_number)
 	verify(SuNumber::unpack(gcstring("")) == &SuNumber::zero);
 	}
 
-static void testpack(long x)
+static void testpack(int x)
 	{
 	char buf[80];
 	packlong(buf, x);
 	gcstring s = gcstring::noalloc(buf, packsize(x));
-	long y = unpacklong(s);
+	int y = unpacklong(s);
 	assert_eq(x, y);
 	Value num = ::unpack(s);
 	assert_eq(x, num.integer());

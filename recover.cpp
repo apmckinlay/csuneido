@@ -198,8 +198,8 @@ void DbRecoverImp::docheck(bool (*progress)(int))
 		else if (iter.type() == MM_COMMIT)
 			{
 			Commit* commit = (Commit*) *iter;
-			cksum = checksum(cksum, (char*) commit + sizeof (long),
-				iter.size() - sizeof (long));
+			cksum = checksum(cksum, (char*) commit + sizeof (int),
+				iter.size() - sizeof (int));
 			if (commit->cksum != cksum)
 				break ;
 			end = iter;
@@ -209,8 +209,8 @@ void DbRecoverImp::docheck(bool (*progress)(int))
 				{
 				Mmoffset off = dels[i].unpack();
 				verify(off % 8 == 0);
-				deletes[(off - sizeof (long)) / granularity] = true;
-				// - sizeof (long) because these offsets are to data, which is preceded by table number
+				deletes[(off - sizeof (int)) / granularity] = true;
+				// - sizeof (int) because these offsets are to data, which is preceded by table number
 				}
 			}
 		else if (iter.type() == MM_SESSION)
@@ -462,14 +462,14 @@ bool DbRecoverImp::rebuild_copy(char* newfile, bool (*progress)(int))
 				for (int i = 0; i < commit->ncreates; ++i)
 					{
 					Mmoffset oldoff = creates[i].unpack();
-					Mmoffset newoff = tr[oldoff - sizeof (long)] + sizeof (long);
+					Mmoffset newoff = tr[oldoff - sizeof (int)] + sizeof (int);
 					creates[i] = newoff;
 					TblNum tn = tblnum(mmf, oldoff);
 					gcstring table = tblnames[tn];
 					if (table == "" || tn <= TN_VIEWS)
 						continue ;
 					Record r(db.mmf, newoff);
-					if (! deletes[(oldoff - sizeof (long)) / granularity])
+					if (! deletes[(oldoff - sizeof (int)) / granularity])
 						{
 						try
 							{
@@ -485,9 +485,9 @@ bool DbRecoverImp::rebuild_copy(char* newfile, bool (*progress)(int))
 					}
 				Mmoffset32* dels = commit->deletes();
 				for (int i = 0; i < commit->ndeletes; ++i)
-					dels[i] = tr[dels[i].unpack() - sizeof (long)] + sizeof (long);
-				commit->cksum = checksum(cksum, (char*) commit + sizeof (long),
-					iter.size() - sizeof (long));
+					dels[i] = tr[dels[i].unpack() - sizeof (int)] + sizeof (int);
+				commit->cksum = checksum(cksum, (char*) commit + sizeof (int),
+					iter.size() - sizeof (int));
 				cksum = checksum(0, 0, 0);
 				}
 			}
@@ -526,8 +526,8 @@ static bool schema(Database& db, HashMap<TblNum,gcstring>& tblnames, Mmoffset o)
 			}
 		// reset sizes
 		r.reuse(T_NROWS);
-		r.addval((long) 0);		// nrows
-		r.addval((long) 100);	// totalsize
+		r.addval((int) 0);		// nrows
+		r.addval((int) 100);	// totalsize
 		break ;
 	case TN_COLUMNS :
 		tblnum = r.getlong(C_TBLNUM);
@@ -676,8 +676,8 @@ void dbdump1(Ostream& log, Mmfile& mmf, Mmfile::iterator& iter, uint32_t& cksum,
 		for (p = commit->deletes(), end = p + commit->ndeletes; p < end; ++p)
 			log << "\tdelete " << p->unpack() - 4 << endl;
 		}*/
-		cksum = checksum(cksum, (char*) commit + sizeof (long),
-			iter.size() - sizeof (long));
+		cksum = checksum(cksum, (char*) commit + sizeof (int),
+			iter.size() - sizeof (int));
 		if (commit->cksum != cksum)
 			log << "	ERROR commit had " << commit->cksum <<
 				" recover got " << cksum << endl;

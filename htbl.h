@@ -35,7 +35,7 @@
  * so should not have complex constructors or assignment operators.
  * NOTE: intended for use with garbage collection - does not run destructors.
  * Allows lookup by a different type from the key,
- * as long as there are compatible hash and keyeq.
+ * as int as there are compatible hash and keyeq.
  * See: https://probablydance.com/2017/02/26/i-wrote-the-fastest-hashtable/
  */
 

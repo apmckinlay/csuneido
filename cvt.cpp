@@ -24,7 +24,7 @@
 
 // complement leading bit to ensure correct unsigned compare
 
-char* cvt_long(char* p, long n)
+char* cvt_int32(char* p, int n)
 	{
 	n ^= 0x80000000;
 	p[3] = (char) n;
@@ -34,42 +34,21 @@ char* cvt_long(char* p, long n)
 	return p;
 	}
 
-long cvt_long(const char* q)
+int cvt_int32(const char* q)
 	{
 	const unsigned char* p = (unsigned char*) q;
-	long n = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
+	int n = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
 	return n ^ 0x80000000;
-	}
-
-char* cvt_short(char* p, short n)
-	{
-	p[1] = (char) n;
-	p[0] = (char) (n >> 8);
-	return p;
-	}
-
-short cvt_short(const char* q)
-	{
-	const unsigned char* p = (unsigned char*) q;
-	return (p[0] << 8) | p[1];
 	}
 
 #include "testing.h"
 
-TEST(cvt_short)
-	{
-	char buf[2];
-	assert_eq(0, cvt_short(cvt_short(buf, 0)));
-	assert_eq(1234, cvt_short(cvt_short(buf, 1234)));
-	assert_eq(-1234, cvt_short(cvt_short(buf, -1234)));
-	}
-
-TEST(cvt_long)
+TEST(cvt_int32)
 	{
 	char buf[4];
-	assert_eq(0, cvt_long(cvt_long(buf, 0)));
-	assert_eq(1234, cvt_long(cvt_long(buf, 1234)));
-	assert_eq(-1234, cvt_long(cvt_long(buf, -1234)));
-	assert_eq(12345678, cvt_long(cvt_long(buf, 12345678)));
-	assert_eq(-12345678, cvt_long(cvt_long(buf, -12345678)));
+	assert_eq(0, cvt_int32(cvt_int32(buf, 0)));
+	assert_eq(1234, cvt_int32(cvt_int32(buf, 1234)));
+	assert_eq(-1234, cvt_int32(cvt_int32(buf, -1234)));
+	assert_eq(12345678, cvt_int32(cvt_int32(buf, 12345678)));
+	assert_eq(-12345678, cvt_int32(cvt_int32(buf, -12345678)));
 	}

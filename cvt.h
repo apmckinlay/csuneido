@@ -24,17 +24,11 @@
 #include "gcstring.h"
 
 // stores n in p, p must have at least 4 bytes
-char* cvt_long(char* p, long n);
+char* cvt_int32(char* p, int n);
 
 // p must have at least 4 bytes
-long cvt_long(const char* p);
+int cvt_int32(const char* p);
 
 // s must have at least 4 bytes
-inline long cvt_long(const gcstring& s)
-	{ return cvt_long(s.ptr()); }
-
-// stores n in p, p must have at least 2 bytes
-char* cvt_short(char* p, short n);
-
-// p must have at least 2 bytes
-short cvt_short(const char* p);
+inline int cvt_int32(const gcstring& s)
+	{ return cvt_int32(s.ptr()); }

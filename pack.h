@@ -34,9 +34,9 @@ gcstring unpack_gcstr(const gcstring& s);
 int packvalue(char* buf, Value x);
 Value unpackvalue(const char*& buf);
 
-size_t packsize(long n);
-void packlong(char* buf, long n);
-long unpacklong(const gcstring& s);
+size_t packsize(int n);
+void packlong(char* buf, int n);
+int unpacklong(const gcstring& s);
 
 int packstrsize(const char* s);
 int packstr(char* buf, const char* s);

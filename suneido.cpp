@@ -332,7 +332,7 @@ void handler(const Except& x)
 
 	try
 		{
-		call("Handler", Lisp<Value>((SuValue*) &x, (long) hwnd, x.calls()));
+		call("Handler", Lisp<Value>((SuValue*) &x, (int) hwnd, x.calls()));
 		}
 	catch (const Except& e)
 		{

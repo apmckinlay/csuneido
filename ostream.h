@@ -54,8 +54,10 @@ public:
 	Ostream& operator<<(unsigned short i);
 	Ostream& operator<<(int i);
 	Ostream& operator<<(unsigned int i);
-	Ostream& operator<<(long i);
-	Ostream& operator<<(unsigned long i);
+	Ostream& operator<<(long i)
+		{ return operator<<(static_cast<int>(i)); }
+	Ostream& operator<<(unsigned long i)
+		{ return operator<<(static_cast<unsigned int>(i)); }
 	Ostream& operator<<(int64_t i);
 	Ostream& operator<<(uint64_t i);
 	Ostream& operator<<(double d);

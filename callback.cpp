@@ -35,7 +35,7 @@
 #include "list.h"
 #include "suinstance.h"
 
-long callback(Value fn, Callback* cb, char* src);
+int callback(Value fn, Callback* cb, char* src);
 
 static Heap heap(true); // true = executable
 
@@ -175,14 +175,14 @@ void free_callbacks()
 	}
 
 // called by the functions created by make_callback
-long callback(Value fn, Callback* cb, char* src)
+int callback(Value fn, Callback* cb, char* src)
 	{
 	return cb->callback(fn, src);
 	}
 
 extern void handler(const Except&);
 
-long Callback::callback(Value fn, const char* src)
+int Callback::callback(Value fn, const char* src)
 	{
 	KEEPSP
 	try

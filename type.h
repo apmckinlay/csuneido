@@ -33,7 +33,7 @@ public:
 	// WARNING: dst is not checked for overflow - call size first
 	virtual Value get(const char*& src, Value x) = 0;
 	virtual void getbyref(const char*& src, Value x);
-	virtual Value result(long, long);
+	virtual Value result(int, int);
 	};
 
 // bool (true or false) Type
@@ -44,7 +44,7 @@ public:
 		{ return sizeof (int); }
 	void put(char*& dst, char*& dst2, const char* lim2, Value x) override;
 	Value get(const char*& src, Value x) override;
-	Value result(long, long n) override
+	Value result(int, int n) override
 		{ return n ? SuTrue : SuFalse; }
 	void out(Ostream& os) const override;
 	};
@@ -80,7 +80,7 @@ public:
 		return x;
 		}
 	void out(Ostream& os) const override;
-	Value result(long, long n) override
+	Value result(int, int n) override
 		{ return (T) n; }
 private:
 	};
@@ -93,15 +93,17 @@ public:
 	void put(char*& dst, char*&, const char*, Value x) override;
 	Value get(const char*& src, Value x) override;
 	void out(Ostream& os) const override;
-	Value result(long hi, long lo) override
+	Value result(int hi, int lo) override
 		{
 		int64_t n = hi;
 		return (n << 32) + lo;
 		}
 	};
 
+static_assert(sizeof(void*) == sizeof(int32_t));
+
 // opaque pointer type (Suneido treats it like a number)
-class TypeOpaquePointer : public TypeInt<long>
+class TypeOpaquePointer : public TypeInt<int32_t>
 	{
 	void out(Ostream& os) const override;
 	};
@@ -116,7 +118,7 @@ public:
 	void put(char*& dst, char*&, const char*, Value x) override;
 	Value get(const char*& src, Value x) override;
 	void out(Ostream& os) const override;
-	Value result(long hi, long lo) override;
+	Value result(int hi, int lo) override;
 	};
 
 class TypeDouble : public Type
@@ -127,7 +129,7 @@ public:
 	void put(char*& dst, char*&, const char*, Value x) override;
 	Value get(const char*& src, Value x) override;
 	void out(Ostream& os) const override;
-	Value result(long hi, long lo) override;
+	Value result(int hi, int lo) override;
 	};
 
 // Windows resources - SuHandle, SuGdiObj
@@ -153,7 +155,7 @@ template <class T> class TypeWinRes : public Type
 		return new T(p);
 		}
 	void out(Ostream& os) const override;
-	Value result(long, long n) override
+	Value result(int, int n) override
 		{ return new T((void*) n); }
 	};
 
@@ -182,7 +184,7 @@ public:
 		{ }
 	Value get(const char*& src, Value x) override;
 	void out(Ostream& os) const override;
-	Value result(long, long n) override;
+	Value result(int, int n) override;
 	};
 
 // resource is either string or short

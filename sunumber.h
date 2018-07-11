@@ -30,7 +30,7 @@ class SuNumber : public SuValue
 public:
 	SuNumber(Dnum d) : dn(d)
 		{}
-	explicit SuNumber(long n) : dn(n)
+	explicit SuNumber(int n) : dn(n)
 		{}
 	explicit SuNumber(const char* buf) : dn(buf)
 		{}

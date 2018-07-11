@@ -115,8 +115,8 @@ private:
 	char* base[MAX_CHUNKS];
 	int hi_chunk;
 	int last_alloc;
-	long last_used[MAX_CHUNKS];
-	long use_t;
+	int last_used[MAX_CHUNKS];
+	int use_t;
 	int chunks_mapped;
 	int max_chunks_mapped;
 #ifdef MM_KEEPADR

@@ -33,7 +33,7 @@ const int mem = 4000;
 inline Record keydup(const Record& key)
 	{ return key.dup(); }
 
-inline long keydup(long key)
+inline int keydup(int key)
 	{ return key; }
 
 // array of key records, used by Index
@@ -204,7 +204,7 @@ private:
 		{ verify((char*) (t + sz) < (char*) t + prev - n); }
 	};
 
-// array of variable length key and long adr
+// array of variable length key and int adr
 class VFslot
 	{
 public:

@@ -277,7 +277,7 @@ void Database::write_commit_record(int tran, const deque<TranAct>& acts, int ncr
 		verify(deletes - commit->deletes() == ndeletes);
 		schema_deletes = Lisp<Mmoffset>();
 		// include commit in checksum, but don't include checksum itself
-		checksum((char*) commit + sizeof (long), mmf->length(commit) - sizeof (long));
+		checksum((char*) commit + sizeof (int), mmf->length(commit) - sizeof (int));
 		commit->cksum = cksum;
 		cksum = ::checksum(0, 0, 0); // reset
 		}

@@ -382,15 +382,15 @@ size_t SuObject::packsize() const
 		return ps;
 
 	Nest nest;
-	ps += sizeof (long); // vec size
+	ps += sizeof (int); // vec size
 	int n = vec.size();
 	for (int i = 0; i < n; ++i)
-		ps += sizeof (long) /* value size */ + vec[i].packsize();
+		ps += sizeof (int) /* value size */ + vec[i].packsize();
 
-	ps += sizeof (long); // map size
+	ps += sizeof (int); // map size
 	for (Map::const_iterator iter = map.begin(); iter != map.end(); ++iter)
-		ps += sizeof (long) /* member size */ + iter->key.packsize() +
-			sizeof (long) /* value size */ + iter->val.packsize();
+		ps += sizeof (int) /* member size */ + iter->key.packsize() +
+			sizeof (int) /* value size */ + iter->val.packsize();
 
 	return ps;
 	}
@@ -402,14 +402,14 @@ void SuObject::pack(char* buf) const
 		return ;
 
 	int nv = vec.size();
-	cvt_long(buf, nv);
-	buf += sizeof (long);
+	cvt_int32(buf, nv);
+	buf += sizeof (int);
 	for (int i = 0; i < nv; ++i)
 		buf += packvalue(buf, vec[i]);
 
 	int nm = map.size();
-	cvt_long(buf, nm);
-	buf += sizeof (long);
+	cvt_int32(buf, nm);
+	buf += sizeof (int);
 	for (Map::const_iterator iter = map.begin(); iter != map.end(); ++iter)
 		{
 		buf += packvalue(buf, iter->key); // member
@@ -428,14 +428,14 @@ void SuObject::pack(char* buf) const
 		return ob;
 	const char* buf = s.ptr() + 1; // skip PACK_OBJECT
 
-	int nv = cvt_long(buf);
-	buf += sizeof (long);
+	int nv = cvt_int32(buf);
+	buf += sizeof (int);
 	int i;
 	for (i = 0; i < nv; ++i)
 		ob->add(unpackvalue(buf));
 
-	int nm = cvt_long(buf);
-	buf += sizeof (long);
+	int nm = cvt_int32(buf);
+	buf += sizeof (int);
 	for (i = 0; i < nm; ++i)
 		{
 		Value member = unpackvalue(buf);

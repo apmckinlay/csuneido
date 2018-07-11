@@ -45,7 +45,7 @@ public:
 	void addval(Value x);
 	void addval(const gcstring& s);
 	void addval(const char* s);
-	void addval(long x);
+	void addval(int x);
 	void addnil();
 	void addmax();
 	void addmmoffset(Mmoffset o)
@@ -53,7 +53,7 @@ public:
 	gcstring getraw(int i) const;
 	Value getval(int i) const;
 	gcstring getstr(int i) const;
-	long getlong(int i) const;
+	int getlong(int i) const;
 	Mmoffset getmmoffset(int i) const
 		{ return int_to_mmoffset(getlong(i)); }
 

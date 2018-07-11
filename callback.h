@@ -37,7 +37,7 @@ public:
 	Value get(const char*& src, Value x) override
 		{ src += sizeof (void*); return x; }
 	void out(Ostream& os) const override;
-	long callback(Value fn, const char* src);
+	int callback(Value fn, const char* src);
 private:
 	short* mems;
 	};

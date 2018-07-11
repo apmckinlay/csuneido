@@ -67,7 +67,7 @@ List<gcstring> test_files()
 	return files;
 	}
 
-long file_size(FILE* f)
+int file_size(FILE* f)
 	{
 	fseek(f, 0, SEEK_END);
 	auto n = ftell(f);

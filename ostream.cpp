@@ -139,20 +139,6 @@ Ostream& Ostream::operator<<(unsigned int i)
 	return write_padded(buf, strlen(buf));
 	}
 
-Ostream& Ostream::operator<<(long i)
-	{
-	char buf[32];
-	itostr(i, buf, base());
-	return write_padded(buf, strlen(buf));
-	}
-
-Ostream& Ostream::operator<<(unsigned long i)
-	{
-	char buf[32];
-	utostr(i, buf, base());
-	return write_padded(buf, strlen(buf));
-	}
-
 Ostream& Ostream::operator<<(int64_t i)
 	{
 	char buf[I64BUF];
