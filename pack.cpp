@@ -28,7 +28,6 @@
 #include "sudate.h"
 #include "suobject.h"
 #include "surecord.h"
-#include "cvt.h"
 #include "globals.h"
 #include "named.h"
 
@@ -87,26 +86,6 @@ const char* unpackstr(const char*& buf)
 	const char* s = buf;
 	buf += strlen(s) + 1;
 	return s;
-	}
-
-// Value ============================================================
-
-int packvalue(char* buf, Value x)
-	{
-	int n = x.packsize();
-	cvt_int32(buf, n);
-	x.pack(buf + sizeof (int));
-	return sizeof (int) + n;
-	}
-
-Value unpackvalue(const char*& buf)
-	{
-	int n;
-	n = cvt_int32(buf);
-	buf += sizeof (int);
-	Value x = ::unpack(buf, n);
-	buf += n;
-	return x;
 	}
 
 // int =============================================================

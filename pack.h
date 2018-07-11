@@ -31,9 +31,6 @@ Value unpack(const char* buf, int len);
 Value unpack(const gcstring& s);
 gcstring unpack_gcstr(const gcstring& s);
 
-int packvalue(char* buf, Value x);
-Value unpackvalue(const char*& buf);
-
 size_t packsize(int n);
 void packlong(char* buf, int n);
 int unpacklong(const gcstring& s);
@@ -41,11 +38,6 @@ int unpacklong(const gcstring& s);
 int packstrsize(const char* s);
 int packstr(char* buf, const char* s);
 const char* unpackstr(const char*& buf);
-
-struct Named;
-int packnamesize(const Named& named);
-int packname(char* buf, const Named& named);
-int unpackname(const char* buf, Named& named);
 
 // in sort order
 enum

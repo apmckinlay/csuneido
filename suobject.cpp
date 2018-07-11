@@ -24,7 +24,6 @@
 #include "interp.h"
 #include "sunumber.h"
 #include "sustring.h"
-#include "cvt.h"
 #include "pack.h"
 #include "sublock.h" // for persist_if_block
 #include "lisp.h"
@@ -339,6 +338,8 @@ Value SuObject::get(Value m) const
 		return Value();
 	}
 
+// packing ----------------------------------------------------------
+
 /*
 pack format is:
 	int size of vector
@@ -355,6 +356,12 @@ pack format is:
 			packed value
 
 */
+
+static int packvalue(char* buf, Value x);
+static Value unpackvalue(const char*& buf);
+
+static char* cvt_int32(char* p, int n);
+static int cvt_int32(const char* p);
 
 const int NESTING_LIMIT = 20;
 
@@ -445,6 +452,45 @@ void SuObject::pack(char* buf) const
 	verify(buf == s.ptr() + s.size());
 	return ob;
 	}
+
+static int packvalue(char* buf, Value x)
+	{
+	int n = x.packsize();
+	cvt_int32(buf, n);
+	x.pack(buf + sizeof(int));
+	return sizeof(int) + n;
+	}
+
+static Value unpackvalue(const char*& buf)
+	{
+	int n;
+	n = cvt_int32(buf);
+	buf += sizeof(int);
+	Value x = ::unpack(buf, n);
+	buf += n;
+	return x;
+	}
+
+// complement leading bit to ensure correct unsigned compare
+
+static char* cvt_int32(char* p, int n)
+	{
+	n ^= 0x80000000;
+	p[3] = (char)n;
+	p[2] = (char)(n >>= 8);
+	p[1] = (char)(n >>= 8);
+	p[0] = (char)(n >> 8);
+	return p;
+	}
+
+static int cvt_int32(const char* q)
+	{
+	const unsigned char* p = (unsigned char*)q;
+	int n = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
+	return n ^ 0x80000000;
+	}
+
+//-------------------------------------------------------------------
 
 bool SuObject::erase(Value m)
 	{

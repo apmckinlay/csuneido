@@ -81,9 +81,6 @@
     <ClCompile Include="..\construct.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\cvt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\database.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -551,9 +548,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\construct.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\cvt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\database.h">

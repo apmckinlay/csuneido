@@ -132,7 +132,6 @@
     <ClCompile Include="..\compile.cpp" />
     <ClCompile Include="..\connection.cpp" />
     <ClCompile Include="..\construct.cpp" />
-    <ClCompile Include="..\cvt.cpp" />
     <ClCompile Include="..\database.cpp" />
     <ClCompile Include="..\date.cpp" />
     <ClCompile Include="..\dbcompact.cpp" />
@@ -294,7 +293,6 @@
     <ClInclude Include="..\commalist.h" />
     <ClInclude Include="..\compile.h" />
     <ClInclude Include="..\construct.h" />
-    <ClInclude Include="..\cvt.h" />
     <ClInclude Include="..\database.h" />
     <ClInclude Include="..\date.h" />
     <ClInclude Include="..\dbcompact.h" />
