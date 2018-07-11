@@ -671,7 +671,7 @@ void builtins()
 	builtin("int8", new TypeInt<char>);
 	builtin("int16", new TypeInt<short>);
 	builtin("int32", new TypeInt<long>);
-	builtin("int64", new TypeInt<long long>);
+	builtin("int64", new TypeInt<int64_t>);
 	builtin("pointer", new TypeOpaquePointer);
 	builtin("float", new TypeFloat);
 	builtin("double", new TypeDouble);

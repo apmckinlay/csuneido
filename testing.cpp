@@ -102,9 +102,9 @@ Benchmark::Benchmark(const char* n, Bfn f) : name(n), fn(f)
 	}
 
 // estimate how many reps per second
-long long reps_per_sec(Bfn fn)
+int64_t reps_per_sec(Bfn fn)
 	{
-	for (long long nreps = 1; ; nreps *= 2)
+	for (int64_t nreps = 1; ; nreps *= 2)
 		{
 		auto t1 = std::chrono::high_resolution_clock::now();
 		fn(nreps);
@@ -120,7 +120,7 @@ void run_benchmark(Ostream& os, Benchmark* b)
 	os << "-bench " << b->name << ": ";
 	try
 		{
-		long long nreps = reps_per_sec(b->fn);
+		int64_t nreps = reps_per_sec(b->fn);
 		auto t1 = std::chrono::high_resolution_clock::now();
 		b->fn(nreps);
 		auto t2 = std::chrono::high_resolution_clock::now();

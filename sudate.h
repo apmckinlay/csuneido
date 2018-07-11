@@ -59,7 +59,7 @@ public:
 	SuDate& increment();
 	static SuDate* timestamp();
 	static Value parse(const char* s, const char* order = "yMd");
-	static long long minus_ms(SuDate* d1, SuDate* d2);
+	static int64_t minus_ms(SuDate* d1, SuDate* d2);
 	static Value instantiate(short nargs, short nargnames, short* argnames, int each);
 private:
 	using Mfn = Value(SuDate::*)(short, short, short*, int);

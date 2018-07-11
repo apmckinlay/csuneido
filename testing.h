@@ -77,12 +77,12 @@ struct Testing
 
 // benchmarks -------------------------------------------------------
 
-using Bfn = void(*)(long long);
+using Bfn = void(*)(int64_t);
 
 #define BENCHMARK(name) \
-	void bench_##name(long long nreps); \
+	void bench_##name(int64_t nreps); \
 	static Benchmark benchmark##name(#name, bench_##name); \
-	void bench_##name(long long nreps)
+	void bench_##name(int64_t nreps)
 
 struct Benchmark
 	{

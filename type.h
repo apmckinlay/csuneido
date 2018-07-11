@@ -85,7 +85,7 @@ public:
 private:
 	};
 
-template<> class TypeInt<long long> : public Type
+template<> class TypeInt<int64_t> : public Type
 	{
 public:
 	int size() override

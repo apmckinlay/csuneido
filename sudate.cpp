@@ -703,7 +703,7 @@ Value SuDate::MinusDays(short nargs, short nargnames, short* argnames, int each)
 	return dt1.minus_days(dt2);
 	}
 
-long long SuDate::minus_ms(SuDate* d1, SuDate* d2)
+int64_t SuDate::minus_ms(SuDate* d1, SuDate* d2)
 	{
 	DateTime dt1(d1->date, d1->time);
 	DateTime dt2(d2->date, d2->time);
@@ -716,7 +716,7 @@ Value SuDate::MinusSeconds(short nargs, short nargnames, short* argnames, int ea
 	{
 	if (nargs != 1 || nargnames != 0)
 		except("usage: date.MinusSeconds(date)");
-	long long ms = minus_ms(this, force<SuDate*>(ARG(0)));
+	int64_t ms = minus_ms(this, force<SuDate*>(ARG(0)));
 	return SuNumber::from_double(double(ms) / 1000);
 	}
 
