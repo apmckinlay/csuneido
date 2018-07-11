@@ -82,4 +82,4 @@ int order(const char* name);
 
 Ostream& operator<<(Ostream& out, SuValue* x);
 
-gcstring packlong(int x);
+gcstring packint(int x);

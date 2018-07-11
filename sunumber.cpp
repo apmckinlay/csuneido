@@ -326,7 +326,7 @@ void SuNumber::pack(char* buf) const
 
 //-------------------------------------------------------------------
 
-uint64_t unpacklongpart(const uint8_t* buf, int sz);
+uint64_t unpackcoef(const uint8_t* buf, int sz);
 
 static const int MAX_TO_SHIFT = SHRT_MAX / 10000;
 
@@ -345,7 +345,7 @@ Value SuNumber::unpack(const gcstring& buf)
 	e = int8_t(e ^ 0x80);
 	e = (e - (buf.size() - 2) / 2);
 	// unpack min coef for easy conversion to integer
-	uint64_t n = unpacklongpart((const uint8_t*)buf.ptr(), buf.size());
+	uint64_t n = unpackcoef((const uint8_t*)buf.ptr(), buf.size());
 	if (e == 1 && n <= MAX_TO_SHIFT)
 		{
 		n *= 10000;
@@ -621,7 +621,7 @@ TEST(sunum_unpack_int)
 		for (int sign = +1; sign >= -1; sign -= 2)
 			{
 			int n = i * sign;
-			gcstring s = packlong(n);
+			gcstring s = packint(n);
 			Value v = unpack(s);
 			except_if(v.ptr() != nullptr, "should unpack to int: " << n);
 			assert_eq(v.integer(), n);

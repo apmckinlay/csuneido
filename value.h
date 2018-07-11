@@ -124,10 +124,10 @@ public:
 //		{ return is_int() ? ::packsize(im.n) : VAL->packsize(); }
 	void pack(char* buf) const
 		{ VAL->pack(buf); }
-//		{ is_int() ? packlong(buf, im.n) : VAL->pack(buf); }
+//		{ is_int() ? packint(buf, im.n) : VAL->pack(buf); }
 	gcstring pack() const
 		{ return VAL->pack(); }
-//		{ return is_int() ? ::packlong(im.n) : VAL->pack(); }
+//		{ return is_int() ? ::packint(im.n) : VAL->pack(); }
 
 	const char* type() const
 		{ return is_int() ? "Number" : p ? VAL->type() : "null"; }

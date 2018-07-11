@@ -185,9 +185,9 @@ gcstring Record::getstr(int i) const
 	return unpack_gcstr(getraw(i));
 	}
 
-int Record::getlong(int i) const
+int Record::getint(int i) const
 	{
-	return unpacklong(getraw(i));
+	return unpackint(getraw(i));
 	}
 
 bool Record::hasprefix(const Record& r)
@@ -300,7 +300,7 @@ void Record::addval(const char* s)
 
 void Record::addval(int n)
 	{
-	packlong(alloc(packsize(n)), n);
+	packint(alloc(packintsize(n)), n);
 	}
 
 template <class Src, class Dst> inline void repcopy(Src src, Dst dst)
@@ -543,14 +543,14 @@ TEST(record_record)
 	verify(r.dup() == r);
 
 	r.addval(1234);
-	verify(r.getlong(2) == 1234);
+	verify(r.getint(2) == 1234);
 
 	// add enough stuff to use all reps
 	for (int i = 0; i < 1000; ++i)
 		r.addval("1234567890123456789012345678901234567890123456789012345678901234567890");
 	verify(r.getstr(0) == "hello");
 	verify(r.getstr(1) == "world");
-	verify(r.getlong(2) == 1234);
+	verify(r.getint(2) == 1234);
 
 	Record big;
 	big.addnil();

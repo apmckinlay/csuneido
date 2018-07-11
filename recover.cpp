@@ -179,7 +179,7 @@ void DbRecoverImp::docheck(bool (*progress)(int))
 			if (tblnum == TN_TABLES)
 				{
 				Record r(mmf, iter.offset() + sizeof (int));
-				tbl_nextfield[r.getlong(T_TBLNUM)] = r.getlong(T_NEXTFIELD);
+				tbl_nextfield[r.getint(T_TBLNUM)] = r.getint(T_NEXTFIELD);
 				}
 			if (tblnum != TN_TABLES && tblnum != TN_INDEXES)
 				{
@@ -247,7 +247,7 @@ void DbRecoverImp::docheck(bool (*progress)(int))
 	++end;
 	}
 
-// workaround for old packlong bug (e.g. 1230000)
+// workaround for old packint bug (e.g. 1230000)
 static bool sloweq(const Record& r1, const Record& r2)
 	{
 	int n = r1.size();
@@ -401,13 +401,13 @@ bool DbRecoverImp::rebuild_copy(char* newfile, bool (*progress)(int))
 				if (tblnum == TN_TABLES && deleted)
 					{
 					Record r(db.mmf, o);
-					int tn = r.getlong(T_TBLNUM);
+					int tn = r.getint(T_TBLNUM);
 					deleted_tbls[tn] = o;
 					}
 				else if (tblnum == TN_INDEXES && ! deleted)
 					{
 					Record r(db.mmf, o);
-					int tn = r.getlong(I_TBLNUM);
+					int tn = r.getint(I_TBLNUM);
 					if (Mmoffset* po = deleted_tbls.find(tn))
 						{
 						schema(db, tblnames, *po);
@@ -418,7 +418,7 @@ bool DbRecoverImp::rebuild_copy(char* newfile, bool (*progress)(int))
 				else if (tblnum == TN_TABLES && ! deleted)
 					{
 					Record r(db.mmf, o);
-					int tn = r.getlong(I_TBLNUM);
+					int tn = r.getint(I_TBLNUM);
 					if (Mmoffset* po = renamed_tbls.find(tn))
 						{
 						gcstring oldname = Record(db.mmf, *po).getstr(T_TABLE);
@@ -508,7 +508,7 @@ static bool schema(Database& db, HashMap<TblNum,gcstring>& tblnames, Mmoffset o)
 	switch (schema_tblnum)
 		{
 	case TN_TABLES :
-		tblnum = r.getlong(T_TBLNUM);
+		tblnum = r.getint(T_TBLNUM);
 		if (tblnum <= TN_VIEWS)
 			break ;
 		if (tblnum > max_tblnum)
@@ -530,14 +530,14 @@ static bool schema(Database& db, HashMap<TblNum,gcstring>& tblnames, Mmoffset o)
 		r.addval((int) 100);	// totalsize
 		break ;
 	case TN_COLUMNS :
-		tblnum = r.getlong(C_TBLNUM);
+		tblnum = r.getint(C_TBLNUM);
 		if (tblnum <= TN_VIEWS)
 			break ;
 		db.add_index_entries(schema_tran, db.get_table(TN_COLUMNS), r);
-		db.invalidate_table(r.getlong(C_TBLNUM));
+		db.invalidate_table(r.getint(C_TBLNUM));
 		break ;
 	case TN_INDEXES :
-		tblnum = r.getlong(I_TBLNUM);
+		tblnum = r.getint(I_TBLNUM);
 		if (tblnum <= TN_VIEWS)
 			break ;
 		if (! db.recover_index(r))
@@ -569,22 +569,22 @@ static void schema_dump(void* p, Ostream& log)
 		{
 	case TN_TABLES :
 		{
-		tblnum = r.getlong(T_TBLNUM);
+		tblnum = r.getint(T_TBLNUM);
 		table = r.getstr(T_TABLE);
-		nrows = r.getlong(T_NROWS);
+		nrows = r.getint(T_NROWS);
 		log << "TBL " << table << " = " << tblnum << " nrows " << nrows << endl;
 		break ;
 		}
 	case TN_COLUMNS :
 		{
-		tblnum = r.getlong(C_TBLNUM);
+		tblnum = r.getint(C_TBLNUM);
 		gcstring column = r.getstr(C_COLUMN);
 		log << "COL " << tblnum << ", " << column << endl;
 		break ;
 		}
 	case TN_INDEXES :
 		{
-		tblnum = r.getlong(I_TBLNUM);
+		tblnum = r.getint(I_TBLNUM);
 		if (tblnum <= TN_VIEWS)
 			break ;
 		gcstring columns = r.getstr(I_COLUMNS);

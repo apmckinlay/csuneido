@@ -110,11 +110,11 @@ gcstring SuValue::pack() const
 	return gcstring::noalloc(buf, n);
 	}
 
-gcstring packlong(int x)
+gcstring packint(int x)
 	{
-	int n = packsize(x);
+	int n = packintsize(x);
 	char* buf = salloc(n);
-	packlong(buf, x);
+	packint(buf, x);
 	return gcstring::noalloc(buf, n);
 	}
 
@@ -127,7 +127,7 @@ Ostream& operator<<(Ostream& out, SuValue* x)
 	return out;
 	}
 
-Value SuValue::call(Value self, Value member, 
+Value SuValue::call(Value self, Value member,
 	short nargs, short nargnames, short* argnames, int each)
 	{
 	if (member == CALL)

@@ -90,7 +90,7 @@ const char* unpackstr(const char*& buf)
 
 // int =============================================================
 
-size_t packsize(int n)
+size_t packintsize(int n)
 	{
 	if (n == 0)
 		return 1;
@@ -105,7 +105,7 @@ size_t packsize(int n)
 	return 8;
 	}
 
-void packlong(char* buf, int n)
+void packint(char* buf, int n)
 	{
 	buf[0] = n < 0 ? PACK_MINUS : PACK_PLUS;
 	if (n == 0)
@@ -184,7 +184,7 @@ void packlong(char* buf, int n)
 	}
 
 // unsigned, min coef
-uint64_t unpacklongpart(const uint8_t* buf, int sz)
+uint64_t unpackcoef(const uint8_t* buf, int sz)
 	{
 	uint64_t n = 0;
 	if (buf[0] == PACK_PLUS)
@@ -212,7 +212,7 @@ uint64_t unpacklongpart(const uint8_t* buf, int sz)
 	return n;
 	}
 
-int unpacklong(const gcstring& s)
+int unpackint(const gcstring& s)
 	{
 	int sz = s.size();
 	if (sz <= 2)
@@ -225,7 +225,7 @@ int unpacklong(const gcstring& s)
 	if (minus)
 		e = uint8_t(~e);
 	e = int8_t(e ^ 0x80) - (sz - 2) / 2;
-	int n = unpacklongpart(buf, sz);
+	int n = unpackcoef(buf, sz);
 	for (; e > 0; --e)
 		n *= 10000;
 	return minus ? -n : n;
@@ -277,16 +277,16 @@ TEST(pack_number)
 static void testpack(int x)
 	{
 	char buf[80];
-	packlong(buf, x);
-	gcstring s = gcstring::noalloc(buf, packsize(x));
-	int y = unpacklong(s);
+	packint(buf, x);
+	gcstring s = gcstring::noalloc(buf, packintsize(x));
+	int y = unpackint(s);
 	assert_eq(x, y);
 	Value num = ::unpack(s);
 	assert_eq(x, num.integer());
-	assert_eq(packsize(x), num.packsize());
+	assert_eq(packintsize(x), num.packsize());
 	char buf2[80];
 	num.pack(buf2);
-	verify(0 == memcmp(buf, buf2, packsize(x)));
+	verify(0 == memcmp(buf, buf2, packintsize(x)));
 	}
 TEST(pack_long)
 	{

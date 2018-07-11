@@ -53,9 +53,9 @@ public:
 	gcstring getraw(int i) const;
 	Value getval(int i) const;
 	gcstring getstr(int i) const;
-	int getlong(int i) const;
+	int getint(int i) const;
 	Mmoffset getmmoffset(int i) const
-		{ return int_to_mmoffset(getlong(i)); }
+		{ return int_to_mmoffset(getint(i)); }
 
 	bool hasprefix(const Record& r);
 	bool prefixgt(const Record& r);

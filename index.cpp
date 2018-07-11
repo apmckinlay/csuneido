@@ -235,7 +235,7 @@ static char buf[128];
 
 int kk(Record& r)
 	{
-	return r.getlong(1);
+	return r.getint(1);
 	}
 Record k(uint32_t recnum)
 	{

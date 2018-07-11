@@ -44,11 +44,11 @@ const int DB_VERSION = 1; // increment this for non-compatible database format c
 Tbl::Tbl(const Record& r, const Lisp<Col>& c, const Lisp<Idx>& i)
 	: rec(r), cols(c), idxs(i), trigger(0)
 	{
-	num = rec.getlong(T_TBLNUM);
+	num = rec.getint(T_TBLNUM);
 	name = rec.getstr(T_TABLE).to_heap();
-	nextfield = rec.getlong(T_NEXTFIELD);
-	nrecords = rec.getlong(T_NROWS);
-	totalsize = rec.getlong(T_TOTALSIZE);
+	nextfield = rec.getint(T_NEXTFIELD);
+	nrecords = rec.getint(T_NROWS);
+	totalsize = rec.getint(T_TOTALSIZE);
 	}
 
 void Tbl::update()
@@ -75,7 +75,7 @@ Idx::Idx(const gcstring& table, const Record& r, const gcstring& c, short* n,
 	: index(i), nnodes(i->get_nnodes()), rec(r), columns(c), colnums(n),
 		iskey(SuTrue == r.getval(I_KEY)), 
 		fksrc(r.getstr(I_FKTABLE).to_heap(), r.getstr(I_FKCOLUMNS).to_heap(),
-		      (Fkmode)r.getlong(I_FKMODE))
+		      (Fkmode)r.getint(I_FKMODE))
 	{
 	// find foreign keys pointing to this index
 	for (Index::iterator iter = db->fkey_index->begin(schema_tran, key(table, columns));
@@ -84,9 +84,9 @@ Idx::Idx(const gcstring& table, const Record& r, const gcstring& c, short* n,
 		Record ri(iter.data());
 		verify(ri.getstr(I_FKTABLE) == table);
 		verify(ri.getstr(I_FKCOLUMNS) == columns);
-		gcstring table2 = db->get_table(ri.getlong(I_TBLNUM))->name;
+		gcstring table2 = db->get_table(ri.getint(I_TBLNUM))->name;
 		fkdsts.push(Fkey(table2, ri.getstr(I_COLUMNS).to_heap(), 
-			(Fkmode) ri.getlong(I_FKMODE)));
+			(Fkmode) ri.getint(I_FKMODE)));
 		}
 	}
 
@@ -278,7 +278,7 @@ void Database::add_index(const gcstring& table, const gcstring& columns, bool is
 
 bool Database::recover_index(Record& idxrec)
 	{
-	Tbl* tbl = get_table(idxrec.getlong(I_TBLNUM));
+	Tbl* tbl = get_table(idxrec.getint(I_TBLNUM));
 	if (! tbl)
 		return false;
 	gcstring columns = idxrec.getstr(I_COLUMNS);
@@ -1096,11 +1096,11 @@ Index* Database::mkindex(const Record& r)
 	verify(! nil(r));
 	auto columns = r.getstr(I_COLUMNS).str();
 	return new Index(this,
-		r.getlong(I_TBLNUM),
+		r.getint(I_TBLNUM),
 		columns,
 		r.getmmoffset(I_ROOT),
-		r.getlong(I_TREELEVELS),
-		r.getlong(I_NNODES),
+		r.getint(I_TREELEVELS),
+		r.getint(I_NNODES),
 		r.getval(I_KEY) == SuTrue,
 		r.getval(I_KEY) == u);
 	}
@@ -1165,7 +1165,7 @@ Tbl* Database::get_table(const Record& table_rec)
 		return 0; // table not found
 	gcstring table = table_rec.getstr(T_TABLE).to_heap();
 
-	Record tblkey = key(table_rec.getlong(T_TBLNUM));
+	Record tblkey = key(table_rec.getint(T_TBLNUM));
 
 	// columns
 	Lisp<Col> cols;
@@ -1174,7 +1174,7 @@ Tbl* Database::get_table(const Record& table_rec)
 		{
 		Record r(iter.data());
 		gcstring column = r.getstr(C_COLUMN).to_heap();
-		int colnum = r.getlong(C_FLDNUM);
+		int colnum = r.getint(C_FLDNUM);
 		cols.push(Col(column, colnum));
 		}
 	cols.sort();
