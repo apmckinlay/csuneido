@@ -4,9 +4,9 @@
 // NOTE: because of the static's this code is NOT re-entrant
 
 #include "compile.h"
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
 #include "std.h"
 #include <vector>
 #include <memory>

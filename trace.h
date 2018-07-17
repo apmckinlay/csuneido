@@ -38,4 +38,4 @@ extern Ostream& tout();
 
 #define TRACE(mask, stuff) \
 	if ((trace_level & TRACE_##mask)) \
-		tout() << #mask << ' ' << stuff << endl
+		tout() << #mask << ' ' << stuff << endl  // NOLINT(misc-macro-parentheses)

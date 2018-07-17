@@ -38,8 +38,8 @@ private:
 	Value Update(BuiltinArgs&);
 	Value ValueFn(BuiltinArgs&);
 
-	HCRYPTPROV hCryptProv;
-	HCRYPTHASH hHash;
+	HCRYPTPROV hCryptProv{};
+	HCRYPTHASH hHash{};
 	};
 
 Value su_md5()

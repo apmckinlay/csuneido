@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 
 #include "catstr.h"
-#include <stdarg.h>
+#include <cstdarg>
 
 char *catstr(char* buf, ...)
 	{

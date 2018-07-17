@@ -3,10 +3,10 @@
 
 #include "builtinclass.h"
 #include "sustring.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
 #include "readline.h"
+#include <cstdio>
+#include <cstdlib>
+#include <fcntl.h>
 #include <algorithm>
 using std::min;
 

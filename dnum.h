@@ -80,8 +80,8 @@ private:
 	friend bool align(Dnum& x, Dnum& y);
 	friend Dnum uadd(const Dnum& x, const Dnum& y);
 	friend Dnum usub(const Dnum& x, const Dnum& y);
-	friend static void test_dnum_misc();
-	friend static bool almostSame(const Dnum& x, const Dnum& y);
+	friend void test_dnum_misc();
+	friend bool almostSame(const Dnum& x, const Dnum& y);
 
 	uint64_t coef;
 	int8_t sign;

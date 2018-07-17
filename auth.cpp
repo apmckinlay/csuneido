@@ -5,8 +5,8 @@
 #include "htbl.h"
 #include "thedb.h"
 #include "database.h"
-#include <stdlib.h> // for srand and rand
-#include <time.h> // for time which is used to seed rand
+#include <cstdlib> // for srand and rand
+#include <ctime> // for time which is used to seed rand
 
 static Hset<gcstring> tokens;
 

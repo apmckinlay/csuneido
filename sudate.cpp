@@ -15,11 +15,10 @@
 #include "sunumber.h"
 #include "suobject.h"
 #include "pack.h"
-#include <ctype.h>
+#include <cctype>
 #include "func.h" // for argseach
 #include "ostreamstr.h"
 #include "cmpic.h"
-#include "itostr.h"
 #include "gc.h"
 #include <algorithm>
 using std::min;

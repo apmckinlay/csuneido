@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 
 #include "cmpic.h"
-#include <ctype.h>
+#include <cctype>
 
 int strcmpic(const char* s, const char* t)
 	{

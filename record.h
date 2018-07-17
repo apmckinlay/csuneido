@@ -15,7 +15,7 @@ struct DbRep;
 class Record
 	{
 public:
-	Record() : crep(0)
+	Record() : crep(nullptr) // NOLINT
 		{ }
 	explicit Record(size_t sz);
 	explicit Record(const void* r);

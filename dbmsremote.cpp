@@ -38,7 +38,7 @@ public:
 	void erase(int tn, Mmoffset recadr) override;
 	Value exec(Value ob) override;
 	int final() override;
-	Row get(Dir dir, const char* query, bool one, Header& hdr, int tn = NO_TRAN) override;
+	Row get(Dir dir, const char* query, bool one, Header& hdr, int tn) override;
 	int kill(const char* sessionid) override;
 	Lisp<gcstring> libget(const char* name) override;
 	Lisp<gcstring> libraries() override;
@@ -55,7 +55,7 @@ public:
 	Value timestamp() override;
 	gcstring token() override;
 	Lisp<int> tranlist() override;
-	int transaction(TranType type, const char* session_id = "") override;
+	int transaction(TranType type, const char* session_id) override;
 	Mmoffset update(int tn, Mmoffset recadr, Record& rec) override;
 	int writeCount(int tn) override;
 private:

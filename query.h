@@ -5,9 +5,9 @@
 #include "gcstring.h"
 #include "lisp.h"
 #include "row.h"
-#include <float.h>
 #include "value.h"
 #include "dir.h"
+#include <cfloat>
 
 typedef gcstring Field;
 typedef Lisp<Field> Fields;

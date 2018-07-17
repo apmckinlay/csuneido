@@ -2,7 +2,7 @@
 // Copyright (c) 2000 Suneido Software Corp. All rights reserved
 // Licensed under GPLv2
 
-#include <string.h>
+#include <cstring>
 #include "hashfn.h"
 
 class Ostream;
@@ -13,15 +13,16 @@ class gcstring
 	{
 	// invariant: if n is 0 then p is empty_buf
 public:
-	gcstring() : n(0), p(empty_buf)
+	gcstring() : n(0), p(empty_buf) // NOLINT
 		{ }
 	explicit gcstring(size_t nn);
 	gcstring(const gcstring& s) = default;
 	gcstring& operator=(const gcstring& s) = default;
 
-	gcstring(const char* s)
+	// ReSharper disable once CppNonExplicitConvertingConstructor
+	gcstring(const char* s) // NOLINT
 		{ init(s, s ? strlen(s) : 0); }
-	gcstring(const char* s, size_t len)
+	gcstring(const char* s, size_t len) // NOLINT
 		{ init(s, len); }
 	gcstring& operator=(const char* s)
 		{
@@ -91,7 +92,7 @@ private:
 	// CAUTION: constructor that doesn't allocate
 	// WARNING: p2[n2] must be valid, ie. p2 must be one bigger than n2 !!!
 	// p2[n2] should be nul if you will use str()
-	gcstring(size_t n2, const char* p2)
+	gcstring(size_t n2, const char* p2) // NOLINT
 		: n(n2), p(n2 == 0 ? empty_buf : p2)
 		{ }
 	friend class SuString;

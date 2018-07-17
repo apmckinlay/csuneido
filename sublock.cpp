@@ -101,7 +101,7 @@ void persist_if_block(Value x)
 	}
 
 #define within(ob, p) \
-	((char*) &(ob) < (char*) (p) && (char*) (p) < (char*) &(ob) + sizeof ob)
+	((char*) &(ob) < (char*) (p) && (char*) (p) < (char*) &(ob) + sizeof (ob))
 
 void SuBlock::persist()
 	{

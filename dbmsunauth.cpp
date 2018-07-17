@@ -21,7 +21,7 @@ public:
 		{ return dbms->auth(data); }
 	Value check() override
 		{ unauth(); }
-	bool commit(int tran, const char** conflict = 0) override
+	bool commit(int tran, const char** conflict) override
 		{ unauth(); }
 	Value connections() override
 		{ unauth(); }
@@ -37,7 +37,7 @@ public:
 		{ unauth(); }
 	int final() override
 		{ unauth(); }
-	Row get(Dir dir, const char* query, bool one, Header& hdr, int tran = 0) override
+	Row get(Dir dir, const char* query, bool one, Header& hdr, int tran) override
 		{ unauth(); }
 	int kill(const char* s) override
 		{ unauth(); }
@@ -71,7 +71,7 @@ public:
 		{ unauth(); }
 	Lisp<int> tranlist() override
 		{ unauth(); }
-	int transaction(TranType type, const char* session_id = "") override
+	int transaction(TranType type, const char* session_id) override
 		{ unauth(); }
 	Mmoffset update(int tran, Mmoffset recadr, Record& rec) override
 		{ unauth(); }

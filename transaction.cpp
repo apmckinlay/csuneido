@@ -3,7 +3,6 @@
 
 #include "database.h"
 #include "hashmap.h"
-#include <limits.h>
 #include "lisp.h"
 #include "except.h"
 #include "exceptimp.h"
@@ -11,8 +10,7 @@
 #include "errlog.h"
 #include "checksum.h"
 #include "ostreamstr.h"
-
-using namespace std;
+#include <climits>
 
 // TODO: why is trans a map? wouldn't a HashMap be faster & smaller?
 // don't seem to use the ordered aspect
@@ -22,9 +20,6 @@ const TranTime UNCOMMITTED = INT_MAX / 2;
 const TranTime PAST = INT_MIN;
 
 inline TranDelete::TranDelete(TranTime t) : tran(t), time(t + UNCOMMITTED)
-	{ }
-
-Transaction::Transaction()
 	{ }
 
 Transaction::Transaction(TranType t, TranTime clock, const char* sid)
@@ -41,7 +36,7 @@ int Database::transaction(TranType type, const char* session_id)
 
 Transaction* Database::get_tran(int tran)
 	{
-	map<int,Transaction>::iterator iter = trans.find(tran);
+	auto iter = trans.find(tran);
 	return iter == trans.end() ? 0 : &iter->second;
 	}
 
@@ -55,12 +50,12 @@ Transaction* Database::ck_get_tran(int tran)
 Lisp<int> Database::tranlist()
 	{
 	Lisp<int> ts;
-	for (map<int,Transaction>::iterator iter = trans.begin(); iter != trans.end(); ++iter)
-		ts.push(iter->first);
+	for (const auto& [key,val] : trans)
+		ts.push(key);
 	return ts.reverse();
 	}
 
-int Database::final_size()
+int Database::final_size() const
 	{
 	return final.size();
 	}
@@ -667,7 +662,7 @@ TEST(transaction_reads)
 
 	{ int t = thedb->transaction(READWRITE);
 	Index::iterator iter = thedb->get_index("test", "name")->iter(t, key("a"), key("z"));
-	--iter;
+	(void) --iter;
 	Transaction& tran = thedb->trans[t];
 	verify(tran.reads.size() == 1);
 	TranRead& trd = tran.reads.back();

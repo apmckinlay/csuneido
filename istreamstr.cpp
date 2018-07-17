@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 
 #include "istreamstr.h"
-#include <string.h>
+#include <cstring>
 
 class IstreamStrImp
 	{

@@ -1,11 +1,11 @@
 // Copyright (c) 2004 Suneido Software Corp. All rights reserved
 // Licensed under GPLv2
 
-#include <locale.h>
 #include "value.h"
 #include "interp.h"
 #include "sustring.h"
 #include "builtin.h"
+#include <clocale>
 
 void scanner_locale_changed();
 

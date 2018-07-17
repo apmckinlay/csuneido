@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 
 #include "ostreamfile.h"
-#include <stdio.h>
+#include <cstdio>
 
 class OstreamFileImp
 	{

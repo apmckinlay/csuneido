@@ -49,6 +49,6 @@ private:
 	bool rewound;
 	Header hdr;
 	Fields via;
-	class Strategy* strategyImp;
+	class Strategy* strategyImp{};
 	bool wholeRecord;
 	};

@@ -4,7 +4,6 @@
 // NOTE: you can't use incremental linking with this code
 
 #include "callback.h"
-#include "std.h"
 #include "interp.h"
 #include "except.h"
 #include "exceptimp.h"

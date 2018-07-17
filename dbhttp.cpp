@@ -5,7 +5,7 @@
 #include "sockets.h"
 #include "fibers.h"
 #include "ostreamstr.h"
-#include <time.h>
+#include <ctime>
 #include "thedb.h"
 #include "database.h"
 #include "suobject.h"
@@ -32,10 +32,10 @@ static void _stdcall dbhttp(void* sc)
 extern int su_port;
 void start_dbhttp()
 	{
-	socketServer("", su_port + 1, dbhttp, 0, false);
+	socketServer("", su_port + 1, dbhttp, nullptr, false);
 	}
 
-#define MB(n) ((n + 512 * 1024) / (1024*1024))
+#define MB(n) (((n) + 512 * 1024) / (1024*1024))
 
 extern SuObject& dbserver_connections();
 extern int tempdest_inuse;

@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 
 #include "btree.h"
-#include "slots.h"
-#include "testing.h"
-#include <vector>
 
 // tests ------------------------------------------------------------
+
+#include "testing.h"
+#include <vector>
 
 class TestDest
 	{

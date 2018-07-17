@@ -3,7 +3,7 @@
 
 #include "gcstring.h"
 #include "except.h"
-#include "ctype.h"
+#include <cctype>
 #include "gc.h"
 #include <algorithm>
 using std::min;
@@ -25,7 +25,7 @@ struct Concat
 // always allocate an extra character for a nul
 // this ensures (even for substr's) that p[n] is always a valid address
 
-gcstring::gcstring(size_t nn) : n(nn)
+gcstring::gcstring(size_t nn) : n(nn)  // NOLINT
 	{
 	if (n == 0)
 		p = empty_buf;

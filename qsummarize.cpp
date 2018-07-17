@@ -3,7 +3,6 @@
 
 #include "qsummarize.h"
 #include "queryimp.h"
-#include "sunumber.h"
 #include "sustring.h"
 #include "suobject.h" // for List
 #include <map>

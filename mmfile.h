@@ -4,8 +4,7 @@
 
 #include "std.h"
 #include "mmoffset.h"
-// ReSharper disable once CppUnusedIncludeDirective
-#include <stddef.h> // for size_t
+#include <cstddef> // for size_t
 
 //#define MM_KEEPADR
 
@@ -80,23 +79,23 @@ private:
 	void set_file_size(Mmoffset fs);
 	int lru_chunk();
 	void evict_chunk();
-	friend static void test_mmfile_chunks();
-	friend static void test_mmfile_unmap();
+	friend void test_mmfile_chunks();
+	friend void test_mmfile_unmap();
 
 	enum { MB_MAX_DB = 16 * 1024 }; // 16 gb
 	enum { MAX_CHUNKS = MB_MAX_DB / MB_PER_CHUNK };
 #ifdef _WIN32
-	void* f;
-	void* fm[MAX_CHUNKS];
+	void* f{};
+	void* fm[MAX_CHUNKS]{};
 #else
 	int fd;
 #endif
 	int chunk_size;
-	Mmoffset file_size;
-	char* base[MAX_CHUNKS];
+	Mmoffset file_size{};
+	char* base[MAX_CHUNKS]{};
 	int hi_chunk;
-	int last_alloc;
-	int last_used[MAX_CHUNKS];
+	int last_alloc{};
+	int last_used[MAX_CHUNKS]{};
 	int use_t;
 	int chunks_mapped;
 	int max_chunks_mapped;

@@ -7,9 +7,9 @@
 // tests ------------------------------------------------------------
 
 #define TEST(name) \
-	static void test_##name(); \
+	void test_##name(); \
 	static Test testcase##name(#name, test_##name); \
-	static void test_##name()
+	void test_##name()
 
 using Tfn = void(*)();
 

@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 
 #include "regexp.h"
-#include <limits.h>
 #include "cachemap.h"
 #include "gcstring.h"
 #include "except.h"
 #include "charmatcher.h"
+#include <climits>
 #include <typeinfo>
 #include <vector>
 
@@ -713,7 +713,8 @@ bool RxCompile::next1of(const char* const set) const
 class RxMatch
 	{
 public:
-	RxMatch(const char* str, int len, Rxpart* pts)
+	// ReSharper disable once CppPossiblyUninitializedMember
+	RxMatch(const char* str, int len, Rxpart* pts) // NOLINT
 		: s(str), n(len), part(pts ? pts : parts)
 		{ }
 	int amatch(int si, const Element** pat, IntList* alt_si, IntList* alt_pi) const;

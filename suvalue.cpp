@@ -6,8 +6,9 @@
 #include "except.h"
 #include "ostreamstr.h"
 #include "gcstring.h"
+#include "pack.h"
 #include <typeinfo>
-#include "ctype.h"
+#include <cctype>
 
 static int other = ::order("other");
 

@@ -6,6 +6,7 @@
 #include "value.h"
 #include "except.h"
 #include "fibers.h" // for tls().proc
+// ReSharper disable once CppUnusedIncludeDirective
 #include "noargs.h"
 
 class SuValue;
@@ -156,7 +157,7 @@ extern int callnest;
 Value docall(Value x, Value member, short nargs = 0, 
 	short nargnames = 0, short* argnames = nullptr, int each = -1);
 
-#define ARG(i) tls().proc->stack.getsp()[1 - nargs + i]
+#define ARG(i) tls().proc->stack.getsp()[1 - nargs + (i)]
 
 inline void PUSH(Value x)
 	{ tls().proc->stack.push(x); }

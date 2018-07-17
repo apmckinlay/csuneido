@@ -6,7 +6,7 @@
 #include "array.h"
 #include "recover.h"
 #include "commalist.h"
-#include <ctype.h>
+#include <cctype>
 #ifdef _WIN32
 #include <io.h> // for access
 #include <process.h>
@@ -124,10 +124,7 @@ private:
 // Database ======================================================
 
 Database::Database(const char* file, bool createmode)
-	: loading(false),
-	tables(new Tables), tables_index(0), columns_index(0), indexes_index(0),
-	fkey_index(0), views_index(0), clock(1),
-	cksum(::checksum(0,0,0)), output_type(MM_DATA)
+	: tables(new Tables), clock(1), cksum(::checksum(0,nullptr,0)), output_type(MM_DATA)
 	{
 	bool existed = _access(file, 0) == 0;
 	mmf = new Mmfile(file, createmode);
@@ -142,6 +139,7 @@ Database::Database(const char* file, bool createmode)
 	dest = new IndexDest(mmf);
 	if (! mmf->first())
 		{
+		// ReSharper disable once CppAssignedValueIsNeverUsed
 		output_type = MM_OTHER;
 		create();
 		output_type = MM_DATA;

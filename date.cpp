@@ -2,7 +2,6 @@
 // Licensed under GPLv2
 
 #include "date.h"
-#include <time.h>
 #include "except.h"
 
 DateTime::DateTime(int date, int time)

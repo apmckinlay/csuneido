@@ -33,18 +33,18 @@ void* operator new[](size_t n, NoPtrs)
 	return ck(GC_malloc_atomic(n));
 	}
 
-void operator delete(void*)
+void operator delete(void*) noexcept
 	{
 	}
 
-void operator delete(void*, unsigned int)
+void operator delete(void*, unsigned int) noexcept
 	{
 	}
 
-void operator delete[](void*)
+void operator delete[](void*) noexcept
 	{
 	}
 
-void operator delete[](void*, unsigned int)
+void operator delete[](void*, unsigned int) noexcept
 	{
 	}

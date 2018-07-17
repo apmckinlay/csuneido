@@ -42,8 +42,8 @@ class Sha256 : public SuValue
 		Value ValueFn(BuiltinArgs&);
 		void close();
 
-		HCRYPTPROV hCryptProv;
-		HCRYPTHASH hHash;
+		HCRYPTPROV hCryptProv{};
+		HCRYPTHASH hHash{};
 	};
 
 Value su_sha256()

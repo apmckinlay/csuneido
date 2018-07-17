@@ -2,8 +2,8 @@
 // Copyright (c) 2000 Suneido Software Corp. All rights reserved
 // Licensed under GPLv2
 
-#include <stdio.h>	// for remove
 #include "database.h"
+#include <cstdio>	// for remove
 
 extern Database* thedb;
 
@@ -20,6 +20,10 @@ public:
 			thedb->mmf->alloc(4000000, MM_OTHER, false);
 #endif
 		}
+	TempDB(const TempDB&) = delete;
+	TempDB& operator=(const TempDB&) = delete;
+	TempDB(TempDB&&) = delete;
+	TempDB& operator=(const TempDB&&) = delete;
 
 	static void reopen()
 		{

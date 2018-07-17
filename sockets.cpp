@@ -178,8 +178,7 @@ static int getport(int sock)
 
 static struct addrinfo* resolve(const char* addr, int port)
 	{
-	struct addrinfo hints;
-	memset(&hints, 0, sizeof hints);
+	struct addrinfo hints{};
 	// specify IPv4 since allowing IPv6 with AF_UNSPEC seems to cause problems
 	// e.g. addr of "" doesn't work and it's giving IPv6
 	// although 127.0.0.1 gives IPv4
@@ -249,10 +248,10 @@ public:
 	void close() override;
 private:
 	int sock;
-	struct timeval tv;
+	struct timeval tv{};
 	};
 
-#define FDS(fds, sock) struct fd_set fds; FD_ZERO(&fds); FD_SET(sock, &fds);
+#define FDS(fds, sock) struct fd_set fds{}; FD_SET(sock, &(fds));
 
 SocketConnect* socketClientSync(const char* addr, int port, int timeout, int timeoutConnect)
 	{
@@ -278,7 +277,7 @@ SocketConnect* socketClientSync(const char* addr, int port, int timeout, int tim
 			cantConnect();
 		FDS(wfds, sock);
 		FDS(efds, sock);
-		struct timeval tv;
+		struct timeval tv;  // NOLINT
 		tv.tv_sec = timeoutConnect / 1000;
 		tv.tv_usec = (timeoutConnect % 1000) * 1000; // ms => us
 		if (0 == select(1, nullptr, &wfds, &efds, &tv))

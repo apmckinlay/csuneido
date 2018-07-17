@@ -8,15 +8,15 @@
 #include "database.h"
 #include "ostreamfile.h"
 #include "alert.h"
-#include <vector>
 #include "catstr.h"
-#include <stdio.h>	// for remove
 #include "errlog.h"
 #include "checksum.h"
 #include "value.h"
 #include "cmdlineoptions.h"
 #include "ostreamstr.h"
 #include "exceptimp.h"
+#include <vector>
+#include <cstdio>	// for remove
 #include <algorithm>
 using std::max;
 

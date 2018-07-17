@@ -29,8 +29,8 @@ class Btree
 	typedef typename LeafSlots::iterator LeafSlotsIterator;
 	typedef typename TreeSlots::iterator TreeSlotsIterator;
 	typedef Btree<LeafSlot,TreeSlot,LeafSlots,TreeSlots,Dest> btree;
-	friend static void test_btree_rangefrac_onelevel();
-	friend static void test_btree_rangefrac_multilevel();
+	friend void test_btree_rangefrac_onelevel();
+	friend void test_btree_rangefrac_multilevel();
 private:
 	// LeafNode -----------------------------------------------------
 	struct LeafNode

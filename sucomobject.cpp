@@ -20,18 +20,21 @@ inline LPWSTR WINAPI AtlA2WHelper(LPWSTR lpw, LPCSTR lpa, int nChars)
 	int _convert; (void) _convert;\
 	const char* _lpa; (void) _lpa;
 #define A2OLE(s) \
-	(((_lpa = s) == NULL) ? NULL : ( _convert = (strlen(_lpa)+1), AtlA2WHelper((LPWSTR) _alloca(_convert*2), _lpa, _convert)))
+	(((_lpa = (s)) == NULL) ? NULL : ( _convert = (strlen(_lpa)+1), \
+	AtlA2WHelper((LPWSTR) _alloca(_convert*2), _lpa, _convert)))
+
+// ReSharper disable CppSomeObjectMembersMightNotBeInitialized
 
 // a wrapper for COM objects
 // that allows access via IDispatch
 class SuCOMobject : public  SuValue
 	{
 public:
-	explicit SuCOMobject(IDispatch* id, const char* pi = "???") 
+	explicit SuCOMobject(IDispatch* id, const char* pi = "???")   // NOLINT
 		: idisp(id), progid(pi), isdisp(true)
-		{ verify(NULL != idisp); }
+		{ verify(idisp); }
 
-	explicit SuCOMobject(IUnknown* iu, const char* pi = "???") 
+	explicit SuCOMobject(IUnknown* iu, const char* pi = "???")   // NOLINT
 		: iunk(iu), progid(pi), isdisp(false)
 		{ verify(NULL != iunk); }
 	void out(Ostream& os) const override;

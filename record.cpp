@@ -2,16 +2,16 @@
 // Licensed under GPLv2
 
 #include "record.h"
-#include "std.h"
-#include "suvalue.h"
 #include "sustring.h"
 #include "pack.h"
-#include <limits.h>
 #include "gc.h"
 #include "mmfile.h"
+#include <climits>
 #include <algorithm>
 using std::min;
 using std::max;
+
+// ReSharper disable CppSomeObjectMembersMightNotBeInitialized
 
 template <class T> struct RecRep
 	{
@@ -68,14 +68,16 @@ struct DbRep
 		{ return Record(mmf->adr(offset)); }
 	};
 
-Record::Record(size_t sz) : crep((RecRep<unsigned char>*) ::operator new (sz + 1, noptrs))
+Record::Record(size_t sz)  // NOLINT
+	: crep((RecRep<unsigned char>*) ::operator new (sz + 1, noptrs))
 	{
 	init(sz);
 	// ensure that final value is followed by nul
 	reinterpret_cast<char*>(crep)[sz] = 0;
 	}
 
-Record::Record(size_t sz, const void* buf) : crep((RecRep<unsigned char>*) buf)
+Record::Record(size_t sz, const void* buf) // NOLINT
+	: crep((RecRep<unsigned char>*) buf)
 	{
 	init(sz);
 	}
@@ -109,13 +111,15 @@ void Record::reuse(int n)
 		crep->n = n;
 	}
 
-Record::Record(const void* r) : crep((RecRep<unsigned char>*) r)
+Record::Record(const void* r) // NOLINT
+	: crep((RecRep<unsigned char>*) r)
 	{
-	verify(crep == 0 ||
-		(crep->type == 'c' || crep->type == 's' || crep->type == 'l'));
+	verify(!crep ||
+		(crep->type == 'c' || crep->type == 's' || crep->type == 'l')); // NOLINT
 	}
 
-Record::Record(Mmfile* mmf, Mmoffset offset) : dbrep(new DbRep(mmf, offset))
+Record::Record(Mmfile* mmf, Mmoffset offset) // NOLINT
+	: dbrep(new DbRep(mmf, offset))
 	{
 	verify(offset > 0);
 	verify(dbrep->rec().crep->type != 'd');
@@ -417,7 +421,7 @@ bool Record::operator<(const Record& r) const
 	return size() < r.size();
 	}
 
-#include <ctype.h>
+#include <cctype>
 
 Ostream& operator<<(Ostream& os, const Record& r)
 	{
@@ -517,7 +521,7 @@ TEST(record_record)
 	verify(r.getstr(1) == "world");
 
 	void* buf = new char[32];
-	r.copyto(buf);
+	(void) r.copyto(buf);
 	Record r2(buf);
 	verify(r2 == r);
 

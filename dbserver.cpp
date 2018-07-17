@@ -120,7 +120,7 @@ DbServer::DbServer(SocketConnect* sc) : io(sc), data(*DbServerData::create())
 
 DbServer::~DbServer()
 	{
-	dbservers.erase(std::remove(dbservers.begin(), dbservers.end(), this));
+	dbservers.erase(std::remove(dbservers.begin(), dbservers.end(), this), dbservers.end());
 	dbserver_connections().remove1(session_id);
 	verify(dbservers.size() == dbserver_connections().size());
 	data.abort(abort_fn);

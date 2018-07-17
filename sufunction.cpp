@@ -3,18 +3,17 @@
 
 #include "sufunction.h"
 #include "sustring.h"
-#include "suobject.h"
 #include "opcodes.h"
 #include "interp.h"
 #include "globals.h"
 #include "symbols.h"
 #include "ostreamstr.h"
 #include "catstr.h"
-#include <ctype.h>
 #include "varint.h"
 #include "suinstance.h"
+#include <cctype>
 
-#define TARGET(i)	(short) ((code[i] + (code[i+1] << 8)))
+#define TARGET(i)	(short) ((code[i] + (code[(i)+1] << 8)))
 
 Value SuFunction::call(Value self, Value member, 
 	short nargs, short nargnames, short* argnames, int each)

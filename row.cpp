@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 
 #include "row.h"
-#include <ctype.h>
 #include "symbols.h"
+#include <cctype>
 
 // Header ===========================================================
 
@@ -140,7 +140,7 @@ Value Row::getval(const Header& hdr, const gcstring& col) const
 		return ::unpack(getraw(w));
 	// else rule
 	if (! surec)
-		get_surec(hdr);
+		(void) get_surec(hdr);
 	return surec->getdata(symbol(col));
 	}
 
@@ -151,7 +151,7 @@ gcstring Row::getrawval(const Header& hdr, const gcstring& col) const
 		return getraw(w);
 	// else rule
 	if (! surec)
-		get_surec(hdr);
+		(void) get_surec(hdr);
 	Value val = surec->getdata(symbol(col));
 	return val.pack();
 	}

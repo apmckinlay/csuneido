@@ -11,15 +11,15 @@
 #include "sunumber.h"
 #include "suobject.h"
 #include "regexp.h"
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
 #include "range.h"
 #include "buffer.h"
 #include "func.h" // for argseach for call
 #include "scanner.h" // for doesc
-#include <algorithm>
 #include "htbl.h"
+#include <cstring>
+#include <cstdlib>
+#include <cctype>
+#include <algorithm>
 using std::min;
 using std::max;
 

@@ -33,19 +33,19 @@ public:
 	void close(Query* q) override;
 private:
 	Fields flds;
-	enum { NONE, COPY, SEQUENTIAL, LOOKUP } strategy;
-	bool first;
+	enum { NONE, COPY, SEQUENTIAL, LOOKUP } strategy = NONE;
+	bool first = true;
 	Header src_hdr;
 	Header proj_hdr;
 	// used by LOOKUP
-	VVtree* idx;
+	VVtree* idx{};
 	Keyrange sel;
-	bool rewound;
-	bool indexed;
+	bool rewound = true;
+	bool indexed = false;
 	// used by SEQUENTIAL
 	Row prevrow;
 	Row currow;
-	TempDest* td;
+	TempDest* td{};
 	Fields via;
 
 	void includeDeps(const Fields& columns);

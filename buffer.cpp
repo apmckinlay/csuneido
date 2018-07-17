@@ -6,7 +6,7 @@
 #include "except.h"
 #include "gcstring.h"
 #include "fatal.h"
-#include <string.h>
+#include <cstring>
 #include <algorithm>
 using std::max;
 

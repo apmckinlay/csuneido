@@ -11,7 +11,7 @@ Database* thedb = 0;
 void close_db()
 	{
 	delete thedb;
-	thedb = 0;
+	thedb = nullptr;
 	}
 
 struct CloseDB
@@ -19,10 +19,11 @@ struct CloseDB
 	~CloseDB()
 		{ close_db(); }
 	};
-static CloseDB closeDB; // static so destroyed on exit
 
 Database* theDB()
 	{
+	static CloseDB closeDB; // static so destroyed on exit
+
 	if (! thedb)
 		{
 		thedb = new Database("suneido.db", thedb_create);

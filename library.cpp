@@ -205,11 +205,11 @@ BUILTIN(LibraryOverrideClear, "()")
 	return Value();
 	}
 
-#include <ctype.h>
+#include <cctype>
 
 BUILTIN(BuiltinNames, "()")
 	{
-	SuObject* c = new SuObject();
+	auto c = new SuObject();
 	for (auto [key,val] : builtins)
 		{
 		(void)val;

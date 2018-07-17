@@ -4,9 +4,9 @@
 #include "getnum.h"
 #include "except.h"
 #include "gcstring.h"
-#include <stdlib.h>
-#include <ctype.h>
-#include <limits.h>
+#include <cstdlib>
+#include <cctype>
+#include <climits>
 
 // used by client-server text protocol
 

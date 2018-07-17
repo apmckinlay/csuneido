@@ -279,8 +279,7 @@ template <class T> Lisp<T> cons(const T& t)
 template <class T> Lisp<T> cons(const T& t, const Lisp<T>& list)
 	{ return Lisp<T>(new typename Lisp<T>::Cons(t, list.first)); }
 
-// ReSharper disable once CppUnusedIncludeDirective
-#include <stddef.h> // for size_t
+#include <cstddef> // for size_t
 
 // hash the list pointer NOT the values, used by Select
 template <class T> struct HashFirst

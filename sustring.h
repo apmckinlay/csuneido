@@ -132,7 +132,7 @@ private:
 	Value Wcstombs(short nargs, short nargnames, short* argnames, int each);
 
 	bool backquote() const;
-	friend static void test_sustring_replace();
+	friend void test_sustring_replace();
 	};
 
 class SuBuffer : public SuString

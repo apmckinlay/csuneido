@@ -4,7 +4,6 @@
 #include "builtinclass.h"
 #include "scanner.h"
 #include "suvalue.h"
-#include "interp.h"
 #include "sustring.h"
 
 class SuScanner : public SuValue

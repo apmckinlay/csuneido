@@ -6,8 +6,8 @@
 #include "sustring.h"
 #include "suobject.h"
 #include "builtinargs.h"
-#include "ctype.h"
 #include "gsl-lite.h"
+#include <cctype>
 
 /*
  * Usage:

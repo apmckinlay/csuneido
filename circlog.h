@@ -12,4 +12,4 @@ Ostream& oscirclog();
 void circlogos_();
 
 #define CIRCLOG(stuff) \
-	((oscirclog() << stuff), circlogos_())
+	((oscirclog() << stuff), circlogos_())  // NOLINT(misc-macro-parentheses)

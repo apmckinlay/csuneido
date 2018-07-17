@@ -28,7 +28,7 @@ public:
 	virtual void abort(void (*fn)(int tran)) = 0;
 
 	gcstring nonce;
-	bool auth;
+	bool auth = false;
 	};
 
 class SuObject;

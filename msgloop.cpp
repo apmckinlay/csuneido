@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 
 #include "msgloop.h"
-#include <stdlib.h> // for exit
+#include <cstdlib> // for exit
 #include "awcursor.h"
 #include "fibers.h"
 #include "sunapp.h"

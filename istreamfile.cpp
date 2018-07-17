@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 
 #include "istreamfile.h"
-#include <stdio.h>
+#include <cstdio>
 
 class IstreamFileImp
 	{

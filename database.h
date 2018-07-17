@@ -35,7 +35,8 @@ enum { V_NAME, V_DEFINITION };
 
 typedef int TblNum;
 
-struct Dbhdr
+// ReSharper disable once CppImplicitDefaultConstructorNotAvailable
+struct Dbhdr  // NOLINT
 	{
 	TblNum next_table;
 	Mmoffset32 indexes;
@@ -143,7 +144,7 @@ struct TranDelete
 class Transaction
 	{
 public:
-	Transaction(); // need for trans map
+	Transaction() = default; // need for trans map
 	Transaction(TranType t, TranTime clock, const char* session_id = "");
 
 	bool operator<(const Transaction& t) const // for set
@@ -177,9 +178,9 @@ class Database
 	friend class Index::iterator;
 	friend SuValue* su_transactions();
 	friend class DbRecoverImp;
-	friend static void test_transaction();
-	friend static void test_transaction_reads();
-	friend static void test_transaction_finalization();
+	friend void test_transaction();
+	friend void test_transaction_reads();
+	friend void test_transaction_finalization();
 	friend class DbmsLocal;
 public:
 	explicit Database(const char* filename, bool create = false);
@@ -194,7 +195,7 @@ public:
 	bool commit(int tran, const char** conflict = 0);
 	void abort(int tran);
 	Lisp<int> tranlist();
-	int final_size();
+	int final_size() const;
 	bool visible(int tran, Mmoffset adr);
 
 	void add_table(const gcstring& table);
@@ -271,7 +272,7 @@ public:
 		{ return trans.empty(); }
 
 	Mmfile* mmf;
-	bool loading;
+	bool loading = false;
 private:
 	void open();
 	void create();
@@ -328,13 +329,13 @@ private:
 
 	Tables* tables;
 	// used by get_table
-	Index* tables_index;
-	Index* tblnum_index;
-	Index* columns_index;
-	Index* indexes_index;
-	Index* fkey_index;
+	Index* tables_index{};
+	Index* tblnum_index{};
+	Index* columns_index{};
+	Index* indexes_index{};
+	Index* fkey_index{};
 	// used by get_view
-	Index* views_index;
+	Index* views_index{};
 
 	int clock;
 	std::map<int,Transaction> trans; //TODO consider Transaction*

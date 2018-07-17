@@ -3,7 +3,6 @@
 
 #include "fatal.h"
 #include "unhandled.h"
-#include <stdlib.h>
 #include "cmdlineoptions.h"
 #include <cstdint>
 

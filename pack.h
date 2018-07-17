@@ -3,7 +3,7 @@
 // Licensed under GPLv2
 
 // ReSharper disable once CppUnusedIncludeDirective
-#include <stddef.h> // for size_t
+#include <cstddef> // for size_t
 
 class Value;
 class gcstring;

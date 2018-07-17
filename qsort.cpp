@@ -2,7 +2,6 @@
 // Licensed under GPLv2
 
 #include "qsort.h"
-#include "qscanner.h" // for DESCENDING
 
 Query* Query::make_sort(Query* source, bool reverse, const Fields& segs)
 	{

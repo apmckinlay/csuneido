@@ -5,8 +5,8 @@
 #include "win.h"
 #include "except.h"
 #include "fibers.h" // for tls()
-#include <stdlib.h> // for exit
 #include "itostr.h"
+#include <cstdlib> // for exit
 
 #define EXCEPT(x) case EXCEPTION_##x: except("win32 exception: " #x);
 #define EXCEPTION(x) case EXCEPTION_##x: return (#x);
@@ -41,7 +41,7 @@ inline const char* exception_name(DWORD dw_code)
 		}
 	}
 
-static HANDLE h_file = 0;
+static HANDLE h_file = nullptr;
 
 inline void write(const char* s)
 	{
@@ -67,10 +67,10 @@ extern bool is_client;
 	// to be picked up when client restarts
 	h_file = CreateFile(
 		is_client ? err_filename() : "error.log",
-		GENERIC_WRITE, 0, 0, OPEN_ALWAYS, 0, 0);
+		GENERIC_WRITE, 0, nullptr, OPEN_ALWAYS, 0, nullptr);
 	if (h_file != INVALID_HANDLE_VALUE)
 		{
-		SetFilePointer(h_file, 0, 0, FILE_END);
+		SetFilePointer(h_file, 0, nullptr, FILE_END);
 		if (*tls().fiber_id != 0)
 			{
 			write(tls().fiber_id);

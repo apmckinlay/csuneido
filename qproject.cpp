@@ -19,7 +19,7 @@ Query* Query::make_project(Query* source, const Fields& f, bool allbut)
 	}
 
 Project::Project(Query* s, const Fields& flds_, bool allbut)
-	: Query1(s), flds(flds_), strategy(NONE), first(true), idx(0), rewound(true)
+	: Query1(s), flds(flds_)
 	{
 	Fields columns = source->columns();
 	if (! subset(columns, flds))

@@ -34,7 +34,7 @@ private:
 	HANDLE hProcess;
 	};
 
-RunPiped::RunPiped(char* cmd)
+RunPiped::RunPiped(char* cmd) // NOLINT
 	{
 	SECURITY_ATTRIBUTES saAttr;
 	saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);

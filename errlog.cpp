@@ -5,7 +5,7 @@
 #include "ostreamfile.h"
 #include "fibers.h" // for tls()
 #include "unhandled.h" // for err_filename()
-#include <time.h>
+#include <ctime>
 #include "fatal.h"
 
 extern bool is_client;

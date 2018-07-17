@@ -79,41 +79,41 @@ bool Frame::jumpToPopReturn()
 	SETSP(oldsp); \
 	PUSH(result); \
 	each = -1; \
-	ip += nargnames * sizeof (short); \
+	ip += (nargnames) * sizeof (short); \
 	if (! TOP() && *ip != I_POP && *ip != I_RETURN && \
 		(*ip != I_JUMP || ! jumpToPopReturn())) \
-		except(name << " has no return value")
+		except((name) << " has no return value")
 
 #define CALLX(x, member, nargs, nargnames, argnames, name) \
-	oldsp = GETSP() - nargs; \
+	oldsp = GETSP() - (nargs); \
 	result = docall(x, member, nargs, nargnames, argnames, each); \
 	POSTCALL(nargnames, name)
 
 #define CALLTOP(member, nargs, nargnames, argnames, name) \
-	oldsp = GETSP() - nargs - 1; \
+	oldsp = GETSP() - (nargs) - 1; \
 	result = docall(oldsp[1], member, nargs, nargnames, argnames, each); \
 	POSTCALL(nargnames, name)
 
 #define CALLPOP(x, member, nargs, nargnames, argnames) \
-	oldsp = GETSP() - nargs; \
+	oldsp = GETSP() - (nargs); \
 	docall(x, member, nargs, nargnames, argnames, each); \
 	SETSP(oldsp); \
 	each = -1;
 
 #define CALLTOPPOP(member, nargs, nargnames, argnames) \
-	oldsp = GETSP() - nargs - 1; \
+	oldsp = GETSP() - (nargs) - 1; \
 	docall(oldsp[1], member, nargs, nargnames, argnames, each); \
 	SETSP(oldsp); \
 	each = -1;
 
 #define CALLSUB(nargs, nargnames, argnames) \
-	oldsp = GETSP() - nargs - 2; \
+	oldsp = GETSP() - (nargs) - 2; \
 	subscript = oldsp[2]; \
 	result = docall(oldsp[1], subscript, nargs, nargnames, argnames, each); \
 	POSTCALL(nargnames, subscript);
 
 #define CALLSUBSELF(nargs, nargnames, argnames) \
-	oldsp = GETSP() - nargs - 1; \
+	oldsp = GETSP() - (nargs) - 1; \
 	subscript = oldsp[1]; \
 	result = docall(self, subscript, nargs, nargnames, argnames, each); \
 	POSTCALL(nargnames, subscript);
@@ -391,7 +391,7 @@ Value Frame::run()
 				POP();
 			break ;
 		case I_BOOL:
-			TOP().toBool();
+			(void) TOP().toBool();
 			break;
 		case I_TRY :
 			// save the catcher offset & stack pointer

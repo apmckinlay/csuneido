@@ -16,7 +16,7 @@ class Hashtbl
 private:
 	struct Node;
 public:
-	explicit Hashtbl(int n = 0)
+	explicit Hashtbl(int n = 0)  // NOLINT
 		{ init(n); }
 	void init(int n);
 	void clear();
@@ -40,7 +40,7 @@ public:
 	class iterator
 		{
 	public:
-		iterator() : tbl(0), node(0), i(-1)
+		iterator() : tbl(nullptr), node(nullptr), i(-1)
 			{ }
 		iterator(Node** tbl_, int i_) : tbl(tbl_), i(i_)
 			{
@@ -84,7 +84,7 @@ public:
 	class const_iterator
 		{
 	public:
-		const_iterator() : tbl(0), node(0), i(-1)
+		const_iterator() : tbl(nullptr), node(nullptr), i(-1)
 			{ }
 		const_iterator(Node** tbl_, int i_) : tbl(tbl_), i(i_)
 			{
@@ -163,7 +163,7 @@ void Hashtbl<Key,Val,KofV,Hfn,Keq>::init(int n)
 	cap = hash_size[capi];
 	char* p = new char[memsize()];
 	tbl = (Node**) p;
-	std::fill(tbl, tbl + cap, (Node*) 0);
+	std::fill(tbl, tbl + cap, nullptr);
 	nodes = (Node*) (p + cap * sizeof (Node**));
 	}
 
@@ -219,11 +219,11 @@ template <class Key, class Val, class KofV, class Hfn, class Keq>
 Val* Hashtbl<Key,Val,KofV,Hfn,Keq>::find(const Key& key) const
 	{
 	if (sz == 0)
-		return 0;
+		return nullptr;
 	for (Node* node = tbl[Hfn()(key) % cap]; node; node = node->next)
 		if (Keq()(KofV()(node->val), key))
 			return &node->val;
-	return 0;
+	return nullptr;
 	}
 
 template <class Key, class Val, class KofV, class Hfn, class Keq>

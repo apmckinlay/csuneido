@@ -5,7 +5,6 @@
 #include "fibers.h"
 #include "errlog.h"
 #include "exceptimp.h"
-#include "win.h"
 #include "suobject.h"
 #include "interp.h"
 // ReSharper disable once CppUnusedIncludeDirective

@@ -13,18 +13,18 @@
 
 void get_exe_path(char* buf, int buflen)
 	{
-	GetModuleFileName(NULL, buf, buflen);
+	GetModuleFileName(nullptr, buf, buflen);
 	}
 
 void* mem_committed(int n)
 	{
-	void* p = VirtualAlloc(NULL, n, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+	void* p = VirtualAlloc(nullptr, n, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 	return p;
 	}
 
 void* mem_uncommitted(int n)
 	{
-	void* p = VirtualAlloc(NULL, n, MEM_RESERVE | MEM_TOP_DOWN, PAGE_READWRITE);
+	void* p = VirtualAlloc(nullptr, n, MEM_RESERVE | MEM_TOP_DOWN, PAGE_READWRITE);
 	verify(p);
 	return p;
 	}
@@ -72,7 +72,7 @@ void Heap::destroy()
 	{
 	if (heap)
 		HeapDestroy(heap);
-	heap = 0;
+	heap = nullptr;
 	}
 
 Heap::~Heap()
@@ -120,10 +120,10 @@ void Mmfile::map(int chunk)
 
 	int64_t end = (int64_t) (chunk + 1) * chunk_size;
 	fm[chunk] = CreateFileMapping(f,
-		NULL, // no security attributes
+		nullptr, // no security attributes
 		readonly ? PAGE_READONLY : PAGE_READWRITE,
 		(unsigned) (end >> 32), (unsigned) (end & 0xffffffff),
-		NULL); // no name for mapping
+		nullptr); // no name for mapping
 	if (! fm[chunk])
 		fatal("can't create file mapping for database");
 
@@ -138,11 +138,11 @@ void Mmfile::map(int chunk)
 		int dw = GetLastError();
 		FormatMessage(
 			FORMAT_MESSAGE_FROM_SYSTEM,
-			NULL,
+			nullptr,
 			dw,
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 			buf,
-			sizeof buf, NULL);
+			sizeof buf, nullptr);
 		fatal("can't map view of database file", buf);
 		}
 	}
@@ -157,7 +157,7 @@ void Mmfile::unmap(int chunk)
 #ifdef MM_KEEPADR
 	verify(unmapped[chunk] = VirtualAlloc(base[chunk], chunk_size, MEM_RESERVE, PAGE_READONLY));
 #endif
-	base[chunk] = 0;
+	base[chunk] = nullptr;
 	}
 
 void Mmfile::sync()
@@ -177,7 +177,7 @@ Mmfile::~Mmfile()
 		// adjust file size
 		LARGE_INTEGER li;
 		li.QuadPart = file_size;
-		li.LowPart = SetFilePointer(f, li.LowPart, &li.HighPart, FILE_BEGIN);
+		SetFilePointer(f, li.LowPart, &li.HighPart, FILE_BEGIN);
 		SetEndOfFile(f);
 		verify(file_size == getfilesize(f));
 		}
@@ -199,7 +199,7 @@ static VOID CALLBACK SyncTimerProc(
 void sync_timer(Mmfile* m)
 	{
 	mmf = m;
-	SetTimer(NULL,		// handle to main window
+	SetTimer(nullptr,		// handle to main window
 		0,				// timer identifier
 		60000,			// 1-minute interval
 		(TIMERPROC) SyncTimerProc);
@@ -211,7 +211,7 @@ void sync_timer(Mmfile* m)
 int fork_rebuild()
 	{
 	char exefile[1024];
-	GetModuleFileName(NULL, exefile, sizeof exefile);
+	GetModuleFileName(nullptr, exefile, sizeof exefile);
 	OstreamStr args(20);
 	args << "-r";
 	if (cmdlineoptions.unattended)
@@ -250,7 +250,7 @@ static VOID CALLBACK DbServerTimerProc(
 void dbserver_timer(void (*pfn)())
 	{
 	dbstp_pfn = pfn;
-	SetTimer(NULL,		// handle to main window
+	SetTimer(nullptr,		// handle to main window
 		0,				// timer identifier
 		60000,			// 1 minute interval
 		(TIMERPROC) DbServerTimerProc);

@@ -4,9 +4,9 @@
 #define LOGGING
 
 #ifdef LOGGING
-#include "ostreamfile.h"
 #include "trace.h"
 #define LOG(stuff) TRACE(SELECT, stuff )
+//#include "ostreamfile.h"
 //OstreamFile logfile("select.txt", "w");
 //#define LOG(stuff) logfile << stuff << endl; logfile.flush()
 #else
@@ -34,8 +34,8 @@
 #include "qjoin.h"
 #include "pack.h"
 #include "sustring.h"
-#include <math.h> // for fabs
 #include "opcodes.h"
+#include <cmath> // for fabs
 
 struct FilterTreeSlot
 	{
@@ -1210,10 +1210,13 @@ Record keymax = makemax();
 
 #include "testing.h"
 
+static void test_qselect_choose_primary();
+static void test_qselect_frac();
+
 class TestSelect : public Select
 	{
-	friend static void test_qselect_choose_primary();
-	friend static void test_qselect_frac();
+	friend void test_qselect_choose_primary();
+	friend void test_qselect_frac();
 	};
 
 class TestTable : public Table

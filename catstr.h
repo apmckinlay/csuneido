@@ -2,8 +2,9 @@
 // Copyright (c) 2000 Suneido Software Corp. All rights reserved
 // Licensed under GPLv2
 
-#include <malloc.h>
-#include <string.h>
+// ReSharper disable once CppUnusedIncludeDirective
+#include <malloc.h> // for _alloca
+#include <cstring>
 
 char* catstr(char *dst, ...);
 
@@ -14,7 +15,7 @@ char* catstr(char *dst, ...);
 #define STRDUPA(s) \
 	strcpy((char*) _alloca(strlen(s) + 1), s)
 #define PREFIXA(s, n) \
-	strcpyn((char*) _alloca(n + 1), s, n)
+	strcpyn((char*) _alloca((n) + 1), s, n)
 
 inline char* strcpyn(char* dst, const char* src, int n)
 	{

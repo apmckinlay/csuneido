@@ -21,4 +21,4 @@ private:
 	Buffer* buf;
 	};
 
-#define OSTR(stuff) ((OstreamStr&) (OstreamStr() << "" << stuff)).str()
+#define OSTR(stuff) ((OstreamStr&) (OstreamStr() << "" << stuff)).str()  // NOLINT

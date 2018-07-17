@@ -4,9 +4,8 @@
 #include "mmfile.h"
 #include "ostreamfile.h"
 #include "except.h"
-#include <memory.h>
 #include <algorithm>
-#include <limits.h>
+#include <climits>
 
 using std::min;
 
@@ -31,7 +30,7 @@ Mmfile::Mmfile(const char* filename, bool create, bool ro)
 	readonly(ro)
 	{
 	verify((1 << MM_SHIFT) < MM_ALIGN);
-	std::fill(base, base + MAX_CHUNKS, (char*) 0);
+	std::fill(base, base + MAX_CHUNKS, nullptr);
 	std::fill(last_used, last_used + MAX_CHUNKS, LONG_MAX);
 #ifdef MM_KEEPADR
 	std::fill(unmapped, unmapped + MAX_CHUNKS, (void*) 0);
@@ -280,8 +279,8 @@ int Mmfile::lru_chunk()
 	}
 
 #include "testing.h"
-#include <stdio.h> // for remove
-#include <string.h>
+#include <cstdio> // for remove
+#include <cstring>
 
 static void add(Mmfile& m, const char* s)
 	{ strcpy(static_cast<char*>(m.adr(m.alloc(strlen(s) + 1, 1))), s); }

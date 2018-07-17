@@ -16,9 +16,8 @@
 #include "gcstring.h"
 #include "thedb.h"
 #include "fibers.h" // for yield
-#include <stdio.h> // for remove
-#include <ctype.h> // for toupper
 #include "fatal.h"
+#include <cstdio> // for remove
 
 struct DbCopy
 	{

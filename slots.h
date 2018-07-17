@@ -51,7 +51,7 @@ inline bool nil(const Vslot& vs)
 class Vslots
 	{
 public:
-	Vslots() : prev(sizeof t), sz(0)
+	Vslots() : prev(sizeof t), sz(0)  // NOLINT
 		{ memset(t, 7, sizeof t); }
 	class iterator
 		{
@@ -63,8 +63,8 @@ public:
 		using reference = const Vslot&;
 		using iterator_category = std::random_access_iterator_tag;
 
-		iterator()
-			{ }
+		iterator() = default;
+
 		Vslot operator*() const
 			{
 			verify(t);
@@ -179,7 +179,7 @@ private:
 	short t[(mem - sizeof (short) - sizeof (short)) / sizeof (short)];	// array of offsets
 	short prev;		// points to start of heap (grows downward)
 	short sz;
-	int heapsize()
+	int heapsize() const
 		{ return sizeof t - prev; }
 	void ck(int n)
 		{ verify((char*) (t + sz) < (char*) t + prev - n); }
@@ -213,7 +213,7 @@ public:
 class VFslots
 	{
 public:
-	struct slot
+	struct slot  // NOLINT
 		{
 		short offset;
 		Mmoffset32 adr;
@@ -269,7 +269,7 @@ public:
 	bool empty() const
 		{ return sz == 0; }
 	int capacity() const
-		{ return sizeof t / sizeof (short); }
+		{ return sizeof t / sizeof (slot); }
 	int size() const
 		{ return sz; }
 	iterator begin()
@@ -373,7 +373,7 @@ struct Vdata
 	{
 	// TODO: only take the data not the keys i.e. every other record
 	enum { maxvdata = 200 };
-	explicit Vdata(Lisp<Record> rs)
+	explicit Vdata(Lisp<Record> rs)  // NOLINT
 		{
 		n = 0;
 		for (; ! nil(rs); ++rs)
@@ -416,8 +416,8 @@ struct VVslot
 	typedef Record Key;
 	Key key;
 	Vdata* data = nullptr;
-	VVslot()
-		{ }
+	VVslot() = default;
+
 	explicit VVslot(const Record& k, Vdata* d = 0) : key(k), data(d)
 		{ }
 	explicit VVslot(void* k, void* d = 0) : key(k), data((Vdata*) d)
@@ -443,7 +443,8 @@ inline size_t roundup(size_t n)
 class VVslots
 	{
 public:
-	VVslots() : prev(sizeof t), sz(0)
+	// ReSharper disable once CppPossiblyUninitializedMember
+	VVslots() : prev(sizeof t), sz(0)  // NOLINT
 		{ }
 	class iterator
 		{
@@ -455,8 +456,8 @@ public:
 		using reference = const VVslot&;
 		using iterator_category = std::random_access_iterator_tag;
 
-		iterator()
-			{ }
+		iterator() = default;
+
 		VVslot operator*() const
 			{
 			Record key((char*) t + t[i]);
@@ -579,7 +580,7 @@ private:
 	short t[(mem - sizeof (short) - sizeof (short)) / sizeof (short)];	// array of offsets
 	short prev;		// points to start of heap (grows downward)
 	short sz;
-	short heapsize()
+	short heapsize() const
 		{ return sizeof t - prev; }
 	void ck(int n)
 		{ verify((char*) (t + sz) < (char*) t + prev - n); }

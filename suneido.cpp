@@ -22,7 +22,6 @@
 #include "dbcompact.h"
 #include "recover.h"
 #include "globals.h"
-#include <stdio.h> // for remove
 #include "fatal.h"
 #include "sustring.h"
 #include "unhandled.h"
@@ -32,8 +31,8 @@
 #include "build.h"
 #include "ostreamstr.h"
 #include "ostreamfile.h"
-
 #include "suservice.h"
+#include <cstdio> // for remove
 #include <fcntl.h>
 
 static_assert(sizeof(int) == 4, "int must be 32 bits / 4 bytes");

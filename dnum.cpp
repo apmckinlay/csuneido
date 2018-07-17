@@ -951,7 +951,7 @@ using namespace std::rel_ops;
 #define ROUND(n) (((n) + 5) / 10)
 
 // for tests, rounds off last digit
-static bool almostSame(const Dnum& x, const Dnum& y)
+bool almostSame(const Dnum& x, const Dnum& y)
 	{
 	return x.sign == y.sign && x.exp == y.exp &&
 		(TRUNC(x.coef) == TRUNC(y.coef) || ROUND(x.coef) == ROUND(y.coef));

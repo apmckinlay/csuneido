@@ -22,8 +22,7 @@ inline Mmoffset int_to_mmoffset(int n)
 class Mmoffset32
 	{
 public:
-	Mmoffset32() : offset(0)
-		{ }
+	Mmoffset32() = default;
 	explicit Mmoffset32(Mmoffset o) : offset(o >> MM_SHIFT)
 		{
 		verify(o >= 0);
@@ -35,7 +34,7 @@ public:
 		verify(off >= 0);
 		return off;
 		}
-	Mmoffset32 operator=(Mmoffset o)
+	Mmoffset32& operator=(Mmoffset o)
 		{
 		verify(o >= 0);
 		offset = o >> MM_SHIFT;
@@ -45,5 +44,5 @@ public:
 	bool operator==(Mmoffset o) const
 		{ return unpack() == o; }
 private:
-	unsigned int offset;
+	unsigned int offset = 0;
 	};

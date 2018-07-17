@@ -6,7 +6,6 @@
 #include "value.h"
 #include "win.h"
 #include "noargs.h"
-#include "errlog.h"
 
 SuWinRes::SuWinRes(void* handle) : h(handle)
 	{ }

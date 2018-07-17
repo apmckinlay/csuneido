@@ -61,6 +61,7 @@ Lisp<Lisp<gcstring> > DbmsQueryLocal::keys()
 
 #include "trace.h"
 static Query* last_q = nullptr;
+
 void trace_last_q()
 	{
 	tout() << "IN: " << last_q << endl;
@@ -115,7 +116,7 @@ public:
 	void erase(int tn, Mmoffset recadr) override;
 	Value exec(Value ob) override;
 	int final() override;
-	Row get(Dir dir, const char* query, bool one, Header& hdr, int tn = -1) override;
+	Row get(Dir dir, const char* query, bool one, Header& hdr, int tn) override;
 	int kill(const char* sessionid) override;
 	Lisp<gcstring> libget(const char* name) override;
 	Lisp<gcstring> libraries() override;
@@ -132,7 +133,7 @@ public:
 	Value timestamp() override;
 	gcstring token() override;
 	Lisp<int> tranlist() override;
-	int transaction(TranType type, const char* session_id = "") override;
+	int transaction(TranType type, const char* session_id) override;
 	Mmoffset update(int tn, Mmoffset recadr, Record& rec) override;
 	int writeCount(int tn) override;
 	};

@@ -10,7 +10,7 @@
 #include "ostreamfile.h"
 #include "win.h"
 #include "trace.h"
-#include <string.h> // for _stricmp
+#include <cstring> // for _stricmp
 
 #ifdef __GNUC__
 #define _stricmp stricmp
@@ -156,7 +156,7 @@ Value Dll::call(Value self, Value member,
 			push dword ptr [ebx]
 			loop NEXT
 			}
-	// ReSharper disable once CppEntityNeverUsed
+	// ReSharper disable once CppDeclaratorNeverUsed
 	uint32_t f = (uint32_t) pfn;
 	__asm
 		{

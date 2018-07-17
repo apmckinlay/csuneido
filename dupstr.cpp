@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 
 #include "std.h"
-#include <string.h>
+#include <cstring>
 #include "gc.h"
 
 // a version of dupstr that uses operator new instead of malloc

@@ -1,8 +1,6 @@
 // Copyright (c) 2000 Suneido Software Corp. All rights reserved
 // Licensed under GPLv2
 
-#include <stdlib.h>
-#include <ctype.h>
 #include "std.h"
 #include "sunumber.h"
 #include "sustring.h"
@@ -16,9 +14,10 @@
 #include "symbols.h"
 #include "dbms.h"
 #include "sesviews.h"
-#include "assert.h"
 #include "exceptimp.h"
 #include "opcodes.h"
+#include <cassert>
+#include <cctype>
 
 struct Arg
 	{
@@ -30,7 +29,7 @@ struct Arg
 		{ return param != p; }
 	};
 
-struct IndexSpec
+struct IndexSpec // NOLINT
 	{
 	Lisp<gcstring> columns;
 	bool key = false;

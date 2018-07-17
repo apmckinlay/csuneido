@@ -5,7 +5,7 @@
 #include "btree.h"
 #include "slots.h"
 #include "mmtypes.h"
-#include <limits.h>
+#include <climits>
 
 extern Record keymin;
 extern Record keymax;

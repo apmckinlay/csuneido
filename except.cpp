@@ -48,17 +48,17 @@ Ostream& osexcept()
 
 void except_()
 	{
-	Except e(os.str());
+	auto s = os.str();
 	os.clear();
-	throw e;
+	throw Except(s);
 	}
 
 // to allow setting breakpoints
 void except_err_()
 	{
-	Except e(os.str());
+	auto s = os.str();
 	os.clear();
-	throw e;
+	throw Except(s);
 	}
 
 #define TRY(stuff) do try { stuff; } catch (...) { } while (false)

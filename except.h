@@ -3,7 +3,8 @@
 // Licensed under GPLv2
 
 #include "ostream.h"
-#include <string.h> // for strrchr
+// ReSharper disable once CppUnusedIncludeDirective
+#include <cstring> // for strrchr
 
 [[noreturn]] void except_();
 [[noreturn]] void except_err_();

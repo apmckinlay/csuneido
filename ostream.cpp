@@ -3,8 +3,8 @@
 
 #include "ostream.h"
 #include "itostr.h"
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 Ostream::Ostream() : d_base(10), d_fill(' '), d_width(0), d_adjust(RIGHT)
 	{ }

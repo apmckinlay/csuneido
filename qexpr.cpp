@@ -5,14 +5,11 @@
 #include "query.h"
 #include "sunumber.h"
 #include "sustring.h"
-#include "qscanner.h"
 #include "row.h"
 #include "regexp.h"
 #include "call.h"
 #include "suboolean.h"
 #include "opcodes.h"
-
-extern const char* opcodes[];
 
 // Constant ---------------------------------------------------------
 

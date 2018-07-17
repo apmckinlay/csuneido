@@ -9,8 +9,6 @@
 #include "sudate.h"
 #include "suobject.h"
 #include "surecord.h"
-#include "globals.h"
-#include "named.h"
 
 Value unpack(const char* buf, int len)
 	{

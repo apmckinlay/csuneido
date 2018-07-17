@@ -8,7 +8,6 @@
 #include "gcstring.h"
 #include <malloc.h>
 #include <typeinfo>
-#include "pack.h"
 
 class SuString;
 class SuObject;
@@ -140,7 +139,7 @@ private:
 			short n;
 			} im;
 		};
-	friend static void test_value_smallint();
+	friend void test_value_smallint();
 	};
 
 template <class T> inline T val_cast(Value v)

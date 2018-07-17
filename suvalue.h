@@ -2,9 +2,9 @@
 // Copyright (c) 2000 Suneido Software Corp. All rights reserved
 // Licensed under GPLv2
 
+// ReSharper disable CppUnusedIncludeDirective
 #include "std.h"
-// ReSharper disable once CppUnusedIncludeDirective
-#include <stddef.h> // for size_t
+#include <cstddef> // for size_t
 
 class Value;
 class gcstring;

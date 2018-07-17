@@ -146,7 +146,8 @@ inline LPSTR WINAPI AtlW2AHelper(LPSTR lpa, LPCWSTR lpw, int nChars)
 	return lpa;
 	}
 #define W2CA(w) \
-	((LPCSTR)(((_lpw = w) == NULL) ? NULL : ( _convert = (lstrlenW(_lpw)+1)*2, AtlW2AHelper((LPSTR) _alloca(_convert), _lpw, _convert))))
+	((LPCSTR)(((_lpw = (w)) == NULL) ? NULL \
+	: ( _convert = (lstrlenW(_lpw)+1)*2, AtlW2AHelper((LPSTR) _alloca(_convert), _lpw, _convert))))
 
 HRESULT STDMETHODCALLTYPE CSuneidoAPP::Start(
 	/* [in] */ LPCWSTR szUrl,

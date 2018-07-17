@@ -3,7 +3,6 @@
 
 #include "globals.h"
 #include "library.h"
-#include "std.h"
 #include "htbl.h"
 #include <vector>
 #include "permheap.h"

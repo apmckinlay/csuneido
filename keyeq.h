@@ -2,7 +2,7 @@
 // Copyright (c) 2000 Suneido Software Corp. All rights reserved
 // Licensed under GPLv2
 
-#include <string.h>
+#include <cstring>
 
 // default key comparison functions
 

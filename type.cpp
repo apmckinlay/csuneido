@@ -173,7 +173,7 @@ public:
 		{ os << type << '*'; }
 	Value result(int, int n) override;
 
-	Type* type;
+	Type* type{};
 	};
 
 void TypePointer::put(char*& dst, char*& dst2, const char* lim2, Value x)

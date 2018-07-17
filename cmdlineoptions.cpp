@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 
 #include "cmdlineoptions.h"
-#include <stdlib.h>
-#include <ctype.h>
+#include <cstdlib>
+#include <cctype>
 #include "alert.h"
 #include "except.h"
 #include "gcstring.h"
