@@ -20,11 +20,6 @@ for no arguments you can do:
 	args.usage("...").end();
 */
 
-// TODO don't do argseach
-// if each then read args object instead of stack
-// maybe have a builtinArgs function that returns one of two kinds of BuiltinArgs
-// either current stack one, or new args object one
-
 // TODO cache pointer to args
 
 #include "builtinargs.h"
