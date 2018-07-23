@@ -192,7 +192,7 @@ Value MemBase::method_class(Value m)
 Value MemBase::ReadonlyQ(BuiltinArgs& args)
 	{
 	args.usage(".Readonly?()").end();
-	return readonly();
+	return readonly() ? SuTrue : SuFalse;
 	}
 
 Value MemBase::Size(BuiltinArgs& args)
