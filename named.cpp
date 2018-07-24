@@ -5,8 +5,7 @@
 #include "symbols.h"
 #include "globals.h"
 
-gcstring Named::name() const
-	{
+gcstring Named::name() const {
 	gcstring s;
 	if (parent && parent->name() != "")
 		s = s + parent->name() + parent->separator;
@@ -15,23 +14,21 @@ gcstring Named::name() const
 	else if (str)
 		s += str;
 	return s;
-	}
+}
 
-gcstring Named::library() const
-	{
+gcstring Named::library() const {
 	if (lib != "")
 		return lib;
 	else if (parent)
 		return parent->library();
 	else
 		return "";
-	}
+}
 
 #include "ostreamstr.h"
 
 // for debugging
-gcstring Named::info() const
-	{
+gcstring Named::info() const {
 	OstreamStr os;
 	os << "Named {";
 	if (lib != "")
@@ -45,4 +42,4 @@ gcstring Named::info() const
 		os << ", str: " << str;
 	os << " }";
 	return os.gcstr();
-	}
+}

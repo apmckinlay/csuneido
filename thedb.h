@@ -4,14 +4,15 @@
 
 class Database* theDB();
 
-class TranCloser
-	{
+class TranCloser {
 public:
-	explicit TranCloser(int t_) : t(t_)
-		{ }
-	operator int() const
-		{ return t; }
+	explicit TranCloser(int t_) : t(t_) {
+	}
+	operator int() const {
+		return t;
+	}
 	~TranCloser();
+
 private:
 	int t;
-	};
+};

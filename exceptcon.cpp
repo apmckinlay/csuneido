@@ -9,21 +9,17 @@
 
 // dummy version for console
 
-Ostream& operator<<(Ostream& os, const Except& x)
-	{
+Ostream& operator<<(Ostream& os, const Except& x) {
 	return os << x.exception;
-	}
+}
 
 static OstreamStr os;
 
-Ostream& osexcept()
-	{
+Ostream& osexcept() {
 	return os;
-	}
+}
 
-void except_()
-	{
+void except_() {
 	alert(os.str());
 	exit(EXIT_FAILURE);
-	}
-
+}

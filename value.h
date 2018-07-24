@@ -15,11 +15,11 @@ class Ostream;
 
 // allocates a temporary SuNumber on the stack
 // NOTE: only for use by Value, not intended to be public
-#define NUM(n) (new (_alloca(sizeof (SuNumber))) SuNumber(n))
+#define NUM(n) (new (_alloca(sizeof(SuNumber))) SuNumber(n))
 
 // return a SuValue pointer, temporary auto box integer on stack if necessary
 // NOTE: only for use by Value, not intended to be public
-#define VAL	((SuValue*) (is_int() ? NUM(im.n) : p))
+#define VAL ((SuValue*) (is_int() ? NUM(im.n) : p))
 
 /*
  * Value is a "value" type that either directly contains a short integer
@@ -27,94 +27,116 @@ class Ostream;
  * Assumes there are no valid pointer with a low short of 0xffff
  * which should be safe since alignment should be at least even.
  */
-class Value
-	{
+class Value {
 public:
-	Value() : p(nullptr) // NOLINT
-		{ }
-	Value(SuValue* x) : p(x) // NOLINT
-		{ }
-	Value(const SuString* x) : p((SuValue*) x) // NOLINT
-		{ }
-	Value(int n) // NOLINT
-		{
-		if (SHRT_MIN <= n && n <= SHRT_MAX)
-			{
+	Value() : p(nullptr) { // NOLINT
+	}
+	Value(SuValue* x) : p(x) { // NOLINT
+	}
+	Value(const SuString* x) : p((SuValue*) x) { // NOLINT
+	}
+	Value(int n) { // NOLINT
+		if (SHRT_MIN <= n && n <= SHRT_MAX) {
 			im.type = INTVAL;
 			im.n = n;
-			}
-		else
+		} else
 			p = new SuNumber(n);
-		}
-	Value(const char* s) : p(symbol(s).p) // NOLINT
-		{ }
+	}
+	Value(const char* s) : p(symbol(s).p) { // NOLINT
+	}
 
-	SuValue* ptr() const
-		{ return is_int() ? nullptr : p; }
+	SuValue* ptr() const {
+		return is_int() ? nullptr : p;
+	}
 	// to allow if(val), checks for non null, not true or false
-	explicit operator bool() const	
-		{ return p; }
+	explicit operator bool() const {
+		return p;
+	}
 	bool toBool() const;
 
-	unsigned int hash() const
-		{ return is_int() ? im.n : p->hashfn(); }
-	unsigned int hashcontrib() const
-		{ return is_int() ? im.n : p->hashcontrib(); }
+	unsigned int hash() const {
+		return is_int() ? im.n : p->hashfn();
+	}
+	unsigned int hashcontrib() const {
+		return is_int() ? im.n : p->hashcontrib();
+	}
 
-	[[nodiscard]] bool int_if_num(int* pn) const
-		{ return is_int() ? (*pn = im.n, true) : p->int_if_num(pn); }
-	int integer() const // coerces false and "" to 0
-		{ return is_int() ? im.n : (p ? p->integer() : 0); }
-	SuNumber* number() const // coerces false and "" to 0
-		{ return is_int() ? new SuNumber(im.n) : p->number(); }
+	[[nodiscard]] bool int_if_num(int* pn) const {
+		return is_int() ? (*pn = im.n, true) : p->int_if_num(pn);
+	}
 
-	int symnum() const
-		{ return is_int() && im.n > 0 ? im.n : VAL->symnum(); }
+	int integer() const { // coerces false and "" to 0
+		return is_int() ? im.n : (p ? p->integer() : 0);
+	}
+	SuNumber* number() const { // coerces false and "" to 0
+		return is_int() ? new SuNumber(im.n) : p->number();
+	}
 
-	const char* str_if_str() const
-		{ return VAL->str_if_str(); }
-	gcstring gcstr() const // only if string
-		{ return VAL->gcstr(); }
-	gcstring to_gcstr() const // coerces boolean, number, object-with-ToString
-		{ return VAL->to_gcstr(); }
-	const char* str() const
-		{ return VAL->gcstr().str(); }
+	int symnum() const {
+		return is_int() && im.n > 0 ? im.n : VAL->symnum();
+	}
 
-	SuObject* object() const
-		{ return VAL->object(); }
-	SuObject* ob_if_ob() const
-		{ return is_int() || ! p ? nullptr : p->ob_if_ob(); }
+	const char* str_if_str() const {
+		return VAL->str_if_str();
+	}
+	gcstring gcstr() const { // only if string
+		return VAL->gcstr();
+	}
+	gcstring to_gcstr() const { // coerces boolean, number, object-with-ToString
+		return VAL->to_gcstr();
+	}
+	const char* str() const {
+		return VAL->gcstr().str();
+	}
 
-	Value call(Value self, Value member, short nargs = 0, 
-		short nargnames = 0, short* argnames = nullptr, int each = -1)
-		{ return VAL->call(self, member, nargs, nargnames, argnames, each); }
+	SuObject* object() const {
+		return VAL->object();
+	}
+	SuObject* ob_if_ob() const {
+		return is_int() || !p ? nullptr : p->ob_if_ob();
+	}
 
-	Value getdata(Value m) const
-		{ return VAL->getdata(m); }
-	void putdata(Value m, Value x)
-		{ VAL->putdata(m, x); }
+	Value call(Value self, Value member, short nargs = 0, short nargnames = 0,
+		short* argnames = nullptr, int each = -1) {
+		return VAL->call(self, member, nargs, nargnames, argnames, each);
+	}
 
-	Value rangeTo(int i, int j)
-		{ return VAL->rangeTo(i, j); }
-	Value rangeLen(int i, int n)
-		{ return VAL->rangeLen(i, n); }
+	Value getdata(Value m) const {
+		return VAL->getdata(m);
+	}
+	void putdata(Value m, Value x) {
+		VAL->putdata(m, x);
+	}
 
-	size_t packsize() const
-		{ return VAL->packsize(); }
-//		{ return is_int() ? ::packsize(im.n) : VAL->packsize(); }
-	void pack(char* buf) const
-		{ VAL->pack(buf); }
-//		{ is_int() ? packint(buf, im.n) : VAL->pack(buf); }
-	gcstring pack() const
-		{ return VAL->pack(); }
-//		{ return is_int() ? ::packint(im.n) : VAL->pack(); }
+	Value rangeTo(int i, int j) {
+		return VAL->rangeTo(i, j);
+	}
+	Value rangeLen(int i, int n) {
+		return VAL->rangeLen(i, n);
+	}
 
-	const char* type() const
-		{ return is_int() ? "Number" : p ? VAL->type() : "null"; }
-	const Named* get_named() const
-		{ return is_int() || ! p ? nullptr : p->get_named(); }
-	bool sameAs(Value other) const
-		{ return p == other.p; }
+	size_t packsize() const {
+		return VAL->packsize();
+	}
+	//		{ return is_int() ? ::packsize(im.n) : VAL->packsize(); }
+	void pack(char* buf) const {
+		VAL->pack(buf);
+	}
+	//		{ is_int() ? packint(buf, im.n) : VAL->pack(buf); }
+	gcstring pack() const {
+		return VAL->pack();
+	}
+	//		{ return is_int() ? ::packint(im.n) : VAL->pack(); }
+
+	const char* type() const {
+		return is_int() ? "Number" : p ? VAL->type() : "null";
+	}
+	const Named* get_named() const {
+		return is_int() || !p ? nullptr : p->get_named();
+	}
+	bool sameAs(Value other) const {
+		return p == other.p;
+	}
 
 	Value operator-() const; // neg
 	friend bool operator==(Value x, Value y);
@@ -125,44 +147,45 @@ public:
 	friend Value operator/(Value x, Value y);
 	friend Ostream& operator<<(Ostream& os, Value x);
 
-	bool is_int() const
-		{ return im.type == INTVAL; }
+	bool is_int() const {
+		return im.type == INTVAL;
+	}
 
 private:
 	static const short INTVAL = static_cast<uint16_t>(0xffff);
-	union
-		{
+	union {
 		SuValue* p;
-		struct
-			{
+		struct {
 			short type; // NOTE: should be low word
 			short n;
-			} im;
-		};
-	friend void test_value_smallint();
+		} im;
 	};
+	friend void test_value_smallint();
+};
 
-template <class T> inline T val_cast(Value v)
-	{
+template <class T>
+inline T val_cast(Value v) {
 	return dynamic_cast<T>(v.ptr());
-	}
+}
 
 [[noreturn]] void cantforce(const char* t1, const char* t2);
 
-template <class T> T force(Value x)
-	{
+template <class T>
+T force(Value x) {
 	if (T t = val_cast<T>(x))
 		return t;
 	cantforce(x ? x.type() : "NULL", typeid(T).name());
+}
+
+template <class T>
+struct HashFn;
+
+template <>
+struct HashFn<Value> {
+	unsigned int operator()(Value x) const {
+		return x.hash();
 	}
-
-template <class T> struct HashFn;
-
-template <> struct HashFn<Value>
-	{
-	unsigned int operator()(Value x) const
-		{ return x.hash(); }
-	};
+};
 
 extern Value NEW;
 extern Value CALL;
@@ -180,12 +203,12 @@ extern Value SuEmptyString;
 [[noreturn]] void method_not_found(const char* type, Value member);
 
 // implementation in suclass.cpp
-class UserDefinedMethods
-	{
-	public:
-		UserDefinedMethods(const char* name);
+class UserDefinedMethods {
+public:
+	UserDefinedMethods(const char* name);
 
-		Value operator()(Value member) const;
-	private:
-		uint16_t gnum;
-	};
+	Value operator()(Value member) const;
+
+private:
+	uint16_t gnum;
+};

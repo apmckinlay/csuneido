@@ -4,8 +4,7 @@
 #include "lisp.h"
 #include "testing.h"
 
-TEST(lisp)
-	{
+TEST(lisp) {
 	Lisp<int> x;
 
 	x = cons(1);
@@ -27,13 +26,13 @@ TEST(lisp)
 
 	verify(sort(Lisp<int>()) == Lisp<int>());
 	verify(sort(lisp(5)) == lisp(5));
-	verify(sort(lisp(6,3)) == lisp(3,6));
+	verify(sort(lisp(6, 3)) == lisp(3, 6));
 	verify(sort(lisp(7, 2, 0, 4)) == lisp(0, 2, 4, 7));
 
 	verify(Lisp<int>().sort() == Lisp<int>());
 	verify(lisp(5).sort() == lisp(5));
-	verify(lisp(6,3).sort() == lisp(3,6));
-	verify(lisp(7,2,0,4).sort() == lisp(0,2,4,7));
+	verify(lisp(6, 3).sort() == lisp(3, 6));
+	verify(lisp(7, 2, 0, 4).sort() == lisp(0, 2, 4, 7));
 
 	x = lisp(1, 2, 3, 4);
 	const Lisp<int>& y = x;
@@ -53,4 +52,4 @@ TEST(lisp)
 	assert_eq(x[2], 33);
 	xassert(x[3]);
 	xassert(x[999]);
-	}
+}

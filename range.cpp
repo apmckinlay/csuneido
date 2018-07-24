@@ -3,25 +3,22 @@
 
 #include "range.h"
 
-int prepFrom(int from, int len)
-	{
-	if (from < 0)
-		{
+int prepFrom(int from, int len) {
+	if (from < 0) {
 		from += len;
 		if (from < 0)
 			from = 0;
-		}
-	return from;
 	}
+	return from;
+}
 
-int prepTo(int to, int len)
-	{
+int prepTo(int to, int len) {
 	if (to < 0)
 		to += len;
 	if (to > len)
 		to = len;
 	return to;
-	}
+}
 
 //-------------------------------------------------------------------
 
@@ -30,16 +27,14 @@ int prepTo(int to, int len)
 #include "suobject.h"
 #include "ostreamstr.h"
 
-static SuObject* stringToCharList(gcstring s)
-	{
+static SuObject* stringToCharList(gcstring s) {
 	auto ob = new SuObject();
 	for (int i = 0; i < s.size(); ++i)
 		ob->add(new SuString(s.substr(i, 1)));
 	return ob;
-	}
+}
 
-PORTTEST(lang_range)
-	{
+PORTTEST(lang_range) {
 	SuString s(args[0]);
 	int from = atoi(args[1].str());
 	int to = atoi(args[2].str());
@@ -54,12 +49,11 @@ PORTTEST(lang_range)
 	if (result != expectedList)
 		return OSTR("got: " << result);
 	return nullptr;
-	}
+}
 
 const char* pt_method(const List<gcstring>& args, const List<bool>& str);
 
-PORTTEST(lang_sub)
-	{
+PORTTEST(lang_sub) {
 	SuString s(args[0]);
 	int org = atoi(args[1].str());
 	int len = args.size() == 3 ? 9999 : atoi(args[2].str());
@@ -96,4 +90,4 @@ PORTTEST(lang_sub)
 		return OSTR("Slice " << err);
 
 	return nullptr;
-	}
+}

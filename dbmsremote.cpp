@@ -19,9 +19,9 @@
 
 enum class CorQ : char { CURSOR = 'c', QUERY = 'q' };
 
-class DbmsRemote : public Dbms
-	{
+class DbmsRemote : public Dbms {
 	friend class DbmsQueryRemote;
+
 public:
 	explicit DbmsRemote(SocketConnect* s);
 	~DbmsRemote();
@@ -58,6 +58,7 @@ public:
 	int transaction(TranType type, const char* session_id) override;
 	Mmoffset update(int tn, Mmoffset recadr, Record& rec) override;
 	int writeCount(int tn) override;
+
 private:
 	static bool checkHello(const gcstring& hello);
 	void close(int qn, CorQ cq);
@@ -89,207 +90,193 @@ private:
 	Row getRow(Header* phdr = nullptr);
 
 	ClientConnection io;
-	};
+};
 
-class DbmsQueryRemote : public DbmsQuery
-	{
+class DbmsQueryRemote : public DbmsQuery {
 public:
-	DbmsQueryRemote(DbmsRemote& d, int q) : dr(d), qn(q)
-		{ }
-	void set_transaction(int tn) override
-		{ }
-	void close() override
-		{ return dr.close(qn, c_or_q()); }
-	const char* explain() override
-		{ return dr.explain(qn, c_or_q()); }
-	Row get(Dir dir) override
-		{ return dr.get(getTran(), qn, dir); }
-	Header header() override
-		{
+	DbmsQueryRemote(DbmsRemote& d, int q) : dr(d), qn(q) {
+	}
+	void set_transaction(int tn) override {
+	}
+	void close() override {
+		return dr.close(qn, c_or_q());
+	}
+	const char* explain() override {
+		return dr.explain(qn, c_or_q());
+	}
+	Row get(Dir dir) override {
+		return dr.get(getTran(), qn, dir);
+	}
+	Header header() override {
 		if (nil(header_))
 			header_ = dr.header(qn, c_or_q());
 		return header_;
-		}
-	Lisp<Lisp<gcstring>> keys() override
-		{
+	}
+	Lisp<Lisp<gcstring>> keys() override {
 		if (nil(keys_))
 			keys_ = dr.keys(qn, c_or_q());
 		return keys_;
-		}
-	Lisp<gcstring> order() override
-		{ return dr.order(qn, c_or_q()); }
-	bool output(const Record& rec) override
-		{ return dr.output(qn, rec); }
-	void rewind() override
-		{ return dr.rewind(qn, c_or_q()); }
+	}
+	Lisp<gcstring> order() override {
+		return dr.order(qn, c_or_q());
+	}
+	bool output(const Record& rec) override {
+		return dr.output(qn, rec);
+	}
+	void rewind() override {
+		return dr.rewind(qn, c_or_q());
+	}
+
 protected:
-	virtual CorQ c_or_q()
-		{
+	virtual CorQ c_or_q() {
 		return CorQ::QUERY;
-		}
-	virtual int getTran()
-		{ return NO_TRAN; }
+	}
+	virtual int getTran() {
+		return NO_TRAN;
+	}
 
 	DbmsRemote& dr;
 	const int qn;
-	Header header_; // cache
+	Header header_;             // cache
 	Lisp<Lisp<gcstring>> keys_; // cache
-	};
+};
 
-class DbmsCursorRemote : public DbmsQueryRemote
-	{
+class DbmsCursorRemote : public DbmsQueryRemote {
 public:
-	DbmsCursorRemote(DbmsRemote& d, int c) : DbmsQueryRemote(d, c)
-		{ }
-	void set_transaction(int t) override
-		{ tn = t; }
+	DbmsCursorRemote(DbmsRemote& d, int c) : DbmsQueryRemote(d, c) {
+	}
+	void set_transaction(int t) override {
+		tn = t;
+	}
+
 protected:
-	CorQ c_or_q() override
-		{ return CorQ::CURSOR; }
-	int getTran() override
-		{
+	CorQ c_or_q() override {
+		return CorQ::CURSOR;
+	}
+	int getTran() override {
 		verify(isTran(tn));
 		int t = tn;
 		tn = NO_TRAN; // clear after use
 		return t;
-		}
+	}
+
 private:
 	int tn = NO_TRAN;
-	};
+};
 
 // DbmsRemote -----------------------------------------------------------------
 
-DbmsRemote::DbmsRemote(SocketConnect* sc) : io(sc)
-	{
+DbmsRemote::DbmsRemote(SocketConnect* sc) : io(sc) {
 	gcstring hello = sc->read(HELLO_SIZE);
 	if (!checkHello(hello))
-		except("connect failed\n" <<
-			"client: Suneido " << build << "\n" <<
-			"server: " << hello);
-	}
+		except("connect failed\n"
+			<< "client: Suneido " << build << "\n"
+			<< "server: " << hello);
+}
 
-bool DbmsRemote::checkHello(const gcstring& hello)
-	{
+bool DbmsRemote::checkHello(const gcstring& hello) {
 	if (cmdlineoptions.ignore_version)
 		return true;
 	const char* prefix = "Suneido ";
-	if (!hello.has_prefix(prefix) || hello.has_prefix("Suneido Database Server"))
+	if (!hello.has_prefix(prefix) ||
+		hello.has_prefix("Suneido Database Server"))
 		return false;
 	gcstring rest = hello.substr(strlen(prefix));
 	if (!rest.has("Java"))
 		return rest.has_prefix(build); // exact match
-	else
-		{
+	else {
 		// just compare date (not time)
 		gcstring bd(build, 11); // 11 = MMM dd yyyy
-		bd = tr(bd, "  ", " "); // squeeze out extra space for single digit dates
+		bd = tr(bd, "  ", " "); // remove extra spaces from single digit dates
 		return rest.has_prefix(bd.str());
-		}
 	}
+}
 
-DbmsRemote::~DbmsRemote()
-	{
+DbmsRemote::~DbmsRemote() {
 	io.close();
-	}
+}
 
-void DbmsRemote::abort(int tn)
-	{
+void DbmsRemote::abort(int tn) {
 	send(Command::ABORT, tn);
-	}
+}
 
-void DbmsRemote::admin(const char* s)
-	{
+void DbmsRemote::admin(const char* s) {
 	send(Command::ADMIN, s);
-	}
+}
 
-bool DbmsRemote::auth(const gcstring& data)
-	{
+bool DbmsRemote::auth(const gcstring& data) {
 	send(Command::AUTH, data);
 	return io.getBool();
-	}
+}
 
-Value DbmsRemote::check()
-	{
+Value DbmsRemote::check() {
 	send(Command::CHECK);
 	return new SuString(io.getStr());
-	}
+}
 
-void DbmsRemote::close(int qn, CorQ cq) // DbmsQuery
-	{
+void DbmsRemote::close(int qn, CorQ cq) { // DbmsQuery
 	send(Command::CLOSE, qn, cq);
-	}
+}
 
-bool DbmsRemote::commit(int tn, const char** conflict)
-	{
+bool DbmsRemote::commit(int tn, const char** conflict) {
 	send(Command::COMMIT, tn);
 	if (io.getBool())
 		return true;
 	*conflict = io.getStr().str();
 	return false;
-	}
+}
 
-Value DbmsRemote::connections()
-	{
+Value DbmsRemote::connections() {
 	send(Command::CONNECTIONS);
 	return io.getValue();
-	}
+}
 
-DbmsQuery* DbmsRemote::cursor(const char* query)
-	{
+DbmsQuery* DbmsRemote::cursor(const char* query) {
 	send(Command::CURSOR, query);
 	auto cn = io.getInt();
 	return new DbmsCursorRemote(*this, cn);
-	}
+}
 
-int DbmsRemote::cursors()
-	{
+int DbmsRemote::cursors() {
 	send(Command::CURSORS);
 	return io.getInt();
-	}
+}
 
-Value DbmsRemote::dump(const char* filename)
-	{
+Value DbmsRemote::dump(const char* filename) {
 	send(Command::DUMP, filename);
 	return new SuString(io.getStr());
-	}
+}
 
-void DbmsRemote::erase(int tn, Mmoffset recadr)
-	{
+void DbmsRemote::erase(int tn, Mmoffset recadr) {
 	send(Command::ERASE, tn, recadr);
-	}
+}
 
-Value DbmsRemote::exec(Value ob)
-	{
+Value DbmsRemote::exec(Value ob) {
 	send(Command::EXEC, ob);
 	return io.getBool() ? io.getValue() : Value();
-	}
+}
 
-const char* DbmsRemote::explain(int qn, CorQ cq) // DbmsQuery
-	{
+const char* DbmsRemote::explain(int qn, CorQ cq) { // DbmsQuery
 	send(Command::EXPLAIN, qn, cq);
 	return io.getStr().str();
-	}
+}
 
-int DbmsRemote::final()
-	{
+int DbmsRemote::final() {
 	send(Command::FINAL);
 	return io.getInt();
-	}
+}
 
-Row DbmsRemote::get(Dir dir, const char* query, bool one, Header& hdr, int tn)
-	{
+Row DbmsRemote::get(Dir dir, const char* query, bool one, Header& hdr, int tn) {
 	send(Command::GET1, dir, one, tn, query);
 	return getRow(&hdr);
-	}
+}
 
-Row DbmsRemote::get(int tn, int qn, Dir dir) // DbmsQuery
-	{
+Row DbmsRemote::get(int tn, int qn, Dir dir) { // DbmsQuery
 	send(Command::GET, tn, qn, dir);
 	return getRow();
-	}
+}
 
-Row DbmsRemote::getRow(Header* phdr)
-	{
+Row DbmsRemote::getRow(Header* phdr) {
 	if (!io.getBool())
 		return Row::Eof;
 	int64_t recadr = static_cast<unsigned int>(io.getInt());
@@ -297,27 +284,23 @@ Row DbmsRemote::getRow(Header* phdr)
 		*phdr = getHeader();
 	gcstring r = io.getBuf();
 	return Row(Record(r.ptr()), recadr);
-	}
+}
 
-int DbmsRemote::kill(const char* sessionid)
-	{
+int DbmsRemote::kill(const char* sessionid) {
 	send(Command::KILL, sessionid);
 	return io.getInt();
-	}
+}
 
-Header DbmsRemote::header(int qn, CorQ cq) // DbmsQuery
-	{
+Header DbmsRemote::header(int qn, CorQ cq) { // DbmsQuery
 	send(Command::HEADER, qn, cq);
 	return getHeader();
-	}
+}
 
-Header DbmsRemote::getHeader()
-	{
+Header DbmsRemote::getHeader() {
 	int n = io.getInt();
 	Lisp<gcstring> cols;
 	Lisp<gcstring> fields;
-	for (int i = 0; i < n; ++i)
-		{
+	for (int i = 0; i < n; ++i) {
 		gcstring s = io.getStr();
 		if (isupper(s[0]))
 			s = s.uncapitalize();
@@ -325,268 +308,229 @@ Header DbmsRemote::getHeader()
 			fields.push(s);
 		if (s != "-")
 			cols.push(s);
-		}
+	}
 	cols.reverse();
 	fields.reverse();
 	return Header(lisp(fields), cols);
-	}
+}
 
-Lisp<Lisp<gcstring>> DbmsRemote::keys(int qn, CorQ cq) // DbmsQuery
-	{
+Lisp<Lisp<gcstring>> DbmsRemote::keys(int qn, CorQ cq) { // DbmsQuery
 	send(Command::KEYS, qn, cq);
 	int n = io.getInt();
 	Lisp<Lisp<gcstring>> list;
 	for (int i = 0; i < n; ++i)
 		list.push(io.getStrings());
 	return list.reverse();
-	}
+}
 
-Lisp<gcstring> DbmsRemote::libget(const char* name)
-	{
+Lisp<gcstring> DbmsRemote::libget(const char* name) {
 	send(Command::LIBGET, name);
 	int n = io.getInt();
 	std::vector<gcstring> libs(n);
 	std::vector<int> sizes(n);
-	for (int i = 0; i < n; ++i)
-		{
+	for (int i = 0; i < n; ++i) {
 		libs[i] = io.getStr();
 		sizes[i] = io.getInt();
-		}
+	}
 	Lisp<gcstring> srcs;
-	for (int i = 0; i < n; ++i)
-		{
+	for (int i = 0; i < n; ++i) {
 		srcs.push(libs[i]);
 		gcstring src = io.read(sizes[i]);
 		srcs.push(src); // text
-		}
-	return srcs.reverse();
 	}
+	return srcs.reverse();
+}
 
-Lisp<gcstring> DbmsRemote::libraries()
-	{
+Lisp<gcstring> DbmsRemote::libraries() {
 	send(Command::LIBRARIES);
 	return io.getStrings();
-	}
+}
 
-int DbmsRemote::load(const char* filename)
-	{
+int DbmsRemote::load(const char* filename) {
 	send(Command::LOAD, filename);
 	return io.getInt();
-	}
+}
 
-void DbmsRemote::log(const char* s)
-	{
+void DbmsRemote::log(const char* s) {
 	send(Command::LOG, s);
-	}
+}
 
-gcstring DbmsRemote::nonce()
-	{
+gcstring DbmsRemote::nonce() {
 	send(Command::NONCE);
 	return io.getStr();
-	}
+}
 
-Lisp<gcstring> DbmsRemote::order(int qn, CorQ cq) // DbmsQuery
-	{
+Lisp<gcstring> DbmsRemote::order(int qn, CorQ cq) { // DbmsQuery
 	send(Command::ORDER, qn, cq);
 	return io.getStrings();
-	}
+}
 
-bool DbmsRemote::output(int qn, const Record& rec) // DbmsQuery
-	{
+bool DbmsRemote::output(int qn, const Record& rec) { // DbmsQuery
 	send(Command::OUTPUT, qn, rec);
 	return true;
-	}
+}
 
-DbmsQuery* DbmsRemote::query(int tn, const char* query)
-	{
+DbmsQuery* DbmsRemote::query(int tn, const char* query) {
 	send(Command::QUERY, tn, query);
 	int qn = io.getInt();
 	return new DbmsQueryRemote(*this, qn);
-	}
+}
 
-int DbmsRemote::readCount(int tn)
-	{
+int DbmsRemote::readCount(int tn) {
 	send(Command::READCOUNT, tn);
 	return io.getInt();
-	}
+}
 
-int DbmsRemote::request(int tn, const char* s)
-	{
+int DbmsRemote::request(int tn, const char* s) {
 	send(Command::REQUEST, tn, s);
 	return io.getInt();
-	}
+}
 
-void DbmsRemote::rewind(int qn, CorQ cq) // DbmsQuery
-	{
+void DbmsRemote::rewind(int qn, CorQ cq) { // DbmsQuery
 	send(Command::REWIND, qn, cq);
-	}
+}
 
-Value DbmsRemote::run(const char* s)
-	{
+Value DbmsRemote::run(const char* s) {
 	send(Command::RUN, s);
 	return io.getBool() ? io.getValue() : Value();
-	}
+}
 
-Value DbmsRemote::sessionid(const char* sessionid)
-	{
-	if (*sessionid || !*tls().fiber_id)
-		{
+Value DbmsRemote::sessionid(const char* sessionid) {
+	if (*sessionid || !*tls().fiber_id) {
 		send(Command::SESSIONID, sessionid);
 		tls().fiber_id = io.getStr().str();
-		}
-	return new SuString(tls().fiber_id);
 	}
+	return new SuString(tls().fiber_id);
+}
 
-int64_t DbmsRemote::size()
-	{
+int64_t DbmsRemote::size() {
 	send(Command::SIZE);
 	return io.getInt();
-	}
+}
 
-int DbmsRemote::tempdest()
-	{
+int DbmsRemote::tempdest() {
 	return 0;
-	}
+}
 
-Value DbmsRemote::timestamp()
-	{
+Value DbmsRemote::timestamp() {
 	send(Command::TIMESTAMP);
 	return io.getValue();
-	}
+}
 
-gcstring DbmsRemote::token()
-	{
+gcstring DbmsRemote::token() {
 	send(Command::TOKEN);
 	return io.getStr();
-	}
+}
 
-Lisp<int> DbmsRemote::tranlist()
-	{
+Lisp<int> DbmsRemote::tranlist() {
 	send(Command::TRANSACTIONS);
 	return io.getInts();
-	}
+}
 
-int DbmsRemote::transaction(TranType type, const char* session_id)
-	{
+int DbmsRemote::transaction(TranType type, const char* session_id) {
 	send(Command::TRANSACTION, type == READWRITE);
 	return io.getInt();
-	}
+}
 
-Mmoffset DbmsRemote::update(int tn, Mmoffset recadr, Record& rec)
-	{
+Mmoffset DbmsRemote::update(int tn, Mmoffset recadr, Record& rec) {
 	send(Command::UPDATE, tn, recadr, rec);
 	return io.getInt();
-	}
+}
 
-int DbmsRemote::writeCount(int tn)
-	{
+int DbmsRemote::writeCount(int tn) {
 	send(Command::WRITECOUNT, tn);
 	return io.getInt();
-	}
+}
 
 //-----------------------------------------------------------------------------
 
-void DbmsRemote::send(Command cmd)
-	{
+void DbmsRemote::send(Command cmd) {
 	putCmd(cmd);
 	doRequest();
-	}
+}
 
-void DbmsRemote::send(Command cmd, bool b)
-	{
+void DbmsRemote::send(Command cmd, bool b) {
 	putCmd(cmd).putBool(b);
 	doRequest();
-	}
+}
 
-void DbmsRemote::send(Command cmd, int n)
-	{
+void DbmsRemote::send(Command cmd, int n) {
 	putCmd(cmd).putInt(n);
 	doRequest();
-	}
+}
 
-void DbmsRemote::send(Command cmd, int n, int m)
-	{
+void DbmsRemote::send(Command cmd, int n, int m) {
 	putCmd(cmd).putInt(n).putInt(m);
 	doRequest();
-	}
+}
 
-void DbmsRemote::send(Command cmd, int tn, int qn, Dir dir)
-	{
+void DbmsRemote::send(Command cmd, int tn, int qn, Dir dir) {
 	putCmd(cmd).put(dir == NEXT ? '+' : '-').putInt(tn).putInt(qn);
 	doRequest();
-	}
+}
 
-void DbmsRemote::send(Command cmd, Dir dir, bool one, int tn, const char * query)
-	{
-	putCmd(cmd).put(one ? '1' : (dir == NEXT) ? '+' : '-')
-		.putInt(tn).putStr(query);
+void DbmsRemote::send(
+	Command cmd, Dir dir, bool one, int tn, const char* query) {
+	putCmd(cmd)
+		.put(one ? '1' : (dir == NEXT) ? '+' : '-')
+		.putInt(tn)
+		.putStr(query);
 	doRequest();
-	}
+}
 
-void DbmsRemote::send(Command cmd, int qn, const Record & rec)
-	{
+void DbmsRemote::send(Command cmd, int qn, const Record& rec) {
 	putCmd(cmd).putInt(qn).putInt(rec.cursize());
 	io.write(static_cast<char*>(rec.dup().ptr()), rec.cursize());
 	doRequest();
-	}
+}
 
-void DbmsRemote::send(Command cmd, int tn, int recadr, const Record & rec)
-	{
+void DbmsRemote::send(Command cmd, int tn, int recadr, const Record& rec) {
 	putCmd(cmd).putInt(tn).putInt(recadr).putInt(rec.cursize());
 	io.write(static_cast<char*>(rec.dup().ptr()), rec.cursize());
 	doRequest();
-	}
+}
 
-void DbmsRemote::send(Command cmd, int n, CorQ cq)
-	{
+void DbmsRemote::send(Command cmd, int n, CorQ cq) {
 	putCmd(cmd).putInt(n).put(char(cq));
 	doRequest();
-	}
+}
 
-void DbmsRemote::send(Command cmd, int n, const gcstring& s)
-	{
+void DbmsRemote::send(Command cmd, int n, const gcstring& s) {
 	putCmd(cmd).putInt(n).putStr(s);
 	doRequest();
-	}
+}
 
-void DbmsRemote::send(Command cmd, const char* s)
-	{
+void DbmsRemote::send(Command cmd, const char* s) {
 	putCmd(cmd).putStr(s);
 	doRequest();
-	}
+}
 
-void DbmsRemote::send(Command cmd, const gcstring& s)
-	{
+void DbmsRemote::send(Command cmd, const gcstring& s) {
 	putCmd(cmd).putStr(s);
 	doRequest();
-	}
+}
 
-void DbmsRemote::send(Command cmd, Value val)
-	{
+void DbmsRemote::send(Command cmd, Value val) {
 	putCmd(cmd).putValue(val);
 	doRequest();
-	}
+}
 
-Serializer& DbmsRemote::putCmd(Command cmd)
-	{
+Serializer& DbmsRemote::putCmd(Command cmd) {
 	io.clear();
 	return io.putCmd(char(cmd));
-	}
+}
 
-void DbmsRemote::doRequest()
-	{
+void DbmsRemote::doRequest() {
 	io.write();
 	getResponse();
-	}
+}
 
-void DbmsRemote::getResponse()
-	{
-	if (!io.getBool())
-		{
+void DbmsRemote::getResponse() {
+	if (!io.getBool()) {
 		auto err = io.getStr();
 		except(err << " (from server)");
-		}
 	}
+}
 
 // factory methods ------------------------------------------------------------
 
@@ -596,15 +540,12 @@ void DbmsRemote::getResponse()
 
 extern int su_port;
 
-Dbms* dbms_remote_async(const char* addr)
-	{
+Dbms* dbms_remote_async(const char* addr) {
 	return new DbmsRemote(socketClientAsync(addr, su_port));
-	}
+}
 
-static const char* httpget(const char* addr, int port)
-	{
-	try
-		{
+static const char* httpget(const char* addr, int port) {
+	try {
 		SocketConnect* sc = socketClientSync(addr, port);
 		OstreamStr oss;
 		oss << "GET http://" << addr << "/:" << port << " HTTP/1.0\r\n\r\n";
@@ -614,26 +555,22 @@ static const char* httpget(const char* addr, int port)
 		sc->close();
 		buf[n] = 0;
 		return dupstr(buf);
-		}
-	catch (const Except&)
-		{
+	} catch (const Except&) {
 		return "";
-		}
 	}
+}
 
-Dbms* dbms_remote(const char* addr)
-	{
-	try
-		{
+Dbms* dbms_remote(const char* addr) {
+	try {
 		return new DbmsRemote(socketClientSync(addr, su_port));
-		}
-	catch (const Except&)
-		{
+	} catch (const Except&) {
 		const char* status = httpget(addr, su_port + 1);
 		if (strstr(status, "Checking database ..."))
-			fatal("Can't connect, server is checking the database, please try again later");
+			fatal("Can't connect, server is checking the database, "
+				  "please try again later");
 		else if (strstr(status, "Rebuilding database ..."))
-			fatal("Can't connect, server is repairing the database, please try again later");
+			fatal("Can't connect, server is repairing the database, "
+				  "please try again later");
 		throw;
-		}
 	}
+}

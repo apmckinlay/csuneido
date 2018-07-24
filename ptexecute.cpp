@@ -11,8 +11,7 @@
 
 #define TOVAL(i) (str[i] ? new SuString(args[i]) : compile(args[i].str()))
 
-PORTTEST(method)
-	{
+PORTTEST(method) {
 	Value ob = TOVAL(0);
 	auto method = new SuString(args[1]);
 	Value expected = TOVAL(args.size() - 1);
@@ -21,40 +20,31 @@ PORTTEST(method)
 		PUSH(TOVAL(i));
 	Value result = ob.call(ob, method, args.size() - 3);
 	return result == expected ? nullptr : OSTR("got: " << result);
-	}
+}
 
-PORTTEST(execute)
-	{
+PORTTEST(execute) {
 	gcstring expected = "**notfalse**";
 	if (args.size() > 1)
 		expected = args[1];
 	Value result;
 	bool ok;
-	if (expected == "throws")
-		{
-		try
-			{
+	if (expected == "throws") {
+		try {
 			result = run(args[0].str());
 			ok = false;
-			}
-		catch (Except& e)
-			{
+		} catch (Except& e) {
 			result = new SuString(e.gcstr());
 			ok = e.gcstr().has(args[2]);
-			}
 		}
-	else if (expected == "**notfalse**")
-		{
+	} else if (expected == "**notfalse**") {
 		result = run(args[0].str());
 		ok = result != SuFalse;
-		}
-	else
-		{
+	} else {
 		result = run(args[0].str());
 		Value expectedVal = compile(expected.str());
 		ok = result == expectedVal;
-		}
+	}
 	if (!ok)
 		return OSTR("got: " << result);
 	return nullptr;
-	}
+}

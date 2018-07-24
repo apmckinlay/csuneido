@@ -27,20 +27,19 @@ static const uint64_t e16_lo = E16 & LONG_MASK;
 
 int clz64(uint64_t n);
 
-static uint64_t make64(uint32_t hi, uint32_t lo)
-	{
+static uint64_t make64(uint32_t hi, uint32_t lo) {
 	return uint64_t(hi) << 32 | lo;
-	}
+}
 
 /** @return u1,u0 - v1,v0 * q0 */
-static uint64_t mulsub(uint32_t u1, uint32_t u0, uint32_t v1, uint32_t v0, uint64_t q0)
-	{
+static uint64_t mulsub(
+	uint32_t u1, uint32_t u0, uint32_t v1, uint32_t v0, uint64_t q0) {
 	uint64_t tmp = u0 - q0 * v0;
 	return make64(u1 + (tmp >> 32) - q0 * v1, tmp & LONG_MASK);
-	}
+}
 
-static uint64_t divide128(uint64_t dividendHi, uint64_t dividendLo, uint64_t divisor)
-	{
+static uint64_t divide128(
+	uint64_t dividendHi, uint64_t dividendLo, uint64_t divisor) {
 	// so we can shift dividend as much as divisor
 	// don't allow equals to avoid quotient overflow (by 1)
 	CHECK(dividendHi < divisor);
@@ -62,62 +61,53 @@ static uint64_t divide128(uint64_t dividendHi, uint64_t dividendLo, uint64_t div
 	// tmp1 = top 64 of dividend << shift
 	uint64_t tmp1 = (dividendHi << shift) | (dividendLo >> (64 - shift));
 	uint64_t q1, r_tmp1;
-	if (v1 == 1)
-		{
+	if (v1 == 1) {
 		q1 = tmp1;
 		r_tmp1 = 0;
-		}
-	else
-		{
+	} else {
 		CHECK(tmp1 >= 0);
-		q1 = tmp1 / v1; // DIVIDE top 64 / top 32
+		q1 = tmp1 / v1;     // DIVIDE top 64 / top 32
 		r_tmp1 = tmp1 % v1; // remainder
-		}
+	}
 
 	// adjust if quotient estimate too large
 	CHECK(q1 < DIV_NUM_BASE);
-	while (q1*v0 > make64(r_tmp1, u1))
-		{
+	while (q1 * v0 > make64(r_tmp1, u1)) {
 		// done about 5.5 per 10,000 divides
 		q1--;
 		r_tmp1 += v1;
 		if (r_tmp1 >= DIV_NUM_BASE)
 			break;
-		}
+	}
 	CHECK(q1 >= 0);
 	uint64_t u2 = tmp1 & LONG_MASK; // low half
 
 	// u2,u1 is the MIDDLE 64 bits of the dividend
 	uint64_t tmp2 = mulsub(u2, u1, v1, v0, q1);
 	uint64_t q0, r_tmp2;
-	if (v1 == 1)
-		{
+	if (v1 == 1) {
 		q0 = tmp2;
 		r_tmp2 = 0;
-		}
-	else
-		{
+	} else {
 		q0 = tmp2 / v1; // DIVIDE dividend remainder 64 / divisor high 32
 		r_tmp2 = tmp2 % v1;
-		}
+	}
 
 	// adjust if quotient estimate too large
 	CHECK(q0 < DIV_NUM_BASE);
-	while (q0*v0 > make64(r_tmp2, u0))
-		{
+	while (q0 * v0 > make64(r_tmp2, u0)) {
 		// done about .33 times per divide
 		q0--;
 		r_tmp2 += v1;
 		if (r_tmp2 >= DIV_NUM_BASE)
 			break;
-		}
-
-	return make64(q1, q0);
 	}
 
+	return make64(q1, q0);
+}
+
 /// returns (1e16 * dividend) / divisor
-uint64_t div128(uint64_t dividend, uint64_t divisor)
-	{
+uint64_t div128(uint64_t dividend, uint64_t divisor) {
 	CHECK(dividend != 0);
 	CHECK(divisor != 0);
 	// multiply dividend * E16
@@ -141,19 +131,18 @@ uint64_t div128(uint64_t dividend, uint64_t divisor)
 	uint64_t dividendLo = make64(d1, d0);
 	// divide
 	return divide128(dividendHi, dividendLo, divisor);
-	}
+}
 
 // tests ------------------------------------------------------------
 
 #include "testing.h"
 
-TEST(div128)
-	{
+TEST(div128) {
 	assert_eq(div128(1, 4), 2500000000000000ull);
 	assert_eq(div128(1, 3), 3333333333333333ull);
 	assert_eq(div128(2, 3), 6666666666666666ull);
 	assert_eq(div128(1, 11), 909090909090909ull);
 	assert_eq(div128(11, 13), 8461538461538461ull);
-	assert_eq(div128(1234567890123456ull, 9876543210987654ull),
-		1249999988609374ull);
-	}
+	assert_eq(
+		div128(1234567890123456ull, 9876543210987654ull), 1249999988609374ull);
+}

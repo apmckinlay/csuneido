@@ -7,18 +7,16 @@
 #include "suboolean.h"
 #include "except.h"
 
-bool Value::toBool() const
-	{
+bool Value::toBool() const {
 	if (p == SuBoolean::t)
 		return true;
 	else if (p == SuBoolean::f)
 		return false;
 	else
 		except("expected boolean, got " << type());
-	}
+}
 
-Ostream& operator<<(Ostream& os, Value x)
-	{
+Ostream& operator<<(Ostream& os, Value x) {
 	if (x.is_int())
 		os << x.im.n;
 	else if (x.p)
@@ -26,96 +24,63 @@ Ostream& operator<<(Ostream& os, Value x)
 	else
 		os << "NULL";
 	return os;
-	}
+}
 
-bool operator==(Value x, Value y)
-	{
+bool operator==(Value x, Value y) {
 	if (x.p == y.p)
 		return true;
-	if (! x.p || ! y.p)
+	if (!x.p || !y.p)
 		return false;
-	return
-		x.is_int()							//  X    Y
-			? y.is_int()					// int	int
-				? false
-				: NUM(x.im.n)->eq(*y.p)		// int  val
-			: y.is_int()
-				? x.p->eq(*NUM(y.im.n))		// val	int
-				: x.p->eq(*y.p);			// val	val
-	}
+	return x.is_int()                        //  X    Y
+		? y.is_int()                         //
+			? false                          // int	int
+			: NUM(x.im.n)->eq(*y.p)          // int  val
+		: y.is_int() ? x.p->eq(*NUM(y.im.n)) // val	int
+					 : x.p->eq(*y.p);        // val	val
+}
 
-bool operator<(Value x, Value y)
-	{
-	return
-		x.is_int()
-			? y.is_int()
-				? x.im.n < y.im.n
-				: NUM(x.im.n)->lt(*y.p)
-			: y.is_int()
-				? x.p->lt(*NUM(y.im.n))
-				: x.p->lt(*y.p);
-	}
+bool operator<(Value x, Value y) {
+	return x.is_int() ? y.is_int() ? x.im.n < y.im.n : NUM(x.im.n)->lt(*y.p)
+					  : y.is_int() ? x.p->lt(*NUM(y.im.n)) : x.p->lt(*y.p);
+}
 
-Value Value::operator-() const
-	{
+Value Value::operator-() const {
 	return is_int() ? Value(-im.n) : Value(neg(p->number()));
-	}
+}
 
-Value operator+(Value x, Value y)
-	{
-	return
-		x.is_int()
-			? y.is_int()
-				? Value(x.im.n + y.im.n)
-				: Value(add(NUM(x.im.n), y.p->number()))
-			: y.is_int()
-				? Value(add(x.p->number(), NUM(y.im.n)))
-				: Value(add(x.p->number(), y.p->number()));
-	}
+Value operator+(Value x, Value y) {
+	return x.is_int() ? y.is_int() ? Value(x.im.n + y.im.n)
+								   : Value(add(NUM(x.im.n), y.p->number()))
+					  : y.is_int() ? Value(add(x.p->number(), NUM(y.im.n)))
+								   : Value(add(x.p->number(), y.p->number()));
+}
 
-Value operator-(Value x, Value y)
-	{
-	return
-		x.is_int()
-			? y.is_int()
-				? Value(x.im.n - y.im.n)
-				: Value(sub(NUM(x.im.n), y.p->number()))
-			: y.is_int()
-				? Value(sub(x.p->number(), NUM(y.im.n)))
-				: Value(sub(x.p->number(), y.p->number()));
-	}
+Value operator-(Value x, Value y) {
+	return x.is_int() ? y.is_int() ? Value(x.im.n - y.im.n)
+								   : Value(sub(NUM(x.im.n), y.p->number()))
+					  : y.is_int() ? Value(sub(x.p->number(), NUM(y.im.n)))
+								   : Value(sub(x.p->number(), y.p->number()));
+}
 
-Value operator*(Value x, Value y)
-	{
-	return
-		x.is_int()
-			? y.is_int()
-				? Value(x.im.n * y.im.n)
-				: Value(mul(NUM(x.im.n), y.p->number()))
-			: y.is_int()
-				? Value(mul(x.p->number(), NUM(y.im.n)))
-				: Value(mul(x.p->number(), y.p->number()));
-	}
+Value operator*(Value x, Value y) {
+	return x.is_int() ? y.is_int() ? Value(x.im.n * y.im.n)
+								   : Value(mul(NUM(x.im.n), y.p->number()))
+					  : y.is_int() ? Value(mul(x.p->number(), NUM(y.im.n)))
+								   : Value(mul(x.p->number(), y.p->number()));
+}
 
-Value operator/(Value x, Value y)
-	{
-	return
-		x.is_int()
-			? y.is_int()
-				? y.im.n != 0 && (x.im.n % y.im.n) == 0
-					? Value(x.im.n / y.im.n)
-					: Value(div(NUM(x.im.n), NUM(y.im.n)))
-				: Value(div(NUM(x.im.n), y.p->number()))
-			: y.is_int()
-				? Value(div(x.p->number(), NUM(y.im.n)))
-				: Value(div(x.p->number(), y.p->number()));
-	}
-
+Value operator/(Value x, Value y) {
+	return x.is_int() ? y.is_int() ? y.im.n != 0 && (x.im.n % y.im.n) == 0
+				? Value(x.im.n / y.im.n)
+				: Value(div(NUM(x.im.n), NUM(y.im.n)))
+								   : Value(div(NUM(x.im.n), y.p->number()))
+					  : y.is_int() ? Value(div(x.p->number(), NUM(y.im.n)))
+								   : Value(div(x.p->number(), y.p->number()));
+}
 
 #include "catstr.h"
 
-void cantforce(const char* t1, const char* t2)
-	{
+void cantforce(const char* t1, const char* t2) {
 	if (has_prefix(t2, "class "))
 		t2 += 6;
 	if (has_prefix(t2, "Su"))
@@ -123,24 +88,22 @@ void cantforce(const char* t1, const char* t2)
 	if (has_suffix(t2, "*"))
 		t2 = PREFIXA(t2, strlen(t2) - 1);
 	except("can't convert " << t1 << " to " << t2);
-	}
+}
 
 #include "sustring.h"
 
-void method_not_found(const char* type, Value member)
-	{
+void method_not_found(const char* type, Value member) {
 	if (val_cast<SuString*>(member))
 		except("method not found: " << type << '.' << member.gcstr());
 	else
 		except("method not found: " << type << '.' << member);
-	}
+}
 
 // tests ------------------------------------------------------------
 
 #include "testing.h"
 
-TEST(value)
-	{
+TEST(value) {
 	Value zero(0);
 	verify(zero == zero);
 	Value one(1);
@@ -181,33 +144,29 @@ TEST(value)
 	verify(x.is_int());
 
 	assert_eq(x = mid * mid, Value(30000 * 30000)); // overflow
-	}
+}
 
-TEST(value_smallint)
-	{
+TEST(value_smallint) {
 	Value x(0x1234);
-	assert_eq((int)x.p, 0x1234ffff);
-	}
+	assert_eq((int) x.p, 0x1234ffff);
+}
 
 #include "porttest.h"
 #include "compile.h"
 #include "ostreamstr.h"
 
-PORTTEST(compare)
-	{
+PORTTEST(compare) {
 	int n = args.size();
-	for (int i = 0; i < n; ++i)
-		{
+	for (int i = 0; i < n; ++i) {
 		Value x = compile(args[i].str());
 		// ReSharper disable once CppIdenticalOperandsInBinaryExpression
 		if (x < x)
 			return OSTR("\n\t" << x << " less than itself");
-		for (int j = i + 1; j < n; ++j)
-			{
+		for (int j = i + 1; j < n; ++j) {
 			Value y = compile(args[j].str());
-			if (! (x < y) || (y < x))
+			if (!(x < y) || (y < x))
 				return OSTR("\n\t" << x << " <=> " << y);
-			}
 		}
-	return nullptr;
 	}
+	return nullptr;
+}

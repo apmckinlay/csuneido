@@ -5,8 +5,7 @@
 class gcstring;
 
 /// Used by circlog, ostreamstr, sockets, sustring
-class Buffer
-	{
+class Buffer {
 public:
 	explicit Buffer(int n = 128);
 
@@ -23,8 +22,9 @@ public:
 	char* ensure(int n);
 
 	/// Call after adding data directly into the buffer. Updates used.
-	void added(int n)
-		{ used += n; }
+	void added(int n) {
+		used += n;
+	}
 
 	/// Adds a single char to the buffer, updating used.
 	Buffer& add(char c);
@@ -40,20 +40,24 @@ public:
 	void remove(int n);
 
 	/// @return the number of bytes currently in the buffer.
-	int size() const
-		{ return used; }
+	int size() const {
+		return used;
+	}
 
 	/// @return A pointer to the entire buffer.
-	char* buffer() const
-		{ return buf; }
+	char* buffer() const {
+		return buf;
+	}
 
 	/// @return The unused space left in the buffer (capacity - used)
-	int available() const
-		{ return capacity - used; }
+	int available() const {
+		return capacity - used;
+	}
 
 	/// @return The number of bytes left to read (used - pos)
-	int remaining() const
-		{ return used - pos; }
+	int remaining() const {
+		return used - pos;
+	}
 
 	/// @return A pointer to the entire buffer, with a nul added at the end.
 	/// References the buffer, does not copy.
@@ -64,8 +68,9 @@ public:
 	gcstring gcstr() const;
 
 	/// @return The next byte at pos. Advances pos, reducing remaining()
-	char get()
-		{ return buf[pos++]; }
+	char get() {
+		return buf[pos++];
+	}
 
 	/// @return A copy of n bytes as a gcstring.
 	/// Advances pos by n, reducing remaining()
@@ -76,15 +81,14 @@ public:
 	char* getBuf(int n);
 
 	/// Resets used and pos to 0. Does not alter size of buffer.
-	Buffer& clear()
-		{
+	Buffer& clear() {
 		used = pos = 0;
 		return *this;
-		}
+	}
 
 private:
 	char* buf;
 	int capacity; ///< Size of buf
 	int used;     ///< Where to add more at, and the limit for reading
 	int pos;      ///< The position for reading
-	};
+};

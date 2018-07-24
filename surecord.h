@@ -11,15 +11,13 @@
 class SuTransaction;
 class Record;
 
-struct Observe
-	{
+struct Observe {
 	Value fn;
 	short mem;
-	};
+};
 
 // database record values
-class SuRecord : public SuObject
-	{
+class SuRecord : public SuObject {
 public:
 	SuRecord();
 	explicit SuRecord(const SuRecord& rec);
@@ -29,8 +27,8 @@ public:
 	SuRecord(const Record& rec, const Lisp<int>& flds, SuTransaction* t);
 
 	void out(Ostream& os) const override;
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, short* argnames, int each) override;
+	Value call(Value self, Value member, short nargs, short nargnames,
+		short* argnames, int each) override;
 
 	// putdata has to notify observers of changes
 	void putdata(Value i, Value x) override;
@@ -39,7 +37,6 @@ public:
 
 	bool erase(Value x) override;
 	bool erase2(Value x) override;
-
 
 	Record to_record(const Header& hdr);
 
@@ -73,12 +70,12 @@ private:
 	Mmoffset recadr = 0;
 	enum { NEW, OLD, DELETED } status = NEW;
 	List<Value> observers;
-	HashMap<short,Lisp<short> > dependents;
-	HashMap<short,bool> invalid;
+	HashMap<short, Lisp<short> > dependents;
+	HashMap<short, bool> invalid;
 	ListSet<short> invalidated;
 	Lisp<Value> active_rules;
 	List<Observe> active_observers;
-	HashMap<short,Value> attached_rules;
-	};
+	HashMap<short, Value> attached_rules;
+};
 
 Value su_record();

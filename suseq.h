@@ -6,13 +6,12 @@
 
 class SuObject;
 
-class SuSeq : public SuValue
-	{
+class SuSeq : public SuValue {
 public:
 	explicit SuSeq(Value iter);
 	void out(Ostream& os) const override;
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, short* argnames, int each) override;
+	Value call(Value self, Value member, short nargs, short nargnames,
+		short* argnames, int each) override;
 	void putdata(Value i, Value x) override;
 	Value getdata(Value) override;
 	Value rangeTo(int i, int j) override;
@@ -23,8 +22,10 @@ public:
 	bool eq(const SuValue& y) const override;
 	SuObject* ob_if_ob() override;
 	SuObject* object() const;
-	const char* type() const override
-		{ return "Object"; }
+	const char* type() const override {
+		return "Object";
+	}
+
 private:
 	Value Join(short nargs) const;
 	static bool infinite(Value it);
@@ -36,4 +37,4 @@ private:
 	mutable Value iter;
 	mutable SuObject* ob = nullptr;
 	mutable bool duped = false;
-	};
+};

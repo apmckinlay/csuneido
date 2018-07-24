@@ -6,47 +6,41 @@
 #include "thedb.h"
 #include "database.h"
 #include <cstdlib> // for srand and rand
-#include <ctime> // for time which is used to seed rand
+#include <ctime>   // for time which is used to seed rand
 
 static Hset<gcstring> tokens;
 
-gcstring rndstr(int size)
-	{
+gcstring rndstr(int size) {
 	static bool first = true;
-	if (first)
-		{
+	if (first) {
 		srand(time(nullptr));
 		first = false;
-		}
+	}
 	char* buf = salloc(size);
 	for (int i = 0; i < size; ++i)
 		buf[i] = rand();
 	return gcstring::noalloc(buf, size);
-	}
+}
 
-gcstring Auth::nonce()
-	{
+gcstring Auth::nonce() {
 	return rndstr(NONCE_SIZE);
-	}
+}
 
-gcstring Auth::token()
-	{
+gcstring Auth::token() {
 	gcstring token = rndstr(TOKEN_SIZE);
 	tokens.insert(token);
 	return token;
-	}
+}
 
-static bool is_token(const gcstring& data)
-	{
+static bool is_token(const gcstring& data) {
 	return tokens.erase(data);
-	}
+}
 
 const char separator = 0;
 
 extern gcstring sha1(const gcstring& s);
 
-static gcstring getPassHash(const gcstring& user)
-	{
+static gcstring getPassHash(const gcstring& user) {
 	Lisp<gcstring> flds = theDB()->get_fields("users");
 	int pass_fld = search(flds, "passhash");
 	if (pass_fld < 0)
@@ -60,10 +54,9 @@ static gcstring getPassHash(const gcstring& user)
 		return "";
 	Record rec(iter.data());
 	return rec.getstr(pass_fld);
-	}
+}
 
-static bool is_user(const gcstring& nonce, const gcstring& data)
-	{
+static bool is_user(const gcstring& nonce, const gcstring& data) {
 	int i = data.find(separator);
 	if (i == -1)
 		return false;
@@ -72,17 +65,15 @@ static bool is_user(const gcstring& nonce, const gcstring& data)
 	gcstring passHash = getPassHash(user);
 	gcstring shouldBe = sha1(nonce + passHash);
 	return hash == shouldBe;
-	}
+}
 
-bool Auth::auth(const gcstring& nonce, const gcstring& data)
-	{
+bool Auth::auth(const gcstring& nonce, const gcstring& data) {
 	return is_token(data) || is_user(nonce, data);
-	}
+}
 
 #include "testing.h"
 
-TEST(auth)
-	{
+TEST(auth) {
 	gcstring t = Auth::token();
 	assert_eq(Auth::TOKEN_SIZE, t.size());
 	gcstring t2 = Auth::token();
@@ -91,4 +82,4 @@ TEST(auth)
 	verify(!is_token(t));
 	verify(is_token(t2));
 	verify(!is_token(t2));
-	}
+}

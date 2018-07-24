@@ -5,12 +5,11 @@
 #include "ostream.h"
 
 // an output stream to stdout
-class OstreamStd : public Ostream
-	{
+class OstreamStd : public Ostream {
 public:
 	Ostream& write(const void* buf, int n);
 	void flush();
-	};
+};
 
 extern OstreamStd cout;
 

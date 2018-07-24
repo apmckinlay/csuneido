@@ -5,11 +5,10 @@
 #include "win.h"
 #include <cstdint>
 
-inline int64_t qpc()
-	{
+inline int64_t qpc() {
 	LARGE_INTEGER t;
 	QueryPerformanceCounter(&t);
 	return t.QuadPart;
-	}
+}
 
 extern int64_t qpf; // defined in fibers.cpp

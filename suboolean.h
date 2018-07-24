@@ -7,8 +7,7 @@
 class gcstring;
 
 // a boolean value (true or false)
-class SuBoolean : public SuValue
-	{
+class SuBoolean : public SuValue {
 public:
 	int integer() const override;
 	void out(Ostream& os) const override;
@@ -27,10 +26,11 @@ public:
 
 	static SuBoolean* t;
 	static SuBoolean* f;
+
 private:
 	// private constructor to ensure only two instances
-	explicit SuBoolean(int x) : val(x ? 1 : 0)
-		{ }
+	explicit SuBoolean(int x) : val(x ? 1 : 0) {
+	}
 
 	bool val;
-	};
+};

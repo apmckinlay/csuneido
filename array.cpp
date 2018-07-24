@@ -4,8 +4,7 @@
 #include "array.h"
 #include "testing.h"
 
-TEST(array)
-	{
+TEST(array) {
 	Array<int, 11> a;
 
 	for (int i = 1; i < 10; i += 2)
@@ -25,4 +24,4 @@ TEST(array)
 	a.erase(4);
 	a.erase(5);
 	verify(a.size() == 9);
-	}
+}

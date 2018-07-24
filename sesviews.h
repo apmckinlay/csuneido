@@ -5,8 +5,7 @@
 #include "gcstring.h"
 #include "hashmap.h"
 
-class SesViews : public HashMap<gcstring,gcstring>
-	{ };
+class SesViews : public HashMap<gcstring, gcstring> {};
 
 void set_session_view(const gcstring& name, const gcstring& def);
 

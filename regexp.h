@@ -5,12 +5,11 @@
 #include "gcstring.h"
 
 // specifies a part of a string matched by a part of a regular expression
-struct Rxpart
-	{
+struct Rxpart {
 	const char* s;
 	int n;
 	const char* tmp; // used to store tentative "s"
-	};
+};
 
 enum { MAXPARTS = 10 };
 
@@ -21,9 +20,11 @@ char* rx_compile(const gcstring& s);
 
 // match a string against a compiled regular expression
 bool rx_match(const char* s, int n, int i, const char* pat, Rxpart* psubs = 0);
-inline bool rx_match(const gcstring& s, const char* pat, Rxpart* psubs = 0)
-	{ return rx_match(s.ptr(), s.size(), 0, pat, psubs); }
-bool rx_match_reverse(const char* s, int n, int i, const char* pat, Rxpart* psubs = 0);
+inline bool rx_match(const gcstring& s, const char* pat, Rxpart* psubs = 0) {
+	return rx_match(s.ptr(), s.size(), 0, pat, psubs);
+}
+bool rx_match_reverse(
+	const char* s, int n, int i, const char* pat, Rxpart* psubs = 0);
 
 // match a specific point in a string against a compiled regular expression
 // returns -1 if no match, else the position past the match

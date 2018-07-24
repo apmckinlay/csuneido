@@ -13,22 +13,19 @@
 #include "catstr.h"
 #include "opcodes.h"
 
-Value Func::call(Value self, Value member, 
-	short nargs, short nargnames, short* argnames, int each)
-	{
+Value Func::call(Value self, Value member, short nargs, short nargnames,
+	short* argnames, int each) {
 	if (member == PARAMS)
 		return params();
 	else
 		method_not_found("Function", member);
-	}
+}
 
-Value Func::params()
-	{
+Value Func::params() {
 	OstreamStr out;
 	out << "(";
 	short j = 0;
-	for (int i = 0; i < nparams; ++i)
-		{
+	for (int i = 0; i < nparams; ++i) {
 		if (i != 0)
 			out << ",";
 		if (i == nparams - rest)
@@ -38,33 +35,29 @@ Value Func::params()
 		out << symstr(locals[i]);
 		if (i >= nparams - ndefaults - rest && i < nparams - rest)
 			out << "=" << literals[j++];
-		}
+	}
 	out << ")";
 	return new SuString(out.str());
-	}
+}
 
-void Func::args(short nargs, short nargnames, short* argnames, int each)
-	{
+void Func::args(short nargs, short nargnames, short* argnames, int each) {
 	Value* args = GETSP() - nargs + 1;
 	short unamed = nargs - nargnames - (each == -1 ? 0 : 1);
 	short i, j;
 
-	if (! rest && unamed > nparams)
+	if (!rest && unamed > nparams)
 		except("too many arguments to " << this);
 
-	verify(! rest || nparams == 1);	// rest must be only param
-	verify(each == -1 || nargs == 1);	// each must be only arg
+	verify(!rest || nparams == 1);    // rest must be only param
+	verify(each == -1 || nargs == 1); // each must be only arg
 
 	if (nparams > nargs)
 		// expand stack (before filling it)
 		SETSP(GETSP() + nparams - nargs);
 
-	if (each != -1 && rest)
-		{
+	if (each != -1 && rest) {
 		args[0] = args[0].object()->slice(each);
-		}
-	else if (rest)
-		{
+	} else if (rest) {
 		// put args into object
 		SuObject* ob = new SuObject();
 		// un-named
@@ -74,9 +67,7 @@ void Func::args(short nargs, short nargnames, short* argnames, int each)
 		for (j = 0; i < nargs; ++i, ++j)
 			ob->put(symbol(argnames[j]), args[i]);
 		args[0] = ob;
-		}
-	else if (each != -1)
-		{
+	} else if (each != -1) {
 		SuObject* ob = args[0].object();
 
 		if (ob->vecsize() - each > nparams)
@@ -90,9 +81,7 @@ void Func::args(short nargs, short nargnames, short* argnames, int each)
 		for (i = 0; i < nparams; ++i)
 			if (Value x = ob->get(symbol(locals[i])))
 				args[i] = x;
-		}
-	else if (nargnames > 0)
-		{
+	} else if (nargnames > 0) {
 		// shuffle named args to match params
 		const int maxargnames = 100;
 		Value tmp[maxargnames];
@@ -112,33 +101,28 @@ void Func::args(short nargs, short nargnames, short* argnames, int each)
 			for (j = 0; j < nargnames; ++j)
 				if (locals[i] == argnames[j])
 					args[i] = tmp[j];
-		}
-	else
-		{
+	} else {
 		// initialized remaining params
 		for (i = unamed; i < nparams; ++i)
 			args[i] = Value();
-		}
+	}
 
 	// fill in dynamic implicits
-	if (flags)
-		{
+	if (flags) {
 		for (i = 0; i < nparams; ++i)
-			if (! args[i] && (flags[i] & DYN))
-				{
+			if (!args[i] && (flags[i] & DYN)) {
 				int sn = ::symnum(CATSTRA("_", symstr(locals[i])));
 				args[i] = dynamic(sn);
-				}
-		}
+			}
+	}
 
 	// fill in defaults
-	if (ndefaults > 0)
-		{
+	if (ndefaults > 0) {
 		verify(literals);
 		for (j = nparams - ndefaults, i = 0; i < ndefaults; ++i, ++j)
-			if (! args[j])
+			if (!args[j])
 				args[j] = literals[i];
-		}
+	}
 
 	if (nargs > nparams)
 		// shrink stack (after processing args)
@@ -147,23 +131,21 @@ void Func::args(short nargs, short nargnames, short* argnames, int each)
 	// check that all parameters now have values
 	verify(locals);
 	for (i = 0; i < nparams; ++i)
-		if (! args[i])
+		if (!args[i])
 			except("missing argument(s) to " << this);
-	}
+}
 
 void noargs(short nargs, short nargnames, short* argnames, int each,
-	const char* usage)
-	{
+	const char* usage) {
 	argseach(nargs, nargnames, argnames, each);
 	if (nargs > nargnames)
 		except("usage: " << usage);
-	}
+}
 
 // expand @args
-void argseach(short& nargs, short& nargnames, short*& argnames, int& each)
-	{
+void argseach(short& nargs, short& nargnames, short*& argnames, int& each) {
 	if (each < 0)
-		return ;
+		return;
 	verify(nargs == 1);
 	verify(nargnames == 0);
 	SuObject* ob = POP().object();
@@ -171,20 +153,18 @@ void argseach(short& nargs, short& nargnames, short*& argnames, int& each)
 	nargs = 0;
 	int vs = ob->vecsize();
 	argnames = new short[ob->mapsize()];
-	for (SuObject::iterator iter = ob->begin(); iter != ob->end(); ++iter, ++i)
-		{
+	for (auto iter = ob->begin(); iter != ob->end(); ++iter, ++i) {
 		if (i < each)
-			continue ;
+			continue;
 		if (i >= vs) // named members
 			argnames[nargnames++] = (*iter).first.symnum();
 		PUSH((*iter).second);
 		++nargs;
-		}
-	each = -1;
 	}
+	each = -1;
+}
 
-void Func::out(Ostream& out) const
-  	{
+void Func::out(Ostream& out) const {
 	out << named.name() << " /* ";
 	gcstring lib = named.library();
 	if (lib != "")
@@ -193,13 +173,12 @@ void Func::out(Ostream& out) const
 		out << "method */";
 	else
 		out << "function */";
-	}
+}
 
 #include "globals.h"
 #include "scanner.h"
 
-BuiltinFunc::BuiltinFunc(const char* name, const char* paramstr, BuiltinFn f)
-	{
+BuiltinFunc::BuiltinFunc(const char* name, const char* paramstr, BuiltinFn f) {
 	pfn = f;
 	ndefaults = 0;
 	rest = false;
@@ -207,12 +186,11 @@ BuiltinFunc::BuiltinFunc(const char* name, const char* paramstr, BuiltinFn f)
 	nparams = 0;
 
 	verify(isupper(*name));
-	if (name[strlen(name) - 1] == 'Q')
-		{
+	if (name[strlen(name) - 1] == 'Q') {
 		char* s = STRDUPA(name);
 		s[strlen(name) - 1] = '?';
 		name = s;
-		}
+	}
 	named.num = globals(name);
 
 	Scanner scanner(paramstr);
@@ -221,14 +199,12 @@ BuiltinFunc::BuiltinFunc(const char* name, const char* paramstr, BuiltinFn f)
 	short params[maxparams];
 	Value defaults[maxparams];
 	int token = scanner.next();
-	while (token != ')')
-		{
+	while (token != ')') {
 		verify(token == T_IDENTIFIER);
 		verify(nparams < maxparams);
 		params[nparams++] = ::symnum(scanner.value);
 		token = scanner.next();
-		if (token == I_EQ)
-			{
+		if (token == I_EQ) {
 			Value x;
 			token = scanner.next();
 			if (token == T_NUMBER)
@@ -243,33 +219,29 @@ BuiltinFunc::BuiltinFunc(const char* name, const char* paramstr, BuiltinFn f)
 				fatal("invalid parameters for Primitive:", paramstr);
 			defaults[ndefaults++] = x;
 			token = scanner.next();
-			}
-		else if (ndefaults > 0)
+		} else if (ndefaults > 0)
 			fatal("invalid parameters for Primitive:", paramstr);
 		if (token == ',')
 			token = scanner.next();
-		}
-
-	locals = new short[nparams];
-	if (ndefaults > 0)
-		{
-		literals = new Value[ndefaults];
-		memcpy(literals, defaults, ndefaults * sizeof (Value));
-		}
-	memcpy(locals, params, nparams * sizeof (short));
 	}
 
-Value BuiltinFunc::call(Value self, Value member,
-	short nargs, short nargnames, short* argnames, int each)
-	{
+	locals = new short[nparams];
+	if (ndefaults > 0) {
+		literals = new Value[ndefaults];
+		memcpy(literals, defaults, ndefaults * sizeof(Value));
+	}
+	memcpy(locals, params, nparams * sizeof(short));
+}
+
+Value BuiltinFunc::call(Value self, Value member, short nargs, short nargnames,
+	short* argnames, int each) {
 	if (member != CALL)
 		return Func::call(self, member, nargs, nargnames, argnames, each);
 	args(nargs, nargnames, argnames, each);
 	Framer frame(this, self);
 	return pfn();
-	}
+}
 
-void BuiltinFunc::out(Ostream& out) const
-	{
+void BuiltinFunc::out(Ostream& out) const {
 	out << named.name() << " /* builtin function */";
-	}
+}

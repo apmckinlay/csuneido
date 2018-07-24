@@ -5,10 +5,10 @@
 #include "gcstring.h"
 
 class DbmsQuery;
-template <class T> class Lisp;
+template <class T>
+class Lisp;
 
-class DbServerData
-	{
+class DbServerData {
 public:
 	virtual ~DbServerData() = default;
 
@@ -29,7 +29,7 @@ public:
 
 	gcstring nonce;
 	bool auth = false;
-	};
+};
 
 class SuObject;
 

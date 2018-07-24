@@ -9,14 +9,14 @@
 class Value;
 class Mmfile;
 
-template <class T> struct RecRep;
+template <class T>
+struct RecRep;
 struct DbRep;
 
-class Record
-	{
+class Record {
 public:
-	Record() : crep(nullptr) // NOLINT
-		{ }
+	Record() : crep(nullptr) { // NOLINT
+	}
 	explicit Record(size_t sz);
 	explicit Record(const void* r);
 	Record(Mmfile* mmf, Mmoffset offset);
@@ -29,14 +29,16 @@ public:
 	void addval(int x);
 	void addnil();
 	void addmax();
-	void addmmoffset(Mmoffset o)
-		{ addval(mmoffset_to_int(o)); }
+	void addmmoffset(Mmoffset o) {
+		addval(mmoffset_to_int(o));
+	}
 	gcstring getraw(int i) const;
 	Value getval(int i) const;
 	gcstring getstr(int i) const;
 	int getint(int i) const;
-	Mmoffset getmmoffset(int i) const
-		{ return int_to_mmoffset(getint(i)); }
+	Mmoffset getmmoffset(int i) const {
+		return int_to_mmoffset(getint(i));
+	}
 
 	bool hasprefix(const Record& r);
 	bool prefixgt(const Record& r);
@@ -64,21 +66,22 @@ public:
 
 	Record to_heap() const;
 	static const Record empty;
+
 private:
 	void init(size_t sz);
 	int avail() const;
 	void grow(int need);
 	static void copyrec(const Record& src, Record& dst);
-	union
-		{
+	union {
 		RecRep<uint8_t>* crep;
 		RecRep<uint16_t>* srep;
 		RecRep<uint32_t>* lrep;
 		DbRep* dbrep;
-		};
 	};
+};
 
-inline bool nil(const Record& r)
-	{ return r.crep == 0; }
+inline bool nil(const Record& r) {
+	return r.crep == 0;
+}
 
 Ostream& operator<<(Ostream& os, const Record& r);

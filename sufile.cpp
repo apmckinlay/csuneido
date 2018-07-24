@@ -20,26 +20,19 @@ using std::min;
 
 int File_count = 0;
 
-class SuFile : public SuValue
-	{
+class SuFile : public SuValue {
 public:
 	void init(const char* filename, const char* mode);
 	void close();
-	static auto methods()
-		{
-		static Method<SuFile> methods[]
-			{
-			{ "Close", &SuFile::Close },
-			{ "Flush", &SuFile::Flush },
-			{ "Read", &SuFile::Read },
-			{ "Readline", &SuFile::Readline },
-			{ "Seek", &SuFile::Seek },
-			{ "Tell", &SuFile::Tell },
-			{ "Write", &SuFile::Write },
-			{ "Writeline", &SuFile::Writeline }
-			};
+	static auto methods() {
+		static Method<SuFile> methods[]{{"Close", &SuFile::Close},
+			{"Flush", &SuFile::Flush}, {"Read", &SuFile::Read},
+			{"Readline", &SuFile::Readline}, {"Seek", &SuFile::Seek},
+			{"Tell", &SuFile::Tell}, {"Write", &SuFile::Write},
+			{"Writeline", &SuFile::Writeline}};
 		return gsl::make_span(methods);
-		}
+	}
+
 private:
 	Value Read(BuiltinArgs&);
 	Value Readline(BuiltinArgs&);
@@ -56,17 +49,16 @@ private:
 	const char* mode = nullptr;
 	FILE* f = nullptr;
 	const char* end_of_line = nullptr;
-	};
+};
 
-Value su_file()
-	{
-	static BuiltinClass<SuFile> suFileClass("(filename, mode = 'r', block = false)");
+Value su_file() {
+	static BuiltinClass<SuFile> suFileClass(
+		"(filename, mode = 'r', block = false)");
 	return &suFileClass;
-	}
+}
 
-template<>
-Value BuiltinClass<SuFile>::instantiate(BuiltinArgs& args)
-	{
+template <>
+Value BuiltinClass<SuFile>::instantiate(BuiltinArgs& args) {
 	args.usage("new File(filename, mode = 'r'");
 	auto filename = args.getstr("filename");
 	auto mode = args.getstr("mode", "r");
@@ -74,11 +66,10 @@ Value BuiltinClass<SuFile>::instantiate(BuiltinArgs& args)
 	SuFile* f = new BuiltinInstance<SuFile>();
 	f->init(filename, mode);
 	return f;
-	}
+}
 
-template<>
-Value BuiltinClass<SuFile>::callclass(BuiltinArgs& args)
-	{
+template <>
+Value BuiltinClass<SuFile>::callclass(BuiltinArgs& args) {
 	args.usage("File(filename, mode = 'r', block = false)");
 	auto filename = args.getstr("filename");
 	auto mode = args.getstr("mode", "r");
@@ -93,10 +84,9 @@ Value BuiltinClass<SuFile>::callclass(BuiltinArgs& args)
 	KEEPSP
 	PUSH(f);
 	return block.call(block, CALL, 1);
-	}
+}
 
-void SuFile::init(const char* fn, const char* m)
-	{
+void SuFile::init(const char* fn, const char* m) {
 	filename = fn;
 	mode = m;
 #if defined(_WIN32) && !defined(__clang__)
@@ -106,12 +96,12 @@ void SuFile::init(const char* fn, const char* m)
 	end_of_line = strchr(mode, 't') ? "\n" : "\r\n";
 
 	if (*filename == 0 || nullptr == (f = fopen(filename, mode)))
-		except("File: can't open '" << filename << "' in mode '" << mode << "'");
+		except(
+			"File: can't open '" << filename << "' in mode '" << mode << "'");
 	++File_count;
-	}
+}
 
-Value SuFile::Read(BuiltinArgs& args)
-	{
+Value SuFile::Read(BuiltinArgs& args) {
 	args.usage("file.Read(nbytes = all)");
 	int64_t n = args.getint("nbytes", INT_MAX);
 	args.end();
@@ -129,23 +119,21 @@ Value SuFile::Read(BuiltinArgs& args)
 	char* buf = salloc(n);
 	auto nr = fread(buf, 1, n, f);
 	if (n != nr)
-		except("File: Read: error reading from: " << filename <<
-			" (expected " << n << " got " << nr << ")");
+		except("File: Read: error reading from: " << filename << " (expected "
+												  << n << " got " << nr << ")");
 	return SuString::noalloc(buf, n);
-	}
+}
 
 // NOTE: Readline should be consistent across file, socket, and runpiped
-Value SuFile::Readline(BuiltinArgs& args)
-	{
+Value SuFile::Readline(BuiltinArgs& args) {
 	args.usage("file.Readline()").end();
 
 	ckopen("Readline");
 	int c;
 	READLINE(EOF != (c = fgetc(f)));
-	}
+}
 
-Value SuFile::Write(BuiltinArgs& args)
-	{
+Value SuFile::Write(BuiltinArgs& args) {
 	args.usage("file.Write(string)");
 	Value arg = args.getValue("string");
 	gcstring s = arg.to_gcstr();
@@ -155,10 +143,9 @@ Value SuFile::Write(BuiltinArgs& args)
 	if (s.size() != fwrite(s.ptr(), 1, s.size(), f))
 		except("File: Write: error writing to: " << filename);
 	return arg;
-	}
+}
 
-Value SuFile::Writeline(BuiltinArgs& args)
-	{
+Value SuFile::Writeline(BuiltinArgs& args) {
 	args.usage("file.Writeline(string)");
 	Value arg = args.getValue("string");
 	gcstring s = arg.to_gcstr();
@@ -169,13 +156,13 @@ Value SuFile::Writeline(BuiltinArgs& args)
 		fputs(end_of_line, f) < 0)
 		except("File: Write: error writing to: " << filename);
 	return arg;
-	}
+}
 
-Value SuFile::Seek(BuiltinArgs& args)
-	{
+Value SuFile::Seek(BuiltinArgs& args) {
 	args.usage("file.Seek(offset, origin)");
 	Value arg = args.getValue("offset");
-	int64_t offset = arg.is_int() ? (int64_t) arg.integer() : arg.number()->bigint();
+	int64_t offset =
+		arg.is_int() ? (int64_t) arg.integer() : arg.number()->bigint();
 	gcstring origin_s = args.getgcstr("origin", "set");
 	args.end();
 
@@ -191,10 +178,9 @@ Value SuFile::Seek(BuiltinArgs& args)
 
 	ckopen("Seek");
 	return FSEEK64(f, offset, origin) == 0 ? SuTrue : SuFalse;
-	}
+}
 
-Value SuFile::Tell(BuiltinArgs& args)
-	{
+Value SuFile::Tell(BuiltinArgs& args) {
 	args.usage("file.Tell()").end();
 
 	ckopen("Tell");
@@ -203,36 +189,32 @@ Value SuFile::Tell(BuiltinArgs& args)
 		return (int) offset;
 	else
 		return SuNumber::from_int64(offset);
-	}
+}
 
-Value SuFile::Flush(BuiltinArgs& args)
-	{
+Value SuFile::Flush(BuiltinArgs& args) {
 	args.usage("file.Flush()").end();
 
 	ckopen("Flush");
 	fflush(f);
 	return Value();
-	}
+}
 
-Value SuFile::Close(BuiltinArgs& args)
-	{
+Value SuFile::Close(BuiltinArgs& args) {
 	args.usage("file.Close()").end();
 
 	ckopen("Close");
 	close();
 	return Value();
-	}
+}
 
-void SuFile::ckopen(const char* action)
-	{
-	if (! f)
+void SuFile::ckopen(const char* action) {
+	if (!f)
 		except("File: can't " << action << " a closed file: " << filename);
-	}
+}
 
-void SuFile::close()
-	{
+void SuFile::close() {
 	if (f)
 		fclose(f);
 	f = nullptr;
 	--File_count;
-	}
+}

@@ -3,7 +3,8 @@
 // Licensed under GPLv2
 
 class gcstring;
-template <class T> class Lisp;
+template <class T>
+class Lisp;
 
 // convert a comma separted string to a list of strings
 Lisp<gcstring> commas_to_list(const gcstring& str);

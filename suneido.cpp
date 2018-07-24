@@ -55,13 +55,11 @@ CmdLineOptions cmdlineoptions;
 void free_callbacks();
 
 static VOID CALLBACK free_callbacks_timer(
-	HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
-	{
+	HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) {
 	free_callbacks();
-	}
+}
 
-int pascal WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpszCmdLine, int)
-	{
+int pascal WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpszCmdLine, int) {
 	init(hInstance, lpszCmdLine);
 
 	RegisterHotKey(nullptr, 0, MOD_CONTROL, VK_CANCEL);
@@ -70,42 +68,32 @@ int pascal WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpszCmdLine, int)
 	message_loop(); // doesn't return
 
 	return 0;
-	}
+}
 
-static void init(HINSTANCE hInstance, LPSTR lpszCmdLine)
-	{
-	try
-		{
+static void init(HINSTANCE hInstance, LPSTR lpszCmdLine) {
+	try {
 		init2(hInstance, lpszCmdLine);
-		}
-	catch (const Except& e)
-		{
+	} catch (const Except& e) {
 		fatal(e.str(), e.callstack());
-		}
-	catch (const std::exception& e)
-		{
+	} catch (const std::exception& e) {
 		fatal(e.what());
-		}
+	}
 #ifndef _MSC_VER
 	// with Visual C++, this catches page faults ???
-	catch (...)
-		{
+	catch (...) {
 		fatal("unknown exception");
-		}
-#endif
 	}
+#endif
+}
 
-void close_dbms()
-	{
-	Fibers::foreach_tls([](ThreadLocalStorage& tls)
-		{
+void close_dbms() {
+	Fibers::foreach_tls([](ThreadLocalStorage& tls) {
 		delete tls.thedbms;
 		tls.thedbms = nullptr;
-		});
-	}
+	});
+}
 
-static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
-	{
+static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine) {
 	verify(memcmp("\xff", "\x01", 1) > 0); // ensure unsigned cmp
 
 	Fibers::init();
@@ -115,93 +103,85 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 
 	cmdline = cmdlineoptions.parse(lpszCmdLine);
 
-	if (! cmdlineoptions.no_exception_handling)
+	if (!cmdlineoptions.no_exception_handling)
 		unhandled();
 
-	if (cmdlineoptions.install)
-		{
+	if (cmdlineoptions.install) {
 		InstallService(cmdlineoptions.install);
 		exit(EXIT_SUCCESS);
-		}
-	else if (cmdlineoptions.service)
-		{
+	} else if (cmdlineoptions.service) {
 		CallServiceDispatcher(cmdlineoptions.service);
 		exit(EXIT_SUCCESS);
-		}
+	}
 
-	switch (cmdlineoptions.action)
-		{
-	case NONE :
-		break ;
-	case DUMP :
+	switch (cmdlineoptions.action) {
+	case NONE:
+		break;
+	case DUMP:
 		dump(cmdlineoptions.argstr);
 		exit(EXIT_SUCCESS);
-	case LOAD :
+	case LOAD:
 		load(cmdlineoptions.argstr);
 		exit(EXIT_SUCCESS);
-	case CHECK :
-		{
+	case CHECK: {
 		bool ok = db_check_gui();
 		exit(ok ? EXIT_SUCCESS : EXIT_FAILURE);
-		}
-	case REBUILD :
-		{
+	}
+	case REBUILD: {
 		bool ok = db_rebuild_gui();
 		exit(ok ? EXIT_SUCCESS : EXIT_FAILURE);
-		}
-	case DBDUMP :
+	}
+	case DBDUMP:
 		dbdump();
 		exit(EXIT_SUCCESS);
-	case TEST :
-		{
+	case TEST: {
 		bool ok = run_tests(cmdlineoptions.argstr);
 		exit(ok ? EXIT_SUCCESS : EXIT_FAILURE);
-		}
-	case BENCH :
-		{
+	}
+	case BENCH: {
 		OstreamStr os;
 		run_benchmarks(os, cmdlineoptions.argstr);
-		{ OstreamFile log("bench.log", "w");
-		log << os.gcstr(); }
+		{
+			OstreamFile log("bench.log", "w");
+			log << os.gcstr();
+		}
 		alert(os.str());
 		exit(EXIT_SUCCESS);
-		}
-	case SERVER :
+	}
+	case SERVER:
 		is_server = true;
 		start_dbserver(cmdlineoptions.argstr);
 		start_dbhttp();
-		break ;
-	case CLIENT :
-		{
+		break;
+	case CLIENT: {
 		is_client = true;
 		set_dbms_server_ip(cmdlineoptions.argstr);
 		atexit(close_dbms);
 		logPreviousErrors();
-		break ;
-		}
-	case REPL :
+		break;
+	}
+	case REPL:
 		repl();
 		exit(EXIT_SUCCESS);
-	case COMPACT :
+	case COMPACT:
 		compact();
 		exit(EXIT_SUCCESS);
-	case UNINSTALL_SERVICE :
+	case UNINSTALL_SERVICE:
 		UnInstallService();
 		exit(EXIT_SUCCESS);
-	case VERSION :
-		alert("Built:  " << build << "\n"
-			""
-			"Copyright (C) 2000-2018 Suneido Software Corp.\n"
-			"All rights reserved worldwide.\n"
-			"Licensed under the GNU General Public License v2\n"
-			"\n"
-			"Boehm-Demers-Weiser garbage collector\n"
-			"www.hpl.hp.com/personal/Hans_Boehm/gc"
-			);
+	case VERSION:
+		alert("Built:  " << build
+						 << "\n"
+							"Copyright (C) 2000-2018 Suneido Software Corp.\n"
+							"All rights reserved worldwide.\n"
+							"Licensed under the GNU General Public License v2\n"
+							"\n"
+							"Boehm-Demers-Weiser garbage collector\n"
+							"www.hpl.hp.com/personal/Hans_Boehm/gc");
 		exit(EXIT_SUCCESS);
-	default :
+	default:
 		unreachable();
-		}
+	}
 
 #ifndef __GNUC__
 	sunapp_register_classes();
@@ -212,14 +192,12 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine)
 
 	if (run("Init()") == SuFalse)
 		exit(EXIT_FAILURE);
-	}
+}
 
-static void logPreviousErrors()
-	{
+static void logPreviousErrors() {
 	const int limit = 1000;
 	char* filename = err_filename();
-	if (FILE* f = fopen(filename, "r"))
-		{
+	if (FILE* f = fopen(filename, "r")) {
 		char buf[1024] = "PREVIOUS: ";
 		int n = 0;
 		for (; n < limit && fgets(buf + 10, sizeof buf - 10, f); ++n)
@@ -228,141 +206,131 @@ static void logPreviousErrors()
 		if (n >= limit)
 			dbms()->log("PREVIOUS: too many errors");
 		remove(filename);
-		}
 	}
+}
 
-	// called by interp
-void ckinterrupt()
-	{
+// called by interp
+void ckinterrupt() {
 	MSG msg;
 
-	if (HIWORD(GetQueueStatus(QS_HOTKEY)))
-		{
+	if (HIWORD(GetQueueStatus(QS_HOTKEY))) {
 		bool hotkey = false;
 		while (PeekMessage(&msg, NULL, WM_HOTKEY, WM_HOTKEY, PM_REMOVE))
 			hotkey = true;
 		if (hotkey)
 			except("interrupt");
-		}
 	}
+}
 
-struct St
-	{
-	St(const char* s_, const char* t_, uint32_t to) : s(s_), t(t_), timeout(to)
-		{ }
+struct St {
+	St(const char* s_, const char* t_, uint32_t to)
+		: s(s_), t(t_), timeout(to) {
+	}
 	const char* s;
 	const char* t;
 	uint32_t timeout;
-	};
+};
 
-typedef int(__stdcall *MSGBOXAPI)(IN HWND hWnd, IN LPCSTR lpText, IN LPCSTR lpCaption,
-	IN UINT uType, IN WORD wLanguageId, IN DWORD dwMilliseconds);
+typedef int(__stdcall* MSGBOXAPI)(IN HWND hWnd, IN LPCSTR lpText,
+	IN LPCSTR lpCaption, IN UINT uType, IN WORD wLanguageId,
+	IN DWORD dwMilliseconds);
 
 int __stdcall fallback(IN HWND hWnd, IN LPCSTR lpText, IN LPCSTR lpCaption,
-	IN UINT uType, IN WORD wLanguageId, IN DWORD dwMilliseconds)
-	{
+	IN UINT uType, IN WORD wLanguageId, IN DWORD dwMilliseconds) {
 	return MessageBox(hWnd, lpText, lpCaption, uType);
-	}
+}
 
-MSGBOXAPI getMessageBoxTimeout()
-	{
+MSGBOXAPI getMessageBoxTimeout() {
 	auto hUser32 = LoadLibrary("user32.dll");
-	if (hUser32)
-		{
-		auto fn = (MSGBOXAPI)GetProcAddress(hUser32, "MessageBoxTimeoutA");
+	if (hUser32) {
+		auto fn = (MSGBOXAPI) GetProcAddress(hUser32, "MessageBoxTimeoutA");
 		FreeLibrary(hUser32);
 		return fn;
-		}
+	}
 	// fallback to normal MessageBox, ignoring timeout
 	return fallback;
-	}
+}
 
-DWORD WINAPI message_thread(void* p)
-	{
+DWORD WINAPI message_thread(void* p) {
 	static auto MessageBoxTimeout = getMessageBoxTimeout();
 	St* st = static_cast<St*>(p);
 	MessageBoxTimeout(0, st->t, st->s,
 		MB_OK | MB_TASKMODAL | MB_TOPMOST | MB_SETFOREGROUND, 0, st->timeout);
 	return 0;
-	}
+}
 
 // timeout is used by fatal
-void message(const char* s, const char* t, uint32_t timeout_ms = INFINITE)
-	{
+void message(const char* s, const char* t, uint32_t timeout_ms = INFINITE) {
 	St st(s, t, timeout_ms);
-	HANDLE thread = CreateThread(nullptr, 0, message_thread, (void*) &st, 0, nullptr);
+	HANDLE thread =
+		CreateThread(nullptr, 0, message_thread, (void*) &st, 0, nullptr);
 	if (thread)
 		WaitForSingleObject(thread, INFINITE);
-	}
+}
 
-void handler(const Except& x)
-	{
-	if (tls().proc->in_handler)
-		{
+void handler(const Except& x) {
+	if (tls().proc->in_handler) {
 		message("Error in Handler", x.str());
-		return ;
-		}
+		return;
+	}
 	tls().proc->in_handler = true;
 
-// TODO: use GetAncestor
+	// TODO: use GetAncestor
 	// determine top level window responsible
-	HWND hwnd = 0; //msg.hwnd;
-//	while (HWND parent = GetParent(hwnd))
-//		hwnd = parent;
+	HWND hwnd = 0; // msg.hwnd;
+	//	while (HWND parent = GetParent(hwnd))
+	//		hwnd = parent;
 
-	try
-		{
+	try {
 		call("Handler", Lisp<Value>((SuValue*) &x, (int) hwnd, x.calls()));
-		}
-	catch (const Except& e)
-		{
+	} catch (const Except& e) {
 		message("Error in Handler", e.str());
-		}
-	tls().proc->in_handler = false;
 	}
+	tls().proc->in_handler = false;
+}
 
-bool getSystemOption(const char* option, bool def_value)
-	{
+bool getSystemOption(const char* option, bool def_value) {
 	if (SuObject* suneido = val_cast<SuObject*>(globals["Suneido"]))
 		if (Value val = suneido->get(option))
-			return (val == SuTrue) ? true : (val == SuFalse) ? false : def_value;
+			return (val == SuTrue) ? true
+								   : (val == SuFalse) ? false : def_value;
 	return def_value;
-	}
+}
 
 #include <io.h>
 #include "ostreamcon.h"
 #include "func.h"
 
-static ULONG_PTR GetParentProcessId()
-	{
+static ULONG_PTR GetParentProcessId() {
 	ULONG_PTR pbi[6];
 	ULONG ulSize = 0;
-	LONG(WINAPI *NtQueryInformationProcess)(HANDLE ProcessHandle, ULONG ProcessInformationClass,
-		PVOID ProcessInformation, ULONG ProcessInformationLength, PULONG ReturnLength);
-	*(FARPROC *)&NtQueryInformationProcess =
+	LONG(WINAPI * NtQueryInformationProcess)
+	(HANDLE ProcessHandle, ULONG ProcessInformationClass,
+		PVOID ProcessInformation, ULONG ProcessInformationLength,
+		PULONG ReturnLength);
+	*(FARPROC*) &NtQueryInformationProcess =
 		GetProcAddress(LoadLibraryA("NTDLL.DLL"), "NtQueryInformationProcess");
 	if (NtQueryInformationProcess) {
-		if (NtQueryInformationProcess(GetCurrentProcess(), 0,
-			&pbi, sizeof(pbi), &ulSize) >= 0 && ulSize == sizeof(pbi))
+		if (NtQueryInformationProcess(
+				GetCurrentProcess(), 0, &pbi, sizeof(pbi), &ulSize) >= 0 &&
+			ulSize == sizeof(pbi))
 			return pbi[5];
-		}
-	return (ULONG_PTR)-1;
 	}
+	return (ULONG_PTR) -1;
+}
 
-static Value print()
-	{
+static Value print() {
 	const int nargs = 1;
 	con() << ARG(0).gcstr();
 	return Value();
-	}
+}
 
-static void repl()
-	{
+static void repl() {
 	auto pid = GetParentProcessId();
 	AttachConsole(pid); // need to use start/w
 	static OstreamCon con;
-	globals["Suneido"].putdata("Print",
-		new BuiltinFunc("PrintCon", "(string)", print));
+	globals["Suneido"].putdata(
+		"Print", new BuiltinFunc("PrintCon", "(string)", print));
 	HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
 	con << "Built:  " << build << endl;
 	run("Init.Repl()");
@@ -371,21 +339,17 @@ static void repl()
 	verify(fin);
 	char buf[1024];
 	con << "> ";
-	while (fgets(buf, sizeof buf, fin))
-		{
+	while (fgets(buf, sizeof buf, fin)) {
 		if (buf[0] == 'q' && buf[1] == '\n')
 			break;
-		try
-			{
+		try {
 			Value x = run(buf);
 			if (x)
 				con << x << endl;
-			}
-		catch (Except& e)
-			{
+		} catch (Except& e) {
 			con << e << endl;
 			con << e.callstack() << endl;
-			}
-		con << "> ";
 		}
+		con << "> ";
 	}
+}

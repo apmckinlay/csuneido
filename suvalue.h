@@ -14,8 +14,7 @@ class SuObject;
 struct Named;
 
 // abstract base class for user accessible values
-class SuValue
-	{
+class SuValue {
 public:
 	virtual ~SuValue() = default;
 
@@ -24,17 +23,17 @@ public:
 	virtual size_t hashfn() const;
 	virtual size_t hashcontrib() const;
 
-	virtual short symnum() const;				// creates if necessary
+	virtual short symnum() const; // creates if necessary
 
-	virtual const char* str_if_str() const;	// defined by SuString
-	virtual gcstring gcstr() const;			// no coerce
-	virtual gcstring to_gcstr() const;		// defined by SuBoolean and SuNumber
+	virtual const char* str_if_str() const; // defined by SuString
+	virtual gcstring gcstr() const;         // no coerce
+	virtual gcstring to_gcstr() const;      // defined by SuBoolean and SuNumber
 
-	virtual bool int_if_num(int* pn) const;	// only defined by SuNumber
-	virtual int integer() const;			// only coerces "" and false to 0
-	virtual SuNumber* number();				// only coerces "" and false to 0
+	virtual bool int_if_num(int* pn) const; // only defined by SuNumber
+	virtual int integer() const;            // only coerces "" and false to 0
+	virtual SuNumber* number();             // only coerces "" and false to 0
 
-	virtual SuObject* ob_if_ob();			// defined by SuObject & SuSeq
+	virtual SuObject* ob_if_ob(); // defined by SuObject & SuSeq
 	SuObject* object();
 
 	virtual Value call(Value self, Value member, short nargs = 0,
@@ -57,7 +56,7 @@ public:
 
 	virtual const char* type() const;
 	virtual const Named* get_named() const;
-	};
+};
 
 int order(const char* name);
 

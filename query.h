@@ -14,9 +14,9 @@ typedef Lisp<Field> Fields;
 typedef Lisp<Field> QIndex;
 typedef Lisp<QIndex> Indexes;
 
-const int WRITE_FACTOR = 4;	// cost of writing index relative to reading data
-const int OUT_OF_ORDER = 10;	// minimal penalty for changing order of operations
-const double IMPOSSIBLE = DBL_MAX / 10;	// allow for adding impossibles together
+const int WRITE_FACTOR = 4;  // cost of writing index relative to reading data
+const int OUT_OF_ORDER = 10; // minimal penalty for changing order of operations
+const double IMPOSSIBLE = DBL_MAX / 10; // allow for adding impossibles together
 
 bool is_admin(const char* s);
 bool is_request(const char* s);
@@ -28,67 +28,61 @@ extern Record keymax;
 
 class Expr;
 
-class QueryCache
-	{
+class QueryCache {
 private:
-	struct CacheEntry
-		{
-		CacheEntry(const Fields& i, const Fields& n, const Fields& n1, bool ic, double c)
-			: index(i), needs(n), firstneeds(n1), is_cursor(ic), cost(c)
-			{ }
+	struct CacheEntry {
+		CacheEntry(const Fields& i, const Fields& n, const Fields& n1, bool ic,
+			double c)
+			: index(i), needs(n), firstneeds(n1), is_cursor(ic), cost(c) {
+		}
 		Fields index;
 		Fields needs;
 		Fields firstneeds;
 		bool is_cursor;
 		double cost;
-		};
+	};
 	Lisp<CacheEntry> entries;
+
 public:
 	void add(const Fields& index, const Fields& needs, const Fields& firstneeds,
-		bool is_cursor, double cost)
-		{
+		bool is_cursor, double cost) {
 		verify(cost >= 0);
 		entries.push(CacheEntry(index, needs, firstneeds, is_cursor, cost));
-		}
-	double get(const Fields& index, const Fields& needs, const Fields& firstneeds,
-		bool is_cursor) const
-		{
-		for (Lisp<CacheEntry> i = entries; ! nil(i); ++i)
-			if (i->index == index && i->needs == needs && i->firstneeds == firstneeds &&
-				i->is_cursor == is_cursor)
+	}
+	double get(const Fields& index, const Fields& needs,
+		const Fields& firstneeds, bool is_cursor) const {
+		for (Lisp<CacheEntry> i = entries; !nil(i); ++i)
+			if (i->index == index && i->needs == needs &&
+				i->firstneeds == firstneeds && i->is_cursor == is_cursor)
 				return i->cost;
 		return -1;
-		}
-	};
+	}
+};
 
-struct Fixed
-	{
-	Fixed(const gcstring& f, Value x) : field(f), values(lisp(x))
-		{ }
-	Fixed(const gcstring& f, Lisp<Value> vs) : field(f), values(vs)
-		{ }
+struct Fixed {
+	Fixed(const gcstring& f, Value x) : field(f), values(lisp(x)) {
+	}
+	Fixed(const gcstring& f, Lisp<Value> vs) : field(f), values(vs) {
+	}
 	gcstring field;
 	Lisp<Value> values;
-	};
-inline bool operator==(const Fixed& f1, const Fixed& f2)
-	{
+};
+inline bool operator==(const Fixed& f1, const Fixed& f2) {
 	return f1.field == f2.field && f1.values == f2.values;
-	}
-inline Ostream& operator<<(Ostream& os, const Fixed& f)
-	{
+}
+inline Ostream& operator<<(Ostream& os, const Fixed& f) {
 	return os << f.field << ":" << f.values;
-	}
+}
 
-class Query // interface
-	{
+class Query { // interface
 public:
 	// factory methods - used by QueryParser
 	static Query* make_sort(Query* source, bool r, const Fields& s);
 	static Query* make_rename(Query* source, const Fields& f, const Fields& t);
 	static Query* make_extend(Query* source, const Fields& f, Lisp<Expr*> e);
 	static Query* make_project(Query* source, const Fields& f, bool allbut);
-	static Query* make_summarize(Query* source,
-		const Fields& p, const Fields& c, const Fields& f, const Fields& o);
+	static Query* make_summarize(Query* source, const Fields& p,
+		const Fields& c, const Fields& f, const Fields& o);
 	static Query* make_join(Query* s1, Query* s2, Fields by);
 	static Query* make_leftjoin(Query* s1, Query* s2, Fields by);
 	static Query* make_product(Query* s1, Query* s2);
@@ -118,30 +112,35 @@ public:
 	static Row Eof;
 	virtual Header header() = 0;
 	virtual Indexes indexes() = 0;
-	virtual Fields ordering()
-		{ return Fields(); } // overridden by QSort
-	virtual void select(const Fields& index,
-		const Record& from, const Record& to) = 0;
+	virtual Fields ordering() {
+		return Fields();
+	} // overridden by QSort
+	virtual void select(
+		const Fields& index, const Record& from, const Record& to) = 0;
 	void select(const Fields& index, const Record& key);
 	virtual void rewind() = 0;
-	virtual Row get(Dir)
-		{ error("not implemented yet"); }
-	virtual Lisp<Fixed> fixed() const
-		{ return Lisp<Fixed>(); }
+	virtual Row get(Dir) {
+		error("not implemented yet");
+	}
+	virtual Lisp<Fixed> fixed() const {
+		return Lisp<Fixed>();
+	}
 
 	// updating
-	virtual bool updateable() const
-		{ return false; }
+	virtual bool updateable() const {
+		return false;
+	}
 	virtual bool output(const Record&);
 
 	virtual void close(Query*) = 0;
 
-//protected:
+	// protected:
 	virtual void out(Ostream&) const = 0;
 	virtual Fields columns() = 0;
 	virtual Indexes keys() = 0;
-	virtual Query* transform()
-		{ return this; }
+	virtual Query* transform() {
+		return this;
+	}
 	double optimize(const Fields& index, const Fields& needs,
 		const Fields& firstneeds, bool is_cursor, bool freeze);
 	double optimize1(const Fields& index, const Fields& needs,
@@ -160,7 +159,7 @@ public:
 
 private:
 	Fields tempindex;
-	};
+};
 
 enum { IS_CURSOR = true };
 
@@ -171,7 +170,8 @@ Query* query_setup(Query* q, bool is_cursor = false);
 void trace_tempindex(Query* q);
 
 Ostream& operator<<(Ostream& os, const Query& query);
-inline Ostream& operator<<(Ostream& os, Query* query)
-	{ return os << *query; }
+inline Ostream& operator<<(Ostream& os, Query* query) {
+	return os << *query;
+}
 
 gcstring fields_to_commas(Fields list);

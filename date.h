@@ -4,8 +4,7 @@
 
 #include <cstdint>
 
-struct DateTime
-	{
+struct DateTime {
 	int year;
 	int month;
 	int day;
@@ -21,11 +20,12 @@ struct DateTime
 	int date() const;
 	int time() const;
 	int day_of_week();
-	void add_days(int days)
-		{ plus(0, 0, days, 0, 0, 0, 0); }
+	void add_days(int days) {
+		plus(0, 0, days, 0, 0, 0, 0);
+	}
 	void plus(int y, int mo, int d, int h, int mi, int s, int ms);
 	int minus_days(DateTime& dt2);
 	int64_t minus_milliseconds(DateTime& dt2);
-	};
+};
 
 bool operator==(const DateTime&, const DateTime&);

@@ -13,98 +13,87 @@
 //#include "ostreamcon.h"
 //#define LOG(stuff) con() << stuff << ' '
 #define LOG(stuff)
-#define LOGSTR(s) LOG('"' << (s).substr(0, 20) << ((s).size() > 20 ? "..." : "") << '"')
+#define LOGSTR(s) \
+	LOG('"' << (s).substr(0, 20) << ((s).size() > 20 ? "..." : "") << '"')
 
-Serializer::Serializer(Buffer& r, Buffer& w) : rdbuf(r), wrbuf(w)
-	{ }
+Serializer::Serializer(Buffer& r, Buffer& w) : rdbuf(r), wrbuf(w) {
+}
 
-void Serializer::clear()
-	{
+void Serializer::clear() {
 	rdbuf.clear();
 	wrbuf.clear();
-	}
+}
 
-// writing -----------------------------------------------------------------------
+// writing ----------------------------------------------------------
 
-Serializer& Serializer::put(char c)
-	{
+Serializer& Serializer::put(char c) {
 	LOG("'" << c << "'");
 	wrbuf.add(c);
 	return *this;
-	}
+}
 
-Serializer& Serializer::putCmd(char c)
-	{
+Serializer& Serializer::putCmd(char c) {
 	LOG(endl << "=> " << cmdnames[c]);
 	wrbuf.add(c);
 	return *this;
-	}
+}
 
-Serializer& Serializer::putOk()
-	{
+Serializer& Serializer::putOk() {
 	LOG(endl << "\tOK");
 	wrbuf.add(1); // true
 	return *this;
-	}
+}
 
-void Serializer::putErr(const char* err)
-	{
+void Serializer::putErr(const char* err) {
 	LOG(endl << "\tERR " << err);
 	wrbuf.add(0); // false
 	putStr(err);
-	}
+}
 
-Serializer& Serializer::putBool(bool b)
-	{
+Serializer& Serializer::putBool(bool b) {
 	LOG((b ? "true" : "false"));
 	wrbuf.add(b ? 1 : 0);
 	return *this;
-	}
+}
 
-Serializer& Serializer::putInt(int64_t i)
-	{
+Serializer& Serializer::putInt(int64_t i) {
 	LOG(i);
 	char* buf = wrbuf.ensure(10); // 64 bits / 7 bits per byte
 	char* dst = buf;
 	uint64_t n = (i << 1) ^ (i >> 63); // zig zag encoding
-	while (n > 0x7f)
-		{
+	while (n > 0x7f) {
 		*dst++ = (n & 0x7f) | 0x80;
 		n >>= 7;
-		}
+	}
 	*dst++ = n & 0x7f;
 	verify(dst - buf < 10);
 	wrbuf.added(dst - buf);
 	return *this;
-	}
+}
 
-Serializer& Serializer::putStr(const char* s)
-	{
+Serializer& Serializer::putStr(const char* s) {
 	return putStr(gcstring::noalloc(s));
-	}
+}
 
-Serializer& Serializer::putStr(const gcstring& s)
-	{
+Serializer& Serializer::putStr(const gcstring& s) {
 	LIMIT(s.size());
 	putInt(s.size());
 	LOG('-');
 	LOGSTR(s);
 	wrbuf.add(s);
 	return *this;
-	}
+}
 
-Serializer& Serializer::putValue(Value value)
-	{
+Serializer& Serializer::putValue(Value value) {
 	auto n = value.packsize();
 	LIMIT(n);
 	putInt(n);
 	LOG("- " << value);
 	value.pack(wrbuf.alloc(n));
 	return *this;
-	}
+}
 
-Serializer & Serializer::putInts(Lisp<int> list)
-	{
+Serializer& Serializer::putInts(Lisp<int> list) {
 	auto n = list.size();
 	putInt(n);
 	LOG('(');
@@ -112,90 +101,83 @@ Serializer & Serializer::putInts(Lisp<int> list)
 		putInt(*list);
 	LOG(')');
 	return *this;
-	}
+}
 
-Serializer& Serializer::putStrings(Lisp<gcstring> list)
-	{
+Serializer& Serializer::putStrings(Lisp<gcstring> list) {
 	auto n = list.size();
 	putInt(n);
 	LOG('(');
-	for (; ! nil(list); ++list)
+	for (; !nil(list); ++list)
 		putStr(*list);
 	LOG(')');
 	return *this;
-	}
+}
 
-// reading -----------------------------------------------------------------------
+// reading ----------------------------------------------------------
 
-char Serializer::get1()
-	{
+char Serializer::get1() {
 	need(1);
 	return rdbuf.get();
-	}
+}
 
-char Serializer::get()
-	{
+char Serializer::get() {
 	char c = get1();
 	LOG("'" << c << "'");
 	return c;
-	}
+}
 
-char Serializer::getCmd()
-	{
+char Serializer::getCmd() {
 	char c = get1();
 	LOG(endl << "<= " << cmdnames[c]);
 	return c;
-	}
+}
 
-bool Serializer::getBool()
-	{
-	switch (get1())
-		{
-	case 0: LOG("false"); return false;
-	case 1: LOG("true"); return true;
+bool Serializer::getBool() {
+	switch (get1()) {
+	case 0:
+		LOG("false");
+		return false;
+	case 1:
+		LOG("true");
+		return true;
 	default:
 		except("bad boolean value");
-		}
 	}
+}
 
-int64_t Serializer::getInt()
-	{
+int64_t Serializer::getInt() {
 	int shift = 0;
 	int64_t n = 0;
 	char b;
-	do
-		{
+	do {
 		b = get1();
 		n |= int64_t(b & 0x7f) << shift;
 		shift += 7;
-		} while (b & 0x80);
+	} while (b & 0x80);
 	int64_t tmp = (((n << 63) >> 63) ^ n) >> 1;
 	tmp = tmp ^ (n & (int64_t(1) << 63));
 	LOG(tmp);
 	return tmp;
-	}
+}
 
-gcstring Serializer::getStr()
-	{
+gcstring Serializer::getStr() {
 	int n = getInt();
 	LOG('-');
 	need(n);
 	gcstring s = rdbuf.getStr(n);
 	LOGSTR(s);
 	return s;
-	}
+}
 
-gcstring Serializer::getBuf()
-	{
+gcstring Serializer::getBuf() {
 	int n = getInt();
 	LOG('-');
 	gcstring s = read(n);
 	LOGSTR(s);
 	return s;
-	}
+}
 
-Value Serializer::getValue()
-	{
+Value Serializer::getValue() {
 	// need to use a separate buffer because unpack assumes it owns the buffer
 	// i.e. strings will just point into the buffer
 	int n = getInt();
@@ -203,10 +185,9 @@ Value Serializer::getValue()
 	Value val = (n == 0) ? SuEmptyString : unpack(read(n));
 	LOG(val);
 	return val;
-	}
+}
 
-Lisp<int> Serializer::getInts()
-	{
+Lisp<int> Serializer::getInts() {
 	int n = getInt();
 	LOG('(');
 	Lisp<int> list;
@@ -214,10 +195,9 @@ Lisp<int> Serializer::getInts()
 		list.push(getInt());
 	LOG(')');
 	return list.reverse();
-	}
+}
 
-Lisp<gcstring> Serializer::getStrings()
-	{
+Lisp<gcstring> Serializer::getStrings() {
 	int n = getInt();
 	LOG('(');
 	Lisp<gcstring> list;
@@ -225,39 +205,39 @@ Lisp<gcstring> Serializer::getStrings()
 		list.push(getStr());
 	LOG(')');
 	return list.reverse();
-	}
+}
 
-gcstring Serializer::read(int n)
-	{
+gcstring Serializer::read(int n) {
 	char* buf = salloc(n);
 	read(buf, n);
 	return gcstring::noalloc(buf, n);
-	}
+}
 
 // tests ------------------------------------------------------------
 
 #include "testing.h"
 
-#define test(n) buf.clear(); se.putInt(n); assert_eq(se.getInt(), n)
+#define test(n) \
+	buf.clear(); \
+	se.putInt(n); \
+	assert_eq(se.getInt(), n)
 
-class TestSerializer : public Serializer
-	{
+class TestSerializer : public Serializer {
 public:
-	TestSerializer(Buffer& buf) : Serializer(buf, buf)
-		{
-		}
+	TestSerializer(Buffer& buf) : Serializer(buf, buf) {
+	}
+
 protected:
-	void need(int n) override
-		{ verify(n <= rdbuf.remaining()); }
-	void read(char* dst, int n) override
-		{
+	void need(int n) override {
+		verify(n <= rdbuf.remaining());
+	}
+	void read(char* dst, int n) override {
 		verify(n < rdbuf.remaining());
 		memcpy(dst, rdbuf.getBuf(n), n);
-		}
-	};
+	}
+};
 
-TEST(serializer)
-	{
+TEST(serializer) {
 	Buffer buf;
 	TestSerializer se(buf);
 	auto ints = lisp(123, 456);
@@ -290,4 +270,4 @@ TEST(serializer)
 	assert_eq(se.getValue(), SuMinusOne);
 	assert_eq(se.getInts(), ints);
 	assert_eq(se.getStrings(), strings);
-	}
+}

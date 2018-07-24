@@ -8,80 +8,77 @@
 #include "testing.h"
 #include <vector>
 
-class TestDest
-	{
+class TestDest {
 public:
-	Mmoffset alloc(int n)
-		{
+	Mmoffset alloc(int n) {
 		void* p = new char[n];
 		blocks.push_back(p); // protect from garbage collect
 		return reinterpret_cast<Mmoffset>(p);
-		}
-	void free()
-		{ }
-	static void* adr(Mmoffset offset)
-		{ return reinterpret_cast<void*>(offset); }
-	static Mmoffset off(void* adr)
-		{ return reinterpret_cast<Mmoffset>(adr); }
-	void addref(void* p)
-		{ }
+	}
+	void free() {
+	}
+	static void* adr(Mmoffset offset) {
+		return reinterpret_cast<void*>(offset);
+	}
+	static Mmoffset off(void* adr) {
+		return reinterpret_cast<Mmoffset>(adr);
+	}
+	void addref(void* p) {
+	}
 	std::vector<void*> blocks;
-	};
+};
 
-typedef Btree<Vslot,VFslot,Vslots,VFslots,TestDest> TestBtree;
+typedef Btree<Vslot, VFslot, Vslots, VFslots, TestDest> TestBtree;
 
 #include "value.h"
 #include <cmath>
 
 #define assertfeq(x, y) \
-	do { float x_ = x; auto y_ = (float) (y); \
-	except_if(fabs(x_ - y_) > .05f, \
-	__FILE__ << ':' << __LINE__ << ": " << "error: " << #x << " (" << x_ << \
-	") not close to " << #y << " (" << y_ << ")"); } while (false)
-#define assertclose(x, y)	verify(fabs((x) - (y)) < .35)
+	do { \
+		float x_ = x; \
+		auto y_ = (float) (y); \
+		except_if(fabs(x_ - y_) > .05f, \
+			__FILE__ << ':' << __LINE__ << ": " \
+					 << "error: " << #x << " (" << x_ << ") not close to " \
+					 << #y << " (" << y_ << ")"); \
+	} while (false)
+#define assertclose(x, y) verify(fabs((x) - (y)) < .35)
 
-static Record key(int i)
-	{
+static Record key(int i) {
 	Record r;
 	r.addval(Value(i));
 	return r;
-	}
-static Record key(const char* s)
-	{
+}
+static Record key(const char* s) {
 	Record r;
 	r.addval(s);
 	return r;
-	}
-static Record endkey(int i)
-	{
+}
+static Record endkey(int i) {
 	Record r = key(i);
 	r.addmax();
 	return r;
-	}
-static Record maxkey()
-	{
+}
+static Record maxkey() {
 	Record r;
 	r.addmax();
 	return r;
-	}
-static gcstring make_filler()
-	{
+}
+static gcstring make_filler() {
 	const int N = 500;
 	char* buf = salloc(N);
 	memset(buf, ' ', N);
 	return gcstring::noalloc(buf, N);
-	}
-static Record bigkey(int i)
-	{
+}
+static Record bigkey(int i) {
 	static gcstring filler = make_filler();
 	Record r;
 	r.addval(Value(i));
 	r.addval(filler);
 	return r;
-	}
+}
 
-TEST(btree_rangefrac_onelevel)
-	{
+TEST(btree_rangefrac_onelevel) {
 	TestDest dest;
 	TestBtree bt(&dest);
 
@@ -100,10 +97,9 @@ TEST(btree_rangefrac_onelevel)
 	assertfeq(bt.rangefrac(key(20), endkey(20)), .01);
 	assertfeq(bt.rangefrac(Record(), Record()), 0);
 	assertfeq(bt.rangefrac(key(999), maxkey()), 0);
-	}
+}
 
-TEST(btree_rangefrac_multilevel)
-	{
+TEST(btree_rangefrac_multilevel) {
 	TestDest dest;
 	TestBtree bt(&dest);
 
@@ -120,7 +116,7 @@ TEST(btree_rangefrac_multilevel)
 	assertfeq(bt.rangefrac(key(0), endkey(99)), 1);
 	assertclose(bt.rangefrac(key(10), key(20)), .1);
 	assertfeq(bt.rangefrac(key(""), key(20)), .2);
-//		assert_eq(bt.rangefrac(key(20), endkey(20)), .01);
+	//		assert_eq(bt.rangefrac(key(20), endkey(20)), .01);
 	assertfeq(bt.rangefrac(Record(), Record()), 0);
 	assertfeq(bt.rangefrac(key(999), maxkey()), 0);
-	}
+}

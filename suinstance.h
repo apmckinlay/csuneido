@@ -7,16 +7,15 @@
 
 class SuClass;
 
-class SuInstance : public MemBase
-	{
+class SuInstance : public MemBase {
 public:
-	SuInstance(Value c) : myclass(c)
-		{}
+	SuInstance(Value c) : myclass(c) {
+	}
 
 	Value getdata(Value) override;
 	void putdata(Value, Value) override;
-	Value call(Value self, Value member, short nargs,
-		short nargnames, short* argnames, int each) override;
+	Value call(Value self, Value member, short nargs, short nargnames,
+		short* argnames, int each) override;
 
 	bool eq(const SuValue& x) const override;
 	size_t hashfn() const override;
@@ -30,15 +29,17 @@ private:
 	Value Delete(short nargs, short nargnames, short* argnames, int each);
 	const char* toString() const;
 
-	Value mbclass() override
-		{ return myclass; }
-	Value parent() override
-		{ return myclass; }
-	bool readonly() override
-		{ return false; }
+	Value mbclass() override {
+		return myclass;
+	}
+	Value parent() override {
+		return myclass;
+	}
+	bool readonly() override {
+		return false;
+	}
 
 	// instance references its class directly, not by global
 	// partly to allow instances of anonymous classes
 	const Value myclass;
-	};
-
+};

@@ -8,4 +8,5 @@
 
 // WARNING: n is evaluated multiple times
 // WARNING: result is assumed to not contain pointers (for GC)
-#define tmpalloc(n) ((n < ALLOCA_LIMIT) ? (char*) _alloca(n) : new(noptrs) char[n])
+#define tmpalloc(n) \
+	((n < ALLOCA_LIMIT) ? (char*) _alloca(n) : new (noptrs) char[n])

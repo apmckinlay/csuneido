@@ -7,68 +7,58 @@
 #include "win.h"
 #include "noargs.h"
 
-SuWinRes::SuWinRes(void* handle) : h(handle)
-	{ }
+SuWinRes::SuWinRes(void* handle) : h(handle) {
+}
 
-Value SuWinRes::call(Value self, Value member,
-	short nargs, short nargnames, short* argnames, int each)
-	{
+Value SuWinRes::call(Value self, Value member, short nargs, short nargnames,
+	short* argnames, int each) {
 	static Value Close("Close");
 
-	if (member == Close)
-		{
+	if (member == Close) {
 		NOARGS("handle.Close()");
 		return close() ? SuTrue : SuFalse;
-		}
-	else
+	} else
 		return SuValue::call(self, member, nargs, nargnames, argnames, each);
-	}
+}
 
 //===================================================================
 
 int handle_count = 0;
 
-SuHandle::SuHandle(void* handle) : SuWinRes(handle)
-	{
+SuHandle::SuHandle(void* handle) : SuWinRes(handle) {
 	++handle_count;
-	}
+}
 
-void SuHandle::out(Ostream& os) const
-	{
+void SuHandle::out(Ostream& os) const {
 	os << "handle " << h;
-	}
+}
 
-bool SuHandle::close()
-	{
+bool SuHandle::close() {
 	--handle_count;
 	bool ok = h && CloseHandle((HANDLE) h);
 	h = 0;
 	return ok;
-	}
+}
 
 //===================================================================
 
 int gdiobj_count = 0;
 
-SuGdiObj::SuGdiObj(void* handle) : SuWinRes(handle)
-	{
+SuGdiObj::SuGdiObj(void* handle) : SuWinRes(handle) {
 	++gdiobj_count;
-	}
+}
 
-void SuGdiObj::out(Ostream& os) const
-	{
+void SuGdiObj::out(Ostream& os) const {
 	os << "gdiobj " << h;
-	}
+}
 
-int SuGdiObj::integer() const
-	{
+int SuGdiObj::integer() const {
 	return (int) h;
-	}
+}
 
-bool SuGdiObj::close()
-	{
+bool SuGdiObj::close() {
 	--gdiobj_count;
 	bool ok = h && DeleteObject((HGDIOBJ) h);
 	h = 0;
 	return ok;
-	}
+}

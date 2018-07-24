@@ -3,8 +3,7 @@
 // Licensed under GPLv2
 #include "gcstring.h"
 
-class CharMatcher
-	{
+class CharMatcher {
 public:
 	virtual ~CharMatcher() = default;
 	virtual bool matches(char ch) const;
@@ -16,6 +15,7 @@ public:
 	static CharMatcher* anyOf(const gcstring& chars);
 	static CharMatcher* noneOf(const gcstring& chars);
 	static CharMatcher* inRange(unsigned from, unsigned to);
+
 protected:
 	int indexIn(const gcstring& s, int start) const;
-	};
+};

@@ -8,29 +8,27 @@
 bool thedb_create = false;
 Database* thedb = 0;
 
-void close_db()
-	{
+void close_db() {
 	delete thedb;
 	thedb = nullptr;
+}
+
+struct CloseDB {
+	~CloseDB() {
+		close_db();
 	}
+};
 
-struct CloseDB
-	{
-	~CloseDB()
-		{ close_db(); }
-	};
-
-Database* theDB()
-	{
+Database* theDB() {
 	static CloseDB closeDB; // static so destroyed on exit
 
-	if (! thedb)
-		{
+	if (!thedb) {
 		thedb = new Database("suneido.db", thedb_create);
 		sync_timer(thedb->mmf);
-		}
-	return thedb;
 	}
+	return thedb;
+}
 
-TranCloser::~TranCloser()
-	{ theDB()->abort(t); }
+TranCloser::~TranCloser() {
+	theDB()->abort(t);
+}

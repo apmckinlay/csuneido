@@ -6,31 +6,37 @@
 
 class Expr;
 
-class Extend : public Query1
-	{
+class Extend : public Query1 {
 public:
 	Extend(Query* source, const Fields& f, Lisp<Expr*> e);
 	void init();
 	void out(Ostream& os) const override;
 	Query* transform() override;
-	Fields columns() override
-		{ return set_union(source->columns(), flds); }
-	Indexes keys() override
-		{ return source->keys(); }
-	Indexes indexes() override
-		{ return source->indexes(); }
-	double optimize2(const Fields& index, const Fields& needs, 
+	Fields columns() override {
+		return set_union(source->columns(), flds);
+	}
+	Indexes keys() override {
+		return source->keys();
+	}
+	Indexes indexes() override {
+		return source->indexes();
+	}
+	double optimize2(const Fields& index, const Fields& needs,
 		const Fields& firstneeds, bool is_cursor, bool freeze) override;
 	// estimated result sizes
-	int recordsize() override
-		{ return source->recordsize() + size(flds) * columnsize(); }
+	int recordsize() override {
+		return source->recordsize() + size(flds) * columnsize();
+	}
 	// iteration
 	Header header() override;
 	Row get(Dir dir) override;
-	void select(const Fields& index, const Record& from, const Record& to) override
-		{ source->select(index, from, to); }
-	void rewind() override
-		{ source->rewind(); }
+	void select(
+		const Fields& index, const Record& from, const Record& to) override {
+		source->select(index, from, to);
+	}
+	void rewind() override {
+		source->rewind();
+	}
 	Lisp<Fixed> fixed() const override;
 	bool has_rules();
 	bool need_rule(Fields flds);
@@ -51,4 +57,4 @@ private:
 	Fields ats;
 	mutable bool fixdone;
 	mutable Lisp<Fixed> fix;
-	};
+};

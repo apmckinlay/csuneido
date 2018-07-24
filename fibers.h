@@ -9,8 +9,7 @@ struct Proc;
 class Dbms;
 class SesViews;
 
-struct ThreadLocalStorage
-	{
+struct ThreadLocalStorage {
 	ThreadLocalStorage();
 
 	Proc* proc;
@@ -18,16 +17,15 @@ struct ThreadLocalStorage
 	SesViews* session_views;
 	const char* fiber_id;
 	int synchronized; // normally 0 (meaning allow yield), set by Synchronized
-	};
+};
 
 extern ThreadLocalStorage& tls();
 
-struct Fibers
-	{
+struct Fibers {
 	static void init();
 
 	/// create a new fiber
-	static void create(void (_stdcall *fiber_proc)(void* arg), void* arg);
+	static void create(void(_stdcall* fiber_proc)(void* arg), void* arg);
 
 	/// @return Whether currently running the main fiber
 	static bool inMain();
@@ -67,9 +65,10 @@ struct Fibers
 
 	/// set thread name
 	static void set_name(const gcstring& name);
-	
+
 	/// list all threads
-	static void foreach_fiber_info(std::function<void(const gcstring&, const char*)> fn);
+	static void foreach_fiber_info(
+		std::function<void(const gcstring&, const char*)> fn);
 
 	/// fiber's default session id
 	static const char* default_sessionid();

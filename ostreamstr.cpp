@@ -5,31 +5,26 @@
 #include "gcstring.h"
 #include "buffer.h"
 
-OstreamStr::OstreamStr(int len) : buf(new Buffer(len))
-	{ }
+OstreamStr::OstreamStr(int len) : buf(new Buffer(len)) {
+}
 
-Ostream& OstreamStr::write(const void* s, int n)
-	{
+Ostream& OstreamStr::write(const void* s, int n) {
 	buf->add((const char*) s, n);
 	return *this;
-	}
+}
 
-char* OstreamStr::str()
-	{
+char* OstreamStr::str() {
 	return buf->str();
-	}
+}
 
-gcstring OstreamStr::gcstr()
-	{
+gcstring OstreamStr::gcstr() {
 	return buf->gcstr();
-	}
+}
 
-void OstreamStr::clear()
-	{
+void OstreamStr::clear() {
 	buf->clear();
-	}
+}
 
-int OstreamStr::size() const
-	{
+int OstreamStr::size() const {
 	return buf->size();
-	}
+}

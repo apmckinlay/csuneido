@@ -8,8 +8,8 @@
 
 //#define MM_KEEPADR
 
-const int MM_HEADER = 4;	// size | type
-const int MM_TRAILER = 4;	// size ^ adr
+const int MM_HEADER = 4;  // size | type
+const int MM_TRAILER = 4; // size ^ adr
 const int MM_OVERHEAD = MM_HEADER + MM_TRAILER;
 const int MM_ALIGN = 8; // must be a power of 2
 // must be big enough to allow space for types
@@ -21,21 +21,23 @@ enum MmCheck { MMOK, MMEOF, MMERR };
 
 class test_mmfile;
 
-class Mmfile
-	{
+class Mmfile {
 public:
-	explicit Mmfile(const char* filename, bool create = false, bool readonly = false);
+	explicit Mmfile(
+		const char* filename, bool create = false, bool readonly = false);
 	~Mmfile();
 	Mmoffset alloc(size_t n, char type, bool zero = true);
 	void unalloc(size_t n);
-	int64_t size() const
-		{ return file_size; }
+	int64_t size() const {
+		return file_size;
+	}
 	void* adr(Mmoffset offset);
 	static char type(void* p);
 	static size_t length(void* p);
 	MmCheck mmcheck(Mmoffset offset);
-	static size_t align(size_t n)
-		{ return ((n - 1) | (MM_ALIGN - 1)) + 1; }
+	static size_t align(size_t n) {
+		return ((n - 1) | (MM_ALIGN - 1)) + 1;
+	}
 	void set_max_chunks_mapped(int n);
 	Mmoffset get_file_size();
 	void refresh();
@@ -43,36 +45,41 @@ public:
 	void sync();
 
 	void* first();
-	class iterator
-		{
+	class iterator {
 	public:
-		iterator() : off(0), mmf(0), err(false)
-			{ }
-		iterator(Mmoffset o, Mmfile* m) : off(o), mmf(m), err(false)
-			{ }
+		iterator() : off(0), mmf(0), err(false) {
+		}
+		iterator(Mmoffset o, Mmfile* m) : off(o), mmf(m), err(false) {
+		}
 		iterator& operator++();
 		iterator& operator--();
-		void* operator*() const
-			{ return mmf->adr(off); }
-		bool operator==(const iterator& iter) const
-			{ return off == iter.off; }
+		void* operator*() const {
+			return mmf->adr(off);
+		}
+		bool operator==(const iterator& iter) const {
+			return off == iter.off;
+		}
 		char type();
 		size_t size();
-		bool corrupt() const
-			{ return err; }
-		Mmoffset offset() const
-			{ return off; }
+		bool corrupt() const {
+			return err;
+		}
+		Mmoffset offset() const {
+			return off;
+		}
+
 	private:
 		Mmoffset off;
 		Mmfile* mmf;
 		bool err;
-		};
+	};
 	iterator begin();
 	iterator end();
 
 private:
-	void set_chunk_size(int n) // for tests only
-		{ chunk_size = n; }
+	void set_chunk_size(int n) { // for tests only
+		chunk_size = n;
+	}
 	void open(const char* filename, bool create, bool ro);
 	void map(int chunk);
 	void unmap(int chunk);
@@ -103,4 +110,4 @@ private:
 	void* unmapped[MAX_CHUNKS];
 #endif
 	bool readonly;
-	};
+};

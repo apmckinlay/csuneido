@@ -7,4 +7,4 @@
 Ostream& osdebug();
 void debug_();
 
-#define dbg(msg)	((osdebug() << msg), debug_())
+#define dbg(msg) ((osdebug() << msg), debug_())

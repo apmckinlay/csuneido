@@ -2,15 +2,29 @@
 // Copyright (c) 2002 Suneido Software Corp. All rights reserved
 // Licensed under GPLv2
 
-enum { NONE = 0, DUMP, LOAD, SERVER, CLIENT, REPL, COMPACT,
-	CHECK, REBUILD, DBDUMP, TEST, BENCH, HELP, VERSION,
-	UNINSTALL_SERVICE, AFTER_ACTIONS };
+enum {
+	NONE = 0,
+	DUMP,
+	LOAD,
+	SERVER,
+	CLIENT,
+	REPL,
+	COMPACT,
+	CHECK,
+	REBUILD,
+	DBDUMP,
+	TEST,
+	BENCH,
+	HELP,
+	VERSION,
+	UNINSTALL_SERVICE,
+	AFTER_ACTIONS
+};
 
-class CmdLineOptions
-	{
+class CmdLineOptions {
 public:
-	CmdLineOptions()
-		{ }
+	CmdLineOptions() {
+	}
 	const char* parse(const char* str);
 
 	const char* s = nullptr;
@@ -33,6 +47,6 @@ private:
 	const char* get_word();
 	void skip_white();
 	static const char* strip_su(const char* file);
-	};
+};
 
 extern CmdLineOptions cmdlineoptions;

@@ -9,10 +9,9 @@
 extern bool is_client;
 extern void message(const char*, const char*, uint32_t timeout_ms);
 
-void fatal(const char* error, const char* extra)
-	{
-	if (! cmdlineoptions.unattended)
+void fatal(const char* error, const char* extra) {
+	if (!cmdlineoptions.unattended)
 		// deliberately not capitalized since usually out of our control
 		message("Fatal Error", error, 10 * 1000); // 10 seconds
 	fatal_log(error, extra); // assume we've lost connection
-	}
+}

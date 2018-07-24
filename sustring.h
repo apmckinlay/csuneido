@@ -10,68 +10,74 @@ class SuNumber;
 
 // string values - wraps gcstring
 // immutable
-class SuString : public SuValue
-	{
+class SuString : public SuValue {
 public:
-	explicit SuString(const gcstring& t) : s(t)
-		{ }
-	explicit SuString(const char* t) : s(t)
-		{ }
-	SuString(const char* p, size_t n) : s(p, n)
-		{ }
-	explicit SuString(size_t n) : s(n)
-		{ }
+	explicit SuString(const gcstring& t) : s(t) {
+	}
+	explicit SuString(const char* t) : s(t) {
+	}
+	SuString(const char* p, size_t n) : s(p, n) {
+	}
+	explicit SuString(size_t n) : s(n) {
+	}
 
-	static SuString* noalloc(const char* t)
-		{ return new SuString(gcstring::noalloc(t)); }
-	static SuString* noalloc(const char* t, size_t n)
-		{ return new SuString(gcstring::noalloc(t, n)); }
+	static SuString* noalloc(const char* t) {
+		return new SuString(gcstring::noalloc(t));
+	}
+	static SuString* noalloc(const char* t, size_t n) {
+		return new SuString(gcstring::noalloc(t, n));
+	}
 
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, short* argnames, int each) override;
+	Value call(Value self, Value member, short nargs, short nargnames,
+		short* argnames, int each) override;
 
 	Value getdata(Value) override;
 	Value rangeTo(int i, int j) override;
 	Value rangeLen(int i, int n) override;
 
-	const char* str_if_str() const override
-		{ return str(); }
+	const char* str_if_str() const override {
+		return str();
+	}
 
 	int integer() const override;
 	SuNumber* number() override;
 
-	int size() const
-		{ return s.size(); }
+	int size() const {
+		return s.size();
+	}
 
 	size_t packsize() const override;
 	void pack(char* buf) const override;
 	static Value unpack(const gcstring& s);
 
-	const char* ptr() const
-		{ return s.ptr(); }
+	const char* ptr() const {
+		return s.ptr();
+	}
 
-	const char* str() const
-		{ return s.str(); }
+	const char* str() const {
+		return s.str();
+	}
 
-	gcstring gcstr() const override
-		{ return s; }
-	gcstring to_gcstr() const override
-		{ return s; }
+	gcstring gcstr() const override {
+		return s;
+	}
+	gcstring to_gcstr() const override {
+		return s;
+	}
 
 	short symnum() const override;
 
-	size_t hashfn() const override
-		{ return ::hashfn(s.ptr(), s.size()); }
+	size_t hashfn() const override {
+		return ::hashfn(s.ptr(), s.size());
+	}
 
-	const SuString* substr(size_t i, size_t n) const
-		{
-		return (i == 0 && n >= s.size())
-			? this
-			: new SuString(s.substr(i, n));
-		}
+	const SuString* substr(size_t i, size_t n) const {
+		return (i == 0 && n >= s.size()) ? this : new SuString(s.substr(i, n));
+	}
 
-	bool operator==(const char* t) const
-		{ return s == t; }
+	bool operator==(const char* t) const {
+		return s == t;
+	}
 
 	void out(Ostream& out) const override;
 
@@ -103,7 +109,8 @@ private:
 	Value Find1of(short nargs, short nargnames, short* argnames, int each);
 	Value FindLast1of(short nargs, short nargnames, short* argnames, int each);
 	Value Findnot1of(short nargs, short nargnames, short* argnames, int each);
-	Value FindLastnot1of(short nargs, short nargnames, short* argnames, int each);
+	Value FindLastnot1of(
+		short nargs, short nargnames, short* argnames, int each);
 	Value Hasq(short nargs, short nargnames, short* argnames, int each);
 	Value Instantiate(short nargs, short nargnames, short* argnames, int each);
 	Value Iter(short nargs, short nargnames, short* argnames, int each);
@@ -133,18 +140,19 @@ private:
 
 	bool backquote() const;
 	friend void test_sustring_replace();
-	};
+};
 
-class SuBuffer : public SuString
-	{
+class SuBuffer : public SuString {
 public:
 	SuBuffer(size_t n, const gcstring& s);
 
-	char* buf()
-		{ return s.buf(); }
+	char* buf() {
+		return s.buf();
+	}
 
-	void adjust()	 // set length to strlen
-		{ s = s.substr(0, s.find('\0')); }
-	};
+	void adjust() { // set length to strlen
+		s = s.substr(0, s.find('\0'));
+	}
+};
 
 bool is_identifier(const char* s, int n = -1);

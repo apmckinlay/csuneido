@@ -5,21 +5,19 @@
 #include "func.h"
 
 // debug information for compiled SuFunction's
-struct Debug
-	{
-	Debug(int s, int c) : si(s), ci(c)
-		{ }
+struct Debug {
+	Debug(int s, int c) : si(s), ci(c) {
+	}
 
 	int si;
 	int ci;
-	};
+};
 
 // user defined, interpreted functions
-class SuFunction : public Func
-	{
+class SuFunction : public Func {
 public:
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, short* argnames, int each) override;
+	Value call(Value self, Value member, short nargs, short nargnames,
+		short* argnames, int each) override;
 
 	void source(Ostream&, int ci);
 	int source(int ci, int* pn);
@@ -33,8 +31,9 @@ public:
 	short nlocals = 0;
 	short nliterals = 0;
 	const char* src = "";
-	const char* className = nullptr; // for dot parameters, used by SuFunction call
+	const char* className = nullptr; // for dot params, used by SuFunction call
+
 private:
 	void dotParams(Value self);
 	const char* mem(int& ci);
-	};
+};

@@ -6,4 +6,5 @@ class Value;
 class CodeVisitor;
 
 // compile a string of source code
-Value compile(const char* s, const char* name = "", CodeVisitor* visitor = nullptr);
+Value compile(
+	const char* s, const char* name = "", CodeVisitor* visitor = nullptr);

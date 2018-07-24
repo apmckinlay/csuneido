@@ -11,30 +11,26 @@
 // used by QueryParser for extend macros
 // used by Query expressions FunCall
 
-Value call(const char* fname, Lisp<Value> args)
-	{
+Value call(const char* fname, Lisp<Value> args) {
 	KEEPSP
 	int nargs = 0;
-	for (; ! nil(args); ++args, ++nargs)
+	for (; !nil(args); ++args, ++nargs)
 		PUSH(*args);
 	return docall(globals[fname], CALL, nargs);
-	}
+}
 
-Value method_call(Value ob, const gcstring& method, Lisp<Value> args)
-	{
+Value method_call(Value ob, const gcstring& method, Lisp<Value> args) {
 	KEEPSP
 	int nargs = 0;
-	for (; ! nil(args); ++args, ++nargs)
+	for (; !nil(args); ++args, ++nargs)
 		PUSH(*args);
 	return docall(ob, new SuString(method), nargs);
-	}
+}
 
 // used by sunapp
-const char* trycall(const char* fn, char* arg, int* plen)
-	{
+const char* trycall(const char* fn, char* arg, int* plen) {
 	const char* str;
-	try
-		{
+	try {
 		gcstring gcstr;
 		Value result = call(fn, lisp(Value(new SuString(arg))));
 		if (result == SuFalse)
@@ -43,15 +39,13 @@ const char* trycall(const char* fn, char* arg, int* plen)
 		if (plen)
 			*plen = gcstr.size();
 		str = gcstr.str();
-		}
-	catch (const Except& e)
-		{
+	} catch (const Except& e) {
 		// TODO catch block return ?
 		OstreamStr oss;
 		oss << fn << "(" << arg << ") => " << e;
 		str = oss.str();
 		if (plen)
 			*plen = oss.size();
-		}
-	return str;
 	}
+	return str;
+}

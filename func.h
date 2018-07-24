@@ -10,13 +10,12 @@ const char DYN = 2;
 const char PUB = 4;
 
 // abstract base class for BuiltinFuncs and SuFunction
-class Func : public SuValue
-	{
+class Func : public SuValue {
 public:
 	NAMED
 
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, short* argnames, int each) override;
+	Value call(Value self, Value member, short nargs, short nargnames,
+		short* argnames, int each) override;
 
 	short nparams = 0;
 	bool rest = false;
@@ -31,28 +30,28 @@ public:
 
 private:
 	Value params();
-	};
+};
 
 // abstract base class for built-in functions
-class BuiltinFuncs : public Func
-	{
-	const char* type() const override
-		{ return "BuiltinFunction"; }
-	};
+class BuiltinFuncs : public Func {
+	const char* type() const override {
+		return "BuiltinFunction";
+	}
+};
 
 typedef Value (*BuiltinFn)();
 
 // built-in functions
-class BuiltinFunc : public BuiltinFuncs
-	{
+class BuiltinFunc : public BuiltinFuncs {
 public:
 	BuiltinFunc(const char* name, const char* params, BuiltinFn f);
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, short* argnames, int each) override;
+	Value call(Value self, Value member, short nargs, short nargnames,
+		short* argnames, int each) override;
 	void out(Ostream& out) const override;
+
 private:
 	Value (*pfn)();
-	};
+};
 
 // expand arguments onto stack for fn(@args)
 void argseach(short& nargs, short& nargnames, short*& argnames, int& each);

@@ -4,35 +4,42 @@
 
 #include "queryimp.h"
 
-class Rename : public Query1
-	{
+class Rename : public Query1 {
 public:
 	Rename(Query* source, const Fields& f, const Fields& t);
 	void out(Ostream& os) const override;
 	Query* transform() override;
-	double optimize2(const Fields& index, const Fields& needs, 
+	double optimize2(const Fields& index, const Fields& needs,
 		const Fields& firstneeds, bool is_cursor, bool freeze) override;
-	Fields columns() override
-		{ return rename_fields(source->columns(), from, to); }
-	Indexes indexes() override
-		{ return rename_indexes(source->indexes(), from, to); }
-	Indexes keys() override
-		{ return rename_indexes(source->keys(), from, to); }
+	Fields columns() override {
+		return rename_fields(source->columns(), from, to);
+	}
+	Indexes indexes() override {
+		return rename_indexes(source->indexes(), from, to);
+	}
+	Indexes keys() override {
+		return rename_indexes(source->keys(), from, to);
+	}
 	// iteration
 	Header header() override;
-	void select(const Fields& index, const Record& f, const Record& t) override
-		{ source->select(rename_fields(index, to, from), f, t); }
-	void rewind() override
-		{ source->rewind(); }
-	Row get(Dir dir) override
-		{ return source->get(dir); }
+	void select(
+		const Fields& index, const Record& f, const Record& t) override {
+		source->select(rename_fields(index, to, from), f, t);
+	}
+	void rewind() override {
+		source->rewind();
+	}
+	Row get(Dir dir) override {
+		return source->get(dir);
+	}
 
-	bool output(const Record& r) override
-		{ return source->output(r); }
-//private:
+	bool output(const Record& r) override {
+		return source->output(r);
+	}
+	// private:
 	static Fields rename_fields(Fields f, Fields from, Fields to);
 	static Indexes rename_indexes(Indexes i, Fields from, Fields to);
 
 	Fields from;
 	Fields to;
-	};
+};

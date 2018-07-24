@@ -3,57 +3,50 @@
 
 #include "istream.h"
 
-Istream& Istream::getline(char* s, int n)
-	{
-	if (! s || ! n)
+Istream& Istream::getline(char* s, int n) {
+	if (!s || !n)
 		return *this;
 	bool read = false; //
-	for (;;)
-		{
-		if (--n <= 0)
-			{
+	for (;;) {
+		if (--n <= 0) {
 			failbit = true;
-			break ;
-			}
+			break;
+		}
 		int c = get();
 		if (c == EOFVAL)
-			break ;
+			break;
 		read = true;
 		if (c == '\n')
-			break ;
+			break;
 		*s++ = c;
-		}
-	if (! read)
+	}
+	if (!read)
 		failbit = true;
 	*s = 0;
 	return *this;
-	}
+}
 
-int Istream::get()
-	{
-	if (next != -1)
-		{
+int Istream::get() {
+	if (next != -1) {
 		int c = next;
 		next = -1;
 		return c;
-		}
+	}
 	int c = get_();
 	if (c == EOFVAL)
 		eofbit = true;
 	return c;
-	}
+}
 
-Istream& Istream::read(char* buf, int n)
-	{
+Istream& Istream::read(char* buf, int n) {
 	gcnt = 0;
-	if (next != -1)
-		{
+	if (next != -1) {
 		*buf++ = next;
 		next = -1;
 		gcnt = 1;
-		}
+	}
 	gcnt += read_(buf, n - gcnt);
 	if (gcnt < n)
 		eofbit = true;
 	return *this;
-	}
+}

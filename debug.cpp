@@ -7,14 +7,12 @@
 
 static OstreamStr os(1000); // avoid allocation during debug output
 
-Ostream& osdebug()
-	{
+Ostream& osdebug() {
 	return os;
-	}
+}
 
-void debug_()
-	{
+void debug_() {
 	os << endl;
 	OutputDebugString(os.str());
 	os.clear();
-	}
+}

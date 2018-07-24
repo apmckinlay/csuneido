@@ -7,15 +7,15 @@
 #include "value.h"
 #include "htbl.h"
 
-class MemBase : public SuValue
-	{
+class MemBase : public SuValue {
 public:
 	NAMED
-	MemBase() : named(".")
-		{ }
+	MemBase() : named(".") {
+	}
 
 private:
-	template <typename Finder> Value lookup(Finder finder);
+	template <typename Finder>
+	Value lookup(Finder finder);
 	void addMembersTo(SuObject* ob);
 	Value method_lookup(BuiltinArgs& args);
 
@@ -35,10 +35,11 @@ protected:
 
 	Value method_class(Value m);
 	static MemFun<MemBase> method(Value member);
-	Value callSuper(Value self, Value member, short nargs, short nargnames, short* argnames, int each);
+	Value callSuper(Value self, Value member, short nargs, short nargnames,
+		short* argnames, int each);
 	virtual Value mbclass() = 0; // SuInstance.myclass or SuClass this
-	virtual Value parent() = 0; // SuInstance.myclass or SuClass.base
+	virtual Value parent() = 0;  // SuInstance.myclass or SuClass.base
 	virtual bool readonly() = 0;
 
 	Hmap<Value, Value> data;
-	};
+};

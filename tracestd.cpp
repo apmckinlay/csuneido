@@ -6,7 +6,6 @@
 
 int trace_level = 0;
 
-Ostream& tout()
-	{
+Ostream& tout() {
 	return cout;
-	}
+}

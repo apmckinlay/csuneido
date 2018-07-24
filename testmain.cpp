@@ -13,18 +13,15 @@
 bool is_server = false;
 CmdLineOptions cmdlineoptions;
 
-static void sigill(int signo)
-	{
+static void sigill(int signo) {
 	except("illegal instruction");
-	}
+}
 
-static void sigsegv(int signo)
-	{
+static void sigsegv(int signo) {
 	except("memory fault");
-	}
+}
 
-int main(int argc, char** argv)
-	{
+int main(int argc, char** argv) {
 	signal(SIGILL, sigill);
 	signal(SIGSEGV, sigsegv);
 
@@ -35,27 +32,23 @@ int main(int argc, char** argv)
 		if (-1 == TestRegister::runtest(*argv, to))
 			cout << "can't find " << *argv << endl;
 	return 0;
-	}
+}
 
-Except::Except(char* x) : exception(x)
-	{
-	}
+Except::Except(char* x) : exception(x) {
+}
 
-Ostream& operator<<(Ostream& os, const Except& x)
-	{
+Ostream& operator<<(Ostream& os, const Except& x) {
 	return os << x.exception;
-	}
+}
 
 static OstreamStr os(200);
 
-Ostream& osexcept()
-	{
+Ostream& osexcept() {
 	return os;
-	}
+}
 
-void except_()
-	{
+void except_() {
 	Except x(os.str());
 	os.clear();
 	throw x;
-	}
+}

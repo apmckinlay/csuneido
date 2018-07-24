@@ -5,10 +5,9 @@
 #include "func.h"
 
 // shortcut function to create an instance of a class
-class Construct : public Func
-	{
+class Construct : public Func {
 public:
 	Construct();
-	Value call(Value self, Value member, 
-		short nargs, short nargnames, short* argnames, int each) override;
-	};
+	Value call(Value self, Value member, short nargs, short nargnames,
+		short* argnames, int each) override;
+};

@@ -4,15 +4,17 @@
 
 #include "queryimp.h"
 
-class Compatible : public Query2
-	{
+class Compatible : public Query2 {
 public:
 	Compatible(Query* s1, Query* s2);
 
-	int recordsize() override
-		{ return (source->recordsize() + source2->recordsize()) / 2; }
-	int columnsize() override
-		{ return (source->columnsize() + source2->columnsize()) / 2; }
+	int recordsize() override {
+		return (source->recordsize() + source2->recordsize()) / 2;
+	}
+	int columnsize() override {
+		return (source->columnsize() + source2->columnsize()) / 2;
+	}
+
 protected:
 	bool isdup(const Row& row);
 	bool equal(const Row& r1, const Row& r2);
@@ -22,4 +24,4 @@ protected:
 	Header hdr1, hdr2;
 	gcstring disjoint;
 	friend class Project;
-	};
+};

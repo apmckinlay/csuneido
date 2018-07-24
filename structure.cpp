@@ -7,70 +7,59 @@
 #include "suobject.h"
 #include "symbols.h"
 
-Structure::Structure(TypeItem* it, short* ms, int n) : TypeMulti(it, n)
-	{
-	mems = dup(ms, n);;
-	}
+Structure::Structure(TypeItem* it, short* ms, int n) : TypeMulti(it, n) {
+	mems = dup(ms, n);
+	;
+}
 
-void Structure::put(char*& dst, char*& dst2, const char* lim2, Value x)
-	{
-	if (! x)
+void Structure::put(char*& dst, char*& dst2, const char* lim2, Value x) {
+	if (!x)
 		x = new SuObject();
 	SuObject* ob = x.object();
 	for (int i = 0; i < nitems; ++i)
 		items[i].type().put(dst, dst2, lim2, ob->get(symbol(mems[i])));
-	}
+}
 
-Value Structure::get(const char*& src, Value x)
-	{
-	if (! x)
-		x = new SuObject;//(nitems);
+Value Structure::get(const char*& src, Value x) {
+	if (!x)
+		x = new SuObject; //(nitems);
 	SuObject* ob = x.object();
-	for (int i = 0; i < nitems; ++i)
-		{
+	for (int i = 0; i < nitems; ++i) {
 		Value old = ob->get(symbol(mems[i]));
 		Value now = items[i].type().get(src, old);
-		if (! old || old != now)
+		if (!old || old != now)
 			ob->put(symbol(mems[i]), now);
-		}
-	return x;
 	}
+	return x;
+}
 
-void Structure::out(Ostream& os) const
-	{
+void Structure::out(Ostream& os) const {
 	if (named.num)
 		os << named.name() << " /* " << named.lib << " struct */";
-	else
-		{
+	else {
 		os << "struct { ";
-		for (int i = 0; i < nitems; ++i)
-			{
+		for (int i = 0; i < nitems; ++i) {
 			items[i].out(os);
 			os << " " << symstr(mems[i]) << "; ";
-			}
-		os << '}';
 		}
+		os << '}';
 	}
+}
 
-Value Structure::call(Value self, Value member, 
-	short nargs, short nargnames, short* argnames, int each)
-	{
+Value Structure::call(Value self, Value member, short nargs, short nargnames,
+	short* argnames, int each) {
 	static Value SIZE("Size");
 	static Value MODIFY("Modify");
 
-	if (member == SIZE)
-		{
+	if (member == SIZE) {
 		NOARGS("struct.Size()");
 		return size();
-		}
-	else if (member == CALL)
-		{
+	} else if (member == CALL) {
 		if (nargs != 1)
 			except("usage: struct(value)");
 		int n;
 		Value arg = ARG(0);
-		if (arg.ob_if_ob())
-			{
+		if (arg.ob_if_ob()) {
 			// convert object to structure in string
 			n = size();
 			if (n > 512)
@@ -82,18 +71,14 @@ Value Structure::call(Value self, Value member,
 			put(dst, dst2, lim2, arg);
 			verify(dst == buf + n);
 			return new SuString(buf, dst2 - buf);
-			}
-		else if (arg.int_if_num(&n))
-			{
+		} else if (arg.int_if_num(&n)) {
 			// interpret number as pointer to structure
-			if (! n)
+			if (!n)
 				return SuFalse;
 			// TODO: use VirtualQuery to check if valid
 			const char* s = (char*) n;
 			return get(s, Value());
-			}
-		else
-			{
+		} else {
 			// interpret string as structure
 			gcstring s = arg.gcstr();
 
@@ -103,30 +88,24 @@ Value Structure::call(Value self, Value member,
 			// TODO: get should make sure pointed to data is within s
 			auto src = s.ptr();
 			return get(src, Value());
-			}
 		}
-	else if (member == MODIFY)
-		{
+	} else if (member == MODIFY) {
 		if (nargs != 3)
 			except("usage: struct.Modify(address, member, value)");
 		char* dst = (char*) ARG(0).integer();
 		short mem = ARG(1).symnum();
 		int i;
-		for (i = 0; i < nitems; ++i)
-			{
-			if (mems[i] == mem)
-				{
+		for (i = 0; i < nitems; ++i) {
+			if (mems[i] == mem) {
 				char* dst2 = nullptr;
 				items[i].type().put(dst, dst2, 0, ARG(2));
-				break ;
-				}
-			else
-				dst +=  items[i].type().size();
-			}
+				break;
+			} else
+				dst += items[i].type().size();
+		}
 		if (i >= nitems)
 			except("member not found: " << ARG(1));
-		}
-	else
+	} else
 		method_not_found("struct", member);
 	return Value();
-	}
+}

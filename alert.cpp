@@ -9,17 +9,15 @@
 
 static OstreamStr os;
 
-Ostream& osalert()
-	{
+Ostream& osalert() {
 	return os;
-	}
+}
 
-void alert_()
-	{
+void alert_() {
 	auto msg = dupstr(os.str());
 	os.clear(); // before alert to allow for nesting
 	if (cmdlineoptions.unattended)
 		errlog("Alert:", msg);
 	else
 		alertout(msg);
-	}
+}

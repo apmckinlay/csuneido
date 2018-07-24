@@ -7,4 +7,5 @@
 Ostream& osalert();
 void alert_();
 
-#define alert(msg)	((osalert() << msg), alert_())  // NOLINT(misc-macro-parentheses)
+#define alert(msg) \
+	((osalert() << msg), alert_()) // NOLINT(misc-macro-parentheses)

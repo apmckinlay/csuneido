@@ -9,8 +9,7 @@
 
 class SuValue;
 
-class Table : public Query
-	{
+class Table : public Query {
 public:
 	explicit Table(const char* s);
 	void out(Ostream& os) const override;
@@ -18,7 +17,7 @@ public:
 	Indexes indexes() override;
 	Indexes keys() override;
 	virtual float iselsize(const Fields& index, const Iselects& isels);
-	double optimize2(const Fields& index, const Fields& needs, 
+	double optimize2(const Fields& index, const Fields& needs,
 		const Fields& firstneeds, bool is_cursor, bool freeze) override;
 	void select_index(const Fields& index);
 	// estimated sizes
@@ -30,14 +29,18 @@ public:
 	virtual int indexsize(const Fields& index);
 	// iteration
 	Header header() override;
-	void select(const Fields& index, const Record& from, const Record& to) override;
+	void select(
+		const Fields& index, const Record& from, const Record& to) override;
 	void rewind() override;
 	Row get(Dir dir) override;
-	void set_transaction(int t) override
-		{ tran = t; iter.set_transaction(t); }
+	void set_transaction(int t) override {
+		tran = t;
+		iter.set_transaction(t);
+	}
 
-	bool updateable() const override
-		{ return true; }
+	bool updateable() const override {
+		return true;
+	}
 	bool output(const Record& r) override;
 
 	gcstring table;
@@ -45,11 +48,12 @@ public:
 	void set_index(const Fields& index);
 	Index::iterator iter;
 
-	void close(Query* q) override
-		{ }
+	void close(Query* q) override {
+	}
+
 protected:
-	Table() // used for tests
-		{ }
+	Table() { // used for tests
+	}
 	void iterate_setup(Dir dir);
 
 	bool first = true;
@@ -61,4 +65,4 @@ protected:
 	bool singleton = false; // i.e. key()
 	Fields idxflds;
 	Tbl* tbl = nullptr;
-	};
+};

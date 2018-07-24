@@ -4,7 +4,6 @@
 #include "alertout.h"
 #include "win.h"
 
-void alertout(char* s)
-	{
+void alertout(char* s) {
 	MessageBox(nullptr, s, "Suneido", MB_TASKMODAL);
-	}
+}

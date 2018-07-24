@@ -21,23 +21,28 @@ int packstr(char* buf, const char* s);
 const char* unpackstr(const char*& buf);
 
 // in sort order
-enum
-	{
-	PACK_FALSE, PACK_TRUE,
-	PACK_MINUS, PACK_PLUS,
+enum {
+	PACK_FALSE,
+	PACK_TRUE,
+	PACK_MINUS,
+	PACK_PLUS,
 	PACK_STRING,
 	PACK_DATE,
 	PACK_OBJECT,
 	PACK_RECORD
-	};
+};
 
 // new version
-enum
-	{
-	PACK2_FALSE, PACK2_TRUE,
-	PACK2_NEG_INF, PACK2_NEG, PACK2_ZERO, PACK2_POS, PACK2_POS_INF, // number
+enum {
+	PACK2_FALSE,
+	PACK2_TRUE,
+	PACK2_NEG_INF,
+	PACK2_NEG,
+	PACK2_ZERO,
+	PACK2_POS,
+	PACK2_POS_INF, // number
 	PACK2_STRING,
 	PACK2_DATE,
 	PACK2_OBJECT,
 	PACK2_RECORD
-	};
+};

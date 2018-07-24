@@ -10,8 +10,7 @@ template <class T>
 using MemFun = Value (T::*)(BuiltinArgs&);
 
 template <class T>
-struct Meth
-	{
+struct Meth {
 	Value name; // char* => symbol
 	MemFun<T> fn;
-	};
+};

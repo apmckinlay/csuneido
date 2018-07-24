@@ -5,9 +5,10 @@
 #include <cstdint>
 #include "commalist.h"
 
-#define WRITE_LIMIT	(1024 * 1024) // 1 mb
-#define LIMIT(n) except_if(n > WRITE_LIMIT, \
-	"write of " << n << " exceeds limit of " << WRITE_LIMIT)
+#define WRITE_LIMIT (1024 * 1024) // 1 mb
+#define LIMIT(n) \
+	except_if(n > WRITE_LIMIT, \
+		"write of " << n << " exceeds limit of " << WRITE_LIMIT)
 
 class gcstring;
 class Value;
@@ -15,8 +16,7 @@ class Buffer;
 
 /// Designed to be inherited from so methods don't need forwarding.
 /// The derived class must define need(n) and read(buf,n)
-class Serializer
-	{
+class Serializer {
 public:
 	Serializer(Buffer& r, Buffer& w);
 	virtual ~Serializer() = default;
@@ -44,6 +44,7 @@ public:
 	Lisp<int> getInts();
 	Lisp<gcstring> getStrings();
 	gcstring read(int n);
+
 private:
 	char get1();
 
@@ -52,4 +53,4 @@ protected:
 	virtual void read(char* buf, int n) = 0;
 	Buffer& rdbuf;
 	Buffer& wrbuf;
-	};
+};

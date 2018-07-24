@@ -9,8 +9,7 @@
 
 void scanner_locale_changed();
 
-BUILTIN(SetLocale, "(category, locale=0)")
-	{
+BUILTIN(SetLocale, "(category, locale=0)") {
 	const int nargs = 2;
 	int category = ARG(0).integer();
 	auto locale = ARG(1).str();
@@ -22,4 +21,4 @@ BUILTIN(SetLocale, "(category, locale=0)")
 	scanner_locale_changed();
 
 	return s ? Value(new SuString(s)) : Value(0);
-	}
+}

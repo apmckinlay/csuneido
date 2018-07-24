@@ -13,16 +13,14 @@
 #include "database.h"
 #include "thedb.h"
 
-Query* Query::make_project(Query* source, const Fields& f, bool allbut)
-	{
+Query* Query::make_project(Query* source, const Fields& f, bool allbut) {
 	return new Project(source, f, allbut);
-	}
+}
 
 Project::Project(Query* s, const Fields& flds_, bool allbut)
-	: Query1(s), flds(flds_)
-	{
+	: Query1(s), flds(flds_) {
 	Fields columns = source->columns();
-	if (! subset(columns, flds))
+	if (!subset(columns, flds))
 		except("project: nonexistent column(s): " << difference(flds, columns));
 	if (allbut)
 		flds = difference(columns, flds);
@@ -31,80 +29,70 @@ Project::Project(Query* s, const Fields& flds_, bool allbut)
 
 	// check if project contain candidate key
 	Indexes k = source->keys();
-	for (; ! nil(k); ++k)
+	for (; !nil(k); ++k)
 		if (subset(flds, *k))
-			break ;
-	if (! nil(k))
-		{
+			break;
+	if (!nil(k)) {
 		strategy = COPY;
 		includeDeps(columns);
-		}
 	}
+}
 
-void Project::includeDeps(const Fields& columns)
-	{
-	for (Fields f = flds; ! nil(f); ++f)
-		{
+void Project::includeDeps(const Fields& columns) {
+	for (Fields f = flds; !nil(f); ++f) {
 		gcstring deps(*f + "_deps");
-		if (columns.member(deps) && ! flds.member(deps))
+		if (columns.member(deps) && !flds.member(deps))
 			flds.append(deps);
-		}
 	}
+}
 
-void Project::out(Ostream& os) const
-	{
-	const char* s[] = { "", "-COPY", "-SEQ", "-LOOKUP" };
+void Project::out(Ostream& os) const {
+	const char* s[] = {"", "-COPY", "-SEQ", "-LOOKUP"};
 	os << *source << " PROJECT" << s[strategy];
-	if (! nil(via))
-	    os << "^" << via;
+	if (!nil(via))
+		os << "^" << via;
 	os << " " << flds;
-	}
+}
 
-Indexes Project::keys()
-	{
+Indexes Project::keys() {
 	Indexes keys;
-	for (Indexes k = source->keys(); ! nil(k); ++k)
+	for (Indexes k = source->keys(); !nil(k); ++k)
 		if (subset(flds, *k))
 			keys.push(*k);
 	return nil(keys) ? Indexes(flds) : keys;
-	}
+}
 
-Indexes Project::indexes()
-	{
+Indexes Project::indexes() {
 	Indexes idxs;
-	for (Indexes src = source->indexes(); ! nil(src); ++src)
+	for (Indexes src = source->indexes(); !nil(src); ++src)
 		if (subset(flds, *src))
 			idxs.push(*src);
 	return idxs;
-	}
+}
 
-Query* Project::transform()
-	{
+Query* Project::transform() {
 	bool moved = false;
 	// remove projects of all fields
 	if (flds == source->columns())
 		return source->transform();
 	// combine projects
-	if (Project* p = dynamic_cast<Project*>(source))
-		{
+	if (Project* p = dynamic_cast<Project*>(source)) {
 		flds = intersect(flds, p->flds);
 		source = p->source;
 		return transform();
-		}
+	}
 	// move projects before renames, renaming
-	else if (Rename* r = dynamic_cast<Rename*>(source))
-		{
+	else if (Rename* r = dynamic_cast<Rename*>(source)) {
 		// remove renames not in project
 		Fields new_from;
 		Fields new_to;
 		Fields f = r->from;
 		Fields t = r->to;
-		for (; ! nil(f); ++f, ++t)
-			if (member(flds, *t))
-				{
+		for (; !nil(f); ++f, ++t)
+			if (member(flds, *t)) {
 				new_from.push(*f);
 				new_to.push(*t);
-				}
+			}
 		r->from = new_from.reverse();
 		r->to = new_to.reverse();
 
@@ -112,7 +100,7 @@ Query* Project::transform()
 		Fields new_fields;
 		f = flds;
 		int i;
-		for (; ! nil(f); ++f)
+		for (; !nil(f); ++f)
 			if (-1 == (i = search(r->to, *f)))
 				new_fields.push(*f);
 			else
@@ -122,20 +110,18 @@ Query* Project::transform()
 		source = r->source;
 		r->source = this;
 		return r->transform();
-		}
+	}
 	// move projects before extends
-	else if (Extend* e = dynamic_cast<Extend*>(source))
-		{
+	else if (Extend* e = dynamic_cast<Extend*>(source)) {
 		// remove portions of extend not included in project
 		Fields new_flds;
 		Lisp<Expr*> new_exprs;
 		Lisp<Expr*> ex = e->exprs;
-		for (Fields f = e->flds; ! nil(f); ++f, ++ex)
-			if (member(flds, *f))
-				{
+		for (Fields f = e->flds; !nil(f); ++f, ++ex)
+			if (member(flds, *f)) {
 				new_flds.push(*f);
 				new_exprs.push(*ex);
-				}
+			}
 		Fields orig_flds = e->flds;
 		e->flds = new_flds;
 		Lisp<Expr*> orig_exprs = e->exprs;
@@ -144,17 +130,15 @@ Query* Project::transform()
 		// project must include all fields required by extend
 		// there must be no rules left
 		// since we don't know what fields are required by rules
-		if (! e->has_rules())
-			{
+		if (!e->has_rules()) {
 			Fields eflds;
-			for (ex = e->exprs; ! nil(ex); ++ex)
+			for (ex = e->exprs; !nil(ex); ++ex)
 				eflds = set_union(eflds, (*ex)->fields());
-			if (subset(flds, eflds))
-				{
+			if (subset(flds, eflds)) {
 				// remove extend fields from project
 				Fields new_fields;
-				for (Fields f = flds; ! nil(f); ++f)
-					if (! member(e->flds, *f))
+				for (Fields f = flds; !nil(f); ++f)
+					if (!member(e->flds, *f))
 						new_fields.push(*f);
 				flds = new_fields.reverse();
 
@@ -162,60 +146,50 @@ Query* Project::transform()
 				e->source = this;
 				e->init();
 				return e->transform();
-				}
 			}
+		}
 		e->flds = orig_flds;
 		e->exprs = orig_exprs;
-		}
+	}
 	// distribute project over union/intersect (NOT difference)
-	else if (dynamic_cast<Difference*>(source))
-		{
-		}
-	else if (Compatible* c = dynamic_cast<Compatible*>(source))
-		{
-		if (c->disjoint != "" && ! member(flds, c->disjoint))
-			{
+	else if (dynamic_cast<Difference*>(source)) {
+	} else if (Compatible* c = dynamic_cast<Compatible*>(source)) {
+		if (c->disjoint != "" && !member(flds, c->disjoint)) {
 			Fields flds2 = flds.copy().push(c->disjoint);
-			c->source = new Project(c->source,
-				intersect(flds2, c->source->columns()));
-			c->source2 = new Project(c->source2,
-				intersect(flds2, c->source2->columns()));
-			}
-		else
-			{
-			c->source = new Project(c->source,
-				intersect(flds, c->source->columns()));
-			c->source2 = new Project(c->source2,
-				intersect(flds, c->source2->columns()));
+			c->source =
+				new Project(c->source, intersect(flds2, c->source->columns()));
+			c->source2 = new Project(
+				c->source2, intersect(flds2, c->source2->columns()));
+		} else {
+			c->source =
+				new Project(c->source, intersect(flds, c->source->columns()));
+			c->source2 =
+				new Project(c->source2, intersect(flds, c->source2->columns()));
 			return source->transform();
-			}
 		}
+	}
 	// split project over product/join
-	else if (Product* x = dynamic_cast<Product*>(source))
-		{
-		x->source = new Project(x->source,
-			intersect(flds, x->source->columns()));
-		x->source2 = new Project(x->source2,
-			intersect(flds, x->source2->columns()));
+	else if (Product* x = dynamic_cast<Product*>(source)) {
+		x->source =
+			new Project(x->source, intersect(flds, x->source->columns()));
+		x->source2 =
+			new Project(x->source2, intersect(flds, x->source2->columns()));
 		moved = true;
-		}
-	else if (Join* j = dynamic_cast<Join*>(source))
-		{
-		if (subset(flds, j->joincols))
-			{
-			j->source = new Project(j->source,
-				intersect(flds, j->source->columns()));
-			j->source2 = new Project(j->source2,
-				intersect(flds, j->source2->columns()));
+	} else if (Join* j = dynamic_cast<Join*>(source)) {
+		if (subset(flds, j->joincols)) {
+			j->source =
+				new Project(j->source, intersect(flds, j->source->columns()));
+			j->source2 =
+				new Project(j->source2, intersect(flds, j->source2->columns()));
 			moved = true;
-			}
 		}
+	}
 	source = source->transform();
 	return moved ? source : this;
-	}
+}
 
-double Project::optimize2(const Fields& index, const Fields& needs, const Fields& firstneeds, bool is_cursor, bool freeze)
-	{
+double Project::optimize2(const Fields& index, const Fields& needs,
+	const Fields& firstneeds, bool is_cursor, bool freeze) {
 	if (strategy == COPY)
 		return source->optimize(index, needs, firstneeds, is_cursor, freeze);
 
@@ -225,110 +199,96 @@ double Project::optimize2(const Fields& index, const Fields& needs, const Fields
 	Indexes idxs = nil(index) ? source->indexes() : Indexes(index);
 	Lisp<Fixed> fix = source->fixed();
 	Fields fldswof = withoutFixed(flds, fix);
-	for (; ! nil(idxs); ++idxs)
-		{
+	for (; !nil(idxs); ++idxs) {
 		Fields ix = *idxs;
-		if (prefix_set(withoutFixed(ix, fix), fldswof))
-			{
-			double cost = source->optimize1(ix, needs, firstneeds, is_cursor, false);
-			if (cost < best_cost)
-				{ best_cost = cost; best_index = ix; }
+		if (prefix_set(withoutFixed(ix, fix), fldswof)) {
+			double cost =
+				source->optimize1(ix, needs, firstneeds, is_cursor, false);
+			if (cost < best_cost) {
+				best_cost = cost;
+				best_index = ix;
 			}
 		}
-	if (nil(best_index))
-		{
+	}
+	if (nil(best_index)) {
 		if (is_cursor)
 			return IMPOSSIBLE;
 		if (freeze)
 			strategy = LOOKUP;
-		return 2 * source->optimize(index, needs, firstneeds, is_cursor, freeze); // 2* for lookups
-		}
-	else
-		{
-		if (! freeze)
+		return 2 * // 2* for lookups
+			source->optimize(index, needs, firstneeds, is_cursor, freeze);
+	} else {
+		if (!freeze)
 			return best_cost;
 		strategy = SEQUENTIAL;
 		via = best_index;
 		// NOTE: optimize1 to avoid tempindex
-		return source->optimize1(best_index, needs, firstneeds, is_cursor, freeze);
-		}
+		return source->optimize1(
+			best_index, needs, firstneeds, is_cursor, freeze);
 	}
+}
 
-Fields Project::withoutFixed(Fields fields, const Lisp<Fixed> fixed)
-	{
-	if (! hasFixed(fields, fixed))
+Fields Project::withoutFixed(Fields fields, const Lisp<Fixed> fixed) {
+	if (!hasFixed(fields, fixed))
 		return fields;
 	Fields fldswof;
-	for (; ! nil(fields); ++fields)
-		if (! isfixed(fixed, *fields))
+	for (; !nil(fields); ++fields)
+		if (!isfixed(fixed, *fields))
 			fldswof.push(*fields);
 	return fldswof.reverse();
-	}
+}
 
-bool Project::hasFixed(Fields fields, const Lisp<Fixed> fixed)
-	{
-	for (; ! nil(fields); ++fields)
+bool Project::hasFixed(Fields fields, const Lisp<Fixed> fixed) {
+	for (; !nil(fields); ++fields)
 		if (isfixed(fixed, *fields))
 			return true;
 	return false;
-	}
+}
 
-Lisp<Fixed> Project::fixed() const
-	{
+Lisp<Fixed> Project::fixed() const {
 	Lisp<Fixed> fixed;
-	for (Lisp<Fixed> f = source->fixed(); ! nil(f); ++f)
+	for (Lisp<Fixed> f = source->fixed(); !nil(f); ++f)
 		if (member(flds, f->field))
 			fixed.push(*f);
 	return fixed;
-	}
+}
 
-Header Project::header()
-	{
-	return strategy == COPY
-		? source->header().project(flds)
-		: Header(lisp(Fields(), flds), flds);
-	}
+Header Project::header() {
+	return strategy == COPY ? source->header().project(flds)
+							: Header(lisp(Fields(), flds), flds);
+}
 
-Row Project::get(Dir dir)
-	{
+Row Project::get(Dir dir) {
 	static Record emptyrec;
 
-	if (first)
-		{
+	if (first) {
 		first = false;
 		src_hdr = source->header();
 		proj_hdr = src_hdr.project(flds);
-		if (strategy == LOOKUP)
-			{
+		if (strategy == LOOKUP) {
 			if (idx)
 				idx->free();
 			idx = new VVtree(td = new TempDest);
 			indexed = false;
-			}
 		}
-	if (strategy == COPY)
-		{
+	}
+	if (strategy == COPY) {
 		return source->get(dir);
-		}
-	else if (strategy == SEQUENTIAL)
-		{
-		if (dir == NEXT)
-			{
+	} else if (strategy == SEQUENTIAL) {
+		if (dir == NEXT) {
 			// output the first of each group
 			// i.e. skip over rows the same as previous output
 			Row row;
 			do
 				if (Eof == (row = source->get(NEXT)))
 					return Eof;
-				while (! rewound && equal(proj_hdr, row, currow));
+			while (!rewound && equal(proj_hdr, row, currow));
 			rewound = false;
 			prevrow = currow;
 			currow = row;
 			// output the first row of a new group
 			return Row(lisp(emptyrec, row_to_key(src_hdr, row, flds)));
-			}
-		else // dir == PREV
-			{
+		} else { // dir == PREV
 			// output the last of each group
 			// i.e. output when *next* record is different
 			// (to get the same records as NEXT)
@@ -336,56 +296,45 @@ Row Project::get(Dir dir)
 				prevrow = source->get(PREV);
 			rewound = false;
 			Row row;
-			do
-				{
+			do {
 				if (Eof == (row = prevrow))
 					return Eof;
 				prevrow = source->get(PREV);
-				}
-				while (equal(proj_hdr, row, prevrow));
+			} while (equal(proj_hdr, row, prevrow));
 			// output the last row of a group
 			currow = row;
 			return Row(lisp(emptyrec, row_to_key(src_hdr, row, flds)));
-			}
 		}
-	else
-		{
+	} else {
 		verify(strategy == LOOKUP);
-		if (rewound)
-			{
+		if (rewound) {
 			rewound = false;
-			if (dir == PREV && ! indexed)
-				{
+			if (dir == PREV && !indexed) {
 				// pre-build the index
 				Row row;
-				while (Eof != (row = source->get(NEXT)))
-					{
+				while (Eof != (row = source->get(NEXT))) {
 					Record key = row_to_key(src_hdr, row, flds);
 					Vdata data(row.data);
-					for (Lisp<Record> rs = row.data; ! nil(rs); ++rs)
+					for (Lisp<Record> rs = row.data; !nil(rs); ++rs)
 						td->addref(rs->ptr());
 					// insert will only succeed on first of dups
 					idx->insert(VVslot(key, &data));
-					}
+				}
 				source->rewind();
 				indexed = true;
-				}
 			}
+		}
 		Row row;
-		while (Eof != (row = source->get(dir)))
-			{
+		while (Eof != (row = source->get(dir))) {
 			Record key = row_to_key(src_hdr, row, flds);
 			VVtree::iterator iter = idx->find(key);
-			if (iter == idx->end())
-				{
-				for (Lisp<Record> rs = row.data; ! nil(rs); ++rs)
+			if (iter == idx->end()) {
+				for (Lisp<Record> rs = row.data; !nil(rs); ++rs)
 					td->addref(rs->ptr());
 				Vdata data(row.data);
 				verify(idx->insert(VVslot(key, &data)));
 				return Row(lisp(emptyrec, key));
-				}
-			else
-				{
+			} else {
 				Vdata* d = iter->data;
 				Records rs;
 				for (int i = d->n - 1; i >= 0; --i)
@@ -393,61 +342,55 @@ Row Project::get(Dir dir)
 				Row irow(rs);
 				if (row == irow)
 					return Row(lisp(emptyrec, key));
-				}
 			}
+		}
 		if (dir == NEXT)
 			indexed = true;
 		return Eof;
-		}
 	}
+}
 
-void Project::select(const Fields& index, const Record& from, const Record& to)
-	{
+void Project::select(
+	const Fields& index, const Record& from, const Record& to) {
 	source->select(index, from, to);
-	if (strategy == LOOKUP && (sel.org != from || sel.end != to))
-		{
+	if (strategy == LOOKUP && (sel.org != from || sel.end != to)) {
 		if (idx)
 			idx->free();
 		idx = new VVtree(td = new TempDest);
 		indexed = false;
-		}
+	}
 	sel.org = from;
 	sel.end = to;
 	rewound = true;
-	}
+}
 
-void Project::rewind()
-	{
+void Project::rewind() {
 	source->rewind();
 	rewound = true;
-	}
+}
 
-bool Project::output(const Record& r)
-	{
+bool Project::output(const Record& r) {
 	ckmodify("output");
 	return source->output(r);
-	}
+}
 
-void Project::ckmodify(const char* action)
-	{
+void Project::ckmodify(const char* action) {
 	if (strategy != COPY)
 		except("project: can't " << action << ": key required");
-	}
+}
 
-void Project::close(Query* q)
-	{
+void Project::close(Query* q) {
 	if (idx)
 		idx->free();
 	Query1::close(q);
-	}
+}
 
 #include "testing.h"
 #include "tempdb.h"
 
 extern int tempdest_inuse;
 
-static int count(Dir dir)
-	{
+static int count(Dir dir) {
 	Query* q = query("columns project table join tables project nextfield");
 	int tran = thedb->transaction(READONLY);
 	q->set_transaction(tran);
@@ -458,37 +401,33 @@ static int count(Dir dir)
 	verify(thedb->commit(tran));
 	verify(tempdest_inuse == 0);
 	return n;
-	}
-TEST(qproject_count)
-	{
+}
+TEST(qproject_count) {
 	TempDB tempdb;
 
 	verify(count(NEXT) == count(PREV));
-	}
+}
 
-static void bidir(Dir dir1, Dir dir2)
-	{
+static void bidir(Dir dir1, Dir dir2) {
 	Query* q = query("columns project table");
 	int tran = thedb->transaction(READONLY);
 	q->set_transaction(tran);
-	while (true)
-		{
+	while (true) {
 		Row row1, row2;
 		if (Query::Eof == (row1 = q->get(dir1)))
-			break ;
+			break;
 		if (Query::Eof == (row2 = q->get(dir1)))
-			break ;
+			break;
 		verify(row1 == q->get(dir2));
 		verify(row2 == q->get(dir1));
-		}
+	}
 	q->close(q);
 	verify(thedb->commit(tran));
 	verify(tempdest_inuse == 0);
-	}
-TEST(qproject_bidir)
-	{
+}
+TEST(qproject_bidir) {
 	TempDB tempdb;
 
 	bidir(NEXT, PREV);
 	bidir(PREV, NEXT);
-	}
+}

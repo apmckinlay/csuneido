@@ -6,14 +6,13 @@
 
 typedef Value (*BuiltinFn)();
 
-struct Builtin
-	{
+struct Builtin {
 	Builtin(BuiltinFn fn, const char* name, const char* decl);
 
 	BuiltinFn fn;
 	const char* name;
 	const char* params;
-	};
+};
 
 #define BUILTIN(name, decl) \
 	static Value su_##name(); \

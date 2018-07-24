@@ -7,23 +7,21 @@
 class Ostream;
 
 // output stream manipulators
-template <class T> struct OstreamManip
-	{
-	OstreamManip(void (*f)(Ostream&, T), T x) : fn(f), arg(x)
-		{ }
+template <class T>
+struct OstreamManip {
+	OstreamManip(void (*f)(Ostream&, T), T x) : fn(f), arg(x) {
+	}
 	void (*fn)(Ostream&, T);
 	T arg;
-	};
+};
 
 // abstract base class for output streams
-class Ostream
-	{
+class Ostream {
 public:
 	Ostream();
 	virtual ~Ostream() = default;
 	virtual Ostream& write(const void* buf, int n) = 0;
-	virtual void flush()
-		{ };
+	virtual void flush(){};
 	Ostream& write_padded(const char* buf, int n);
 
 	// inserters
@@ -35,43 +33,59 @@ public:
 	Ostream& operator<<(unsigned short i);
 	Ostream& operator<<(int i);
 	Ostream& operator<<(unsigned int i);
-	Ostream& operator<<(long i)
-		{ return operator<<(static_cast<int>(i)); }
-	Ostream& operator<<(unsigned long i)
-		{ return operator<<(static_cast<unsigned int>(i)); }
+	Ostream& operator<<(long i) {
+		return operator<<(static_cast<int>(i));
+	}
+	Ostream& operator<<(unsigned long i) {
+		return operator<<(static_cast<unsigned int>(i));
+	}
 	Ostream& operator<<(int64_t i);
 	Ostream& operator<<(uint64_t i);
 	Ostream& operator<<(double d);
 	Ostream& operator<<(void* p);
 	// for manipulators
-	Ostream& operator<<(void (*f)(Ostream&))
-		{ f(*this); return *this; }
-	template <class T> Ostream& operator<<(OstreamManip<T> m)
-		{ m.fn(*this, m.arg); return *this; }
+	Ostream& operator<<(void (*f)(Ostream&)) {
+		f(*this);
+		return *this;
+	}
+	template <class T>
+	Ostream& operator<<(OstreamManip<T> m) {
+		m.fn(*this, m.arg);
+		return *this;
+	}
 
-	void base(int n)
-		{ d_base = n; }
-	int base()
-		{ return d_base; }
-	void fill(char c)
-		{ d_fill = c; }
-	char fill()
-		{ return d_fill; }
-	void width(int n)
-		{ d_width = n; }
-	int width()
-		{ return d_width; }
+	void base(int n) {
+		d_base = n;
+	}
+	int base() {
+		return d_base;
+	}
+	void fill(char c) {
+		d_fill = c;
+	}
+	char fill() {
+		return d_fill;
+	}
+	void width(int n) {
+		d_width = n;
+	}
+	int width() {
+		return d_width;
+	}
 	enum Adjust { LEFT, RIGHT };
-	void adjust(Adjust adjust)
-		{ d_adjust = adjust; }
-	Adjust adjust()
-		{ return d_adjust; }
+	void adjust(Adjust adjust) {
+		d_adjust = adjust;
+	}
+	Adjust adjust() {
+		return d_adjust;
+	}
+
 private:
 	int d_base;
 	char d_fill;
 	int d_width;
 	Adjust d_adjust;
-	};
+};
 
 // manipulators
 

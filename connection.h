@@ -11,15 +11,14 @@ class gcstring;
 
 class Value;
 
-class Connection : public Serializer
-{
+class Connection : public Serializer {
 public:
 	explicit Connection(SocketConnect* sc_);
 
 	void need(int n) override;
-	void read(char * buf, int n) override;
+	void read(char* buf, int n) override;
 	void write();
-	virtual void write(const char * buf, int n);
+	virtual void write(const char* buf, int n);
 	void close();
 
 private:
@@ -28,16 +27,15 @@ private:
 };
 
 /// A wrapper for a Connection that treats io exceptions as fatal
-class ClientConnection : public Connection
-	{
+class ClientConnection : public Connection {
 public:
-	ClientConnection(SocketConnect* sc) : Connection(sc)
-		{ }
+	ClientConnection(SocketConnect* sc) : Connection(sc) {
+	}
 	void need(int n) override;
 	using Connection::write;
 	void write(const char* buf, int n) override;
 	void read(char* dst, int n) override;
 	using Serializer::read;
-	};
+};
 
 const int HELLO_SIZE = 50; // must match jSuneido

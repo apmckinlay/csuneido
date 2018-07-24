@@ -5,17 +5,15 @@
 #include "std.h"
 #include "testing.h"
 
-TEST(slots_vslot)
-	{
+TEST(slots_vslot) {
 	Mmoffset n = (int64_t) 3 * 1024 * 1024 * 1024;
 	Record r;
 	r.addmmoffset(n);
 	assert_eq(r.getmmoffset(0), n);
 	Vslot vs(r);
 	assert_eq(vs.adr(), n);
-	}
-TEST(slots_vfslot)
-	{
+}
+TEST(slots_vfslot) {
 	Record r;
 	r.addval("hello");
 	Mmoffset n = (int64_t) 3 * 1024 * 1024 * 1024;
@@ -28,4 +26,4 @@ TEST(slots_vfslot)
 	VFslot vfs2 = slots.back();
 	assert_eq(vfs2.key, r);
 	assert_eq(vfs2.adr, n);
-	}
+}

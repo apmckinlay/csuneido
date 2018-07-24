@@ -4,5 +4,6 @@
 
 #include <cstdlib>
 
-inline int random(int n)
-	{ return rand() % n; }
+inline int random(int n) {
+	return rand() % n;
+}

@@ -8,18 +8,19 @@
 // Dbms - pure virtual interface class for Database and Query packages
 
 const int NO_TRAN = 0;
-inline bool isTran(int tn)
-	{ return tn > 0; } // handle both -1 and 0
+inline bool isTran(int tn) {
+	return tn > 0;
+} // handle both -1 and 0
 
 class Record;
 class Row;
 class Header;
-template <class T> class Lisp;
+template <class T>
+class Lisp;
 class gcstring;
 class SuValue;
 
-class DbmsQuery
-	{
+class DbmsQuery {
 public:
 	virtual ~DbmsQuery() = default;
 	virtual Header header() = 0;
@@ -31,12 +32,11 @@ public:
 	virtual bool output(const Record& rec) = 0;
 	virtual void set_transaction(int tn) = 0;
 	virtual void close() = 0;
-	};
+};
 
 class Value;
 
-class Dbms
-	{
+class Dbms {
 public:
 	virtual ~Dbms() = default;
 
@@ -53,7 +53,8 @@ public:
 	virtual void erase(int tn, Mmoffset recadr) = 0;
 	virtual Value exec(Value ob) = 0;
 	virtual int final() = 0;
-	virtual Row get(Dir dir, const char* query, bool one, Header& hdr, int tn = NO_TRAN) = 0;
+	virtual Row get(Dir dir, const char* query, bool one, Header& hdr,
+		int tn = NO_TRAN) = 0;
 	virtual int kill(const char* sessionid) = 0;
 	virtual Lisp<gcstring> libget(const char* name) = 0;
 	virtual Lisp<gcstring> libraries() = 0;
@@ -73,7 +74,7 @@ public:
 	virtual int transaction(TranType type, const char* session_id = "") = 0;
 	virtual Mmoffset update(int tn, Mmoffset recadr, Record& rec) = 0;
 	virtual int writeCount(int tn) = 0;
-	};
+};
 
 Dbms* dbms();
 Dbms* dbms_local();
@@ -89,4 +90,5 @@ bool isclient();
 class Query;
 class Expr;
 int delete_request(int tn, Query* q);
-int update_request(int tn, Query* q, const Lisp<gcstring>& c, const Lisp<Expr*>& exprs);
+int update_request(
+	int tn, Query* q, const Lisp<gcstring>& c, const Lisp<Expr*>& exprs);

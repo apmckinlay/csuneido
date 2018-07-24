@@ -6,12 +6,11 @@
 
 class DbserverData;
 
-class Auth
-	{
+class Auth {
 public:
 	enum { NONCE_SIZE = 8 };
 	enum { TOKEN_SIZE = 16 };
 	static gcstring token();
 	static gcstring nonce();
 	static bool auth(const gcstring& nonce, const gcstring& data);
-	};
+};

@@ -10,80 +10,71 @@
 #include <algorithm>
 using std::max;
 
-Buffer::Buffer(int n) : buf(new(noptrs) char[n]), capacity(n), used(0), pos(0)
-	{ }
+Buffer::Buffer(int n)
+	: buf(new (noptrs) char[n]), capacity(n), used(0), pos(0) {
+}
 
-char* Buffer::ensure(int n)
-	{
-	++n;  // allow for nul for gcstr
-	if (used + n > capacity)
-		{
-		buf = (char*) GC_realloc(buf, capacity = max(2 * capacity, capacity + n));
-		if (! buf)
+char* Buffer::ensure(int n) {
+	++n; // allow for nul for gcstr
+	if (used + n > capacity) {
+		buf =
+			(char*) GC_realloc(buf, capacity = max(2 * capacity, capacity + n));
+		if (!buf)
 			fatal("out of memory");
-		}
-	return buf + used;
 	}
+	return buf + used;
+}
 
-char* Buffer::alloc(int n)
-	{
+char* Buffer::alloc(int n) {
 	verify(n >= 0);
 	char* dst = ensure(n);
 	added(n);
 	return dst;
-	}
+}
 
-Buffer& Buffer::add(char c)
-	{
+Buffer& Buffer::add(char c) {
 	*alloc(1) = c;
 	return *this;
-	}
+}
 
-Buffer& Buffer::add(const char* s, int n)
-	{
+Buffer& Buffer::add(const char* s, int n) {
 	if (n > 0)
 		memcpy(alloc(n), s, n);
 	return *this;
-	}
+}
 
-Buffer& Buffer::add(const gcstring& s)
-	{
+Buffer& Buffer::add(const gcstring& s) {
 	int n = s.size();
 	memcpy(alloc(n), s.ptr(), n);
 	return *this;
-	}
+}
 
-void Buffer::remove(int n)
-	{
+void Buffer::remove(int n) {
 	verify(n <= used);
 	memmove(buf, buf + n, used - n);
 	used -= n;
-	}
+}
 
-gcstring Buffer::gcstr() const
-	{
+gcstring Buffer::gcstr() const {
 	return gcstring::noalloc(str(), used);
-	}
+}
 
-char* Buffer::str() const
-	{
+char* Buffer::str() const {
 	verify(used < capacity);
 	buf[used] = 0;
 	return buf;
-	}
+}
 
-gcstring Buffer::getStr(int n)
-	{
+gcstring Buffer::getStr(int n) {
 	verify(pos + n <= used);
 	gcstring s(buf + pos, n);
 	pos += n;
 	return s;
-	}
+}
 
-char* Buffer::getBuf(int n)
-	{
+char* Buffer::getBuf(int n) {
 	verify(pos + n <= used);
 	int i = pos;
 	pos += n;
 	return buf + i;
-	}
+}
