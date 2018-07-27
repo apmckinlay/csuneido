@@ -99,7 +99,6 @@ int clz64(uint64_t n) {
 }
 
 namespace {
-// clang-format off
 uint64_t pow10[20] = {
 	1ull,
 	10ull,
@@ -120,9 +119,10 @@ uint64_t pow10[20] = {
 	10000000000000000ull,
 	100000000000000000ull,
 	1000000000000000000ull,
-	10000000000000000000ull
-	};
-uint64_t halfpow10[20] = { // for rounding
+	10000000000000000000ull,
+};
+uint64_t halfpow10[20] = {
+	// for rounding
 	0ull,
 	5ull,
 	50ull,
@@ -142,9 +142,8 @@ uint64_t halfpow10[20] = { // for rounding
 	5000000000000000ull,
 	50000000000000000ull,
 	500000000000000000ull,
-	5000000000000000000ull
-	};
-// clang-format on
+	5000000000000000000ull,
+};
 
 // returns 0 to 20
 int ilog10(uint64_t x) {
