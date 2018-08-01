@@ -34,6 +34,7 @@ static uint64_t make64(uint32_t hi, uint32_t lo) {
 /** @return u1,u0 - v1,v0 * q0 */
 static uint64_t mulsub(
 	uint32_t u1, uint32_t u0, uint32_t v1, uint32_t v0, uint64_t q0) {
+	CHECK(q0 <= UINT32_MAX);
 	uint64_t tmp = u0 - q0 * v0;
 	return make64(u1 + (tmp >> 32) - q0 * v1, tmp & LONG_MASK);
 }
@@ -72,14 +73,15 @@ static uint64_t divide128(
 
 	// adjust if quotient estimate too large
 	CHECK(q1 < DIV_NUM_BASE);
+	CHECK(r_tmp1 <= UINT32_MAX);
 	while (q1 * v0 > make64(r_tmp1, u1)) {
 		// done about 5.5 per 10,000 divides
 		q1--;
 		r_tmp1 += v1;
 		if (r_tmp1 >= DIV_NUM_BASE)
 			break;
+		CHECK(r_tmp1 <= UINT32_MAX);
 	}
-	CHECK(q1 >= 0);
 	uint64_t u2 = tmp1 & LONG_MASK; // low half
 
 	// u2,u1 is the MIDDLE 64 bits of the dividend
@@ -95,14 +97,18 @@ static uint64_t divide128(
 
 	// adjust if quotient estimate too large
 	CHECK(q0 < DIV_NUM_BASE);
+	CHECK(r_tmp2 <= UINT32_MAX);
 	while (q0 * v0 > make64(r_tmp2, u0)) {
 		// done about .33 times per divide
 		q0--;
 		r_tmp2 += v1;
 		if (r_tmp2 >= DIV_NUM_BASE)
 			break;
+		CHECK(r_tmp2 <= UINT32_MAX);
 	}
 
+	CHECK(q1 <= UINT32_MAX);
+	CHECK(q0 <= UINT32_MAX);
 	return make64(q1, q0);
 }
 

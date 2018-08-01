@@ -49,7 +49,8 @@ typedef struct {
 // sign values, zero = 0
 enum { NEG_INF = -2, NEG = -1, POS = +1, POS_INF = +2 };
 
-#define COEF_MAX 9'999'999'999'999'999ull
+#define COEF_MIN 1000'0000'0000'0000ull
+#define COEF_MAX 9999'9999'9999'9999ull
 #define MAX_DIGITS 16
 #define MAX_SHIFT (MAX_DIGITS - 1)
 
@@ -61,7 +62,6 @@ enum { NEG_INF = -2, NEG = -1, POS = +1, POS_INF = +2 };
 #define E6 1'000'000
 #define E7 10'000'000
 #define E8 100'000'000
-#define E16 1000'0000'0000'0000
 
 Dnum Dnum::inf(int sign) {
 	Dnum dn;
@@ -166,7 +166,7 @@ int maxShift(uint64_t x) {
 int maxCoef(uint64_t& coef) {
 	int i = maxShift(coef);
 	coef *= pow10[i];
-	CHECK(E16 <= coef && coef <= COEF_MAX);
+	CHECK(COEF_MIN <= coef && coef <= COEF_MAX);
 	return i;
 }
 } // namespace
@@ -200,7 +200,7 @@ Dnum::Dnum(int s, uint64_t c, int e) {
 			sign = SIGN(s);
 			coef = c;
 			exp = e;
-			CHECK(E16 <= coef && coef <= COEF_MAX);
+			CHECK(COEF_MIN <= coef && coef <= COEF_MAX);
 		}
 	}
 }
@@ -226,7 +226,7 @@ Dnum::Dnum(int64_t n) {
 		int p = maxShift(n);
 		coef = n * pow10[p];
 		exp = MAX_DIGITS - p;
-		CHECK(E16 <= coef && coef <= COEF_MAX);
+		CHECK(COEF_MIN <= coef && coef <= COEF_MAX);
 	}
 }
 
@@ -319,7 +319,7 @@ Dnum::Dnum(const char* s) {
 		*this = inf(sign);
 	else {
 		exp = e;
-		CHECK(E16 <= coef && coef <= COEF_MAX);
+		CHECK(COEF_MIN <= coef && coef <= COEF_MAX);
 	}
 }
 
