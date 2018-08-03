@@ -924,12 +924,6 @@ using namespace std::rel_ops;
 #define TRUNC(n) ((n) / 10)
 #define ROUND(n) (((n) + 5) / 10)
 
-// for tests, rounds off last digit
-bool almostSame(const Dnum& x, const Dnum& y) {
-	return x.sign == y.sign && x.exp == y.exp &&
-		(TRUNC(x.coef) == TRUNC(y.coef) || ROUND(x.coef) == ROUND(y.coef));
-}
-
 static void parse(const char* s, const char* expected) {
 	gcstring ns = Dnum(s).show();
 	except_if(ns != expected,
@@ -1075,12 +1069,12 @@ static void mul(X x, Y y, E expected) {
 	Dnum dy(y);
 	Dnum e(expected);
 	Dnum p = dx * dy;
-	except_if(!almostSame(p, e),
+	except_if(p != e,
 		dx << " * " << dy << "\n"
 		   << p << " result\n"
 		   << e << " expected");
 	p = dy * dx;
-	except_if(!almostSame(p, e),
+	except_if(p != e,
 		dy << " * " << dx << "\n"
 		   << p << " result\n"
 		   << e << " expected");
@@ -1101,7 +1095,7 @@ TEST(dnum_mul) {
 	Dnum z("4294967295");
 	mul(z, z, "1844674406511962e4");
 
-	mul("112233445566", "112233445566", "1259634630361629e7");
+	mul("112233445566", "112233445566", "1259634630361628e7");
 
 	mul("1111111111111111", "1111111111111111", "1.234567901234568e30");
 	mul("100000001", "100000001", "100000002e8");
@@ -1120,7 +1114,7 @@ TEST(dnum_mul) {
 static void div(const char* x, const char* y, const char* expected) {
 	Dnum q = Dnum(x) / Dnum(y);
 	Dnum e(expected);
-	except_if(!almostSame(q, e),
+	except_if(q != e,
 		x << " / " << y << "\n"
 		  << q << " result\n"
 		  << e << " expected");
@@ -1419,7 +1413,7 @@ BENCHMARK(dnum_unpack2) {
 // ------------------------------------------------------------------
 
 #define CK(x, y) \
-	if (!almostSame(x, y)) \
+	if ((x) != (y)) \
 	return OSTR("got " << (x))
 
 PORTTEST(dnum_add) {
