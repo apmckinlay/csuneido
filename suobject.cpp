@@ -236,7 +236,7 @@ void SuObject::put(Value m, Value x) {
 	ModificationCheck mc(this);
 	persist_if_block(x);
 	int i;
-	if (!m.int_if_num(&i) || m != Value(i) || i < 0 || vec.size() < i)
+	if (!m.int_if_num(&i) || i < 0 || vec.size() < i)
 		map[m] = x;
 	else if (i == vec.size())
 		add(x);
