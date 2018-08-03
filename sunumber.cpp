@@ -136,15 +136,15 @@ char* SuNumber::format(char* buf, const char* mask) const {
 
 size_t SuNumber::hashfn() const {
 	// have to ensure that hashfn() == integer() for SHRT_MIN -> SHRT_MAX
-	int n = dn.intOrMin();
-	if (SHRT_MIN <= n && n <= SHRT_MAX)
+	int n;
+	if (dn.to_int(&n) && SHRT_MIN <= n && n <= SHRT_MAX)
 		return n;
 	return dn.hashfn();
 }
 
 short SuNumber::symnum() const {
-	int n = dn.intOrMin();
-	if (0 <= n && n < 0x8000)
+	int n;
+	if (dn.to_int(&n) && 0 <= n && n < 0x8000)
 		return n;
 	else
 		return SuValue::symnum(); // throw
@@ -158,14 +158,6 @@ int SuNumber::integer() const {
 // used by type.h for dll interface
 int SuNumber::trunc() const {
 	return dn.integer().to_int32();
-}
-
-bool SuNumber::int_if_num(int* pn) const {
-	int n = dn.intOrMin();
-	if (n == INT_MIN)
-		return false;
-	*pn = n;
-	return true;
 }
 
 //===================================================================

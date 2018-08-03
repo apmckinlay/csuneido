@@ -67,7 +67,7 @@ public:
 
 	int32_t to_int32() const;
 	int64_t to_int64() const;
-	int intOrMin() const;
+	bool to_int(int* pn) const;
 
 	static Dnum inf(int sign = +1);
 

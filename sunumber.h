@@ -71,7 +71,9 @@ public:
 	}
 	size_t hashfn() const override;
 	short symnum() const override;
-	bool int_if_num(int* pn) const override;
+	bool int_if_num(int* pn) const override {
+		return dn.to_int(pn);
+	}
 	double to_double() const {
 		return dn.to_double();
 	}

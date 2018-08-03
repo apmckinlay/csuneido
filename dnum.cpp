@@ -859,6 +859,7 @@ Dnum Dnum::frac() const {
 	return frac == coef ? *this : Dnum(sign, frac, exp);
 }
 
+// Return an int32 if the Dnum can be losslessly converted, else throw
 int32_t Dnum::to_int32() const {
 	int64_t n = to_int64();
 	if (INT32_MIN <= n && n <= INT32_MAX)
@@ -866,6 +867,7 @@ int32_t Dnum::to_int32() const {
 	except("can't convert number to integer " << *this);
 }
 
+// Return an int64 if the Dnum can be losslessly converted, else throw
 int64_t Dnum::to_int64() const {
 	if (sign == 0)
 		return 0;
@@ -885,17 +887,21 @@ int64_t Dnum::to_int64() const {
 	except("can't convert number to integer " << *this);
 }
 
-/** @return integer value if in range, else Integer.MIN_VALUE */
-int Dnum::intOrMin() const {
-	if (sign == 0)
-		return 0;
+// Return true and set *pn if the Dnum can be losslessly converted, else false
+bool Dnum::to_int(int* pn) const {
+	if (sign == 0) {
+		*pn = 0;
+		return true;
+	}
 	if (sign != NEG_INF && sign != POS_INF && 0 < exp && exp <= 10 &&
 		(coef % pow10[MAX_DIGITS - exp]) == 0) {
 		int64_t n = sign * (coef / pow10[MAX_DIGITS - exp]);
-		if (INT_MIN < n && n <= INT_MAX)
-			return int(n);
+		if (INT_MIN < n && n <= INT_MAX) {
+			*pn = n;
+			return true;
+		}
 	}
-	return INT_MIN;
+	return false;
 }
 
 size_t Dnum::hashfn() const {
@@ -1140,7 +1146,7 @@ TEST(dnum_div) {
 	// long division
 	div("1", "3", ".3333333333333333");
 	div("2", "3", ".6666666666666666");
-	div("11", "17", ".6470588235294118");
+	div("11", "17", ".6470588235294117");
 	div("1234567890123456", "9876543210987654", ".1249999988609374");
 	div("1", "3333333333333333", "3e-16");
 	div("12", ".4444444444444444", "27");
@@ -1322,12 +1328,13 @@ TEST(to_int64) {
 }
 
 TEST(intOrMin) {
-	assert_eq(Dnum::ZERO.intOrMin(), 0);
-	assert_eq(Dnum(123).intOrMin(), 123);
-	assert_eq(Dnum(-123).intOrMin(), -123);
-	assert_eq(Dnum(INT_MAX).intOrMin(), INT_MAX);
-	assert_eq(Dnum(INT_MIN - 1LL).intOrMin(), INT_MIN);
-	assert_eq(Dnum(INT_MAX + 1LL).intOrMin(), INT_MIN);
+	int n;
+	verify(Dnum::ZERO.to_int(&n) && n == 0);
+	verify(Dnum(123).to_int(&n) && n == 123);
+	verify(Dnum(-123).to_int(&n) && n == -123);
+	verify(Dnum(INT_MAX).to_int(&n) && n == INT_MAX);
+	verify(!Dnum(INT_MIN - 1LL).to_int(&n));
+	verify(!Dnum(INT_MAX + 1LL).to_int(&n));
 }
 
 //-------------------------------------------------------------------
