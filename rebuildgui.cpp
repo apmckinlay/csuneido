@@ -60,7 +60,7 @@ static bool rebuild() {
 	case DBR_OK:
 		if (cmdlineoptions.check_start)
 			return true;
-		FALLTHROUGH
+		[[fallthrough]];
 	case DBR_ERROR:
 		dbr->rebuild();
 		delete dbr;
@@ -139,7 +139,7 @@ static BOOL CALLBACK check_proc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM) {
 			return TRUE;
 		default:;
 		}
-		FALLTHROUGH
+		[[fallthrough]];
 	default:
 		return FALSE;
 	}
@@ -205,7 +205,7 @@ static BOOL CALLBACK rebuild_proc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM) {
 			return TRUE;
 		default:;
 		}
-		FALLTHROUGH
+		[[fallthrough]];
 	default:
 		return FALSE;
 	}

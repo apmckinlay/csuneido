@@ -26,9 +26,3 @@ struct Closer {
 };
 
 char* dupstr(const char* s);
-
-#if __GNUC__ < 7
-#define FALLTHROUGH
-#else
-#define FALLTHROUGH [[fallthrough]];
-#endif

@@ -170,7 +170,7 @@ Mmfile::iterator& Mmfile::iterator::operator++() {
 			break;
 		case MMERR:
 			err = true;
-			FALLTHROUGH
+			[[fallthrough]];
 		case MMEOF:
 			off = mmf->end().off; // eof or bad block
 			return *this;
@@ -202,7 +202,7 @@ Mmfile::iterator& Mmfile::iterator::operator--() {
 			break;
 		case MMERR:
 			err = true;
-			FALLTHROUGH
+			[[fallthrough]];
 		case MMEOF:
 			off = mmf->begin().off; // eof or bad block
 			return *this;

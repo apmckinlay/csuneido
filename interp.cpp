@@ -691,7 +691,7 @@ Value Frame::run() {
 			}
 			case I_RETURN_NIL:
 				PUSH(Value());
-				FALLTHROUGH
+				[[fallthrough]];
 			case I_RETURN:
 				goto done;
 			case I_UMINUS:

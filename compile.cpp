@@ -1145,7 +1145,7 @@ void FunctionCompiler::statement(short cont, short* pbrk) {
 			case ';':
 			case T_NEWLINE:
 				match();
-				FALLTHROUGH
+				[[fallthrough]];
 			case '}':
 				emit(I_PUSH, LITERAL, literal(Value()));
 				break;
@@ -1160,7 +1160,7 @@ void FunctionCompiler::statement(short cont, short* pbrk) {
 			case ';':
 			case T_NEWLINE:
 				match();
-				FALLTHROUGH
+				[[fallthrough]];
 			case '}':
 				emit(I_RETURN_NIL);
 				break;

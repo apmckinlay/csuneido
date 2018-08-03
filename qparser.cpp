@@ -581,7 +581,7 @@ Value QueryParser::constant() {
 		break;
 	case '#':
 		match();
-		FALLTHROUGH
+		[[fallthrough]];
 	case '[':
 		if (token == '(' || token == '{' || token == '[')
 			x = object();
@@ -608,7 +608,7 @@ Value QueryParser::constant() {
 			match();
 			break;
 		}
-		FALLTHROUGH
+		[[fallthrough]];
 	default:
 		syntax_error();
 	}
