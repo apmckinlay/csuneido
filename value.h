@@ -64,7 +64,6 @@ public:
 	[[nodiscard]] bool int_if_num(int* pn) const {
 		return is_int() ? (*pn = im.n, true) : p->int_if_num(pn);
 	}
-
 	int integer() const { // coerces false and "" to 0
 		return is_int() ? im.n : (p ? p->integer() : 0);
 	}
