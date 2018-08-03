@@ -386,17 +386,10 @@ Value SuNumber::call(Value self, Value member, short nargs, short nargnames,
 	} else if (member == HEX) {
 		NOARGS("number.Hex()");
 		char buf[40];
-		u64tostr(uint32_t(dn.to_int64()), buf, 16);
-		return new SuString(buf);
-	} else if (member == OCTAL) {
-		NOARGS("number.Octal()");
-		char buf[40];
-		u64tostr(uint32_t(dn.to_int64()), buf, 8);
-		return new SuString(buf);
-	} else if (member == BINARY) {
-		NOARGS("number.Binary()");
-		char buf[40];
-		u64tostr(uint32_t(dn.to_int64()), buf, 2);
+		auto n = dn.to_int64();
+		if (n < INT32_MIN || UINT32_MAX < n)
+			except("Hex is limited to 32 bit");
+		u64tostr(uint32_t(n), buf, 16);
 		return new SuString(buf);
 	} else if (member == ROUND) {
 		argseach(nargs, nargnames, argnames, each);
