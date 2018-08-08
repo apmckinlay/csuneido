@@ -177,6 +177,7 @@ private:
 	vector<PrevLit> prevlits; // for emit const expr optimization
 	vector<Value> literals;
 	vector<short> locals;
+	vector<bool> localsHide;
 	short nparams = 0;
 	short ndefaults = 0;
 	bool rest = false;
@@ -228,6 +229,8 @@ private:
 	uint16_t literal(Value value, bool reuse = false);
 	short emit_literal();
 	uint16_t local(bool init = false);
+	void addLocal(int num);
+	void addLocal(const char* name);
 	PrevLit poplits();
 	short emit(short, short = 0, short = 0, short = 0, vector<short>* = 0);
 	void patch(short);
@@ -877,14 +880,14 @@ void FunctionCompiler::block() {
 		match(I_BITOR);
 		if (token == '@') {
 			match();
-			locals.push_back(symnum(scanner.value)); // ensure new
+			addLocal(scanner.value); // ensure new
 			scanner.visitor->local(scanner.prev, locals.size() - 1, true);
 			match(T_IDENTIFIER);
 			np = BLOCK_REST;
 		} else {
 			// TODO: handle named and default parameters
 			while (token == T_IDENTIFIER) {
-				locals.push_back(symnum(scanner.value)); // ensure new
+				addLocal(scanner.value); // ensure new
 				scanner.visitor->local(scanner.prev, locals.size() - 1, true);
 				match();
 				if (token == ',')
@@ -901,7 +904,7 @@ void FunctionCompiler::block() {
 	if (np == 0) {
 		// create an "it" param, remove later if not used
 		it_param = true;
-		locals.push_back(it); // ensure new
+		addLocal(it); // ensure new
 		scanner.visitor->local(scanner.prev, locals.size() - 1, true);
 	}
 	int last = locals.size();
@@ -930,9 +933,8 @@ void FunctionCompiler::block() {
 		}
 	}
 	// hide block parameter locals from rest of code
-	// TODO: cleaner way to hide e.g. parallel bool vector to mark as hidden
 	for (int i = first; i < last; ++i)
-		locals[i] = symnum(CATSTRA("_", symstr(locals[i])));
+		localsHide[i] = true;
 }
 
 #define NEW mem("New")
@@ -1912,17 +1914,26 @@ uint16_t FunctionCompiler::local(bool init) {
 		it_used = true;
 
 	for (int i = locals.size() - 1; i >= 0; --i)
-		if (locals[i] == num) {
+		if (locals[i] == num && !localsHide[i]) {
 			scanner.visitor->local(scanner.prev, i, init);
 			return i;
 		}
 	except_if(locals.size() >= UCHAR_MAX, "too many local variables");
-	locals.push_back(num);
+	addLocal(num);
 	if (*scanner.value == '_')
 		scanner.visitor->dynamic(locals.size() - 1);
 	else
 		scanner.visitor->local(scanner.prev, locals.size() - 1, init);
 	return locals.size() - 1;
+}
+
+void FunctionCompiler::addLocal(const char* name) {
+	addLocal(symnum(name));
+}
+
+void FunctionCompiler::addLocal(int sym) {
+	locals.push_back(sym);
+	localsHide.push_back(false);
 }
 
 PrevLit FunctionCompiler::poplits() {
