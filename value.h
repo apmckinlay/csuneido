@@ -52,6 +52,8 @@ public:
 	explicit operator bool() const {
 		return p;
 	}
+
+	// throws
 	bool toBool() const;
 
 	unsigned int hash() const {
@@ -61,13 +63,21 @@ public:
 		return is_int() ? im.n : p->hashcontrib();
 	}
 
+	// does NOT accept false or "" as zero
 	[[nodiscard]] bool int_if_num(int* pn) const {
 		return is_int() ? (*pn = im.n, true) : p->int_if_num(pn);
 	}
-	int integer() const { // coerces false and "" to 0
+
+	// throws, accepts false and "" as zero
+	int integer() const {
 		return is_int() ? im.n : (p ? p->integer() : 0);
 	}
-	SuNumber* number() const { // coerces false and "" to 0
+
+	// throws, does NOT accept false or "" as zero
+	int index() const;
+
+	// accepts false and "" as zero
+	SuNumber* number() const {
 		return is_int() ? new SuNumber(im.n) : p->number();
 	}
 

@@ -495,7 +495,7 @@ public:
 	}
 	Value call(Value self, Value member, short nargs, short nargnames,
 		short* argnames, int each) override {
-		return ARG(0).rangeTo(ARG(1).integer(), ARG(2).integer());
+		return ARG(0).rangeTo(ARG(1).index(), ARG(2).integer());
 	}
 };
 
@@ -510,7 +510,7 @@ public:
 		int len = ARG(2).integer();
 		if (len < 0)
 			len = 0;
-		return ARG(0).rangeLen(ARG(1).integer(), len);
+		return ARG(0).rangeLen(ARG(1).index(), len);
 	}
 };
 

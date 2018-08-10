@@ -16,6 +16,15 @@ bool Value::toBool() const {
 		except("expected boolean, got " << type());
 }
 
+int Value::index() const {
+	int n;
+	if (is_int())
+		n = im.n;
+	else if (!int_if_num(&n))
+		except("indexes must be integers");
+	return n;
+}
+
 Ostream& operator<<(Ostream& os, Value x) {
 	if (x.is_int())
 		os << x.im.n;

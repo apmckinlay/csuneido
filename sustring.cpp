@@ -144,9 +144,7 @@ void SuString::pack(char* dst) const {
 // methods ==========================================================
 
 Value SuString::getdata(Value m) {
-	int i;
-	if (!m.int_if_num(&i))
-		except("string subscripts must be integers");
+	int i = m.index();
 	if (i < 0)
 		i += size();
 	return substr(i, 1);
@@ -246,7 +244,7 @@ Value SuString::Substr(
 	short nargs, short nargnames, short* argnames, int each) {
 	if (nargs < 1 || nargs > 2)
 		except("usage: string(i [,n])");
-	int i = ARG(0).integer();
+	int i = ARG(0).index();
 	if (i < 0)
 		i += size();
 	if (i < 0)
@@ -912,7 +910,7 @@ Value SuString::Reverse(
 	return SuString::noalloc(buf, size());
 }
 
-// tests ------------------------------------------------------------
+	// tests ------------------------------------------------------------
 
 #include "testing.h"
 
