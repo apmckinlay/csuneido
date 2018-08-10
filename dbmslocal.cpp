@@ -81,9 +81,7 @@ void DbmsQueryLocal::close() {
 }
 
 const char* DbmsQueryLocal::explain() {
-	OstreamStr os;
-	os << q;
-	return os.str();
+	return q->explain();
 }
 
 bool DbmsQueryLocal::output(const Record& rec) {

@@ -19,8 +19,8 @@ Query* query(const char* s, bool is_cursor) {
 
 Query* query_setup(Query* q, bool is_cursor) {
 	q = q->transform();
-	if (q->optimize(Fields(), q->columns(), Fields(), is_cursor, true) >=
-		IMPOSSIBLE)
+	q->qcost = q->optimize(Fields(), q->columns(), Fields(), is_cursor, true);
+	if (q->qcost >= IMPOSSIBLE)
 		except("invalid query");
 	q = q->addindex();
 	trace_tempindex(q);
@@ -159,6 +159,14 @@ void Query::select(const Fields& index, const Record& key) {
 	Record key_to = key.dup();
 	key_to.addmax();
 	select(index, key, key_to);
+}
+
+const char* Query::explain() {
+	OstreamStr os;
+	out(os);
+	os << " [nrecs~ " << std::llround(nrecords()) << " cost~ "
+	   << std::llround(qcost) << "]";
+	return os.str();
 }
 
 // Query1 ===========================================================

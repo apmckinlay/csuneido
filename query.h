@@ -136,6 +136,7 @@ public:
 
 	// protected:
 	virtual void out(Ostream&) const = 0;
+	const char* explain();
 	virtual Fields columns() = 0;
 	virtual Indexes keys() = 0;
 	virtual Query* transform() {
@@ -156,6 +157,8 @@ public:
 
 	// used to insert TempIndex nodes
 	virtual Query* addindex(); // redefined by Query1 and Query2
+
+	double qcost = 0;
 
 private:
 	Fields tempindex;
