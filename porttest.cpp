@@ -131,7 +131,7 @@ struct Parser {
 		if (errinfo) {
 			++t.nfails;
 			if (first)
-				t.err << filename << ": @" << name << " " << comment << endl;
+				t.err << filename << ": @" << name << endl;
 			first = false;
 			t.err << "\tFAILED: " << args << " " << errinfo << endl;
 			t.log << "\tFAILED: " << args << " " << errinfo << endl;
