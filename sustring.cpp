@@ -161,6 +161,7 @@ Value SuString::rangeTo(int i, int j) {
 
 Value SuString::rangeLen(int i, int n) {
 	int f = prepFrom(i, size());
+	n = prepLen(n, size() - f);
 	return substr(f, n);
 }
 
@@ -910,7 +911,7 @@ Value SuString::Reverse(
 	return SuString::noalloc(buf, size());
 }
 
-	// tests ------------------------------------------------------------
+// tests ------------------------------------------------------------
 
 #include "testing.h"
 

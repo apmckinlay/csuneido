@@ -20,6 +20,14 @@ int prepTo(int to, int len) {
 	return to;
 }
 
+int prepLen(int len, int size) {
+	if (len < 0)
+		len = 0;
+	if (len > size)
+		len = size;
+	return len;
+}
+
 //-------------------------------------------------------------------
 
 #include "porttest.h"

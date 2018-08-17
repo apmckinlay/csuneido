@@ -4,3 +4,4 @@
 
 int prepFrom(int from, int len);
 int prepTo(int to, int len);
+int prepLen(int len, int size);

@@ -261,7 +261,7 @@ Value SuObject::rangeTo(int i, int j) {
 Value SuObject::rangeLen(int i, int n) {
 	int size = vecsize();
 	int f = prepFrom(i, size);
-	int t = f + min(n, size - f);
+	int t = f + prepLen(n, size - f);
 	return sublist(this, f, t);
 }
 
