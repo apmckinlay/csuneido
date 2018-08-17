@@ -43,8 +43,8 @@ const char* opcodes[256] = { //
 
 	"push sub", "push sub this", "push literal", "push auto", "push dynamic",
 	"push mem", "push mem this", "push global", "push value false",
-	"push value true", "push value \"\"", "push value this", "push value -1",
-	"push value 0", "push value 1", "try",
+	"push value true", "push value \"\"", "push value this", "push value 0",
+	"push value 1", "uplus", "try",
 
 	"+= sub", "-= sub", "$= sub", "*= sub", "/= sub", "%= sub", "<<= sub",
 	">>= sub", "&= sub", "|= sub", "^= sub", "= sub", "++? sub", "--? sub",

@@ -57,6 +57,10 @@ Value Value::operator-() const {
 	return is_int() ? Value(-im.n) : Value(neg(p->number()));
 }
 
+Value Value::operator+() const {
+	return is_int() ? *this : Value(p->number());
+}
+
 Value operator+(Value x, Value y) {
 	return x.is_int() ? y.is_int() ? Value(x.im.n + y.im.n)
 								   : Value(add(NUM(x.im.n), y.p->number()))

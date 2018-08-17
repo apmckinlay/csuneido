@@ -147,7 +147,8 @@ public:
 		return p == other.p;
 	}
 
-	Value operator-() const; // neg
+	Value operator-() const; // unary minus
+	Value operator+() const; // unary plus
 	friend bool operator==(Value x, Value y);
 	friend bool operator<(Value x, Value y);
 	friend Value operator+(Value x, Value y);

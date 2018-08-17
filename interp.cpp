@@ -324,9 +324,6 @@ Value Frame::run() {
 			case I_PUSH_VALUE | EMPTY_STRING:
 				PUSH(SuEmptyString);
 				break;
-			case I_PUSH_VALUE | MINUS_ONE:
-				PUSH(SuMinusOne);
-				break;
 			case I_PUSH_VALUE | ZERO:
 				PUSH(SuZero);
 				break;
@@ -696,6 +693,9 @@ Value Frame::run() {
 				goto done;
 			case I_UMINUS:
 				TOP() = -TOP();
+				break;
+			case I_UPLUS:
+				TOP() = +TOP();
 				break;
 			case I_BITNOT:
 				TOP() = ~TOP().integer();

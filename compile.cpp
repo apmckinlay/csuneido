@@ -1456,8 +1456,11 @@ void FunctionCompiler::unop() {
 		short t = token;
 		match();
 		unop();
-		if (t != I_ADD) // should have I_UPLUS
-			emit(t == I_SUB ? short(I_UMINUS) : t);
+		if (t == I_ADD)
+			t = I_UPLUS;
+		if (t == I_SUB)
+			t = I_UMINUS;
+		emit(t);
 	} else if (scanner.keyword == K_NEW) {
 		match();
 		expr0(true);
@@ -1960,13 +1963,18 @@ short FunctionCompiler::emit(short op, short option, short target, short nargs,
 	}
 
 	// constant folding e.g. replace 2 * 4 with 8
-	if (prevlits.size() >= 1 && (op == I_UMINUS || op == I_BITNOT)) {
-		PrevLit prev = poplits();
+	if (!prevlits.empty() &&
+		(op == I_UPLUS || op == I_UMINUS || op == I_NOT || op == I_BITNOT)) {
+		Value prev = poplits().lit;
 		Value result;
-		if (op == I_UMINUS)
-			result = -prev.lit;
+		if (op == I_UPLUS)
+			result = +prev;
+		else if (op == I_UMINUS)
+			result = -prev;
+		else if (op == I_NOT)
+			result = prev.toBool() ? SuFalse : SuTrue;
 		else if (op == I_BITNOT)
-			result = ~prev.lit.integer();
+			result = ~prev.integer();
 		op = I_PUSH;
 		option = LITERAL;
 		target = literal(result);
@@ -2028,9 +2036,6 @@ short FunctionCompiler::emit(short op, short option, short target, short nargs,
 		} else if (x == SuZero) {
 			op = I_PUSH_VALUE;
 			option = ZERO;
-		} else if (x == SuMinusOne) {
-			op = I_PUSH_VALUE;
-			option = MINUS_ONE;
 		} else if (x == SuEmptyString) {
 			op = I_PUSH_VALUE;
 			option = EMPTY_STRING;
@@ -2265,12 +2270,6 @@ static Cmpltest cmpltests[] = {{"123;", "123; }\n\
 	{"this;", "this; }\n\
 					  0  nop \n\
 					  1  push value this \n\
-					  2  return \n\
-					  3\n"},
-
-	{"-1;", "-1; }\n\
-					  0  nop \n\
-					  1  push value -1 \n\
 					  2  return \n\
 					  3\n"},
 
