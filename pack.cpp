@@ -110,8 +110,7 @@ void packint(char* buf, int n) {
 			buf[6] = x >> 8;
 			buf[7] = x;
 		}
-	} else // negative
-	{
+	} else { // negative
 		n = -n;
 		if (n < 10000) {
 			buf[1] = ~char(e + 1 ^ 0x80); // exponent
@@ -153,8 +152,7 @@ uint64_t unpackcoef(const uint8_t* buf, int sz) {
 			n = 10000 * n + ((buf[6] << 8) | buf[7]);
 		if (sz >= 10)
 			n = 10000 * n + ((buf[8] << 8) | buf[9]);
-	} else // PACK_MINUS
-	{
+	} else { // PACK_MINUS
 		if (sz >= 4)
 			n = (uint16_t) ~((buf[2] << 8) + buf[3]);
 		if (sz >= 6)
