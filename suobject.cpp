@@ -167,7 +167,6 @@ SuObject::Mfn SuObject::method(Value member) {
 		{"Reverse!", &SuObject::Reverse},
 		{"Set_default", &SuObject::Set_default},
 		{"Set_readonly", &SuObject::Set_readonly},
-		{"Slice", &SuObject::Slice},
 		{"Sort", &SuObject::Sort},
 		{"Sort!", &SuObject::Sort},
 		{"Unique!", &SuObject::Unique},
@@ -683,26 +682,6 @@ Value SuObject::unique() {
 	auto end = std::unique(vec.begin(), vec.end());
 	vec.erase(end, vec.end());
 	return this;
-}
-
-Value SuObject::Slice(BuiltinArgs& args) { // deprecated, use [...]
-	args.usage("object.Slice(i, n = <size>)");
-	int i = args.getint("i");
-	int n = args.getint("n", vecsize());
-	args.end();
-	if (i < 0)
-		i += vecsize();
-	int j = n < 0 ? vecsize() + n : i + n;
-	if (i < 0)
-		i = 0;
-	if (j > vecsize())
-		j = vecsize();
-	SuObject* ob = new SuObject();
-	if (i < j) {
-		vec.reserve(j - i);
-		ob->vec.insert(ob->vec.end(), vec.begin() + i, vec.begin() + j);
-	}
-	return ob;
 }
 
 Value SuObject::Find(BuiltinArgs& args) {
