@@ -60,8 +60,6 @@ PORTTEST(lang_range) {
 	return nullptr;
 }
 
-const char* pt_method(const List<gcstring>& args, const List<bool>& str);
-
 PORTTEST(lang_sub) {
 	SuString s(args[0]);
 	int org = atoi(args[1].str());
