@@ -122,15 +122,9 @@ void Callback::put(char*& dst, char*& dst2, const char* lim2, Value x) {
 static List<void*> to_free1;
 static List<void*> to_free2;
 
-BUILTIN(ClearCallback, "(value)") {
-	Value x = TOP();
-	Cb* cb = callbacks.find(x);
-	if (cb)
-		to_free1.add(cb->fn);
-	callbacks.erase(x);
-	return cb ? SuTrue : SuFalse;
-}
+int cbtofree_count = 0;
 
+// called by timer
 void free_callbacks() {
 	// alternate between two to_free lists so there is a guaranteed delay
 	to_free1.swap(to_free2);
@@ -138,7 +132,25 @@ void free_callbacks() {
 		return;
 	for (auto x : to_free1)
 		heap.free(x);
+	cbtofree_count -= to_free1.size();
 	to_free1.clear();
+}
+
+const int TF_LIMIT = 10000;
+
+BUILTIN(ClearCallback, "(value)") {
+	Value x = TOP();
+	Cb* cb = callbacks.find(x);
+	if (cb) {
+		if (to_free1.size() > TF_LIMIT) {
+			free_callbacks();
+			errlog("ClearCallback to_free > limit, timer not working?");
+		}
+		to_free1.add(cb->fn);
+		++cbtofree_count;
+	}
+	callbacks.erase(x);
+	return cb ? SuTrue : SuFalse;
 }
 
 // called by the functions created by make_callback

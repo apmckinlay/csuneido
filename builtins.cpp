@@ -393,6 +393,7 @@ BUILTIN(ResourceCounts, "()") {
 	RC(Sha1);
 	RC(Sha256);
 	RC(socket);
+	RC(cbtofree);
 	return ob;
 }
 
