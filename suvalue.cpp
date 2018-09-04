@@ -34,7 +34,7 @@ size_t SuValue::hashcontrib() const {
 }
 
 int SuValue::integer() const {
-	except("can't convert " << type() << " to number");
+	except("can't convert " << type() << " to integer");
 }
 
 gcstring SuValue::gcstr() const {

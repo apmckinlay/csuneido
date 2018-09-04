@@ -13,7 +13,7 @@ SuBoolean* SuBoolean::f = new SuBoolean(0);
 int SuBoolean::integer() const {
 	if (!val)
 		return 0; // false => 0
-	except("can't convert true to number");
+	except("can't convert true to integer");
 }
 
 SuNumber* SuBoolean::number() {

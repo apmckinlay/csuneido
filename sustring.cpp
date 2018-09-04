@@ -80,7 +80,7 @@ short SuString::symnum() const {
 int SuString::integer() const {
 	if (size() == 0)
 		return 0; // "" => 0
-	except("can't convert String to number");
+	except("can't convert String to integer");
 }
 
 SuNumber* SuString::number() {
