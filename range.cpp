@@ -42,7 +42,7 @@ static SuObject* stringToCharList(gcstring s) {
 	return ob;
 }
 
-PORTTEST(lang_range) {
+PORTTEST(lang_rangeto) {
 	SuString s(args[0]);
 	int from = atoi(args[1].str());
 	int to = atoi(args[2].str());
@@ -60,7 +60,7 @@ PORTTEST(lang_range) {
 	return nullptr;
 }
 
-PORTTEST(lang_sub) {
+PORTTEST(lang_rangelen) {
 	SuString s(args[0]);
 	int org = atoi(args[1].str());
 	int len = args.size() == 3 ? 9999 : atoi(args[2].str());
