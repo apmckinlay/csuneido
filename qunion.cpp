@@ -28,31 +28,27 @@ Indexes Union::indexes() {
 		intersect(source2->keys(), source2->indexes()));
 }
 
-Indexes intersect_prefix(const Indexes keys1, const Indexes& keys2) {
-	Indexes kout;
-	for (Indexes k1 = keys1; !nil(k1); ++k1)
-		for (Indexes k2 = keys2; !nil(k2); ++k2)
-			if (prefix(*k1, *k2))
-				kout.push(*k1);
-			else if (prefix(*k2, *k1))
-				kout.push(*k2);
-	return lispset(kout);
+static bool superset(Fields key, Indexes keys) {
+	for (auto k = keys; !nil(k); ++k)
+		if (subset(key, *k))
+			return true;
+	return false;
 }
 
 Indexes Union::keys() {
-	if (disjoint != "") {
-		Indexes kin = intersect_prefix(source->keys(), source2->keys());
-		if (!nil(kin)) {
-			Indexes kout;
-			for (; !nil(kin); ++kin)
-				if (member(*kin, disjoint))
-					kout.push(*kin);
-				else
-					kout.push(concat(*kin, lisp(disjoint)));
-			return kout;
+	if (disjoint == "")
+		return Indexes(allcols);
+	Indexes keys;
+	for (auto k1 = source->keys(); !nil(k1); ++k1) {
+		for (auto k2 = source2->keys(); !nil(k2); ++k2) {
+			Fields key = set_union(*k1, *k2);
+			if (!key.member(disjoint))
+				key.append(disjoint);
+			if (!superset(key, keys))
+				keys.push(key);
 		}
 	}
-	return Indexes(source->columns());
+	return keys;
 }
 
 const Fields none;
