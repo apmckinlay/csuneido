@@ -360,7 +360,7 @@ Lisp<T1> find(Lisp<T1> list, const T2& t) {
 	return list;
 }
 
-// return a list with all occurences of a value removed
+// return a list with all occurrences of a value removed
 template <class T>
 Lisp<T> erase(Lisp<T> list, const T& t) {
 	Lisp<T> result;
