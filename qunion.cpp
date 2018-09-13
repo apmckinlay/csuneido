@@ -3,6 +3,7 @@
 
 #include "qunion.h"
 #include <algorithm>
+#include "list.h"
 
 Query* Query::make_union(Query* s1, Query* s2) {
 	return new Union(s1, s2);
@@ -28,27 +29,29 @@ Indexes Union::indexes() {
 		intersect(source2->keys(), source2->indexes()));
 }
 
-static bool superset(Fields key, Indexes keys) {
-	for (auto k = keys; !nil(k); ++k)
-		if (subset(key, *k))
-			return true;
-	return false;
-}
-
 Indexes Union::keys() {
 	if (disjoint == "")
 		return Indexes(allcols);
-	Indexes keys;
+	List<Fields> keys;
 	for (auto k1 = source->keys(); !nil(k1); ++k1) {
 		for (auto k2 = source2->keys(); !nil(k2); ++k2) {
 			Fields key = set_union(*k1, *k2);
 			if (!key.member(disjoint))
 				key.append(disjoint);
-			if (!superset(key, keys))
-				keys.push(key);
+			keys.add(key);
 		}
 	}
-	return keys;
+	// exclude any keys that are super-sets of another key
+	Indexes keys2;
+	for (int i = 0; i < keys.size(); ++i) {
+		for (int j = 0; j < keys.size(); ++j) {
+			if (i != j && subset(keys[i], keys[j]))
+				goto outer;
+		}
+		keys2.push(keys[i]);
+	outer:;
+	}
+	return keys2.reverse();
 }
 
 const Fields none;
