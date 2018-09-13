@@ -7,8 +7,8 @@
 
 #define WRITE_LIMIT (1024 * 1024) // 1 mb
 #define LIMIT(n) \
-	except_if(n > WRITE_LIMIT, \
-		"write of " << n << " exceeds limit of " << WRITE_LIMIT)
+	except_if(n < 0 || WRITE_LIMIT < n, \
+		"write of " << n << " not in valid range 0 to " << WRITE_LIMIT)
 
 class gcstring;
 class Value;
