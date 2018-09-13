@@ -1,0 +1,6 @@
+// USAGE: General setup required for the profile guided optimization
+PutFile('profileProgress.txt', '\r\n-------------------------------------------')
+AddFile('profileProgress.txt', '\r\nsetup: Started\r\nUse: Started')
+Use('stdlib')
+AddFile('profileProgress.txt', '\r\nUse: Completed\r\nsetup: Completed')
+Exit()
