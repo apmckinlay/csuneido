@@ -11,7 +11,8 @@ public:
 		con = GetStdHandle(STD_OUTPUT_HANDLE);
 	}
 	void close() {
-		FreeConsole();
+		// FreeConsole();
+		// calling FreeConsole causes exception on exit in debugger
 	}
 	void add(const void* s, int n) {
 		DWORD nw;
