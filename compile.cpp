@@ -1588,7 +1588,7 @@ void FunctionCompiler::expr0(bool newtype) {
 			}
 			break;
 		}
-		break;
+		break; // end of IDENTIFIER
 	case '.':
 		matchnew('.');
 		option = MEM_SELF;
