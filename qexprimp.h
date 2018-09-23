@@ -166,7 +166,7 @@ struct FunCall : public MultiOp {
 	Expr* rename(const Fields& from, const Fields& to) override;
 	Expr* replace(const Fields& from, const Lisp<Expr*>& to) override;
 	Expr* fold() override {
-		return this;
+		return this; // BUG? shouldn't this fold ob and MultiOp ???
 	}
 	Value eval(const Header& hdr, const Row& row) override;
 

@@ -279,6 +279,8 @@ Value BinOp::eval2(Value x, Value y) {
 		gcstring sy = y.gcstr();
 		return rx_match(sx, rx_compile(sy)) ? SuFalse : SuTrue;
 	}
+	case '[':
+		return x.getdata(y);
 	default:
 		error("invalid BinOp type");
 	}
@@ -541,8 +543,12 @@ Value And::eval(const Header& hdr, const Row& row) {
 
 // FunCall ----------------------------------------------------------
 
-Expr* Query::make_call(
-	Expr* ob, const gcstring& fname, const Lisp<Expr*>& args) {
+Expr* Query::make_call(Expr* ob, gcstring fname, const Lisp<Expr*>& args) {
+	if (fname == "")
+		if (auto id = dynamic_cast<Identifier*>(ob)) {
+			fname = id->ident;
+			ob = nullptr;
+		}
 	return new FunCall(ob, fname, args);
 }
 

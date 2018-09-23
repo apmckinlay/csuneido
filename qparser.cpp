@@ -98,6 +98,7 @@ private:
 	Expr* mulop();
 	Expr* unop();
 	Expr* term();
+	Expr* primary();
 	QueryScanner scanner;
 	short token;
 	void match(short t);
@@ -1076,52 +1077,59 @@ Expr* QueryParser::unop() {
 }
 
 Expr* QueryParser::term() {
-	Expr* t = 0;
+	Expr* e = primary();
+	gcstring id;
+	while (true) {
+		if (token == '.') {
+			match('.');
+			id = scanner.value;
+			match(T_IDENTIFIER);
+		} else if (token == '(') {
+			match('(');
+			Lisp<Expr*> exprs;
+			while (token != ')') {
+				exprs.push(expr());
+				if (token != ')')
+					match(',');
+			}
+			match(')');
+			e = Query::make_call(e, id, exprs.reverse());
+		} else if (token == '[') {
+			match('[');
+			e = Query::make_binop('[', e, expr());
+			match(']');
+		} else
+			break;
+	}
+	return e;
+}
+
+Expr* QueryParser::primary() {
+	Expr* e{};
 	switch (token) {
 	case T_NUMBER:
 	case T_STRING:
 	case '#':
 	case '[':
-		t = Query::make_constant(constant());
+		e = Query::make_constant(constant());
 		break;
-	case T_IDENTIFIER: {
+	case T_IDENTIFIER:
 		if (scanner.keyword == K_TRUE || scanner.keyword == K_FALSE)
-			t = Query::make_constant(constant());
+			e = Query::make_constant(constant());
 		else {
-			Expr* ob = NULL;
-			gcstring id(scanner.value);
+			e = Query::make_identifier(scanner.value);
 			match(T_IDENTIFIER);
-			if (token != '(' && token != '.')
-				t = Query::make_identifier(id);
-			else {
-				if (token == '.') {
-					match('.');
-					ob = Query::make_identifier(id);
-					id = scanner.value;
-					match(T_IDENTIFIER);
-				}
-				match('(');
-				Lisp<Expr*> exprs;
-				while (token != ')') {
-					exprs.push(expr());
-					if (token != ')')
-						match(',');
-				}
-				match(')');
-				t = Query::make_call(ob, id, exprs.reverse());
-			}
 		}
 		break;
-	}
 	case '(':
 		match('(');
-		t = expr();
+		e = expr();
 		match(')');
 		break;
 	default:
 		syntax_error();
 	}
-	return t;
+	return e;
 }
 
 // tests ------------------------------------------------------------
