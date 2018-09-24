@@ -9,6 +9,7 @@ class Expr;
 class Extend : public Query1 {
 public:
 	Extend(Query* source, const Fields& f, Lisp<Expr*> e);
+	void fold();
 	void init();
 	void out(Ostream& os) const override;
 	Query* transform() override;

@@ -10,8 +10,15 @@ Query* Query::make_extend(Query* source, const Fields& f, Lisp<Expr*> e) {
 
 Extend::Extend(Query* source, const Fields& f, Lisp<Expr*> e)
 	: Query1(source), flds(f), exprs(e), first(true), fixdone(false) {
+	fold();
 	init();
 	check_dependencies();
+}
+
+void Extend::fold() {
+	for (auto e = exprs; !nil(e); ++e)
+		if (*e)
+			*e = (*e)->fold();
 }
 
 void Extend::check_dependencies() {
