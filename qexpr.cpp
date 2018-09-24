@@ -117,7 +117,10 @@ Expr* Query::make_binop(short op, Expr* expr1, Expr* expr2) {
 }
 
 void BinOp::out(Ostream& os) const {
-	os << "(" << *left << " " << opcodes[op] << " " << *right << ")";
+	if (op == '[')
+		os << *left << "[" << *right << "]";
+	else
+		os << "(" << *left << " " << opcodes[op] << " " << *right << ")";
 }
 
 Expr* BinOp::rename(const Fields& from, const Fields& to) {
@@ -553,7 +556,7 @@ Expr* Query::make_call(Expr* ob, gcstring fname, const Lisp<Expr*>& args) {
 }
 
 void FunCall::out(Ostream& os) const {
-	if (ob != NULL)
+	if (ob)
 		os << ob << ".";
 	os << fname << "(";
 	for (Lisp<Expr*> e(exprs); !nil(e); ++e) {
@@ -566,11 +569,11 @@ void FunCall::out(Ostream& os) const {
 
 Fields FunCall::fields() {
 	Fields f = MultiOp::fields();
-	return (ob == NULL) ? f : set_union(ob->fields(), f);
+	return !ob ? f : set_union(ob->fields(), f);
 }
 
 Expr* FunCall::rename(const Fields& from, const Fields& to) {
-	Expr* new_ob = (ob == NULL) ? ob : ob->rename(from, to);
+	Expr* new_ob = !ob ? ob : ob->rename(from, to);
 	Lisp<Expr*> new_exprs = rename_exprs(from, to);
 	if (new_ob == ob && nil(new_exprs))
 		return this;
@@ -580,7 +583,7 @@ Expr* FunCall::rename(const Fields& from, const Fields& to) {
 }
 
 Expr* FunCall::replace(const Fields& from, const Lisp<Expr*>& to) {
-	Expr* new_ob = (ob == NULL) ? ob : ob->replace(from, to);
+	Expr* new_ob = !ob ? ob : ob->replace(from, to);
 	Lisp<Expr*> new_exprs = replace_exprs(from, to);
 	if (new_ob == ob && nil(new_exprs))
 		return this;
@@ -594,7 +597,7 @@ Value FunCall::eval(const Header& hdr, const Row& row) {
 	for (Lisp<Expr*> e(exprs); !nil(e); ++e)
 		args.push((*e)->eval(hdr, row));
 	Value result;
-	if (ob == NULL)
+	if (!ob)
 		result = call(fname.str(), args.reverse());
 	else
 		result = method_call(ob->eval(hdr, row), fname, args.reverse());
