@@ -151,8 +151,9 @@ Lisp<Fixed> Extend::fixed() const {
 	fixdone = true;
 	Lisp<Expr*> e = exprs;
 	for (Fields f = flds; !nil(f); ++f, ++e)
-		if (Constant* c = dynamic_cast<Constant*>(*e))
-			fix.push(Fixed(*f, c->value));
+		if (*e)
+			if (Value val = (*e)->constant())
+				fix.push(Fixed(*f, val));
 	return fix = combine(fix, source->fixed());
 }
 

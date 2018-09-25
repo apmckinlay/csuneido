@@ -499,7 +499,7 @@ Lisp<Fixed> Select::fixed() const {
 			BinOp* binop = dynamic_cast<BinOp*>(*exprs);
 			if (binop && binop->op == I_IS) {
 				gcstring field = dynamic_cast<Identifier*>(binop->left)->ident;
-				Value value = dynamic_cast<Constant*>(binop->right)->value;
+				Value value = binop->right->constant();
 				fix.push(Fixed(field, value));
 			}
 		}
@@ -512,9 +512,8 @@ Lisp<Cmp> Select::extract_cmps() {
 	Lisp<Expr*> newexprs;
 	Fields fields = theDB()->get_fields(tbl->table);
 	for (Lisp<Expr*> exprs(expr->exprs); !nil(exprs); ++exprs) {
-		if (Constant* c = dynamic_cast<Constant*>(*exprs))
-			if (c->value == SuFalse)
-				conflicting = true;
+		if ((*exprs)->constant() == SuFalse)
+			conflicting = true;
 
 		if ((*exprs)->term(fields)) {
 			if (In* in = dynamic_cast<In*>(*exprs)) {
@@ -538,8 +537,7 @@ Lisp<Cmp> Select::extract_cmps() {
 		if (BinOp* binop = dynamic_cast<BinOp*>(*exprs)) {
 			if ((binop->op == I_MATCH || binop->op == I_MATCHNOT ||
 					binop->op == I_ISNT) &&
-				binop->left->isfield(fields) &&
-				dynamic_cast<Constant*>(binop->right)) {
+				binop->left->isfield(fields) && binop->right->constant()) {
 				gcstring field = dynamic_cast<Identifier*>(binop->left)->ident;
 				ffracs[field] = .5;
 			}

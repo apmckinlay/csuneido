@@ -5,10 +5,14 @@
 #include "qexpr.h"
 
 struct Constant : public Expr {
+private:
 	explicit Constant(Value x);
+
+public:
 	explicit Constant(const gcstring& s)
 		: value(0), packed(s) { // used by Iselect::matches
 	}
+	static Constant* from(Value x);
 	void out(Ostream& os) const override;
 	Fields fields() override {
 		return Fields();
@@ -25,6 +29,9 @@ struct Constant : public Expr {
 	}
 	Expr* fold() override {
 		return this;
+	}
+	Value constant() override {
+		return value;
 	}
 
 	Value value;
@@ -132,7 +139,6 @@ struct MultiOp : public Expr {
 	Fields fields() override;
 	Lisp<Expr*> rename_exprs(const Fields& from, const Fields& to);
 	Lisp<Expr*> replace_exprs(const Fields& from, const Lisp<Expr*>& to);
-	Lisp<Expr*> fold_exprs();
 
 	Lisp<Expr*> exprs;
 };
@@ -165,9 +171,7 @@ struct FunCall : public MultiOp {
 	Fields fields() override;
 	Expr* rename(const Fields& from, const Fields& to) override;
 	Expr* replace(const Fields& from, const Lisp<Expr*>& to) override;
-	Expr* fold() override {
-		return this; // BUG? shouldn't this fold ob and MultiOp ???
-	}
+	Expr* fold() override;
 	Value eval(const Header& hdr, const Row& row) override;
 
 	Expr* ob;

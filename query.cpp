@@ -553,8 +553,8 @@ Querystruct querytests[] = {      //
 \"mouse\"	2\n\
 \"pencil\"	7\n"},
 
-	{"inven where qty + 1 in ()", "inven^(item) WHERE^(item) ((qty + 1) in ())",
-		"item	qty\n"},
+	{"inven where qty + 1 in (100)",
+		"inven^(item) WHERE^(item) ((qty + 1) in (100))", "item	qty\n"},
 
 	{"trans extend x = cost * 1.1", "trans^(item) EXTEND x = (cost * 1.1)",
 		"item	id	cost	date	x\n\

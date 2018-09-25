@@ -14,7 +14,14 @@
 // Constant ---------------------------------------------------------
 
 Expr* Query::make_constant(Value x) {
-	return new Constant(x);
+	return Constant::from(x);
+}
+
+Constant* Constant::from(Value x) {
+	static Constant t(SuTrue);
+	static Constant f(SuFalse);
+
+	return x == SuTrue ? &t : x == SuFalse ? &f : new Constant(x);
 }
 
 Constant::Constant(Value x) : value(x), packed(x.pack()) {
@@ -60,8 +67,8 @@ Value Identifier::eval(const Header& hdr, const Row& row) {
 
 Expr* Query::make_unop(short op, Expr* expr) {
 	if (op == I_SUB)
-		if (Constant* k = dynamic_cast<Constant*>(expr))
-			return new Constant(-k->value);
+		if (Value val = expr->constant())
+			return Constant::from(-val);
 	return new UnOp(op, expr);
 }
 
@@ -80,10 +87,10 @@ Expr* UnOp::replace(const Fields& from, const Lisp<Expr*>& to) {
 }
 
 Expr* UnOp::fold() {
-	Expr* new_expr = expr->fold();
-	if (Constant* k = dynamic_cast<Constant*>(new_expr))
-		return new Constant(eval2(k->value));
-	return new_expr == expr ? this : new UnOp(op, new_expr);
+	expr = expr->fold();
+	if (Value val = expr->constant())
+		return Constant::from(eval2(val));
+	return this;
 }
 
 Value UnOp::eval(const Header& hdr, const Row& row) {
@@ -140,15 +147,12 @@ Expr* BinOp::replace(const Fields& from, const Lisp<Expr*>& to) {
 }
 
 Expr* BinOp::fold() {
-	Expr* new_left = left->fold();
-	Expr* new_right = right->fold();
-	Constant* kx = dynamic_cast<Constant*>(new_left);
-	Constant* ky = dynamic_cast<Constant*>(new_right);
-	if (kx && ky)
-		return new Constant(eval2(kx->value, ky->value));
-	return new_left == left && new_right == right
-		? this
-		: new BinOp(op, new_left, new_right);
+	left = left->fold();
+	right = right->fold();
+	if (Value x = left->constant())
+		if (Value y = right->constant())
+			return Constant::from(eval2(x, y));
+	return this;
 }
 
 bool BinOp::term(const Fields& fields) {
@@ -160,9 +164,9 @@ bool BinOp::is_term(const Fields& fields) {
 	if (!(I_IS == op || op == I_ISNT || op == I_LT || op == I_LTE ||
 			op == I_GT || op == I_GTE))
 		return false;
-	if (left->isfield(fields) && dynamic_cast<Constant*>(right))
+	if (left->isfield(fields) && right->constant())
 		return true;
-	if (dynamic_cast<Constant*>(left) && right->isfield(fields)) {
+	if (left->constant() && right->isfield(fields)) {
 		std::swap(left, right);
 		switch (op) {
 		case I_LT:
@@ -318,14 +322,12 @@ Expr* TriOp::replace(const Fields& from, const Lisp<Expr*>& to) {
 }
 
 Expr* TriOp::fold() {
-	Expr* new_expr = expr->fold();
-	Expr* new_iftrue = iftrue->fold();
-	Expr* new_iffalse = iffalse->fold();
-	if (Constant* kexpr = dynamic_cast<Constant*>(new_expr))
-		return tobool(kexpr->value) ? new_iftrue : new_iffalse;
-	return new_expr == expr && new_iftrue == iftrue && new_iffalse == iffalse
-		? this
-		: new TriOp(new_expr, new_iftrue, new_iffalse);
+	expr = expr->fold();
+	iftrue = iftrue->fold();
+	iffalse = iffalse->fold();
+	if (Value val = expr->constant())
+		return tobool(val) ? iftrue : iffalse;
+	return this;
 }
 
 Value TriOp::eval(const Header& hdr, const Row& row) {
@@ -373,10 +375,12 @@ Expr* In::replace(const Fields& from, const Lisp<Expr*>& to) {
 }
 
 Expr* In::fold() {
-	Expr* new_expr = expr->fold();
-	if (Constant* k = dynamic_cast<Constant*>(new_expr))
-		return new Constant(eval2(k->value));
-	return new_expr == expr ? this : new In(new_expr, values, packed);
+	if (nil(values))
+		return Constant::from(SuFalse);
+	expr = expr->fold();
+	if (Value val = expr->constant())
+		return Constant::from(eval2(val));
+	return this;
 }
 
 Value In::eval(const Header& hdr, const Row& row) {
@@ -434,18 +438,6 @@ Lisp<Expr*> MultiOp::replace_exprs(const Fields& from, const Lisp<Expr*>& to) {
 	return changed ? new_exprs.reverse() : Lisp<Expr*>();
 }
 
-Lisp<Expr*> MultiOp::fold_exprs() {
-	bool changed = false;
-	Lisp<Expr*> new_exprs;
-	for (Lisp<Expr*> e(exprs); !nil(e); ++e) {
-		Expr* new_e = (*e)->fold();
-		new_exprs.push(new_e);
-		if (new_e != *e)
-			changed = true;
-	}
-	return changed ? new_exprs.reverse() : Lisp<Expr*>();
-}
-
 // Or ---------------------------------------------------------------
 
 Expr* Query::make_or(const Lisp<Expr*>& exprs) {
@@ -473,17 +465,20 @@ Expr* Or::replace(const Fields& from, const Lisp<Expr*>& to) {
 }
 
 Expr* Or::fold() {
-	bool allfalse = true;
-	Lisp<Expr*> new_exprs = fold_exprs();
-	for (Lisp<Expr*> e = nil(new_exprs) ? exprs : new_exprs; !nil(e); ++e)
-		if (Constant* k = dynamic_cast<Constant*>(*e)) {
-			if (tobool(k->value))
-				return new Constant(SuTrue);
-		} else
-			allfalse = false;
-	if (allfalse)
-		return new Constant(SuFalse);
-	return nil(new_exprs) ? this : new Or(new_exprs);
+	// this code should be maintained in parallel with And::fold
+	auto new_exprs = Lisp<Expr*>();
+	for (auto e = exprs; !nil(e); ++e) {
+		Expr* expr = (*e)->fold();
+		Value c = expr->constant();
+		if (c == SuTrue)
+			return Constant::from(SuTrue);
+		if (c != SuFalse)
+			new_exprs.push(expr);
+	}
+	if (nil(new_exprs))
+		return Constant::from(SuFalse);
+	exprs = new_exprs.reverse();
+	return this;
 }
 
 Value Or::eval(const Header& hdr, const Row& row) {
@@ -524,17 +519,20 @@ Expr* And::replace(const Fields& from, const Lisp<Expr*>& to) {
 }
 
 Expr* And::fold() {
-	Lisp<Expr*> new_exprs = fold_exprs();
-	bool alltrue = true;
-	for (Lisp<Expr*> e = nil(new_exprs) ? exprs : new_exprs; !nil(e); ++e)
-		if (Constant* k = dynamic_cast<Constant*>(*e)) {
-			if (!tobool(k->value))
-				return new Constant(SuFalse);
-		} else
-			alltrue = false;
-	if (alltrue)
-		return new Constant(SuTrue);
-	return nil(new_exprs) ? this : new And(new_exprs);
+	// this code should be maintained in parallel with Or::fold
+	auto new_exprs = Lisp<Expr*>();
+	for (auto e = exprs; !nil(e); ++e) {
+		Expr* expr = (*e)->fold();
+		Value c = expr->constant();
+		if (c == SuFalse)
+			return Constant::from(SuFalse);
+		if (c != SuTrue)
+			new_exprs.push(expr);
+	}
+	if (nil(new_exprs))
+		return Constant::from(SuTrue);
+	exprs = new_exprs.reverse();
+	return this;
 }
 
 Value And::eval(const Header& hdr, const Row& row) {
@@ -562,7 +560,7 @@ void FunCall::out(Ostream& os) const {
 	for (Lisp<Expr*> e(exprs); !nil(e); ++e) {
 		os << **e;
 		if (!nil(cdr(e)))
-			os << ", ";
+			os << ",";
 	}
 	os << ")";
 }
@@ -590,6 +588,12 @@ Expr* FunCall::replace(const Fields& from, const Lisp<Expr*>& to) {
 	if (nil(new_exprs))
 		new_exprs = exprs;
 	return new FunCall(new_ob, fname, new_exprs);
+}
+
+Expr* FunCall::fold() {
+	for (auto e = exprs; !nil(e); ++e)
+		*e = (*e)->fold();
+	return this;
 }
 
 Value FunCall::eval(const Header& hdr, const Row& row) {

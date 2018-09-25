@@ -33,6 +33,9 @@ public:
 	virtual Expr* rename(const Fields& from, const Fields& to) = 0;
 	virtual Expr* replace(const Fields& from, const Lisp<Expr*>& to) = 0;
 	virtual Expr* fold() = 0;
+	virtual Value constant() { // override in Constant
+		return {};
+	}
 };
 
 inline Ostream& operator<<(Ostream& os, const Expr& x) {
