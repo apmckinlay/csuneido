@@ -41,6 +41,7 @@ hunspell
 # visual studio
 Release/
 Debug/
+Profile/
 .vs/
 
 # /installer/

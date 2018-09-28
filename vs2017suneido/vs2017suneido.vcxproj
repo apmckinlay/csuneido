@@ -5,12 +5,8 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="GPOLink|Win32">
-      <Configuration>GPOLink</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="GPOProfile|Win32">
-      <Configuration>GPOProfile</Configuration>
+    <ProjectConfiguration Include="Profile|Win32">
+      <Configuration>Profile</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
@@ -38,14 +34,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GPOLink|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>NotSet</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GPOProfile|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
@@ -61,10 +50,7 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='GPOLink|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='GPOProfile|Win32'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -80,13 +66,7 @@
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GPOLink|Win32'">
-    <GenerateManifest>false</GenerateManifest>
-    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
-    <EnableCppCoreCheck>true</EnableCppCoreCheck>
-    <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GPOProfile|Win32'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
     <GenerateManifest>false</GenerateManifest>
     <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
@@ -103,6 +83,7 @@
       <AdditionalOptions>/Zc:throwingNew /Zc:strictStrings %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4244;4018;4267;4100;4310;4389;4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -127,6 +108,9 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4244;4018;4267;4100;4310;4389;4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <BufferSecurityCheck>true</BufferSecurityCheck>
+      <OmitFramePointers>true</OmitFramePointers>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -134,6 +118,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comctl32.lib;imm32.lib;wininet.lib;urlmon.lib;ws2_32.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalOptions>/USEPROFILE $(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PreBuildEvent>
       <Command>touch ../build.cpp</Command>
@@ -142,10 +128,13 @@
       <Message>update Built</Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>cd "$(TargetDir)\..\.." &amp;&amp; "$(TargetDir)$(TargetFileName)" -t &amp;&amp; copy /y "$(TargetDir)$(TargetFileName)" $(MSBuildProjectDirectory)\..\suneido.exe</Command>
+      <Command>cd "$(TargetDir)\..\.." &amp;&amp; "$(TargetDir)$(TargetFileName)" -u -t &amp;&amp; copy /y "$(TargetDir)$(TargetFileName)" $(MSBuildProjectDirectory)\..\suneido.exe</Command>
     </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>copy Profile\*.pg? $(ConfigurationName)</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='GPOLink|Win32'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
@@ -154,11 +143,14 @@
       <PreprocessorDefinitions>_SCL_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;_USE_32BIT_TIME_T;COMPILER=vs2017;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <SDLCheck>true</SDLCheck>
       <AdditionalOptions>/Zc:throwingNew /Zc:strictStrings %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4244;4018;4267;4100;4310;4389;4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -166,41 +158,9 @@
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comctl32.lib;imm32.lib;wininet.lib;urlmon.lib;ws2_32.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions>/USEPROFILE:"PGD=$(SolutionDir)GPOProfile\vs2017suneido.pgd" %(AdditionalOptions)</AdditionalOptions>
-    </Link>
-    <PreBuildEvent>
-      <Command>touch ../build.cpp</Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
-      <Message>update Built</Message>
-    </PreBuildEvent>
-    <PostBuildEvent>
-      <Command>cd "$(TargetDir)\..\.." &amp;&amp; "$(TargetDir)$(TargetFileName)" -t &amp;&amp; copy /y "$(TargetDir)$(TargetFileName)" $(MSBuildProjectDirectory)\..\suneido.exe</Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='GPOProfile|Win32'">
-    <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_SCL_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;_USE_32BIT_TIME_T;COMPILER=vs2017;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalOptions>/Zc:throwingNew /Zc:strictStrings %(AdditionalOptions)</AdditionalOptions>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <DisableSpecificWarnings>4244;4018;4267;4100;4310;4389;4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <BufferSecurityCheck>true</BufferSecurityCheck>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comctl32.lib;imm32.lib;wininet.lib;urlmon.lib;ws2_32.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <LinkTimeCodeGeneration>PGInstrument</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <AdditionalOptions>/GENPROFILE %(AdditionalOptions)</AdditionalOptions>
+      <ProfileGuidedDatabase />
     </Link>
     <PreBuildEvent>
       <Command>touch ../build.cpp</Command>
