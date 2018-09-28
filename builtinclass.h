@@ -115,8 +115,6 @@ public:
 		static Value Members("Members");
 		if (member == CALL)
 			return callclass(args);
-		else if (member == INSTANTIATE)
-			return instantiate(args);
 		else if (member == PARAMS && params)
 			return new SuString(params);
 		else if (member == Members) {
