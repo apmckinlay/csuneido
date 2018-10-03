@@ -5,7 +5,7 @@
 
 const char* opcodes[256] = { //
 	"nop", "return", "return nil", "pop", "super", "throw", "<", "<=", ">",
-	">=", "!", "~", "each", "dup", "block", "push int",
+	">=", "not", "~", "each", "dup", "block", "push int",
 
 	"push literal", "push literal", "push literal", "push literal",
 	"push literal", "push literal", "push literal", "push literal",
@@ -76,5 +76,5 @@ const char* opcodes[256] = { //
 	"^= mem this", "= mem this", "++? mem this", "--? mem this", "?++ mem this",
 	"?-- mem this",
 
-	"+", "-", "$", "*", "/", "%", "<<", ">>", "&", "|", "^", "==", "!=", "=~",
+	"+", "-", "$", "*", "/", "%", "<<", ">>", "&", "|", "^", "is", "isnt", "=~",
 	"!~", "-?"};

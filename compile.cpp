@@ -2573,19 +2573,19 @@ static Cmpltest cmpltests[] = {{"123;", "123; }\n\
 					  4  return \n\
 					  5\n"},
 
-	{"a == b;", "a == b; }\n\
+	{"a is b;", "a is b; }\n\
 					  0  nop \n\
 					  1  push auto a\n\
 					  2  push auto b\n\
-					  3  == \n\
+					  3  is \n\
 					  4  return \n\
 					  5\n"},
 
-	{"a != b;", "a != b; }\n\
+	{"a isnt b;", "a isnt b; }\n\
 					  0  nop \n\
 					  1  push auto a\n\
 					  2  push auto b\n\
-					  3  != \n\
+					  3  isnt \n\
 					  4  return \n\
 					  5\n"},
 
@@ -2637,10 +2637,10 @@ static Cmpltest cmpltests[] = {{"123;", "123; }\n\
 					  4  return \n\
 					  5\n"},
 
-	{"! a;", "! a; }\n\
+	{"not a;", "not a; }\n\
 					  0  nop \n\
 					  1  push auto a\n\
-					  2  ! \n\
+					  2  not \n\
 					  3  return \n\
 					  4\n"},
 
@@ -2686,7 +2686,7 @@ static Cmpltest cmpltests[] = {{"123;", "123; }\n\
 					 26  return \n\
 					 27\n"},
 
-	{"a || b || c;", "a || b || c; }\n\
+	{"a or b or c;", "a or b or c; }\n\
 					  0  nop \n\
 					  1  push auto a\n\
 					  2  jump else pop yes 11\n\
@@ -2697,7 +2697,7 @@ static Cmpltest cmpltests[] = {{"123;", "123; }\n\
 					 11  return \n\
 					 12\n"},
 
-	{"a && b && c;", "a && b && c; }\n\
+	{"a and b and c;", "a and b and c; }\n\
 					  0  nop \n\
 					  1  push auto a\n\
 					  2  jump else pop no 11\n\
@@ -3196,7 +3196,7 @@ F(); }\n\
 					  5  dup \n\
 					  6  call mem Next 0\n\
 					  8  = auto a\n\
-					  9  != \n\
+					  9  isnt \n\
 					 10  jump pop no 20\n\
 F(); }\n\
 					 13  nop \n\

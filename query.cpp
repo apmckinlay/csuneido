@@ -544,7 +544,7 @@ Querystruct querytests[] = {      //
 \"pencil\"	7\n"},
 	/*
 		{ "trans where \"mousee\" = item $ id", "trans^(date,item,id)
-	WHERE^(date,item,id) (\"mousee\" == (item $ id))",
+	WHERE^(date,item,id) (\"mousee\" is (item $ id))",
 	"item	id	cost	date\n\
 	\"mouse\"	\"e\"	200	960204\n" },
 	*/
@@ -592,7 +592,7 @@ Querystruct querytests[] = {      //
 \"mouse\"	2	-2\n"},
 
 	{"inven extend x = (qty = 2 ? 222 : qty)",
-		"inven^(item) EXTEND x = ((qty == 2) ? 222 : qty)", "item	qty	x\n\
+		"inven^(item) EXTEND x = ((qty is 2) ? 222 : qty)", "item	qty	x\n\
 \"disk\"	5	5\n\
 \"mouse\"	2	222\n\
 \"pencil\"	7	7\n"},
@@ -626,7 +626,7 @@ Querystruct querytests[] = {      //
 \"pencil\"	7	7\n"},
 
 	{"(inven leftjoin trans) where date = 960204",
-		"(inven^(item)) LEFTJOIN 1:n on (item) (trans^(item)) WHERE (date == "
+		"(inven^(item)) LEFTJOIN 1:n on (item) (trans^(item)) WHERE (date is "
 		"960204)",
 		"item	qty	id	cost	date\n\
 \"mouse\"	2	\"e\"	200	960204\n"},
@@ -719,21 +719,21 @@ Querystruct querytests2[] = {
 
 	// 4
 	{"(((task join co) where signed = 990103) join cus)",
-		"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum)) WHERE (signed == "
+		"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum)) WHERE (signed is "
 		"990103)) JOIN n:1 on (cnum) (cus^(cnum))",
 		"tnum	signed	cnum	abbrev	name\n\
 104	990103	1	\"a\"	\"axon\"\n"},
 
 	// 5
 	{"((cus where abbrev = 'a') join ((task join co) where signed = 990103))",
-		"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum)) WHERE (signed == "
+		"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum)) WHERE (signed is "
 		"990103)) JOIN n:1 on (cnum) (cus^(cnum) WHERE^(cnum))",
 		"tnum	signed	cnum	abbrev	name\n\
 104	990103	1	\"a\"	\"axon\"\n"},
 
 	// 6
 	{"(((task join co) where signed = 990103) join (cus where abbrev = 'a'))",
-		"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum)) WHERE (signed == "
+		"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum)) WHERE (signed is "
 		"990103)) JOIN n:1 on (cnum) (cus^(cnum) WHERE^(cnum))",
 		"tnum	signed	cnum	abbrev	name\n\
 104	990103	1	\"a\"	\"axon\"\n"},
@@ -741,7 +741,7 @@ Querystruct querytests2[] = {
 	// 7
 	{"(((task join co) where signed = 990103) join (cus where abbrev = 'a' "
 	 "project cnum,abbrev,name))",
-		"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum)) WHERE (signed == "
+		"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum)) WHERE (signed is "
 		"990103)) JOIN n:1 on (cnum) (cus^(cnum) WHERE^(cnum) PROJECT-COPY "
 		"(cnum,abbrev,name))",
 		"tnum	signed	cnum	abbrev	name\n\
@@ -750,7 +750,7 @@ Querystruct querytests2[] = {
 	// 8
 	{"(((task join co) where signed = 990103 rename tnum to tnum_new) join "
 	 "(cus where abbrev = 'a' project cnum,abbrev,name))",
-		"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum)) WHERE (signed == "
+		"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum)) WHERE (signed is "
 		"990103) RENAME tnum to tnum_new) JOIN n:1 on (cnum) (cus^(cnum) "
 		"WHERE^(cnum) PROJECT-COPY (cnum,abbrev,name))",
 		"tnum_new	signed	cnum	abbrev	name\n\
@@ -759,7 +759,7 @@ Querystruct querytests2[] = {
 	// 9
 	{"((cus where abbrev = 'a' project cnum,abbrev,name) join ((task join co) "
 	 "where signed = 990103 rename tnum to tnum_new))",
-		"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum)) WHERE (signed == "
+		"((co^(tnum)) JOIN 1:1 on (tnum) (task^(tnum)) WHERE (signed is "
 		"990103) RENAME tnum to tnum_new) JOIN n:1 on (cnum) (cus^(cnum) "
 		"WHERE^(cnum) PROJECT-COPY (cnum,abbrev,name))",
 		"tnum_new	signed	cnum	abbrev	name\n\

@@ -1212,22 +1212,22 @@ static Qptest qptests[] = {{"inven", "inven"},
 		"(trans) JOIN n:1 on (id) (customer) WHERE id"},
 
 	{"hist union trans where date = 1",
-		"(hist) UNION-LOOKUP (trans)  WHERE (date == 1)"},
+		"(hist) UNION-LOOKUP (trans)  WHERE (date is 1)"},
 	{"hist join inven where date = 1",
-		"(hist) JOIN n:1 on (item) (inven) WHERE (date == 1)"},
+		"(hist) JOIN n:1 on (item) (inven) WHERE (date is 1)"},
 	{"hist join inven where qty = 1",
-		"(hist) JOIN n:1 on (item) (inven) WHERE (qty == 1)"},
+		"(hist) JOIN n:1 on (item) (inven) WHERE (qty is 1)"},
 	{"hist join inven where date < qty",
 		"(hist) JOIN n:1 on (item) (inven) WHERE (date < qty)"},
 	{"hist join inven where date = 1 and qty = 2 and date < qty",
-		"(hist) JOIN n:1 on (item) (inven) WHERE ((date == 1) and (qty == 2) "
+		"(hist) JOIN n:1 on (item) (inven) WHERE ((date is 1) and (qty is 2) "
 		"and (date < "
 		"qty))"},
 
 	{"inven where item = 1 where qty = 2",
-		"inven WHERE (item == 1) WHERE (qty == 2)"},
+		"inven WHERE (item is 1) WHERE (qty is 2)"},
 	{"inven where item = 1 join trans where qty = 2",
-		"(inven WHERE (item == 1)) JOIN 1:n on (item) (trans) WHERE (qty == "
+		"(inven WHERE (item is 1)) JOIN 1:n on (item) (trans) WHERE (qty is "
 		"2)"},
 
 	{"hist project id,date", "hist PROJECT (id,date)"},
@@ -1261,7 +1261,7 @@ static Qptest qptests[] = {{"inven", "inven"},
 	{"trans intersect hist", "(trans) INTERSECT (hist) "},
 	{"trans intersect hist sort date", "(trans) INTERSECT (hist)  SORT (date)"},
 	{"trans union (hist where date = 1)",
-		"(trans) UNION-LOOKUP (hist WHERE (date == 1)) "}};
+		"(trans) UNION-LOOKUP (hist WHERE (date is 1)) "}};
 
 static void adm(const char* s) {
 	database_admin(s);
