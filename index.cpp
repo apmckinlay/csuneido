@@ -85,7 +85,7 @@ bool Index::iterator::visible() {
 	return ix->db->visible(tran, iter->adr());
 }
 
-static bool eq(const Record& r1, const Record& r2) {
+static bool eq(Record r1, Record r2) {
 	const int n = r1.size() - 1;
 	if (n != r2.size() - 1)
 		return false;
@@ -161,7 +161,7 @@ void Index::iterator::operator--() {
 	}
 }
 
-static bool sameKey(const Record& from, const Record& to) {
+static bool sameKey(Record from, Record to) {
 	extern gcstring fieldmax;
 	if (from.size() != to.size() - 1)
 		return false;
@@ -239,12 +239,12 @@ static Record key(const char* s, const char* t) {
 	r.addval(t);
 	return r;
 }
-static Record key1(const Record& r) {
+static Record key1(Record r) {
 	Record k;
 	k.addraw(r.getraw(0));
 	return k;
 }
-static Record key2(const Record& r) {
+static Record key2(Record r) {
 	Record k;
 	k.addraw(r.getraw(0));
 	k.addraw(r.getraw(1));

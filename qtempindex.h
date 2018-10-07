@@ -18,11 +18,10 @@ struct TempIndex1 : public Query1 {
 	}
 	// iteration
 	Header header() override;
-	void select(
-		const Fields& index, const Record& from, const Record& to) override;
+	void select(const Fields& index, Record from, Record to) override;
 	void rewind() override;
 	Row get(Dir dir) override;
-	bool output(const Record& r) override {
+	bool output(Record r) override {
 		return source->output(r);
 	}
 	void close(Query* q) override;
@@ -55,11 +54,10 @@ struct TempIndexN : public Query1 {
 	Header header() override {
 		return source->header();
 	}
-	void select(
-		const Fields& index, const Record& from, const Record& to) override;
+	void select(const Fields& index, Record from, Record to) override;
 	void rewind() override;
 	Row get(Dir dir) override;
-	bool output(const Record& r) override {
+	bool output(Record r) override {
 		return source->output(r);
 	}
 	void close(Query* q) override;

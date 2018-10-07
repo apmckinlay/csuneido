@@ -215,7 +215,7 @@ Lisp<gcstring> libgetall(const char* name) {
 		Index::iterator iter = index->begin(t, key);
 		if (!iter.eof()) {
 			Record rec(iter.data());
-			srcs.push(rec.getraw(text_fld).to_heap());
+			srcs.push(rec.getraw(text_fld));
 			srcs.push(*libs);
 		}
 	}

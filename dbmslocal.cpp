@@ -31,7 +31,7 @@ public:
 	void rewind() override;
 	void close() override;
 	const char* explain() override;
-	bool output(const Record& rec) override;
+	bool output(Record rec) override;
 
 private:
 	Query* q;
@@ -84,7 +84,7 @@ const char* DbmsQueryLocal::explain() {
 	return q->explain();
 }
 
-bool DbmsQueryLocal::output(const Record& rec) {
+bool DbmsQueryLocal::output(Record rec) {
 	return q->output(rec);
 }
 

@@ -157,7 +157,7 @@ Lisp<Fixed> Extend::fixed() const {
 	return fix = combine(fix, source->fixed());
 }
 
-bool Extend::output(const Record& r) {
+bool Extend::output(Record r) {
 	return source->output(r);
 }
 

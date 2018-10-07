@@ -350,8 +350,7 @@ Row Project::get(Dir dir) {
 	}
 }
 
-void Project::select(
-	const Fields& index, const Record& from, const Record& to) {
+void Project::select(const Fields& index, Record from, Record to) {
 	source->select(index, from, to);
 	if (strategy == LOOKUP && (sel.org != from || sel.end != to)) {
 		if (idx)
@@ -369,7 +368,7 @@ void Project::rewind() {
 	rewound = true;
 }
 
-bool Project::output(const Record& r) {
+bool Project::output(Record r) {
 	ckmodify("output");
 	return source->output(r);
 }

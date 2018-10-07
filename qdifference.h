@@ -34,8 +34,7 @@ public:
 	Header header() override {
 		return source->header();
 	}
-	void select(
-		const Fields& index, const Record& from, const Record& to) override {
+	void select(const Fields& index, Record from, Record to) override {
 		source->select(index, from, to);
 	}
 	void rewind() override {

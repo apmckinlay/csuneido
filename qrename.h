@@ -22,8 +22,7 @@ public:
 	}
 	// iteration
 	Header header() override;
-	void select(
-		const Fields& index, const Record& f, const Record& t) override {
+	void select(const Fields& index, Record f, Record t) override {
 		source->select(rename_fields(index, to, from), f, t);
 	}
 	void rewind() override {
@@ -33,7 +32,7 @@ public:
 		return source->get(dir);
 	}
 
-	bool output(const Record& r) override {
+	bool output(Record r) override {
 		return source->output(r);
 	}
 	// private:

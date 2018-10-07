@@ -146,8 +146,7 @@ public:
 	Header header() override {
 		return source->header();
 	}
-	void select(
-		const Fields& index, const Record& from, const Record& to) override;
+	void select(const Fields& index, Record from, Record to) override;
 	void rewind() override;
 	Row get(Dir dir) override;
 
@@ -156,7 +155,7 @@ public:
 		Query1::set_transaction(t);
 	}
 
-	bool output(const Record& r) override {
+	bool output(Record r) override {
 		return source->output(r);
 	}
 
@@ -215,15 +214,14 @@ protected: // not private so tests can subclass and override
 	double datafrac(Indexes indexes);
 
 	bool matches(Row& row);
-	bool matches(Fields idx, const Record& key);
+	bool matches(Fields idx, Record key);
 	Iselects iselects(const Fields& idx);
 	void iterate_setup();
 	static Lisp<Keyrange> selects(
 		const Fields& index, const Iselects& iselects);
 	bool distribute(Query2* q2);
 	Expr* project(Query* q);
-	void convert_select(
-		const Fields& index, const Record& from, const Record& to);
+	void convert_select(const Fields& index, Record from, Record to);
 
 	mutable bool fixdone = false;
 	mutable Lisp<Fixed> fix;
@@ -786,7 +784,7 @@ double Select::datafrac(Indexes indexes) {
 
 //===================================================================
 
-void Select::select(const Fields& index, const Record& from, const Record& to) {
+void Select::select(const Fields& index, Record from, Record to) {
 	LOG("select " << index << " " << from << " => " << to);
 	// assert_eq(index, required_index); // not sure why this fails
 	if (conflicting) {
@@ -810,8 +808,7 @@ static Value getfixed(Lisp<Fixed> f, const gcstring& field) {
 	return Value();
 }
 
-void Select::convert_select(
-	const Fields& index, const Record& from, const Record& to) {
+void Select::convert_select(const Fields& index, Record from, Record to) {
 	// TODO: could optimize for case where from == to
 	if (from == keymin && to == keymax) {
 		sel.org = keymin;
@@ -1022,7 +1019,7 @@ Lisp<Keyrange> Select::selects(const Fields& index, const Iselects& iselects) {
 	return lisp(Keyrange(org, end));
 }
 
-bool Select::matches(Fields idx, const Record& key) {
+bool Select::matches(Fields idx, Record key) {
 	for (int i = 0; !nil(idx) && !nil(key); ++idx, ++i)
 		if (!isels[*idx].matches(key.getraw(i)))
 			return false;

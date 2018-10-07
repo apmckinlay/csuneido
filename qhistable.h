@@ -20,8 +20,7 @@ public:
 	int columnsize() override;
 	// iteration
 	Header header() override;
-	void select(
-		const Fields& index, const Record& from, const Record& to) override;
+	void select(const Fields& index, Record from, Record to) override;
 	void rewind() override;
 	Row get(Dir dir) override;
 	void set_transaction(int t) override;

@@ -93,7 +93,6 @@ Mmfile* open_mmf(const char* file) {
 	Mmfile* mmf = new Mmfile(file);
 	// old file is set to smaller max chunks mapped
 	// because it is read in a single pass
-	mmf->set_max_chunks_mapped(64);
 	return mmf;
 }
 
@@ -228,7 +227,7 @@ void DbRecoverImp::docheck(bool (*progress)(int)) {
 }
 
 // workaround for old packint bug (e.g. 1230000)
-static bool sloweq(const Record& r1, const Record& r2) {
+static bool sloweq(Record r1, Record r2) {
 	int n = r1.size();
 	if (n != r2.size())
 		return false;
@@ -383,7 +382,7 @@ bool DbRecoverImp::rebuild_copy(char* newfile, bool (*progress)(int)) {
 					int tn = r.getint(I_TBLNUM);
 					if (Mmoffset* po = renamed_tbls.find(tn)) {
 						gcstring oldname = Record(db.mmf, *po).getstr(T_TABLE);
-						gcstring newname = r.getstr(T_TABLE).to_heap();
+						gcstring newname = r.getstr(T_TABLE);
 						db.unalloc(iter.size());
 						tr.pop();
 						db.rename_table(oldname, newname);
@@ -459,7 +458,7 @@ static bool schema(
 			break;
 		if (tblnum > max_tblnum)
 			max_tblnum = tblnum;
-		table = r.getstr(T_TABLE).to_heap();
+		table = r.getstr(T_TABLE);
 		tblnames[tblnum] = table;
 		try {
 			db.add_index_entries(schema_tran, db.get_table(TN_TABLES), r);

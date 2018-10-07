@@ -74,7 +74,6 @@ public:
 	friend bool equal(const Header& hdr, const Row& r1, const Row& r2);
 	friend Row operator+(const Row& r1, const Row& r2);
 	friend Ostream& operator<<(Ostream& os, const Row& row);
-	void to_heap();
 	Record to_record(const Header& hdr) const;
 
 	class iterator { // used by select

@@ -60,8 +60,6 @@ void compact() {
 DbCopy::DbCopy(char* dest)
 	: thedb(*theDB()), newdb(dest, DBCREATE),
 	  tran(thedb.transaction(READONLY)) {
-	thedb.mmf->set_max_chunks_mapped(MM_MAX_CHUNKS_MAPPED / 2);
-	newdb.mmf->set_max_chunks_mapped(MM_MAX_CHUNKS_MAPPED / 2);
 }
 
 DbCopy::~DbCopy() {

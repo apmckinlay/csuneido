@@ -128,7 +128,7 @@
       <Message>update Built</Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>cd "$(TargetDir)\..\.." &amp;&amp; "$(TargetDir)$(TargetFileName)" -u -t &amp;&amp; copy /y "$(TargetDir)$(TargetFileName)" $(MSBuildProjectDirectory)\..\suneido.exe</Command>
+      <Command>cd "$(TargetDir)\..\.." &amp;&amp; "$(TargetDir)$(TargetFileName)" -t &amp;&amp; copy /y "$(TargetDir)$(TargetFileName)" $(MSBuildProjectDirectory)\..\suneido.exe</Command>
     </PostBuildEvent>
     <PreLinkEvent>
       <Command>copy Profile\*.pg? $(ConfigurationName)</Command>

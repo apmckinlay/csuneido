@@ -50,7 +50,7 @@ Ostream& operator<<(Ostream& os, const Query& node) {
 Query::Query() {
 }
 
-bool Query::output(const Record&) {
+bool Query::output(Record) {
 	except("output is not allowed on this query:\n" << this);
 }
 
@@ -155,7 +155,7 @@ double Query::optimize1(const Fields& index, const Fields& needs,
 	return cost;
 }
 
-void Query::select(const Fields& index, const Record& key) {
+void Query::select(const Fields& index, Record key) {
 	Record key_to = key.dup();
 	key_to.addmax();
 	select(index, key, key_to);

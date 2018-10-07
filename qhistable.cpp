@@ -57,8 +57,7 @@ Header HistoryTable::header() {
 		columns());
 }
 
-void HistoryTable::select(
-	const Fields& index, const Record& from, const Record& to) {
+void HistoryTable::select(const Fields& index, Record from, Record to) {
 	rewound = true;
 }
 

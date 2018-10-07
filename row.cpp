@@ -179,12 +179,6 @@ SuRecord* Row::get_surec(const Header& hdr) const {
 	return surec;
 }
 
-void Row::to_heap() {
-	data = data.copy();
-	for (Records d = data; !nil(d); ++d)
-		*d = d->to_heap();
-}
-
 //--------------------------------------------------------------------------------
 
 static int deletedSize(const Row& row, const Header& hdr) {
@@ -203,8 +197,7 @@ static int deletedSize(const Row& row, const Header& hdr) {
 const int SMALL_RECORD = 1024;
 const int HUGE_RECORD = 256 * 1024;
 
-static bool shouldRebuild(
-	const Row& row, const Header& hdr, const Record& rec) {
+static bool shouldRebuild(const Row& row, const Header& hdr, Record rec) {
 	if (row.data.size() > 2)
 		return true; // must rebuild
 	if (rec.cursize() < SMALL_RECORD)
@@ -212,7 +205,7 @@ static bool shouldRebuild(
 	return deletedSize(row, hdr) > rec.cursize() / 3;
 }
 
-static bool shouldCompact(const Record& rec) {
+static bool shouldCompact(Record rec) {
 	if (rec.cursize() < SMALL_RECORD)
 		return false;
 	if (rec.cursize() > HUGE_RECORD)
@@ -326,22 +319,6 @@ TEST(row_equal) {
 	verify(equal(hdr, y, y));
 	verify(!equal(hdr, y, x));
 	verify(!equal(hdr, x, y));
-}
-
-TEST(row_to_heap) {
-	Records d;
-	Record r1;
-	r1.addval("one");
-	r1.addval("two");
-	d.push(r1);
-	Record r2;
-	r2.addval("three");
-	r2.addval("four");
-	d.push(r2);
-	Row y(d);
-	Row z(y);
-	z.to_heap();
-	assert_eq(y, z);
 }
 
 TEST(row_timestamp) {

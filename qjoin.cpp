@@ -245,7 +245,7 @@ bool Join::should_output(const Row& row) {
 	return row != Eof;
 }
 
-void Join::select(const Fields& index, const Record& from, const Record& to) {
+void Join::select(const Fields& index, Record from, Record to) {
 	first = true;
 	source->select(index, from, to);
 }

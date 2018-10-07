@@ -223,16 +223,6 @@ Ostream& operator<<(Ostream& os, const gcstring& s) {
 	return os;
 }
 
-gcstring gcstring::to_heap() {
-	if (!gc_inheap(ptr())) {
-		char* q = salloc(n);
-		memcpy((void*) q, (void*) p, n);
-		q[n] = 0;
-		p = q;
-	}
-	return *this;
-}
-
 gcstring gcstring::capitalize() const {
 	if (size() == 0 || isupper(*ptr()))
 		return *this;

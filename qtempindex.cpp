@@ -60,8 +60,7 @@ void TempIndex1::iterate_setup(Dir dir) {
 	iter = (dir == NEXT ? index->first() : index->last());
 }
 
-void TempIndex1::select(
-	const Fields& selindex, const Record& from, const Record& to) {
+void TempIndex1::select(const Fields& selindex, Record from, Record to) {
 	verify(prefix(order, selindex));
 	sel.org = from;
 	sel.end = to;
@@ -157,8 +156,7 @@ void TempIndexN::iterate_setup(Dir dir) {
 	iter = (dir == NEXT ? index->first() : index->last());
 }
 
-void TempIndexN::select(
-	const Fields& selindex, const Record& from, const Record& to) {
+void TempIndexN::select(const Fields& selindex, Record from, Record to) {
 	verify(prefix(order, selindex));
 	sel.org = from;
 	sel.end = to;

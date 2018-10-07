@@ -67,7 +67,7 @@ private:
 	Header header(int qn, CorQ cq);
 	Lisp<Lisp<gcstring>> keys(int qn, CorQ cq);
 	Lisp<gcstring> order(int qn, CorQ cq);
-	bool output(int qn, const Record& rec);
+	bool output(int qn, Record rec);
 	void rewind(int qn, CorQ cq);
 
 	void send(Command cmd);
@@ -76,8 +76,8 @@ private:
 	void send(Command cmd, int n, int m);
 	void send(Command cmd, int tn, int qn, Dir dir);
 	void send(Command cmd, Dir dir, bool one, int tn, const char* query);
-	void send(Command cmd, int qn, const Record& rec);
-	void send(Command cmd, int tn, int recadr, const Record& rec);
+	void send(Command cmd, int qn, Record rec);
+	void send(Command cmd, int tn, int recadr, Record rec);
 	void send(Command cmd, int n, CorQ cq);
 	void send(Command cmd, int n, const gcstring& s);
 	void send(Command cmd, const char* s);
@@ -120,7 +120,7 @@ public:
 	Lisp<gcstring> order() override {
 		return dr.order(qn, c_or_q());
 	}
-	bool output(const Record& rec) override {
+	bool output(Record rec) override {
 		return dr.output(qn, rec);
 	}
 	void rewind() override {
@@ -365,7 +365,7 @@ Lisp<gcstring> DbmsRemote::order(int qn, CorQ cq) { // DbmsQuery
 	return io.getStrings();
 }
 
-bool DbmsRemote::output(int qn, const Record& rec) { // DbmsQuery
+bool DbmsRemote::output(int qn, Record rec) { // DbmsQuery
 	send(Command::OUTPUT, qn, rec);
 	return true;
 }
@@ -478,13 +478,13 @@ void DbmsRemote::send(
 	doRequest();
 }
 
-void DbmsRemote::send(Command cmd, int qn, const Record& rec) {
+void DbmsRemote::send(Command cmd, int qn, Record rec) {
 	putCmd(cmd).putInt(qn).putInt(rec.cursize());
 	io.write(static_cast<char*>(rec.dup().ptr()), rec.cursize());
 	doRequest();
 }
 
-void DbmsRemote::send(Command cmd, int tn, int recadr, const Record& rec) {
+void DbmsRemote::send(Command cmd, int tn, int recadr, Record rec) {
 	putCmd(cmd).putInt(tn).putInt(recadr).putInt(rec.cursize());
 	io.write(static_cast<char*>(rec.dup().ptr()), rec.cursize());
 	doRequest();

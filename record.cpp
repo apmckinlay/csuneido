@@ -56,14 +56,14 @@ struct RecRep {
 };
 
 struct DbRep {
+	DbRep(Mmfile* mmf, Mmoffset off)
+		: type('d'), offset(off), rec(mmf->adr(offset)) {
+		verify(offset > 0);
+	}
+
 	short type; // has to match RecRep
-	Mmfile* mmf;
 	Mmoffset offset;
-	DbRep(Mmfile* m, Mmoffset off) : type('d'), mmf(m), offset(off) {
-	}
-	Record rec() {
-		return Record(mmf->adr(offset));
-	}
+	Record rec;
 };
 
 Record::Record(size_t sz) // NOLINT
@@ -95,7 +95,7 @@ void Record::init(size_t sz) {
 // used by database
 void Record::reuse(int n) {
 	if (crep->type == 'd')
-		dbrep->rec().crep->n = n;
+		dbrep->rec.crep->n = n;
 	else
 		crep->n = n;
 }
@@ -109,14 +109,12 @@ Record::Record(const void* r) // NOLINT
 
 Record::Record(Mmfile* mmf, Mmoffset offset) // NOLINT
 	: dbrep(new DbRep(mmf, offset)) {
-	verify(offset > 0);
-	verify(dbrep->rec().crep->type != 'd');
 }
 
 void* Record::ptr() const {
 	if (!crep)
-		return 0;
-	return (void*) (crep->type == 'd' ? dbrep->rec().crep : crep);
+		return nullptr;
+	return (void*) (crep->type == 'd' ? dbrep->rec.crep : crep);
 }
 
 Mmoffset Record::off() const {
@@ -128,24 +126,26 @@ Mmoffset Record::off() const {
 int Record::size() const {
 	if (!crep)
 		return 0;
-	return crep->type == 'd' ? dbrep->rec().crep->n : crep->n;
+	return crep->type == 'd' ? dbrep->rec.crep->n : crep->n;
 }
+
+#define CALL(meth) \
+	Record r = crep->type == 'd' ? dbrep->rec : *this; \
+	switch (r.crep->type) { \
+	case 'c': \
+		return r.crep->meth; \
+	case 's': \
+		return r.srep->meth; \
+	case 'l': \
+		return r.lrep->meth; \
+	default: \
+		error("invalid record"); \
+	}
 
 gcstring Record::getraw(int i) const {
 	if (!crep)
 		return gcstring();
-	switch (crep->type) {
-	case 'c':
-		return crep->get(i);
-	case 's':
-		return srep->get(i);
-	case 'l':
-		return lrep->get(i);
-	case 'd':
-		return dbrep->rec().getraw(i);
-	default:
-		error("invalid record");
-	}
+	CALL(get(i));
 }
 
 Value Record::getval(int i) const {
@@ -160,7 +160,7 @@ int Record::getint(int i) const {
 	return unpackint(getraw(i));
 }
 
-bool Record::hasprefix(const Record& r) {
+bool Record::hasprefix(Record r) {
 	if (r.size() == 0)
 		return true;
 	for (int i = 0; getraw(i) == r.getraw(i);)
@@ -169,7 +169,7 @@ bool Record::hasprefix(const Record& r) {
 	return false;
 }
 
-bool Record::prefixgt(const Record& r) {
+bool Record::prefixgt(Record r) {
 	gcstring x, y;
 	int n = min(size(), r.size());
 	for (int i = 0; i < n; ++i)
@@ -182,69 +182,25 @@ bool Record::prefixgt(const Record& r) {
 size_t Record::cursize() const {
 	if (!crep)
 		return sizeof(RecRep<uint8_t>); // min RecRep size
-	switch (crep->type) {
-	case 'c':
-		return crep->cursize();
-	case 's':
-		return srep->cursize();
-	case 'l':
-		return lrep->cursize();
-	case 'd':
-		return dbrep->rec().cursize();
-	default:
-		error("invalid record");
-	}
+	CALL(cursize());
 }
 
 size_t Record::bufsize() const {
 	if (!crep)
 		return sizeof(RecRep<uint8_t>); // min RecRep size
-	switch (crep->type) {
-	case 'c':
-		return crep->sz;
-	case 's':
-		return srep->sz;
-	case 'l':
-		return lrep->sz;
-	case 'd':
-		return dbrep->rec().bufsize();
-	default:
-		error("invalid record");
-	}
+	CALL(sz);
 }
 
 int Record::avail() const {
 	if (!crep)
 		return -1; // -1 because you can't even add a 0 length item
-	switch (crep->type) {
-	case 'c':
-		return crep->avail();
-	case 's':
-		return srep->avail();
-	case 'l':
-		return lrep->avail();
-	case 'd':
-		return dbrep->rec().avail();
-	default:
-		error("invalid record");
-	}
+	CALL(avail());
 }
 
 char* Record::alloc(size_t n) {
 	if (avail() < (int) n)
 		grow(n);
-	switch (crep->type) {
-	case 'c':
-		return crep->alloc(n);
-	case 's':
-		return srep->alloc(n);
-	case 'l':
-		return lrep->alloc(n);
-	case 'd':
-		return dbrep->rec().alloc(n);
-	default:
-		error("invalid record");
-	}
+	CALL(alloc(n));
 }
 
 void Record::addnil() {
@@ -284,13 +240,13 @@ inline void repcopy(Src src, Dst dst) {
 		dst->add(src->get(i));
 }
 
-void Record::copyrec(const Record& src, Record& dst) {
+void Record::copyrec(Record src, Record& dst) {
 	if (!src.crep)
 		return;
 	verify(dst.crep);
 	verify(dst.crep->type != 'd');
 	if (src.crep->type == 'd')
-		copyrec(src.dbrep->rec(), dst);
+		copyrec(src.dbrep->rec, dst);
 	else if (src.crep->type == 'c') {
 		if (dst.crep->type == 'c')
 			repcopy(src.crep, dst.crep);
@@ -372,9 +328,9 @@ void Record::truncate(int n) {
 	}
 }
 
-// MAYBE: rwrite op== and op< similar to copy
+// MAYBE: rewrite op== and op< similar to copy
 
-bool Record::operator==(const Record& r) const {
+bool Record::operator==(Record r) const {
 	if (crep == r.crep || (!crep && r.size() == 0) || (!r.crep && size() == 0))
 		return true;
 	else if (!crep || !r.crep)
@@ -388,7 +344,7 @@ bool Record::operator==(const Record& r) const {
 	return true;
 }
 
-bool Record::operator<(const Record& r) const {
+bool Record::operator<(Record r) const {
 	gcstring x, y;
 	int n = min(size(), r.size());
 	for (int i = 0; i < n; ++i)
@@ -400,7 +356,7 @@ bool Record::operator<(const Record& r) const {
 
 #include <cctype>
 
-Ostream& operator<<(Ostream& os, const Record& r) {
+Ostream& operator<<(Ostream& os, Record r) {
 	os << '[';
 	for (int i = 0; i < r.size(); ++i) {
 		if (i > 0)
@@ -470,10 +426,6 @@ Record Record::from_int(int n, Mmfile* mmf) {
 		return Record(mmf, tagged_int_to_mmoffset(n));
 	else
 		return Record(reinterpret_cast<void*>(n));
-}
-
-Record Record::to_heap() const {
-	return crep && crep->type == 'd' ? dup() : *this;
 }
 
 Record const Record::empty;

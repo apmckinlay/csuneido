@@ -21,8 +21,7 @@ public:
 		return size(by) * source->columnsize() + size(cols) * 8;
 	}
 	Header header() override;
-	void select(
-		const Fields& index, const Record& from, const Record& to) override;
+	void select(const Fields& index, Record from, Record to) override;
 	void rewind() override;
 	Row get(Dir dir) override;
 	bool updateable() const override {

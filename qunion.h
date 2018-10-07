@@ -22,8 +22,7 @@ public:
 	}
 	// iteration
 	Header header() override;
-	void select(
-		const Fields& index, const Record& from, const Record& to) override;
+	void select(const Fields& index, Record from, Record to) override;
 	void rewind() override;
 	Row get(Dir dir) override;
 
@@ -36,8 +35,7 @@ private:
 	// for LOOKUP
 	bool in1 = true; // true while processing first source
 	// for MERGE
-	static bool before(
-		Dir dir, const Record& key1, int src1, const Record& key2, int src2);
+	static bool before(Dir dir, Record key1, int src1, Record key2, int src2);
 	bool rewound = true;
 	bool src1 = false;
 	bool src2 = false;

@@ -13,6 +13,8 @@ template <class T>
 struct RecRep;
 struct DbRep;
 
+// Record is a pointer to a block of memory containing a list of fields
+// Since it is just a pointer it should normally be passed by value
 class Record {
 public:
 	Record() : crep(nullptr) { // NOLINT
@@ -26,7 +28,7 @@ public:
 	void addval(Value x);
 	void addval(const gcstring& s);
 	void addval(const char* s);
-	void addval(int x);
+	void addval(int n);
 	void addnil();
 	void addmax();
 	void addmmoffset(Mmoffset o) {
@@ -40,8 +42,8 @@ public:
 		return int_to_mmoffset(getint(i));
 	}
 
-	bool hasprefix(const Record& r);
-	bool prefixgt(const Record& r);
+	bool hasprefix(Record r);
+	bool prefixgt(Record r);
 
 	void reuse(int n);
 	char* alloc(size_t n);
@@ -51,12 +53,12 @@ public:
 	void* copyto(void* buf) const; // buf MUST be cursize()
 	void moveto(Mmfile* mmf, Mmoffset offset);
 	Record dup() const;
-	void truncate(int i);
+	void truncate(int n);
 	void* ptr() const;
 	Mmoffset off() const;
-	friend bool nil(const Record& r);
-	bool operator==(const Record& r) const;
-	bool operator<(const Record& r) const;
+	friend bool nil(Record r);
+	bool operator==(Record r) const;
+	bool operator<(Record r) const;
 
 	// used by tempindex and slots
 	int to_int() const;
@@ -64,14 +66,13 @@ public:
 	Mmoffset to_int64() const;
 	static Record from_int64(Mmoffset n, Mmfile* mmf);
 
-	Record to_heap() const;
 	static const Record empty;
 
 private:
 	void init(size_t sz);
 	int avail() const;
 	void grow(int need);
-	static void copyrec(const Record& src, Record& dst);
+	static void copyrec(Record src, Record& dst);
 	union {
 		RecRep<uint8_t>* crep;
 		RecRep<uint16_t>* srep;
@@ -80,8 +81,8 @@ private:
 	};
 };
 
-inline bool nil(const Record& r) {
-	return r.crep == 0;
+inline bool nil(Record r) {
+	return r.crep == nullptr;
 }
 
-Ostream& operator<<(Ostream& os, const Record& r);
+Ostream& operator<<(Ostream& os, Record r);

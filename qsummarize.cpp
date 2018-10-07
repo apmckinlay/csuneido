@@ -16,8 +16,7 @@ public:
 	}
 	virtual ~Strategy() = default;
 	virtual Row get(Dir dir, bool rewound) = 0;
-	virtual void select(
-		const Fields& index, const Record& from, const Record& to) = 0;
+	virtual void select(const Fields& index, Record from, Record to) = 0;
 	friend class Summarize;
 
 protected:
@@ -36,8 +35,7 @@ class SeqStrategy : public Strategy {
 public:
 	explicit SeqStrategy(Summarize* q);
 	Row get(Dir dir, bool rewound) override;
-	void select(
-		const Fields& index, const Record& from, const Record& to) override;
+	void select(const Fields& index, Record from, Record to) override;
 
 private:
 	bool equal();
@@ -52,8 +50,7 @@ class MapStrategy : public Strategy {
 public:
 	explicit MapStrategy(Summarize* q);
 	Row get(Dir dir, bool rewound) override;
-	void select(
-		const Fields& index, const Record& from, const Record& to) override;
+	void select(const Fields& index, Record from, Record to) override;
 
 private:
 	void process();
@@ -71,8 +68,7 @@ public:
 	explicit IdxStrategy(Summarize* q) : Strategy(q) {
 	}
 	Row get(Dir dir, bool rewound) override;
-	void select(
-		const Fields& index, const Record& from, const Record& to) override;
+	void select(const Fields& index, Record from, Record to) override;
 
 private:
 	Fields selIndex;
@@ -421,8 +417,7 @@ void Summarize::iterate_setup() {
 		strategyImp = new SeqStrategy(this);
 }
 
-void Summarize::select(
-	const Fields& index, const Record& from, const Record& to) {
+void Summarize::select(const Fields& index, Record from, Record to) {
 	strategyImp->select(index, from, to);
 	strategyImp->sel.org = from;
 	strategyImp->sel.end = to;
@@ -510,8 +505,7 @@ bool SeqStrategy::equal() {
 	return true;
 }
 
-void SeqStrategy::select(
-	const Fields& index, const Record& from, const Record& to) {
+void SeqStrategy::select(const Fields& index, Record from, Record to) {
 	// because of fixed, this index may not be the same as the source index
 	// (via)
 	if (prefix(q->via, index) || (from == keymin && to == keymax))
@@ -578,8 +572,7 @@ void MapStrategy::process() {
 	}
 }
 
-void MapStrategy::select(
-	const Fields& index, const Record& from, const Record& to) {
+void MapStrategy::select(const Fields& index, Record from, Record to) {
 	verify(prefix(q->by, index));
 }
 
@@ -605,7 +598,6 @@ Row IdxStrategy::get(Dir, bool rewound) {
 	return result;
 }
 
-void IdxStrategy::select(
-	const Fields& index, const Record& from, const Record& to) {
+void IdxStrategy::select(const Fields& index, Record from, Record to) {
 	selIndex = index;
 }

@@ -92,7 +92,7 @@ public:
 struct Keyrange {
 	Keyrange() : org(keymin), end(keymax) {
 	}
-	Keyrange(const Record& o, const Record& e) : org(o), end(e) {
+	Keyrange(Record o, Record e) : org(o), end(e) {
 	}
 	explicit operator bool() const {
 		return !(end < org);

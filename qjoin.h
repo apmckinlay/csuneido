@@ -25,8 +25,7 @@ public:
 	// iteration
 	Header header() override;
 	Row get(Dir dir) override;
-	void select(
-		const Fields& index, const Record& from, const Record& to) override;
+	void select(const Fields& index, Record from, Record to) override;
 	void rewind() override;
 	enum Type { NONE, ONE_ONE, ONE_N, N_ONE, N_N };
 	static Type reverse(Type type) {

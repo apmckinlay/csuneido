@@ -49,7 +49,6 @@ void SuRecord::init(const Row& dbrow) {
 	verify(recadr >= 0);
 	defval = SuEmptyString;
 	Row row(dbrow);
-	row.to_heap();
 	for (Row::iterator iter = row.begin(hdr); iter != row.end(); ++iter) {
 		std::pair<gcstring, gcstring> p = *iter;
 		if (p.first != "-")
@@ -57,11 +56,9 @@ void SuRecord::init(const Row& dbrow) {
 	}
 }
 
-SuRecord::SuRecord(
-	const Record& dbrec, const Lisp<int>& fldsyms, SuTransaction* t)
+SuRecord::SuRecord(Record rec, const Lisp<int>& fldsyms, SuTransaction* t)
 	: trans(t), recadr(0), status(OLD) {
 	defval = SuEmptyString;
-	Record rec = dbrec.to_heap();
 	int i = 0;
 	for (Lisp<int> f = fldsyms; !nil(f); ++f, ++i)
 		if (*f != -1)

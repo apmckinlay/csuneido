@@ -23,10 +23,10 @@ const int DB_VERSION =
 
 // Tbl ==============================================================
 
-Tbl::Tbl(const Record& r, const Lisp<Col>& c, const Lisp<Idx>& i)
+Tbl::Tbl(Record r, const Lisp<Col>& c, const Lisp<Idx>& i)
 	: rec(r), cols(c), idxs(i), trigger(0) {
 	num = rec.getint(T_TBLNUM);
-	name = rec.getstr(T_TABLE).to_heap();
+	name = rec.getstr(T_TABLE);
 	nextfield = rec.getint(T_NEXTFIELD);
 	nrecords = rec.getint(T_NROWS);
 	totalsize = rec.getint(T_TOTALSIZE);
@@ -49,11 +49,11 @@ static Record key(const gcstring& table, const gcstring& columns) {
 	return r;
 }
 
-Idx::Idx(const gcstring& table, const Record& r, const gcstring& c, short* n,
-	Index* i, Database* db)
+Idx::Idx(const gcstring& table, Record r, const gcstring& c, short* n, Index* i,
+	Database* db)
 	: index(i), nnodes(i->get_nnodes()), rec(r), columns(c), colnums(n),
 	  iskey(SuTrue == r.getval(I_KEY)),
-	  fksrc(r.getstr(I_FKTABLE).to_heap(), r.getstr(I_FKCOLUMNS).to_heap(),
+	  fksrc(r.getstr(I_FKTABLE), r.getstr(I_FKCOLUMNS),
 		  (Fkmode) r.getint(I_FKMODE)) {
 	// find foreign keys pointing to this index
 	for (auto iter = db->fkey_index->begin(schema_tran, key(table, columns));
@@ -62,7 +62,7 @@ Idx::Idx(const gcstring& table, const Record& r, const gcstring& c, short* n,
 		verify(ri.getstr(I_FKTABLE) == table);
 		verify(ri.getstr(I_FKCOLUMNS) == columns);
 		gcstring table2 = db->get_table(ri.getint(I_TBLNUM))->name;
-		fkdsts.push(Fkey(table2, ri.getstr(I_COLUMNS).to_heap(),
+		fkdsts.push(Fkey(table2, ri.getstr(I_COLUMNS),
 			(Fkmode) ri.getint(I_FKMODE)));
 	}
 }
@@ -143,7 +143,7 @@ Database::Database(const char* file, bool createmode)
 	}
 }
 
-Record ckroot(const Record& r) {
+Record ckroot(Record r) {
 	verify(r.getmmoffset(I_ROOT));
 	return r;
 }
@@ -337,7 +337,7 @@ void Database::add_any_record(int tran, Tbl* tbl, Record& r) {
 	}
 }
 
-void Database::add_index_entries(int tran, Tbl* tbl, const Record& r) {
+void Database::add_index_entries(int tran, Tbl* tbl, Record r) {
 	Mmoffset off = r.off();
 	for (Lisp<Idx> i = tbl->idxs; !nil(i); ++i) {
 		Record key = project(r, i->colnums, off);
@@ -359,7 +359,7 @@ void Database::add_index_entries(int tran, Tbl* tbl, const Record& r) {
 	tbl->update(); // update tables record
 }
 
-const char* Database::fkey_source_block(int tran, Tbl* tbl, const Record& rec) {
+const char* Database::fkey_source_block(int tran, Tbl* tbl, Record rec) {
 	for (Lisp<Idx> i = tbl->idxs; !nil(i); ++i)
 		if (i->fksrc.table != "" &&
 			fkey_source_block(tran, get_table(i->fksrc.table), i->fksrc.columns,
@@ -368,7 +368,7 @@ const char* Database::fkey_source_block(int tran, Tbl* tbl, const Record& rec) {
 	return 0;
 }
 
-static bool key_empty(const Record& key) {
+static bool key_empty(Record key) {
 	for (int i = 0; i < key.size(); ++i)
 		if (key.getraw(i).size() != 0)
 			return false;
@@ -376,7 +376,7 @@ static bool key_empty(const Record& key) {
 }
 
 bool Database::fkey_source_block(
-	int tran, Tbl* fktbl, const gcstring& fkcolumns, const Record& key) {
+	int tran, Tbl* fktbl, const gcstring& fkcolumns, Record key) {
 	if (fkcolumns == "" || key_empty(key))
 		return false;
 	Index* fkidx = get_index(fktbl, fkcolumns);
@@ -426,12 +426,12 @@ void Database::create_indexes(Tbl* tbl, Mmoffset first, Mmoffset last) {
 }
 
 void Database::update_record(int tran, const gcstring& table,
-	const gcstring& index, const Record& key, Record newrec) {
+	const gcstring& index, Record key, Record newrec) {
 	update_any_record(tran, table, index, key, newrec);
 }
 
 void Database::update_any_record(int tran, const gcstring& table,
-	const gcstring& index, const Record& key, Record newrec) {
+	const gcstring& index, Record key, Record newrec) {
 	Tbl* tbl = ck_get_table(table);
 	Index* idx = get_index(table, index);
 	verify(idx);
@@ -445,7 +445,7 @@ void Database::update_any_record(int tran, const gcstring& table,
 const bool NO_BLOCK = false;
 
 Mmoffset Database::update_record(
-	int tran, Tbl* tbl, const Record& oldrec, Record newrec, bool block) {
+	int tran, Tbl* tbl, Record oldrec, Record newrec, bool block) {
 	if (tran != schema_tran) {
 		if (ck_get_tran(tran)->type != READWRITE)
 			except("can't update from read-only transaction in " << tbl->name);
@@ -623,11 +623,11 @@ void Database::remove_any_index(Tbl* tbl, const gcstring& columns) {
 }
 
 void Database::remove_record(
-	int tran, const gcstring& table, const gcstring& index, const Record& key) {
+	int tran, const gcstring& table, const gcstring& index, Record key) {
 	remove_any_record(tran, table, index, key);
 }
 
-Record Database::find(int tran, Index* index, const Record& key) {
+Record Database::find(int tran, Index* index, Record key) {
 	if (!index)
 		return Record();
 	Vslot vs = index->find(tran, key);
@@ -635,7 +635,7 @@ Record Database::find(int tran, Index* index, const Record& key) {
 }
 
 void Database::remove_any_record(
-	int tran, const gcstring& table, const gcstring& index, const Record& key) {
+	int tran, const gcstring& table, const gcstring& index, Record key) {
 	Tbl* tbl = ck_get_table(table);
 	// lookup key in given index
 	Index* idx = get_index(table, index);
@@ -646,7 +646,7 @@ void Database::remove_any_record(
 	remove_record(tran, tbl, rec);
 }
 
-void Database::remove_record(int tran, Tbl* tbl, const Record& r) {
+void Database::remove_record(int tran, Tbl* tbl, Record r) {
 	if (tran != schema_tran) {
 		if (ck_get_tran(tran)->type != READWRITE)
 			except("can't delete from read-only transaction in " << tbl->name);
@@ -680,7 +680,7 @@ void Database::remove_record(int tran, Tbl* tbl, const Record& r) {
 	}
 }
 
-void Database::remove_index_entries(Tbl* tbl, const Record& r) {
+void Database::remove_index_entries(Tbl* tbl, Record r) {
 	Mmoffset off = r.off();
 	for (Lisp<Idx> i = tbl->idxs; !nil(i); ++i) {
 		Record key = project(r, i->colnums, off);
@@ -689,7 +689,7 @@ void Database::remove_index_entries(Tbl* tbl, const Record& r) {
 	}
 }
 
-const char* Database::fkey_target_block(int tran, Tbl* tbl, const Record& r) {
+const char* Database::fkey_target_block(int tran, Tbl* tbl, Record r) {
 	for (Lisp<Idx> i = tbl->idxs; !nil(i); ++i)
 		if (auto fktblname =
 				fkey_target_block(tran, *i, project(r, i->colnums)))
@@ -698,7 +698,7 @@ const char* Database::fkey_target_block(int tran, Tbl* tbl, const Record& r) {
 }
 
 const char* Database::fkey_target_block(
-	int tran, const Idx& idx, const Record& key, const Record newkey) {
+	int tran, const Idx& idx, Record key, Record newkey) {
 	if (key_empty(key))
 		return 0;
 	for (Lisp<Fkey> fk = idx.fkdsts; !nil(fk); ++fk) {
@@ -993,7 +993,7 @@ Record Database::key(TblNum tblnum, const gcstring& columns) {
 	return r;
 }
 
-Index* Database::mkindex(const Record& r) {
+Index* Database::mkindex(Record r) {
 	static Value u("u");
 
 	verify(!nil(r));
@@ -1048,10 +1048,10 @@ Tbl* Database::get_table(TblNum tblnum) {
 	return get_table(find(schema_tran, tblnum_index, key(tblnum)));
 }
 
-Tbl* Database::get_table(const Record& table_rec) {
+Tbl* Database::get_table(Record table_rec) {
 	if (nil(table_rec))
 		return 0; // table not found
-	gcstring table = table_rec.getstr(T_TABLE).to_heap();
+	gcstring table = table_rec.getstr(T_TABLE);
 
 	Record tblkey = key(table_rec.getint(T_TBLNUM));
 
@@ -1061,7 +1061,7 @@ Tbl* Database::get_table(const Record& table_rec) {
 	for (auto iter = columns_index->begin(schema_tran, tblkey); !iter.eof();
 		 ++iter) {
 		Record r(iter.data());
-		gcstring column = r.getstr(C_COLUMN).to_heap();
+		gcstring column = r.getstr(C_COLUMN);
 		int colnum = r.getint(C_FLDNUM);
 		cols.push(Col(column, colnum));
 	}
@@ -1077,7 +1077,7 @@ Tbl* Database::get_table(const Record& table_rec) {
 	for (auto iter = indexes_index->begin(schema_tran, tblkey); !iter.eof();
 		 ++iter) {
 		Record r(iter.data());
-		gcstring columns = r.getstr(I_COLUMNS).to_heap();
+		gcstring columns = r.getstr(I_COLUMNS);
 		short* colnums = comma_to_nums(cols, columns);
 		verify(colnums);
 		// make sure to use the same index for the system tables
@@ -1108,7 +1108,7 @@ gcstring Database::get_view(const gcstring& table) {
 		return "";
 	if (r.getstr(V_DEFINITION) == "")
 		return " ";
-	return r.getstr(V_DEFINITION).to_heap();
+	return r.getstr(V_DEFINITION);
 }
 
 void Database::remove_view(const gcstring& table) {
@@ -1164,7 +1164,7 @@ void Database::schema_out(Ostream& os, const gcstring& table) {
 	}
 }
 
-Record project(const Record& r, short* cols, Mmoffset adr) {
+Record project(Record r, short* cols, Mmoffset adr) {
 	Record x;
 	for (int i = 0; cols[i] != END; ++i)
 		if (cols[i] < r.size())
@@ -1265,15 +1265,15 @@ size_t Database::totalsize(const gcstring& table) {
 	return tbl->totalsize;
 }
 
-float Database::rangefrac(const gcstring& table, const gcstring& index,
-	const Record& org, const Record& end) {
+float Database::rangefrac(
+	const gcstring& table, const gcstring& index, Record org, Record end) {
 	Index* idx = get_index(table, index);
 	verify(idx);
 	return idx->rangefrac(org, end);
 }
 
 Record Database::get_record(
-	int tran, const gcstring& table, const gcstring& index, const Record& key) {
+	int tran, const gcstring& table, const gcstring& index, Record key) {
 	return find(tran, get_index(table, index), key);
 }
 
@@ -1283,7 +1283,7 @@ Record Database::get_record(
 #include "tempdb.h"
 #include "btree.h"
 
-static void assertreceq(const Record& r1, const Record& r2) {
+static void assertreceq(Record r1, Record r2) {
 	if (r1.size() != r2.size())
 		except(r1 << endl << "!=" << endl << r2);
 	for (int i = 1; i < r1.size(); ++i)

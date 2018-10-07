@@ -23,14 +23,9 @@ inline void Mmfile::set_file_size(Mmoffset fs) {
 }
 
 Mmfile::Mmfile(const char* filename, bool create, bool ro)
-	: chunk_size(MB_PER_CHUNK * 1024 * 1024), hi_chunk(0), use_t(0),
-	  chunks_mapped(0), max_chunks_mapped(MM_MAX_CHUNKS_MAPPED), readonly(ro) {
+	: chunk_size(MB_PER_CHUNK * 1024 * 1024), hi_chunk(0), readonly(ro) {
 	verify((1 << MM_SHIFT) < MM_ALIGN);
 	std::fill(base, base + MAX_CHUNKS, nullptr);
-	std::fill(last_used, last_used + MAX_CHUNKS, LONG_MAX);
-#ifdef MM_KEEPADR
-	std::fill(unmapped, unmapped + MAX_CHUNKS, (void*) 0);
-#endif
 	open(filename, create, readonly);
 	verify(file_size >= 0);
 	verify(file_size < (int64_t) MB_MAX_DB * 1024 * 1024);
@@ -49,11 +44,6 @@ Mmfile::Mmfile(const char* filename, bool create, bool ro)
 
 void Mmfile::refresh() {
 	file_size = get_file_size();
-}
-
-void Mmfile::set_max_chunks_mapped(int n) {
-	verify(n >= 1);
-	max_chunks_mapped = n;
 }
 
 // blocks have a 4 byte header of size | type
@@ -114,14 +104,10 @@ void* Mmfile::adr(Mmoffset offset) {
 	unsigned int chunk = offset / chunk_size;
 	verify(chunk < MAX_CHUNKS);
 	if (!base[chunk]) {
-		if (chunks_mapped >= max_chunks_mapped)
-			evict_chunk();
 		map(chunk);
-		++chunks_mapped;
 		if (chunk > hi_chunk)
 			hi_chunk = chunk;
 	}
-	last_used[chunk] = ++use_t;
 	return base[chunk] + (offset % chunk_size);
 }
 
@@ -227,25 +213,7 @@ void mmdump() {
 	}
 }
 
-void Mmfile::evict_chunk() {
-#ifndef NDEBUG
-	int n = 0;
-	for (int i = 0; i < MAX_CHUNKS; ++i)
-		if (base[i])
-			++n;
-	verify(n == chunks_mapped);
-#endif
-	int chunk = lru_chunk();
-	verify(base[chunk]);
-	unmap(chunk);
-	last_used[chunk] = LONG_MAX;
-	--chunks_mapped;
-}
-
-int Mmfile::lru_chunk() {
-	int* p = std::min_element(last_used, last_used + MAX_CHUNKS);
-	return p - last_used;
-}
+//-------------------------------------------------------------------
 
 #include "testing.h"
 #include <cstdio> // for remove
@@ -310,56 +278,6 @@ TEST(mmfile_chunks) {
 		for (n = 0, iter = m.end(); iter != m.begin(); --iter)
 			++n;
 		assert_eq(n, 2);
-	}
-	verify(0 == remove("testmm"));
-}
-
-TEST(mmfile_unmap) {
-	remove("testmm");
-	{
-		Mmfile m("testmm", true);
-		const int CHUNK_SIZE = 65536;
-		m.set_chunk_size(CHUNK_SIZE);
-		m.set_max_chunks_mapped(2);
-		const int N = CHUNK_SIZE - 500;
-
-		// NOTE: chunk 0 is referenced by every alloc via set_filesize
-
-		void* p = m.adr(m.alloc(N, 1));
-		memset(p, 'a', N);
-		verify(m.base[0]);
-		verify(!m.base[1]);
-		verify(!m.base[2]);
-
-		p = m.adr(m.alloc(N, 1));
-		memset(p, 'b', N);
-		verify(m.base[0]);
-		verify(m.base[1]);
-		verify(!m.base[2]);
-
-		p = m.adr(m.alloc(N, 1));
-		memset(p, 'c', N);
-		verify(m.base[0]);
-		verify(!m.base[1]);
-		verify(m.base[2]);
-
-		char* s = (char*) m.adr(100);
-		verify(*s == 'a');
-		verify(m.base[0]);
-		verify(!m.base[1]);
-		verify(m.base[2]);
-
-		s = (char*) m.adr(CHUNK_SIZE + 100);
-		verify(*s == 'b');
-		verify(m.base[0]);
-		verify(m.base[1]);
-		verify(!m.base[2]);
-
-		s = (char*) m.adr(2 * CHUNK_SIZE + 100);
-		verify(*s == 'c');
-		verify(!m.base[0]);
-		verify(m.base[1]);
-		verify(m.base[2]);
 	}
 	verify(0 == remove("testmm"));
 }

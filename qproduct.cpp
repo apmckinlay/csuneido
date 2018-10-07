@@ -89,8 +89,7 @@ Row Product::get(Dir dir) {
 	return row1 + row2;
 }
 
-void Product::select(
-	const Fields& index, const Record& from, const Record& to) {
+void Product::select(const Fields& index, Record from, Record to) {
 	first = true;
 	source->select(index, from, to);
 	source2->rewind();

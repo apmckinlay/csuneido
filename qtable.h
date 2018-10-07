@@ -29,8 +29,7 @@ public:
 	virtual int indexsize(const Fields& index);
 	// iteration
 	Header header() override;
-	void select(
-		const Fields& index, const Record& from, const Record& to) override;
+	void select(const Fields& index, Record from, Record to) override;
 	void rewind() override;
 	Row get(Dir dir) override;
 	void set_transaction(int t) override {
@@ -41,7 +40,7 @@ public:
 	bool updateable() const override {
 		return true;
 	}
-	bool output(const Record& r) override;
+	bool output(Record r) override;
 
 	gcstring table;
 	// used by Select for filters

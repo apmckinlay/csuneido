@@ -20,8 +20,7 @@ public:
 	Header header() override {
 		return source->header();
 	}
-	void select(
-		const Fields& index, const Record& from, const Record& to) override {
+	void select(const Fields& index, Record from, Record to) override {
 		source->select(index, from, to);
 	}
 	void rewind() override {
@@ -37,7 +36,7 @@ public:
 		return segs;
 	}
 
-	bool output(const Record& r) override {
+	bool output(Record r) override {
 		return source->output(r);
 	}
 

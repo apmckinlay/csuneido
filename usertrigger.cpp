@@ -14,7 +14,7 @@ extern bool is_client;
 
 static Lisp<int> disabled_triggers;
 
-void Tbl::user_trigger(int tran, const Record& oldrec, const Record& newrec) {
+void Tbl::user_trigger(int tran, Record oldrec, Record newrec) {
 	if (tran == schema_tran)
 		return;
 	if (trigger == -1)

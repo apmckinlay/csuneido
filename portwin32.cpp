@@ -98,12 +98,6 @@ void Mmfile::open(const char* filename, bool create, bool ro) {
 // OstreamFile mlog("mmfile.log", "w");
 
 void Mmfile::map(int chunk) {
-#ifdef MM_KEEPADR
-	if (unmapped[chunk]) {
-		verify(VirtualFree(unmapped[chunk], 0, MEM_RELEASE));
-		unmapped[chunk] = 0;
-	}
-#endif
 	verify(!base[chunk]);
 
 	int64_t end = (int64_t)(chunk + 1) * chunk_size;
@@ -137,10 +131,6 @@ void Mmfile::unmap(int chunk) {
 	// mlog << "- " << chunk << " = " << (void*) base[chunk] << endl;
 	UnmapViewOfFile(base[chunk]);
 	CloseHandle(fm[chunk]);
-#ifdef MM_KEEPADR
-	verify(unmapped[chunk] = VirtualAlloc(
-			   base[chunk], chunk_size, MEM_RESERVE, PAGE_READONLY));
-#endif
 	base[chunk] = nullptr;
 }
 

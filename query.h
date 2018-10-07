@@ -115,9 +115,8 @@ public:
 	virtual Fields ordering() {
 		return Fields();
 	} // overridden by QSort
-	virtual void select(
-		const Fields& index, const Record& from, const Record& to) = 0;
-	void select(const Fields& index, const Record& key);
+	virtual void select(const Fields& index, Record from, Record to) = 0;
+	void select(const Fields& index, Record key);
 	virtual void rewind() = 0;
 	virtual Row get(Dir) {
 		error("not implemented yet");
@@ -130,7 +129,7 @@ public:
 	virtual bool updateable() const {
 		return false;
 	}
-	virtual bool output(const Record&);
+	virtual bool output(Record);
 
 	virtual void close(Query*) = 0;
 

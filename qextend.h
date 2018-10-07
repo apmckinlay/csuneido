@@ -31,8 +31,7 @@ public:
 	// iteration
 	Header header() override;
 	Row get(Dir dir) override;
-	void select(
-		const Fields& index, const Record& from, const Record& to) override {
+	void select(const Fields& index, Record from, Record to) override {
 		source->select(index, from, to);
 	}
 	void rewind() override {
@@ -42,7 +41,7 @@ public:
 	bool has_rules();
 	bool need_rule(Fields flds);
 
-	bool output(const Record& r) override;
+	bool output(Record r) override;
 	// not private - accessed by Project::transform
 	Fields flds;
 	Lisp<Expr*> exprs;

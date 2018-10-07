@@ -6,8 +6,6 @@
 #include "mmoffset.h"
 #include <cstddef> // for size_t
 
-//#define MM_KEEPADR
-
 const int MM_HEADER = 4;  // size | type
 const int MM_TRAILER = 4; // size ^ adr
 const int MM_OVERHEAD = MM_HEADER + MM_TRAILER;
@@ -38,7 +36,6 @@ public:
 	static size_t align(size_t n) {
 		return ((n - 1) | (MM_ALIGN - 1)) + 1;
 	}
-	void set_max_chunks_mapped(int n);
 	Mmoffset get_file_size();
 	void refresh();
 
@@ -84,8 +81,6 @@ private:
 	void map(int chunk);
 	void unmap(int chunk);
 	void set_file_size(Mmoffset fs);
-	int lru_chunk();
-	void evict_chunk();
 	friend void test_mmfile_chunks();
 	friend void test_mmfile_unmap();
 
@@ -102,12 +97,5 @@ private:
 	char* base[MAX_CHUNKS]{};
 	int hi_chunk;
 	int last_alloc{};
-	int last_used[MAX_CHUNKS]{};
-	int use_t;
-	int chunks_mapped;
-	int max_chunks_mapped;
-#ifdef MM_KEEPADR
-	void* unmapped[MAX_CHUNKS];
-#endif
 	bool readonly;
 };

@@ -11,7 +11,7 @@
 
 const int mem = 4000;
 
-inline Record keydup(const Record& key) {
+inline Record keydup(Record key) {
 	return key.dup();
 }
 
@@ -24,7 +24,7 @@ class Vslot {
 public:
 	Vslot() {
 	}
-	explicit Vslot(const Record& r) : key(r) {
+	explicit Vslot(Record r) : key(r) {
 	}
 	explicit Vslot(void* k) : key(k) {
 	}
@@ -225,7 +225,7 @@ public:
 	Mmoffset adr = 0; // points to btree node
 	VFslot() {
 	}
-	explicit VFslot(const Record& k, Mmoffset a = 0) : key(k), adr(a) {
+	explicit VFslot(Record k, Mmoffset a = 0) : key(k), adr(a) {
 	}
 	explicit VFslot(void* k, Mmoffset a = 0) : key(k), adr(a) {
 	}
@@ -470,7 +470,7 @@ struct VVslot {
 	Vdata* data = nullptr;
 	VVslot() = default;
 
-	explicit VVslot(const Record& k, Vdata* d = 0) : key(k), data(d) {
+	explicit VVslot(Record k, Vdata* d = 0) : key(k), data(d) {
 	}
 	explicit VVslot(void* k, void* d = 0) : key(k), data((Vdata*) d) {
 	}

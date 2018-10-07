@@ -84,8 +84,8 @@ struct Fkey {
 class Database;
 
 struct Idx {
-	Idx(const gcstring& table, const Record& r, const gcstring& c, short* n,
-		Index* i, Database* db);
+	Idx(const gcstring& table, Record r, const gcstring& c, short* n, Index* i,
+		Database* db);
 	void update();
 	bool operator==(const Idx& y) const {
 		return columns == y.columns;
@@ -102,10 +102,10 @@ struct Idx {
 };
 
 struct Tbl {
-	Tbl(const Record& r, const Lisp<Col>& c, const Lisp<Idx>& i);
+	Tbl(Record r, const Lisp<Col>& c, const Lisp<Idx>& i);
 	void update();
 	Lisp<gcstring> get_fields();
-	void user_trigger(int tran, const Record& oldrec, const Record& newrec);
+	void user_trigger(int tran, Record oldrec, Record newrec);
 
 	Record rec;
 	Lisp<Col> cols;
@@ -223,20 +223,20 @@ public:
 	}
 	void add_any_record(int tran, Tbl* tbl, Record& r);
 	void update_record(int tran, const gcstring& table, const gcstring& index,
-		const Record& key, Record newrec);
-	Mmoffset update_record(int tran, Tbl* tbl, const Record& oldrec,
-		Record newrec, bool block = true);
+		Record key, Record newrec);
+	Mmoffset update_record(
+		int tran, Tbl* tbl, Record oldrec, Record newrec, bool block = true);
 	void update_any_record(int tran, const gcstring& table,
-		const gcstring& index, const Record& key, Record newrec);
+		const gcstring& index, Record key, Record newrec);
 
 	void remove_table(const gcstring& table);
 	void remove_any_table(const gcstring& table);
 	void remove_column(const gcstring& table, const gcstring& column);
 	void remove_index(const gcstring& table, const gcstring& columns);
-	void remove_record(int tran, const gcstring& table, const gcstring& index,
-		const Record& key);
-	void remove_any_record(int tran, const gcstring& table,
-		const gcstring& index, const Record& key);
+	void remove_record(
+		int tran, const gcstring& table, const gcstring& index, Record key);
+	void remove_any_record(
+		int tran, const gcstring& table, const gcstring& index, Record key);
 	void remove_view(const gcstring& table);
 
 	bool istable(const gcstring& table) {
@@ -255,25 +255,25 @@ public:
 	Lisp<gcstring> get_fields(const gcstring& table);
 	Lisp<gcstring> get_rules(const gcstring& table);
 	gcstring get_view(const gcstring& table);
-	Record get_record(int tran, const gcstring& table, const gcstring& index,
-		const Record& key);
+	Record get_record(
+		int tran, const gcstring& table, const gcstring& index, Record key);
 	void schema_out(Ostream& os, const gcstring& table);
 	Dbhdr* dbhdr() const;
 
 	bool rename_table(const gcstring& oldname, const gcstring& newname);
 	bool rename_column(const gcstring& table, const gcstring& oldname,
 		const gcstring& newname);
-	Record find(int tran, Index* index, const Record& key);
+	Record find(int tran, Index* index, Record key);
 
 	int nrecords(const gcstring& table);
 	size_t totalsize(const gcstring& table);
-	float rangefrac(const gcstring& table, const gcstring& index,
-		const Record& org, const Record& end);
+	float rangefrac(
+		const gcstring& table, const gcstring& index, Record org, Record end);
 
 	static bool is_system_table(const gcstring& table);
 
 	// should be private, but used by recover schema
-	void add_index_entries(int tran, Tbl* tbl, const Record& r);
+	void add_index_entries(int tran, Tbl* tbl, Record r);
 	Tbl* get_table(TblNum tblnum);
 	bool recover_index(Record& idxrec);
 	void invalidate_table(TblNum tblnum);
@@ -305,10 +305,10 @@ public:
 private:
 	void open();
 	void create();
-	Tbl* get_table(const Record& table_rec);
+	Tbl* get_table(Record table_rec);
 	Index* get_index(Tbl* tbl, const gcstring& columns);
-	void remove_record(int tran, Tbl* tbl, const Record& r);
-	void remove_index_entries(Tbl* tbl, const Record& r);
+	void remove_record(int tran, Tbl* tbl, Record r);
+	void remove_index_entries(Tbl* tbl, Record r);
 	void remove_any_index(const gcstring& table, const gcstring& columns) {
 		remove_any_index(ck_get_table(table), columns);
 	}
@@ -328,15 +328,15 @@ private:
 		TblNum tblnum, const char* tblname, int nrows, int nextfield);
 	void columns_record(TblNum tblnum, const char* column, int field);
 	Mmoffset indexes_record(Index* index);
-	Index* mkindex(const Record& r);
+	Index* mkindex(Record r);
 	static bool is_system_column(const gcstring& table, const gcstring& column);
 	static bool is_system_index(const gcstring& table, const gcstring& columns);
-	const char* fkey_source_block(int tran, Tbl* tbl, const Record& r);
+	const char* fkey_source_block(int tran, Tbl* tbl, Record r);
 	bool fkey_source_block(
-		int tran, Tbl* fktbl, const gcstring& fkcolumns, const Record& key);
-	const char* fkey_target_block(int tran, Tbl* tbl, const Record& r);
-	const char* fkey_target_block(int tran, const Idx& idx, const Record& key,
-		const Record newkey = Record());
+		int tran, Tbl* fktbl, const gcstring& fkcolumns, Record key);
+	const char* fkey_target_block(int tran, Tbl* tbl, Record r);
+	const char* fkey_target_block(
+		int tran, const Idx& idx, Record key, Record newkey = Record());
 	Mmoffset output(TblNum tblnum, Record& record);
 	Record input(Mmoffset off) {
 		return Record(mmf, off);
@@ -361,8 +361,8 @@ private:
 		int tran, const std::deque<TranAct>& acts, int ncreates, int ndeletes);
 	const Transaction* find_tran(int tran);
 	char* write_conflict(TblNum tblnum, Mmoffset a, TranDelete* p);
-	char* read_conflict(const Transaction* t, int tblnum, const Record& from,
-		const Record& to, const char* index, const Record& key, ActType type);
+	char* read_conflict(const Transaction* t, int tblnum, Record from,
+		Record to, const char* index, Record key, ActType type);
 
 	Tables* tables;
 	// used by get_table
@@ -387,7 +387,7 @@ private:
 };
 
 short* comma_to_nums(const Lisp<Col>& cols, const gcstring& str);
-Record project(const Record& r, short* cols, Mmoffset adr = 0);
+Record project(Record r, short* cols, Mmoffset adr = 0);
 
 enum { END = -1 }; // for column numbers
 

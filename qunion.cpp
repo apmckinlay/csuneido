@@ -185,7 +185,7 @@ Lisp<Fixed> Union::fixed() const {
 	return fix;
 }
 
-void Union::select(const Fields& index, const Record& from, const Record& to) {
+void Union::select(const Fields& index, Record from, Record to) {
 	sel.org = from;
 	sel.end = to;
 	rewound = true;
@@ -292,8 +292,7 @@ Row Union::get(Dir dir) {
 
 // needed for ordering when key1 == key2 but row1 != row2
 // NOTE: assumes row1 != row2 (this must be checked elsewhere)
-bool Union::before(
-	Dir dir, const Record& key1, int src1, const Record& key2, int src2) {
+bool Union::before(Dir dir, Record key1, int src1, Record key2, int src2) {
 	if (key1 != key2)
 		return dir == NEXT ? key1 < key2 : key1 > key2;
 	else

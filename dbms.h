@@ -29,7 +29,7 @@ public:
 	virtual Row get(Dir dir) = 0;
 	virtual void rewind() = 0;
 	virtual const char* explain() = 0;
-	virtual bool output(const Record& rec) = 0;
+	virtual bool output(Record rec) = 0;
 	virtual void set_transaction(int tn) = 0;
 	virtual void close() = 0;
 };

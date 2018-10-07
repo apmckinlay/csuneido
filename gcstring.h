@@ -88,8 +88,6 @@ public:
 	bool has_prefix(const gcstring& s, int pos = 0) const;
 	bool has_suffix(const gcstring& s) const;
 
-	gcstring to_heap();
-
 	gcstring capitalize() const;
 	gcstring uncapitalize() const;
 

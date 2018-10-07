@@ -289,7 +289,7 @@ void Table::set_index(const Fields& index) {
 	rewound = true;
 }
 
-void Table::select(const Fields& index, const Record& from, const Record& to) {
+void Table::select(const Fields& index, Record from, Record to) {
 	if (!prefix(idxflds, index))
 		except_err(this << " invalid select: " << index << " " << from << " to "
 						<< to);
@@ -346,7 +346,7 @@ Row Table::get(Dir dir) {
 	return row;
 }
 
-bool Table::output(const Record& r) {
+bool Table::output(Record r) {
 	verify(tran != INT_MAX);
 	Record r2(r);
 	if (tbl->num > TN_VIEWS && r.size() > tbl->nextfield) {

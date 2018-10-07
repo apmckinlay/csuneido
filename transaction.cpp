@@ -306,9 +306,8 @@ bool Database::validate_reads(Transaction* t) {
 	return true;
 }
 
-char* Database::read_conflict(const Transaction* t, int tblnum,
-	const Record& from, const Record& to, const char* index, const Record& key,
-	ActType type) {
+char* Database::read_conflict(const Transaction* t, int tblnum, Record from,
+	Record to, const char* index, Record key, ActType type) {
 	OstreamStr os;
 	os << "read conflict with";
 	if (t->session_id && *t->session_id)
