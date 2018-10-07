@@ -370,8 +370,10 @@ char* Dnum::tostr(char* buf, int len) const {
 		return strcpy(dst, "0");
 	if (sign < 0)
 		*dst++ = '-';
-	if (isInf())
-		return strcpy(dst, "inf");
+	if (isInf()) {
+		strcpy(dst, "inf");
+		return buf;
+	}
 
 	char digits[17];
 	int ndigits = getdigits(digits);
