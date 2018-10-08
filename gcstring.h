@@ -92,6 +92,8 @@ public:
 	gcstring capitalize() const;
 	gcstring uncapitalize() const;
 
+	gcstring tolower() const;
+
 	void instantiate();
 
 private:

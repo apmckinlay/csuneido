@@ -797,11 +797,7 @@ Value SuString::Lower(short nargs, short nargnames, short* argnames, int each) {
 }
 
 SuString* SuString::tolower() const {
-	char* buf = salloc(size());
-	char* dst = buf;
-	for (auto c : s)
-		*dst++ = ::tolower((unsigned int) c);
-	return SuString::noalloc(buf, size());
+	return new SuString(s.tolower());
 }
 
 Value SuString::Upperq(

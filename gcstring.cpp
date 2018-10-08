@@ -234,7 +234,7 @@ gcstring gcstring::capitalize() const {
 	char* buf = salloc(size());
 	memcpy(buf, ptr(), size());
 	*buf = toupper(*buf);
-	return gcstring(buf, size());
+	return gcstring::noalloc(buf, size());
 }
 
 gcstring gcstring::uncapitalize() const {
@@ -242,8 +242,19 @@ gcstring gcstring::uncapitalize() const {
 		return *this;
 	char* buf = salloc(size());
 	memcpy(buf, ptr(), size());
-	*buf = tolower(*buf);
-	return gcstring(buf, size());
+	*buf = ::tolower(*buf);
+	return gcstring::noalloc(buf, size());
+}
+
+// return a lower case version of a string
+gcstring gcstring::tolower() const {
+	if (size() == 0)
+		return *this;
+	char* buf = salloc(size());
+	memcpy(buf, ptr(), size());
+	for (int i = 0; i < size(); ++i)
+		buf[i] = ::tolower(buf[i]);
+	return gcstring::noalloc(buf, size());
 }
 
 // allocate noptrs memory, allowing an extra byte for terminating nul
