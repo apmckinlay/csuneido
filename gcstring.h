@@ -71,7 +71,7 @@ public:
 
 	int find(char c, int pos = 0) const;
 	int find(const gcstring& x, int pos = 0) const;
-	int findlast(const gcstring& x, int pos = 0) const;
+	int findlast(const gcstring& x, int pos = INT_MAX) const;
 	int find(const char* s, int pos = 0) const {
 		return find(gcstring(strlen(s), s), pos);
 	}
