@@ -150,6 +150,11 @@ int gcstring::findlast(const gcstring& x, int pos) const {
 	return -1;
 }
 
+gcstring gcstring::beforeLast(const gcstring& s) const {
+	int i = findlast(s);
+	return i == -1 ? *this : substr(0, i);
+}
+
 bool gcstring::has_prefix(const gcstring& x, int pos) const {
 	if (pos + x.size() > size())
 		return false;
@@ -340,4 +345,13 @@ TEST(gcstring_capitalize) {
 	assert_eq(s.uncapitalize(), "hello");
 	assert_eq(s.capitalize(), "Hello");
 	assert_eq(s[0], 'h');
+}
+
+TEST(gcstring_beforeLast) {
+	gcstring s;
+	assert_eq(s.beforeLast("x"), "");
+	s = "one_two_three";
+	assert_eq(s.beforeLast("_"), "one_two");
+	s = "name_lower!";
+	assert_eq(s.beforeLast("_lower!"), "name");
 }

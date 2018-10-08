@@ -81,6 +81,7 @@ public:
 	bool has(const gcstring& s) const {
 		return -1 != find(s);
 	}
+	gcstring beforeLast(const gcstring& s) const;
 
 	gcstring substr(size_t i, int len = -1) const;
 	gcstring trim() const;
