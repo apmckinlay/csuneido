@@ -326,30 +326,30 @@ static Value print() {
 }
 
 static void repl() {
+	con();
 	auto pid = GetParentProcessId();
 	AttachConsole(pid); // need to use start/w
-	static OstreamCon con;
 	globals["Suneido"].putdata(
 		"Print", new BuiltinFunc("PrintCon", "(string)", print));
 	HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
-	con << "Built:  " << build << endl;
+	con() << "Built:  " << build << endl;
 	run("Init.Repl()");
 	int fd = _open_osfhandle(reinterpret_cast<intptr_t>(in), _O_TEXT);
 	FILE* fin = _fdopen(fd, "r");
 	verify(fin);
 	char buf[1024];
-	con << "> ";
+	con() << "> ";
 	while (fgets(buf, sizeof buf, fin)) {
 		if (buf[0] == 'q' && buf[1] == '\n')
 			break;
 		try {
 			Value x = run(buf);
 			if (x)
-				con << x << endl;
+				con() << x << endl;
 		} catch (Except& e) {
-			con << e << endl;
-			con << e.callstack() << endl;
+			con() << e << endl;
+			con() << e.callstack() << endl;
 		}
-		con << "> ";
+		con() << "> ";
 	}
 }
