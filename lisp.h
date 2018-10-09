@@ -178,6 +178,8 @@ public:
 				return true;
 		return false;
 	}
+	// mutates existing cons cells into reverse order
+	// whereas reverse(list) makes a copy in reverse order
 	Lisp& reverse() {
 		Cons* prev = 0;
 		for (Cons* p = first; p;) {
