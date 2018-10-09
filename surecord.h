@@ -3,13 +3,13 @@
 // Licensed under GPLv2
 
 #include "suobject.h"
-#include "lisp.h"
 #include "row.h"
 #include "hashmap.h"
 #include "list.h"
 
 class SuTransaction;
 class Record;
+template<typename T> class Lisp;
 
 struct Observe {
 	Value fn;
@@ -70,10 +70,10 @@ private:
 	Mmoffset recadr = 0;
 	enum { NEW, OLD, DELETED } status = NEW;
 	List<Value> observers;
-	HashMap<short, Lisp<short> > dependents;
+	HashMap<short, List<short>> dependents;
 	HashMap<short, bool> invalid;
 	ListSet<short> invalidated;
-	Lisp<Value> active_rules;
+	List<Value> active_rules;
 	List<Observe> active_observers;
 	HashMap<short, Value> attached_rules;
 };

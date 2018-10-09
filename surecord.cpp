@@ -97,9 +97,9 @@ void SuRecord::dependencies(short mem, gcstring s) {
 		int i = s.find(',');
 		gcstring t = s.substr(0, i).trim();
 		short m = ::symnum(t.str());
-		Lisp<short>& d = dependents[m];
-		if (!d.member(mem))
-			d.push(mem);
+		auto& ds = dependents[m];
+		if (!ds.has(mem))
+			ds.push(mem);
 		if (i == -1)
 			break;
 		s = s.substr(i + 1);
@@ -119,13 +119,13 @@ Record SuRecord::to_record(const Header& h) {
 		if (*f != -1)
 			getdata(symbol(*f));
 	// - invert stored dependencies
-	typedef HashMap<short, Lisp<short> > Deps;
+	typedef HashMap<short, List<short>> Deps;
 	Deps deps;
-	for (auto it = dependents.begin(); it != dependents.end(); ++it) {
-		for (Lisp<short> m = it->val; !nil(m); ++m) {
-			short d = depsname(*m);
-			if (fldsyms.member(d))
-				deps[d].push(it->key);
+	for (auto& entry : dependents) {
+		for (short d : entry.val) {
+			short dn = depsname(d);
+			if (fldsyms.member(dn))
+				deps[dn].push(entry.key);
 		}
 	}
 
@@ -138,13 +138,13 @@ Record SuRecord::to_record(const Header& h) {
 			rec.addnil();
 		else if (*f == ts)
 			rec.addval(tsval = dbms()->timestamp());
-		else if (Lisp<short>* pd = deps.find(*f)) {
+		else if (List<short>* pd = deps.find(*f)) {
 			// output dependencies
 			oss.clear();
-			for (Lisp<short> d = *pd; !nil(d);) {
-				oss << symstr(*d);
-				if (!nil(++d))
-					oss << ",";
+			auto sep = "";
+			for (short d : *pd) {
+				oss << sep << symstr(d);
+				sep = ",";
 			}
 			rec.addval(oss.str());
 		} else if (Value x = getdata(symbol(*f)))
@@ -242,13 +242,12 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames,
 			except("usage: record.GetDeps(field)");
 		int mem = ARG(0).symnum();
 		gcstring deps;
-		for (auto it = dependents.begin(); it != dependents.end(); ++it) {
-			for (Lisp<short> m = it->val; !nil(m); ++m)
-				if (*m == mem) {
+		for (auto& entry : dependents)
+			for (short d : entry.val)
+				if (d == mem) {
 					deps += ",";
-					deps += symstr(it->key);
+					deps += symstr(entry.key);
 				}
-		}
 		return new SuString(deps.substr(1));
 	} else if (member == SetDeps) {
 		if (nargs != 2)
@@ -349,13 +348,13 @@ void SuRecord::call_observers(short i, const char* why) {
 
 void SuRecord::invalidate_dependents(short mem) {
 	RTRACE("invalidate dependents of " << symstr(mem));
-	for (Lisp<short> m = dependents[mem]; !nil(m); ++m)
-		invalidate(*m);
+	for (short d : dependents[mem])
+		invalidate(d);
 }
 
 void SuRecord::invalidate(short mem) {
-	// TODO maybe clear dependencies? (would give a way to safely clear
-	// dependencies)
+	// TODO maybe clear dependencies?
+	// (would give a way to safely clear dependencies)
 	RTRACE("invalidate " << symstr(mem));
 	bool was_valid = !invalid.find(mem);
 	invalidated.add(mem); // for observers
@@ -428,10 +427,10 @@ Value SuRecord::get_if_special(short i) {
 }
 
 void SuRecord::add_dependent(short src, short dst) {
-	Lisp<short>& list = dependents[dst];
-	if (!member(list, src)) {
+	auto& list = dependents[dst];
+	if (!list.has(src)) {
 		RTRACE("add dependency for " << symstr(src) << " uses " << symstr(dst));
-		list.push(src);
+		list.add(src);
 	}
 }
 
@@ -442,7 +441,7 @@ public:
 		r->active_rules.push(rule);
 	}
 	static bool has(SuRecord* r, Value rule) {
-		return r->active_rules.member(rule);
+		return r->active_rules.has(rule);
 	}
 	~TrackRule() {
 		rec->active_rules.pop();

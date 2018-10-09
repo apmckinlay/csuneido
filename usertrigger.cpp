@@ -12,7 +12,7 @@
 
 extern bool is_client;
 
-static Lisp<int> disabled_triggers;
+static List<int> disabled_triggers;
 
 void Tbl::user_trigger(int tran, Record oldrec, Record newrec) {
 	if (tran == schema_tran)
@@ -36,7 +36,7 @@ void Tbl::user_trigger(int tran, Record oldrec, Record newrec) {
 		if (!fn)
 			return;
 	}
-	if (member(disabled_triggers, trigger))
+	if (disabled_triggers.has(trigger))
 		return;
 	KEEPSP
 	SuTransaction* t = new SuTransaction(tran);
@@ -58,8 +58,7 @@ struct DisabledTriggers {
 		++n;
 	}
 	~DisabledTriggers() {
-		while (n-- > 0)
-			disabled_triggers.pop();
+		disabled_triggers.popn(n);
 	}
 	int n;
 };

@@ -94,10 +94,14 @@ public:
 	}
 	// removes the last element
 	void pop() {
+		popn(1);
+	}
+	// removes the last n element
+	void popn(int n) {
 		verify(!readonly());
-		verify(siz > 0);
-		--siz;
-		memset(data + siz, 0, sizeof(T)); // for garbage collection
+		verify(siz >= n);
+		siz -= n;
+		memset(data + siz, 0, n * sizeof(T)); // for garbage collection
 	}
 	// SLOW O(N)
 	T popfront() {
@@ -179,8 +183,8 @@ public:
 
 private:
 	void grow() {
-		if (cap < 8)
-			cap = 8;
+		if (cap < 4)
+			cap = 4;
 		else if (cap < MAXCAP / 2)
 			cap = 2 * cap;
 		else if (cap < MAXCAP)

@@ -861,13 +861,12 @@ public:
 		stack.pop();
 	}
 	static bool has(const SuObject* ob) {
-		return member(stack, ob);
+		return stack.has(ob);
 	}
 
 private:
-	static Lisp<const SuObject*> stack;
+	inline static List<const SuObject*> stack;
 };
-Lisp<const SuObject*> Track::stack;
 
 void SuObject::out(Ostream& os) const {
 	outdelims(os, "()");
