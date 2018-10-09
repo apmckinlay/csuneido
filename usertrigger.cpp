@@ -28,9 +28,7 @@ void Tbl::user_trigger(int tran, Record oldrec, Record newrec) {
 			trigger = -1;
 			return;
 		}
-		for (Fields f = get_fields(); !nil(f); ++f)
-			flds.push(*f == "-" ? -1 : symnum(f->str()));
-		flds.reverse();
+		flds = get_fields();
 	} else {
 		fn = globals.find(trigger);
 		if (!fn)

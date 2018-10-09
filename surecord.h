@@ -9,7 +9,6 @@
 
 class SuTransaction;
 class Record;
-template<typename T> class Lisp;
 
 struct Observe {
 	Value fn;
@@ -24,7 +23,7 @@ public:
 	explicit SuRecord(SuObject* ob);
 	SuRecord(const Row& r, const Header& hdr, int t);
 	SuRecord(const Row& r, const Header& hdr, SuTransaction* t = 0);
-	SuRecord(Record rec, const Lisp<int>& flds, SuTransaction* t);
+	SuRecord(Record rec, const Lisp<gcstring>& flds, SuTransaction* t);
 
 	void out(Ostream& os) const override;
 	Value call(Value self, Value member, short nargs, short nargnames,

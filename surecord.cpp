@@ -58,13 +58,13 @@ void SuRecord::init(const Row& dbrow) {
 	}
 }
 
-SuRecord::SuRecord(Record rec, const Lisp<int>& fldsyms, SuTransaction* t)
+SuRecord::SuRecord(Record rec, const Lisp<gcstring>& flds, SuTransaction* t)
 	: trans(t), recadr(0), status(OLD) {
 	defval = SuEmptyString;
 	int i = 0;
-	for (Lisp<int> f = fldsyms; !nil(f); ++f, ++i)
-		if (*f != -1)
-			addfield(symstr(*f), rec.getraw(i));
+	for (auto f = flds; !nil(f); ++f, ++i)
+		if (*f != "-")
+			addfield(f->str(), rec.getraw(i));
 }
 
 static short basename(const char* field) {

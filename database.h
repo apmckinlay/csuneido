@@ -118,7 +118,7 @@ struct Tbl {
 	int nrecords;
 	int totalsize;
 	int trigger;
-	Lisp<int> flds; // for user defined triggers
+	Lisp<gcstring> flds; // for user defined triggers
 };
 
 typedef int TranTime;
