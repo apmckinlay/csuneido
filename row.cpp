@@ -65,6 +65,7 @@ Fields Header::rules() const {
 }
 
 // fields are the columns that ARE in the fields
+// WARNING: may return actual data, do not mutate!
 Fields Header::fields() const {
 	// NOTE: this includes deleted fields - important for output
 	if (size() == 1)
@@ -84,7 +85,8 @@ Fields Header::fields() const {
 
 // schema is all the columns with the rules capitalized
 Fields Header::schema() const {
-	Fields schema = fields();
+	// need copy since append mutates and fields() may return actual data
+	Fields schema = fields().copy();
 	for (Fields c = cols; !nil(c); ++c)
 		if (!inflds(flds, *c))
 			schema.append(c->capitalize());

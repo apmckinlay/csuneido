@@ -84,6 +84,7 @@ public:
 		if (first)
 			first = first->next;
 	}
+	// WARNING: append mutates the tail of the list, it's not functional
 	Lisp& append(const T& t) {
 		if (!first)
 			first = _cons(t);
@@ -209,15 +210,6 @@ public:
 		sort();
 		x.sort();
 		merge(x);
-		return *this;
-	}
-	Lisp& insert(const T& x) { // insert in order
-		Cons* p = first;
-		Cons** pp = &first;
-		for (; p; pp = &p->next, p = p->next)
-			if (x < p->value)
-				break;
-		*pp = _cons(x, p);
 		return *this;
 	}
 	Lisp copy() const {
@@ -360,7 +352,7 @@ Lisp<T1> find(Lisp<T1> list, const T2& t) {
 	return list;
 }
 
-// return a list with all occurrences of a value removed
+// return a copy of the list with all occurrences of a value removed
 template <class T>
 Lisp<T> erase(Lisp<T> list, const T& t) {
 	Lisp<T> result;
