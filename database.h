@@ -104,6 +104,8 @@ struct Idx {
 struct Tbl {
 	Tbl(Record r, const Lisp<Col>& c, const Lisp<Idx>& i);
 	void update();
+	int colNum(const gcstring& col);
+	int specialFieldNum(const gcstring& col);
 	Lisp<gcstring> get_fields();
 	void user_trigger(int tran, Record oldrec, Record newrec);
 
@@ -392,3 +394,5 @@ Record project(Record r, short* cols, Mmoffset adr = 0);
 enum { END = -1 }; // for column numbers
 
 const int schema_tran = 0;
+
+bool isSpecialField(const gcstring& col);

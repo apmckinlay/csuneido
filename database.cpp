@@ -17,6 +17,7 @@
 #include "checksum.h"
 #include "value.h"
 #include "fibers.h" // for yieldif for create_indexes
+#include "sustring.h"
 
 const int DB_VERSION =
 	1; // increment this for non-compatible database format changes
@@ -37,6 +38,22 @@ void Tbl::update() {
 	rec.addval(nextfield);
 	rec.addval(nrecords);
 	rec.addval(totalsize);
+}
+
+// return the colnum for a column name, throws if not found
+int Tbl::colNum(const gcstring& col) {
+	for (auto c = cols; !nil(c); ++c)
+		if (c->column == col)
+			return c->colnum;
+	except("nonexistent column: " << col);
+}
+
+// returns the number (negative) for a special (e.g. _lower!) field
+// throws if base field not found
+int Tbl::specialFieldNum(const gcstring& col) {
+	gcstring base = col.beforeLast("_");
+	int fld = colNum(base);
+	return -fld - 2; // offset by 2 because 0 and -1 are taken
 }
 
 // Idx ==============================================================
@@ -62,8 +79,8 @@ Idx::Idx(const gcstring& table, Record r, const gcstring& c, short* n, Index* i,
 		verify(ri.getstr(I_FKTABLE) == table);
 		verify(ri.getstr(I_FKCOLUMNS) == columns);
 		gcstring table2 = db->get_table(ri.getint(I_TBLNUM))->name;
-		fkdsts.push(Fkey(table2, ri.getstr(I_COLUMNS),
-			(Fkmode) ri.getint(I_FKMODE)));
+		fkdsts.push(
+			Fkey(table2, ri.getstr(I_COLUMNS), (Fkmode) ri.getint(I_FKMODE)));
 	}
 }
 
@@ -180,12 +197,20 @@ void Database::add_table(const gcstring& table) {
 	table_create_act(tblnum);
 }
 
+bool isRuleField(const gcstring& col) {
+	return isupper(col[0]);
+}
+
+bool isSpecialField(const gcstring& col) {
+	return col.has_suffix("_lower!");
+}
+
 void Database::add_column(const gcstring& table, const gcstring& col) {
-	if (col.has_suffix("_lower!"))
-		return;
 	Tbl* tbl = ck_get_table(table);
 
-	int fldnum = isupper(col[0]) ? -1 : tbl->nextfield;
+	int fldnum = isRuleField(col)
+		? -1
+		: isSpecialField(col) ? tbl->specialFieldNum(col) : tbl->nextfield;
 	if (col != "-") { // addition of deleted field used by dump/load
 		gcstring column(col.uncapitalize());
 		for (Lisp<Col> cols = tbl->cols; !nil(cols); ++cols)
@@ -205,9 +230,6 @@ void Database::add_column(const gcstring& table, const gcstring& col) {
 void Database::add_index(const gcstring& table, const gcstring& columns,
 	bool iskey, const gcstring& fktable, const gcstring& fkcolumns,
 	Fkmode fkmode, bool unique) {
-	for (auto cols = commas_to_list(columns); !nil(cols); ++cols)
-		if (cols->has_suffix("_lower!"))
-			return;
 	Tbl* tbl = ck_get_table(table);
 	short* colnums = comma_to_nums(tbl->cols, columns);
 	if (!colnums)
@@ -816,7 +838,9 @@ Lisp<gcstring> Database::get_rules(const gcstring& table) {
 	if (!tbl)
 		return list;
 	for (Lisp<Col> cols = tbl->cols; !nil(cols); ++cols)
-		if (cols->colnum < 0)
+		if (cols->colnum == -1) // rule
+			list.push(cols->column.capitalize());
+		else if (cols->colnum < -1) // special derived e.g. _lower!
 			list.push(cols->column);
 	return list.reverse();
 }
@@ -1142,7 +1166,7 @@ void Database::schema_out(Ostream& os, const gcstring& table) {
 		if (*f != "-")
 			os << (n++ ? "," : "") << *f;
 	for (f = get_rules(table); !nil(f); ++f)
-		os << (n++ ? "," : "") << f->capitalize();
+		os << (n++ ? "," : "") << *f;
 	os << ")";
 
 	// indexes
@@ -1166,11 +1190,23 @@ void Database::schema_out(Ostream& os, const gcstring& table) {
 
 Record project(Record r, short* cols, Mmoffset adr) {
 	Record x;
-	for (int i = 0; cols[i] != END; ++i)
-		if (cols[i] < r.size())
-			x.addraw(r.getraw(cols[i]));
-		else
+	for (int i = 0; cols[i] != END; ++i) {
+		int c = cols[i];
+		if (c < 0)
+			c = -c - 2;
+		if (c < r.size()) {
+			if (cols[i] >= 0)
+				x.addraw(r.getraw(c));
+			else {
+				Value val = r.getval(c);
+				if (auto s = val_cast<SuString*>(val))
+					x.addval(s->tolower());
+				else
+					x.addraw(r.getraw(c));
+			}
+		} else
 			x.addnil();
+	}
 	if (adr)
 		// need to add record address because even unique indexes
 		// will have duplicates because of keeping old versions
@@ -1413,7 +1449,7 @@ TEST(database_rules) {
 		thedb->get_fields(table), lisp(gcstring("one"), gcstring("three")));
 	assert_eq(thedb->get_columns(table),
 		lisp(gcstring("two"), gcstring("one"), gcstring("three")));
-	assert_eq(thedb->get_rules(table), lisp(gcstring("two")));
+	assert_eq(thedb->get_rules(table), lisp(gcstring("Two")));
 	Record r;
 	r.addval("one");
 	r.addval(3);

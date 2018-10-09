@@ -14,6 +14,7 @@
 #include "cmdlineoptions.h"
 #include "build.h"
 #include "tr.h"
+#include "database.h"
 
 // the client side of the *binary* client-server protocol
 
@@ -304,7 +305,7 @@ Header DbmsRemote::getHeader() {
 		gcstring s = io.getStr();
 		if (isupper(s[0]))
 			s = s.uncapitalize();
-		else
+		else if (!isSpecialField(s))
 			fields.push(s);
 		if (s != "-")
 			cols.push(s);

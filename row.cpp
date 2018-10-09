@@ -4,6 +4,7 @@
 #include "row.h"
 #include "symbols.h"
 #include <cctype>
+#include "ostreamcon.h"
 
 // Header ===========================================================
 
@@ -48,23 +49,12 @@ Header Header::rename(const Fields& from, const Fields& to) const {
 	return Header(newhdr.reverse(), newcols.reverse());
 }
 
-bool inflds(const Lisp<Fields>& flds, const gcstring& field) {
-	for (Lisp<Fields> f = flds; !nil(f); ++f)
-		if (f->member(field))
-			return true;
-	return false;
-}
-
-// rules are the columns that are NOT in the fields
+// returns the cols that are NOT in the fields
+// used by query.RuleColumns
 Fields Header::rules() const {
-	Fields rules;
-	for (Fields c = cols; !nil(c); ++c)
-		if (!inflds(flds, *c))
-			rules.push(*c);
-	return rules;
+	return difference(cols, fields());
 }
 
-// fields are the columns that ARE in the fields
 // WARNING: may return actual data, do not mutate!
 Fields Header::fields() const {
 	// NOTE: this includes deleted fields - important for output
@@ -83,13 +73,16 @@ Fields Header::fields() const {
 	return fields.reverse();
 }
 
-// schema is all the columns with the rules capitalized
+bool isSpecialField(const gcstring& col);
+
+// returns the fields plus the rules (capitalized) and _lower!
+// used by dbserver to send header to client
 Fields Header::schema() const {
 	// need copy since append mutates and fields() may return actual data
 	Fields schema = fields().copy();
 	for (Fields c = cols; !nil(c); ++c)
-		if (!inflds(flds, *c))
-			schema.append(c->capitalize());
+		if (!member(schema, *c))
+			schema.append(isSpecialField(*c) ? *c : c->capitalize());
 	return schema;
 }
 

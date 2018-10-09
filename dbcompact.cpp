@@ -99,7 +99,7 @@ void DbCopy::create_table(const gcstring& table) {
 			newdb.add_column(table, *f);
 	// rules
 	for (f = thedb.get_rules(table); !nil(f); ++f)
-		newdb.add_column(table, f->capitalize());
+		newdb.add_column(table, *f);
 	// indexes
 	Tbl* tbl = thedb.get_table(table);
 	for (Lisp<Idx> ix = tbl->idxs; !nil(ix); ++ix)

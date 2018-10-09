@@ -45,13 +45,15 @@ SuRecord::SuRecord(const Row& r, const Header& h, SuTransaction* t)
 	init(r);
 }
 
+bool isSpecialField(const gcstring& col);
+
 void SuRecord::init(const Row& dbrow) {
 	verify(recadr >= 0);
 	defval = SuEmptyString;
 	Row row(dbrow);
 	for (Row::iterator iter = row.begin(hdr); iter != row.end(); ++iter) {
 		std::pair<gcstring, gcstring> p = *iter;
-		if (p.first != "-")
+		if (p.first != "-" && !isSpecialField(p.first))
 			addfield(p.first.str(), p.second);
 	}
 }
