@@ -197,7 +197,7 @@ Hashtbl<Key, Val, KofV, Hfn, Keq>::Hashtbl(const Hashtbl& h) {
 		Node* node = &nodes[sz++];
 		node->next = tbl[i];
 		tbl[i] = node;
-		construct(&node->val, *p);
+		memcpy(&node->val, &*p, sizeof(Val));
 	}
 }
 
@@ -296,7 +296,7 @@ void Hashtbl<Key, Val, KofV, Hfn, Keq>::resize(int ci) {
 		Node* node = &nodes[sz++];
 		node->next = tbl[i];
 		tbl[i] = node;
-		construct(&node->val, *p);
+		memcpy(&node->val, &*p, sizeof(Val));
 	}
 	verify(size() == tmp.size());
 	tmp.clear(); // to aid garbage collection
