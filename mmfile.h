@@ -13,7 +13,6 @@ const int MM_ALIGN = 8; // must be a power of 2
 // must be big enough to allow space for types
 // e.g. align of 8 = 3 bits for type = 8 types
 const int MB_PER_CHUNK = 4;
-const int MM_MAX_CHUNKS_MAPPED = 1024 / MB_PER_CHUNK;
 
 enum MmCheck { MMOK, MMEOF, MMERR };
 
@@ -82,9 +81,8 @@ private:
 	void unmap(int chunk);
 	void set_file_size(Mmoffset fs);
 	friend void test_mmfile_chunks();
-	friend void test_mmfile_unmap();
 
-	enum { MB_MAX_DB = 16 * 1024 }; // 16 gb
+	enum { MB_MAX_DB = 2 * 1024 }; // 2 gb
 	enum { MAX_CHUNKS = MB_MAX_DB / MB_PER_CHUNK };
 #ifdef _WIN32
 	void* f{};
@@ -92,10 +90,10 @@ private:
 #else
 	int fd;
 #endif
-	int chunk_size;
-	Mmoffset file_size{};
+	int chunk_size = MB_PER_CHUNK * 1024 * 1024;
+	Mmoffset file_size = 0;
 	char* base[MAX_CHUNKS]{};
-	int hi_chunk;
+	int hi_chunk = 0;
 	int last_alloc{};
 	bool readonly;
 };

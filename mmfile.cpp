@@ -5,7 +5,6 @@
 #include "ostreamfile.h"
 #include "except.h"
 #include <algorithm>
-#include <climits>
 
 using std::min;
 
@@ -22,8 +21,7 @@ inline void Mmfile::set_file_size(Mmoffset fs) {
 	*(static_cast<Mmoffset32*>(adr(FILESIZE_OFFSET))) = fs;
 }
 
-Mmfile::Mmfile(const char* filename, bool create, bool ro)
-	: chunk_size(MB_PER_CHUNK * 1024 * 1024), hi_chunk(0), readonly(ro) {
+Mmfile::Mmfile(const char* filename, bool create, bool ro) : readonly(ro) {
 	verify((1 << MM_SHIFT) < MM_ALIGN);
 	std::fill(base, base + MAX_CHUNKS, nullptr);
 	open(filename, create, readonly);
