@@ -7,7 +7,6 @@
 #include "sustring.h"
 #include "pack.h"
 #include "sublock.h" // for persist_if_block
-#include "lisp.h"
 #include "sumethod.h"
 #include "catstr.h"
 #include "ostreamstr.h"
@@ -472,6 +471,8 @@ Value SuObject::call(Value self, Value member, short nargs, short nargnames,
 	static UserDefinedMethods udm("Objects");
 	if (Value c = udm(member))
 		return c.call(self, member, nargs, nargnames, argnames, each);
+	if (member == CALL)
+		except("can't call Object");
 	method_not_found(self.type(), member);
 }
 
