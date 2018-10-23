@@ -93,7 +93,7 @@ struct ClassContainer : public Container {
 
 class Compiler {
 public:
-	explicit Compiler(const char* s, CodeVisitor* v = 0);
+	explicit Compiler(const char* s, CodeVisitor* visitor = 0);
 	Compiler(Scanner& sc, int t, int sn) // for FunctionCompiler
 		: scanner(sc), stmtnest(sn), token(t) {
 	}
@@ -102,7 +102,7 @@ public:
 		return constant(nullptr, nullptr);
 	}
 	Value object();
-	Value suclass(const char* gname, const char* classNam);
+	Value suclass(const char* gname, const char* className);
 	Value functionCompiler(
 		short base, bool newfn, const char* gname, const char* className);
 	Value functionCompiler(const char* gname) {
@@ -453,8 +453,12 @@ void Compiler::member(
 			match();
 	} else
 		default_allowed = false;
-	if (base >= 0 && !mv)
-		syntax_error("class members must be named");
+	if (base >= 0) {
+		if (!mv)
+			syntax_error("class members must be named");
+		if (!mv.str_if_str())
+			syntax_error("class member names must be strings");
+	}
 
 	Value x;
 	if (ahead == '(' && base >= 0)
