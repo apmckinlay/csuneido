@@ -24,7 +24,9 @@ Value SuClass::get(Value m) const { // no inheritance
 }
 
 void SuClass::out(Ostream& out) const {
-	out << named.name() << " /* ";
+	if (named.name() != "")
+		out << named.name() << " ";
+	out << "/* ";
 	if (named.lib != "")
 		out << named.lib << " ";
 	out << "class";

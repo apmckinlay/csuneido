@@ -3414,36 +3414,36 @@ d();  } }\n\
 
 	{"class { };", "class { }; }\n\
 					  0  nop \n\
-					  1  push literal  /* class */\n\
+					  1  push literal /* class */\n\
 					  2  return \n\
 					  3\n"},
 
 	{"class : X { };", "class : X { }; }\n\
 					  0  nop \n\
-					  1  push literal  /* class : X */\n\
+					  1  push literal /* class : X */\n\
 					  2  return \n\
 					  3\n"},
 
 	{"class { a: 1 };", "class { a: 1 }; }\n\
 					  0  nop \n\
-					  1  push literal  /* class */\n\
+					  1  push literal /* class */\n\
 					  2  return \n\
 					  3\n"},
 	{"class { a: 1, b: 2 };", "class { a: 1, b: 2 }; }\n\
 					  0  nop \n\
-					  1  push literal  /* class */\n\
+					  1  push literal /* class */\n\
 					  2  return \n\
 					  3\n"},
 
 	{"class { a: 1; b: 2; };", "class { a: 1; b: 2; }; }\n\
 					  0  nop \n\
-					  1  push literal  /* class */\n\
+					  1  push literal /* class */\n\
 					  2  return \n\
 					  3\n"},
 
 	{"class { a: 1, b: 2, c: 3 };", "class { a: 1, b: 2, c: 3 }; }\n\
 					  0  nop \n\
-					  1  push literal  /* class */\n\
+					  1  push literal /* class */\n\
 					  2  return \n\
 					  3\n"},
 
@@ -3640,7 +3640,7 @@ PORTTEST(compile) {
 			return OSTR("got: " << x.type());
 		auto result = OSTR(x);
 		if (expected != result)
-			return OSTR("got: " << result);
+			return OSTR("got: '" << result << "'");
 	} catch (Except& e) {
 		if (type != "Exception" || !e.gcstr().has(expected))
 			return e.str();
