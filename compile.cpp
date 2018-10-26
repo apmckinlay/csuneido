@@ -797,6 +797,9 @@ void FunctionCompiler::params(vector<char>& flags) {
 		for (nparams = ndefaults = 0; token != ')'; ++nparams) {
 			flags.push_back(0);
 			if (token == '.') {
+				if (!className)
+					syntax_error(
+						"dot parameters only allowed in class methods");
 				match();
 				flags[nparams] |= DOT;
 				fn->className = dupstr(className); // needed to privatize
