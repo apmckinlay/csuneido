@@ -873,16 +873,6 @@ void SuObject::out(Ostream& os) const {
 	outdelims(os, "()");
 }
 
-bool obout_inkey = false;
-struct ObOutInKey {
-	ObOutInKey() {
-		obout_inkey = true;
-	}
-	~ObOutInKey() {
-		obout_inkey = false;
-	}
-};
-
 void SuObject::outdelims(Ostream& os, const char* delims) const {
 	if (Track::has(this)) {
 		os << "...";
@@ -907,8 +897,31 @@ void SuObject::outdelims(Ostream& os, const char* delims) const {
 		if (it->val != SuTrue)
 			os << ' ' << it->val;
 	}
-
 	os << delims[1];
+}
+
+void SuObject::show(Ostream& os, const char* open, const char* close) const {
+	os << open;
+	auto sep = "";
+	for (int i = 0; i < vec.size(); ++i, sep = ", ")
+		os << sep << vec[i];
+
+	List<Value> keys;
+	for (auto& it : map)
+		keys.add(it.key);
+	std::sort(keys.begin(), keys.end());
+	for (auto k : keys) {
+		os << sep;
+		sep = ", ";
+		{
+			ObOutInKey ooik; // adjust output of keys
+			os << k;
+		}
+		os << ':';
+		if (auto v = map[k]; v != SuTrue)
+			os << ' ' << v;
+	}
+	os << close;
 }
 
 SuObject* SuObject::slice(size_t offset) {

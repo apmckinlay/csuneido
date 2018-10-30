@@ -16,12 +16,12 @@
 Value Func::call(Value self, Value member, short nargs, short nargnames,
 	short* argnames, int each) {
 	if (member == PARAMS)
-		return params();
+		return new SuString(params());
 	else
 		method_not_found("Function", member);
 }
 
-Value Func::params() {
+char* Func::params() const {
 	OstreamStr out;
 	out << "(";
 	short j = 0;
@@ -37,7 +37,7 @@ Value Func::params() {
 			out << "=" << literals[j++];
 	}
 	out << ")";
-	return new SuString(out.str());
+	return out.str();
 }
 
 void Func::args(short nargs, short nargnames, short* argnames, int each) {
@@ -165,7 +165,10 @@ void argseach(short& nargs, short& nargnames, short*& argnames, int& each) {
 }
 
 void Func::out(Ostream& out) const {
-	out << named.name() << " /* ";
+	auto name = named.name();
+	if (name.size())
+		out << name << " ";
+	out << "/* ";
 	gcstring lib = named.library();
 	if (lib != "")
 		out << lib << " ";
@@ -173,6 +176,10 @@ void Func::out(Ostream& out) const {
 		out << "method */";
 	else
 		out << "function */";
+}
+
+void Func::show(Ostream& os) const {
+	os << "function" << params();
 }
 
 #include "globals.h"

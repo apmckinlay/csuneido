@@ -26,10 +26,9 @@ public:
 	bool isMethod = false;
 
 	void out(Ostream& out) const override;
+	void show(Ostream& os) const;
 	void args(short nargs, short nargnames, short* argnames, int each);
-
-private:
-	Value params();
+	char* params() const;
 };
 
 // abstract base class for built-in functions

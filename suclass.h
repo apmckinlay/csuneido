@@ -16,6 +16,7 @@ public:
 	explicit SuClass(short b) : named("."), base(b) {
 	}
 	void out(Ostream&) const override;
+	void show(Ostream& out) const override;
 	Value call(Value self, Value member, short nargs, short nargnames,
 		short* argnames, int each) override;
 	Value getdata(Value) override;

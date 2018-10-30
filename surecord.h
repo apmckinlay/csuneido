@@ -26,6 +26,9 @@ public:
 	SuRecord(Record rec, const Lisp<gcstring>& flds, SuTransaction* t);
 
 	void out(Ostream& os) const override;
+	void show(Ostream& os) const override {
+		SuObject::show(os, "[", "]");
+	}
 	Value call(Value self, Value member, short nargs, short nargnames,
 		short* argnames, int each) override;
 

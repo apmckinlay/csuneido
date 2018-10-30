@@ -97,6 +97,12 @@ public:
 	const char* str() const {
 		return VAL->gcstr().str();
 	}
+	// show is similar to out
+	// but includes members (sorted) of class and object
+	// and params of functions
+	void show(Ostream& os) {
+		VAL->show(os);
+	}
 
 	SuObject* object() const {
 		return VAL->object();
@@ -221,4 +227,18 @@ public:
 
 private:
 	uint16_t gnum;
+};
+
+// Show is a wrapper so ostream << uses show instead of out
+class Show {
+public:
+	Show(Value x) : val(x) {
+	}
+	friend Ostream& operator<<(Ostream& os, Show x) {
+		x.val.show(os);
+		return os;
+	}
+
+private:
+	Value val;
 };

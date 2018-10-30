@@ -23,6 +23,10 @@ public:
 
 	void out(Ostream& os) const override;
 	void outdelims(Ostream& os, const char* delims) const;
+	void show(Ostream& os) const override {
+		show(os, "#(", ")");
+	}
+	void show(Ostream& os, const char* open, const char* close) const;
 	Value call(Value self, Value member, short nargs, short nargnames,
 		short* argnames, int each) override;
 	void putdata(Value m, Value x) override;
@@ -163,3 +167,14 @@ private:
 };
 
 Value su_object();
+
+inline bool obout_inkey = false;
+
+struct ObOutInKey {
+	ObOutInKey() {
+		obout_inkey = true;
+	}
+	~ObOutInKey() {
+		obout_inkey = false;
+	}
+};

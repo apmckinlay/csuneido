@@ -280,7 +280,7 @@ int Scanner::nextall() {
 				return T_RANGELEN;
 			} else
 				return ':';
-		case '_':
+		case '_': {
 			while (ID == cclass(source[si]) || DIG == cclass(source[si]))
 				++si;
 			if (source[si] == '?' || source[si] == '!')
@@ -288,14 +288,13 @@ int Scanner::nextall() {
 			buf.clear().add(source + prev, si - prev);
 			value = buf.str();
 			len = buf.size();
-			keyword = keywords(value);
-			if (source[si] != ':' ||
-				!(keyword == I_IS || keyword == I_ISNT || keyword == T_AND ||
-					keyword == T_OR || keyword == I_NOT)) {
-				if (keyword && keyword < KEYWORDS)
-					return keyword;
-			}
-			return T_IDENTIFIER;
+			int k = keywords(value);
+			if (source[si] == ':' &&
+				!(k == K_DEFAULT || k == K_TRUE || k == K_FALSE))
+				return T_IDENTIFIER;
+			keyword = k;
+			return (keyword && keyword < KEYWORDS) ? keyword : T_IDENTIFIER;
+		}
 		case '9':
 			buf.clear();
 			if (source[si] == '0' && tolower(source[si + 1]) == 'x') {

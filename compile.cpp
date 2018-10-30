@@ -53,7 +53,7 @@ T* dup(const vector<T>& x, NoPtrs) {
 }
 
 struct Container {
-	virtual Value get(Value m) = 0;
+	virtual bool has(Value m) = 0;
 	virtual void add(Value m) {
 		unreachable();
 	}
@@ -66,8 +66,8 @@ struct ObjectContainer : public Container {
 	SuObject* ob;
 	ObjectContainer(SuObject* o) : ob(o) {
 	}
-	Value get(Value m) override {
-		return ob->get(m);
+	bool has(Value m) override {
+		return ob->has(m);
 	}
 	void add(Value m) override {
 		ob->add(m);
@@ -80,8 +80,8 @@ struct ClassContainer : public Container {
 	SuClass* c;
 	ClassContainer(SuClass* c_) : c(c_) {
 	}
-	Value get(Value m) override {
-		return c->get(m);
+	bool has(Value m) override {
+		return !!c->get(m);
 	}
 	void put(Value m, Value x) override {
 		c->put(m, x);
@@ -126,19 +126,19 @@ public:
 	void ckmatch(int t);
 	[[noreturn]] void syntax_error_(const char* err = "") const;
 
-	void member(
-		Container& ob, const char* gname, const char* className, short base);
-	void member(Container& ob) {
-		member(ob, nullptr, nullptr, -1);
+	void members(Container& con, char closing, const char* gname,
+		const char* className, short base);
+	void members(Container& ob, char closing) {
+		members(ob, closing, nullptr, nullptr, -1);
 	}
+	void member(Container& ob, char closing, const char* gname,
+		const char* className, short base);
+	void putMem(Container& ob, Value mem, Value val) const;
 	Value memname(const char* className, const char* s);
 	const char* ckglobal(const char*);
 
 private:
 	bool valid_dll_arg_type();
-
-protected:
-	bool anyName() const;
 };
 
 #define syntax_error(stuff) \
@@ -223,8 +223,8 @@ private:
 	void add_argname(vector<short>& argnames, int id);
 	void args_list(short& nargs, const char* delims, vector<short>& argnames);
 	void keywordArgShortcut(vector<short>& argnames);
-	bool isKeyword();
-	bool just_name();
+	bool isKeyword() const;
+	bool just_name() const;
 	void record();
 	uint16_t literal(Value value, bool reuse = false);
 	short emit_literal();
@@ -266,7 +266,7 @@ Value Compiler::constant(const char* gname, const char* className) {
 		return -number();
 	case I_ADD:
 		match();
-		// fallthrough
+		[[fallthrough]];
 	case T_NUMBER:
 		return number();
 	case T_STRING: {
@@ -295,11 +295,22 @@ Value Compiler::constant(const char* gname, const char* className) {
 			return x;
 		} else if (token != '(' && token != '{' && token != '[')
 			syntax_error("invalid literal following '#'");
-		// else fall thru
+		[[fallthrough]];
 	case '(':
 	case '{':
 	case '[':
 		return object();
+	case I_IS:
+	case I_ISNT:
+	case T_AND:
+	case T_OR:
+	case I_NOT:
+		if (scanner.keyword) {
+			x = new SuString(scanner.value);
+			match();
+			return x;
+		}
+		break;
 	case T_IDENTIFIER:
 		switch (scanner.keyword) {
 		case K_FUNCTION:
@@ -330,22 +341,7 @@ Value Compiler::constant(const char* gname, const char* className) {
 	default:
 		break;
 	}
-	if (anyName()) {
-		x = new SuString(scanner.value);
-		match();
-		return x;
-	}
 	syntax_error_();
-}
-
-bool Compiler::anyName() const {
-	if (token == T_STRING || token == T_IDENTIFIER || token >= KEYWORDS)
-		return true;
-	if ((token == T_AND || token == T_OR || token == I_NOT || token == I_IS ||
-			token == I_ISNT) &&
-		isalpha(*scanner.value))
-		return true;
-	return false;
 }
 
 Value Compiler::number() {
@@ -358,26 +354,30 @@ Value Compiler::number() {
 
 Value Compiler::object() { //=======================================
 	SuObject* ob;
-	char end;
+	char closing;
 	if (token == '(') {
 		ob = new SuObject();
-		end = ')';
+		closing = ')';
 		match();
 	} else if (token == '{' || token == '[') {
 		ob = new SuRecord();
-		end = token == '{' ? '}' : ']';
+		closing = token == '{' ? '}' : ']';
 		match();
 	} else
 		syntax_error_();
 	ObjectContainer con(ob);
-	while (token != end) {
-		member(con);
+	members(con, closing);
+	ob->set_readonly();
+	return ob;
+}
+void Compiler::members(Container& con, char closing, const char* gname,
+	const char* className, short base) {
+	while (token != closing) {
+		member(con, closing, gname, className, base);
 		if (token == ',' || token == ';')
 			match();
 	}
-	match(end);
-	ob->set_readonly();
-	return ob;
+	match(closing);
 }
 
 const char* Compiler::ckglobal(const char* s) {
@@ -410,80 +410,52 @@ Value Compiler::suclass(const char* gname, const char* className) {
 		scanner.visitor->global(scanner.prev, scanner.value);
 		matchnew(T_IDENTIFIER);
 	}
-	SuClass* c = new SuClass(base);
+	auto c = new SuClass(base);
 	ClassContainer con(c);
 	match('{');
-	while (token != '}') {
-		member(con, gname, className, base);
-		if (token == ',' || token == ';')
-			match();
-	}
-	match('}');
+	members(con, '}', gname, className, base);
 	return c;
 }
 
 // object constant & class members
-void Compiler::member(
-	Container& ob, const char* gname, const char* className, short base) {
-	Value mv;
-	bool name = false;
-	bool minus = false;
-	if (token == I_SUB) {
-		minus = true;
+void Compiler::member(Container& ob, char closing, const char* gname,
+	const char* className, short base) {
+	bool inClass = base >= 0;
+	Value val;
+	int start = token;
+	Value m = constant();
+	if (token == ':') {
+		if (inClass) {
+			if (auto name = m.str_if_str())
+				m = memname(className, name);
+			else
+				syntax_error_("class member names must be strings");
+		}
 		match();
-		if (token != T_NUMBER)
-			syntax_error_();
-	}
-	bool default_allowed = true;
-	int ahead = scanner.ahead();
-	if (ahead == ':' || (base >= 0 && ahead == '(')) {
-		if (anyName()) {
-			mv = memname(className, scanner.value);
-			name = true;
-			match();
-		} else if (token == T_NUMBER) {
-			mv = number();
-			if (minus) {
-				mv = -mv;
-				minus = false;
-			}
-		} else
-			syntax_error_();
-		if (token == ':')
-			match();
-	} else
-		default_allowed = false;
-	if (base >= 0) {
-		if (!mv)
-			syntax_error("class members must be named");
-		if (!mv.str_if_str())
-			syntax_error("class member names must be strings");
-	}
-
-	Value x;
-	if (ahead == '(' && base >= 0)
-		x = functionCompiler(base, mv.gcstr() == "New", gname, className);
-	else if (token != ',' && token != ')' && token != '}' && token != ']') {
-		x = constant();
-		if (minus)
-			x = -x;
-	} else if (default_allowed)
-		x = SuTrue; // default value
+		if (token == ',' || token == ';' || token == closing)
+			putMem(ob, m, SuTrue);
+		else
+			putMem(ob, m, val = constant());
+	} else if (inClass && start == T_IDENTIFIER && token == '(')
+		putMem(ob, memname(className, m.str()),
+			val = functionCompiler(base, m.gcstr() == "New", gname, className));
+	else if (inClass)
+		syntax_error_("class members must be named");
 	else
-		syntax_error_();
+		ob.add(m);
 
-	if (mv) {
-		if (ob.get(mv))
-			syntax_error("duplicate member name (" << mv << ")");
-		ob.put(mv, x);
-	} else
-		ob.add(x);
-	if (name)
-		if (Named* nx = const_cast<Named*>(x.get_named()))
-			if (auto nob = ob.get_named()) {
-				nx->parent = nob;
-				nx->str = mv.str();
-			}
+	if (auto nx = const_cast<Named*>(val.get_named()))
+		if (auto nob = ob.get_named()) {
+			nx->parent = nob;
+			nx->str = m.str();
+		}
+}
+
+void Compiler::putMem(Container& ob, Value mem, Value val) const {
+	if (ob.has(mem))
+		syntax_error("duplicate member name (" << mem << ")");
+	else
+		ob.put(mem, val);
 }
 
 // struct, dll, callback -------------------------------------------------
@@ -1769,10 +1741,10 @@ void FunctionCompiler::args_list(
 			if (isKeyword()) {
 				key = true;
 				int id;
-				if (anyName())
+				if (token == T_STRING || token == T_IDENTIFIER)
 					id = symnum(scanner.value);
 				else if (token == T_NUMBER) {
-					id = strtoul(scanner.value, NULL, 0); // FIXME check end
+					id = strtoul(scanner.value, nullptr, 0); // FIXME check end
 					if (id >= 0x8000)
 						syntax_error("numeric subscript overflow: ("
 							<< scanner.value << ")");
@@ -1804,11 +1776,12 @@ void FunctionCompiler::keywordArgShortcut(vector<short>& argnames) {
 	expr0();
 }
 
-bool FunctionCompiler::isKeyword() {
-	return (anyName() || token == T_NUMBER) && scanner.ahead() == ':';
+bool FunctionCompiler::isKeyword() const {
+	return (token == T_STRING || token == T_IDENTIFIER || token == T_NUMBER) &&
+		scanner.ahead() == ':';
 }
 
-bool FunctionCompiler::just_name() {
+bool FunctionCompiler::just_name() const {
 	// only checks enough to call expr0
 	if (token != T_IDENTIFIER)
 		return false;
@@ -3373,45 +3346,45 @@ d();  } }\n\
 
 	{"function () { };", "function () { }; }\n\
 					  0  nop \n\
-					  1  push literal  /* function */\n\
+					  1  push literal /* function */\n\
 					  2  return \n\
 					  3\n"},
 
 	{"function (a) { };", "function (a) { }; }\n\
 					  0  nop \n\
-					  1  push literal  /* function */\n\
+					  1  push literal /* function */\n\
 					  2  return \n\
 					  3\n"},
 
 	{"function (a, b, c) { };", "function (a, b, c) { }; }\n\
 					  0  nop \n\
-					  1  push literal  /* function */\n\
+					  1  push literal /* function */\n\
 					  2  return \n\
 					  3\n"},
 
 	{"function (a = 1) { };", "function (a = 1) { }; }\n\
 					  0  nop \n\
-					  1  push literal  /* function */\n\
+					  1  push literal /* function */\n\
 					  2  return \n\
 					  3\n"},
 
 	{"function (a = 1, b = 2, c = 3) { };",
 		"function (a = 1, b = 2, c = 3) { }; }\n\
 					  0  nop \n\
-					  1  push literal  /* function */\n\
+					  1  push literal /* function */\n\
 					  2  return \n\
 					  3\n"},
 
 	{"function (a, b, c = 0, d = 1) { };",
 		"function (a, b, c = 0, d = 1) { }; }\n\
 					  0  nop \n\
-					  1  push literal  /* function */\n\
+					  1  push literal /* function */\n\
 					  2  return \n\
 					  3\n"},
 
 	{"function (@args) { };", "function (@args) { }; }\n\
 					  0  nop \n\
-					  1  push literal  /* function */\n\
+					  1  push literal /* function */\n\
 					  2  return \n\
 					  3\n"},
 
@@ -3628,7 +3601,6 @@ TEST(compile2) {
 	compile("function () { x \n ? y : z }");
 	compile("function () { [1, x, a: y, b: 4] }");
 	compile("function () { if (A) B else C }");
-	compile("function (.x) { }");
 }
 
 #include "porttest.h"
@@ -3641,11 +3613,11 @@ PORTTEST(compile) {
 		Value x = compile(s);
 		if (type != x.type())
 			return OSTR("got: " << x.type());
-		auto result = OSTR(x);
+		auto result = OSTR(Show(x));
 		if (expected != result)
 			return OSTR("got: '" << result << "'");
 	} catch (Except& e) {
-		if (type != "Exception" || !e.gcstr().has(expected))
+		if (type != "throws" || !e.gcstr().has(expected))
 			return e.str();
 	}
 	return nullptr;

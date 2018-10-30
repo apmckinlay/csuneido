@@ -28,7 +28,7 @@ static_assert(sizeof(SuString) == 12);
 extern bool obout_inkey;
 
 void SuString::out(Ostream& out) const {
-	if (obout_inkey && is_identifier())
+	if (obout_inkey && is_identifier() && (s != "true" && s != "false"))
 		out << s;
 	else if (backquote())
 		out << '`' << s << '`';

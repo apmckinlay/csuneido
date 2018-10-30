@@ -19,6 +19,9 @@ public:
 	virtual ~SuValue() = default;
 
 	virtual void out(Ostream&) const = 0;
+	virtual void show(Ostream& os) const {
+		out(os);
+	}
 
 	virtual size_t hashfn() const;
 	virtual size_t hashcontrib() const;

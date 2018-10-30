@@ -11,6 +11,7 @@
 #include "sumethod.h"
 #include "catstr.h"
 #include <cctype>
+#include <algorithm>
 #include "builtinargs.h"
 
 void SuClass::put(Value m, Value x) {
@@ -38,6 +39,26 @@ void SuClass::out(Ostream& out) const {
 			out << globals(base);
 	}
 	out << " */";
+}
+
+void SuClass::show(Ostream& out) const {
+	out << (base ? globals(base) : "class") << "{";
+	List<Value> keys;
+	for (auto [k, v] : data)
+		keys.add(k);
+	std::sort(keys.begin(), keys.end());
+	auto sep = "";
+	ObOutInKey ooik; // adjust output of keys
+	for (auto k : keys) {
+		out << sep << k;
+		Value v = *data.find(k);
+		if (auto f = val_cast<Func*>(v)) {
+			out << f->params();
+		} else
+			out << ": " << v;
+		sep = "; ";
+	}
+	out << "}";
 }
 
 Value SuClass::call(Value self, Value member, short nargs, short nargnames,
