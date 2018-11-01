@@ -91,13 +91,18 @@ void SuSeq::build() const {
 		ob = copy(iter);
 }
 
+const int MAX_SIZE = 10000;
+
 SuObject* SuSeq::copy(Value it) {
 	if (infinite(it))
 		except("can't instantiate infinite sequence");
 	SuObject* copy = new SuObject;
 	Value x;
-	while (it != (x = next(it)))
+	while (it != (x = next(it))) {
+		if (copy->size() >= MAX_SIZE)
+			except("can't instantiate sequence larger than " << MAX_SIZE);
 		copy->add(x);
+	}
 	return copy;
 }
 
