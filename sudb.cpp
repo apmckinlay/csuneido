@@ -628,7 +628,7 @@ Record object_to_record(const Header& hdr, SuObject* ob) {
 }
 
 void SuQuery::close() {
-	if (!t || !t->isdone())
+	if (!closed)
 		q->close();
 	closed = true;
 }
