@@ -88,6 +88,7 @@ private:
 	Expr* orop();
 	Expr* andop();
 	Expr* in();
+	bool isIn();
 	Expr* bitorop();
 	Expr* bitxor();
 	Expr* bitandop();
@@ -972,7 +973,8 @@ Expr* QueryParser::andop() {
 Expr* QueryParser::in() {
 	// TODO: should check for duplicate values
 	Expr* e = bitorop();
-	if (scanner.keyword == K_IN) {
+	int op = token;
+	if (isIn()) {
 		match();
 		match('(');
 		Lisp<Value> values;
@@ -983,8 +985,16 @@ Expr* QueryParser::in() {
 		}
 		match(')');
 		e = Query::make_in(e, values.reverse());
+		if (op == I_NOT)
+			e = Query::make_unop(op, e);
 	}
 	return e;
+}
+
+bool QueryParser::isIn() {
+	if (token == I_NOT && scanner.ahead() == K_IN)
+		match();
+	return scanner.keyword == K_IN;
 }
 
 Expr* QueryParser::bitorop() {
