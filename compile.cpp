@@ -134,7 +134,7 @@ public:
 	void member(Container& ob, char closing, const char* gname,
 		const char* className, short base);
 	void putMem(Container& ob, Value mem, Value val) const;
-	Value memname(const char* className, const char* s);
+	static Value privatize(const char* className, const char* s);
 	const char* ckglobal(const char*);
 
 private:
@@ -427,7 +427,7 @@ void Compiler::member(Container& ob, char closing, const char* gname,
 	if (token == ':') {
 		if (inClass) {
 			if (auto name = m.str_if_str())
-				m = memname(className, name);
+				m = privatize(className, name);
 			else
 				syntax_error_("class member names must be strings");
 		}
@@ -437,7 +437,7 @@ void Compiler::member(Container& ob, char closing, const char* gname,
 		else
 			putMem(ob, m, val = constant());
 	} else if (inClass && start == T_IDENTIFIER && token == '(')
-		putMem(ob, memname(className, m.str()),
+		putMem(ob, privatize(className, m.str()),
 			val = functionCompiler(base, m.gcstr() == "New", gname, className));
 	else if (inClass)
 		syntax_error_("class members must be named");
@@ -1571,7 +1571,7 @@ void FunctionCompiler::expr0(bool newtype) {
 	case '.':
 		matchnew('.');
 		option = MEM_SELF;
-		id = literal(memname(className, scanner.value));
+		id = literal(privatize(className, scanner.value));
 		match(T_IDENTIFIER);
 		if (!expecting_compound && token == T_NEWLINE && scanner.ahead() == '{')
 			match();
@@ -2125,14 +2125,14 @@ void FunctionCompiler::patch(short i) {
 }
 
 // make lower case member names private by prefixing with class name
-Value Compiler::memname(const char* className, const char* s) {
-	if (className && islower(s[0])) {
-		if (has_prefix(s, "get_"))
-			s = CATSTR3("Get_", className, s + 3); // get_name => Get_Class_name
+Value Compiler::privatize(const char* className, const char* name) {
+	if (className && islower(name[0])) {
+		if (has_prefix(name, "get_")) // get_name => Get_Class_name
+			name = CATSTR3("Get_", className, name + 3);
 		else
-			s = CATSTR3(className, "_", s);
+			name = CATSTR3(className, "_", name);
 	}
-	return symbolOrString(s);
+	return symbolOrString(name);
 }
 
 #include "testing.h"
