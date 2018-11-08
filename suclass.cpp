@@ -137,16 +137,29 @@ Value SuClass::get2(Value self, Value member) { // handles binding and getters
 		return x;
 	}
 	if (has_getter) {
+		static Value Getter_("Getter_");
+		if (Value method = get3(Getter_)) {
+			KEEPSP
+			PUSH(member);
+			return method.call(self, CALL, 1);
+		}
+		// TODO remove after transition from get_ to getter_
 		static Value Get_("Get_");
 		if (Value method = get3(Get_)) {
 			KEEPSP
 			PUSH(member);
 			return method.call(self, CALL, 1);
-		} else
-			has_getter = false; // avoid future attempts
+		}
+		has_getter = false; // avoid future attempts
 	}
 	if (const char* s = member.str_if_str()) {
-		Value getter = new SuString(CATSTRA(islower(*s) ? "get_" : "Get_", s));
+		Value getter = new SuString(CATSTRA("Getter_", s));
+		if (Value method = get3(getter)) {
+			KEEPSP
+			return method.call(self, CALL);
+		}
+		// TODO remove after transition from get_ to getter_
+		getter = new SuString(CATSTRA("Get_", s));
 		if (Value method = get3(getter)) {
 			KEEPSP
 			return method.call(self, CALL);

@@ -133,8 +133,10 @@ public:
 	}
 	void member(Container& ob, char closing, const char* gname,
 		const char* className, short base);
-	void putMem(Container& ob, Value mem, Value val) const;
-	static Value privatize(const char* className, const char* s);
+	void putMem(
+		Container& ob, Value mem, Value val, const char* className) const;
+	Value privatizeDef(const char* className, Value mem) const;
+	static Value symbolOrString(const char* s);
 	const char* ckglobal(const char*);
 
 private:
@@ -240,6 +242,7 @@ private:
 	bool notAllZero(vector<char>& flags);
 	void emit_target(int option, int target);
 	uint16_t mem(const char* s);
+	static Value privatizeRef(const char* className, const char* s);
 };
 
 Value compile(const char* s, const char* gname, CodeVisitor* visitor) {
@@ -306,7 +309,7 @@ Value Compiler::constant(const char* gname, const char* className) {
 	case T_OR:
 	case I_NOT:
 		if (scanner.keyword) {
-			x = new SuString(scanner.value);
+			x = symbol(scanner.value);
 			match();
 			return x;
 		}
@@ -334,7 +337,7 @@ Value Compiler::constant(const char* gname, const char* className) {
 			if (scanner.ahead() == '{')
 				return suclass(gname, className);
 			// else identifier => string
-			x = new SuString(scanner.value);
+			x = symbolOrString(scanner.value);
 			match();
 			return x;
 		}
@@ -425,20 +428,18 @@ void Compiler::member(Container& ob, char closing, const char* gname,
 	int start = token;
 	Value m = constant();
 	if (token == ':') {
-		if (inClass) {
-			if (auto name = m.str_if_str())
-				m = privatize(className, name);
-			else
-				syntax_error_("class member names must be strings");
-		}
+		if (inClass && !m.str_if_str())
+			syntax_error_("class member names must be strings");
 		match();
 		if (token == ',' || token == ';' || token == closing)
-			putMem(ob, m, SuTrue);
+			val = SuTrue;
 		else
-			putMem(ob, m, val = constant());
+			val = constant();
+		putMem(ob, m, val, className);
 	} else if (inClass && start == T_IDENTIFIER && token == '(')
-		putMem(ob, privatize(className, m.str()),
-			val = functionCompiler(base, m.gcstr() == "New", gname, className));
+		putMem(ob, m,
+			val = functionCompiler(base, m.gcstr() == "New", gname, className),
+			className);
 	else if (inClass)
 		syntax_error_("class members must be named");
 	else
@@ -451,11 +452,43 @@ void Compiler::member(Container& ob, char closing, const char* gname,
 		}
 }
 
-void Compiler::putMem(Container& ob, Value mem, Value val) const {
+void Compiler::putMem(
+	Container& ob, Value mem, Value val, const char* className) const {
+	mem = privatizeDef(className, mem);
 	if (ob.has(mem))
 		syntax_error("duplicate member name (" << mem << ")");
 	else
 		ob.put(mem, val);
+}
+
+// make lower case member names private by prefixing with class name
+Value Compiler::privatizeDef(const char* className, Value mem) const {
+	if (className) {
+		auto name = mem.str();
+		if (islower(name[0])) {
+			if (has_prefix(name, "getter_")) {
+				if (strlen(name) <= 7 || !islower(name[7]))
+					syntax_error("invalid getter (" << name << ")");
+				// get_name => Getter_Class_name
+				name = CATSTR3("Getter_", className, name + 6);
+				// TODO remove after transition from get_ to getter_
+			} else if (has_prefix(name, "get_") && strlen(name) > 4 &&
+				islower(name[4]))
+				// getter_name => Getter_Class_name
+				name = CATSTR3("Get_", className, name + 3);
+			else
+				name = CATSTR3(className, "_", name);
+			return symbolOrString(name);
+		} else if (has_prefix(name, "Getter_") && strlen(name) > 7 &&
+			!isupper(name[7]))
+			syntax_error("invalid getter (" << name << ")");
+	}
+	return mem;
+}
+
+Value Compiler::symbolOrString(const char* s) {
+	Value m = symbol_existing(s);
+	return m ? m : new SuString(s);
 }
 
 // struct, dll, callback -------------------------------------------------
@@ -1571,7 +1604,7 @@ void FunctionCompiler::expr0(bool newtype) {
 	case '.':
 		matchnew('.');
 		option = MEM_SELF;
-		id = literal(privatize(className, scanner.value));
+		id = literal(privatizeRef(className, scanner.value));
 		match(T_IDENTIFIER);
 		if (!expecting_compound && token == T_NEWLINE && scanner.ahead() == '{')
 			match();
@@ -1866,11 +1899,6 @@ void FunctionCompiler::record() {
 	}
 }
 
-static Value symbolOrString(const char* s) {
-	Value m = symbol_existing(s);
-	return m ? m : new SuString(s);
-}
-
 uint16_t FunctionCompiler::mem(const char* s) {
 	return literal(symbolOrString(s));
 }
@@ -2125,9 +2153,11 @@ void FunctionCompiler::patch(short i) {
 }
 
 // make lower case member names private by prefixing with class name
-Value Compiler::privatize(const char* className, const char* name) {
+Value FunctionCompiler::privatizeRef(const char* className, const char* name) {
 	if (className && islower(name[0])) {
-		if (has_prefix(name, "get_")) // get_name => Get_Class_name
+		// TODO remove after transition from get_ to getter_
+		if (has_prefix(name, "get_") && strlen(name) > 4 && islower(name[4]))
+			// get_name => Get_Class_name
 			name = CATSTR3("Get_", className, name + 3);
 		else
 			name = CATSTR3(className, "_", name);
