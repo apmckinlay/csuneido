@@ -105,6 +105,7 @@ public:
 	Value exec(Value ob) override;
 	int final() override;
 	Row get(Dir dir, const char* query, bool one, Header& hdr, int tn) override;
+	Value info() override;
 	int kill(const char* sessionid) override;
 	Lisp<gcstring> libget(const char* name) override;
 	Lisp<gcstring> libraries() override;
@@ -209,6 +210,12 @@ Row DbmsLocal::get(
 		except("Query1 not unique: " << querystr);
 	hdr = q->header();
 	return row;
+}
+
+Value DbmsLocal::info() {
+	SuObject* info = new SuObject;
+	info->putdata("tempDest", dbms()->tempdest());
+	return info;
 }
 
 #include "dump.h"

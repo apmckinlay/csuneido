@@ -48,6 +48,7 @@ public:
 	void cmd_GET();
 	void cmd_GET1();
 	void cmd_HEADER();
+	void cmd_INFO();
 	void cmd_KEYS();
 	void cmd_KILL();
 	void cmd_LIBGET();
@@ -295,6 +296,11 @@ void DbServer::cmd_GET1() {
 void DbServer::cmd_HEADER() {
 	auto hdr = q_or_c()->header().schema();
 	io.putOk().putStrings(hdr);
+}
+
+void DbServer::cmd_INFO() {
+	auto info = dbms().info();
+	io.putOk().putValue(info);
 }
 
 void DbServer::cmd_KEYS() {

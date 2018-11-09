@@ -55,6 +55,7 @@ public:
 	virtual int final() = 0;
 	virtual Row get(Dir dir, const char* query, bool one, Header& hdr,
 		int tn = NO_TRAN) = 0;
+	virtual Value info() = 0;
 	virtual int kill(const char* sessionid) = 0;
 	virtual Lisp<gcstring> libget(const char* name) = 0;
 	virtual Lisp<gcstring> libraries() = 0;
