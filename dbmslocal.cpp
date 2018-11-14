@@ -214,7 +214,8 @@ Row DbmsLocal::get(
 
 Value DbmsLocal::info() {
 	SuObject* info = new SuObject;
-	info->putdata("tempDest", dbms()->tempdest());
+	info->putdata("tempDest", tempdest());
+	info->putdata("currentSize", size());
 	return info;
 }
 
