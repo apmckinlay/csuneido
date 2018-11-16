@@ -37,6 +37,7 @@ public:
 	static Value Nonce(BuiltinArgs&);
 	static Value Token(BuiltinArgs&);
 	static Value Auth(BuiltinArgs&);
+	static Value Info(BuiltinArgs&);
 };
 
 Value su_Database() {
@@ -61,6 +62,7 @@ auto BuiltinClass<DatabaseClass>::static_methods() {
 		{"Nonce", &DatabaseClass::Nonce},
 		{"Token", &DatabaseClass::Token},
 		{"Auth", &DatabaseClass::Auth},
+		{"Info", &DatabaseClass::Info},
 	};
 	return gsl::make_span(methods);
 }
@@ -164,6 +166,11 @@ Value DatabaseClass::Auth(BuiltinArgs& args) {
 	args.usage("Database.Auth(string)");
 	auto s = args.getgcstr("string");
 	return dbms()->auth(s) ? SuTrue : SuFalse;
+}
+
+Value DatabaseClass::Info(BuiltinArgs& args) {
+	args.usage("Database.Info()");
+	return dbms()->info();
 }
 
 // Query1/First/Last ------------------------------------------------

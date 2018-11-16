@@ -25,6 +25,7 @@ enum class Command {
 	GET,
 	GET1,
 	HEADER,
+	INFO,
 	KEYS,
 	KILL,
 	LIBGET,

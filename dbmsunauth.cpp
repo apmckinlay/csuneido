@@ -52,6 +52,9 @@ public:
 		Dir dir, const char* query, bool one, Header& hdr, int tran) override {
 		unauth();
 	}
+	Value info() override {
+		unauth();
+	}
 	int kill(const char* s) override {
 		unauth();
 	}

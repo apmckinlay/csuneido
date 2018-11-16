@@ -40,6 +40,7 @@ public:
 	Value exec(Value ob) override;
 	int final() override;
 	Row get(Dir dir, const char* query, bool one, Header& hdr, int tn) override;
+	Value info() override;
 	int kill(const char* sessionid) override;
 	Lisp<gcstring> libget(const char* name) override;
 	Lisp<gcstring> libraries() override;
@@ -313,6 +314,11 @@ Header DbmsRemote::getHeader() {
 	cols.reverse();
 	fields.reverse();
 	return Header(lisp(fields), cols);
+}
+
+Value DbmsRemote::info() {
+	send(Command::INFO);
+	return io.getValue();
 }
 
 Lisp<Lisp<gcstring>> DbmsRemote::keys(int qn, CorQ cq) { // DbmsQuery
