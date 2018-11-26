@@ -199,10 +199,13 @@ static void logPreviousErrors() {
 	char* filename = err_filename();
 	if (FILE* f = fopen(filename, "r")) {
 		char buf[1024] = "PREVIOUS: ";
+		buf[sizeof buf - 1] = 0;
 		int n = 0;
 		for (; n < limit && fgets(buf + 10, sizeof buf - 10, f); ++n)
 			dbms()->log(buf);
 		fclose(f);
+		if (buf[sizeof buf - 1] != 0)
+			dbms()->log("ERROR: logPreviousErrors buffer overrun");
 		if (n >= limit)
 			dbms()->log("PREVIOUS: too many errors");
 		remove(filename);
