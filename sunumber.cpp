@@ -323,8 +323,6 @@ Value SuNumber::call(Value self, Value member, short nargs, short nargnames,
 	static Value SQRT("Sqrt");
 	static Value POW("Pow");
 	static Value HEX("Hex");
-	static Value OCTAL("Octal");
-	static Value BINARY("Binary");
 	static Value ROUND("Round");
 	static Value ROUND_UP("RoundUp");
 	static Value ROUND_DOWN("RoundDown");
