@@ -150,7 +150,7 @@ int Scanner::nextall() {
 				++si;
 				return I_MATCHNOT;
 			default:
-				return I_NOT;
+				return T_ERROR;
 			}
 		case '<':
 			switch (source[si]) {
@@ -185,9 +185,6 @@ int Scanner::nextall() {
 			}
 		case '|':
 			switch (source[si]) {
-			case '|':
-				++si;
-				return T_OR;
 			case '=':
 				++si;
 				return I_BITOREQ;
@@ -196,9 +193,6 @@ int Scanner::nextall() {
 			}
 		case '&':
 			switch (source[si]) {
-			case '&':
-				++si;
-				return T_AND;
 			case '=':
 				++si;
 				return I_BITANDEQ;
@@ -423,7 +417,7 @@ static Keyword words[] = {{"and", T_AND}, {"bool", K_BOOL}, {"break", K_BREAK},
 	{"short", K_INT16}, {"string", K_STRING}, {"struct", K_STRUCT},
 	{"super", K_SUPER}, {"switch", K_SWITCH}, {"this", K_THIS},
 	{"throw", K_THROW}, {"true", K_TRUE}, {"try", K_TRY}, {"void", K_VOID},
-	{"while", K_WHILE}, {"xor", I_ISNT}};
+	{"while", K_WHILE}};
 const int nwords = sizeof words / sizeof(Keyword);
 
 inline bool lt(const char* ss, const char* tt) {
@@ -461,8 +455,8 @@ static const char* input =
 	else for forever function if is isnt or not \
 	new switch struct super return throw try while \
 	true false \
-	== = =~ ~ != !~ ! <<= << <> <= < \
-	>>= >> >= > || |= | && &= &  \
+	== = =~ ~ != !~ <<= << <> <= < \
+	>>= >> >= > |= | &= &  \
 	^= ^ -- -= - ++ += + /= / \
 	*= * %= % $= $ name _name name123 '\\Ahello\\'world\\Z' \
 	\"string\" 123 123name .name  Name Name123 name? 1$2 +1 num=1 \
@@ -479,17 +473,16 @@ static Result results[] = {{T_AND, 0}, {K_BREAK, 0}, {K_CASE, 0}, {K_CATCH, 0},
 	{K_IF, 0}, {I_IS, 0}, {I_ISNT, 0}, {T_OR, 0}, {I_NOT, 0}, {K_NEW, 0},
 	{K_SWITCH, 0}, {K_STRUCT, 0}, {K_SUPER, 0}, {K_RETURN, 0}, {K_THROW, 0},
 	{K_TRY, 0}, {K_WHILE, 0}, {K_TRUE, 0}, {K_FALSE, 0}, {I_IS, 0}, {I_EQ, 0},
-	{I_MATCH, 0}, {I_BITNOT, 0}, {I_ISNT, 0}, {I_MATCHNOT, 0}, {I_NOT, 0},
-	{I_LSHIFTEQ, 0}, {I_LSHIFT, 0}, {I_ISNT, 0}, {I_LTE, 0}, {I_LT, 0},
-	{I_RSHIFTEQ, 0}, {I_RSHIFT, 0}, {I_GTE, 0}, {I_GT, 0}, {T_OR, 0},
-	{I_BITOREQ, 0}, {I_BITOR, 0}, {T_AND, 0}, {I_BITANDEQ, 0}, {I_BITAND, 0},
-	{I_BITXOREQ, 0}, {I_BITXOR, 0}, {I_PREDEC, 0}, {I_SUBEQ, 0}, {I_SUB, 0},
-	{I_PREINC, 0}, {I_ADDEQ, 0}, {I_ADD, 0}, {I_DIVEQ, 0}, {I_DIV, 0},
-	{I_MULEQ, 0}, {I_MUL, 0}, {I_MODEQ, 0}, {I_MOD, 0}, {I_CATEQ, 0},
-	{I_CAT, 0}, {T_IDENTIFIER, "name"}, {T_IDENTIFIER, "_name"},
-	{T_IDENTIFIER, "name123"}, {T_STRING, "\\Ahello'world\\Z"},
-	{T_STRING, "string"}, {T_NUMBER, "123"}, {T_NUMBER, "123"},
-	{T_IDENTIFIER, "name"}, {'.', 0}, {T_IDENTIFIER, "name"},
+	{I_MATCH, 0}, {I_BITNOT, 0}, {I_ISNT, 0}, {I_MATCHNOT, 0}, {I_LSHIFTEQ, 0},
+	{I_LSHIFT, 0}, {I_ISNT, 0}, {I_LTE, 0}, {I_LT, 0}, {I_RSHIFTEQ, 0},
+	{I_RSHIFT, 0}, {I_GTE, 0}, {I_GT, 0}, {I_BITOREQ, 0}, {I_BITOR, 0},
+	{I_BITANDEQ, 0}, {I_BITAND, 0}, {I_BITXOREQ, 0}, {I_BITXOR, 0},
+	{I_PREDEC, 0}, {I_SUBEQ, 0}, {I_SUB, 0}, {I_PREINC, 0}, {I_ADDEQ, 0},
+	{I_ADD, 0}, {I_DIVEQ, 0}, {I_DIV, 0}, {I_MULEQ, 0}, {I_MUL, 0},
+	{I_MODEQ, 0}, {I_MOD, 0}, {I_CATEQ, 0}, {I_CAT, 0}, {T_IDENTIFIER, "name"},
+	{T_IDENTIFIER, "_name"}, {T_IDENTIFIER, "name123"},
+	{T_STRING, "\\Ahello'world\\Z"}, {T_STRING, "string"}, {T_NUMBER, "123"},
+	{T_NUMBER, "123"}, {T_IDENTIFIER, "name"}, {'.', 0}, {T_IDENTIFIER, "name"},
 	{T_IDENTIFIER, "Name"}, {T_IDENTIFIER, "Name123"}, {T_IDENTIFIER, "name?"},
 	{T_NUMBER, "1"}, {I_CAT, 0}, {T_NUMBER, "2"}, {I_ADD, 0}, {T_NUMBER, "1"},
 	{T_IDENTIFIER, "num"}, {I_EQ, 0}, {T_NUMBER, "1"}, {T_IDENTIFIER, "num"},
