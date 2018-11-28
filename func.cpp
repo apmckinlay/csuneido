@@ -70,8 +70,10 @@ void Func::args(short nargs, short nargnames, short* argnames, int each) {
 	} else if (each != -1) {
 		SuObject* ob = args[0].object();
 
-		if (ob->vecsize() - each > nparams)
-			except("too many arguments to " << this);
+		if (ob->vecsize() > nparams + each)
+			except("too many arguments to " << this << " vecsize "
+											<< ob->vecsize() << " each " << each
+											<< " nparams " << nparams);
 
 		// un-named members
 		for (i = 0; i < nparams; ++i)
