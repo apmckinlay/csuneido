@@ -220,7 +220,7 @@ class QueryOne : public SuValue {
 public:
 	NAMED
 	QueryOne(const char* w, Dir d, bool o) : which(w), dir(d), one(o) {
-		named.num = globals("Query1");
+		named.num = globals(w);
 	}
 	Value call(Value self, Value member, short nargs, short nargnames,
 		short* argnames, int each) override {
