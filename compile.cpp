@@ -1803,10 +1803,11 @@ void FunctionCompiler::args_list(
 void FunctionCompiler::keywordArgShortcut(vector<short>& argnames) {
 	// f(:name) is equivalent to f(name: name)
 	match(':');
-	if (!just_name())
-		syntax_error_();
+	if (token != T_IDENTIFIER || !islower(*scanner.value))
+		syntax_error("expecting local variable name");
+	emit(I_PUSH, AUTO, local());
 	add_argname(argnames, symnum(scanner.value));
-	expr0();
+	match();
 }
 
 bool FunctionCompiler::isKeyword() const {
