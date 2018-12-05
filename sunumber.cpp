@@ -123,6 +123,7 @@ char* SuNumber::format(char* buf, const char* mask) const {
 			break;
 		case '.':
 			frac = true;
+			[[fallthrough]];
 		default:
 			*dst++ = mc;
 			break;
