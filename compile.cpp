@@ -1699,20 +1699,17 @@ void FunctionCompiler::expr0(bool newtype) {
 			scanner.visitor->local(
 				-1, id, false); // undo previous incorrect "usage"
 		matchnew();
-		if (scanner.keyword == K_FUNCTION || scanner.keyword == K_CLASS) {
-			if (t != I_EQ)
-				syntax_error_();
-			Value k = constant();
-			Named* n = const_cast<Named*>(k.get_named());
-			verify(n);
-			n->parent = &fn->named;
-			if (option == AUTO || option == DYNAMIC)
-				n->num = locals[id];
-			else if (option == MEM || option == MEM_SELF)
-				n->str = literals[id].str();
-			emit(I_PUSH, LITERAL, literal(k));
-		} else
-			expr();
+		expr();
+		if (!prevlits.empty()) {
+			Value lit = prevlits.back().lit;
+			if (Named* n = const_cast<Named*>(lit.get_named())) {
+				n->parent = &fn->named;
+				if (option == AUTO || option == DYNAMIC)
+					n->num = locals[id];
+				else if (option == MEM || option == MEM_SELF)
+					n->str = literals[id].str();
+			}
+		}
 		if (fixup)
 			scanner.visitor->local(local_pos, id, INIT);
 		emit(t, 0x80 + (option << 4), id);
