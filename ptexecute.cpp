@@ -8,6 +8,17 @@
 #include "interp.h"
 #include "ostreamstr.h"
 #include "exceptimp.h"
+#include "func.h"
+#include "globals.h"
+#include "htbl.h"
+
+static Value def() {
+	const int nargs = 2;
+	globals.put(globals(ARG(0).str()), ARG(1));
+	return Value();
+}
+
+extern Hmap<int, Value> builtins;
 
 #define TOVAL(i) (str[i] ? new SuString(args[i]) : compile(args[i].str()))
 
@@ -23,12 +34,19 @@ PORTTEST(method) {
 }
 
 PORTTEST(execute) {
+	if (!globals.get(globals("Def"))) {
+		auto d = new BuiltinFunc("Def", "(name, value)", def);
+		globals.put(globals("Def"), d);
+	}
 	gcstring expected = "**notfalse**";
 	if (args.size() > 1)
 		expected = args[1];
 	Value result;
 	bool ok;
 	if (expected == "throws") {
+		if (args[2].has_prefix("super")) {
+			return nullptr; // SKIP
+		}
 		try {
 			result = run(args[0].str());
 			ok = false;
