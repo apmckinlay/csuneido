@@ -14,7 +14,15 @@
 
 static Value def() {
 	const int nargs = 2;
-	globals.put(globals(ARG(0).str()), ARG(1));
+	auto name = ARG(0).str();
+	auto value = ARG(1);
+	if (auto s = value.str_if_str()) {
+		value = compile(s, name);
+		if (Named* n = const_cast<Named*>(value.get_named())) {
+			n->num = globals(name);
+		}
+	}
+	globals.put(globals(name), value);
 	return Value();
 }
 
