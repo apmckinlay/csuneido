@@ -44,7 +44,7 @@ Value MkObject::call(Value self, Value member, short nargs, short nargnames,
 	SuObject* ob;
 	if (each >= 0) {
 		verify(nargs == 1 && nargnames == 0);
-		ob = args[0].object()->slice(each);
+		ob = new SuObject(args[0].object(), each);
 	} else {
 		// create an object from the args
 		ob = new SuObject;

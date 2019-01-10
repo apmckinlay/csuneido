@@ -20,7 +20,7 @@ class SuRecord : public SuObject {
 public:
 	SuRecord();
 	explicit SuRecord(const SuRecord& rec);
-	explicit SuRecord(SuObject* ob);
+	explicit SuRecord(SuObject* ob, int each);
 	SuRecord(const Row& r, const Header& hdr, int t);
 	SuRecord(const Row& r, const Header& hdr, SuTransaction* t = 0);
 	SuRecord(Record rec, const Lisp<gcstring>& flds, SuTransaction* t);

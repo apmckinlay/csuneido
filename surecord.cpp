@@ -30,7 +30,7 @@ SuRecord::SuRecord(const SuRecord& rec)
 	defval = SuEmptyString;
 }
 
-SuRecord::SuRecord(SuObject* ob) : SuObject(ob) {
+SuRecord::SuRecord(SuObject* ob, int each) : SuObject(ob, each) {
 	defval = SuEmptyString;
 }
 
@@ -522,7 +522,7 @@ Value MkRecord::call(Value self, Value member, short nargs, short nargnames,
 	Value* args = GETSP() - nargs + 1;
 	if (each >= 0) {
 		verify(nargs == 1 && nargnames == 0);
-		return new SuRecord(args[0].object());
+		return new SuRecord(args[0].object(), each);
 	}
 	SuRecord* ob = new SuRecord;
 	// convert args to members
