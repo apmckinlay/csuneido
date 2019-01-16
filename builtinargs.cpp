@@ -38,6 +38,8 @@ ArgsIter::ArgsIter(short n, short na, short* an, int e)
 		nargs = ob->size() - each;
 		nargnames = ob->mapsize();
 		oi.emplace(ob->begin());
+		if (each == 1 && ob->vecsize() > 0)
+			++*oi;
 	}
 	unnamed = nargs - nargnames;
 }
