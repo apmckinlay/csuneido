@@ -166,7 +166,6 @@ SuObject::Mfn SuObject::method(Value member) {
 		{"Reverse!", &SuObject::Reverse},
 		{"Set_default", &SuObject::Set_default},
 		{"Set_readonly", &SuObject::Set_readonly},
-		{"Sort", &SuObject::Sort},
 		{"Sort!", &SuObject::Sort},
 		{"Unique!", &SuObject::Unique},
 		{"UpperBound", &SuObject::UpperBound},
