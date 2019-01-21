@@ -23,15 +23,6 @@ public:
 		}
 		literals = frame->fn->literals;
 		locals = frame->fn->locals + first;
-		// strip '_' prefix off params (first time)
-		// if compile used a different way to hide block params this wouldn't be
-		// needed
-		for (int i = 0; i < nparams; ++i) {
-			auto s = symstr(locals[i]);
-			if (*s != '_')
-				break; // already stripped previously
-			locals[i] = ::symnum(s + 1);
-		}
 	}
 	void out(Ostream& out) const override;
 	Value call(Value self, Value member, short nargs, short nargnames,
