@@ -480,8 +480,10 @@ Value SuObject::call(Value self, Value member, short nargs, short nargnames,
 Value SuObject::Set_default(BuiltinArgs& args) {
 	ck_readonly();
 	args.usage("object.Set_default(value) or object.Set_default()");
-	defval = args.getValue("value", Value());
+	auto val = args.getValue("value", Value());
 	args.end();
+	defval = val;
+	persist_if_block(defval);
 	if (SuObject* defval_ob = defval.ob_if_ob())
 		if (!defval_ob->readonly)
 			defval = new SuObject(*defval_ob);
