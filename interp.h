@@ -104,7 +104,7 @@ private:
 	Value* catcher_sp = nullptr;
 	int catcher_x = 0;
 
-	Frame* blockframe = nullptr;
+	bool isblockframe = false;
 
 	int each = 0;
 };

@@ -137,7 +137,7 @@ Frame::Frame(SuFunction* f, Value s)
 // used by SuBlock::call
 Frame::Frame(Frame* fp, int pc, int first, int nargs, Value s)
 	: fn(fp->fn), self(s), ip(fn->code + pc), local(fp->local),
-	  rule(tls().proc->fp[-1].rule), blockframe(fp) {
+	  rule(tls().proc->fp[-1].rule), isblockframe(true) {
 	for (int i = nargs - 1; i >= 0; --i)
 		local[first + i] = POP();
 }
@@ -788,7 +788,7 @@ Value Frame::run() {
 			}
 		} catch (const Except& e) {
 			if (e.isBlockReturn()) {
-				if (blockframe || e.fp_fn() != fn)
+				if (isblockframe || e.fp_fn() != fn)
 					throw;
 				PUSH(tls().proc->block_return_value);
 				tls().proc->block_return_value = Value();
