@@ -118,7 +118,7 @@ bool SuObject::lt(const SuValue& y) const {
 		return lt(*suseq->object()); // build
 	int yo = y.order();
 	if (yo == ord)
-		return vec < static_cast<const SuObject&>(y).vec;
+		return vec < dynamic_cast<const SuObject&>(y).vec;
 	else
 		return ord < yo;
 }
