@@ -7,6 +7,10 @@
 #include "sustring.h"
 #include "ostreamstr.h"
 
+// SuSeq implements sequence values
+// it wraps a Value with Next, Dup, and Infinite? methods
+// the value may be user defined or built-in like Seq() or object.Members()
+
 SuSeq::SuSeq(Value i) : iter(i) {
 }
 
@@ -24,15 +28,13 @@ Value SuSeq::call(Value self, Value member, short nargs, short nargnames,
 	static Value ITER("Iter");
 	static Value COPY("Copy");
 	static Value JOIN("Join");
-	static Value CLOSE("Close");
+	static Value Infinite("Infinite?");
 	static Value Instantiated("Instantiated?");
 
-	if (member == Instantiated) {
+	if (member == Infinite)
+		return infinite(iter) ? SuTrue : SuFalse;
+	if (member == Instantiated)
 		return ob ? SuTrue : SuFalse;
-	}
-	if (member == CLOSE) {
-		return Value();
-	}
 	if (!ob &&
 		(!duped || infinite(iter))) { // instantiate rather than dup again
 		if (member == ITER) {

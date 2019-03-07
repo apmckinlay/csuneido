@@ -6,7 +6,7 @@
 
 class SuObject;
 
-class SuSeq : public SuValue {
+class SuSeq final : public SuValue {
 public:
 	explicit SuSeq(Value iter);
 	void out(Ostream& os) const override;
