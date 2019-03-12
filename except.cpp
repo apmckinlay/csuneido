@@ -111,14 +111,12 @@ void except_log_stack_() {
 
 char* callStackString() {
 	OstreamStr stk;
-	gcstring indent = "";
 	for (Frame* f = tls().proc->fp; f > tls().proc->frames; --f) {
-		stk << endl << indent;
+		stk << endl;
 		if (f->fn)
 			stk << f->fn;
 		else if (f->prim)
 			stk << f->prim;
-		indent += "  ";
 	}
 	return stk.str();
 }
