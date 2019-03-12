@@ -15,10 +15,8 @@ Query* Query::make_table(const char* s) {
 	return new Table(s);
 }
 
-Table::Table(const char* s) : table(s), tbl(theDB()->get_table(table)) {
-	if (!theDB()->istable(table))
-		except("nonexistent table: " << table);
-	singleton = nil(*Table::indexes());
+Table::Table(const char* s)
+	: table(s), tbl(theDB()->ck_get_table(table)), singleton(tbl->singleton()) {
 }
 
 void Table::out(Ostream& os) const {

@@ -107,6 +107,7 @@ struct Tbl {
 	int colNum(const gcstring& col);
 	int specialFieldNum(const gcstring& col);
 	Lisp<gcstring> get_fields();
+	bool singleton();
 	void user_trigger(int tran, Record oldrec, Record newrec);
 
 	Record rec;

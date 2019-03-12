@@ -831,6 +831,13 @@ Lisp<gcstring> Tbl::get_fields() {
 	return list.reverse();
 }
 
+bool Tbl::singleton() {
+	for (auto i = idxs; !nil(i); ++i)
+		if (i->columns == "")
+			return true;
+	return false;
+}
+
 Lisp<gcstring> Database::get_rules(const gcstring& table) {
 	Lisp<gcstring> list;
 	Tbl* tbl = get_table(table);

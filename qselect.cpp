@@ -422,8 +422,8 @@ double Select::optimize2(const Fields& index, const Fields& needs,
 		select_needs = expr->fields();
 		tbl = dynamic_cast<Table*>(source);
 	}
-	if (!tbl ||                 // source isnt a Table
-		nil(*tbl->indexes())) { // empty key() singleton - index irrelevant
+	if (!tbl ||           // source isnt a Table
+		tbl->singleton) { // empty key() - index irrelevant
 		optFirst = false;
 		required_index = source_index = index;
 		double cost = source->optimize(index, set_union(needs, select_needs),
@@ -634,10 +634,12 @@ void Select::calc_field_fracs() {
 
 // fraction of data selected by the isel on a field
 double Select::field_frac(const Field& field) {
+	LOG("field_frac theindexes " << theindexes);
 	Fields best_index;
 	int best_size = INT_MAX;
 	// look for smallest index starting with field
 	for (Indexes idxs(theindexes); !nil(idxs); ++idxs) {
+		verify(!nil(*idxs));
 		if (**idxs == field && tbl->indexsize(*idxs) < best_size) {
 			best_index = *idxs;
 			best_size = tbl->indexsize(*idxs);

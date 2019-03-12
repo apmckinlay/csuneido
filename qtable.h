@@ -55,13 +55,15 @@ protected:
 	}
 	void iterate_setup(Dir dir);
 
+	Tbl* tbl = nullptr;
 	bool first = true;
 	bool rewound = true;
 	Keyrange sel;
 	Header hdr;
 	Index* idx = nullptr;
 	int tran = INT_MAX;
-	bool singleton = false; // i.e. key()
 	Fields idxflds;
-	Tbl* tbl = nullptr;
+
+public:
+	const bool singleton = false; // i.e. key()
 };
