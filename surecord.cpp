@@ -180,8 +180,6 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames,
 	static Value SetDeps("SetDeps");
 	static Value Add("Add");
 	static Value AttachRule("AttachRule");
-	static Value Base("Base");
-	static Value BaseQ("Base?");
 
 	if (member != Add) // Add optimizes each
 		argseach(nargs, nargnames, argnames, each);
@@ -259,16 +257,6 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames,
 			except("usage: record.AttachRule(field, callable)");
 		attached_rules[ARG(0).symnum()] = ARG(1);
 		return Value();
-	} else if (member == Base) {
-		NOARGS("record.Base()");
-		return globals.get("Record");
-	} else if (member == BaseQ) {
-		if (nargs != 1)
-			except("usage: record.Base?(class)");
-		return ARG(0) == globals.get("Record") ||
-				ARG(0) == globals.get("Object")
-			? SuTrue
-			: SuFalse;
 	} else {
 		// TODO: calling object methods shouldn't require Records
 		static UserDefinedMethods udm("Records");

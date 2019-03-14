@@ -151,16 +151,12 @@ SuObject::Mfn SuObject::method(Value member) {
 		{"Delete", &SuObject::Delete},
 		{"Find", &SuObject::Find},
 		{"Assocs", &SuObject::Assocs},
-		{"Base", &SuObject::Base},   // TODO remove
-		{"Base?", &SuObject::BaseQ}, // TODO remove
 		{"EqualRange", &SuObject::EqualRange},
 		{"Erase", &SuObject::Erase},
 		{"Eval", &SuObject::Eval},
 		{"Eval2", &SuObject::Eval2},
 		{"Join", &SuObject::Join},
 		{"LowerBound", &SuObject::LowerBound},
-		{"Method?", &SuObject::MethodQ},         // TODO remove
-		{"MethodClass", &SuObject::MethodClass}, // TODO remove
 		{"Partition!", &SuObject::Partition},
 		{"Readonly?", &SuObject::ReadonlyQ},
 		{"Reverse!", &SuObject::Reverse},
@@ -530,32 +526,6 @@ Value SuObject::MemberQ(BuiltinArgs& args) {
 	Value mem = args.getValue("member");
 	args.end();
 	return has(mem) ? SuTrue : SuFalse;
-}
-
-Value SuObject::MethodQ(BuiltinArgs& args) {
-	args.usage("object.Method?(name)");
-	args.getValue("name");
-	args.end();
-	return SuFalse;
-}
-
-Value SuObject::MethodClass(BuiltinArgs& args) {
-	args.usage("object.MethodClass(name)");
-	args.getValue("name");
-	args.end();
-	return SuFalse;
-}
-
-Value SuObject::Base(BuiltinArgs& args) {
-	args.usage("object.Base()").end();
-	return SuFalse;
-}
-
-Value SuObject::BaseQ(BuiltinArgs& args) {
-	args.usage("object.Base?(value)");
-	args.getValue("value");
-	args.end();
-	return SuFalse;
 }
 
 Value SuObject::Eval(BuiltinArgs& args) {
