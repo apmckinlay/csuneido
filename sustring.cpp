@@ -271,10 +271,11 @@ Value SuString::Asc(short nargs, short nargnames, short* argnames, int each) {
 bool isGlobal(const char* s) {
 	if (!isupper(*s))
 		return false;
-	while (*++s)
-		if (*s != '_' && !isalpha(*s) && !isdigit(*s))
-			return false;
-	return true;
+	for (++s; *s == '_' || isalpha(*s) || isdigit(*s); ++s)
+		;
+	if (*s == '!' || *s == '?')
+		++s;
+	return !*s;
 }
 
 Value SuString::Eval(short nargs, short nargnames, short* argnames, int each) {
@@ -932,12 +933,6 @@ TEST(sustring_match) {
 }
 
 TEST(sustring_is_identifier) {
-	verify(!is_identifier(""));
-	verify(!is_identifier("?"));
-	verify(!is_identifier("a b"));
-	verify(!is_identifier("123"));
-	verify(!is_identifier("?ab"));
-	verify(!is_identifier("a?b"));
 	verify(is_identifier("x"));
 	verify(is_identifier("xyz"));
 	verify(is_identifier("Abc"));
@@ -945,4 +940,27 @@ TEST(sustring_is_identifier) {
 	verify(is_identifier("x_"));
 	verify(is_identifier("x_1"));
 	verify(is_identifier("x?"));
+
+	verify(!is_identifier(""));
+	verify(!is_identifier("?"));
+	verify(!is_identifier("a b"));
+	verify(!is_identifier("123"));
+	verify(!is_identifier("?ab"));
+	verify(!is_identifier("a?b"));
+}
+
+TEST(sustring_isGlobal) {
+	verify(isGlobal("F"));
+	verify(isGlobal("Foo"));
+	verify(isGlobal("Foo_123_Bar"));
+	verify(isGlobal("Foo!"));
+	verify(isGlobal("Foo?"));
+
+	verify(!isGlobal(""));
+	verify(!isGlobal("f"));
+	verify(!isGlobal("foo"));
+	verify(!isGlobal("_foo"));
+	verify(!isGlobal("Foo!bar"));
+	verify(!isGlobal("Foo?bar"));
+	verify(!isGlobal("Foo.bar"));
 }
