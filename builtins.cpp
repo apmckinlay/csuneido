@@ -184,9 +184,12 @@ BUILTIN(Buffer, "(size, string='')") {
 	return new SuBuffer(n, ARG(1).gcstr());
 }
 
-BUILTIN(ObjectQ, "(value)") { // TODO don't include instances
-	Value x = TOP();
-	return x.ob_if_ob() || val_cast<SuInstance*>(x) ? SuTrue : SuFalse;
+BUILTIN(ObjectQ, "(value)") {
+	return TOP().ob_if_ob() ? SuTrue : SuFalse;
+}
+
+BUILTIN(InstanceQ, "(value)") {
+	return val_cast<SuInstance*>(TOP()) ? SuTrue : SuFalse;
 }
 
 BUILTIN(ClassQ, "(value)") {
