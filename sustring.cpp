@@ -181,7 +181,7 @@ Value SuString::call(Value self, Value member, short nargs, short nargnames,
 		methods["AlphaNum?"] = &SuString::AlphaNumq;
 		methods[CALL] = &SuString::Call;
 		METHOD(Compile);
-		METHOD(CountChar);
+		METHOD(Count);
 		METHOD(Detab);
 		METHOD(Entab);
 		METHOD(Eval);
@@ -582,18 +582,18 @@ Value SuString::Split(short nargs, short nargnames, short* argnames, int each) {
 	return ob;
 }
 
-Value SuString::CountChar(
-	short nargs, short nargnames, short* argnames, int each) {
+Value SuString::Count(short nargs, short nargnames, short* argnames, int each) {
 	BuiltinArgs args(nargs, nargnames, argnames, each);
-	args.usage("string.CountChar(c)");
-	gcstring sc = args.getgcstr("c");
+	args.usage("string.Count(substr)");
+	gcstring substr = args.getgcstr("substr");
 	args.end();
-	if (sc.size() != 1)
-		args.exceptUsage();
-	char c = sc[0];
+	if (substr.size() == 0)
+		return 0;
 	gcstring str = gcstr();
-	return std::count_if(
-		str.begin(), str.end(), [c](char sch) { return sch == c; });
+	int n = 0;
+	for (int i = 0; (i = s.find(substr, i)) != -1; i += substr.size())
+		++n;
+	return n;
 }
 
 Value SuString::Detab(short nargs, short nargnames, short* argnames, int each) {

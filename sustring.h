@@ -98,7 +98,7 @@ private:
 	Value Asc(short nargs, short nargnames, short* argnames, int each);
 	Value Call(short nargs, short nargnames, short* argnames, int each);
 	Value Compile(short nargs, short nargnames, short* argnames, int each);
-	Value CountChar(short nargs, short nargnames, short* argnames, int each);
+	Value Count(short nargs, short nargnames, short* argnames, int each);
 	Value Detab(short nargs, short nargnames, short* argnames, int each);
 	Value Entab(short nargs, short nargnames, short* argnames, int each);
 	Value Eval(short nargs, short nargnames, short* argnames, int each);
