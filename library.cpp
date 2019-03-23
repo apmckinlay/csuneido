@@ -63,7 +63,7 @@ void libload(int gnum) {
 			if (gcstring* ps = override.find(lib + ":" + gname))
 				src = ps->str();
 			else
-				src = unpack_gcstr(*srcs).str();
+				src = (*srcs).str();
 			Value x = compile(src, gname);
 			if (Named* n = const_cast<Named*>(x.get_named())) {
 				n->lib = lib;
@@ -215,7 +215,7 @@ Lisp<gcstring> libgetall(const char* name) {
 		Index::iterator iter = index->begin(t, key);
 		if (!iter.eof()) {
 			Record rec(iter.data());
-			srcs.push(rec.getraw(text_fld));
+			srcs.push(rec.getstr(text_fld));
 			srcs.push(*libs);
 		}
 	}
