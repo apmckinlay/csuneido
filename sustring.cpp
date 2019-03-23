@@ -589,7 +589,6 @@ Value SuString::Count(short nargs, short nargnames, short* argnames, int each) {
 	args.end();
 	if (substr.size() == 0)
 		return 0;
-	gcstring str = gcstr();
 	int n = 0;
 	for (int i = 0; (i = s.find(substr, i)) != -1; i += substr.size())
 		++n;
