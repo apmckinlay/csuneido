@@ -6,7 +6,7 @@
 
 #include "value.h"
 
-// sequence must match jSuneido
+// sequence must match jSuneido and dbserver.cpp commands
 enum class Command {
 	ABORT,
 	ADMIN,

@@ -154,14 +154,15 @@ static CmdFn commands[]{&DbServer::cmd_ABORT, &DbServer::cmd_ADMIN,
 	&DbServer::cmd_CURSORS, &DbServer::cmd_DUMP, &DbServer::cmd_ERASE,
 	&DbServer::cmd_EXEC, &DbServer::cmd_EXPLAIN, &DbServer::cmd_FINAL,
 	&DbServer::cmd_GET, &DbServer::cmd_GET1, &DbServer::cmd_HEADER,
-	&DbServer::cmd_KEYS, &DbServer::cmd_KILL, &DbServer::cmd_LIBGET,
-	&DbServer::cmd_LIBRARIES, &DbServer::cmd_LOAD, &DbServer::cmd_LOG,
-	&DbServer::cmd_NONCE, &DbServer::cmd_ORDER, &DbServer::cmd_OUTPUT,
-	&DbServer::cmd_QUERY, &DbServer::cmd_READCOUNT, &DbServer::cmd_REQUEST,
-	&DbServer::cmd_REWIND, &DbServer::cmd_RUN, &DbServer::cmd_SESSIONID,
-	&DbServer::cmd_SIZE, &DbServer::cmd_TIMESTAMP, &DbServer::cmd_TOKEN,
-	&DbServer::cmd_TRANSACTION, &DbServer::cmd_TRANSACTIONS,
-	&DbServer::cmd_UPDATE, &DbServer::cmd_WRITECOUNT};
+	&DbServer::cmd_INFO, &DbServer::cmd_KEYS, &DbServer::cmd_KILL,
+	&DbServer::cmd_LIBGET, &DbServer::cmd_LIBRARIES, &DbServer::cmd_LOAD,
+	&DbServer::cmd_LOG, &DbServer::cmd_NONCE, &DbServer::cmd_ORDER,
+	&DbServer::cmd_OUTPUT, &DbServer::cmd_QUERY, &DbServer::cmd_READCOUNT,
+	&DbServer::cmd_REQUEST, &DbServer::cmd_REWIND, &DbServer::cmd_RUN,
+	&DbServer::cmd_SESSIONID, &DbServer::cmd_SIZE, &DbServer::cmd_TIMESTAMP,
+	&DbServer::cmd_TOKEN, &DbServer::cmd_TRANSACTION,
+	&DbServer::cmd_TRANSACTIONS, &DbServer::cmd_UPDATE,
+	&DbServer::cmd_WRITECOUNT};
 
 void DbServer::run() {
 	while (true) {
