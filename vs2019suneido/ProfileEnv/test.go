@@ -1,0 +1,2 @@
+TestRunner.Run()
+Exit()
