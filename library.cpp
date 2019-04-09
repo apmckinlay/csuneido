@@ -51,6 +51,8 @@ void libload(int gnum) {
 		globals.put(gnum, *pv);
 		return;
 	}
+	if (cmdlineoptions.action == TEST)
+		return; // don't access libraries during built-in tests
 	char* gname = globals(gnum);
 	if (strcspn(gname, "\r\n") != strlen(gname))
 		return;
