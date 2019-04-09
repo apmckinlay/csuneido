@@ -776,6 +776,7 @@ char* rx_mkrep(char* buf, const gcstring& rep, Rxpart* subs) {
 	int nr = rep.size();
 	if (rep[0] == '\\' && rep[1] == '=') {
 		memcpy(buf, rep.ptr() + 2, nr - 2);
+		buf[nr - 2] = 0;
 		return buf;
 	}
 
@@ -1175,4 +1176,24 @@ PORTTEST(regex_match) {
 		}
 	}
 	return ok ? nullptr : "";
+}
+
+PORTTEST(regex_replace) {
+	gcstring s = args[0];
+	const char* t = s.str();
+	const char* pat = rx_compile(args[1]);
+	Rxpart parts[MAXPARTS];
+	verify(rx_match(t, s.size(), 0, pat, parts));
+	const char* rep = args[2].str();
+	size_t replen = rx_replen(rep, parts);
+	char buf[200];
+	verify(replen < sizeof buf);
+	rx_mkrep(buf, rep, parts);
+	assert_eq(strlen(buf), replen);
+	int i = parts[0].s - t;
+	auto result = s.substr(0, i) + buf + s.substr(i + parts[0].n);
+	if (args[3] != result)
+		return OSTR(
+			"\n\tgot: '" << result << "'\n\texpected: '" << args[3] << "'");
+	return nullptr;
 }
