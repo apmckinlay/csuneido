@@ -171,12 +171,12 @@ TEST(value_smallint) {
 PORTTEST(compare) {
 	int n = args.size();
 	for (int i = 0; i < n; ++i) {
-		Value x = compile(args[i].str());
+		Value x = constant(args[i].str());
 		// ReSharper disable once CppIdenticalOperandsInBinaryExpression
 		if (x < x)
 			return OSTR("\n\t" << x << " less than itself");
 		for (int j = i + 1; j < n; ++j) {
-			Value y = compile(args[j].str());
+			Value y = constant(args[j].str());
 			if (!(x < y) || (y < x))
 				return OSTR("\n\t" << x << " <=> " << y);
 		}

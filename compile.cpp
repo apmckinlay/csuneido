@@ -245,6 +245,15 @@ private:
 	static Value privatizeRef(const char* className, const char* s);
 };
 
+Value constant(const char* s) {
+	if (0 == strcmp(s, "inf"))
+		return &SuNumber::infinity;
+	else if (0 == strcmp(s, "-inf"))
+		return &SuNumber::minus_infinity;
+	else
+		return compile(s);
+}
+
 Value compile(const char* s, const char* gname, CodeVisitor* visitor) {
 	Compiler compiler(s, visitor);
 	Value x = compiler.constant(gname, gname);
