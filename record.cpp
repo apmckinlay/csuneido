@@ -11,100 +11,182 @@
 using std::max;
 using std::min;
 
+#pragma warning(disable : 4200) // zero-sized array in struct
+
 // ReSharper disable CppSomeObjectMembersMightNotBeInitialized
 
-template <class T>
+typedef unsigned char uchar;
+
+enum { MODE0, MODE1, MODE2, MODE4, DBMODE = 0x3f };
+
+const int HDRLEN = 2;
+
 struct RecRep {
-	// TODO: convert type to enum
-	short type;
-	short n;  // current number of fields (starts at 0)
-	T sz;     // total length of RecRep (also referenced as off[-1])
-	T off[1]; // actual array size varies
-	gcstring get(int i) const { // NOTE: no alloc - gcstring points to rep
-		if (i >= n)
-			return gcstring();
-		size_t size = off[i - 1] - off[i];
-		verify(size <= sz - off[i]);
-		return gcstring::noalloc((char*) this + off[i], size);
+	uchar buf[0];
+
+	char mode() const {
+		return buf[0] == DBMODE ? DBMODE : buf[0] >> 6;
 	}
+	int count() const {
+		return buf[0] == 0 ? 0 : ((int) (buf[0] & 0x3f) << 8) | buf[1];
+	}
+	void setHdr(char mode, int count) {
+		buf[0] = (mode << 6) | (count >> 8);
+		buf[1] = count;
+		verify(this->mode() == mode);
+		verify(this->count() == count);
+	}
+	int getOffset(int i) const {
+		int j;
+		switch (mode()) {
+		case MODE1:
+			j = HDRLEN + 1 + i;
+			return int(buf[j]);
+		case MODE2:
+			j = HDRLEN + 2 + 2 * i;
+			return (int(buf[j]) << 8) | int(buf[j + 1]);
+		case MODE4:
+			j = HDRLEN + 4 + 4 * i;
+			return (int(buf[j]) << 24) | (int(buf[j + 1]) << 16) |
+				(int(buf[j + 2]) << 8) | int(buf[j + 3]);
+		default:
+			unreachable();
+		}
+	}
+	void setOffset(int i, int offset) {
+		int j;
+		switch (mode()) {
+		case MODE1:
+			j = HDRLEN + 1 + i;
+			buf[j] = offset;
+			break;
+		case MODE2:
+			j = HDRLEN + 2 + 2 * i;
+			buf[j] = offset >> 8;
+			buf[j + 1] = offset;
+			break;
+		case MODE4:
+			j = HDRLEN + 4 + 4 * i;
+			buf[j] = offset >> 24;
+			buf[j + 1] = offset >> 16;
+			buf[j + 2] = offset >> 8;
+			buf[j + 3] = offset;
+			break;
+		default:
+			unreachable();
+		}
+	}
+	gcstring get(int i) const { // NOTE: no alloc - gcstring points to buf
+		if (i >= count())
+			return gcstring();
+		// could use getOffset but inline for performance
+		int j, pos, end;
+		switch (mode()) {
+		case MODE1:
+			j = HDRLEN + i;
+			end = int(buf[j]);
+			pos = int(buf[j + 1]);
+			break;
+		case MODE2:
+			j = HDRLEN + 2 * i;
+			end = (int(buf[j]) << 8) | int(buf[j + 1]);
+			pos = (int(buf[j + 2]) << 8) | int(buf[j + 3]);
+			break;
+		case MODE4:
+			j = HDRLEN + 4 * i;
+			end = (int(buf[j]) << 24) | (int(buf[j + 1]) << 16) |
+				(int(buf[j + 2]) << 8) | int(buf[j + 3]);
+			pos = (int(buf[j + 4]) << 24) | (int(buf[j + 5]) << 16) |
+				(int(buf[j + 6]) << 8) | int(buf[j + 7]);
+			break;
+		default:
+			unreachable();
+		}
+		return gcstring::noalloc((char*) buf + pos, end - pos);
+	}
+
+	int len() const {
+		return getOffset(-1);
+	}
+	void setlen(int len) {
+		setOffset(-1, len);
+	}
+
 	size_t cursize() const {
-		size_t base = sizeof(short) + sizeof(short) + // type & n
-			sz - off[n - 1];                          // data
-		size_t size = base + sizeof(char) * (n + 1);  // offsets
+		if (buf[0] == 0)
+			return 1;
+		auto n = count();
+		size_t base = 2 + len() - getOffset(n - 1); // data
+		size_t size = base + (n + 1);               // offsets
 		if (size <= UCHAR_MAX)
 			return size;
-		size = base + sizeof(short) * (n + 1); // offsets
+		size = base + 2 * (n + 1); // offsets
 		if (size <= USHRT_MAX)
 			return size;
-		return base + sizeof(int) * (n + 1); // offsets
+		return base + 4 * (n + 1); // offsets
 	}
 	int avail() const {
-		return off[n - 1] - (2 * sizeof(short) + (n + 2) * sizeof(T));
+		auto n = count();
+		auto offsetSize = 1 << mode();
+		return getOffset(n - 1) - (2 * sizeof(short) + (n + 2) * offsetSize);
+		// n+2 instead of n+1 to allow for a new item's offset
 	}
-	// n+2 instead of n+1 to allow for a new item's offset
 	char* alloc(size_t len) {
-		off[n] = off[n - 1] - len;
-		return (char*) this + off[n++];
+		auto n = count();
+		setHdr(mode(), n + 1);
+		setOffset(n, getOffset(n - 1) - len);
+		return reinterpret_cast<char*>(this) + getOffset(n);
 	}
 	void add(const gcstring& s) {
 		memcpy(alloc(s.size()), s.ptr(), s.size());
 	}
 	void truncate(int i) {
-		if (i < n)
-			n = i;
+		if (i < count())
+			setHdr(mode(), i);
 	}
 };
 
 struct DbRep {
-	DbRep(Mmfile* mmf, Mmoffset off)
-		: type('d'), offset(off), rec(mmf->adr(offset)) {
+	DbRep(Mmfile* mmf, Mmoffset off) : offset(off), rec(mmf->adr(offset)) {
 		verify(offset > 0);
 	}
 
-	short type; // has to match RecRep
+	char mode = DBMODE; // first byte to match RecRep rep[0]
 	Mmoffset offset;
 	Record rec;
 };
 
 Record::Record(size_t sz) // NOLINT
-	: crep((RecRep<unsigned char>*) ::operator new(sz + 1, noptrs)) {
+	: rep(static_cast<RecRep*>(::operator new(sz + 1, noptrs))) {
 	init(sz);
-	// ensure that final value is followed by nul
-	reinterpret_cast<char*>(crep)[sz] = 0;
+	// ensure that final value is followed by nul (why???)
+	reinterpret_cast<char*>(rep)[sz] = 0;
 }
 
 Record::Record(size_t sz, const void* buf) // NOLINT
-	: crep((RecRep<unsigned char>*) buf) {
+	: rep((RecRep*) buf) {
 	init(sz);
 }
 
 void Record::init(size_t sz) {
-	crep->n = 0;
 	if (sz <= UCHAR_MAX) {
-		crep->type = 'c';
-		crep->sz = sz;
+		rep->setHdr(MODE1, 0);
 	} else if (sz <= USHRT_MAX) {
-		srep->type = 's';
-		srep->sz = sz;
+		rep->setHdr(MODE2, 0);
 	} else {
-		lrep->type = 'l';
-		lrep->sz = sz;
+		rep->setHdr(MODE4, 0);
 	}
+	rep->setlen(sz);
 }
 
 // used by database
 void Record::reuse(int n) {
-	if (crep->type == 'd')
-		dbrep->rec.crep->n = n;
-	else
-		crep->n = n;
+	auto cr = rep->buf[0] == DBMODE ? dbrep->rec.rep : rep;
+	cr->setHdr(cr->mode(), n);
 }
 
 Record::Record(const void* r) // NOLINT
-	: crep((RecRep<unsigned char>*) r) {
-	verify(!crep ||
-		(crep->type == 'c' || crep->type == 's' ||
-			crep->type == 'l')); // NOLINT
+	: rep((RecRep*) r) {
 }
 
 Record::Record(Mmfile* mmf, Mmoffset offset) // NOLINT
@@ -112,38 +194,31 @@ Record::Record(Mmfile* mmf, Mmoffset offset) // NOLINT
 }
 
 void* Record::ptr() const {
-	if (!crep)
+	if (!rep)
 		return nullptr;
-	return (void*) (crep->type == 'd' ? dbrep->rec.crep : crep);
+	return (void*) (rep->buf[0] == DBMODE ? dbrep->rec.rep : rep);
 }
 
 Mmoffset Record::off() const {
-	verify(crep->type == 'd');
+	verify(rep->buf[0] == DBMODE);
 	verify(dbrep->offset >= 0);
 	return dbrep->offset;
 }
 
+// the number of elements
 int Record::size() const {
-	if (!crep)
+	if (!rep)
 		return 0;
-	return crep->type == 'd' ? dbrep->rec.crep->n : crep->n;
+	auto cr = rep->buf[0] == DBMODE ? dbrep->rec.rep : rep;
+	return cr->count();
 }
 
 #define CALL(meth) \
-	Record r = crep->type == 'd' ? dbrep->rec : *this; \
-	switch (r.crep->type) { \
-	case 'c': \
-		return r.crep->meth; \
-	case 's': \
-		return r.srep->meth; \
-	case 'l': \
-		return r.lrep->meth; \
-	default: \
-		error("invalid record"); \
-	}
+	Record r = rep->buf[0] == DBMODE ? dbrep->rec : *this; \
+	return r.rep->meth;
 
 gcstring Record::getraw(int i) const {
-	if (!crep)
+	if (!rep)
 		return gcstring();
 	CALL(get(i));
 }
@@ -180,19 +255,19 @@ bool Record::prefixgt(Record r) {
 }
 
 size_t Record::cursize() const {
-	if (!crep)
-		return sizeof(RecRep<uint8_t>); // min RecRep size
+	if (!rep)
+		return 1; // min RecRep size
 	CALL(cursize());
 }
 
 size_t Record::bufsize() const {
-	if (!crep)
-		return sizeof(RecRep<uint8_t>); // min RecRep size
-	CALL(sz);
+	if (!rep)
+		return 1; // min RecRep size
+	CALL(len());
 }
 
 int Record::avail() const {
-	if (!crep)
+	if (!rep)
 		return -1; // -1 because you can't even add a 0 length item
 	CALL(avail());
 }
@@ -229,63 +304,29 @@ void Record::addval(const char* s) {
 }
 
 void Record::addval(int n) {
-	packint(alloc(packintsize(n)), n);
-}
-
-template <class Src, class Dst>
-inline void repcopy(Src src, Dst dst) {
-	// COULD: copy the data with one memcpy, then adjust offsets
-	int n = src->n;
-	for (int i = 0; i < n; ++i)
-		dst->add(src->get(i));
+	packint(alloc(packsizeint(n)), n);
 }
 
 void Record::copyrec(Record src, Record& dst) {
-	if (!src.crep)
+	if (!src.rep)
 		return;
-	verify(dst.crep);
-	verify(dst.crep->type != 'd');
-	if (src.crep->type == 'd')
-		copyrec(src.dbrep->rec, dst);
-	else if (src.crep->type == 'c') {
-		if (dst.crep->type == 'c')
-			repcopy(src.crep, dst.crep);
-		else if (dst.crep->type == 's')
-			repcopy(src.crep, dst.srep);
-		else if (dst.crep->type == 'l')
-			repcopy(src.crep, dst.lrep);
-		else
-			error("invalid record");
-	} else if (src.srep->type == 's') {
-		if (dst.crep->type == 'c')
-			repcopy(src.srep, dst.crep);
-		else if (dst.srep->type == 's')
-			repcopy(src.srep, dst.srep);
-		else if (dst.crep->type == 'l')
-			repcopy(src.srep, dst.lrep);
-		else
-			error("invalid record");
-	} else if (src.srep->type == 'l') {
-		if (dst.crep->type == 'c')
-			repcopy(src.lrep, dst.crep);
-		else if (dst.crep->type == 's')
-			repcopy(src.lrep, dst.srep);
-		else if (dst.crep->type == 'l')
-			repcopy(src.lrep, dst.lrep);
-		else
-			error("invalid record");
-	} else
-		error("invalid record");
+	verify(dst.rep);
+	verify(dst.rep->buf[0] != DBMODE);
+	auto srcrep = (src.rep->buf[0] == DBMODE) ? src.dbrep->rec.rep : src.rep;
+	auto n = srcrep->count();
+	for (auto i = 0; i < n; ++i)
+		dst.rep->add(srcrep->get(i));
+	// COULD: copy the data with one memcpy, then adjust offsets
 }
 
 void Record::grow(int need) {
-	if (!crep) {
+	if (!rep) {
 		Record dst(max(60, 2 * need));
-		crep = dst.crep;
+		rep = dst.rep;
 	} else {
 		Record dst(2 * (cursize() + need));
 		copyrec(*this, dst);
-		crep = dst.crep;
+		rep = dst.rep;
 	}
 }
 
@@ -301,7 +342,7 @@ void Record::moveto(Mmfile* mmf, Mmoffset offset) {
 }
 
 Record Record::dup() const {
-	if (!crep)
+	if (!rep)
 		return Record();
 	Record dst(cursize());
 	copyrec(*this, dst);
@@ -309,31 +350,18 @@ Record Record::dup() const {
 }
 
 void Record::truncate(int n) {
-	if (!crep)
+	if (!rep)
 		return;
-	switch (crep->type) {
-	case 'c':
-		crep->truncate(n);
-		return;
-	case 's':
-		srep->truncate(n);
-		return;
-	case 'l':
-		lrep->truncate(n);
-		return;
-	case 'd':
-		error("dbrep truncate not allowed");
-	default:
-		error("invalid record");
-	}
+	verify(rep->buf[0] != DBMODE);
+	rep->truncate(n);
 }
 
 // MAYBE: rewrite op== and op< similar to copy
 
 bool Record::operator==(Record r) const {
-	if (crep == r.crep || (!crep && r.size() == 0) || (!r.crep && size() == 0))
+	if (rep == r.rep || (!rep && r.size() == 0) || (!r.rep && size() == 0))
 		return true;
-	else if (!crep || !r.crep)
+	else if (!rep || !r.rep)
 		return false;
 
 	if (size() != r.size())
@@ -373,19 +401,14 @@ const int DB_BIT = 1 << MM_SHIFT;
 const int DB_MASK = (1 << (MM_SHIFT + 1)) - 1;
 
 Mmoffset Record::to_int64() const {
-	if (!crep)
+	if (!rep)
 		return 0;
-	switch (crep->type) {
-	case 'c':
-	case 's':
-	case 'l':
-		verify(((int) crep & DB_MASK) == 0);
-		return reinterpret_cast<Mmoffset>(crep);
-	case 'd':
+	if (rep->buf[0] == DBMODE) {
 		verify((dbrep->offset & DB_MASK) == 0);
 		return dbrep->offset | DB_BIT;
-	default:
-		error("invalid record");
+	} else {
+		verify(((int) rep & DB_MASK) == 0);
+		return reinterpret_cast<Mmoffset>(rep);
 	}
 }
 
@@ -401,19 +424,14 @@ inline int mmoffset_to_tagged_int(Mmoffset off) {
 }
 
 int Record::to_int() const {
-	if (!crep)
+	if (!rep)
 		return 0;
-	switch (crep->type) {
-	case 'c':
-	case 's':
-	case 'l':
-		verify(((int) crep & DB_MASK) == 0);
-		return reinterpret_cast<int>(crep);
-	case 'd':
+	if (rep->buf[0] == DBMODE) {
 		verify((dbrep->offset & DB_MASK) == 0);
 		return mmoffset_to_tagged_int(dbrep->offset);
-	default:
-		error("invalid record");
+	} else {
+		verify(((int) rep & DB_MASK) == 0);
+		return reinterpret_cast<int>(rep);
 	}
 }
 
@@ -435,11 +453,20 @@ Record const Record::empty;
 #include "testing.h"
 
 TEST(record_record) {
+	Record empty("\x00");
+	assert_eq(empty.size(), 0);
+
+	auto dup_empty = Record::empty.dup();
+	assert_eq(dup_empty.size(), 0);
+
 	Record r;
+	verify(r.size() == 0);
 
 	r.addval("hello");
+	verify(r.size() == 1);
 	verify(r.getstr(0) == "hello");
 	r.addval("world");
+	verify(r.size() == 2);
 	verify(r.getstr(0) == "hello");
 	verify(r.getstr(1) == "world");
 
@@ -451,12 +478,18 @@ TEST(record_record) {
 	verify(r.dup() == r);
 
 	r.addval(1234);
+	verify(r.size() == 3);
+	verify(r.getstr(0) == "hello");
+	verify(r.getstr(1) == "world");
 	verify(r.getint(2) == 1234);
 
 	// add enough stuff to use all reps
-	for (int i = 0; i < 1000; ++i)
-		r.addval("123456789012345678901234567890123456789012345678901234567890"
-				 "1234567890");
+	auto s = gcstring::noalloc("1234567890123456789012345678901234567890123"
+							   "456789012345678901234567890");
+	for (int i = 0; i < 1000; ++i) {
+		assert_eq(r.size(), i + 3);
+		r.addraw(s);
+	}
 	verify(r.getstr(0) == "hello");
 	verify(r.getstr(1) == "world");
 	verify(r.getint(2) == 1234);

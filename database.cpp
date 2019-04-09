@@ -19,7 +19,7 @@
 #include "fibers.h" // for yieldif for create_indexes
 #include "sustring.h"
 
-const int DB_VERSION = 1; // increment for non-compatible format changes
+const int DB_VERSION = 2; // increment for non-compatible format changes
 
 // Tbl ==============================================================
 

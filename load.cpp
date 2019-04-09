@@ -21,6 +21,7 @@ static char* loadbuf = 0;
 static int loadbuf_size = 0;
 static int load1(Istream& fin, gcstring tblspec);
 static int load_data(Istream& fin, const gcstring& table);
+static int read_size(Istream& fin);
 static void load_data_record(
 	Istream& fin, const gcstring& table, int tran, int n);
 static bool alerts = false;
@@ -54,8 +55,10 @@ void load(const gcstring& table) {
 		if (!fin)
 			except("can't open database.su");
 		fin.getline(buf, bufsize);
-		if (!has_prefix(buf, "Suneido dump 1"))
-			except("invalid file");
+		if (!has_prefix(buf, "Suneido dump"))
+			except("not a valid dump file");
+		if (!has_prefix(buf, "Suneido dump 2"))
+			except("wrong dump file version");
 
 		if (_access("suneido.db", 0) == 0) {
 			remove("suneido.bak");
@@ -113,10 +116,7 @@ static int load_data(Istream& fin, const gcstring& table) {
 	int nrecs = 0;
 	int tran = theDB()->transaction(READWRITE);
 	for (;; ++nrecs) {
-		int n;
-		fin.read((char*) &n, sizeof n);
-		if (fin.gcount() != sizeof n)
-			except("unexpected eof");
+		int n = read_size(fin);
 		if (n == 0)
 			break;
 		load_data_record(fin, table, tran, n);
@@ -127,6 +127,16 @@ static int load_data(Istream& fin, const gcstring& table) {
 	}
 	verify(theDB()->commit(tran));
 	return nrecs;
+}
+
+static int read_size(Istream& fin) {
+	char buf[4];
+	fin.read(buf, sizeof buf);
+	if (fin.gcount() != sizeof buf)
+		except("unexpected eof");
+	auto p = reinterpret_cast<unsigned char*>(buf);
+	auto n = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
+	return n;
 }
 
 static void load_data_record(

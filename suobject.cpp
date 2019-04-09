@@ -19,6 +19,7 @@
 #include "globals.h"
 #include "suclass.h"
 #include "eqnest.h"
+#include "varint.h"
 using std::min;
 
 // Object(...) function ---------------------------------------------
@@ -305,6 +306,7 @@ pack format is:
 
 */
 
+static int packsizeValue(Value v);
 static int packvalue(char* buf, Value x);
 static Value unpackvalue(const char*& buf);
 
@@ -329,7 +331,6 @@ private:
 	static int nest;
 };
 int Nest::nest = 0;
-// TODO: don't output duplicate sub-objects
 
 size_t SuObject::packsize() const {
 	int ps = 1;
@@ -337,15 +338,14 @@ size_t SuObject::packsize() const {
 		return ps;
 
 	Nest nest;
-	ps += sizeof(int); // vec size
 	int n = vec.size();
+	ps += varintSize(n);
 	for (int i = 0; i < n; ++i)
-		ps += sizeof(int) /* value size */ + vec[i].packsize();
+		ps += packsizeValue(vec[i]);
 
-	ps += sizeof(int); // map size
-	for (Map::const_iterator iter = map.begin(); iter != map.end(); ++iter)
-		ps += sizeof(int) /* member size */ + iter->key.packsize() +
-			sizeof(int) /* value size */ + iter->val.packsize();
+	ps += varintSize(map.size());
+	for (auto& iter : map)
+		ps += packsizeValue(iter.key) + packsizeValue(iter.val);
 
 	return ps;
 }
@@ -356,17 +356,14 @@ void SuObject::pack(char* buf) const {
 		return;
 
 	int nv = vec.size();
-	cvt_int32(buf, nv);
-	buf += sizeof(int);
+	buf += uvarint(buf, nv);
 	for (int i = 0; i < nv; ++i)
 		buf += packvalue(buf, vec[i]);
 
-	int nm = map.size();
-	cvt_int32(buf, nm);
-	buf += sizeof(int);
-	for (Map::const_iterator iter = map.begin(); iter != map.end(); ++iter) {
-		buf += packvalue(buf, iter->key); // member
-		buf += packvalue(buf, iter->val); // value
+	buf += uvarint(buf, map.size());
+	for (auto& iter : map) {
+		buf += packvalue(buf, iter.key); // member
+		buf += packvalue(buf, iter.val); // value
 	}
 }
 
@@ -379,15 +376,12 @@ void SuObject::pack(char* buf) const {
 		return ob;
 	const char* buf = s.ptr() + 1; // skip PACK_OBJECT
 
-	int nv = cvt_int32(buf);
-	buf += sizeof(int);
-	int i;
-	for (i = 0; i < nv; ++i)
+	int nv = uvarint(buf);
+	for (int i = 0; i < nv; ++i)
 		ob->add(unpackvalue(buf));
 
-	int nm = cvt_int32(buf);
-	buf += sizeof(int);
-	for (i = 0; i < nm; ++i) {
+	int nm = uvarint(buf);
+	for (int i = 0; i < nm; ++i) {
 		Value member = unpackvalue(buf);
 		Value value = unpackvalue(buf);
 		ob->put(member, value);
@@ -396,37 +390,23 @@ void SuObject::pack(char* buf) const {
 	return ob;
 }
 
+static int packsizeValue(Value v) {
+	int n = v.packsize();
+	return varintSize(n) + n;
+}
+
 static int packvalue(char* buf, Value x) {
 	int n = x.packsize();
-	cvt_int32(buf, n);
-	x.pack(buf + sizeof(int));
-	return sizeof(int) + n;
+	int len = uvarint(buf, n);
+	x.pack(buf + len);
+	return len + n;
 }
 
 static Value unpackvalue(const char*& buf) {
-	int n;
-	n = cvt_int32(buf);
-	buf += sizeof(int);
+	int n = uvarint(buf);
 	Value x = ::unpack(buf, n);
 	buf += n;
 	return x;
-}
-
-// complement leading bit to ensure correct unsigned compare
-
-static char* cvt_int32(char* p, int n) {
-	n ^= 0x80000000;
-	p[3] = (char) n;
-	p[2] = (char) (n >>= 8);
-	p[1] = (char) (n >>= 8);
-	p[0] = (char) (n >> 8);
-	return p;
-}
-
-static int cvt_int32(const char* q) {
-	const unsigned char* p = (unsigned char*) q;
-	int n = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
-	return n ^ 0x80000000;
 }
 
 //-------------------------------------------------------------------

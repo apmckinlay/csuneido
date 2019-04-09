@@ -9,6 +9,7 @@
 
 static int dump1(OstreamFile& fout, int tran, const gcstring& table,
 	bool output_name = true);
+static void write_size(OstreamFile& fout, int n);
 
 struct Session {
 	Session() {
@@ -27,13 +28,13 @@ void dump(const gcstring& table) {
 		OstreamFile fout((table + ".su").str(), "wb");
 		if (!fout)
 			except("can't create " << table + ".su");
-		fout << "Suneido dump 1.0" << endl;
+		fout << "Suneido dump 2" << endl;
 		dump1(fout, session.tran, table, false);
 	} else {
 		OstreamFile fout("database.su", "wb");
 		if (!fout)
 			except("can't create database.su");
-		fout << "Suneido dump 1.0" << endl;
+		fout << "Suneido dump 2" << endl;
 		for (Index::iterator iter =
 				 theDB()->get_index("tables", "tablename")->begin(schema_tran);
 			 !iter.eof(); ++iter) {
@@ -74,10 +75,18 @@ static int dump1(
 			rec = newrec.dup();
 		}
 		int n = rec.cursize();
-		fout.write(&n, sizeof n);
+		write_size(fout, n);
 		fout.write(rec.ptr(), n);
 	}
-	int zero = 0;
-	fout.write(&zero, sizeof zero);
+	write_size(fout, 0);
 	return nrecs;
+}
+
+static void write_size(OstreamFile& fout, int n) {
+	char buf[4];
+	buf[0] = n >> 24;
+	buf[1] = n >> 16;
+	buf[2] = n >> 8;
+	buf[3] = n;
+	fout.write(buf, 4);
 }

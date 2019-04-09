@@ -6,7 +6,11 @@
 using namespace std;
 #include "std.h"
 
-extern void push_varint(vector<uint8_t>& code, int n);
+void push_varint(vector<uint8_t>& code, int n);
 
-extern int varint(uint8_t* code, int& ci);
-extern int varint(uint8_t*& code);
+int varint(uint8_t* code, int& ci);
+int varint(uint8_t*& code);
+
+int varintSize(unsigned long n);
+int uvarint(char* dst, unsigned int n);
+int uvarint(const char*& src);

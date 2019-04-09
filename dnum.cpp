@@ -169,7 +169,7 @@ int maxCoef(uint64_t& coef) {
 	CHECK(COEF_MIN <= coef && coef <= COEF_MAX);
 	return i;
 }
-} // namespace
+} // end of namespace
 
 #define SIGN(n) ((n) < 0 ? -1 : (n) > 0 ? +1 : 0)
 
@@ -668,111 +668,120 @@ int coef_to_bytes(uint64_t coef) {
 		--n;
 	return prev_size = n;
 }
-} // namespace
+} // end of namespace
 
 size_t Dnum::packsize() const {
-	if (sign == NEG_INF || sign == 0 || sign == POS_INF)
+	if (sign == 0)
 		return 1; // just tag
+	if (sign == NEG_INF || sign == POS_INF)
+		return 3;
 	return 2 + coef_to_bytes(coef);
 }
 
 void Dnum::pack(char* dst) const {
-	*dst++ = PACK2_ZERO + sign;
-	if (sign == NEG_INF || sign == 0 || sign == POS_INF)
+	*dst++ = sign < 0 ? PACK_MINUS : PACK_PLUS;
+	if (sign == 0)
 		return;
-	uint8_t x = sign < 0 ? 0xff : 0;
+	if (sign == NEG_INF) {
+		dst[0] = dst[1] = 0;
+		return;
+	}
+	if (sign == POS_INF) {
+		dst[0] = dst[1] = uint8_t(0xff);
+		return;
+	}
+	uint8_t xor = sign < 0 ? 0xff : 0;
 	auto e = exp ^ 0x80; // convert to sort as unsigned
-	*dst++ = e ^ x;
+	*dst++ = e ^ xor;
 
 	int n = coef_to_bytes(coef);
 	uint8_t* b = bytes + n;
 	dst += n;
 	switch (n) {
 	case 8:
-		*--dst = *--b ^ x;
+		*--dst = *--b ^ xor;
 		[[fallthrough]];
 	case 7:
-		*--dst = *--b ^ x;
+		*--dst = *--b ^ xor;
 		[[fallthrough]];
 	case 6:
-		*--dst = *--b ^ x;
+		*--dst = *--b ^ xor;
 		[[fallthrough]];
 	case 5:
-		*--dst = *--b ^ x;
+		*--dst = *--b ^ xor;
 		[[fallthrough]];
 	case 4:
-		*--dst = *--b ^ x;
+		*--dst = *--b ^ xor;
 		[[fallthrough]];
 	case 3:
-		*--dst = *--b ^ x;
+		*--dst = *--b ^ xor;
 		[[fallthrough]];
 	case 2:
-		*--dst = *--b ^ x;
+		*--dst = *--b ^ xor;
 		[[fallthrough]];
 	case 1:
-		*--dst = *--b ^ x;
+		*--dst = *--b ^ xor;
 		break;
 	default:
 		unreachable();
 	}
 }
 
-#define ADD(n_, p_) \
-	b = *--src; \
-	b ^= x; \
-	(n_) += b * (p_)
-
 Dnum Dnum::unpack(const gcstring& s) {
 	auto src = reinterpret_cast<const uint8_t*>(s.ptr());
-	int sign = src[0] - PACK2_ZERO;
-	uint8_t x;
-	switch (sign) {
-	case NEG_INF:
-		return Dnum::MINUS_INF;
-	case NEG:
-		x = 0xff;
+	if (s.size() == 1) {
+		CHECK(src[0] == PACK_PLUS);
+		return ZERO;
+	}
+	int sign;
+	uint8_t xor ;
+	switch (*src++) {
+	case PACK_MINUS:
+		sign = -1;
+		xor = 0xff;
 		break;
-	case 0:
-		return Dnum::ZERO;
-	case POS:
-		x = 0;
+	case PACK_PLUS:
+		sign = +1;
+		xor = 0;
 		break;
-	case POS_INF:
-		return Dnum::INF;
 	default:
 		unreachable();
 	}
+
+	int8_t exp = *src++ ^ 0x80 ^ xor;
+
+	uint8_t b = *src ^ xor;
+	if (b == 0xff)
+		return sign < 0 ? MINUS_INF : INF;
+
 	CHECK(s.size() > 2);
-	int8_t exp = src[1] ^ 0x80;
-	exp ^= x;
+	// work in two 32 bit halves to reduce 64 bit operations
 	uint32_t hi = 0;
 	uint32_t lo = 0;
-	uint8_t b;
-	src += s.size();
 	switch (s.size() - 2) {
 	case 8:
-		ADD(lo, 1);
+		lo += (src[7] ^ xor);
 		[[fallthrough]];
 	case 7:
-		ADD(lo, E2);
+		lo += (src[6] ^ xor) * E2;
 		[[fallthrough]];
 	case 6:
-		ADD(lo, E4);
+		lo += (src[5] ^ xor) * E4;
 		[[fallthrough]];
 	case 5:
-		ADD(lo, E6);
+		lo += (src[4] ^ xor) * E6;
 		[[fallthrough]];
 	case 4:
-		ADD(hi, 1);
+		hi += (src[3] ^ xor);
 		[[fallthrough]];
 	case 3:
-		ADD(hi, E2);
+		hi += (src[2] ^ xor) * E2;
 		[[fallthrough]];
 	case 2:
-		ADD(hi, E4);
+		hi += (src[1] ^ xor) * E4;
 		[[fallthrough]];
 	case 1:
-		ADD(hi, E6);
+		hi += (src[0] ^ xor) * E6;
 		break;
 	default:
 		unreachable();
@@ -780,6 +789,25 @@ Dnum Dnum::unpack(const gcstring& s) {
 	uint64_t coef = uint64_t(hi) * E8 + lo;
 	return Dnum(sign, coef, exp);
 }
+
+// int packing ------------------------------------------------------
+// could have specialized 32 bit code rather than via 64 bit Dnum
+
+size_t packsizeint(int n) {
+	return Dnum(n).packsize();
+}
+
+void packint(char* dst, int n) {
+	return Dnum(n).pack(dst);
+}
+
+int unpackint(const gcstring& s) {
+	int n;
+	verify(Dnum::unpack(s).to_int(&n));
+	return n;
+}
+
+// end of packing ---------------------------------------------------
 
 static double dpow10[] = {1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9,
 	1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21,
@@ -1223,9 +1251,9 @@ TEST(dnum_packing) {
 		char buf[20];
 		dn.pack(buf);
 		gcstring p(buf, n);
-		packed.add(p);
 		Dnum d2 = Dnum::unpack(p);
 		assert_eq(d2, dn);
+		packed.add(p);
 	}
 	for (int i = 0; i < packed.size(); ++i)
 		for (int j = 0; j < packed.size(); ++j)

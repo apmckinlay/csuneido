@@ -104,7 +104,7 @@ gcstring SuValue::pack() const {
 }
 
 gcstring packint(int x) {
-	int n = packintsize(x);
+	int n = packsizeint(x);
 	char* buf = salloc(n);
 	packint(buf, x);
 	return gcstring::noalloc(buf, n);

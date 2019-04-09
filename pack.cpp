@@ -61,8 +61,8 @@ const char* unpackstr(const char*& buf) {
 }
 
 // int =============================================================
-
-size_t packintsize(int n) {
+/*
+size_t packsizeint(int n) {
 	if (n == 0)
 		return 1;
 	if (n < 0)
@@ -182,67 +182,31 @@ int unpackint(const gcstring& s) {
 		n *= 10000;
 	return minus ? -n : n;
 }
-
+*/
 // test =============================================================
 
 #include "testing.h"
 #include <malloc.h>
 
-static void testpack(Value x) {
-	size_t n = x.packsize();
-	char* buf = (char*) _alloca(n + 1);
-	buf[n] = '\xc4';
-	x.pack(buf);
-	verify(buf[n] == '\xc4');
-	Value y = ::unpack(buf, n);
-	assert_eq(x, y);
-}
-
-TEST(pack_boolean) {
-	testpack(SuTrue);
-	testpack(SuFalse);
-	verify(SuBoolean::unpack(gcstring("")) == SuBoolean::f);
-}
-
-TEST(pack_string) {
-	testpack(SuEmptyString);
-	testpack(new SuString("hello\nworld"));
-	verify(SuString::unpack(gcstring("")) == SuEmptyString);
-}
-
-TEST(pack_number) {
-	testpack(new SuNumber(0L));
-	testpack(new SuNumber(123));
-	testpack(new SuNumber(-123));
-	testpack(new SuNumber("123.456"));
-	testpack(new SuNumber("1234567890"));
-	testpack(new SuNumber("-123.456"));
-	testpack(new SuNumber("1.23e45"));
-	testpack(new SuNumber("-1.23e-45"));
-	verify(SuNumber::unpack(gcstring("")) == &SuNumber::zero);
-}
-
 static void testpack(int x) {
 	char buf[80];
 	packint(buf, x);
-	gcstring s = gcstring::noalloc(buf, packintsize(x));
+	gcstring s = gcstring::noalloc(buf, packsizeint(x));
 	int y = unpackint(s);
 	assert_eq(x, y);
 	Value num = ::unpack(s);
 	assert_eq(x, num.integer());
-	assert_eq(packintsize(x), num.packsize());
+	assert_eq(packsizeint(x), num.packsize());
 	char buf2[80];
 	num.pack(buf2);
-	verify(0 == memcmp(buf, buf2, packintsize(x)));
+	verify(0 == memcmp(buf, buf2, packsizeint(x)));
 }
-TEST(pack_long) {
+TEST(pack_int) {
 	testpack(0);
 	testpack(1);
 	testpack(-1);
 	testpack(1234);
 	testpack(-1234);
-	//	testpack(12'0000);
-	//	testpack(12'0000'0000);
 	testpack(12345678);
 	testpack(-12345678);
 	testpack(INT_MAX);
@@ -256,10 +220,10 @@ TEST(pack_long) {
 PORTTEST(compare_packed) {
 	int n = args.size();
 	for (int i = 0; i < n; ++i) {
-		Value x = compile(args[i].str());
+		Value x = constant(args[i].str());
 		gcstring px = x.pack();
 		for (int j = i + 1; j < n; ++j) {
-			Value y = compile(args[j].str());
+			Value y = constant(args[j].str());
 			gcstring py = y.pack();
 			if (!(px < py) || (py < px))
 				return OSTR("\n\t" << x << " <=> " << y);

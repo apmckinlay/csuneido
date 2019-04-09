@@ -9,7 +9,6 @@
 class Value;
 class Mmfile;
 
-template <class T>
 struct RecRep;
 struct DbRep;
 
@@ -17,7 +16,7 @@ struct DbRep;
 // Since it is just a pointer it should normally be passed by value
 class Record {
 public:
-	Record() : crep(nullptr) { // NOLINT
+	Record() : rep(nullptr) { // NOLINT
 	}
 	explicit Record(size_t sz);
 	explicit Record(const void* r);
@@ -74,15 +73,13 @@ private:
 	void grow(int need);
 	static void copyrec(Record src, Record& dst);
 	union {
-		RecRep<uint8_t>* crep;
-		RecRep<uint16_t>* srep;
-		RecRep<uint32_t>* lrep;
+		RecRep* rep;
 		DbRep* dbrep;
 	};
 };
 
 inline bool nil(Record r) {
-	return r.crep == nullptr;
+	return r.rep == nullptr;
 }
 
 Ostream& operator<<(Ostream& os, Record r);
