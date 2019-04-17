@@ -380,6 +380,7 @@ char* RxCompile::compile() {
 	emit(&PATEND);
 	if (si < sn)
 		except("regex: closing ) without opening (");
+	verify(si == sn);
 	return reinterpret_cast<char*>(&pat[0]);
 }
 
@@ -590,14 +591,15 @@ void RxCompile::insert(int i, Element* e) {
 }
 
 bool RxCompile::match(char c) {
-	if (src[si] != c)
+	if (si >= sn || src[si] != c)
 		return false;
 	++si;
 	return true;
 }
 
 bool RxCompile::match(const char* s) {
-	if (strncmp(src + si, s, strlen(s)) != 0)
+	int n = strlen(s);
+	if (n > sn - si || strncmp(src + si, s, n) != 0)
 		return false;
 	si += strlen(s);
 	return true;
@@ -695,6 +697,7 @@ int RxMatch::amatch(
 		const Element* e = pat[pi];
 		if (typeid(*e) == typeid(Branch)) {
 			const Branch* b = dynamic_cast<const Branch*>(e);
+			verify(alt_pi->size() < 100);
 			alt_pi->push_back(pi + b->alt);
 			alt_si->push_back(si);
 			pi += b->main;
