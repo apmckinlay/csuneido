@@ -88,7 +88,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comctl32.lib;imm32.lib;wininet.lib;urlmon.lib;ws2_32.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comctl32.lib;imm32.lib;wininet.lib;urlmon.lib;ws2_32.lib;iphlpapi.lib;msimg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>cd "$(TargetDir)\..\.." &amp;&amp; "$(TargetDir)$(TargetFileName)" -t</Command>
@@ -100,7 +100,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_SCL_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;_USE_32BIT_TIME_T;COMPILER=vs2019;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SCL_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;_USE_32BIT_TIME_T;COMPILER=vs19sc;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <SDLCheck>true</SDLCheck>
@@ -117,7 +117,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comctl32.lib;imm32.lib;wininet.lib;urlmon.lib;ws2_32.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comctl32.lib;imm32.lib;wininet.lib;urlmon.lib;ws2_32.lib;iphlpapi.lib;msimg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <AdditionalOptions>/USEPROFILE $(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -157,7 +157,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comctl32.lib;imm32.lib;wininet.lib;urlmon.lib;ws2_32.lib;iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comctl32.lib;imm32.lib;wininet.lib;urlmon.lib;ws2_32.lib;iphlpapi.lib;msimg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <AdditionalOptions>/GENPROFILE %(AdditionalOptions)</AdditionalOptions>
       <ProfileGuidedDatabase />
@@ -281,6 +281,7 @@
     <ClCompile Include="..\row.cpp" />
     <ClCompile Include="..\runpiped.cpp" />
     <ClCompile Include="..\scanner.cpp" />
+    <ClCompile Include="..\scihwnds.cpp" />
     <ClCompile Include="..\serializer.cpp" />
     <ClCompile Include="..\servereval.cpp" />
     <ClCompile Include="..\sesviews.cpp" />
@@ -331,6 +332,9 @@
   <ItemGroup>
     <ProjectReference Include="..\vs2019gc65\vs2019gc65.vcxproj">
       <Project>{bf21e7fa-140f-4728-abd9-2486a4676012}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\vs2019scintilla\win32\SciLexer.vcxproj">
+      <Project>{fbe04237-9c7b-4973-9c60-505975998b39}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

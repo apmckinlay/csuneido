@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2015
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28729.10
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vs2019suneido", "vs2019suneido.vcxproj", "{CE3F57F1-8E48-498D-BDBC-3F46D19331DC}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vs2019suneido", "vs2019sune
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vs2019gc65", "..\vs2019gc65\vs2019gc65.vcxproj", "{BF21E7FA-140F-4728-ABD9-2486A4676012}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vs2019scintilla", "..\vs2019scintilla\win32\SciLexer.vcxproj", "{FBE04237-9C7B-4973-9C60-505975998B39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +40,18 @@ Global
 		{BF21E7FA-140F-4728-ABD9-2486A4676012}.Release|Win32.ActiveCfg = Release|Win32
 		{BF21E7FA-140F-4728-ABD9-2486A4676012}.Release|Win32.Build.0 = Release|Win32
 		{BF21E7FA-140F-4728-ABD9-2486A4676012}.Release|x64.ActiveCfg = Release|Win32
+		{FBE04237-9C7B-4973-9C60-505975998B39}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FBE04237-9C7B-4973-9C60-505975998B39}.Debug|Win32.Build.0 = Debug|Win32
+		{FBE04237-9C7B-4973-9C60-505975998B39}.Debug|x64.ActiveCfg = Debug|x64
+		{FBE04237-9C7B-4973-9C60-505975998B39}.Debug|x64.Build.0 = Debug|x64
+		{FBE04237-9C7B-4973-9C60-505975998B39}.Profile|Win32.ActiveCfg = Release|Win32
+		{FBE04237-9C7B-4973-9C60-505975998B39}.Profile|Win32.Build.0 = Release|Win32
+		{FBE04237-9C7B-4973-9C60-505975998B39}.Profile|x64.ActiveCfg = Release|x64
+		{FBE04237-9C7B-4973-9C60-505975998B39}.Profile|x64.Build.0 = Release|x64
+		{FBE04237-9C7B-4973-9C60-505975998B39}.Release|Win32.ActiveCfg = Release|Win32
+		{FBE04237-9C7B-4973-9C60-505975998B39}.Release|Win32.Build.0 = Release|Win32
+		{FBE04237-9C7B-4973-9C60-505975998B39}.Release|x64.ActiveCfg = Release|x64
+		{FBE04237-9C7B-4973-9C60-505975998B39}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

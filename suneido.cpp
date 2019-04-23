@@ -41,6 +41,15 @@ static_assert(sizeof(time_t) == 4, "time_t must be 32 bits / 4 bytes");
 
 void builtins();
 
+/**
+ * Scintilla / Suneido Integration code:
+ *	Related: vs2017scintilla -> Scintilla.h
+ *	Purpose:
+ *		Allows vs2017suneido to redirect Scintilla calls
+ *		to vs2017scintilla
+ */
+extern "C" int Scintilla_RegisterClasses(void* hInstance);
+
 static void init(HINSTANCE hInstance, LPSTR lpszCmdLine);
 static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine);
 static void logPreviousErrors();
@@ -101,6 +110,7 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine) {
 	tls().proc = new Proc;
 	builtins(); // internal initialization
 
+	Scintilla_RegisterClasses(hInstance);
 	cmdline = cmdlineoptions.parse(lpszCmdLine);
 
 	if (!cmdlineoptions.no_exception_handling)
