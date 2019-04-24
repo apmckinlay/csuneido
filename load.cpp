@@ -19,6 +19,7 @@
 
 static char* loadbuf = 0;
 static int loadbuf_size = 0;
+static void verifyFileHeader(const char* buf);
 static int load1(Istream& fin, gcstring tblspec);
 static int load_data(Istream& fin, const gcstring& table);
 static int read_size(Istream& fin);
@@ -55,10 +56,7 @@ void load(const gcstring& table) {
 		if (!fin)
 			except("can't open database.su");
 		fin.getline(buf, bufsize);
-		if (!has_prefix(buf, "Suneido dump"))
-			except("not a valid dump file");
-		if (!has_prefix(buf, "Suneido dump 2"))
-			except("wrong dump file version");
+		verifyFileHeader(buf);
 
 		if (_access("suneido.db", 0) == 0) {
 			remove("suneido.bak");
@@ -84,8 +82,7 @@ int load_table(const gcstring& table) {
 	if (!fin)
 		except("can't open " << table << ".su");
 	fin.getline(buf, bufsize);
-	if (!has_prefix(buf, "Suneido dump 1"))
-		except("invalid file");
+	verifyFileHeader(buf);
 
 	char* buf2 = buf + table.size() + 1;
 	fin.getline(buf2, bufsize);
@@ -96,6 +93,13 @@ int load_table(const gcstring& table) {
 	int n = load1(fin, buf);
 	verify(!alerts);
 	return n;
+}
+
+static void verifyFileHeader(const char* buf) {
+	if (!has_prefix(buf, "Suneido dump"))
+		except("not a valid dump file");
+	if (!has_prefix(buf, "Suneido dump 2"))
+		except("wrong dump file version");
 }
 
 static int load1(Istream& fin, gcstring tblspec) {
