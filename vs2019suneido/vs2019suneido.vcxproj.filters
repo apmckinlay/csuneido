@@ -477,6 +477,9 @@
     <ClCompile Include="..\susha256.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\scihwnds.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\suneido.rc">
