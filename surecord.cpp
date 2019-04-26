@@ -25,8 +25,7 @@ SuRecord::SuRecord() {
 
 SuRecord::SuRecord(const SuRecord& rec)
 	: SuObject(rec), status(rec.status), dependents(rec.dependents),
-	  invalid(rec.invalid), invalidated(rec.invalidated.copy()) {
-	// note: only have to copy() lists that are appended to
+	  invalid(rec.invalid) {
 	defval = SuEmptyString;
 }
 
