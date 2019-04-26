@@ -397,6 +397,7 @@ BUILTIN(ResourceCounts, "()") {
 	RC(Sha256);
 	RC(socket);
 	RC(cbtofree);
+	RC(SciHwnds);
 	return ob;
 }
 
