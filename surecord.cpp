@@ -415,6 +415,8 @@ Value SuRecord::get_if_special(short i) {
 }
 
 void SuRecord::add_dependent(short src, short dst) {
+	if (src == dst)
+		return;
 	auto& list = dependents[dst];
 	if (!list.has(src)) {
 		RTRACE("add dependency for " << symstr(src) << " uses " << symstr(dst));
