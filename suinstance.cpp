@@ -125,3 +125,7 @@ const char* SuInstance::toString() const {
 	}
 	return nullptr;
 }
+
+Value SuInstance::method_class(Value m) {
+	return force<SuClass*>(myclass)->method_class(m);
+}

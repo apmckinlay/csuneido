@@ -33,7 +33,7 @@ protected:
 	virtual Value ReadonlyQ(BuiltinArgs& args);
 	Value Size(BuiltinArgs& args);
 
-	Value method_class(Value m);
+	virtual Value method_class(Value m);
 	static MemFun<MemBase> method(Value member);
 	Value callSuper(Value self, Value member, short nargs, short nargnames,
 		short* argnames, int each);

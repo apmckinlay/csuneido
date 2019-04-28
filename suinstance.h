@@ -28,6 +28,7 @@ private:
 	Value Copy(short nargs, short nargnames, short* argnames, int each);
 	Value Delete(short nargs, short nargnames, short* argnames, int each);
 	const char* toString() const;
+	Value method_class(Value m) override;
 
 	Value mbclass() override {
 		return myclass;
