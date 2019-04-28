@@ -468,7 +468,7 @@ Value SuRecord::call_rule(short i, const char* why) {
 	} catch (const Except& e) {
 		// TODO handle block return ?
 		tls().proc->fp->rule = old_rule;
-		throw Except(e, e.gcstr() + " (Rule_" + symstr(i) + ")");
+		throw Except(e, e.gcstr() + " (rule for " + symstr(i) + ")");
 	}
 
 	tls().proc->fp->rule = old_rule;
