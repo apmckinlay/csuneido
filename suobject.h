@@ -138,9 +138,7 @@ private:
 	Value Copy(BuiltinArgs& args);
 	Value Partition(BuiltinArgs& args);
 	Value Sort(BuiltinArgs& args);
-	Value LowerBound(BuiltinArgs& args);
-	Value UpperBound(BuiltinArgs& args);
-	Value EqualRange(BuiltinArgs& args);
+	Value BinarySearch(BuiltinArgs& args);
 	Value Unique(BuiltinArgs& args);
 	Value Slice(BuiltinArgs& args);
 	Value Find(BuiltinArgs& args);

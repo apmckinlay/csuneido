@@ -152,20 +152,18 @@ SuObject::Mfn SuObject::method(Value member) {
 		{"Delete", &SuObject::Delete},
 		{"Find", &SuObject::Find},
 		{"Assocs", &SuObject::Assocs},
-		{"EqualRange", &SuObject::EqualRange},
 		{"Erase", &SuObject::Erase},
 		{"Eval", &SuObject::Eval},
 		{"Eval2", &SuObject::Eval2},
 		{"Join", &SuObject::Join},
-		{"LowerBound", &SuObject::LowerBound},
-		{"Partition!", &SuObject::Partition},
+		{"LowerBound", &SuObject::BinarySearch}, // TODO remove once switched
+		{"BinarySearch", &SuObject::BinarySearch},
 		{"Readonly?", &SuObject::ReadonlyQ},
 		{"Reverse!", &SuObject::Reverse},
 		{"Set_default", &SuObject::Set_default},
 		{"Set_readonly", &SuObject::Set_readonly},
 		{"Sort!", &SuObject::Sort},
 		{"Unique!", &SuObject::Unique},
-		{"UpperBound", &SuObject::UpperBound},
 		{"Values", &SuObject::Values},
 	};
 	for (auto m : meths)
@@ -586,7 +584,7 @@ void SuObject::sort() {
 	std::stable_sort(vec.begin(), vec.end());
 }
 
-Value SuObject::LowerBound(BuiltinArgs& args) {
+Value SuObject::BinarySearch(BuiltinArgs& args) {
 	args.usage("object.LowerBound(value, block = <)");
 	Value val = args.getValue("value");
 	Value fn = args.getValue("block", SuFalse);
@@ -598,32 +596,6 @@ Value SuObject::LowerBound(BuiltinArgs& args) {
 			vec.begin();
 }
 
-Value SuObject::UpperBound(BuiltinArgs& args) {
-	args.usage("object.UpperBound(value, block = <)");
-	Value val = args.getValue("value");
-	Value fn = args.getValue("block", SuFalse);
-	args.end();
-	if (fn == SuFalse)
-		return std::upper_bound(vec.begin(), vec.end(), val) - vec.begin();
-	else
-		return std::upper_bound(vec.begin(), vec.end(), val, Lt(fn)) -
-			vec.begin();
-}
-
-Value SuObject::EqualRange(BuiltinArgs& args) {
-	args.usage("object.EqualRange(value, block = <)");
-	Value val = args.getValue("value");
-	Value fn = args.getValue("block", SuFalse);
-	args.end();
-	auto pair = (fn == SuFalse)
-		? std::equal_range(vec.begin(), vec.end(), val)
-		: std::equal_range(vec.begin(), vec.end(), val, Lt(fn));
-	SuObject* ob = new SuObject();
-	ob->add(pair.first - vec.begin());
-	ob->add(pair.second - vec.begin());
-	return ob;
-}
-
 Value SuObject::Unique(BuiltinArgs& args) {
 	// TODO allow passing equality function
 	args.usage("object.Unique()").end();
@@ -632,7 +604,10 @@ Value SuObject::Unique(BuiltinArgs& args) {
 
 Value SuObject::unique() {
 	auto end = std::unique(vec.begin(), vec.end());
-	vec.erase(end, vec.end());
+	if (end != vec.end()) {
+		vec.erase(end, vec.end());
+		++version;
+	}
 	return this;
 }
 
