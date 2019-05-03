@@ -18,7 +18,7 @@
     <ProjectGuid>{BF21E7FA-140F-4728-ABD9-2486A4676012}</ProjectGuid>
     <RootNamespace>vs2019gc65</RootNamespace>
     <ProjectName>vs2019gc65</ProjectName>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -61,7 +61,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>..\gc6.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>CRTAPI1=_cdecl;CRTAPI2=_cdecl;_X86_=1;_CRT_SECURE_NO_DEPRECATE;LARGE_CONFIG;SILENT;ALL_INTERIOR_POINTERS;DONT_ADD_BYTE_AT_END;THREADS;FIBERS;__STDC__;GC_NOT_DLL;GC_BUILD</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WINVER 0x601;_WIN32_WINNT 0x0601;CRTAPI1=_cdecl;CRTAPI2=_cdecl;_X86_=1;_CRT_SECURE_NO_DEPRECATE;LARGE_CONFIG;SILENT;ALL_INTERIOR_POINTERS;DONT_ADD_BYTE_AT_END;THREADS;FIBERS;__STDC__;GC_NOT_DLL;GC_BUILD</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -77,7 +77,7 @@
       <SDLCheck>
       </SDLCheck>
       <AdditionalIncludeDirectories>..\gc6.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>CRTAPI1=_cdecl;CRTAPI2=_cdecl;_X86_=1;_CRT_SECURE_NO_DEPRECATE;LARGE_CONFIG;SILENT;ALL_INTERIOR_POINTERS;DONT_ADD_BYTE_AT_END;THREADS;FIBERS;__STDC__;GC_NOT_DLL;GC_BUILD</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WINVER 0x601;_WIN32_WINNT 0x0601;CRTAPI1=_cdecl;CRTAPI2=_cdecl;_X86_=1;_CRT_SECURE_NO_DEPRECATE;LARGE_CONFIG;SILENT;ALL_INTERIOR_POINTERS;DONT_ADD_BYTE_AT_END;THREADS;FIBERS;__STDC__;GC_NOT_DLL;GC_BUILD</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -98,7 +98,7 @@
       <SDLCheck>
       </SDLCheck>
       <AdditionalIncludeDirectories>..\gc6.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>CRTAPI1=_cdecl;CRTAPI2=_cdecl;_X86_=1;_CRT_SECURE_NO_DEPRECATE;LARGE_CONFIG;SILENT;ALL_INTERIOR_POINTERS;DONT_ADD_BYTE_AT_END;THREADS;FIBERS;__STDC__;GC_NOT_DLL;GC_BUILD</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WINVER 0x601;_WIN32_WINNT 0x0601;CRTAPI1=_cdecl;CRTAPI2=_cdecl;_X86_=1;_CRT_SECURE_NO_DEPRECATE;LARGE_CONFIG;SILENT;ALL_INTERIOR_POINTERS;DONT_ADD_BYTE_AT_END;THREADS;FIBERS;__STDC__;GC_NOT_DLL;GC_BUILD</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
