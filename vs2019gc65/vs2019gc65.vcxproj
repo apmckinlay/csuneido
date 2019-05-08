@@ -77,7 +77,7 @@
       <SDLCheck>
       </SDLCheck>
       <AdditionalIncludeDirectories>..\gc6.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WINVER 0x601;_WIN32_WINNT 0x0601;CRTAPI1=_cdecl;CRTAPI2=_cdecl;_X86_=1;_CRT_SECURE_NO_DEPRECATE;LARGE_CONFIG;SILENT;ALL_INTERIOR_POINTERS;DONT_ADD_BYTE_AT_END;THREADS;FIBERS;__STDC__;GC_NOT_DLL;GC_BUILD</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WINVER=0x601;_WIN32_WINNT=0x0601;CRTAPI1=_cdecl;CRTAPI2=_cdecl;_X86_=1;_CRT_SECURE_NO_DEPRECATE;LARGE_CONFIG;SILENT;ALL_INTERIOR_POINTERS;DONT_ADD_BYTE_AT_END;THREADS;FIBERS;__STDC__;GC_NOT_DLL;GC_BUILD</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
