@@ -3457,7 +3457,7 @@ LRESULT PASCAL ScintillaWin::SWndProc(
 			} catch (...) {
 			}
 			::SetWindowLong(hWnd, 0, 0);
-			int result = ::DefWindowProc(hWnd, iMessage, wParam, lParam);
+			LRESULT result = ::DefWindowProc(hWnd, iMessage, wParam, lParam);
 			SciHwnds_RmvHwndRef(hWnd);
 			return result;
 		} else {
