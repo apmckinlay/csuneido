@@ -3453,12 +3453,13 @@ LRESULT PASCAL ScintillaWin::SWndProc(
 		if (iMessage == WM_NCDESTROY) {
 			try {
 				sci->Finalise();
-				SciHwnds_RmvHwndRef(hWnd);
 				delete sci;
 			} catch (...) {
 			}
 			::SetWindowLong(hWnd, 0, 0);
-			return ::DefWindowProc(hWnd, iMessage, wParam, lParam);
+			int result = ::DefWindowProc(hWnd, iMessage, wParam, lParam);
+			SciHwnds_RmvHwndRef(hWnd);
+			return result;
 		} else {
 			return sci->WndProc(iMessage, wParam, lParam);
 		}
