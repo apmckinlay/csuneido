@@ -379,6 +379,8 @@ Value Compiler::object() { //=======================================
 		syntax_error_();
 	ObjectContainer con(ob);
 	members(con, closing);
+	if (closing == ']' && ob->vecsize() > 0)
+		ob = new SuObject(ob, 0);
 	ob->set_readonly();
 	return ob;
 }
@@ -1843,7 +1845,7 @@ void FunctionCompiler::add_argname(vector<short>& argnames, int id) {
 }
 
 void FunctionCompiler::record() {
-	SuRecord* rec = 0;
+	SuObject* rec = 0;
 	vector<short> argnames;
 	short nargs;
 	match('[');
@@ -1879,7 +1881,7 @@ void FunctionCompiler::record() {
 			if (prevlits.size() > 0) {
 				PrevLit prev = poplits();
 				if (!rec)
-					rec = new SuRecord;
+					rec = new SuObject;
 				if (!key)
 					rec->put(argi, prev.lit);
 				else {

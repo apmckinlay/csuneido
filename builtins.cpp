@@ -474,14 +474,14 @@ Value MkRec::call(Value self, Value member, short nargs, short nargnames,
 	short* argnames, int each) {
 	// pre: last argument is the literal record
 	Value* args = GETSP() - nargs + 1;
-	Value lits = args[--nargs];
+	SuObject* lits = val_cast<SuObject*>(args[--nargs]);
 	if (nargnames)
 		--nargnames;
-	SuRecord* ob = new SuRecord(*val_cast<SuRecord*>(lits));
-	// TODO: copy-on-write if no args (only literals)
+	const int unamed = nargs - nargnames;
+	SuObject* ob = (unamed || lits->vecsize() > 0) ? new SuObject(lits, 0)
+												   : new SuRecord(lits, 0);
 
 	int ai = 0;
-	const int unamed = nargs - nargnames;
 	for (int i = 0; ai < unamed; ++i)
 		if (!ob->has(i))
 			ob->put(i, args[ai++]);
