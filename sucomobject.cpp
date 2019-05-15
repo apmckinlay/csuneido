@@ -378,3 +378,22 @@ BUILTIN(COMobject, "(progid)") {
 	}
 	return SuFalse;
 }
+
+// Used to forward keyboard messages to a browser control
+// to get Tab to work.
+BUILTIN(Traccel, "(pointer, message, wParam)") {
+	const int nargs = 3;
+	void* p = reinterpret_cast<void*>(ARG(0).integer());
+	auto iunk = static_cast<IUnknown*>(p);
+	IOleInPlaceActiveObject* pi;
+	HRESULT hr = iunk->QueryInterface(
+		IID_IOleInPlaceActiveObject, reinterpret_cast<void**>(&pi));
+	if (!SUCCEEDED(hr) || !pi)
+		return false;
+	MSG msg;
+	msg.message = ARG(1).integer();
+	msg.wParam = ARG(2).integer();
+	hr = pi->TranslateAccelerator(&msg);
+	pi->Release();
+	return SUCCEEDED(hr);
+}
