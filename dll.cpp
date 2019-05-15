@@ -50,6 +50,11 @@ static WinLib& loadlib(char* name) {
 	return libs[i];
 }
 
+static OstreamFile& log() {
+	static OstreamFile ofs("dll.log");
+	return ofs;
+}
+
 Dll::Dll(short rt, char* library, char* name, TypeItem* p, short* ns, short n)
 	: params(p, n), rtype(rt), trace(false) {
 	nparams = n;
@@ -68,6 +73,7 @@ Dll::Dll(short rt, char* library, char* name, TypeItem* p, short* ns, short n)
 		if (0 == (pfn = hlibrary.GetProcAddress(uname)))
 			except("can't get " << library << ":" << name << " or " << uname);
 	}
+	// log() << this << endl;
 }
 
 void Dll::out(Ostream& os) const {
@@ -86,11 +92,6 @@ void Dll::out(Ostream& os) const {
 		}
 		os << ')';
 	}
-}
-
-static OstreamFile& log() {
-	static OstreamFile ofs("dll.log");
-	return ofs;
 }
 
 const int maxbuf = 1024;
