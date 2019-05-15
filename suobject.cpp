@@ -542,19 +542,6 @@ struct PartFn {
 	Value fn;
 };
 
-Value SuObject::Partition(BuiltinArgs& args) {
-	ck_readonly();
-	args.usage("object.Partition(value or function)");
-	Value arg = args.getValue("block");
-	args.end();
-	if (val_cast<Func*>(arg))
-		return std::stable_partition(vec.begin(), vec.end(), PartFn(arg)) -
-			vec.begin();
-	else
-		return std::stable_partition(vec.begin(), vec.end(), PartVal(arg)) -
-			vec.begin();
-}
-
 struct Lt {
 	Lt(Value f) : fn(f) {
 	}
