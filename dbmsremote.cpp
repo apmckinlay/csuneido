@@ -64,7 +64,7 @@ public:
 private:
 	static bool checkHello(const gcstring& hello);
 	void close(int qn, CorQ cq);
-	const char* explain(int qn, CorQ cq);
+	const char* strategy(int qn, CorQ cq);
 	Row get(int tn, int qn, Dir dir);
 	Header header(int qn, CorQ cq);
 	Lisp<Lisp<gcstring>> keys(int qn, CorQ cq);
@@ -103,8 +103,8 @@ public:
 	void close() override {
 		return dr.close(qn, c_or_q());
 	}
-	const char* explain() override {
-		return dr.explain(qn, c_or_q());
+	const char* strategy() override {
+		return dr.strategy(qn, c_or_q());
 	}
 	Row get(Dir dir) override {
 		return dr.get(getTran(), qn, dir);
@@ -258,8 +258,8 @@ Value DbmsRemote::exec(Value ob) {
 	return io.getBool() ? io.getValue() : Value();
 }
 
-const char* DbmsRemote::explain(int qn, CorQ cq) { // DbmsQuery
-	send(Command::EXPLAIN, qn, cq);
+const char* DbmsRemote::strategy(int qn, CorQ cq) { // DbmsQuery
+	send(Command::STRATEGY, qn, cq);
 	return io.getStr().str();
 }
 

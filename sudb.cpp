@@ -501,11 +501,11 @@ Value SuQuery::call(Value, Value member, short nargs, short nargnames,
 	static Value Prev("Prev");
 	static Value Output("Output");
 	static Value Columns("Columns");
-	static Value Fields("Fields");
 	static Value RuleColumns("RuleColumns");
 	static Value Order("Order");
 	static Value Rewind("Rewind");
-	static Value Explain("Explain");
+	static Value Explain("Explain"); // deprecated
+	static Value Strategy("Strategy");
 	static Value Close("Close");
 
 	if (closed)
@@ -525,7 +525,7 @@ Value SuQuery::call(Value, Value member, short nargs, short nargnames,
 	} else if (member == Rewind) {
 		NOARGS("query.Rewind()");
 		return rewind();
-	} else if (member == Columns || member == Fields) { // Fields is deprecated
+	} else if (member == Columns) {
 		NOARGS("query.Columns()");
 		return getfields();
 	} else if (member == RuleColumns) {
@@ -534,9 +534,9 @@ Value SuQuery::call(Value, Value member, short nargs, short nargnames,
 	} else if (member == Order) {
 		NOARGS("query.Order()");
 		return getorder();
-	} else if (member == Explain) {
-		NOARGS("query.Explain()");
-		return explain();
+	} else if (member == Strategy || member == Explain) {
+		NOARGS("query.Strategy()");
+		return strategy();
 	} else if (member == Output) {
 		if (nargs != 1)
 			except("usage: query.Output(object)");
@@ -603,8 +603,8 @@ SuObject* SuQuery::getorder() const {
 	return ob;
 }
 
-Value SuQuery::explain() const {
-	return new SuString(q->explain());
+Value SuQuery::strategy() const {
+	return new SuString(q->strategy());
 }
 
 Value SuQuery::output(SuObject* ob) const {

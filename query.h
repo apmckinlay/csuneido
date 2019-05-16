@@ -135,7 +135,7 @@ public:
 
 	// protected:
 	virtual void out(Ostream&) const = 0;
-	const char* explain();
+	const char* strategy();
 	virtual Fields columns() = 0;
 	virtual Indexes keys() = 0;
 	virtual Query* transform() {

@@ -43,7 +43,7 @@ public:
 	void cmd_DUMP();
 	void cmd_ERASE();
 	void cmd_EXEC();
-	void cmd_EXPLAIN();
+	void cmd_STRATEGY();
 	void cmd_FINAL();
 	void cmd_GET();
 	void cmd_GET1();
@@ -152,7 +152,7 @@ static CmdFn commands[]{&DbServer::cmd_ABORT, &DbServer::cmd_ADMIN,
 	&DbServer::cmd_AUTH, &DbServer::cmd_CHECK, &DbServer::cmd_CLOSE,
 	&DbServer::cmd_COMMIT, &DbServer::cmd_CONNECTIONS, &DbServer::cmd_CURSOR,
 	&DbServer::cmd_CURSORS, &DbServer::cmd_DUMP, &DbServer::cmd_ERASE,
-	&DbServer::cmd_EXEC, &DbServer::cmd_EXPLAIN, &DbServer::cmd_FINAL,
+	&DbServer::cmd_EXEC, &DbServer::cmd_STRATEGY, &DbServer::cmd_FINAL,
 	&DbServer::cmd_GET, &DbServer::cmd_GET1, &DbServer::cmd_HEADER,
 	&DbServer::cmd_INFO, &DbServer::cmd_KEYS, &DbServer::cmd_KILL,
 	&DbServer::cmd_LIBGET, &DbServer::cmd_LIBRARIES, &DbServer::cmd_LOAD,
@@ -266,9 +266,9 @@ void DbServer::cmd_EXEC() {
 	putValue(result);
 }
 
-void DbServer::cmd_EXPLAIN() {
+void DbServer::cmd_STRATEGY() {
 	DbmsQuery* q = q_or_c();
-	io.putOk().putStr(q->explain());
+	io.putOk().putStr(q->strategy());
 }
 
 void DbServer::cmd_FINAL() {

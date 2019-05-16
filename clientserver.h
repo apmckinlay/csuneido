@@ -20,7 +20,7 @@ enum class Command {
 	DUMP,
 	ERASE,
 	EXEC,
-	EXPLAIN,
+	STRATEGY,
 	FINAL,
 	GET,
 	GET1,

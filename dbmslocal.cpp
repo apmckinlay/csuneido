@@ -30,7 +30,7 @@ public:
 	Row get(Dir dir) override;
 	void rewind() override;
 	void close() override;
-	const char* explain() override;
+	const char* strategy() override;
 	bool output(Record rec) override;
 
 private:
@@ -80,8 +80,8 @@ void DbmsQueryLocal::close() {
 	q->close(q);
 }
 
-const char* DbmsQueryLocal::explain() {
-	return q->explain();
+const char* DbmsQueryLocal::strategy() {
+	return q->strategy();
 }
 
 bool DbmsQueryLocal::output(Record rec) {

@@ -38,7 +38,7 @@ protected:
 	SuObject* getRuleColumns() const;
 	SuObject* getkeys() const;
 	SuObject* getorder() const;
-	Value explain() const;
+	Value strategy() const;
 	Value output(SuObject* ob) const;
 
 	gcstring query;

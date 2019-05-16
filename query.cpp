@@ -161,7 +161,7 @@ void Query::select(const Fields& index, Record key) {
 	select(index, key, key_to);
 }
 
-const char* Query::explain() {
+const char* Query::strategy() {
 	OstreamStr os;
 	out(os);
 	os << " [nrecs~ " << std::llround(nrecords()) << " cost~ "
@@ -218,7 +218,7 @@ void Query1::best_prefixed(Indexes idxs, const Fields& by, const Fields& needs,
 
 struct Querystruct {
 	const char* query;
-	const char* explain;
+	const char* strategy;
 	const char* result;
 };
 
@@ -918,9 +918,9 @@ static void process(int i) {
 
 	OstreamStr exp;
 	exp << *q;
-	if (0 != strcmp(querytests[i].explain, exp.str()))
+	if (0 != strcmp(querytests[i].strategy, exp.str()))
 		errs << i << ": " << s << "\n\tgot: '" << exp.str() << "'"
-			 << "\n\tnot: '" << querytests[i].explain << "'" << endl;
+			 << "\n\tnot: '" << querytests[i].strategy << "'" << endl;
 	Header hdr = q->header();
 
 	{ // read next
@@ -989,9 +989,9 @@ static void process2(int i) {
 
 		OstreamStr exp;
 		exp << *q;
-		if (0 != strcmp(querytests2[i].explain, exp.str()))
+		if (0 != strcmp(querytests2[i].strategy, exp.str()))
 			errs << i << ": " << s << "\n\tgot: '" << exp.str() << "'"
-				 << "\n\tnot: '" << querytests2[i].explain << "'" << endl;
+				 << "\n\tnot: '" << querytests2[i].strategy << "'" << endl;
 		Header hdr = q->header();
 
 		OstreamStr out;
