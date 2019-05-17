@@ -97,8 +97,8 @@
  * Scintilla / Suneido Integration code:
  *	Reference: vs2017suneido -> scihwnds.cpp
  */
-void SciHwnds_AddHwndRef(HWND hwnd, LONG_PTR lngPtr);
-void SciHwnds_RmvHwndRef(HWND hwnd);
+void SciHwnds_AddHwndPtr(LONG_PTR lngPtr);
+void SciHwnds_RmvHwndPtr(LONG_PTR lngPtr);
 
 #ifndef SPI_GETWHEELSCROLLLINES
 #define SPI_GETWHEELSCROLLLINES   104
@@ -154,7 +154,7 @@ void *PointerFromWindow(HWND hWnd) {
 
 void SetWindowPointer(HWND hWnd, void *ptr) {
 	LONG_PTR lngPtr = reinterpret_cast<LONG_PTR>(ptr);
-	SciHwnds_AddHwndRef(hWnd, lngPtr);
+	SciHwnds_AddHwndPtr(lngPtr);
 	::SetWindowLongPtr(hWnd, 0, lngPtr);
 }
 
@@ -3456,10 +3456,9 @@ LRESULT PASCAL ScintillaWin::SWndProc(
 				delete sci;
 			} catch (...) {
 			}
-			::SetWindowLong(hWnd, 0, 0);
-			LRESULT result = ::DefWindowProc(hWnd, iMessage, wParam, lParam);
-			SciHwnds_RmvHwndRef(hWnd);
-			return result;
+			LONG_PTR lngPtr = ::SetWindowLongPtr(hWnd, 0, 0);
+			SciHwnds_RmvHwndPtr(lngPtr);
+			return ::DefWindowProc(hWnd, iMessage, wParam, lParam);
 		} else {
 			return sci->WndProc(iMessage, wParam, lParam);
 		}

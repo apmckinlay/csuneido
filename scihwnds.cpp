@@ -14,14 +14,14 @@
 #include "htbl.h"
 
 int SciHwnds_count = 0;
-static Hmap<int, LONG_PTR> hwnds;
+static Hset<LONG_PTR> hwndPtrs;
 
-void SciHwnds_AddHwndRef(HWND hwnd, LONG_PTR lngPtr) {
-	hwnds.put(reinterpret_cast<int>(hwnd), lngPtr);
-	SciHwnds_count = hwnds.size();
+void SciHwnds_AddHwndPtr(LONG_PTR lngPtr) {
+	hwndPtrs.insert(lngPtr);
+	SciHwnds_count = hwndPtrs.size();
 }
 
-void SciHwnds_RmvHwndRef(HWND hwnd) {
-	hwnds.erase(reinterpret_cast<int>(hwnd));
-	SciHwnds_count = hwnds.size();
+void SciHwnds_RmvHwndPtr(LONG_PTR lngPtr) {
+	hwndPtrs.erase(lngPtr);
+	SciHwnds_count = hwndPtrs.size();
 }
