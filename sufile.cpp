@@ -159,7 +159,7 @@ Value SuFile::Writeline(BuiltinArgs& args) {
 }
 
 Value SuFile::Seek(BuiltinArgs& args) {
-	args.usage("file.Seek(offset, origin)");
+	args.usage("file.Seek(offset, origin='set')");
 	Value arg = args.getValue("offset");
 	int64_t offset =
 		arg.is_int() ? (int64_t) arg.integer() : arg.number()->bigint();
@@ -177,7 +177,9 @@ Value SuFile::Seek(BuiltinArgs& args) {
 		except("file.Seek: origin must be 'set', 'end', or 'cur'");
 
 	ckopen("Seek");
-	return FSEEK64(f, offset, origin) == 0 ? SuTrue : SuFalse;
+	if (FSEEK64(f, offset, origin) != 0)
+		except("file.Seek failed");
+	return Value();
 }
 
 Value SuFile::Tell(BuiltinArgs& args) {
