@@ -19,7 +19,6 @@ public:
 			{"Text", &SuScanner::SuScanner::Text},
 			{"Length", &SuScanner::Length},
 			{"Value", &SuScanner::Valu},
-			{"Keyword", &SuScanner::Keyword},
 			{"Keyword?", &SuScanner::KeywordQ},
 			{"Iter", &SuScanner::Iter},
 		};
@@ -33,7 +32,6 @@ public:
 	Value Text(BuiltinArgs&);     // raw text
 	Value Length(BuiltinArgs&);   // length of current token
 	Value Valu(BuiltinArgs&);     // for strings returns escaped
-	Value Keyword(BuiltinArgs&);  // keyword number (else zero)
 	Value KeywordQ(BuiltinArgs&); //
 	Value Iter(BuiltinArgs&);
 
@@ -92,16 +90,13 @@ Value SuScanner::Position(BuiltinArgs& args) {
 	return scanner->si;
 }
 
-// OLD - returns type as integer
 Value SuScanner::Type(BuiltinArgs& args) {
-	args.usage("scanner.Type()").end();
-
-	return token;
+	return Type2(args);
 }
 
 #define TYPE(type) static Value type(#type)
 
-// NEW - returns type as string
+// TODO remove after everyone has switched to new Type
 Value SuScanner::Type2(BuiltinArgs& args) {
 	args.usage("scanner.Type()").end();
 
@@ -151,16 +146,6 @@ Value SuScanner::Valu(BuiltinArgs& args) {
 	// scanner->len only set for strings ???
 	return token == T_STRING ? new SuString(scanner->value, scanner->len)
 							 : new SuString(scanner->value);
-}
-
-// deprecated, replaced by Keyword?
-Value SuScanner::Keyword(BuiltinArgs& args) {
-	args.usage("scanner.Keyword()").end();
-
-	if (scanner->keyword && scanner->source[scanner->si] == ':')
-		return 0;
-	return scanner->keyword < KEYWORDS ? scanner->keyword
-									   : scanner->keyword - KEYWORDS;
 }
 
 Value SuScanner::KeywordQ(BuiltinArgs& args) {
