@@ -228,7 +228,7 @@ private:
 	bool isKeyword() const;
 	bool just_name() const;
 	void record();
-	uint16_t literal(Value value, bool reuse = false);
+	uint16_t literal(Value value);
 	short emit_literal();
 	uint16_t local(bool init = false);
 	void addLocal(int num);
@@ -1912,12 +1912,7 @@ uint16_t FunctionCompiler::mem(const char* s) {
 	return literal(symbolOrString(s));
 }
 
-// TODO use "reuse" in more places
-uint16_t FunctionCompiler::literal(Value x, bool reuse) {
-	if (reuse)
-		for (int i = 0; i < literals.size(); ++i)
-			if (literals[i] == x)
-				return i;
+uint16_t FunctionCompiler::literal(Value x) {
 	except_if(literals.size() >= USHRT_MAX, "too many literals");
 	literals.push_back(x);
 	return literals.size() - 1;
