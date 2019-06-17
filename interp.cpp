@@ -77,7 +77,7 @@ bool Frame::jumpToPopReturn() {
 	ip += (nargnames) * sizeof(short); \
 	if (!TOP() && *ip != I_POP && *ip != I_RETURN && \
 		(*ip != I_JUMP || !jumpToPopReturn())) \
-	except((name) << " has no return value")
+		except((name) << " has no return value")
 
 #define CALLX(x, member, nargs, nargnames, argnames, name) \
 	oldsp = GETSP() - (nargs); \

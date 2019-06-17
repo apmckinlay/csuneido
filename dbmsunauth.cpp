@@ -7,6 +7,7 @@
 #include "row.h"
 #include "value.h"
 
+// Used by the server for unauthorized connections
 class DbmsUnauth : public Dbms {
 public:
 	explicit DbmsUnauth(Dbms* d) : dbms(d) {
@@ -116,7 +117,9 @@ public:
 private:
 	Dbms* dbms;
 
-	[[noreturn]] void unauth() { except_err("not authorized"); }
+	[[noreturn]] void unauth() {
+		except_err("not authorized");
+	}
 };
 
 Dbms* newDbmsUnauth(Dbms* dbms) {
