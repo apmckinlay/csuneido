@@ -49,6 +49,11 @@ public:
 	void pack(char* buf) const override;
 	static SuRecord* unpack(const gcstring& s);
 
+protected:
+	virtual SuObject* dup() {
+		return new SuRecord(*this);
+	}
+
 private:
 	void erase();
 	void update();

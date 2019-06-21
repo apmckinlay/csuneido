@@ -263,11 +263,14 @@ Value SuObject::getdata(Value m) {
 }
 
 Value SuObject::getdefault(Value m, Value def) {
-	Value x;
-	if ((x = get(m)))
+	if (Value x = get(m))
 		return x;
+	return defaultValue(m, def);
+}
+
+Value SuObject::defaultValue(Value m, Value def) {
 	if (SuObject* defval_ob = def.ob_if_ob()) {
-		x = new SuObject(*defval_ob);
+		Value x = defval_ob->dup();
 		if (!readonly)
 			put(m, x);
 		return x;

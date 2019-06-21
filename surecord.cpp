@@ -397,7 +397,7 @@ Value SuRecord::getdata(Value m) {
 		else if (Value y = call_rule(i, result ? "invalid" : "missing"))
 			result = y;
 		else if (!result)
-			result = defval;
+			result = defaultValue(m, defval);
 	}
 	return result;
 }

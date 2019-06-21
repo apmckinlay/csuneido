@@ -117,6 +117,12 @@ public:
 	void sort();
 	Value unique();
 
+protected:
+	Value defaultValue(Value m, Value def);
+	virtual SuObject* dup() {
+		return new SuObject(*this);
+	}
+
 private:
 	void append(Value x);
 	void insert(int i, Value x);
