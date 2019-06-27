@@ -11,6 +11,7 @@
 #include "opcodes.h"
 #include "htbl.h"
 #include "fatal.h"
+#include "globals.h"
 
 const int MAX_PORTTEST = 20;
 static PortTest* porttests[MAX_PORTTEST];
@@ -85,6 +86,7 @@ struct Parser {
 	}
 
 	void run_fixture() {
+		globals.clear();
 		match('@', false);
 		auto name = gcstring(scan.value);
 		match(T_IDENTIFIER, true);
