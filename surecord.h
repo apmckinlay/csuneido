@@ -50,7 +50,7 @@ public:
 	static SuRecord* unpack(const gcstring& s);
 
 protected:
-	virtual SuObject* dup() {
+	SuObject* dup() override {
 		return new SuRecord(*this);
 	}
 
