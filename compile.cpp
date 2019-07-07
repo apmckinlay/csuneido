@@ -1904,7 +1904,9 @@ void FunctionCompiler::record() {
 		emit(I_CALL, GLOBAL, gMkRec, nargs + 1, &argnames);
 	} else {
 		static int gRecord = globals("Record");
-		emit(I_CALL, GLOBAL, gRecord, nargs, &argnames);
+		static int gObject = globals("Object");
+		emit(I_CALL, GLOBAL, (nargs > argnames.size() ? gObject : gRecord),
+			nargs, &argnames);
 	}
 }
 
