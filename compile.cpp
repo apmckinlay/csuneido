@@ -480,14 +480,9 @@ Value Compiler::privatizeDef(const char* className, Value mem) const {
 			if (has_prefix(name, "getter_")) {
 				if (strlen(name) <= 7 || !islower(name[7]))
 					syntax_error("invalid getter (" << name << ")");
-				// get_name => Getter_Class_name
-				name = CATSTR3("Getter_", className, name + 6);
-				// TODO remove after transition from get_ to getter_
-			} else if (has_prefix(name, "get_") && strlen(name) > 4 &&
-				islower(name[4]))
 				// getter_name => Getter_Class_name
-				name = CATSTR3("Get_", className, name + 3);
-			else
+				name = CATSTR3("Getter_", className, name + 6);
+			} else
 				name = CATSTR3(className, "_", name);
 			return symbolOrString(name);
 		} else if (has_prefix(name, "Getter_") && strlen(name) > 7 &&
@@ -2160,14 +2155,8 @@ void FunctionCompiler::patch(short i) {
 
 // make lower case member names private by prefixing with class name
 Value FunctionCompiler::privatizeRef(const char* className, const char* name) {
-	if (className && islower(name[0])) {
-		// TODO remove after transition from get_ to getter_
-		if (has_prefix(name, "get_") && strlen(name) > 4 && islower(name[4]))
-			// get_name => Get_Class_name
-			name = CATSTR3("Get_", className, name + 3);
-		else
-			name = CATSTR3(className, "_", name);
-	}
+	if (className && islower(name[0]))
+		name = CATSTR3(className, "_", name);
 	return symbolOrString(name);
 }
 
