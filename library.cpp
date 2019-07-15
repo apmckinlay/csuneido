@@ -45,7 +45,6 @@ Dbms* libdb() {
 Hmap<gcstring, gcstring> override;
 
 // load on demand - called by globals
-
 void libload(int gnum) {
 	if (Value* pv = builtins.find(gnum)) {
 		globals.put(gnum, *pv);
