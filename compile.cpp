@@ -1920,8 +1920,6 @@ uint16_t FunctionCompiler::local(bool init) {
 
 	// for blocks
 	static short it_num = symnum("it");
-	if (0 == strcmp("_", scanner.value))
-		num = it_num;
 	if (num == it_num)
 		it_used = true;
 
