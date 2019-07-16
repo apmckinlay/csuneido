@@ -194,7 +194,6 @@ Value SuString::call(Value self, Value member, short nargs, short nargnames,
 		METHOD(Findnot1of);
 		METHOD(FindLastnot1of);
 		methods["Has?"] = &SuString::Hasq;
-		METHOD(Instantiate);
 		METHOD(Iter);
 		METHOD(Lower);
 		methods["Lower?"] = &SuString::Lowerq;
@@ -886,13 +885,6 @@ Value SuString::Suffixq(
 	gcstring str = args.getgcstr("string");
 	args.end();
 	return s.has_suffix(str) ? SuTrue : SuFalse;
-}
-
-Value SuString::Instantiate(
-	short nargs, short nargnames, short* argnames, int each) {
-	NOARGS("string.Instantiate()");
-	s.instantiate();
-	return this;
 }
 
 Value SuString::Reverse(
