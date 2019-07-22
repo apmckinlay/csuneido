@@ -35,6 +35,7 @@ static Keyword words[] = {{"alter", K_ALTER}, {"and", T_AND},
 	{"true", K_TRUE}, {"union", K_UNION}, {"unique", K_UNIQUE},
 	{"update", K_UPDATE}, {"view", K_VIEW}, {"where", K_WHERE}};
 const int nwords = sizeof words / sizeof(Keyword);
+
 struct QscannerLt {
 	bool operator()(const Keyword& k1, const Keyword& k2) {
 		return strcmpic(k1.word, k2.word) < 0;
