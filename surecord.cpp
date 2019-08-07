@@ -342,12 +342,12 @@ void SuRecord::invalidate_dependents(short mem) {
 void SuRecord::invalidate(short mem) {
 	// TODO maybe clear dependencies?
 	// (would give a way to safely clear dependencies)
+	if (invalid.find(mem))
+		return;
 	RTRACE("invalidate " << symstr(mem));
-	bool was_valid = !invalid.find(mem);
 	invalidated.add(mem); // for observers
 	invalid[mem] = true;
-	if (was_valid)
-		invalidate_dependents(mem);
+	invalidate_dependents(mem);
 }
 
 bool operator==(Observe o1, Observe o2) {
