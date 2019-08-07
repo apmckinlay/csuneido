@@ -106,7 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>/Zc:throwingNew /Zc:strictStrings %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <DisableSpecificWarnings>4244;4018;4267;4100;4310;4389;4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4018;4267;4100;4310;4389;4068;5054;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <OmitFramePointers>true</OmitFramePointers>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
