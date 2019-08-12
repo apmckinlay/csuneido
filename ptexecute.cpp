@@ -65,6 +65,9 @@ PORTTEST(execute) {
 	} else if (expected == "**notfalse**") {
 		result = run(args[0].str());
 		ok = result != SuFalse;
+	} else if (expected == "nil") {
+		result = run(args[0].str());
+		ok = !result;
 	} else {
 		result = run(args[0].str());
 		Value expectedVal = compile(expected.str());
