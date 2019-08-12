@@ -83,6 +83,12 @@ Query* Query::make_summarize(Query* source, const Fields& p, const Fields& c,
 	return new Summarize(source, p, c, f, o);
 }
 
+static void check(const Fields& flds) {
+	for (Fields f = flds; !nil(f); ++f)
+		if (f->has_suffix("_lower!"))
+			except("cannot summarize _lower! fields");
+}
+
 Summarize::Summarize(Query* source, const Fields& p, const Fields& c,
 	const Fields& f, const Fields& o)
 	: Query1(source), by(p), cols(c), funcs(f), on(o), strategy(NONE),
@@ -90,6 +96,8 @@ Summarize::Summarize(Query* source, const Fields& p, const Fields& c,
 	if (!subset(source->columns(), by))
 		except("summarize: nonexistent columns: " << difference(
 				   by, source->columns()));
+	check(by);
+	check(on);
 	wholeRecord = minmax1() && source->keys().member(on);
 }
 

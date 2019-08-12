@@ -26,6 +26,9 @@ Project::Project(Query* s, const Fields& flds_, bool allbut)
 		flds = difference(columns, flds);
 	else
 		flds = lispset(flds);
+	for (Fields f = flds; !nil(f); ++f)
+		if (f->has_suffix("_lower!"))
+			except("cannot project _lower! fields");
 
 	// check if project contain candidate key
 	Indexes k = source->keys();
