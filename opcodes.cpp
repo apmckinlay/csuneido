@@ -14,7 +14,7 @@ const char* opcodes[256] = { //
 
 	"push auto", "push auto", "push auto", "push auto", "push auto",
 	"push auto", "push auto", "push auto", "push auto", "push auto",
-	"push auto", "push auto", "push auto", "push auto", "push auto", "bool",
+	"push auto", "push auto", "push auto", "push auto", "block throw", "bool",
 
 	"= auto", "= auto", "= auto", "= auto", "= auto", "= auto", "= auto",
 	"= auto",

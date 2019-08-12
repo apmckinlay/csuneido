@@ -128,7 +128,7 @@ int SuFunction::disasm1(Ostream& out, int ci) {
 	} else if (op == I_PUSH_INT) {
 		out << TARGET(ci);
 		ci += 2;
-	} else if (op < 16 || op == I_BOOL)
+	} else if (op < 16 || op == I_BOOL || op == I_BLOCK_THROW)
 		;
 	else if (op < I_PUSH) {
 		switch (op & 0xf0) {

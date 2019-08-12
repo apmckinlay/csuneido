@@ -1139,9 +1139,8 @@ void FunctionCompiler::statement(short cont, short* pbrk) {
 		if (cont >= 0)
 			emit(I_JUMP, UNCOND, cont - (code.size() + 3));
 		else if (inblock) {
-			static Value con("block:continue");
-			emit(I_PUSH, LITERAL, literal(con));
-			emit(I_THROW);
+			emit(I_BLOCK_THROW);
+			code.push_back(BLOCK_CONTINUE);
 		} else
 			syntax_error_();
 		break;
@@ -1152,9 +1151,8 @@ void FunctionCompiler::statement(short cont, short* pbrk) {
 		if (pbrk)
 			*pbrk = emit(I_JUMP, UNCOND, *pbrk);
 		else if (inblock) {
-			static Value brk("block:break");
-			emit(I_PUSH, LITERAL, literal(brk));
-			emit(I_THROW);
+			emit(I_BLOCK_THROW);
+			code.push_back(BLOCK_BREAK);
 		} else
 			syntax_error_();
 		break;
@@ -1167,14 +1165,14 @@ void FunctionCompiler::statement(short cont, short* pbrk) {
 				match();
 				[[fallthrough]];
 			case '}':
-				emit(I_PUSH, LITERAL, literal(Value()));
+				emit(I_BLOCK_THROW);
+				code.push_back(BLOCK_RETURN_NIL);
 				break;
 			default:
 				stmtexpr();
+				emit(I_BLOCK_THROW);
+				code.push_back(BLOCK_RETURN);
 			}
-			static Value ret("block return");
-			emit(I_PUSH, LITERAL, literal(ret));
-			emit(I_THROW);
 		} else
 			switch (token) {
 			case ';':
@@ -2070,7 +2068,7 @@ short FunctionCompiler::emit(short op, short option, short target, short nargs,
 		// OPTIMIZE: pushes
 		if (option == LITERAL && target < 16)
 			code[adr] = I_PUSH_LITERAL | target;
-		else if (option == AUTO && target < 15)
+		else if (option == AUTO && target < 14)
 			code[adr] = I_PUSH_AUTO | target;
 		else if (option >= LITERAL)
 			emit_target(option, target);

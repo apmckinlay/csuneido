@@ -60,7 +60,7 @@ Value docall(Value x, Value member, //
 		return x.call(x, member, nargs, nargnames, argnames, each);
 }
 
-// to detect: return cond ? f() : g() or: cond ? f() : f(); ...
+// to detect: return cond ? f() : g() or: cond ? f() : g(); }
 bool Frame::jumpToPopReturn() {
 	uint8_t* save_ip = ip;
 	++ip;
@@ -75,9 +75,10 @@ bool Frame::jumpToPopReturn() {
 	PUSH(result); \
 	each = -1; \
 	ip += (nargnames) * sizeof(short); \
-	if (!TOP() && *ip != I_POP && *ip != I_RETURN && \
-		(*ip != I_JUMP || !jumpToPopReturn())) \
-		except((name) << " has no return value")
+	if (!TOP() && \
+		!(*ip == I_POP || *ip == I_RETURN || *ip == I_BLOCK_THROW || \
+			(*ip == I_JUMP && jumpToPopReturn()))) \
+	except((name) << " has no return value")
 
 #define CALLX(x, member, nargs, nargnames, argnames, name) \
 	oldsp = GETSP() - (nargs); \
@@ -208,7 +209,7 @@ Value Frame::run() {
 			case I_PUSH_AUTO | 11:
 			case I_PUSH_AUTO | 12:
 			case I_PUSH_AUTO | 13:
-			case I_PUSH_AUTO | 14: // 15 is used for I_BOOL
+				// 14 is used for I_BLOCK_THROW, 15 is used for I_BOOL
 				arg = local[op & 15];
 				if (!arg)
 					except("uninitialized variable: " << symstr(
@@ -445,15 +446,27 @@ Value Frame::run() {
 				ip += jump;
 				break;
 			case I_THROW: {
-				static Value block_return("block return");
-
 				arg = POP();
-				if (arg == block_return)
-					tls().proc->block_return_value = POP();
 				if (Except* e = val_cast<Except*>(arg))
 					throw *e;
 				else
 					throw Except(arg.gcstr());
+			}
+			case I_BLOCK_THROW: {
+				switch (*ip++) {
+				case BLOCK_BREAK:;
+					throw Except("block:break");
+				case BLOCK_CONTINUE:
+					throw Except("block:continue");
+				case BLOCK_RETURN:
+					tls().proc->block_return_value = POP();
+					throw Except("block return");
+				case BLOCK_RETURN_NIL:
+					tls().proc->block_return_value = Value();
+					throw Except("block return");
+				default:
+					unreachable();
+				}
 			}
 			case I_ADDEQ | (SUB << 4):
 			case I_ADDEQ | (SUB_SELF << 4):
