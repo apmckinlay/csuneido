@@ -221,7 +221,6 @@ Value SuRecord::call(Value self, Value member, short nargs, short nargnames,
 	} else if (member == Observer) {
 		if (nargs != 1)
 			except("usage: record.Observer(observer)");
-		persist_if_block(ARG(0));
 		observers.add(ARG(0));
 		return Value();
 	} else if (member == RemoveObserver) {

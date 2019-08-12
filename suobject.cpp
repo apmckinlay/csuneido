@@ -190,13 +190,11 @@ void SuObject::add(Value x) {
 }
 
 void SuObject::append(Value x) {
-	persist_if_block(x);
 	vec.push_back(x);
 	migrateMapToVec();
 }
 
 void SuObject::insert(int i, Value x) {
-	persist_if_block(x);
 	if (0 <= i && i <= vec.size()) {
 		vec.insert(vec.begin() + i, x);
 		migrateMapToVec();
@@ -226,7 +224,6 @@ void SuObject::put(Value m, Value x) {
 	if (!x)
 		return;
 	ModificationCheck mc(this);
-	persist_if_block(x);
 	int i;
 	if (!m.int_if_num(&i) || i < 0 || vec.size() < i)
 		map[m] = x;
@@ -460,7 +457,6 @@ Value SuObject::Set_default(BuiltinArgs& args) {
 	auto val = args.getValue("value", Value());
 	args.end();
 	defval = val;
-	persist_if_block(defval);
 	if (SuObject* defval_ob = defval.ob_if_ob())
 		if (!defval_ob->readonly)
 			defval = new SuObject(*defval_ob);

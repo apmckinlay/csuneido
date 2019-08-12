@@ -111,7 +111,6 @@ void Callback::put(char*& dst, char*& dst2, const char* lim2, Value x) {
 			except("duplicate callback with different type");
 		f = cb->fn;
 	} else {
-		persist_if_block(x);
 		f = make_callback(x, this, TypeMulti::size());
 		callbacks[x] = Cb(f, this);
 	}

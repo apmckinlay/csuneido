@@ -17,7 +17,6 @@ Value SuInstance::getdata(Value m) {
 }
 
 void SuInstance::putdata(Value m, Value v) {
-	persist_if_block(v);
 	data[m] = v;
 }
 

@@ -819,7 +819,6 @@ Value Frame::run() {
 				throw;
 		};
 done:
-	persist_if_block(TOP());
 	return POP();
 }
 
