@@ -71,6 +71,10 @@ bool Auth::auth(const gcstring& nonce, const gcstring& data) {
 	return is_token(data) || is_user(nonce, data);
 }
 
+bool Auth::have_users() {
+	return theDB()->get_table("users");
+}
+
 #include "testing.h"
 
 TEST(auth) {

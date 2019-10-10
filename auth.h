@@ -13,4 +13,5 @@ public:
 	static gcstring token();
 	static gcstring nonce();
 	static bool auth(const gcstring& nonce, const gcstring& data);
+	static bool have_users();
 };

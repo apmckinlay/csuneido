@@ -5,6 +5,7 @@
 #include "hashmap.h"
 #include "lisp.h"
 #include "dbms.h"
+#include "auth.h"
 
 int cursors_inuse = 0;
 
@@ -24,7 +25,7 @@ struct TranQuery {
 class DbServerDataImp : public DbServerData {
 public:
 	DbServerDataImp() : nextQnum(0), nextCnum(0) {
-		auth = false;
+		auth = !Auth::have_users();
 	}
 
 	void add_tran(int tran) override;
