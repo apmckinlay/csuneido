@@ -45,7 +45,7 @@ private:
 // method array entries
 template <class T>
 struct Method {
-	typedef class Value (T::*MemFun)(BuiltinArgs&);
+	typedef Value (T::*MemFun)(BuiltinArgs&);
 	Value name;
 	MemFun method;
 };
