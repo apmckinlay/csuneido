@@ -199,7 +199,6 @@ Value SuString::call(Value self, Value member, short nargs, short nargnames,
 		methods["Lower?"] = &SuString::Lowerq;
 		METHOD(MapN);
 		METHOD(Match);
-		METHOD(Mbstowcs);
 		METHOD(NthLine);
 		methods["Number?"] = &SuString::Numberq;
 		methods["Numeric?"] = &SuString::Numericq;
@@ -216,7 +215,6 @@ Value SuString::call(Value self, Value member, short nargs, short nargnames,
 		METHOD(Unescape);
 		METHOD(Upper);
 		methods["Upper?"] = &SuString::Upperq;
-		METHOD(Wcstombs);
 	}
 	if (pmfn* p = methods.find(member))
 		return (this->*(*p))(nargs, nargnames, argnames, each);
@@ -759,26 +757,6 @@ Value SuStringIter::call(Value self, Value member, short nargs, short nargnames,
 Value SuString::Iter(short nargs, short nargnames, short* argnames, int each) {
 	NOARGS("string.Iter()");
 	return new SuStringIter(s);
-}
-
-Value SuString::Mbstowcs(
-	short nargs, short nargnames, short* argnames, int each) {
-	NOARGS("string.Mbstowcs()");
-	auto src = str();
-	int n = mbstowcs(NULL, src, 0) + 1;
-	char* buf = salloc(n * 2);
-	mbstowcs((wchar_t*) buf, src, n);
-	return SuString::noalloc(buf, n * 2);
-}
-
-Value SuString::Wcstombs(
-	short nargs, short nargnames, short* argnames, int each) {
-	NOARGS("string.Wcstombs()");
-	wchar_t* src = (wchar_t*) str();
-	int n = wcstombs(NULL, src, 0);
-	char* buf = salloc(n);
-	wcstombs(buf, src, n);
-	return SuString::noalloc(buf, n);
 }
 
 Value SuString::Upper(short nargs, short nargnames, short* argnames, int each) {
