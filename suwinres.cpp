@@ -7,6 +7,8 @@
 #include "win.h"
 #include "noargs.h"
 
+// The purpose is to track whether handles and gdiobj are closed
+
 SuWinRes::SuWinRes(void* handle) : h(handle) {
 }
 

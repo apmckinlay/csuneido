@@ -13,7 +13,7 @@ using std::min;
 
 #define check2(n) \
 	if ((dst2) + (n) > lim2) \
-		except("conversion overflow")
+	except("conversion overflow")
 
 Value Type::result(int, int) {
 	error("not a valid return type");
@@ -243,13 +243,13 @@ Value TypeBuffer::get(const char*& src, Value x) {
 	if (!now)
 		x = SuFalse;
 	else if (!x)
-		x = new SuString(now);
+		x = new SuString(now); // copy
 	else if (SuBuffer* buf = val_cast<SuBuffer*>(x))
 		verify(now == buf->ptr());
 	else {
 		gcstring s = x.gcstr();
 		if (0 != memcmp(now, s.ptr(), s.size()))
-			x = new SuString(now);
+			x = new SuString(now); // copy
 	}
 	src += sizeof(char*);
 	return x;
