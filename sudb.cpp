@@ -485,6 +485,13 @@ Value SuCursor::call(Value self, Value member, short nargs, short nargnames,
 		return SuQuery::call(self, member, nargs, nargnames, argnames, each);
 }
 
+void SuCursor::close() {
+	if (closed)
+		return;
+	q->close();
+	closed = true;
+}
+
 // SuQuery ----------------------------------------------------------
 
 SuQuery::SuQuery(const gcstring& s, DbmsQuery* n, SuTransaction* trans)
@@ -635,7 +642,9 @@ Record object_to_record(const Header& hdr, SuObject* ob) {
 }
 
 void SuQuery::close() {
-	if (!closed && t && !t->isdone())
+	if (closed)
+		return;
+	if (t && !t->isdone())
 		q->close();
 	closed = true;
 }

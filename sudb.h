@@ -29,7 +29,7 @@ public:
 	}
 	Value call(Value self, Value member, short nargs, short nargnames,
 		short* argnames, int each) override;
-	void close();
+	virtual void close();
 
 protected:
 	Value get(Dir);
@@ -113,6 +113,7 @@ public:
 	}
 	Value call(Value self, Value member, short nargs, short nargnames,
 		short* argnames, int each) override;
+	void close() override;
 
 private:
 	int num;
