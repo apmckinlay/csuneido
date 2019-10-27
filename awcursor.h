@@ -2,6 +2,8 @@
 // Copyright (c) 2002 Suneido Software Corp. All rights reserved
 // Licensed under GPLv2
 
+// https://www.codeproject.com/Articles/1699/Auto-Wait-Cursor
+
 // ensure unhook
 struct WinHook {
 	WinHook(int id, HOOKPROC proc, DWORD threadid) {
