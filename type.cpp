@@ -214,15 +214,17 @@ Value TypePointer::result(int, int n) {
 
 //===================================================================
 
+// also inherited by TypeString
 void TypeBuffer::put(char*& dst, char*& dst2, const char* lim2, Value x) {
 	SuString* str;
+	SuBuffer* buf;
 	if (!x || x == SuZero || x == SuFalse) {
 		// missing members
 		*((const char**) dst) = nullptr;
 	} else if (in && nullptr != (str = val_cast<SuString*>(x))) {
 		// pass pointer to actual string
 		*((const char**) dst) = str->str();
-	} else if (SuBuffer* buf = val_cast<SuBuffer*>(x)) {
+	} else if (nullptr != (buf = val_cast<SuBuffer*>(x)) && !buf->used) {
 		// pass pointer to actual buffer
 		*((const char**) dst) = buf->buf();
 	} else {
@@ -245,7 +247,10 @@ Value TypeBuffer::get(const char*& src, Value x) {
 	else if (!x)
 		x = new SuString(now); // copy
 	else if (SuBuffer* buf = val_cast<SuBuffer*>(x))
-		verify(now == buf->ptr());
+		if (!buf->used)
+			verify(now == buf->ptr());
+		else
+			buf->used = true;
 	else {
 		gcstring s = x.gcstr();
 		if (0 != memcmp(now, s.ptr(), s.size()))

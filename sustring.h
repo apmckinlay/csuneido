@@ -153,6 +153,8 @@ public:
 	void adjust() { // set length to strlen
 		s = s.substr(0, s.find('\0'));
 	}
+
+	bool used = false;
 };
 
 bool is_identifier(const char* s, int n = -1);
