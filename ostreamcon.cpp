@@ -4,19 +4,16 @@
 #include "ostreamcon.h"
 #include "win.h"
 
-class OstreamConImp {
+class OstreamCon : public Ostream {
 public:
-	OstreamConImp() {
+	OstreamCon() {
 		AllocConsole();
 		con = GetStdHandle(STD_OUTPUT_HANDLE);
 	}
-	void close() {
-		// FreeConsole();
-		// calling FreeConsole causes exception on exit in debugger
-	}
-	void add(const void* s, int n) {
+	Ostream& write(const void* buf, int n) override {
 		DWORD nw;
-		WriteFile(con, s, n, &nw, NULL);
+		WriteFile(con, buf, n, &nw, NULL);
+		return *this;
 	}
 	explicit operator bool() const {
 		return con;
@@ -25,22 +22,6 @@ public:
 private:
 	HANDLE con;
 };
-
-OstreamCon::OstreamCon() : imp(new OstreamConImp) {
-}
-
-OstreamCon::~OstreamCon() {
-	imp->close();
-}
-
-Ostream& OstreamCon::write(const void* s, int n) {
-	imp->add(s, n);
-	return *this;
-}
-
-OstreamCon::operator bool() const {
-	return bool(*imp);
-}
 
 Ostream& con() {
 	static OstreamCon con;

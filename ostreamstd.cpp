@@ -4,13 +4,27 @@
 #include "ostreamstd.h"
 #include <stdio.h>
 
+class OstreamStd : public Ostream {
+public:
+	OstreamStd(FILE* f) : out(f) {
+	}
+	Ostream& write(const void* buf, int n);
+	void flush();
+
+private:
+	FILE* out;
+};
+
 Ostream& OstreamStd::write(const void* s, int n) {
-	fwrite(s, 1, n, stdout);
+	fwrite(s, 1, n, out);
 	return *this;
 }
 
 void OstreamStd::flush() {
-	fflush(stdout);
+	fflush(out);
 }
 
-OstreamStd cout;
+static OstreamStd o(stdout);
+static OstreamStd e(stderr);
+Ostream& cout = o;
+Ostream& cerr = e;

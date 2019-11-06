@@ -9,8 +9,6 @@ int trace_level = 0;
 
 class OstreamTrace : public Ostream {
 public:
-	OstreamTrace() {
-	}
 	Ostream& write(const void* buf, int n) override {
 		if (trace_level & TRACE_CONSOLE)
 			con().write(buf, n);
@@ -23,10 +21,6 @@ public:
 			con().flush();
 		if (trace_level & TRACE_LOGFILE)
 			log().flush();
-	}
-	static Ostream& con() {
-		static OstreamCon con;
-		return con;
 	}
 	static Ostream& log() {
 		static OstreamFile log("trace.log", "w");

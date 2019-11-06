@@ -4,18 +4,4 @@
 
 #include "ostream.h"
 
-class OstreamConImp;
-
-// an output stream to a file, using stdio
-class OstreamCon : public Ostream {
-public:
-	OstreamCon();
-	~OstreamCon();
-	Ostream& write(const void* buf, int n) override;
-	explicit operator bool() const;
-
-private:
-	OstreamConImp* imp;
-};
-
 extern Ostream& con();

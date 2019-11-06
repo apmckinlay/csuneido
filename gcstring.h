@@ -96,6 +96,10 @@ public:
 
 	void instantiate();
 
+	bool is_concat() const {
+		return n < 0;
+	}
+
 private:
 	mutable int n; // mutable because of flatten, negative means concat
 	union {

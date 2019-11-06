@@ -4,13 +4,7 @@
 
 #include "ostream.h"
 
-// an output stream to stdout
-class OstreamStd : public Ostream {
-public:
-	Ostream& write(const void* buf, int n);
-	void flush();
-};
-
-extern OstreamStd cout;
+extern Ostream& cout;
+extern Ostream& cerr;
 
 #define SHOW(stuff) cout << #stuff << " => " << (stuff) << endl

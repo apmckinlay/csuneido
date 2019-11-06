@@ -198,6 +198,7 @@
     <ClCompile Include="..\commalist.cpp" />
     <ClCompile Include="..\compile.cpp" />
     <ClCompile Include="..\connection.cpp" />
+    <ClCompile Include="..\console.cpp" />
     <ClCompile Include="..\construct.cpp" />
     <ClCompile Include="..\database.cpp" />
     <ClCompile Include="..\date.cpp" />
@@ -246,6 +247,7 @@
     <ClCompile Include="..\ostream.cpp" />
     <ClCompile Include="..\ostreamcon.cpp" />
     <ClCompile Include="..\ostreamfile.cpp" />
+    <ClCompile Include="..\ostreamstd.cpp" />
     <ClCompile Include="..\ostreamstr.cpp" />
     <ClCompile Include="..\pack.cpp" />
     <ClCompile Include="..\permheap.cpp" />

@@ -33,7 +33,9 @@
 #include "ostreamfile.h"
 #include "suservice.h"
 #include <cstdio> // for remove
-#include <fcntl.h>
+#include <process.h>
+
+void connectToConsole(bool);
 
 static_assert(sizeof(int) == 4, "int must be 32 bits / 4 bytes");
 static_assert(sizeof(short) == 2, "short must be 16 bits / 2 bytes");
@@ -123,6 +125,8 @@ static void init2(HINSTANCE hInstance, LPSTR lpszCmdLine) {
 		CallServiceDispatcher(cmdlineoptions.service);
 		exit(EXIT_SUCCESS);
 	}
+
+	connectToConsole(cmdlineoptions.action == REPL);
 
 	switch (cmdlineoptions.action) {
 	case NONE:
@@ -311,58 +315,58 @@ bool getSystemOption(const char* option, bool def_value) {
 }
 
 #include <io.h>
-#include "ostreamcon.h"
 #include "func.h"
+#include "ostreamstd.h"
+#include "builtin.h"
 
-static ULONG_PTR GetParentProcessId() {
-	ULONG_PTR pbi[6];
-	ULONG ulSize = 0;
-	LONG(WINAPI * NtQueryInformationProcess)
-	(HANDLE ProcessHandle, ULONG ProcessInformationClass,
-		PVOID ProcessInformation, ULONG ProcessInformationLength,
-		PULONG ReturnLength);
-	*(FARPROC*) &NtQueryInformationProcess =
-		GetProcAddress(LoadLibraryA("NTDLL.DLL"), "NtQueryInformationProcess");
-	if (NtQueryInformationProcess) {
-		if (NtQueryInformationProcess(
-				GetCurrentProcess(), 0, &pbi, sizeof(pbi), &ulSize) >= 0 &&
-			ulSize == sizeof(pbi))
-			return pbi[5];
-	}
-	return (ULONG_PTR) -1;
-}
-
-static Value print() {
+BUILTIN(PrintStdout, "(s)") {
 	const int nargs = 1;
-	con() << ARG(0).gcstr();
+	cout << ARG(0).gcstr();
 	return Value();
 }
 
 static void repl() {
-	con();
-	auto pid = GetParentProcessId();
-	AttachConsole(pid); // need to use start/w
-	globals["Suneido"].putdata(
-		"Print", new BuiltinFunc("PrintCon", "(string)", print));
-	HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
-	con() << "Built:  " << build << endl;
+	globals["Suneido"].putdata("Print", globals["PrintStdout"]);
+	cerr << "Built:  " << build << endl;
+	cerr << "Note: use start/w suneido -repl" << endl;
+	cerr << "Press Enter twice (i.e. blank line) to execute, q to quit" << endl;
+
 	run("Init.Repl()");
-	int fd = _open_osfhandle(reinterpret_cast<intptr_t>(in), _O_TEXT);
-	FILE* fin = _fdopen(fd, "r");
-	verify(fin);
-	char buf[1024];
-	con() << "> ";
-	while (fgets(buf, sizeof buf, fin)) {
-		if (buf[0] == 'q' && buf[1] == '\n')
-			break;
-		try {
-			Value x = run(buf);
-			if (x)
-				con() << x << endl;
-		} catch (Except& e) {
-			con() << e << endl;
-			con() << e.callstack() << endl;
+
+	char buf[4096];
+	char* lim = buf + sizeof buf;
+	for (;;) {
+		cerr << "~~~" << endl;
+		char* dst = buf;
+		while (fgets(dst, lim - dst, stdin)) {
+			if (dst[0] == 'q' && dst[1] == '\n')
+				return;
+			if (dst[0] == '\n')
+				break;
+			dst += strlen(dst);
 		}
-		con() << "> ";
+		if (dst == buf)
+			return; // eof
+		try {
+			if (Value x = run(buf)) {
+				auto type = gcstring(x.type());
+				auto ss = val_cast<SuString*>(x);
+				if (ss && ss->gcstr().is_concat())
+					type = " <concat>";
+				else if (type == "String" || type == "Boolean" ||
+					type == "Date")
+					type = "";
+				else if (val_cast<SuNumber*>(x))
+					type = " <Dnum>";
+				else if (x.is_int())
+					type = " <int>";
+				else
+					type = " <" + type + ">";
+				cout << x << type << endl;
+			}
+		} catch (Except& e) {
+			cerr << e << endl;
+			cerr << e.callstack() << endl;
+		}
 	}
 }
