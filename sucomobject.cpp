@@ -380,7 +380,7 @@ BUILTIN(COMobject, "(progid)") {
 }
 
 // Used to forward keyboard messages to a browser control
-// to get Tab to work.
+// to get Tab etc. to work.
 BUILTIN(Traccel, "(pointer, message, wParam)") {
 	const int nargs = 3;
 	void* p = reinterpret_cast<void*>(ARG(0).integer());
@@ -395,5 +395,5 @@ BUILTIN(Traccel, "(pointer, message, wParam)") {
 	msg.wParam = ARG(2).integer();
 	hr = pi->TranslateAccelerator(&msg);
 	pi->Release();
-	return SUCCEEDED(hr);
+	return hr;
 }
