@@ -241,17 +241,16 @@ void TypeBuffer::put(char*& dst, char*& dst2, const char* lim2, Value x) {
 }
 
 Value TypeBuffer::get(const char*& src, Value x) {
+	SuBuffer* buf;
 	char* now = *((char**) src);
 	if (!now)
 		x = SuFalse;
 	else if (!x)
 		x = new SuString(now); // copy
-	else if (SuBuffer* buf = val_cast<SuBuffer*>(x))
-		if (!buf->used)
-			verify(now == buf->ptr());
-		else
-			buf->used = true;
-	else {
+	else if (nullptr != (buf = val_cast<SuBuffer*>(x)) && !buf->used) {
+		verify(now == buf->ptr());
+		buf->used = true;
+	} else {
 		gcstring s = x.gcstr();
 		if (0 != memcmp(now, s.ptr(), s.size()))
 			x = new SuString(now); // copy
