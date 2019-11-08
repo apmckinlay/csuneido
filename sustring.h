@@ -112,13 +112,11 @@ private:
 	Value FindLastnot1of(
 		short nargs, short nargnames, short* argnames, int each);
 	Value Hasq(short nargs, short nargnames, short* argnames, int each);
-	Value Instantiate(short nargs, short nargnames, short* argnames, int each);
 	Value Iter(short nargs, short nargnames, short* argnames, int each);
 	Value Lower(short nargs, short nargnames, short* argnames, int each);
 	Value Lowerq(short nargs, short nargnames, short* argnames, int each);
 	Value MapN(short nargs, short nargnames, short* argnames, int each);
 	Value Match(short nargs, short nargnames, short* argnames, int each);
-	Value Mbstowcs(short nargs, short nargnames, short* argnames, int each);
 	Value NthLine(short nargs, short nargnames, short* argnames, int each);
 	Value Numberq(short nargs, short nargnames, short* argnames, int each);
 	Value Numericq(short nargs, short nargnames, short* argnames, int each);
@@ -136,7 +134,6 @@ private:
 	Value Unescape(short nargs, short nargnames, short* argnames, int each);
 	Value Upper(short nargs, short nargnames, short* argnames, int each);
 	Value Upperq(short nargs, short nargnames, short* argnames, int each);
-	Value Wcstombs(short nargs, short nargnames, short* argnames, int each);
 
 	bool backquote() const;
 	friend void test_sustring_replace();
