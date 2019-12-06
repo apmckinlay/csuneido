@@ -381,8 +381,20 @@ BUILTIN(COMobject, "(progid)") {
 
 // Used to forward keyboard messages to a browser control
 // to get Tab etc. to work.
-BUILTIN(Traccel, "(pointer, message, wParam)") {
-	const int nargs = 3;
+BUILTIN(Traccel, "(pointer, msg)") {
+	const int nargs = 2;
+	Value m = ARG(1);
+	MSG msg;
+	msg.hwnd = (HWND) m.getdata(Value("hwnd")).integer();
+	msg.message = m.getdata(Value("message")).integer();
+	msg.wParam = m.getdata(Value("wParam")).integer();
+	msg.lParam = m.getdata(Value("lParam")).integer();
+	msg.time = m.getdata(Value("time")).integer();
+	msg.pt.x = msg.pt.y = 0;
+	if (Value ptob = m.getdata(Value("pt"))) {
+		msg.pt.x = ptob.getdata(Value("x")).integer();
+		msg.pt.y = ptob.getdata(Value("y")).integer();
+	}
 	void* p = reinterpret_cast<void*>(ARG(0).integer());
 	auto iunk = static_cast<IUnknown*>(p);
 	IOleInPlaceActiveObject* pi;
@@ -390,9 +402,6 @@ BUILTIN(Traccel, "(pointer, message, wParam)") {
 		IID_IOleInPlaceActiveObject, reinterpret_cast<void**>(&pi));
 	if (!SUCCEEDED(hr) || !pi)
 		return false;
-	MSG msg;
-	msg.message = ARG(1).integer();
-	msg.wParam = ARG(2).integer();
 	hr = pi->TranslateAccelerator(&msg);
 	pi->Release();
 	return hr;
