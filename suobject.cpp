@@ -272,7 +272,7 @@ Value SuObject::defaultValue(Value m, Value def) {
 			put(m, x);
 		return x;
 	}
-	return def; // member not found
+	return def;
 }
 
 Value SuObject::get(Value m) const {

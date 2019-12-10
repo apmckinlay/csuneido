@@ -34,8 +34,6 @@ public:
 
 	// putdata has to notify observers of changes
 	void putdata(Value i, Value x) override;
-	// getdata has to auto-register a rule as an observer
-	Value getdata(Value) override;
 
 	bool erase(Value x) override;
 	bool erase2(Value x) override;
@@ -53,6 +51,8 @@ protected:
 	SuObject* dup() override {
 		return new SuRecord(*this);
 	}
+	// getdefault adds dependents, handles _lower!, and calls rules
+	Value getdefault(Value member, Value def) override;
 
 private:
 	void erase();

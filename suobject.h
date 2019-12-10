@@ -118,6 +118,7 @@ public:
 	Value unique();
 
 protected:
+	virtual Value getdefault(Value member, Value def);
 	Value defaultValue(Value m, Value def);
 	virtual SuObject* dup() {
 		return new SuObject(*this);
@@ -129,7 +130,6 @@ private:
 	void migrateMapToVec();
 	static Mfn method(Value member);
 	void ck_readonly() const;
-	Value getdefault(Value member, Value def);
 	Value Size(BuiltinArgs& args);
 	Value Members(BuiltinArgs& args);
 	Value Iter(BuiltinArgs& args);

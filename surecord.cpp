@@ -386,7 +386,8 @@ void SuRecord::call_observer(short member, const char* why) {
 	}
 }
 
-Value SuRecord::getdata(Value m) {
+Value SuRecord::getdefault(Value m, Value def) {
+	RTRACE("get " << m);
 	int i = m.symnum();
 	if (tls().proc->fp->rule.rec == this)
 		add_dependent(tls().proc->fp->rule.mem, i);
@@ -397,7 +398,7 @@ Value SuRecord::getdata(Value m) {
 		else if (Value y = call_rule(i, result ? "invalid" : "missing"))
 			result = y;
 		else if (!result)
-			result = defaultValue(m, defval);
+			result = defaultValue(m, def);
 	}
 	return result;
 }
