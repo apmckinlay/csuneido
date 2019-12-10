@@ -371,7 +371,8 @@ private:
 };
 
 void SuRecord::call_observer(short member, const char* why) {
-	RTRACE("call observer for " << symstr(member) << " due to " << why);
+	if (!observers.empty())
+		RTRACE("call observer for " << symstr(member) << " due to " << why);
 	static short argname = ::symnum("member");
 	for (auto o : observers) {
 		// prevent cycles
