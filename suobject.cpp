@@ -634,7 +634,7 @@ Value SuObject::Delete(BuiltinArgs& args) {
 
 void SuObject::clear() {
 	ModificationCheck mc(this);
-	std::fill(vec.begin(), vec.end(), Value());
+	std::fill(vec.begin(), vec.end(), Value()); // help gc
 	vec.clear();
 	map.clear();
 }
