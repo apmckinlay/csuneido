@@ -333,17 +333,6 @@ BUILTIN(Getenv, "(string)") {
 	return s ? new SuString(s) : SuEmptyString;
 }
 
-BUILTIN(WinErr, "(number)") {
-	const int nargs = 1;
-	void* buf;
-	int n = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL, ARG(0).integer(), 0, (LPTSTR) &buf, 0, NULL);
-	gcstring s(n ? (char*) buf : "");
-	LocalFree(buf);
-	return new SuString(s.trim());
-}
-
 BUILTIN(UnixTime, "()") {
 	return new SuNumber(time(NULL));
 }
