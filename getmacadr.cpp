@@ -5,22 +5,9 @@
 #include <iphlpapi.h>
 #include "sustring.h"
 #include "suobject.h"
+#include "builtin.h"
 
-// return mac address of FIRST adapter
-gcstring get_mac_address() {
-	IP_ADAPTER_INFO info[10];
-
-	ULONG buflen = sizeof(info);
-	if (NO_ERROR != GetAdaptersInfo(info, &buflen))
-		return "";
-	for (int i = 0; i < 10; ++i)
-		if (info[i].AddressLength > 0)
-			return gcstring((char*) info[i].Address, info[i].AddressLength);
-	return "";
-}
-
-// return a list of mac addresses
-SuObject* get_mac_addresses() {
+BUILTIN(GetMacAddresses, "()") {
 	IP_ADAPTER_INFO tmp;
 	IP_ADAPTER_INFO* info = &tmp;
 
@@ -35,14 +22,4 @@ SuObject* get_mac_addresses() {
 			list->add(new SuString(
 				gcstring((char*) info->Address, info->AddressLength)));
 	return list;
-}
-
-#include "builtin.h"
-
-BUILTIN(GetMacAddress, "()") {
-	return new SuString(get_mac_address());
-}
-
-BUILTIN(GetMacAddresses, "()") {
-	return get_mac_addresses();
 }
