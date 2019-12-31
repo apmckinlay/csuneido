@@ -93,9 +93,11 @@ BUILTIN(StackOverflow, "()") {
 BUILTIN(Trace, "(value, block = false)") {
 	const int nargs = 2;
 	int prev_trace_level = trace_level;
-	if (val_cast<SuString*>(ARG(0)))
+	if (val_cast<SuString*>(ARG(0))) {
+		if (ARG(1) != SuFalse)
+			except("usage: Trace(string) or Trace(flags, block)");
 		tout() << ARG(0).gcstr() << endl;
-	else {
+	} else {
 		trace_level = ARG(0).integer();
 		if (0 == (trace_level & (TRACE_CONSOLE | TRACE_LOGFILE)))
 			trace_level |= TRACE_CONSOLE | TRACE_LOGFILE;
