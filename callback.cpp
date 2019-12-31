@@ -208,3 +208,7 @@ BUILTIN(Callbacks, "()") {
 		ob->add(callback.key);
 	return ob;
 }
+
+int callbackCount() {
+	return callbacks.size();
+}

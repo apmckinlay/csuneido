@@ -377,6 +377,8 @@ BUILTIN(Hash, "(value)") {
 	if (name##_count) \
 	ob->put(#name, name##_count)
 
+int callbackCount();
+
 BUILTIN(ResourceCounts, "()") {
 	auto ob = new SuObject();
 	RC(handle);
@@ -389,6 +391,7 @@ BUILTIN(ResourceCounts, "()") {
 	RC(socket);
 	RC(cbtofree);
 	RC(SciHwnds);
+	ob->put("Callbacks", callbackCount());
 	return ob;
 }
 
