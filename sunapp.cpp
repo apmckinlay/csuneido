@@ -177,8 +177,6 @@ HRESULT STDMETHODCALLTYPE CSuneidoAPP::Start(
 
 	int n;
 	str = trycall("SuneidoAPP", buf, &n);
-	if (str == 0)
-		return INET_E_DATA_NOT_AVAILABLE;
 	str = localmemdup(str, n);
 	len = n;
 	pos = 0;
@@ -199,10 +197,7 @@ HRESULT STDMETHODCALLTYPE CSuneidoAPP::Read(
 				   << " *pcbRead=" << *pcbRead);
 	memcpy(pv, str + pos, *pcbRead);
 	pos += *pcbRead;
-	if (pos < len)
-		return S_OK;
-	LOG("FALSE");
-	return S_FALSE;
+	return pos < len ? S_OK : S_FALSE;
 }
 
 // Class factory ====================================================

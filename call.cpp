@@ -31,11 +31,8 @@ Value method_call(Value ob, const gcstring& method, Lisp<Value> args) {
 const char* trycall(const char* fn, char* arg, int* plen) {
 	const char* str;
 	try {
-		gcstring gcstr;
 		Value result = call(fn, lisp(Value(new SuString(arg))));
-		if (result == SuFalse)
-			return 0;
-		gcstr = result.gcstr();
+		gcstring gcstr = result.gcstr();
 		if (plen)
 			*plen = gcstr.size();
 		str = gcstr.str();
