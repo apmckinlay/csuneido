@@ -182,7 +182,7 @@ BUILTIN(LibraryOverrideClear, "()") {
 
 #include <cctype>
 
-BUILTIN(BuiltinNames, "()") {
+SuObject* getBuiltinNames() {
 	auto c = new SuObject();
 	for (auto [key, val] : builtins) {
 		(void) val;
@@ -190,7 +190,14 @@ BUILTIN(BuiltinNames, "()") {
 		if (isupper(*name))
 			c->add(name);
 	}
+	c->sort();
+	c->set_readonly();
 	return c;
+}
+
+BUILTIN(BuiltinNames, "()") {
+	static SuObject* list = getBuiltinNames(); // once only
+	return list;
 }
 
 // low level libget used by dbmslocal
