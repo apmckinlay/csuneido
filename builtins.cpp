@@ -446,7 +446,8 @@ public:
 			argv[i++] = arg.str();
 		}
 		argv[i] = nullptr;
-		return _spawnvp(mode, cmd, argv);
+		auto proc = _spawnvp(mode, cmd, argv);
+		return proc == -1 ? proc : GetProcessId((HANDLE) proc);
 	}
 	const char* type() const override {
 		return "Builtin";
