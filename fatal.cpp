@@ -6,7 +6,6 @@
 #include "cmdlineoptions.h"
 #include <cstdint>
 
-extern bool is_client;
 extern void message(const char*, const char*, uint32_t timeout_ms);
 
 void fatal(const char* error, const char* extra) {
