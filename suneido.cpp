@@ -34,6 +34,7 @@
 #include "suservice.h"
 #include <cstdio> // for remove
 #include <process.h>
+#include "errlog.h"
 
 void connectToConsole(bool);
 
@@ -287,7 +288,10 @@ void message(const char* s, const char* t, uint32_t timeout_ms = INFINITE) {
 
 void handler(const Except& x) {
 	if (tls().proc->in_handler) {
-		message("Error in Handler", x.str());
+		if (cmdlineoptions.unattended)
+			errlog("Error in Handler:", x.str());
+		else
+			message("Error in Handler", x.str());
 		return;
 	}
 	tls().proc->in_handler = true;
