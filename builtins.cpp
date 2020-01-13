@@ -439,11 +439,15 @@ public:
 		args.usage("Spawn(mode, command, @args)");
 		int mode = args.getint("mode");
 		auto cmd = args.getstr("command");
-		auto argv = new const char*[args.n_unnamed()];
+		auto argv = new const char*[args.n_unnamed() + 2];
 		int i = 0;
 		argv[i++] = cmd;
 		while (Value arg = args.getNextUnnamed()) {
-			argv[i++] = arg.str();
+			gcstring a = arg.gcstr();
+			// quote arguments containing spaces (like jSuneido and gSuneido)
+			if (a.has(" "))
+				a = "\"" + a + "\"";
+			argv[i++] = a.str();
 		}
 		argv[i] = nullptr;
 		auto proc = _spawnvp(mode, cmd, argv);
