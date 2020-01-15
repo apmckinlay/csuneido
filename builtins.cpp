@@ -417,6 +417,65 @@ BUILTIN(RichEditPut, "(hwnd, string)") {
 
 // spawn
 
+// based on Go Windows syscall.EscapeArg
+// https://docs.microsoft.com/en-us/cpp/c-language/parsing-c-command-line-arguments
+const char* escapeArg(const char* s) {
+	int ns = strlen(s);
+	if (ns == 0)
+		return "\"\"";
+	int n = ns;
+	bool hasSpace = false;
+	for (int i = 0; i < ns; i++) {
+		switch (s[i]) {
+		case '"':
+		case '\\':
+			n++;
+			break;
+		case ' ':
+		case '\t':
+			hasSpace = true;
+			break;
+		default:
+			break;
+		}
+	}
+	if (hasSpace)
+		n += 2;
+	if (n == ns)
+		return s;
+
+	char* qs = new char[n + 1];
+	int j = 0;
+	if (hasSpace)
+		qs[j++] = '"';
+	int slashes = 0;
+	for (int i = 0; i < ns; i++) {
+		switch (s[i]) {
+		case '\\':
+			slashes++;
+			qs[j++] = s[i];
+			break;
+		case '"':
+			for (; slashes > 0; slashes--)
+				qs[j++] = '\\';
+			qs[j++] = '\\';
+			qs[j++] = s[i];
+			break;
+		default:
+			slashes = 0;
+			qs[j++] = s[i];
+		}
+	}
+	if (hasSpace) {
+		for (; slashes > 0; slashes--)
+			qs[j++] = '\\';
+		qs[j++] = '"';
+	}
+	verify(j <= n);
+	qs[j] = 0;
+	return qs;
+}
+
 #include "builtinargs.h"
 
 class Spawn : public Func {
@@ -442,13 +501,8 @@ public:
 		auto argv = new const char*[args.n_unnamed() + 2];
 		int i = 0;
 		argv[i++] = cmd;
-		while (Value arg = args.getNextUnnamed()) {
-			gcstring a = arg.gcstr();
-			// quote arguments containing spaces (like jSuneido and gSuneido)
-			if (a.has(" "))
-				a = "\"" + a + "\"";
-			argv[i++] = a.str();
-		}
+		while (Value arg = args.getNextUnnamed())
+			argv[i++] = escapeArg(arg.str());
 		argv[i] = nullptr;
 		auto proc = _spawnvp(mode, cmd, argv);
 		return proc == -1 ? proc : GetProcessId((HANDLE) proc);
@@ -611,4 +665,22 @@ void builtins() {
 	BUILTIN_CLASS("Thread", su_Thread);
 
 	install_builtin_functions();
+}
+
+#include "testing.h"
+#include <string>
+using namespace std::string_literals;
+
+static void t(const char* s, gcstring expected) {
+	auto qs = escapeArg(s);
+	assert_eq(qs, expected);
+}
+
+TEST(escapeArg) {
+	t(R"(foo)", R"(foo)");
+	t(R"(foo bar)", R"("foo bar")");
+	t(R"(ab"c)", R"(ab\"c)");
+	t(R"(\)", R"(\)");
+	t(R"(a\\\b)", R"(a\\\b)");
+	t(R"(a\"b)", R"(a\\\"b)");
 }
