@@ -118,7 +118,7 @@ struct Proc {
 	void clear_unused();
 
 	Stack stack;
-	enum { MAXFRAMES = 180 }; // to fit Proc in 4 pages
+	enum { MAXFRAMES = 256 };
 	Frame frames[MAXFRAMES];
 	Frame* fp = frames; // points to current frame
 	short super = NOSUPER;
