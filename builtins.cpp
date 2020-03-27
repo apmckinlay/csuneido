@@ -149,16 +149,6 @@ BUILTIN(Synchronized, "(block)") {
 	return ARG(0).call(ARG(0), CALL);
 }
 
-BUILTIN(Frame, "(offset)") {
-	int i = 1 + abs(TOP().integer()); // + 1 to skip this frame
-	if (tls().proc->fp - i <= tls().proc->frames)
-		return SuFalse;
-	if (tls().proc->fp[-i].fn)
-		return tls().proc->fp[-i].fn;
-	else
-		return tls().proc->fp[-i].prim;
-}
-
 BUILTIN(Locals, "(offset)") {
 	static Value SYM_THIS("this");
 
