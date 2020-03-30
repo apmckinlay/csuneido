@@ -410,7 +410,7 @@ char* Dnum::tostr(char* buf, int len) const {
 			*dst++ = '-';
 			e = -e;
 		}
-		int nd = e > 100 ? 3 : e > 10 ? 2 : 1;
+		int nd = e >= 100 ? 3 : e > 10 ? 2 : 1;
 		switch (nd) {
 		case 3:
 			*dst++ = '0' + (e / 100);
@@ -1022,6 +1022,8 @@ TEST(dnum_tostr) {
 	str(Dnum(-1234), "-1234");
 	str(Dnum("1e15"), "1000000000000000");
 	str(Dnum("1.23e9"), "1230000000");
+	str(Dnum("1e100"), "1e100");
+	str(Dnum("6.545631232121333e100"), "6.545631232121333e100");
 	str("1e16");
 	str("1.23e16");
 	str("-123.456");
