@@ -143,13 +143,6 @@ Value SuClass::get2(Value self, Value member) { // handles binding and getters
 			PUSH(member);
 			return method.call(self, CALL, 1);
 		}
-		// TODO remove after transition from get_ to getter_
-		static Value Get_("Get_");
-		if (Value method = get3(Get_)) {
-			KEEPSP
-			PUSH(member);
-			return method.call(self, CALL, 1);
-		}
 		has_getter = false; // avoid future attempts
 	}
 	if (const char* s = member.str_if_str()) {
@@ -161,8 +154,7 @@ Value SuClass::get2(Value self, Value member) { // handles binding and getters
 		// TODO remove after transition from get_ to getter_
 		getter = new SuString(CATSTRA("Get_", s));
 		if (Value method = get3(getter)) {
-			KEEPSP
-			return method.call(self, CALL);
+			except("invalid old style " << getter);
 		}
 	}
 	return Value();
