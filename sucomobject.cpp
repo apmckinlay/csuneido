@@ -253,23 +253,25 @@ static void su2com(Value x, VARIANT* v) {
 		V_R8(v) = num->to_double();
 	} else if (nullptr != (s = x.str_if_str())) {
 		V_VT(v) = VT_BSTR;
-		V_BSTR(v) = A2WBSTR(s); // COM convention is callee will free memory
-								// TODO: handle strings with embedded nuls
+		V_BSTR(v) = A2WBSTR(s); // TODO: handle strings with embedded nuls
 	} else if (SuCOMobject* sco = val_cast<SuCOMobject*>(x)) {
 		IDispatch* idisp = sco->idispatch();
 		if (idisp) {
 			V_VT(v) = VT_DISPATCH;
 			V_DISPATCH(v) = idisp;
-			idisp->AddRef(); // COM convention is callee will Release()
 		} else {
 			IUnknown* iunk = sco->iunknown();
 			verify(NULL != iunk);
 			V_VT(v) = VT_UNKNOWN;
 			V_UNKNOWN(v) = iunk;
-			iunk->AddRef(); // COM convention is callee will Release()
 		}
 	} else
 		except("COM: can't convert: " << x);
+}
+
+void freeBstr(VARIANTARG* arg) {
+	if (V_VT(arg) == VT_BSTR)
+		VariantClear(arg);
 }
 
 void SuCOMobject::putdata(Value member, Value val) {
@@ -294,6 +296,8 @@ void SuCOMobject::putdata(Value member, Value val) {
 	// invoke
 	hr = idisp->Invoke(dispid, IID_NULL, LOCALE_SYSTEM_DEFAULT,
 		DISPATCH_PROPERTYPUT, &args, NULL, NULL, NULL);
+	// free argument
+	freeBstr(&arg);
 	check_result(hr, progid, name, "put");
 }
 
@@ -331,12 +335,17 @@ Value SuCOMobject::call(Value self, Value member, short nargs, short nargnames,
 		su2com(ARG(i), &vargs[nargs - i - 1]);
 	args.rgvarg = vargs;
 
+	// invoke
 	VARIANT result;
 	VariantInit(&result);
 	hr = idisp->Invoke(dispid, IID_NULL, LOCALE_SYSTEM_DEFAULT, DISPATCH_METHOD,
 		&args, &result, NULL, NULL);
-	check_result(hr, progid, name, "call");
 
+	// free args
+	for (int i = 0; i < nargs; ++i)
+		freeBstr(&vargs[i]);
+
+	check_result(hr, progid, name, "call");
 	return com2su(&result);
 }
 
