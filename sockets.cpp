@@ -500,7 +500,7 @@ void SocketConnectAsync::write(const char* src, int n) {
 		block();
 	LOG("async write returning");
 	// need to block rather than fire-and-forget
-	// because wrover cannot be used by multiple writes at once
+	// because wrover can't be used by multiple writes at once
 }
 
 int SocketConnectAsync::read(char* dst, int reqd, const int dstsize) {

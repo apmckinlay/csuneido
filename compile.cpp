@@ -1682,7 +1682,7 @@ void FunctionCompiler::expr0(bool newtype) {
 				emit(I_SUPER, 0, base);
 			else if ((option == MEM || option == MEM_SELF) &&
 				literals[id] == NEWVAL)
-				syntax_error("cannot explicitly call New method");
+				syntax_error("can't explicitly call New method");
 			emit(I_CALL, option, id, nargs, &argnames);
 			option = LITERAL;
 			lvalue = value = super = false;
@@ -2155,6 +2155,8 @@ Value FunctionCompiler::privatizeRef(const char* className, const char* name) {
 		name = CATSTR3(className, "_", name);
 	return symbolOrString(name);
 }
+
+//-------------------------------------------------------------------
 
 #include "testing.h"
 #include "except.h"

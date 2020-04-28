@@ -288,7 +288,7 @@ void SuRecord::ck_modify(const char* op) {
 	if (!trans)
 		except("record." << op << ": no Transaction");
 	if (trans->isdone())
-		except("record." << op << ": Transaction already completed");
+		except("record." << op << ": Transaction already ended");
 	if (status != OLD || !recadr)
 		except("record." << op << ": not a database record");
 }

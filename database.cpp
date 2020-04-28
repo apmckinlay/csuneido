@@ -1041,7 +1041,7 @@ short* comma_to_nums(const Lisp<Col>& cols, const gcstring& str) {
 			Col& col = *p;
 			if (col.column == *list) {
 				if (col.colnum == -1)
-					except("cannot index rule field " << col.column);
+					except("can't index rule field " << col.column);
 				nums.push_back(col.colnum);
 				break;
 			}

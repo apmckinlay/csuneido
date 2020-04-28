@@ -516,7 +516,7 @@ Value SuQuery::call(Value, Value member, short nargs, short nargnames,
 	static Value Close("Close");
 
 	if (closed)
-		except("cannot use closed query");
+		except("can't use closed query");
 	if (member == NewRecord) {
 		static Value gRecord = globals["Record"];
 		return gRecord.call(gRecord, CALL, nargs, nargnames, argnames, each);
@@ -558,7 +558,7 @@ Value SuQuery::call(Value, Value member, short nargs, short nargnames,
 
 Value SuQuery::get(Dir dir) {
 	if (!t || t->isdone())
-		except("cannot use a completed Transaction");
+		except("can't use ended Transaction");
 	if (eof == (dir == NEXT ? NEXT_EOF : PREV_EOF))
 		return SuFalse;
 	Row row = q->get(dir);

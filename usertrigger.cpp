@@ -67,7 +67,7 @@ BUILTIN(DoWithoutTriggers, "(object, block)") {
 	int nargs = 2;
 
 	if (is_client)
-		except("DoWithoutTriggers cannot be used when running as a client");
+		except("DoWithoutTriggers can't be used when running as a client");
 	SuObject* ob = ARG(0).object();
 	DisabledTriggers dt;
 	for (int i = 0; ob->has(i); ++i) {

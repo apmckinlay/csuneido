@@ -249,7 +249,7 @@ ULONG __stdcall CFactory::Release() {
 // IClassFactory implementation
 HRESULT __stdcall CFactory::CreateInstance(
 	IUnknown* pUnknownOuter, const IID& iid, void** ppv) {
-	// Cannot aggregate.
+	// Can't aggregate.
 	if (pUnknownOuter != NULL) {
 		return CLASS_E_NOAGGREGATION;
 	}

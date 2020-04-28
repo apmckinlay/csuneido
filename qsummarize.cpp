@@ -86,7 +86,7 @@ Query* Query::make_summarize(Query* source, const Fields& p, const Fields& c,
 static void check(const Fields& flds) {
 	for (Fields f = flds; !nil(f); ++f)
 		if (f->has_suffix("_lower!"))
-			except("cannot summarize _lower! fields");
+			except("can't summarize _lower! fields");
 }
 
 Summarize::Summarize(Query* source, const Fields& p, const Fields& c,
