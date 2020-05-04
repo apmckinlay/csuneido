@@ -73,6 +73,7 @@ void libload(int gnum) {
 			globals.put(gnum, x);
 			TRACE(LIBRARIES, "loaded " << gname << " from " << lib);
 		} catch (const Except& e) {
+			globals.put(gnum, Value());
 			except("error loading " << gname << " from " << lib << ": " << e);
 		}
 	}
