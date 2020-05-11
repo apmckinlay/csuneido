@@ -15,7 +15,6 @@ public:
 			{"Next2", &SuScanner::Next2},
 			{"Position", &SuScanner::Position},
 			{"Type", &SuScanner::Type},
-			{"Type2", &SuScanner::Type2},
 			{"Text", &SuScanner::SuScanner::Text},
 			{"Length", &SuScanner::Length},
 			{"Value", &SuScanner::Valu},
@@ -27,8 +26,7 @@ public:
 	Value Next(BuiltinArgs&);     // returns same as Text
 	Value Next2(BuiltinArgs&);    // NEW returns Type2
 	Value Position(BuiltinArgs&); // position after current token
-	Value Type(BuiltinArgs&);     // token number
-	Value Type2(BuiltinArgs&);    // NEW returns token type as string
+	Value Type(BuiltinArgs&);     // token type as string
 	Value Text(BuiltinArgs&);     // raw text
 	Value Length(BuiltinArgs&);   // length of current token
 	Value Valu(BuiltinArgs&);     // for strings returns escaped
@@ -75,13 +73,13 @@ Value SuScanner::Next(BuiltinArgs& args) {
 			scanner->source + scanner->prev, scanner->si - scanner->prev);
 }
 
-// NEW - returns Type2
+// NEW - returns Type
 // doesn't allocate a string every time whether needed or not
 Value SuScanner::Next2(BuiltinArgs& args) {
 	token = scanner->nextall();
 	if (token == -1)
 		return this;
-	return Type2(args);
+	return Type(args);
 }
 
 Value SuScanner::Position(BuiltinArgs& args) {
@@ -90,14 +88,10 @@ Value SuScanner::Position(BuiltinArgs& args) {
 	return scanner->si;
 }
 
-Value SuScanner::Type(BuiltinArgs& args) {
-	return Type2(args);
-}
-
 #define TYPE(type) static Value type(#type)
 
 // TODO remove after everyone has switched to new Type
-Value SuScanner::Type2(BuiltinArgs& args) {
+Value SuScanner::Type(BuiltinArgs& args) {
 	args.usage("scanner.Type()").end();
 
 	TYPE(ERROR);
