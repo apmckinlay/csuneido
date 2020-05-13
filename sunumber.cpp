@@ -80,7 +80,7 @@ char* SuNumber::format(char* buf, const char* mask) const {
 			break;
 		default:;
 		}
-	if (n.getexp() > before)
+	if (before + after == 0 || n.getexp() > before)
 		return strcpy(buf, "#"); // too big to fit in mask
 
 	n = n.round(after);
