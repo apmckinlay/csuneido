@@ -156,7 +156,6 @@ SuObject::Mfn SuObject::method(Value member) {
 		{"Eval", &SuObject::Eval},
 		{"Eval2", &SuObject::Eval2},
 		{"Join", &SuObject::Join},
-		{"LowerBound", &SuObject::BinarySearch}, // TODO remove once switched
 		{"BinarySearch", &SuObject::BinarySearch},
 		{"PopFirst", &SuObject::PopFirst},
 		{"PopLast", &SuObject::PopLast},
@@ -577,7 +576,7 @@ void SuObject::sort() {
 }
 
 Value SuObject::BinarySearch(BuiltinArgs& args) {
-	args.usage("object.LowerBound(value, block = <)");
+	args.usage("object.BinarySearch(value, block = <)");
 	Value val = args.getValue("value");
 	Value fn = args.getValue("block", SuFalse);
 	args.end();
