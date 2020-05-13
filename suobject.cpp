@@ -158,6 +158,8 @@ SuObject::Mfn SuObject::method(Value member) {
 		{"Join", &SuObject::Join},
 		{"LowerBound", &SuObject::BinarySearch}, // TODO remove once switched
 		{"BinarySearch", &SuObject::BinarySearch},
+		{"PopFirst", &SuObject::PopFirst},
+		{"PopLast", &SuObject::PopLast},
 		{"Readonly?", &SuObject::ReadonlyQ},
 		{"Reverse!", &SuObject::Reverse},
 		{"Set_default", &SuObject::Set_default},
@@ -413,12 +415,16 @@ bool SuObject::erase(Value m) {
 	ModificationCheck mc(this);
 	int i;
 	if (m.int_if_num(&i) && 0 <= i && i < vec.size()) {
-		vec.erase(vec.begin() + i);
-		vec.push_back(Value()); // clear to help gc
-		vec.pop_back();
+		listErase(i);
 		return true;
 	} else
 		return map.erase(m);
+}
+
+void SuObject::listErase(int i) {
+	vec.erase(vec.begin() + i);
+	vec.push_back(Value()); // clear to help gc
+	vec.pop_back();
 }
 
 // this erase does NOT shift numeric subscripts
@@ -647,6 +653,31 @@ Value SuObject::Erase(BuiltinArgs& args) {
 		erase2(x);
 	args.end();
 	return this;
+}
+
+// Built-in so atomic
+Value SuObject::PopFirst(BuiltinArgs& args) {
+	args.usage("object.PopFirst()").end();
+	if (vec.size() == 0)
+		return this;
+	ck_readonly();
+	ModificationCheck mc(this);
+	Value x = vec[0];
+	listErase(0);
+	return x;
+}
+
+// Built-in so atomic
+Value SuObject::PopLast(BuiltinArgs& args) {
+	args.usage("object.PopFirst()").end();
+	if (vec.size() == 0)
+		return this;
+	ck_readonly();
+	ModificationCheck mc(this);
+	int last = vec.size() - 1;
+	Value x = vec[last];
+	listErase(last);
+	return x;
 }
 
 Value SuObject::Add(BuiltinArgs& args) {

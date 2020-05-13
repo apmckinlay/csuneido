@@ -151,6 +151,9 @@ private:
 	Value Erase(BuiltinArgs& args);
 	Value Delete(BuiltinArgs& args);
 	void clear();
+	Value PopFirst(BuiltinArgs& args);
+	Value PopLast(BuiltinArgs& args);
+	void listErase(int i);
 	Value Add(BuiltinArgs& args);
 	Value Reverse(BuiltinArgs& args);
 	Value Join(BuiltinArgs& args);
