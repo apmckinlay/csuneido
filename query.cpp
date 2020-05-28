@@ -8,6 +8,7 @@
 #include "trace.h"
 #include "ostreamstr.h"
 #include "exceptimp.h"
+#include <cmath>
 
 Row Query::Eof;
 
