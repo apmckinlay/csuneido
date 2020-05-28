@@ -338,10 +338,9 @@ BUILTIN(Finally, "(main_block, final_block)") {
 	const int nargs = 2;
 	Value main_block = ARG(0);
 	Value finally_block = ARG(1);
+	Value result;
 	try {
-		Value result = call(main_block);
-		call(finally_block); // could throw
-		return result;
+		result = call(main_block);
 	} catch (...) {
 		try {
 			call(finally_block);
@@ -350,6 +349,8 @@ BUILTIN(Finally, "(main_block, final_block)") {
 		}
 		throw;
 	}
+	call(finally_block); // could throw
+	return result;
 }
 
 BUILTIN(SameQ, "(x, y)") {
