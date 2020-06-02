@@ -334,22 +334,22 @@ static Value call(Value fn) {
 	return fn.call(fn, CALL);
 }
 
-BUILTIN(Finally, "(main_block, final_block)") {
+BUILTIN(Finally, "(main, final)") {
 	const int nargs = 2;
 	Value main_block = ARG(0);
-	Value finally_block = ARG(1);
+	Value final_block = ARG(1);
 	Value result;
 	try {
 		result = call(main_block);
 	} catch (...) {
 		try {
-			call(finally_block);
+			call(final_block);
 		} catch (...) {
 			// ignore exception from final_block if main_block threw
 		}
 		throw;
 	}
-	call(finally_block); // could throw
+	call(final_block); // could throw
 	return result;
 }
 
