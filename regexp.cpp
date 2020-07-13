@@ -1172,7 +1172,9 @@ PORTTEST(regex_match) {
 			ok = !ok;
 		else if (ok) {
 			for (int i = 0; i < args.size() - 2; ++i) {
-				gcstring s = gcstring::noalloc(parts[i].s, parts[i].n);
+				gcstring s;
+				if (parts[i].n != -1)
+					s = gcstring::noalloc(parts[i].s, parts[i].n);
 				if (s != args[i + 2])
 					return OSTR("part " << i << " got: " + s);
 			}

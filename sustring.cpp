@@ -443,7 +443,7 @@ Value SuString::Match(short nargs, short nargnames, short* argnames, int each) {
 			SuObject* part = new SuObject;
 			part->add(parts[i].s - t);
 			part->add(parts[i].n);
-			ob->add(part); // substr(parts[i].s - s, parts[i].n));
+			ob->put(i, part); // substr(parts[i].s - s, parts[i].n));
 		}
 	return ob;
 }
