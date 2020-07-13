@@ -151,11 +151,6 @@ Value SuClass::get2(Value self, Value member) { // handles binding and getters
 			KEEPSP
 			return method.call(self, CALL);
 		}
-		// TODO remove after transition from get_ to getter_
-		getter = new SuString(CATSTRA("Get_", s));
-		if (Value method = get3(getter)) {
-			except("invalid old style " << getter);
-		}
 	}
 	return Value();
 }
