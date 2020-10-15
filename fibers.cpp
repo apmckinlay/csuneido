@@ -154,16 +154,20 @@ static void deleteFiber(Fiber& f, int i, const char* from_fn) {
 	LOG("delete fiber " << i << " from " << from_fn);
 	verify(&f != cur);
 	DeleteFiber(f.fiber);
+	f = Fiber(); // to help garbage collection
 }
 
 void Fibers::create(void(_stdcall* fiber_proc)(void* arg), void* arg) {
+	for (int i = 1; i < MAXFIBERS; ++i) {
+		Fiber& f = fibers[i];
+		if (f.status == Fiber::REUSE && f.fiber)
+			deleteFiber(f, i, "create");
+	}
 	void* f = CreateFiber(0, fiber_proc, arg);
-	// TODO if CreateFiber fails, delete all the REUSE fibers and try again
-	verify(f);
+	if (!f)
+		except("can't create fiber, possibly low on resources");
 	for (int i = 1; i < MAXFIBERS; ++i)
 		if (fibers[i].status == Fiber::REUSE) {
-			if (fibers[i].fiber)
-				deleteFiber(fibers[i], i, "create");
 			LOG("create " << i);
 			fibers[i] = Fiber(f, arg);
 			return;
@@ -214,10 +218,9 @@ bool Fibers::yield() {
 	for (int i = 1; i < MAXFIBERS; ++i) {
 		fi = fi % (MAXFIBERS - 1) + 1;
 		Fiber& f = fibers[fi];
-		if (f.status == Fiber::REUSE && f.fiber) {
+		if (f.status == Fiber::REUSE && f.fiber)
 			deleteFiber(f, fi, "yield");
-			f = Fiber(); // to help garbage collection
-		} else if (runnable(f)) {
+		else if (runnable(f)) {
 			switchto(fi);
 			return true;
 		}
