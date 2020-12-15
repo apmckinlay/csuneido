@@ -12,7 +12,6 @@
 #include "ostreamstr.h"
 #include "range.h"
 #include "suseq.h"
-#include "gsl-lite.h"
 #include <algorithm>
 #include "builtinargs.h"
 #include "sufunction.h"

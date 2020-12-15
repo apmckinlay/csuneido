@@ -5,6 +5,7 @@
 #include "scanner.h"
 #include "suvalue.h"
 #include "sustring.h"
+#include <span>
 
 class SuScanner : public SuValue {
 public:
@@ -21,7 +22,7 @@ public:
 			{"Keyword?", &SuScanner::KeywordQ},
 			{"Iter", &SuScanner::Iter},
 		};
-		return gsl::make_span(methods);
+		return std::span(methods);
 	}
 	Value Next(BuiltinArgs&);     // returns same as Text
 	Value Next2(BuiltinArgs&);    // NEW returns Type2

@@ -5,6 +5,7 @@
 #include "suboolean.h"
 #include "gcstring.h"
 #include "checksum.h"
+#include <span>
 
 class SuAdler32 : public SuValue {
 public:
@@ -13,7 +14,7 @@ public:
 	static auto methods() {
 		static Method<SuAdler32> methods[]{
 			{"Update", &SuAdler32::Update}, {"Value", &SuAdler32::ValueFn}};
-		return gsl::make_span(methods);
+		return std::span(methods);
 	}
 	void update(const gcstring& s);
 	uint32_t value;

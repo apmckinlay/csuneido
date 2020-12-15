@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <algorithm>
 using std::min;
+#include <span>
 
 #ifdef _MSC_VER
 #define FTELL64 _ftelli64
@@ -30,7 +31,7 @@ public:
 			{"Readline", &SuFile::Readline}, {"Seek", &SuFile::Seek},
 			{"Tell", &SuFile::Tell}, {"Write", &SuFile::Write},
 			{"Writeline", &SuFile::Writeline}};
-		return gsl::make_span(methods);
+		return std::span(methods);
 	}
 
 private:

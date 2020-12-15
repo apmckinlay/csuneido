@@ -4,7 +4,7 @@
 // see: http://msdn2.microsoft.com/en-us/library/ms682499.aspx
 
 #include "win.h"
-#include <windows.h>
+#include <Windows.h>
 
 #ifndef TEST
 #include "except.h"
@@ -146,6 +146,7 @@ int RunPiped::exitvalue() {
 #include "sustring.h"
 #include "ostreamstr.h"
 #include "readline.h"
+#include <span>
 
 class SuRunPiped : public SuValue {
 public:
@@ -162,7 +163,7 @@ public:
 			{"CloseWrite", &SuRunPiped::CloseWrite},
 			{"Close", &SuRunPiped::Close},
 			{"ExitValue", &SuRunPiped::ExitValue}};
-		return gsl::make_span(methods);
+		return std::span(methods);
 	}
 	void close();
 

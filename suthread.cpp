@@ -12,6 +12,7 @@
 #include "alert.h"
 #include "sublock.h"
 #include "builtinclass.h"
+#include <span>
 
 #pragma warning(disable : 4722) // destructor never returns
 struct ThreadCloser {
@@ -48,7 +49,7 @@ static void _stdcall thread(void* arg) {
 class SuThread : public SuValue {
 public:
 	static auto methods() {
-		return gsl::span<Method<SuThread>>(); // none
+		return std::span<Method<SuThread>>(); // none
 	}
 
 	static Value Count(BuiltinArgs&);
@@ -76,7 +77,7 @@ auto BuiltinClass<SuThread>::static_methods() {
 	static StaticMethod methods[]{{"Count", &SuThread::Count},
 		{"List", &SuThread::List}, {"Name", &SuThread::Name},
 		{"Sleep", &SuThread::Sleep}};
-	return gsl::make_span(methods);
+	return std::span(methods);
 }
 
 Value SuThread::Count(BuiltinArgs& args) {

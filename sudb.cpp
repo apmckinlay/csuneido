@@ -16,11 +16,12 @@
 #include "func.h"
 #include "builtinargs.h"
 #include "trace.h"
+#include <span>
 
 class DatabaseClass : public SuValue {
 public:
 	static auto methods() {
-		return gsl::span<Method<DatabaseClass>>(); // none
+		return std::span<Method<DatabaseClass>>(); // none
 	}
 
 	static Value Transactions(BuiltinArgs&);
@@ -64,7 +65,7 @@ auto BuiltinClass<DatabaseClass>::static_methods() {
 		{"Auth", &DatabaseClass::Auth},
 		{"Info", &DatabaseClass::Info},
 	};
-	return gsl::make_span(methods);
+	return std::span(methods);
 }
 
 template <>

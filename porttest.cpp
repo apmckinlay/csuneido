@@ -6,6 +6,7 @@
 #include "exceptimp.h"
 #include <cstdio>
 #include <io.h>
+#include <span>
 #include "list.h"
 #include "scanner.h"
 #include "opcodes.h"
@@ -24,7 +25,7 @@ PortTest::PortTest(const char* n, PTfn f) : name(n), fn(f) {
 }
 
 static PortTest* find(const char* name) {
-	for (auto pt : gsl::span<PortTest*>(porttests, n_porttests))
+	for (auto pt : std::span<PortTest*>(porttests, n_porttests))
 		if (0 == strcmp(name, pt->name))
 			return pt;
 	return nullptr;

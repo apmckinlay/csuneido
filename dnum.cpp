@@ -690,37 +690,37 @@ void Dnum::pack(char* dst) const {
 		dst[0] = dst[1] = uint8_t(0xff);
 		return;
 	}
-	uint8_t xor = sign < 0 ? 0xff : 0;
+	uint8_t flip = sign < 0 ? 0xff : 0;
 	auto e = exp ^ 0x80; // convert to sort as unsigned
-	*dst++ = e ^ xor;
+	*dst++ = e ^ flip;
 
 	int n = coef_to_bytes(coef);
 	uint8_t* b = bytes + n;
 	dst += n;
 	switch (n) {
 	case 8:
-		*--dst = *--b ^ xor;
+		*--dst = *--b ^ flip;
 		[[fallthrough]];
 	case 7:
-		*--dst = *--b ^ xor;
+		*--dst = *--b ^ flip;
 		[[fallthrough]];
 	case 6:
-		*--dst = *--b ^ xor;
+		*--dst = *--b ^ flip;
 		[[fallthrough]];
 	case 5:
-		*--dst = *--b ^ xor;
+		*--dst = *--b ^ flip;
 		[[fallthrough]];
 	case 4:
-		*--dst = *--b ^ xor;
+		*--dst = *--b ^ flip;
 		[[fallthrough]];
 	case 3:
-		*--dst = *--b ^ xor;
+		*--dst = *--b ^ flip;
 		[[fallthrough]];
 	case 2:
-		*--dst = *--b ^ xor;
+		*--dst = *--b ^ flip;
 		[[fallthrough]];
 	case 1:
-		*--dst = *--b ^ xor;
+		*--dst = *--b ^ flip;
 		break;
 	default:
 		unreachable();
@@ -734,23 +734,23 @@ Dnum Dnum::unpack(const gcstring& s) {
 		return ZERO;
 	}
 	int sign;
-	uint8_t xor ;
+	uint8_t flip;
 	switch (*src++) {
 	case PACK_MINUS:
 		sign = -1;
-		xor = 0xff;
+		flip = 0xff;
 		break;
 	case PACK_PLUS:
 		sign = +1;
-		xor = 0;
+		flip = 0;
 		break;
 	default:
 		unreachable();
 	}
 
-	int8_t exp = *src++ ^ 0x80 ^ xor;
+	int8_t exp = *src++ ^ 0x80 ^ flip;
 
-	uint8_t b = *src ^ xor;
+	uint8_t b = *src ^ flip;
 	if (b == 0xff)
 		return sign < 0 ? MINUS_INF : INF;
 
@@ -760,28 +760,28 @@ Dnum Dnum::unpack(const gcstring& s) {
 	uint32_t lo = 0;
 	switch (s.size() - 2) {
 	case 8:
-		lo += (src[7] ^ xor);
+		lo += (src[7] ^ flip);
 		[[fallthrough]];
 	case 7:
-		lo += (src[6] ^ xor) * E2;
+		lo += (src[6] ^ flip) * E2;
 		[[fallthrough]];
 	case 6:
-		lo += (src[5] ^ xor) * E4;
+		lo += (src[5] ^ flip) * E4;
 		[[fallthrough]];
 	case 5:
-		lo += (src[4] ^ xor) * E6;
+		lo += (src[4] ^ flip) * E6;
 		[[fallthrough]];
 	case 4:
-		hi += (src[3] ^ xor);
+		hi += (src[3] ^ flip);
 		[[fallthrough]];
 	case 3:
-		hi += (src[2] ^ xor) * E2;
+		hi += (src[2] ^ flip) * E2;
 		[[fallthrough]];
 	case 2:
-		hi += (src[1] ^ xor) * E4;
+		hi += (src[1] ^ flip) * E4;
 		[[fallthrough]];
 	case 1:
-		hi += (src[0] ^ xor) * E6;
+		hi += (src[0] ^ flip) * E6;
 		break;
 	default:
 		unreachable();

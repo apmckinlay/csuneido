@@ -3,8 +3,8 @@
 // Licensed under GPLv2
 
 #include "except.h"
-#include "gsl-lite.h"
 #include <iterator>
+#include <span>
 
 /*
 Simple list template similar to std::vector.
@@ -169,16 +169,16 @@ public:
 	}
 
 	auto begin() {
-		return gsl::make_span(data, data + siz).begin();
+		return std::span(data, data + siz).begin();
 	}
 	auto end() {
-		return gsl::make_span(data, data + siz).end();
+		return std::span(data, data + siz).end();
 	}
 	auto begin() const {
-		return gsl::make_span(data, data + siz).begin();
+		return std::span(data, data + siz).begin();
 	}
 	auto end() const {
-		return gsl::make_span(data, data + siz).end();
+		return std::span(data, data + siz).end();
 	}
 
 private:

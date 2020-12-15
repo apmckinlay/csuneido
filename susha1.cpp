@@ -7,6 +7,7 @@
 #include "gcstring.h"
 #include "sustring.h"
 #include "except.h"
+#include <span>
 
 int Sha1_count = 0;
 
@@ -25,7 +26,7 @@ public:
 	static auto methods() {
 		static Method<Sha1> methods[]{
 			{"Update", &Sha1::Update}, {"Value", &Sha1::ValueFn}};
-		return gsl::make_span(methods);
+		return std::span(methods);
 	}
 	void update(gcstring gcstr);
 	gcstring value();

@@ -6,7 +6,7 @@
 #include "sustring.h"
 #include "suobject.h"
 #include "builtinargs.h"
-#include "gsl-lite.h"
+#include <span>
 #include <cctype>
 
 /*
@@ -142,7 +142,7 @@ public:
 		return nullptr;
 	}
 	static auto static_methods() {
-		return gsl::span<StaticMethod>();
+		return std::span<StaticMethod>();
 	}
 	void out(Ostream& os) const override {
 		os << builtintype<T>() << " /* builtin class */";

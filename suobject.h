@@ -7,7 +7,6 @@
 #include <vector>
 #include "hashmap.h"
 #include "meth.h"
-#include "gsl-lite.h"
 
 // generic containers, see also SuInstance and SuClass
 class SuObject : public SuValue {

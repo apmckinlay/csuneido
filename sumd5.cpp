@@ -6,6 +6,7 @@
 #include "builtinclass.h"
 #include "gcstring.h"
 #include "sustring.h"
+#include <span>
 
 int Md5_count = 0;
 
@@ -24,7 +25,7 @@ public:
 	static auto methods() {
 		static Method<Md5> methods[]{
 			{"Update", &Md5::Update}, {"Value", &Md5::ValueFn}};
-		return gsl::make_span(methods);
+		return std::span(methods);
 	}
 	void update(gcstring gcstr);
 	gcstring value();

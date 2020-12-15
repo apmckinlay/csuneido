@@ -4,7 +4,7 @@
 #include "testing.h"
 #include "exceptimp.h"
 #include "fatal.h"
-#include "gsl-lite.h"
+#include <span>
 #include "ostreamstr.h"
 #include "ostreamfile.h"
 #include "alert.h"
@@ -34,7 +34,7 @@ Testing::~Testing() {
 
 bool run_tests(const char* prefix) {
 	Testing t;
-	for (auto test : gsl::span<Test*>(tests, n_tests))
+	for (auto test : std::span<Test*>(tests, n_tests))
 		if (has_prefix(test->name, prefix)) {
 			++t.ntests;
 			t.log << test->name << endl;
@@ -104,7 +104,7 @@ void run_benchmark(Ostream& os, Benchmark* b) {
 }
 
 void run_benchmarks(Ostream& os, const char* prefix) {
-	for (auto b : gsl::span<Benchmark*>(benchmarks, n_benchmarks))
+	for (auto b : std::span<Benchmark*>(benchmarks, n_benchmarks))
 		if (has_prefix(b->name, prefix))
 			run_benchmark(os, b);
 }

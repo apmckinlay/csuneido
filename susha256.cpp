@@ -7,6 +7,7 @@
 #include "gcstring.h"
 #include "sustring.h"
 #include "except.h"
+#include <span>
 
 // TODO refactor duplication with Sha1
 
@@ -27,7 +28,7 @@ public:
 	static auto methods() {
 		static Method<Sha256> methods[]{
 			{"Update", &Sha256::Update}, {"Value", &Sha256::ValueFn}};
-		return gsl::make_span(methods);
+		return std::span(methods);
 	}
 	void update(gcstring gcstr);
 	gcstring value();
