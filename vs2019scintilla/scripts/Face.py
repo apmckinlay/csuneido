@@ -1,7 +1,8 @@
+#!/usr/bin/env python3
 # Face.py - module for reading and parsing Scintilla.iface file
 # Implemented 2000 by Neil Hodgson neilh@scintilla.org
 # Released to the public domain.
-# Requires Python 2.5 or later
+# Requires Python 2.7 or later
 
 def sanitiseLine(line):
 	if line[-1:] == '\n': line = line[:-1]
@@ -37,6 +38,9 @@ def decodeParam(p):
 			name = nv
 	return type, name, value
 
+def IsEnumeration(t):
+	return t[:1].isupper()
+
 class Face:
 
 	def __init__(self):
@@ -44,6 +48,7 @@ class Face:
 		self.features = {}
 		self.values = {}
 		self.events = {}
+		self.aliases = {}
 
 	def ReadFromFile(self, name):
 		currentCategory = ""
@@ -116,5 +121,10 @@ class Face:
 							"Value": value,
 							"Comment": currentComment }
 						self.order.append(name)
+						currentComment = []
+					elif featureType == "ali":
+						# Enumeration alias
+						name, value = featureVal.split("=", 1)
+						self.aliases[name] = value
 						currentComment = []
 
