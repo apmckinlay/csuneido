@@ -45,9 +45,6 @@ const char* CmdLineOptions::parse(const char* str) {
 				argstr = "";
 			break;
 		case TEST:
-			if (nullptr == (argstr = get_word()))
-				argstr = ""; // all
-			break;
 		case BENCH:
 			if (nullptr == (argstr = get_word()))
 				argstr = ""; // all
