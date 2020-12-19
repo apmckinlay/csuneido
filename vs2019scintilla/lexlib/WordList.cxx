@@ -20,7 +20,7 @@ using namespace Scintilla;
  * Creates an array that points into each word in the string and puts \0 terminators
  * after each word.
  */
-static char **ArrayFromWordList(char *wordlist, size_t slen, int *len, bool onlyLineEnds = false) {
+static char **ArrayFromWordList(char *wordlist, int *len, bool onlyLineEnds = false) {
 	int prev = '\n';
 	int words = 0;
 	// For rapid determination of whether a character is a separator, build
@@ -40,6 +40,7 @@ static char **ArrayFromWordList(char *wordlist, size_t slen, int *len, bool only
 	}
 	char **keywords = new char *[words + 1];
 	int wordsStore = 0;
+	const size_t slen = strlen(wordlist);
 	if (words) {
 		prev = '\0';
 		for (size_t k = 0; k < slen; k++) {
@@ -70,11 +71,11 @@ WordList::~WordList() {
 	Clear();
 }
 
-WordList::operator bool() const noexcept {
+WordList::operator bool() const {
 	return len ? true : false;
 }
 
-bool WordList::operator!=(const WordList &other) const noexcept {
+bool WordList::operator!=(const WordList &other) const {
 	if (len != other.len)
 		return true;
 	for (int i=0; i<len; i++) {
@@ -84,17 +85,17 @@ bool WordList::operator!=(const WordList &other) const noexcept {
 	return false;
 }
 
-int WordList::Length() const noexcept {
+int WordList::Length() const {
 	return len;
 }
 
-void WordList::Clear() noexcept {
+void WordList::Clear() {
 	if (words) {
 		delete []list;
 		delete []words;
 	}
-	words = nullptr;
-	list = nullptr;
+	words = 0;
+	list = 0;
 	len = 0;
 }
 
@@ -116,43 +117,22 @@ static void SortWordList(char **words, unsigned int len) {
 
 #endif
 
-bool WordList::Set(const char *s) {
-	const size_t lenS = strlen(s) + 1;
-	char *listTemp = new char[lenS];
-	memcpy(listTemp, s, lenS);
-	int lenTemp = 0;
-	char **wordsTemp = ArrayFromWordList(listTemp, lenS - 1, &lenTemp, onlyLineEnds);
-#ifdef _MSC_VER
-	std::sort(wordsTemp, wordsTemp + lenTemp, cmpWords);
-#else
-	SortWordList(wordsTemp, lenTemp);
-#endif
-
-	if (lenTemp == len) {
-		bool changed = false;
-		for (int i = 0; i < lenTemp; i++) {
-			if (strcmp(words[i], wordsTemp[i]) != 0) {
-				changed = true;
-				break;
-			}
-		}
-		if (!changed) {
-			delete []listTemp;
-			delete []wordsTemp;
-			return false;
-		}
-	}
-
+void WordList::Set(const char *s) {
 	Clear();
-	words = wordsTemp;
-	list = listTemp;
-	len = lenTemp;
+	const size_t lenS = strlen(s) + 1;
+	list = new char[lenS];
+	memcpy(list, s, lenS);
+	words = ArrayFromWordList(list, &len, onlyLineEnds);
+#ifdef _MSC_VER
+	std::sort(words, words + len, cmpWords);
+#else
+	SortWordList(words, len);
+#endif
 	std::fill(starts, std::end(starts), -1);
 	for (int l = len - 1; l >= 0; l--) {
 		unsigned char indexChar = words[l][0];
 		starts[indexChar] = l;
 	}
-	return true;
 }
 
 /** Check whether a string is in the list.
@@ -160,7 +140,7 @@ bool WordList::Set(const char *s) {
  * Prefix elements start with '^' and match all strings that start with the rest of the element
  * so '^GTK_' matches 'GTK_X', 'GTK_MAJOR_VERSION', and 'GTK_'.
  */
-bool WordList::InList(const char *s) const noexcept {
+bool WordList::InList(const char *s) const {
 	if (0 == words)
 		return false;
 	const unsigned char firstChar = s[0];
@@ -202,7 +182,7 @@ bool WordList::InList(const char *s) const noexcept {
  * with def to be a keyword, but also defi, defin and define are valid.
  * The marker is ~ in this case.
  */
-bool WordList::InListAbbreviated(const char *s, const char marker) const noexcept {
+bool WordList::InListAbbreviated(const char *s, const char marker) const {
 	if (0 == words)
 		return false;
 	const unsigned char firstChar = s[0];
@@ -256,7 +236,7 @@ bool WordList::InListAbbreviated(const char *s, const char marker) const noexcep
 * The marker is ~ in this case.
 * No multiple markers check is done and wont work.
 */
-bool WordList::InListAbridged(const char *s, const char marker) const noexcept {
+bool WordList::InListAbridged(const char *s, const char marker) const {
 	if (0 == words)
 		return false;
 	const unsigned char firstChar = s[0];
@@ -309,7 +289,7 @@ bool WordList::InListAbridged(const char *s, const char marker) const noexcept {
 	return false;
 }
 
-const char *WordList::WordAt(int n) const noexcept {
+const char *WordList::WordAt(int n) const {
 	return words[n];
 }
 

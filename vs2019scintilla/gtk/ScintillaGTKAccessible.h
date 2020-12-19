@@ -191,4 +191,4 @@ public:
 }
 
 
-#endif
+#endif /* SCINTILLAGTKACCESSIBLE_H */

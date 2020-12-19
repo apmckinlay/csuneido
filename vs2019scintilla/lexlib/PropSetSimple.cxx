@@ -21,12 +21,8 @@ namespace {
 
 typedef std::map<std::string, std::string> mapss;
 
-mapss *PropsFromPointer(void *impl) noexcept {
+mapss *PropsFromPointer(void *impl) {
 	return static_cast<mapss *>(impl);
-}
-
-constexpr bool IsASpaceCharacter(int ch) noexcept {
-	return (ch == ' ') || ((ch >= 0x09) && (ch <= 0x0d));
 }
 
 }
@@ -39,7 +35,7 @@ PropSetSimple::PropSetSimple() {
 PropSetSimple::~PropSetSimple() {
 	mapss *props = PropsFromPointer(impl);
 	delete props;
-	impl = nullptr;
+	impl = 0;
 }
 
 void PropSetSimple::Set(const char *key, const char *val, size_t lenKey, size_t lenVal) {
@@ -47,6 +43,10 @@ void PropSetSimple::Set(const char *key, const char *val, size_t lenKey, size_t 
 	if (!*key)	// Empty keys are not supported
 		return;
 	(*props)[std::string(key, lenKey)] = std::string(val, lenVal);
+}
+
+static bool IsASpaceCharacter(unsigned int ch) {
+    return (ch == ' ') || ((ch >= 0x09) && (ch <= 0x0d));
 }
 
 void PropSetSimple::Set(const char *keyVal) {
@@ -90,7 +90,7 @@ const char *PropSetSimple::Get(const char *key) const {
 // for that, through a recursive function and a simple chain of pointers.
 
 struct VarChain {
-	VarChain(const char *var_=nullptr, const VarChain *link_= nullptr) noexcept : var(var_), link(link_) {}
+	VarChain(const char *var_=nullptr, const VarChain *link_= nullptr): var(var_), link(link_) {}
 
 	bool contains(const char *testVar) const {
 		return (var && (0 == strcmp(var, testVar)))
@@ -137,10 +137,10 @@ static int ExpandAllInPlace(const PropSetSimple &props, std::string &withVars, i
 	return maxExpands;
 }
 
-size_t PropSetSimple::GetExpanded(const char *key, char *result) const {
+int PropSetSimple::GetExpanded(const char *key, char *result) const {
 	std::string val = Get(key);
 	ExpandAllInPlace(*this, val, 100, VarChain(key));
-	const size_t n = val.size();
+	const int n = static_cast<int>(val.size());
 	if (result) {
 		memcpy(result, val.c_str(), n+1);
 	}

@@ -139,7 +139,7 @@
  *                        W: any char except alphanumeric & underscore (see above)
  *
  *      [12]    \xHH    a backslash followed by x and two hexa digits,
- *                      becomes the character whose ASCII code is equal
+ *                      becomes the character whose Ascii code is equal
  *                      to these digits. If not followed by two digits,
  *                      it is 'x' char itself.
  *
@@ -256,7 +256,7 @@ RESearch::RESearch(CharClassify *charClassTable) {
 	charClass = charClassTable;
 	sta = NOP;                  /* status of lastpat */
 	bol = 0;
-	constexpr unsigned char nul = 0;
+	const unsigned char nul=0;
 	std::fill(bittab, std::end(bittab), nul);
 	std::fill(tagstk, std::end(tagstk), 0);
 	std::fill(nfa, std::end(nfa), '\0');
@@ -267,7 +267,7 @@ RESearch::~RESearch() {
 	Clear();
 }
 
-void RESearch::Clear() noexcept {
+void RESearch::Clear() {
 	for (int i = 0; i < MAXTAG; i++) {
 		pat[i].clear();
 		bopat[i] = NOTFOUND;
@@ -278,7 +278,7 @@ void RESearch::Clear() noexcept {
 void RESearch::GrabMatches(const CharacterIndexer &ci) {
 	for (unsigned int i = 0; i < MAXTAG; i++) {
 		if ((bopat[i] != NOTFOUND) && (eopat[i] != NOTFOUND)) {
-			const Sci::Position len = eopat[i] - bopat[i];
+			Sci::Position len = eopat[i] - bopat[i];
 			pat[i].resize(len);
 			for (Sci::Position j = 0; j < len; j++)
 				pat[i][j] = ci.CharAt(bopat[i] + j);
@@ -286,11 +286,11 @@ void RESearch::GrabMatches(const CharacterIndexer &ci) {
 	}
 }
 
-void RESearch::ChSet(unsigned char c) noexcept {
+void RESearch::ChSet(unsigned char c) {
 	bittab[((c) & BLKIND) >> 3] |= bitarr[(c) & BITIND];
 }
 
-void RESearch::ChSetWithCase(unsigned char c, bool caseSensitive) noexcept {
+void RESearch::ChSetWithCase(unsigned char c, bool caseSensitive) {
 	ChSet(c);
 	if (!caseSensitive) {
 		if ((c >= 'a') && (c <= 'z')) {
@@ -301,7 +301,7 @@ void RESearch::ChSetWithCase(unsigned char c, bool caseSensitive) noexcept {
 	}
 }
 
-static unsigned char escapeValue(unsigned char ch) noexcept {
+static unsigned char escapeValue(unsigned char ch) {
 	switch (ch) {
 	case 'a':	return '\a';
 	case 'b':	return '\b';
@@ -314,7 +314,7 @@ static unsigned char escapeValue(unsigned char ch) noexcept {
 	return 0;
 }
 
-static int GetHexaChar(unsigned char hd1, unsigned char hd2) noexcept {
+static int GetHexaChar(unsigned char hd1, unsigned char hd2) {
 	int hexValue = 0;
 	if (hd1 >= '0' && hd1 <= '9') {
 		hexValue += 16 * (hd1 - '0');
@@ -347,10 +347,10 @@ static int GetHexaChar(unsigned char hd1, unsigned char hd2) noexcept {
  */
 int RESearch::GetBackslashExpression(
     const char *pattern,
-    int &incr) noexcept {
+    int &incr) {
 	// Since error reporting is primitive and messages are not used anyway,
 	// I choose to interpret unexpected syntax in a logical way instead
-	// of reporting errors. Otherwise, we can stick on, eg., PCRE behaviour.
+	// of reporting errors. Otherwise, we can stick on, eg., PCRE behavior.
 	incr = 0;	// Most of the time, will skip the char "naturally".
 	int c;
 	int result = -1;
@@ -430,7 +430,7 @@ int RESearch::GetBackslashExpression(
 	return result;
 }
 
-const char *RESearch::Compile(const char *pattern, Sci::Position length, bool caseSensitive, bool posix) noexcept {
+const char *RESearch::Compile(const char *pattern, Sci::Position length, bool caseSensitive, bool posix) {
 	char *mp=nfa;          /* nfa pointer       */
 	char *lp;              /* saved pointer     */
 	char *sp=nfa;          /* another one       */
@@ -556,7 +556,7 @@ const char *RESearch::Compile(const char *pattern, Sci::Position length, bool ca
 					i++;
 					p++;
 					int incr;
-					const int c = GetBackslashExpression(p, incr);
+					int c = GetBackslashExpression(p, incr);
 					i += incr;
 					p += incr;
 					if (c >= 0) {
@@ -780,7 +780,7 @@ int RESearch::Execute(const CharacterIndexer &ci, Sci::Position lp, Sci::Positio
 			lp++;
 		if (lp >= endp)	/* if EOS, fail, else fall through. */
 			return 0;
-		[[fallthrough]];
+		// Falls through.
 	default:			/* regular matching all the way. */
 		while (lp < endp) {
 			ep = PMatch(ci, lp, endp, ap);
@@ -831,7 +831,7 @@ int RESearch::Execute(const CharacterIndexer &ci, Sci::Position lp, Sci::Positio
 
 extern void re_fail(char *,char);
 
-static inline int isinset(const char *ap, unsigned char c) noexcept {
+static inline int isinset(const char *ap, unsigned char c) {
 	return ap[(c & BLKIND) >> 3] & bitarr[c & BITIND];
 }
 

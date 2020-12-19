@@ -30,7 +30,7 @@ LexerModule::LexerModule(int language_,
 	LexerFunction fnFolder_,
 	const char *const wordListDescriptions_[],
 	const LexicalClass *lexClasses_,
-	size_t nClasses_) noexcept :
+	size_t nClasses_) :
 	language(language_),
 	fnLexer(fnLexer_),
 	fnFolder(fnFolder_),
@@ -44,7 +44,7 @@ LexerModule::LexerModule(int language_,
 LexerModule::LexerModule(int language_,
 	LexerFactoryFunction fnFactory_,
 	const char *languageName_,
-	const char * const wordListDescriptions_[]) noexcept :
+	const char * const wordListDescriptions_[]) :
 	language(language_),
 	fnLexer(nullptr),
 	fnFolder(nullptr),
@@ -55,11 +55,14 @@ LexerModule::LexerModule(int language_,
 	languageName(languageName_) {
 }
 
-int LexerModule::GetLanguage() const noexcept {
+LexerModule::~LexerModule() {
+}
+
+int LexerModule::GetLanguage() const { 
 	return language;
 }
 
-int LexerModule::GetNumWordLists() const noexcept {
+int LexerModule::GetNumWordLists() const {
 	if (!wordListDescriptions) {
 		return -1;
 	} else {
@@ -73,7 +76,7 @@ int LexerModule::GetNumWordLists() const noexcept {
 	}
 }
 
-const char *LexerModule::GetWordListDescription(int index) const noexcept {
+const char *LexerModule::GetWordListDescription(int index) const {
 	assert(index < GetNumWordLists());
 	if (!wordListDescriptions || (index >= GetNumWordLists())) {
 		return "";
@@ -82,15 +85,15 @@ const char *LexerModule::GetWordListDescription(int index) const noexcept {
 	}
 }
 
-const LexicalClass *LexerModule::LexClasses() const noexcept {
+const LexicalClass *LexerModule::LexClasses() const {
 	return lexClasses;
 }
 
-size_t LexerModule::NamedStyles() const noexcept {
+size_t LexerModule::NamedStyles() const {
 	return nClasses;
 }
 
-ILexer5 *LexerModule::Create() const {
+ILexer4 *LexerModule::Create() const {
 	if (fnFactory)
 		return fnFactory();
 	else

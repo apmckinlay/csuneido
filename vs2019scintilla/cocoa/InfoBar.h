@@ -1,7 +1,7 @@
 
 /**
  * Scintilla source code edit control
- * @file InfoBar.h - Implements special info bar with zoom info, caret position etc. to be used with
+ * InfoBar.h - Implements special info bar with zoom info, caret position etc. to be used with
  *             ScintillaView.
  *
  * Mike Lischke <mlischke@sun.com>

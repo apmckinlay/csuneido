@@ -1,4 +1,4 @@
-# Created by DepGen.py. To recreate, run DepGen.py.
+# Created by DepGen.py. To recreate, run 'python DepGen.py'.
 HanjaDic.o: \
 	HanjaDic.cxx \
 	../src/UniConversion.h \
@@ -23,7 +23,9 @@ ScintillaWin.o: \
 	../include/Sci_Position.h \
 	../include/ILexer.h \
 	../include/Scintilla.h \
+	../include/SciLexer.h \
 	../lexlib/CharacterCategory.h \
+	../lexlib/LexerModule.h \
 	../src/Position.h \
 	../src/UniqueString.h \
 	../src/SplitVector.h \
@@ -52,6 +54,49 @@ ScintillaWin.o: \
 	../src/ElapsedPeriod.h \
 	../src/AutoComplete.h \
 	../src/ScintillaBase.h \
+	../src/ExternalLexer.h \
+	PlatWin.h \
+	HanjaDic.h \
+	ScintillaWin.h
+ScintillaWinL.o: \
+	ScintillaWin.cxx \
+	../include/Platform.h \
+	../include/ILoader.h \
+	../include/Sci_Position.h \
+	../include/ILexer.h \
+	../include/Scintilla.h \
+	../include/SciLexer.h \
+	../lexlib/CharacterCategory.h \
+	../lexlib/LexerModule.h \
+	../src/Position.h \
+	../src/UniqueString.h \
+	../src/SplitVector.h \
+	../src/Partitioning.h \
+	../src/RunStyles.h \
+	../src/ContractionState.h \
+	../src/CellBuffer.h \
+	../src/CallTip.h \
+	../src/KeyMap.h \
+	../src/Indicator.h \
+	../src/LineMarker.h \
+	../src/Style.h \
+	../src/ViewStyle.h \
+	../src/CharClassify.h \
+	../src/Decoration.h \
+	../src/CaseFolder.h \
+	../src/Document.h \
+	../src/CaseConvert.h \
+	../src/UniConversion.h \
+	../src/Selection.h \
+	../src/PositionCache.h \
+	../src/EditModel.h \
+	../src/MarginView.h \
+	../src/EditView.h \
+	../src/Editor.h \
+	../src/ElapsedPeriod.h \
+	../src/AutoComplete.h \
+	../src/ScintillaBase.h \
+	../src/ExternalLexer.h \
 	PlatWin.h \
 	HanjaDic.h \
 	ScintillaWin.h
@@ -86,16 +131,6 @@ Catalogue.o: \
 	../include/Scintilla.h \
 	../include/SciLexer.h \
 	../lexlib/LexerModule.h \
-	../lexlib/CatalogueModules.h \
-	../src/Catalogue.h
-CatalogueL.o: \
-	../src/Catalogue.cxx \
-	../include/ILexer.h \
-	../include/Sci_Position.h \
-	../include/Scintilla.h \
-	../include/SciLexer.h \
-	../lexlib/LexerModule.h \
-	../lexlib/CatalogueModules.h \
 	../src/Catalogue.h
 CellBuffer.o: \
 	../src/CellBuffer.cxx \
@@ -402,8 +437,7 @@ ScintillaBase.o: \
 	../src/EditView.h \
 	../src/Editor.h \
 	../src/AutoComplete.h \
-	../src/ScintillaBase.h \
-	../src/ExternalLexer.h
+	../src/ScintillaBase.h
 ScintillaBaseL.o: \
 	../src/ScintillaBase.cxx \
 	../include/Platform.h \
@@ -440,8 +474,7 @@ ScintillaBaseL.o: \
 	../src/EditView.h \
 	../src/Editor.h \
 	../src/AutoComplete.h \
-	../src/ScintillaBase.h \
-	../src/ExternalLexer.h
+	../src/ScintillaBase.h
 Selection.o: \
 	../src/Selection.cxx \
 	../include/Platform.h \
@@ -923,18 +956,6 @@ LexD.o: \
 	../lexlib/LexerModule.h \
 	../lexlib/OptionSet.h \
 	../lexlib/DefaultLexer.h
-LexDataflex.o: \
-	../lexers/LexDataflex.cxx \
-	../include/ILexer.h \
-	../include/Sci_Position.h \
-	../include/Scintilla.h \
-	../include/SciLexer.h \
-	../lexlib/WordList.h \
-	../lexlib/LexAccessor.h \
-	../lexlib/Accessor.h \
-	../lexlib/StyleContext.h \
-	../lexlib/CharacterSet.h \
-	../lexlib/LexerModule.h
 LexDiff.o: \
 	../lexers/LexDiff.cxx \
 	../include/ILexer.h \
@@ -1130,19 +1151,6 @@ LexHex.o: \
 	../lexlib/StyleContext.h \
 	../lexlib/CharacterSet.h \
 	../lexlib/LexerModule.h
-LexHollywood.o: \
-	../lexers/LexHollywood.cxx \
-	../include/ILexer.h \
-	../include/Sci_Position.h \
-	../include/Scintilla.h \
-	../include/SciLexer.h \
-	../lexlib/WordList.h \
-	../lexlib/LexAccessor.h \
-	../lexlib/StyleContext.h \
-	../lexlib/CharacterSet.h \
-	../lexlib/LexerModule.h \
-	../lexlib/OptionSet.h \
-	../lexlib/DefaultLexer.h
 LexHTML.o: \
 	../lexers/LexHTML.cxx \
 	../include/ILexer.h \
@@ -1642,20 +1650,6 @@ LexR.o: \
 	../lexlib/StyleContext.h \
 	../lexlib/CharacterSet.h \
 	../lexlib/LexerModule.h
-LexRaku.o: \
-	../lexers/LexRaku.cxx \
-	../include/ILexer.h \
-	../include/Sci_Position.h \
-	../include/Scintilla.h \
-	../include/SciLexer.h \
-	../lexlib/WordList.h \
-	../lexlib/LexAccessor.h \
-	../lexlib/StyleContext.h \
-	../lexlib/CharacterSet.h \
-	../lexlib/CharacterCategory.h \
-	../lexlib/LexerModule.h \
-	../lexlib/OptionSet.h \
-	../lexlib/DefaultLexer.h
 LexRebol.o: \
 	../lexers/LexRebol.cxx \
 	../include/ILexer.h \

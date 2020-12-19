@@ -16,7 +16,6 @@ public:
 	virtual ~PerLine() {}
 	virtual void Init()=0;
 	virtual void InsertLine(Sci::Line line)=0;
-	virtual void InsertLines(Sci::Line line, Sci::Line lines) = 0;
 	virtual void RemoveLine(Sci::Line line)=0;
 };
 
@@ -38,7 +37,7 @@ public:
 	Sci::Position lenData;
 	bool mayCoalesce;
 
-	Action() noexcept;
+	Action();
 	// Deleted so Action objects can not be copied.
 	Action(const Action &other) = delete;
 	Action &operator=(const Action &other) = delete;
@@ -47,7 +46,7 @@ public:
 	Action(Action &&other) noexcept = default;
 	~Action();
 	void Create(actionType at_, Sci::Position position_=0, const char *data_=nullptr, Sci::Position lenData_=0, bool mayCoalesce_=true);
-	void Clear() noexcept;
+	void Clear();
 };
 
 /**
@@ -81,14 +80,14 @@ public:
 
 	/// The save point is a marker in the undo stack where the container has stated that
 	/// the buffer was saved. Undo and redo can move over the save point.
-	void SetSavePoint() noexcept;
+	void SetSavePoint();
 	bool IsSavePoint() const noexcept;
 
 	// Tentative actions are used for input composition so that it can be undone cleanly
 	void TentativeStart();
 	void TentativeCommit();
-	bool TentativeActive() const noexcept;
-	int TentativeSteps() noexcept;
+	bool TentativeActive() const noexcept { return tentativePoint >= 0; }
+	int TentativeSteps();
 
 	/// To perform an undo, StartUndo is called to retrieve the number of steps, then UndoStep is
 	/// called that many times. Similarly for redo.
@@ -148,16 +147,16 @@ public:
 	char StyleAt(Sci::Position position) const noexcept;
 	void GetStyleRange(unsigned char *buffer, Sci::Position position, Sci::Position lengthRetrieve) const;
 	const char *BufferPointer();
-	const char *RangePointer(Sci::Position position, Sci::Position rangeLength) noexcept;
+	const char *RangePointer(Sci::Position position, Sci::Position rangeLength);
 	Sci::Position GapPosition() const noexcept;
 
 	Sci::Position Length() const noexcept;
 	void Allocate(Sci::Position newSize);
-	void SetUTF8Substance(bool utf8Substance_) noexcept;
+	void SetUTF8Substance(bool utf8Substance_);
 	int GetLineEndTypes() const noexcept { return utf8LineEnds; }
 	void SetLineEndTypes(int utf8LineEnds_);
 	bool ContainsLineEnd(const char *s, Sci::Position length) const noexcept;
-	void SetPerLine(PerLine *pl) noexcept;
+	void SetPerLine(PerLine *pl);
 	int LineCharacterIndex() const noexcept;
 	void AllocateLineCharacterIndex(int lineCharacterIndex);
 	void ReleaseLineCharacterIndex(int lineCharacterIndex);
@@ -172,13 +171,13 @@ public:
 
 	/// Setting styles for positions outside the range of the buffer is safe and has no effect.
 	/// @return true if the style of a character is changed.
-	bool SetStyleAt(Sci::Position position, char styleValue) noexcept;
-	bool SetStyleFor(Sci::Position position, Sci::Position lengthStyle, char styleValue) noexcept;
+	bool SetStyleAt(Sci::Position position, char styleValue);
+	bool SetStyleFor(Sci::Position position, Sci::Position lengthStyle, char styleValue);
 
 	const char *DeleteChars(Sci::Position position, Sci::Position deleteLength, bool &startSequence);
 
 	bool IsReadOnly() const noexcept;
-	void SetReadOnly(bool set) noexcept;
+	void SetReadOnly(bool set);
 	bool IsLarge() const noexcept;
 	bool HasStyles() const noexcept;
 
@@ -190,7 +189,7 @@ public:
 	void TentativeStart();
 	void TentativeCommit();
 	bool TentativeActive() const noexcept;
-	int TentativeSteps() noexcept;
+	int TentativeSteps();
 
 	bool SetUndoCollection(bool collectUndo);
 	bool IsCollectingUndo() const noexcept;

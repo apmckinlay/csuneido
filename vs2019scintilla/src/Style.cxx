@@ -24,11 +24,6 @@ FontAlias::FontAlias(const FontAlias &other) noexcept : Font() {
 	SetID(other.fid);
 }
 
-FontAlias::FontAlias(FontAlias &&other) noexcept : Font() {
-	SetID(other.fid);
-	other.ClearFont();
-}
-
 FontAlias::~FontAlias() {
 	SetID(FontID{});
 	// ~Font will not release the actual font resource since it is now 0
@@ -86,7 +81,7 @@ Style::Style() : FontSpecification() {
 	      SC_WEIGHT_NORMAL, false, false, false, caseMixed, true, true, false);
 }
 
-Style::Style(const Style &source) noexcept : FontSpecification(), FontMeasurements() {
+Style::Style(const Style &source) : FontSpecification(), FontMeasurements() {
 	Clear(ColourDesired(0, 0, 0), ColourDesired(0xff, 0xff, 0xff),
 	      0, nullptr, 0,
 	      SC_WEIGHT_NORMAL, false, false, false, caseMixed, true, true, false);
@@ -108,7 +103,7 @@ Style::Style(const Style &source) noexcept : FontSpecification(), FontMeasuremen
 Style::~Style() {
 }
 
-Style &Style::operator=(const Style &source) noexcept {
+Style &Style::operator=(const Style &source) {
 	if (this == &source)
 		return * this;
 	Clear(ColourDesired(0, 0, 0), ColourDesired(0xff, 0xff, 0xff),
@@ -133,7 +128,7 @@ void Style::Clear(ColourDesired fore_, ColourDesired back_, int size_,
         const char *fontName_, int characterSet_,
         int weight_, bool italic_, bool eolFilled_,
         bool underline_, ecaseForced caseForce_,
-        bool visible_, bool changeable_, bool hotspot_) noexcept {
+        bool visible_, bool changeable_, bool hotspot_) {
 	fore = fore_;
 	back = back_;
 	characterSet = characterSet_;
@@ -151,7 +146,7 @@ void Style::Clear(ColourDesired fore_, ColourDesired back_, int size_,
 	FontMeasurements::ClearMeasurements();
 }
 
-void Style::ClearTo(const Style &source) noexcept {
+void Style::ClearTo(const Style &source) {
 	Clear(
 	    source.fore,
 	    source.back,
@@ -168,7 +163,7 @@ void Style::ClearTo(const Style &source) noexcept {
 	    source.hotspot);
 }
 
-void Style::Copy(const Font &font_, const FontMeasurements &fm_) noexcept {
+void Style::Copy(Font &font_, const FontMeasurements &fm_) {
 	font.MakeAlias(font_);
 	(FontMeasurements &)(*this) = fm_;
 }

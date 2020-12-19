@@ -55,27 +55,18 @@ bool MarkerHandleSet::Contains(int handle) const noexcept {
 	return false;
 }
 
-MarkerHandleNumber const *MarkerHandleSet::GetMarkerHandleNumber(int which) const noexcept {
-	for (const MarkerHandleNumber &mhn : mhList) {
-		if (which == 0)
-			return &mhn;
-		which--;
-	}
-	return nullptr;
-}
-
 bool MarkerHandleSet::InsertHandle(int handle, int markerNum) {
 	mhList.push_front(MarkerHandleNumber(handle, markerNum));
 	return true;
 }
 
 void MarkerHandleSet::RemoveHandle(int handle) {
-	mhList.remove_if([handle](const MarkerHandleNumber &mhn) noexcept { return mhn.handle == handle; });
+	mhList.remove_if([handle](const MarkerHandleNumber &mhn) { return mhn.handle == handle; });
 }
 
 bool MarkerHandleSet::RemoveNumber(int markerNum, bool all) {
 	bool performedDeletion = false;
-	mhList.remove_if([&](const MarkerHandleNumber &mhn) noexcept {
+	mhList.remove_if([&](const MarkerHandleNumber &mhn) {
 		if ((all || !performedDeletion) && (mhn.number == markerNum)) {
 			performedDeletion = true;
 			return true;
@@ -85,11 +76,12 @@ bool MarkerHandleSet::RemoveNumber(int markerNum, bool all) {
 	return performedDeletion;
 }
 
-void MarkerHandleSet::CombineWith(MarkerHandleSet *other) noexcept {
+void MarkerHandleSet::CombineWith(MarkerHandleSet *other) {
 	mhList.splice_after(mhList.before_begin(), other->mhList);
 }
 
 LineMarkers::~LineMarkers() {
+	markers.DeleteAll();
 }
 
 void LineMarkers::Init() {
@@ -99,12 +91,6 @@ void LineMarkers::Init() {
 void LineMarkers::InsertLine(Sci::Line line) {
 	if (markers.Length()) {
 		markers.Insert(line, 0);
-	}
-}
-
-void LineMarkers::InsertLines(Sci::Line line, Sci::Line lines) {
-	if (markers.Length()) {
-		markers.InsertEmpty(line, lines);
 	}
 }
 
@@ -118,27 +104,15 @@ void LineMarkers::RemoveLine(Sci::Line line) {
 	}
 }
 
-Sci::Line LineMarkers::LineFromHandle(int markerHandle) const noexcept {
-	for (Sci::Line line = 0; line < markers.Length(); line++) {
-		if (markers[line] && markers[line]->Contains(markerHandle)) {
-			return line;
+Sci::Line LineMarkers::LineFromHandle(int markerHandle) {
+	if (markers.Length()) {
+		for (Sci::Line line = 0; line < markers.Length(); line++) {
+			if (markers[line]) {
+				if (markers[line]->Contains(markerHandle)) {
+					return line;
+				}
+			}
 		}
-	}
-	return -1;
-}
-
-int LineMarkers::HandleFromLine(Sci::Line line, int which) const noexcept {
-	if (markers.Length() && (line >= 0) && (line < markers.Length()) && markers[line]) {
-		MarkerHandleNumber const *pnmh = markers[line]->GetMarkerHandleNumber(which);
-		return pnmh ? pnmh->handle : -1;
-	}
-	return -1;
-}
-
-int LineMarkers::NumberFromLine(Sci::Line line, int which) const noexcept {
-	if (markers.Length() && (line >= 0) && (line < markers.Length()) && markers[line]) {
-		MarkerHandleNumber const *pnmh = markers[line]->GetMarkerHandleNumber(which);
-		return pnmh ? pnmh->number : -1;
 	}
 	return -1;
 }
@@ -152,17 +126,17 @@ void LineMarkers::MergeMarkers(Sci::Line line) {
 	}
 }
 
-int LineMarkers::MarkValue(Sci::Line line) const noexcept {
+int LineMarkers::MarkValue(Sci::Line line) noexcept {
 	if (markers.Length() && (line >= 0) && (line < markers.Length()) && markers[line])
 		return markers[line]->MarkValue();
 	else
 		return 0;
 }
 
-Sci::Line LineMarkers::MarkerNext(Sci::Line lineStart, int mask) const noexcept {
+Sci::Line LineMarkers::MarkerNext(Sci::Line lineStart, int mask) const {
 	if (lineStart < 0)
 		lineStart = 0;
-	const Sci::Line length = markers.Length();
+	const Sci::Line length = static_cast<Sci::Line>(markers.Length());
 	for (Sci::Line iLine = lineStart; iLine < length; iLine++) {
 		const MarkerHandleSet *onLine = markers[iLine].get();
 		if (onLine && ((onLine->MarkValue() & mask) != 0))
@@ -225,21 +199,14 @@ void LineLevels::Init() {
 void LineLevels::InsertLine(Sci::Line line) {
 	if (levels.Length()) {
 		const int level = (line < levels.Length()) ? levels[line] : SC_FOLDLEVELBASE;
-		levels.Insert(line, level);
-	}
-}
-
-void LineLevels::InsertLines(Sci::Line line, Sci::Line lines) {
-	if (levels.Length()) {
-		const int level = (line < levels.Length()) ? levels[line] : SC_FOLDLEVELBASE;
-		levels.InsertValue(line, lines, level);
+		levels.InsertValue(line, 1, level);
 	}
 }
 
 void LineLevels::RemoveLine(Sci::Line line) {
 	if (levels.Length()) {
 		// Move up following lines but merge header flag from this line
-		// to line before to avoid a temporary disappearance causing expansion.
+		// to line before to avoid a temporary disappearence causing expansion.
 		int firstHeader = levels[line] & SC_FOLDLEVELHEADERFLAG;
 		levels.Delete(line);
 		if (line == levels.Length()-1) // Last line loses the header flag
@@ -271,7 +238,7 @@ int LineLevels::SetLevel(Sci::Line line, int level, Sci::Line lines) {
 	return prev;
 }
 
-int LineLevels::GetLevel(Sci::Line line) const noexcept {
+int LineLevels::GetLevel(Sci::Line line) const {
 	if (levels.Length() && (line >= 0) && (line < levels.Length())) {
 		return levels[line];
 	} else {
@@ -291,14 +258,6 @@ void LineState::InsertLine(Sci::Line line) {
 		lineStates.EnsureLength(line);
 		const int val = (line < lineStates.Length()) ? lineStates[line] : 0;
 		lineStates.Insert(line, val);
-	}
-}
-
-void LineState::InsertLines(Sci::Line line, Sci::Line lines) {
-	if (lineStates.Length()) {
-		lineStates.EnsureLength(line);
-		const int val = (line < lineStates.Length()) ? lineStates[line] : 0;
-		lineStates.InsertValue(line, lines, val);
 	}
 }
 
@@ -322,12 +281,28 @@ int LineState::GetLineState(Sci::Line line) {
 	return lineStates[line];
 }
 
-Sci::Line LineState::GetMaxLineState() const noexcept {
-	return lineStates.Length();
+Sci::Line LineState::GetMaxLineState() const {
+	return static_cast<Sci::Line>(lineStates.Length());
+}
+
+static int NumberLines(const char *text) noexcept {
+	if (text) {
+		int newLines = 0;
+		while (*text) {
+			if (*text == '\n')
+				newLines++;
+			text++;
+		}
+		return newLines+1;
+	} else {
+		return 0;
+	}
 }
 
 // Each allocated LineAnnotation is a char array which starts with an AnnotationHeader
 // and then has text and optional styles.
+
+static const int IndividualStyles = 0x100;
 
 struct AnnotationHeader {
 	short style;	// Style IndividualStyles implies array of styles
@@ -335,22 +310,8 @@ struct AnnotationHeader {
 	int length;
 };
 
-namespace {
-
-constexpr int IndividualStyles = 0x100;
-
-size_t NumberLines(std::string_view sv) {
-	return std::count(sv.begin(), sv.end(), '\n') + 1;
-}
-
-std::unique_ptr<char[]>AllocateAnnotation(size_t length, int style) {
-	const size_t len = sizeof(AnnotationHeader) + length + ((style == IndividualStyles) ? length : 0);
-	return std::make_unique<char[]>(len);
-}
-
-}
-
 LineAnnotation::~LineAnnotation() {
+	ClearAll();
 }
 
 void LineAnnotation::Init() {
@@ -364,13 +325,6 @@ void LineAnnotation::InsertLine(Sci::Line line) {
 	}
 }
 
-void LineAnnotation::InsertLines(Sci::Line line, Sci::Line lines) {
-	if (annotations.Length()) {
-		annotations.EnsureLength(line);
-		annotations.InsertEmpty(line, lines);
-	}
-}
-
 void LineAnnotation::RemoveLine(Sci::Line line) {
 	if (annotations.Length() && (line > 0) && (line <= annotations.Length())) {
 		annotations[line-1].reset();
@@ -378,39 +332,44 @@ void LineAnnotation::RemoveLine(Sci::Line line) {
 	}
 }
 
-bool LineAnnotation::MultipleStyles(Sci::Line line) const noexcept {
+bool LineAnnotation::MultipleStyles(Sci::Line line) const {
 	if (annotations.Length() && (line >= 0) && (line < annotations.Length()) && annotations[line])
 		return reinterpret_cast<AnnotationHeader *>(annotations[line].get())->style == IndividualStyles;
 	else
 		return false;
 }
 
-int LineAnnotation::Style(Sci::Line line) const noexcept {
+int LineAnnotation::Style(Sci::Line line) const {
 	if (annotations.Length() && (line >= 0) && (line < annotations.Length()) && annotations[line])
 		return reinterpret_cast<AnnotationHeader *>(annotations[line].get())->style;
 	else
 		return 0;
 }
 
-const char *LineAnnotation::Text(Sci::Line line) const noexcept {
+const char *LineAnnotation::Text(Sci::Line line) const {
 	if (annotations.Length() && (line >= 0) && (line < annotations.Length()) && annotations[line])
 		return annotations[line].get()+sizeof(AnnotationHeader);
 	else
 		return nullptr;
 }
 
-const unsigned char *LineAnnotation::Styles(Sci::Line line) const noexcept {
+const unsigned char *LineAnnotation::Styles(Sci::Line line) const {
 	if (annotations.Length() && (line >= 0) && (line < annotations.Length()) && annotations[line] && MultipleStyles(line))
 		return reinterpret_cast<unsigned char *>(annotations[line].get() + sizeof(AnnotationHeader) + Length(line));
 	else
 		return nullptr;
 }
 
+static std::unique_ptr<char[]>AllocateAnnotation(int length, int style) {
+	const size_t len = sizeof(AnnotationHeader) + length + ((style == IndividualStyles) ? length : 0);
+	return std::make_unique<char[]>(len);
+}
+
 void LineAnnotation::SetText(Sci::Line line, const char *text) {
 	if (text && (line >= 0)) {
 		annotations.EnsureLength(line+1);
 		const int style = Style(line);
-		annotations[line] = AllocateAnnotation(strlen(text), style);
+		annotations[line] = AllocateAnnotation(static_cast<int>(strlen(text)), style);
 		char *pa = annotations[line].get();
 		assert(pa);
 		AnnotationHeader *pah = reinterpret_cast<AnnotationHeader *>(pa);
@@ -459,14 +418,14 @@ void LineAnnotation::SetStyles(Sci::Line line, const unsigned char *styles) {
 	}
 }
 
-int LineAnnotation::Length(Sci::Line line) const noexcept {
+int LineAnnotation::Length(Sci::Line line) const {
 	if (annotations.Length() && (line >= 0) && (line < annotations.Length()) && annotations[line])
 		return reinterpret_cast<AnnotationHeader *>(annotations[line].get())->length;
 	else
 		return 0;
 }
 
-int LineAnnotation::Lines(Sci::Line line) const noexcept {
+int LineAnnotation::Lines(Sci::Line line) const {
 	if (annotations.Length() && (line >= 0) && (line < annotations.Length()) && annotations[line])
 		return reinterpret_cast<AnnotationHeader *>(annotations[line].get())->lines;
 	else
@@ -474,6 +433,7 @@ int LineAnnotation::Lines(Sci::Line line) const noexcept {
 }
 
 LineTabstops::~LineTabstops() {
+	tabstops.DeleteAll();
 }
 
 void LineTabstops::Init() {
@@ -487,13 +447,6 @@ void LineTabstops::InsertLine(Sci::Line line) {
 	}
 }
 
-void LineTabstops::InsertLines(Sci::Line line, Sci::Line lines) {
-	if (tabstops.Length()) {
-		tabstops.EnsureLength(line);
-		tabstops.InsertEmpty(line, lines);
-	}
-}
-
 void LineTabstops::RemoveLine(Sci::Line line) {
 	if (tabstops.Length() > line) {
 		tabstops[line].reset();
@@ -501,7 +454,7 @@ void LineTabstops::RemoveLine(Sci::Line line) {
 	}
 }
 
-bool LineTabstops::ClearTabstops(Sci::Line line) noexcept {
+bool LineTabstops::ClearTabstops(Sci::Line line) {
 	if (line < tabstops.Length()) {
 		TabstopList *tl = tabstops[line].get();
 		if (tl) {
@@ -531,7 +484,7 @@ bool LineTabstops::AddTabstop(Sci::Line line, int x) {
 	return false;
 }
 
-int LineTabstops::GetNextTabstop(Sci::Line line, int x) const noexcept {
+int LineTabstops::GetNextTabstop(Sci::Line line, int x) const {
 	if (line < tabstops.Length()) {
 		TabstopList *tl = tabstops[line].get();
 		if (tl) {

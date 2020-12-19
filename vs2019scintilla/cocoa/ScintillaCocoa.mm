@@ -1,7 +1,7 @@
 
 /**
  * Scintilla source code edit control
- * @file ScintillaCocoa.mm - Cocoa subclass of ScintillaBase
+ * ScintillaCocoa.mm - Cocoa subclass of ScintillaBase
  *
  * Written by Mike Lischke <mlischke@sun.com>
  *
@@ -423,6 +423,7 @@ ScintillaCocoa::~ScintillaCocoa() {
  * Core initialization of the control. Everything that needs to be set up happens here.
  */
 void ScintillaCocoa::Init() {
+	Scintilla_LinkLexers();
 
 	// Tell Scintilla not to buffer: Quartz buffers drawing for us.
 	WndProc(SCI_SETBUFFEREDDRAW, 0, 0);
@@ -1408,7 +1409,7 @@ void ScintillaCocoa::StartDrag() {
 	//           the full rectangle which may include non-selected text.
 
 	NSBitmapImageRep *bitmap = NULL;
-	CGImageRef imagePixmap = pixmap.CreateImage();
+	CGImageRef imagePixmap = pixmap.GetImage();
 	if (imagePixmap)
 		bitmap = [[NSBitmapImageRep alloc] initWithCGImage: imagePixmap];
 	CGImageRelease(imagePixmap);
@@ -1597,15 +1598,15 @@ bool ScintillaCocoa::GetPasteboardData(NSPasteboard *board, SelectionText *selec
 // Returns the target converted to UTF8.
 // Return the length in bytes.
 Sci::Position ScintillaCocoa::TargetAsUTF8(char *text) const {
-	const Sci::Position targetLength = targetRange.Length();
+	const Sci::Position targetLength = targetEnd - targetStart;
 	if (IsUnicodeMode()) {
 		if (text)
-			pdoc->GetCharRange(text, targetRange.start.Position(), targetLength);
+			pdoc->GetCharRange(text, targetStart, targetLength);
 	} else {
 		// Need to convert
 		const CFStringEncoding encoding = EncodingFromCharacterSet(IsUnicodeMode(),
 						  vs.styles[STYLE_DEFAULT].characterSet);
-		const std::string s = RangeText(targetRange.start.Position(), targetRange.end.Position());
+		const std::string s = RangeText(targetStart, targetEnd);
 		CFStringRef cfsVal = CFStringFromString(s.c_str(), s.length(), encoding);
 		if (!cfsVal) {
 			return 0;
@@ -2174,39 +2175,26 @@ bool ScintillaCocoa::KeyboardInput(NSEvent *event) {
 /**
  * Used to insert already processed text provided by the Cocoa text input system.
  */
-ptrdiff_t ScintillaCocoa::InsertText(NSString *input, CharacterSource charSource) {
-	if ([input length] == 0) {
-		return 0;
-	}
+ptrdiff_t ScintillaCocoa::InsertText(NSString *input) {
+	CFStringEncoding encoding = EncodingFromCharacterSet(IsUnicodeMode(),
+				    vs.styles[STYLE_DEFAULT].characterSet);
+	std::string encoded = EncodedBytesString((__bridge CFStringRef)input, encoding);
 
-	// There may be multiple characters in input so loop over them
-	if (IsUnicodeMode()) {
-		// There may be non-BMP characters as 2 elements in NSString so
-		// convert to UTF-8 and use UTF8BytesOfLead.
-		std::string encoded = EncodedBytesString((__bridge CFStringRef)input,
-							 kCFStringEncodingUTF8);
-		std::string_view sv = encoded;
-		while (sv.length()) {
-			const unsigned char leadByte = sv[0];
-			const unsigned int bytesInCharacter = UTF8BytesOfLead[leadByte];
-			InsertCharacter(sv.substr(0, bytesInCharacter), charSource);
-			sv.remove_prefix(bytesInCharacter);
+	if (encoded.length() > 0) {
+		if (encoding == kCFStringEncodingUTF8) {
+			// There may be multiple characters in input so loop over them
+			std::string_view sv = encoded;
+			while (sv.length()) {
+				const unsigned char leadByte = sv[0];
+				const unsigned int bytesInCharacter = UTF8BytesOfLead[leadByte];
+				AddCharUTF(sv.data(), bytesInCharacter, false);
+				sv.remove_prefix(bytesInCharacter);
+			}
+		} else {
+			AddCharUTF(encoded.c_str(), static_cast<unsigned int>(encoded.length()), false);
 		}
-		return encoded.length();
-	} else {
-		const CFStringEncoding encoding = EncodingFromCharacterSet(IsUnicodeMode(),
-									   vs.styles[STYLE_DEFAULT].characterSet);
-		ptrdiff_t lengthInserted = 0;
-		for (NSInteger i = 0; i < [input length]; i++) {
-			NSString *character = [input substringWithRange:NSMakeRange(i, 1)];
-			std::string encoded = EncodedBytesString((__bridge CFStringRef)character,
-								 encoding);
-			lengthInserted += encoded.length();
-			InsertCharacter(encoded, charSource);
-		}
-
-		return lengthInserted;
 	}
+	return encoded.length();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -2286,7 +2274,7 @@ void ScintillaCocoa::CompositionStart() {
  */
 void ScintillaCocoa::CompositionCommit() {
 	pdoc->TentativeCommit();
-	pdoc->DecorationSetCurrentIndicator(INDICATOR_IME);
+	pdoc->DecorationSetCurrentIndicator(INDIC_IME);
 	pdoc->DecorationFillRange(0, 0, pdoc->Length());
 }
 
