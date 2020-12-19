@@ -207,7 +207,10 @@ public:
 class EndOfLine : public Element {
 public:
 	int omatch(const char* s, int si, int sn) const override {
-		return (si == sn || s[si] == '\r' || s[si] == '\n') ? si : -1;
+		return (si == sn || s[si] == '\r' ||
+				   (s[si] == '\n' && (si < 1 || s[si - 1] != '\r')))
+			? si
+			: -1;
 	}
 };
 
