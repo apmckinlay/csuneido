@@ -27,23 +27,23 @@ public:
 		wordToStyle.clear();
 	}
 
-	int Base() const noexcept {
+	int Base() const {
 		return baseStyle;
 	}
 
-	int Start() const noexcept {
+	int Start() const {
 		return firstStyle;
 	}
 
-	int Last() const noexcept {
+	int Last() const {
 		return firstStyle + lenStyles - 1;
 	}
 
-	int Length() const noexcept {
+	int Length() const {
 		return lenStyles;
 	}
 
-	void Clear() noexcept {
+	void Clear() {
 		firstStyle = 0;
 		lenStyles = 0;
 		wordToStyle.clear();
@@ -57,7 +57,7 @@ public:
 			return -1;
 	}
 
-	bool IncludesStyle(int style) const noexcept {
+	bool IncludesStyle(int style) const {
 		return (style >= firstStyle) && (style < (firstStyle + lenStyles));
 	}
 
@@ -98,7 +98,7 @@ class SubStyles {
 	int allocated;
 	std::vector<WordClassifier> classifiers;
 
-	int BlockFromBaseStyle(int baseStyle) const noexcept {
+	int BlockFromBaseStyle(int baseStyle) const {
 		for (int b=0; b < classifications; b++) {
 			if (baseStyle == baseStyles[b])
 				return b;
@@ -145,12 +145,12 @@ public:
 		}
 	}
 
-	int Start(int styleBase) noexcept {
+	int Start(int styleBase) {
 		const int block = BlockFromBaseStyle(styleBase);
 		return (block >= 0) ? classifiers[block].Start() : -1;
 	}
 
-	int Length(int styleBase) noexcept {
+	int Length(int styleBase) {
 		const int block = BlockFromBaseStyle(styleBase);
 		return (block >= 0) ? classifiers[block].Length() : 0;
 	}
@@ -163,7 +163,7 @@ public:
 			return subStyle;
 	}
 
-	int DistanceToSecondaryStyles() const noexcept {
+	int DistanceToSecondaryStyles() const {
 		return secondaryDistance;
 	}
 
@@ -197,7 +197,7 @@ public:
 			it->Clear();
 	}
 
-	const WordClassifier &Classifier(int baseStyle) const noexcept {
+	const WordClassifier &Classifier(int baseStyle) const {
 		const int block = BlockFromBaseStyle(baseStyle);
 		return classifiers[block >= 0 ? block : 0];
 	}

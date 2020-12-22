@@ -29,11 +29,6 @@ public:
 		iconvh = iconvhBad;
 		Open(charSetDestination, charSetSource, transliterations);
 	}
-	// Deleted so Converter objects can not be copied.
-	Converter(const Converter &) = delete;
-	Converter(Converter &&) = delete;
-	Converter &operator=(const Converter &) = delete;
-	Converter &operator=(Converter &&) = delete;
 	~Converter() {
 		Close();
 	}

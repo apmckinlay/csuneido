@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # WidgetGen.py - regenerate the ScintillaWidgetCpp.cpp and ScintillaWidgetCpp.h files
 # Check that API includes all gtkscintilla2 functions
 
@@ -39,8 +39,6 @@ def normalisedName(s, options, role=None):
 
 typeAliases = {
 	"position": "int",
-	"line": "int",
-	"pointer": "int",
 	"colour": "int",
 	"keymod": "int",
 	"string": "const char *",
@@ -51,26 +49,21 @@ typeAliases = {
 def cppAlias(s):
 	if s in typeAliases:
 		return typeAliases[s]
-	elif Face.IsEnumeration(s):
-		return "int"
 	else:
 		return s
 
-understoodTypes = ["", "void", "int", "bool", "position", "line", "pointer",
+understoodTypes = ["", "void", "int", "bool", "position",
 	"colour", "keymod", "string", "stringresult", "cells"]
-
-def understoodType(t):
-	return t in understoodTypes or Face.IsEnumeration(t)
 
 def checkTypes(name, v):
 	understandAllTypes = True
-	if not understoodType(v["ReturnType"]):
+	if v["ReturnType"] not in understoodTypes:
 		#~ print("Do not understand", v["ReturnType"], "for", name)
 		understandAllTypes = False
-	if not understoodType(v["Param1Type"]):
+	if v["Param1Type"] not in understoodTypes:
 		#~ print("Do not understand", v["Param1Type"], "for", name)
 		understandAllTypes = False
-	if not understoodType(v["Param2Type"]):
+	if v["Param2Type"] not in understoodTypes:
 		#~ print("Do not understand", v["Param2Type"], "for", name)
 		understandAllTypes = False
 	return understandAllTypes

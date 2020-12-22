@@ -17,7 +17,7 @@ using namespace Scintilla;
 CaseFolder::~CaseFolder() {
 }
 
-CaseFolderTable::CaseFolderTable() noexcept : mapping{}  {
+CaseFolderTable::CaseFolderTable() : mapping{}  {
 	for (size_t iChar=0; iChar<sizeof(mapping); iChar++) {
 		mapping[iChar] = static_cast<char>(iChar);
 	}
@@ -37,7 +37,7 @@ size_t CaseFolderTable::Fold(char *folded, size_t sizeFolded, const char *mixed,
 	}
 }
 
-void CaseFolderTable::SetTranslation(char ch, char chTranslation) noexcept {
+void CaseFolderTable::SetTranslation(char ch, char chTranslation) {
 	mapping[static_cast<unsigned char>(ch)] = chTranslation;
 }
 

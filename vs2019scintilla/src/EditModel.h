@@ -18,7 +18,7 @@ public:
 	bool on;
 	int period;
 
-	Caret() noexcept;
+	Caret();
 };
 
 class EditModel {
@@ -37,7 +37,7 @@ public:
 	bool primarySelection;
 
 	enum IMEInteraction { imeWindowed, imeInline } imeInteraction;
-	enum class CharacterSource { directInput, tentativeInput, imeResult };
+
 	enum class Bidirectional { bidiDisabled, bidiL2R, bidiR2L  } bidirectional;
 
 	int foldFlags;
@@ -64,11 +64,11 @@ public:
 	virtual Point GetVisibleOriginInMain() const = 0;
 	virtual Sci::Line LinesOnScreen() const = 0;
 	virtual Range GetHotSpotRange() const noexcept = 0;
-	bool BidirectionalEnabled() const noexcept;
-	bool BidirectionalR2L() const noexcept;
+	bool BidirectionalEnabled() const;
+	bool BidirectionalR2L() const;
 	void SetDefaultFoldDisplayText(const char *text);
 	const char *GetDefaultFoldDisplayText() const noexcept;
-	const char *GetFoldDisplayText(Sci::Line lineDoc) const noexcept;
+	const char *GetFoldDisplayText(Sci::Line lineDoc) const;
 };
 
 }

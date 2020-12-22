@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 /**
  * Scintilla / Suneido Integration code:
- *	Related: vs2019scintilla -> ScintillaWin.cxx
+ *	Related: vs2017scintilla -> ScintillaWin.cxx
  *	Purpose:
  *		Allows vs2017gc65 to keep track of Scintilla Hwnds:
  *		These Hwnds are stored in Windows memory.
  *		As such, we require a way of storing it in
- *		vs2019gc65 accessible memory for vs2019scintilla
+ *		vs2017gc65 accessible memory for vs2017scintilla
  *		to function properly
  */
 #include "win.h"

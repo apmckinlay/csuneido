@@ -7,7 +7,6 @@
 # Requires Python 3.6 or later
 # Files are regenerated in place with templates stored in comments.
 # The format of generation comments is documented in FileGenerator.py.
-# Also updates version numbers and modification dates.
 
 from FileGenerator import Regenerate, UpdateLineInFile, \
     ReplaceREInFile, UpdateLineInPlistFile, ReadFileAsList, UpdateFileFromLines, \
@@ -15,7 +14,6 @@ from FileGenerator import Regenerate, UpdateLineInFile, \
 import ScintillaData
 import HFacer
 import os
-import pathlib
 import uuid
 import sys
 
@@ -26,44 +24,35 @@ import win32.DepGen
 import gtk.DepGen
 
 def UpdateVersionNumbers(sci, root):
-    UpdateLineInFile(root / "win32/ScintRes.rc", "#define VERSION_SCINTILLA",
+    UpdateLineInFile(root + "win32/ScintRes.rc", "#define VERSION_SCINTILLA",
         "#define VERSION_SCINTILLA \"" + sci.versionDotted + "\"")
-    UpdateLineInFile(root / "win32/ScintRes.rc", "#define VERSION_WORDS",
+    UpdateLineInFile(root + "win32/ScintRes.rc", "#define VERSION_WORDS",
         "#define VERSION_WORDS " + sci.versionCommad)
-    UpdateLineInFile(root / "qt/ScintillaEditBase/ScintillaEditBase.pro",
+    UpdateLineInFile(root + "qt/ScintillaEditBase/ScintillaEditBase.pro",
         "VERSION =",
         "VERSION = " + sci.versionDotted)
-    UpdateLineInFile(root / "qt/ScintillaEdit/ScintillaEdit.pro",
+    UpdateLineInFile(root + "qt/ScintillaEdit/ScintillaEdit.pro",
         "VERSION =",
         "VERSION = " + sci.versionDotted)
-    UpdateLineInFile(root / "doc/ScintillaDownload.html", "       Release",
+    UpdateLineInFile(root + "doc/ScintillaDownload.html", "       Release",
         "       Release " + sci.versionDotted)
-    ReplaceREInFile(root / "doc/ScintillaDownload.html",
+    ReplaceREInFile(root + "doc/ScintillaDownload.html",
         r"/www.scintilla.org/([a-zA-Z]+)\d\d\d",
         r"/www.scintilla.org/\g<1>" +  sci.version)
-    UpdateLineInFile(root / "doc/index.html",
+    UpdateLineInFile(root + "doc/index.html",
         '          <font color="#FFCC99" size="3"> Release version',
         '          <font color="#FFCC99" size="3"> Release version ' +\
         sci.versionDotted + '<br />')
-    UpdateLineInFile(root / "doc/index.html",
+    UpdateLineInFile(root + "doc/index.html",
         '           Site last modified',
         '           Site last modified ' + sci.mdyModified + '</font>')
-    UpdateLineInFile(root / "doc/ScintillaHistory.html",
+    UpdateLineInFile(root + "doc/ScintillaHistory.html",
         '	Released ',
         '	Released ' + sci.dmyModified + '.')
-
-    cocoa = root / "cocoa"
-
-    UpdateLineInPlistFile(cocoa / "ScintillaFramework/Info.plist",
+    UpdateLineInPlistFile(root + "cocoa/ScintillaFramework/Info.plist",
         "CFBundleVersion", sci.versionDotted)
-    UpdateLineInPlistFile(cocoa / "ScintillaFramework/Info.plist",
+    UpdateLineInPlistFile(root + "cocoa/ScintillaFramework/Info.plist",
         "CFBundleShortVersionString", sci.versionDotted)
-
-    UpdateLineInPlistFile(cocoa / "Scintilla" / "Info.plist",
-        "CFBundleShortVersionString", sci.versionDotted)
-    ReplaceREInFile(cocoa / "Scintilla"/ "Scintilla.xcodeproj" / "project.pbxproj",
-        "CURRENT_PROJECT_VERSION = [0-9.]+;",
-        f'CURRENT_PROJECT_VERSION = {sci.versionDotted};')
 
 # Last 24 digits of UUID, used for item IDs in Xcode
 def uid24():
@@ -127,16 +116,14 @@ def RegenerateXcodeProject(path, lexers, lexerReferences):
 
     UpdateFileFromLines(path, lines, "\n")
 
-def RegenerateAll(rootDirectory):
-    
-    root = pathlib.Path(rootDirectory)
+def RegenerateAll(root):
 
-    scintillaBase = root.resolve()
+    scintillaBase = os.path.abspath(root)
 
-    sci = ScintillaData.ScintillaData(scintillaBase)
+    sci = ScintillaData.ScintillaData(root)
 
-    Regenerate(scintillaBase / "src/Catalogue.cxx", "//", sci.lexerModules)
-    Regenerate(scintillaBase / "win32/scintilla.mak", "#", sci.lexFiles)
+    Regenerate(root + "src/Catalogue.cxx", "//", sci.lexerModules)
+    Regenerate(root + "win32/scintilla.mak", "#", sci.lexFiles)
 
     startDir = os.getcwd()
     os.chdir(os.path.join(scintillaBase, "win32"))
@@ -145,7 +132,7 @@ def RegenerateAll(rootDirectory):
     gtk.DepGen.Generate()
     os.chdir(startDir)
 
-    RegenerateXcodeProject(root / "cocoa/ScintillaFramework/ScintillaFramework.xcodeproj/project.pbxproj",
+    RegenerateXcodeProject(root + "cocoa/ScintillaFramework/ScintillaFramework.xcodeproj/project.pbxproj",
         sci.lexFiles, sci.lexersXcode)
 
     UpdateVersionNumbers(sci, root)
@@ -153,4 +140,4 @@ def RegenerateAll(rootDirectory):
     HFacer.RegenerateAll(root, False)
 
 if __name__=="__main__":
-    RegenerateAll(pathlib.Path(__file__).resolve().parent.parent)
+    RegenerateAll("../")

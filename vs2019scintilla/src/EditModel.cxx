@@ -50,7 +50,7 @@
 
 using namespace Scintilla;
 
-Caret::Caret() noexcept :
+Caret::Caret() :
 	active(false), on(false), period(500) {}
 
 EditModel::EditModel() : braces{} {
@@ -80,12 +80,12 @@ EditModel::~EditModel() {
 	pdoc = nullptr;
 }
 
-bool EditModel::BidirectionalEnabled() const noexcept {
+bool EditModel::BidirectionalEnabled() const {
 	return (bidirectional != Bidirectional::bidiDisabled) &&
 		(SC_CP_UTF8 == pdoc->dbcsCodePage);
 }
 
-bool EditModel::BidirectionalR2L() const noexcept {
+bool EditModel::BidirectionalR2L() const {
 	return bidirectional == Bidirectional::bidiR2L;
 }
 
@@ -97,7 +97,7 @@ const char *EditModel::GetDefaultFoldDisplayText() const noexcept {
 	return defaultFoldDisplayText.get();
 }
 
-const char *EditModel::GetFoldDisplayText(Sci::Line lineDoc) const noexcept {
+const char *EditModel::GetFoldDisplayText(Sci::Line lineDoc) const {
 	if (foldDisplayTextStyle == SC_FOLDDISPLAYTEXT_HIDDEN || pcs->GetExpanded(lineDoc)) {
 		return nullptr;
 	}

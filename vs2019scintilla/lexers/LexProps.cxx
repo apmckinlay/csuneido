@@ -12,8 +12,6 @@
 #include <assert.h>
 #include <ctype.h>
 
-#include <string>
-
 #include "ILexer.h"
 #include "Scintilla.h"
 #include "SciLexer.h"
@@ -81,9 +79,10 @@ static void ColourisePropsLine(
 }
 
 static void ColourisePropsDoc(Sci_PositionU startPos, Sci_Position length, int, WordList *[], Accessor &styler) {
-	std::string lineBuffer;
+	char lineBuffer[1024];
 	styler.StartAt(startPos);
 	styler.StartSegment(startPos);
+	Sci_PositionU linePos = 0;
 	Sci_PositionU startLine = startPos;
 
 	// property lexer.props.allow.initial.spaces
@@ -93,16 +92,17 @@ static void ColourisePropsDoc(Sci_PositionU startPos, Sci_Position length, int, 
 	const bool allowInitialSpaces = styler.GetPropertyInt("lexer.props.allow.initial.spaces", 1) != 0;
 
 	for (Sci_PositionU i = startPos; i < startPos + length; i++) {
-		lineBuffer.push_back(styler[i]);
-		if (AtEOL(styler, i)) {
+		lineBuffer[linePos++] = styler[i];
+		if (AtEOL(styler, i) || (linePos >= sizeof(lineBuffer) - 1)) {
 			// End of line (or of line buffer) met, colourise it
-			ColourisePropsLine(lineBuffer.c_str(), lineBuffer.length(), startLine, i, styler, allowInitialSpaces);
-			lineBuffer.clear();
+			lineBuffer[linePos] = '\0';
+			ColourisePropsLine(lineBuffer, linePos, startLine, i, styler, allowInitialSpaces);
+			linePos = 0;
 			startLine = i + 1;
 		}
 	}
-	if (lineBuffer.length() > 0) {	// Last line does not have ending characters
-		ColourisePropsLine(lineBuffer.c_str(), lineBuffer.length(), startLine, startPos + length - 1, styler, allowInitialSpaces);
+	if (linePos > 0) {	// Last line does not have ending characters
+		ColourisePropsLine(lineBuffer, linePos, startLine, startPos + length - 1, styler, allowInitialSpaces);
 	}
 }
 

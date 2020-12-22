@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef QUARTZTEXTSTYLE_H
-#define QUARTZTEXTSTYLE_H
+#ifndef _QUARTZ_TEXT_STYLE_H
+#define _QUARTZ_TEXT_STYLE_H
 
 #include "QuartzTextStyleAttribute.h"
 

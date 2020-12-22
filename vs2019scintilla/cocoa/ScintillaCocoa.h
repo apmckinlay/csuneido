@@ -27,6 +27,11 @@
 #include "ILoader.h"
 #include "ILexer.h"
 
+#ifdef SCI_LEXER
+#include "SciLexer.h"
+#include "PropSetSimple.h"
+#endif
+
 #include "CharacterCategory.h"
 #include "Position.h"
 #include "UniqueString.h"
@@ -192,7 +197,7 @@ public:
 	void ObserverRemove();
 	void IdleWork() override;
 	void QueueIdleWork(WorkNeeded::workItems items, Sci::Position upTo) override;
-	ptrdiff_t InsertText(NSString *input, CharacterSource charSource);
+	ptrdiff_t InsertText(NSString *input);
 	NSRange PositionsFromCharacters(NSRange rangeCharacters) const;
 	NSRange CharactersFromPositions(NSRange rangePositions) const;
 	NSString *RangeTextAsString(NSRange rangePositions) const;

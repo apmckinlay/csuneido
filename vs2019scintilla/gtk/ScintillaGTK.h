@@ -36,26 +36,24 @@ class ScintillaGTK : public ScintillaBase {
 
 	GtkWidgetClass *parentClass;
 
-	static inline GdkAtom atomUTF8 {};
-	static inline GdkAtom atomUTF8Mime {};
-	static inline GdkAtom atomString {};
-	static inline GdkAtom atomUriList {};
-	static inline GdkAtom atomDROPFILES_DND {};
+	static GdkAtom atomUTF8;
+	static GdkAtom atomString;
+	static GdkAtom atomUriList;
+	static GdkAtom atomDROPFILES_DND;
 	GdkAtom atomSought;
 
 #if PLAT_GTK_WIN32
 	CLIPFORMAT cfColumnSelect;
 #endif
 
-	bool preeditInitialized;
 	Window wPreedit;
 	Window wPreeditDraw;
 	GtkIMContext *im_context;
-	GUnicodeScript lastNonCommonScript;
+	PangoScript lastNonCommonScript;
 
 	// Wheel mouse support
 	unsigned int linesPerScroll;
-	gint64 lastWheelMouseTime;
+	GTimeVal lastWheelMouseTime;
 	gint lastWheelMouseDirection;
 	gint wheelMouseIntensity;
 	gdouble smoothScrollY;
@@ -80,7 +78,7 @@ public:
 	ScintillaGTK &operator=(const ScintillaGTK &) = delete;
 	ScintillaGTK &operator=(ScintillaGTK &&) = delete;
 	virtual ~ScintillaGTK();
-	static ScintillaGTK *FromWidget(GtkWidget *widget) noexcept;
+	static ScintillaGTK *FromWidget(GtkWidget *widget);
 	static void ClassInit(OBJECT_CLASS *object_class, GtkWidgetClass *widget_class, GtkContainerClass *container_class);
 private:
 	void Init();
@@ -134,12 +132,11 @@ private:
 	void AddToPopUp(const char *label, int cmd = 0, bool enabled = true) override;
 	bool OwnPrimarySelection();
 	void ClaimSelection() override;
-	static bool IsStringAtom(GdkAtom type);
 	void GetGtkSelectionText(GtkSelectionData *selectionData, SelectionText &selText);
-	void InsertSelection(GtkClipboard *clipBoard, GtkSelectionData *selectionData);
+	void InsertSelection(GtkSelectionData *selectionData);
 public:	// Public for SelectionReceiver
 	GObject *MainObject() const noexcept;
-	void ReceivedClipboard(GtkClipboard *clipBoard, GtkSelectionData *selection_data) noexcept;
+	void ReceivedClipboard(GtkSelectionData *selection_data) noexcept;
 private:
 	void ReceivedSelection(GtkSelectionData *selection_data);
 	void ReceivedDrop(GtkSelectionData *selection_data);
@@ -276,12 +273,6 @@ public:
 		weakRef(obj) {
 		g_object_weak_ref(weakRef, WeakNotify, this);
 	}
-
-	// Deleted so GObjectWatcher objects can not be copied.
-	GObjectWatcher(const GObjectWatcher&) = delete;
-	GObjectWatcher(GObjectWatcher&&) = delete;
-	GObjectWatcher&operator=(const GObjectWatcher&) = delete;
-	GObjectWatcher&operator=(GObjectWatcher&&) = delete;
 
 	virtual ~GObjectWatcher() {
 		if (weakRef) {

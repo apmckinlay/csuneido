@@ -20,7 +20,7 @@ cd ../../..
 # which can cause double build
 
 echo Building Cocoa-native ScintillaFramework and ScintillaTest
-for sdk in macosx10.15 macosx10.14
+for sdk in macosx10.9 macosx10.8 macosx10.7 macosx10.6 macosx10.5
 do
     xcodebuild -showsdks | grep $sdk
     if [ "$(xcodebuild -showsdks | grep $sdk)" != "" ]
@@ -54,13 +54,13 @@ xcodebuild
 cd ..
 
 cd ScintillaEdit
-python3 WidgetGen.py
+python WidgetGen.py
 qmake -spec macx-xcode
 xcodebuild clean
 xcodebuild
 cd ..
 
 cd ScintillaEditPy
-python2 sepbuild.py
+python sepbuild.py
 cd ..
 cd ../..

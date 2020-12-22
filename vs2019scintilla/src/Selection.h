@@ -23,7 +23,7 @@ public:
 		position = 0;
 		virtualSpace = 0;
 	}
-	void MoveForInsertDelete(bool insertion, Sci::Position startChange, Sci::Position length, bool moveForEqual) noexcept;
+	void MoveForInsertDelete(bool insertion, Sci::Position startChange, Sci::Position length) noexcept;
 	bool operator ==(const SelectionPosition &other) const noexcept {
 		return position == other.position && virtualSpace == other.virtualSpace;
 	}
@@ -71,9 +71,6 @@ struct SelectionSegment {
 	}
 	bool Empty() const noexcept {
 		return start == end;
-	}
-	Sci::Position Length() const noexcept {
-		return end.Position() - start.Position();
 	}
 	void Extend(SelectionPosition p) noexcept {
 		if (start > p)
@@ -147,10 +144,10 @@ public:
 	Selection();
 	~Selection();
 	bool IsRectangular() const noexcept;
-	Sci::Position MainCaret() const noexcept;
-	Sci::Position MainAnchor() const noexcept;
+	Sci::Position MainCaret() const;
+	Sci::Position MainAnchor() const;
 	SelectionRange &Rectangular() noexcept;
-	SelectionSegment Limits() const noexcept;
+	SelectionSegment Limits() const;
 	// This is for when you want to move the caret in response to a
 	// user direction command - for rectangular selections, use the range
 	// that covers all selected text otherwise return the main selection.
@@ -158,19 +155,19 @@ public:
 	size_t Count() const noexcept;
 	size_t Main() const noexcept;
 	void SetMain(size_t r) noexcept;
-	SelectionRange &Range(size_t r) noexcept;
-	const SelectionRange &Range(size_t r) const noexcept;
-	SelectionRange &RangeMain() noexcept;
-	const SelectionRange &RangeMain() const noexcept;
-	SelectionPosition Start() const noexcept;
+	SelectionRange &Range(size_t r);
+	const SelectionRange &Range(size_t r) const;
+	SelectionRange &RangeMain();
+	const SelectionRange &RangeMain() const;
+	SelectionPosition Start() const;
 	bool MoveExtends() const noexcept;
 	void SetMoveExtends(bool moveExtends_) noexcept;
 	bool Empty() const noexcept;
 	SelectionPosition Last() const noexcept;
 	Sci::Position Length() const noexcept;
 	void MovePositions(bool insertion, Sci::Position startChange, Sci::Position length) noexcept;
-	void TrimSelection(SelectionRange range) noexcept;
-	void TrimOtherSelections(size_t r, SelectionRange range) noexcept;
+	void TrimSelection(SelectionRange range);
+	void TrimOtherSelections(size_t r, SelectionRange range);
 	void SetSelection(SelectionRange range);
 	void AddSelection(SelectionRange range);
 	void AddSelectionWithoutTrim(SelectionRange range);
@@ -178,8 +175,8 @@ public:
 	void DropAdditionalRanges();
 	void TentativeSelection(SelectionRange range);
 	void CommitTentative() noexcept;
-	int CharacterInSelection(Sci::Position posCharacter) const noexcept;
-	int InSelectionForEOL(Sci::Position pos) const noexcept;
+	int CharacterInSelection(Sci::Position posCharacter) const;
+	int InSelectionForEOL(Sci::Position pos) const;
 	Sci::Position VirtualSpaceFor(Sci::Position pos) const noexcept;
 	void Clear();
 	void RemoveDuplicates();

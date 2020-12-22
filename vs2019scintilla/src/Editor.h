@@ -143,18 +143,6 @@ struct WrapPending {
 	}
 };
 
-struct CaretPolicy {
-	int policy;	// Combination from CARET_SLOP, CARET_STRICT, CARET_JUMPS, CARET_EVEN
-	int slop;	// Pixels for X, lines for Y
-	CaretPolicy(uptr_t policy_=0, sptr_t slop_=0) noexcept :
-		policy(static_cast<int>(policy_)), slop(static_cast<int>(slop_)) {}
-};
-
-struct CaretPolicies {
-	CaretPolicy x;
-	CaretPolicy y;
-};
-
 /**
  */
 class Editor : public EditModel, public DocWatcher {
@@ -210,7 +198,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	int dwellDelay;
 	int ticksToDwell;
 	bool dwelling;
-	enum class TextUnit { character, word, subLine, wholeLine } selectionUnit;
+	enum { selChar, selWord, selSubLine, selWholeLine } selectionType;
 	Point ptMouseLast;
 	enum { ddNone, ddInitial, ddDragging } inDragDrop;
 	bool dropWentOutside;
@@ -222,7 +210,8 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	Sci::Position wordSelectAnchorStartPos;
 	Sci::Position wordSelectAnchorEndPos;
 	Sci::Position wordSelectInitialCaretPos;
-	SelectionSegment targetRange;
+	Sci::Position targetStart;
+	Sci::Position targetEnd;
 	int searchFlags;
 	Sci::Line topLine;
 	Sci::Position posTopLine;
@@ -244,9 +233,14 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 
 	SelectionText drag;
 
-	CaretPolicies caretPolicies;
+	int caretXPolicy;
+	int caretXSlop;	///< Ensure this many pixels visible on both sides of caret
 
-	CaretPolicy visiblePolicy;
+	int caretYPolicy;
+	int caretYSlop;	///< Ensure this many lines visible on both sides of caret
+
+	int visiblePolicy;
+	int visibleSlop;
 
 	Sci::Position searchAnchor;
 
@@ -312,7 +306,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 		return ((virtualSpaceOptions & SCVS_USERACCESSIBLE) != 0);
 	}
 	Sci::Position CurrentPosition() const;
-	bool SelectionEmpty() const noexcept;
+	bool SelectionEmpty() const;
 	SelectionPosition SelectionStart();
 	SelectionPosition SelectionEnd();
 	void SetRectangularRange();
@@ -326,14 +320,13 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void SetSelection(int currentPos_);
 	void SetEmptySelection(SelectionPosition currentPos_);
 	void SetEmptySelection(Sci::Position currentPos_);
-	enum class AddNumber { one, each };
+	enum AddNumber { addOne, addEach };
 	void MultipleSelectAdd(AddNumber addNumber);
-	bool RangeContainsProtected(Sci::Position start, Sci::Position end) const noexcept;
-	bool SelectionContainsProtected() const;
+	bool RangeContainsProtected(Sci::Position start, Sci::Position end) const;
+	bool SelectionContainsProtected();
 	Sci::Position MovePositionOutsideChar(Sci::Position pos, Sci::Position moveDir, bool checkLineEnd=true) const;
 	SelectionPosition MovePositionOutsideChar(SelectionPosition pos, Sci::Position moveDir, bool checkLineEnd=true) const;
-	void MovedCaret(SelectionPosition newPos, SelectionPosition previousPos,
-		bool ensureVisible, CaretPolicies policies);
+	void MovedCaret(SelectionPosition newPos, SelectionPosition previousPos, bool ensureVisible);
 	void MovePositionTo(SelectionPosition newPos, Selection::selTypes selt=Selection::noSel, bool ensureVisible=true);
 	void MovePositionTo(Sci::Position newPos, Selection::selTypes selt=Selection::noSel, bool ensureVisible=true);
 	SelectionPosition MovePositionSoVisible(SelectionPosition pos, int moveDir);
@@ -364,8 +357,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 		xysVertical=0x2,
 		xysHorizontal=0x4,
 		xysDefault=xysUseMargin|xysVertical|xysHorizontal};
-	XYScrollPosition XYScrollToMakeVisible(const SelectionRange &range,
-		const XYScrollOptions options, CaretPolicies policies);
+	XYScrollPosition XYScrollToMakeVisible(const SelectionRange &range, const XYScrollOptions options);
 	void SetXYScroll(XYScrollPosition newXY);
 	void EnsureCaretVisible(bool useMargin=true, bool vert=true, bool horiz=true);
 	void ScrollRange(SelectionRange range);
@@ -388,7 +380,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	void RefreshPixMaps(Surface *surfaceWindow);
 	void Paint(Surface *surfaceWindow, PRectangle rcArea);
 	Sci::Position FormatRange(bool draw, const Sci_RangeToFormat *pfr);
-	long TextWidth(uptr_t style, const char *text);
+	int TextWidth(int style, const char *text);
 
 	virtual void SetVerticalScrollPos() = 0;
 	virtual void SetHorizontalScrollPos() = 0;
@@ -401,7 +393,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	Sci::Position RealizeVirtualSpace(Sci::Position position, Sci::Position virtualSpace);
 	SelectionPosition RealizeVirtualSpace(const SelectionPosition &position);
 	void AddChar(char ch);
-	virtual void InsertCharacter(std::string_view sv, CharacterSource charSource);
+	virtual void AddCharUTF(const char *s, unsigned int len, bool treatAsDBCS=false);
 	void ClearBeforeTentativeStart();
 	void InsertPaste(const char *text, Sci::Position len);
 	enum PasteShape { pasteStream=0, pasteRectangular = 1, pasteLine = 2 };
@@ -412,7 +404,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	virtual void Cut();
 	void PasteRectangular(SelectionPosition pos, const char *ptr, Sci::Position len);
 	virtual void Copy() = 0;
-	void CopyAllowLine();
+	virtual void CopyAllowLine();
 	virtual bool CanPaste();
 	virtual void Paste() = 0;
 	void Clear();
@@ -429,7 +421,7 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	virtual int GetCtrlID() { return ctrlID; }
 	virtual void NotifyParent(SCNotification scn) = 0;
 	virtual void NotifyStyleToNeeded(Sci::Position endStyleNeeded);
-	void NotifyChar(int ch, CharacterSource charSource);
+	void NotifyChar(int ch);
 	void NotifySavePoint(bool isSavePoint);
 	void NotifyModifyAttempt();
 	virtual void NotifyDoubleClick(Point pt, int modifiers);
@@ -546,7 +538,6 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	virtual void SetDocPointer(Document *document);
 
 	void SetAnnotationVisible(int visible);
-	void SetEOLAnnotationVisible(int visible);
 
 	Sci::Line ExpandLine(Sci::Line line);
 	void SetFoldExpanded(Sci::Line lineDoc, bool expanded);
@@ -607,19 +598,6 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	static sptr_t StringResult(sptr_t lParam, const char *val) noexcept;
 	static sptr_t BytesResult(sptr_t lParam, const unsigned char *val, size_t len) noexcept;
 
-	// Set a variable controlling appearance to a value and invalidates the display
-	// if a change was made. Avoids extra text and the possibility of mistyping.
-	template <typename T>
-	bool SetAppearance(T &variable, T value) {
-		// Using ! and == as more types have == defined than !=.
-		const bool changed = !(variable == value);
-		if (changed) {
-			variable = value;
-			InvalidateStyleRedraw();
-		}
-		return changed;
-	}
-
 public:
 	~Editor() override;
 
@@ -641,7 +619,7 @@ class AutoSurface {
 private:
 	std::unique_ptr<Surface> surf;
 public:
-	AutoSurface(const Editor *ed, int technology = -1) {
+	AutoSurface(Editor *ed, int technology = -1) {
 		if (ed->wMain.GetID()) {
 			surf.reset(Surface::Allocate(technology != -1 ? technology : ed->technology));
 			surf->Init(ed->wMain.GetID());

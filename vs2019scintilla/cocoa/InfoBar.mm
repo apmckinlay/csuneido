@@ -1,7 +1,7 @@
 
 /**
  * Scintilla source code edit control
- * @file InfoBar.mm - Implements special info bar with zoom info, caret position etc. to be used with
+ * InfoBar.mm - Implements special info bar with zoom info, caret position etc. to be used with
  *              ScintillaView.
  *
  * Mike Lischke <mlischke@sun.com>

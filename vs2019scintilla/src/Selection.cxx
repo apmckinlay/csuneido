@@ -23,17 +23,12 @@
 
 using namespace Scintilla;
 
-void SelectionPosition::MoveForInsertDelete(bool insertion, Sci::Position startChange, Sci::Position length, bool moveForEqual) noexcept {
+void SelectionPosition::MoveForInsertDelete(bool insertion, Sci::Position startChange, Sci::Position length) noexcept {
 	if (insertion) {
 		if (position == startChange) {
-			// Always consume virtual space
 			const Sci::Position virtualLengthRemove = std::min(length, virtualSpace);
 			virtualSpace -= virtualLengthRemove;
 			position += virtualLengthRemove;
-			if (moveForEqual) {
-				const Sci::Position lengthAfterVirtualRemove = length - virtualLengthRemove;
-				position += lengthAfterVirtualRemove;
-			}
 		} else if (position > startChange) {
 			position += length;
 		}
@@ -90,17 +85,8 @@ Sci::Position SelectionRange::Length() const noexcept {
 }
 
 void SelectionRange::MoveForInsertDelete(bool insertion, Sci::Position startChange, Sci::Position length) noexcept {
-	// For insertions that occur at the start of the selection move both the start
-	// and end of the selection to preserve the selected length.
-	// The end will automatically move since it is after the insertion, so determine
-	// which position is the start and pass this into
-	// SelectionPosition::MoveForInsertDelete.
-	// There isn't any reason to move an empty selection so don't move it.
-	const bool caretStart = caret.Position() < anchor.Position();
-	const bool anchorStart = anchor.Position() < caret.Position();
-
-	caret.MoveForInsertDelete(insertion, startChange, length, caretStart);
-	anchor.MoveForInsertDelete(insertion, startChange, length, anchorStart);
+	caret.MoveForInsertDelete(insertion, startChange, length);
+	anchor.MoveForInsertDelete(insertion, startChange, length);
 }
 
 bool SelectionRange::Contains(Sci::Position pos) const noexcept {
@@ -202,11 +188,11 @@ bool Selection::IsRectangular() const noexcept {
 	return (selType == selRectangle) || (selType == selThin);
 }
 
-Sci::Position Selection::MainCaret() const noexcept {
+Sci::Position Selection::MainCaret() const {
 	return ranges[mainRange].caret.Position();
 }
 
-Sci::Position Selection::MainAnchor() const noexcept {
+Sci::Position Selection::MainAnchor() const {
 	return ranges[mainRange].anchor.Position();
 }
 
@@ -214,7 +200,7 @@ SelectionRange &Selection::Rectangular() noexcept {
 	return rangeRectangular;
 }
 
-SelectionSegment Selection::Limits() const noexcept {
+SelectionSegment Selection::Limits() const {
 	if (ranges.empty()) {
 		return SelectionSegment();
 	} else {
@@ -248,23 +234,23 @@ void Selection::SetMain(size_t r) noexcept {
 	mainRange = r;
 }
 
-SelectionRange &Selection::Range(size_t r) noexcept {
+SelectionRange &Selection::Range(size_t r) {
 	return ranges[r];
 }
 
-const SelectionRange &Selection::Range(size_t r) const noexcept {
+const SelectionRange &Selection::Range(size_t r) const {
 	return ranges[r];
 }
 
-SelectionRange &Selection::RangeMain() noexcept {
+SelectionRange &Selection::RangeMain() {
 	return ranges[mainRange];
 }
 
-const SelectionRange &Selection::RangeMain() const noexcept {
+const SelectionRange &Selection::RangeMain() const {
 	return ranges[mainRange];
 }
 
-SelectionPosition Selection::Start() const noexcept {
+SelectionPosition Selection::Start() const {
 	if (IsRectangular()) {
 		return rangeRectangular.Start();
 	} else {
@@ -316,7 +302,7 @@ void Selection::MovePositions(bool insertion, Sci::Position startChange, Sci::Po
 	}
 }
 
-void Selection::TrimSelection(SelectionRange range) noexcept {
+void Selection::TrimSelection(SelectionRange range) {
 	for (size_t i=0; i<ranges.size();) {
 		if ((i != mainRange) && (ranges[i].Trim(range))) {
 			// Trimmed to empty so remove
@@ -332,7 +318,7 @@ void Selection::TrimSelection(SelectionRange range) noexcept {
 	}
 }
 
-void Selection::TrimOtherSelections(size_t r, SelectionRange range) noexcept {
+void Selection::TrimOtherSelections(size_t r, SelectionRange range) {
 	for (size_t i = 0; i<ranges.size(); ++i) {
 		if (i != r) {
 			ranges[i].Trim(range);
@@ -391,7 +377,7 @@ void Selection::CommitTentative() noexcept {
 	tentativeMain = false;
 }
 
-int Selection::CharacterInSelection(Sci::Position posCharacter) const noexcept {
+int Selection::CharacterInSelection(Sci::Position posCharacter) const {
 	for (size_t i=0; i<ranges.size(); i++) {
 		if (ranges[i].ContainsCharacter(posCharacter))
 			return i == mainRange ? 1 : 2;
@@ -399,7 +385,7 @@ int Selection::CharacterInSelection(Sci::Position posCharacter) const noexcept {
 	return 0;
 }
 
-int Selection::InSelectionForEOL(Sci::Position pos) const noexcept {
+int Selection::InSelectionForEOL(Sci::Position pos) const {
 	for (size_t i=0; i<ranges.size(); i++) {
 		if (!ranges[i].Empty() && (pos > ranges[i].Start().Position()) && (pos <= ranges[i].End().Position()))
 			return i == mainRange ? 1 : 2;

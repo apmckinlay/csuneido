@@ -32,7 +32,7 @@ class CharacterCategoryMap {
 private:
 	std::vector<unsigned char> dense;
 public:
-	CharacterCategoryMap();
+	CharacterCategoryMap() noexcept;
 	CharacterCategory CategoryFor(int character) const {
 		if (static_cast<size_t>(character) < dense.size()) {
 			return static_cast<CharacterCategory>(dense[character]);

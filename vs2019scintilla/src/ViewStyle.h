@@ -48,7 +48,7 @@ enum TabDrawMode {tdLongArrow=0, tdStrikeOut=1};
 
 typedef std::map<FontSpecification, std::unique_ptr<FontRealised>> FontMap;
 
-enum class WrapMode { none, word, character, whitespace };
+enum WrapMode { eWrapNone, eWrapWord, eWrapChar, eWrapWhitespace };
 
 class ColourOptional : public ColourDesired {
 public:
@@ -145,8 +145,6 @@ public:
 	int marginStyleOffset;
 	int annotationVisible;
 	int annotationStyleOffset;
-	int eolAnnotationVisible;
-	int eolAnnotationStyleOffset;
 	bool braceHighlightIndicatorSet;
 	int braceHighlightIndicator;
 	bool braceBadLightIndicatorSet;
@@ -172,7 +170,7 @@ public:
 	ViewStyle &operator=(const ViewStyle &) = delete;
 	ViewStyle &operator=(ViewStyle &&) = delete;
 	~ViewStyle();
-	void CalculateMarginWidthAndMask() noexcept;
+	void CalculateMarginWidthAndMask();
 	void Init(size_t stylesSize_=256);
 	void Refresh(Surface &surface, int tabInChars);
 	void ReleaseAllExtendedStyles() noexcept;
@@ -183,17 +181,15 @@ public:
 	void SetStyleFontName(int styleIndex, const char *name);
 	bool ProtectionActive() const noexcept;
 	int ExternalMarginWidth() const noexcept;
-	int MarginFromLocation(Point pt) const noexcept;
+	int MarginFromLocation(Point pt) const;
 	bool ValidStyle(size_t styleIndex) const noexcept;
-	void CalcLargestMarkerHeight() noexcept;
+	void CalcLargestMarkerHeight();
 	int GetFrameWidth() const noexcept;
 	bool IsLineFrameOpaque(bool caretActive, bool lineContainsCaret) const noexcept;
-	ColourOptional Background(int marksOfLine, bool caretActive, bool lineContainsCaret) const noexcept;
+	ColourOptional Background(int marksOfLine, bool caretActive, bool lineContainsCaret) const;
 	bool SelectionBackgroundDrawn() const noexcept;
 	bool WhitespaceBackgroundDrawn() const noexcept;
-	ColourDesired WrapColour() const noexcept;
-
-	void AddMultiEdge(uptr_t wParam, sptr_t lParam);
+	ColourDesired WrapColour() const;
 
 	bool SetWrapState(int wrapState_) noexcept;
 	bool SetWrapVisualFlags(int wrapVisualFlags_) noexcept;
@@ -205,8 +201,6 @@ public:
 
 	enum class CaretShape { invisible, line, block, bar };
 	bool IsBlockCaretStyle() const noexcept;
-	bool IsCaretVisible() const noexcept;
-	bool DrawCaretInsideSelection(bool inOverstrike, bool imeCaretBlockOverride) const noexcept;
 	CaretShape CaretShapeForMode(bool inOverstrike) const noexcept;
 
 private:

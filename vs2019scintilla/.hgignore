@@ -5,10 +5,8 @@ syntax: glob
 *.lib
 *.obj
 *.iobj
-__pycache__
 *.pyc
 *.dll
-*.so
 *.dylib
 *.framework
 *.pyd
@@ -21,9 +19,6 @@ __pycache__
 *.bak
 *.sbr
 *.suo
-*.aps
-*.sln
-*.vcxproj.*
 *.idb
 *.bsc
 *.intermediate.manifest

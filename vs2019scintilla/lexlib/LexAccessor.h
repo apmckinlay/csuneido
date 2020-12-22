@@ -10,7 +10,7 @@
 
 namespace Scintilla {
 
-enum class EncodingType { eightBit, unicode, dbcs };
+enum EncodingType { enc8bit, encUnicode, encDBCS };
 
 class LexAccessor {
 private:
@@ -51,7 +51,7 @@ public:
 	explicit LexAccessor(IDocument *pAccess_) :
 		pAccess(pAccess_), startPos(extremePosition), endPos(0),
 		codePage(pAccess->CodePage()),
-		encodingType(EncodingType::eightBit),
+		encodingType(enc8bit),
 		lenDoc(pAccess->Length()),
 		validLen(0),
 		startSeg(0), startPosStyling(0),
@@ -61,14 +61,14 @@ public:
 		styleBuf[0] = 0;
 		switch (codePage) {
 		case 65001:
-			encodingType = EncodingType::unicode;
+			encodingType = encUnicode;
 			break;
 		case 932:
 		case 936:
 		case 949:
 		case 950:
 		case 1361:
-			encodingType = EncodingType::dbcs;
+			encodingType = encDBCS;
 		}
 	}
 	char operator[](Sci_Position position) {
@@ -77,7 +77,7 @@ public:
 		}
 		return buf[position - startPos];
 	}
-	IDocument *MultiByteAccess() const noexcept {
+	IDocument *MultiByteAccess() const {
 		return pAccess;
 	}
 	/** Safe version of operator[], returning a defined value for invalid position. */
@@ -94,7 +94,7 @@ public:
 	bool IsLeadByte(char ch) const {
 		return pAccess->IsDBCSLeadByte(ch);
 	}
-	EncodingType Encoding() const noexcept {
+	EncodingType Encoding() const {
 		return encodingType;
 	}
 	bool Match(Sci_Position pos, const char *s) {

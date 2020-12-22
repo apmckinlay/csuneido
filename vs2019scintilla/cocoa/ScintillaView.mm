@@ -1,7 +1,6 @@
 
 /**
  * Implementation of the native Cocoa View that serves as container for the scintilla parts.
- * @file ScintillaView.mm
  *
  * Created by Mike Lischke.
  *
@@ -416,7 +415,7 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor) {
 	}
 
 	[mOwner message: SCI_SETTARGETRANGE wParam: posRange.location lParam: NSMaxRange(posRange)];
-	std::string text([mOwner message: SCI_TARGETASUTF8], 0);
+	std::string text([mOwner message: SCI_TARGETASUTF8] + 1, 0);
 	[mOwner message: SCI_TARGETASUTF8 wParam: 0 lParam: reinterpret_cast<sptr_t>(&text[0])];
 	text = FixInvalidUTF8(text);
 	NSString *result = @(text.c_str());
@@ -426,14 +425,12 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor) {
 	// SCI_GETSTYLEAT reports a signed byte but want an unsigned to index into styles
 	const char styleByte = static_cast<char>([mOwner message: SCI_GETSTYLEAT wParam: posRange.location]);
 	const long style = static_cast<unsigned char>(styleByte);
-	std::string fontName([mOwner message: SCI_STYLEGETFONT wParam: style lParam: 0], 0);
+	std::string fontName([mOwner message: SCI_STYLEGETFONT wParam: style lParam: 0] + 1, 0);
 	[mOwner message: SCI_STYLEGETFONT wParam: style lParam: (sptr_t)&fontName[0]];
 	const CGFloat fontSize = [mOwner message: SCI_STYLEGETSIZEFRACTIONAL wParam: style] / 100.0f;
 	NSString *sFontName = @(fontName.c_str());
 	NSFont *font = [NSFont fontWithName: sFontName size: fontSize];
-	if (font) {
-		[asResult addAttribute: NSFontAttributeName value: font range: rangeAS];
-	}
+	[asResult addAttribute: NSFontAttributeName value: font range: rangeAS];
 
 	return asResult;
 }
@@ -530,7 +527,7 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor) {
 	else if ([aString isKindOfClass: [NSAttributedString class]])
 		newText = (NSString *) [aString string];
 
-	mOwner.backend->InsertText(newText, EditModel::CharacterSource::directInput);
+	mOwner.backend->InsertText(newText);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -623,11 +620,11 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor) {
 		NSRange posRangeCurrent = mOwner.backend->PositionsFromCharacters(NSMakeRange(replacementRange.location, 0));
 		// Note: Scintilla internally works almost always with bytes instead chars, so we need to take
 		//       this into account when determining selection ranges and such.
-		ptrdiff_t lengthInserted = mOwner.backend->InsertText(newText, EditModel::CharacterSource::tentativeInput);
+		ptrdiff_t lengthInserted = mOwner.backend->InsertText(newText);
 		posRangeCurrent.length = lengthInserted;
 		mMarkedTextRange = mOwner.backend->CharactersFromPositions(posRangeCurrent);
 		// Mark the just inserted text. Keep the marked range for later reset.
-		[mOwner setGeneralProperty: SCI_SETINDICATORCURRENT value: INDICATOR_IME];
+		[mOwner setGeneralProperty: SCI_SETINDICATORCURRENT value: INDIC_IME];
 		[mOwner setGeneralProperty: SCI_INDICATORFILLRANGE
 				 parameter: posRangeCurrent.location
 				     value: posRangeCurrent.length];
@@ -1377,11 +1374,11 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor) {
  * input composition, depending on language, keyboard etc.
  */
 - (void) updateIndicatorIME {
-	[self setColorProperty: SCI_INDICSETFORE parameter: INDICATOR_IME fromHTML: @"#FF0000"];
+	[self setColorProperty: SCI_INDICSETFORE parameter: INDIC_IME fromHTML: @"#FF0000"];
 	const bool drawInBackground = [self message: SCI_GETPHASESDRAW] != 0;
-	[self setGeneralProperty: SCI_INDICSETUNDER parameter: INDICATOR_IME value: drawInBackground];
-	[self setGeneralProperty: SCI_INDICSETSTYLE parameter: INDICATOR_IME value: INDIC_PLAIN];
-	[self setGeneralProperty: SCI_INDICSETALPHA parameter: INDICATOR_IME value: 100];
+	[self setGeneralProperty: SCI_INDICSETUNDER parameter: INDIC_IME value: drawInBackground];
+	[self setGeneralProperty: SCI_INDICSETSTYLE parameter: INDIC_IME value: INDIC_PLAIN];
+	[self setGeneralProperty: SCI_INDICSETALPHA parameter: INDIC_IME value: 100];
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1966,9 +1963,9 @@ static NSCursor *cursorFromEnum(Window::Cursor cursor) {
 
 - (void) insertText: (id) aString {
 	if ([aString isKindOfClass: [NSString class]])
-		mBackend->InsertText(aString, EditModel::CharacterSource::directInput);
+		mBackend->InsertText(aString);
 	else if ([aString isKindOfClass: [NSAttributedString class]])
-		mBackend->InsertText([aString string], EditModel::CharacterSource::directInput);
+		mBackend->InsertText([aString string]);
 }
 
 //--------------------------------------------------------------------------------------------------
