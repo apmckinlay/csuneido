@@ -102,6 +102,7 @@ int Scintilla_LinkLexers() {
 	LINK_LEXER(lmCsound);
 	LINK_LEXER(lmCss);
 	LINK_LEXER(lmD);
+	LINK_LEXER(lmDataflex);
 	LINK_LEXER(lmDiff);
 	LINK_LEXER(lmDMAP);
 	LINK_LEXER(lmDMIS);
@@ -120,6 +121,7 @@ int Scintilla_LinkLexers() {
 	LINK_LEXER(lmGAP);
 	LINK_LEXER(lmGui4Cli);
 	LINK_LEXER(lmHaskell);
+	LINK_LEXER(lmHollywood);
 	LINK_LEXER(lmHTML);
 	LINK_LEXER(lmIHex);
 	LINK_LEXER(lmIndent);

@@ -23,6 +23,10 @@
 #include <memory>
 #include <chrono>
 
+// Want to use std::min and std::max so don't want Windows.h version of min and max
+#if !defined(NOMINMAX)
+#define NOMINMAX
+#endif
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0500
 #undef WINVER
@@ -96,7 +100,7 @@
 
 /**
  * Scintilla / Suneido Integration code:
- *	Reference: vs2017suneido -> scihwnds.cpp
+ *	Reference: vs2019suneido -> scihwnds.cpp
  */
 void SciHwnds_AddHwndPtr(LONG_PTR lngPtr);
 void SciHwnds_RmvHwndPtr(LONG_PTR lngPtr);
@@ -128,17 +132,17 @@ void SciHwnds_RmvHwndPtr(LONG_PTR lngPtr);
 // Two idle messages SC_WIN_IDLE and SC_WORK_IDLE.
 
 // SC_WIN_IDLE is low priority so should occur after the next WM_PAINT
-// It is for lengthy actions like wrapping and background styling 
+// It is for lengthy actions like wrapping and background styling
 constexpr UINT SC_WIN_IDLE = 5001;
 // SC_WORK_IDLE is high priority and should occur before the next WM_PAINT
 // It is for shorter actions like restyling the text just inserted
 // and delivering SCN_UPDATEUI
 constexpr UINT SC_WORK_IDLE = 5002;
 
-#define SC_INDICATOR_INPUT INDIC_IME
-#define SC_INDICATOR_TARGET INDIC_IME+1
-#define SC_INDICATOR_CONVERTED INDIC_IME+2
-#define SC_INDICATOR_UNKNOWN INDIC_IME_MAX
+#define SC_INDICATOR_INPUT INDICATOR_IME
+#define SC_INDICATOR_TARGET INDICATOR_IME+1
+#define SC_INDICATOR_CONVERTED INDICATOR_IME+2
+#define SC_INDICATOR_UNKNOWN INDICATOR_IME_MAX
 
 #ifndef SCS_CAP_SETRECONVERTSTRING
 #define SCS_CAP_SETRECONVERTSTRING 0x00000004
@@ -161,7 +165,7 @@ void *PointerFromWindow(HWND hWnd) noexcept {
 	return reinterpret_cast<void *>(::GetWindowLongPtr(hWnd, 0));
 }
 
-void SetWindowPointer(HWND hWnd, void *ptr) {
+void SetWindowPointer(HWND hWnd, void* ptr) {
 	LONG_PTR lngPtr = reinterpret_cast<LONG_PTR>(ptr);
 	SciHwnds_AddHwndPtr(lngPtr);
 	::SetWindowLongPtr(hWnd, 0, lngPtr);
@@ -349,7 +353,7 @@ class ScintillaWin :
 	void SelectionToHangul();
 	void EscapeHanja();
 	void ToggleHanja();
-	void AddWString(std::wstring_view wsv);
+	void AddWString(std::wstring_view wsv, CharacterSource charSource);
 
 	UINT CodePageOfDocument() const;
 	bool ValidCodePage(int codePage) const override;
@@ -796,14 +800,14 @@ std::wstring StringMapCase(std::wstring_view wsv, DWORD mapFlags) {
 // Returns the target converted to UTF8.
 // Return the length in bytes.
 Sci::Position ScintillaWin::TargetAsUTF8(char *text) const {
-	const Sci::Position targetLength = targetEnd - targetStart;
+	const Sci::Position targetLength = targetRange.Length();
 	if (IsUnicodeMode()) {
 		if (text) {
-			pdoc->GetCharRange(text, targetStart, targetLength);
+			pdoc->GetCharRange(text, targetRange.start.Position(), targetLength);
 		}
 	} else {
 		// Need to convert
-		const std::string s = RangeText(targetStart, targetEnd);
+		const std::string s = RangeText(targetRange.start.Position(), targetRange.end.Position());
 		const std::wstring characters = StringDecode(s, CodePageOfDocument());
 		const int utf8Len = MultiByteLenFromWideChar(CP_UTF8, characters);
 		if (text) {
@@ -902,7 +906,7 @@ sptr_t ScintillaWin::HandleCompositionWindowed(uptr_t wParam, sptr_t lParam) {
 	if (lParam & GCS_RESULTSTR) {
 		IMContext imc(MainHWND());
 		if (imc.hIMC) {
-			AddWString(imc.GetCompositionString(GCS_RESULTSTR));
+			AddWString(imc.GetCompositionString(GCS_RESULTSTR), CharacterSource::imeResult);
 
 			// Set new position after converted
 			const Point pos = PointMainCaret();
@@ -933,9 +937,9 @@ void ScintillaWin::MoveImeCarets(Sci::Position offset) {
 void ScintillaWin::DrawImeIndicator(int indicator, int len) {
 	// Emulate the visual style of IME characters with indicators.
 	// Draw an indicator on the character before caret by the character bytes of len
-	// so it should be called after addCharUTF().
+	// so it should be called after InsertCharacter().
 	// It does not affect caret positions.
-	if (indicator < 8 || indicator > INDIC_MAX) {
+	if (indicator < 8 || indicator > INDICATOR_MAX) {
 		return;
 	}
 	pdoc->DecorationSetCurrentIndicator(indicator);
@@ -949,11 +953,17 @@ void ScintillaWin::SetCandidateWindowPos() {
 	IMContext imc(MainHWND());
 	if (imc.hIMC) {
 		const Point pos = PointMainCaret();
-		CANDIDATEFORM CandForm;
+		const PRectangle rcClient = GetTextRectangle();
+		CANDIDATEFORM CandForm{};
 		CandForm.dwIndex = 0;
-		CandForm.dwStyle = CFS_CANDIDATEPOS;
+		CandForm.dwStyle = CFS_EXCLUDE;
 		CandForm.ptCurrentPos.x = static_cast<int>(pos.x);
-		CandForm.ptCurrentPos.y = static_cast<int>(pos.y + vs.lineHeight);
+		CandForm.ptCurrentPos.y = static_cast<int>(pos.y + std::max(4, vs.lineHeight/4));
+		// Exclude the area of the whole caret line
+		CandForm.rcArea.top = static_cast<int>(pos.y);
+		CandForm.rcArea.bottom = static_cast<int>(pos.y + vs.lineHeight);
+		CandForm.rcArea.left = static_cast<int>(rcClient.left);
+		CandForm.rcArea.right = static_cast<int>(rcClient.right);
 		::ImmSetCandidateWindow(imc.hIMC, &CandForm);
 	}
 }
@@ -1055,7 +1065,7 @@ std::vector<int> MapImeIndicators(std::vector<BYTE> inputStyle) {
 
 }
 
-void ScintillaWin::AddWString(std::wstring_view wsv) {
+void ScintillaWin::AddWString(std::wstring_view wsv, CharacterSource charSource) {
 	if (wsv.empty())
 		return;
 
@@ -1064,7 +1074,7 @@ void ScintillaWin::AddWString(std::wstring_view wsv) {
 		const size_t ucWidth = UTF16CharLength(wsv[i]);
 		const std::string docChar = StringEncode(wsv.substr(i, ucWidth), codePage);
 
-		AddCharUTF(docChar.c_str(), static_cast<unsigned int>(docChar.size()));
+		InsertCharacter(docChar, charSource);
 		i += ucWidth;
 	}
 }
@@ -1099,41 +1109,63 @@ sptr_t ScintillaWin::HandleCompositionInline(uptr_t, sptr_t lParam) {
 			return 0;
 		}
 
-		if (initialCompose)
+		if (initialCompose) {
 			ClearBeforeTentativeStart();
+		}
+
+		// Set candidate window left aligned to beginning of preedit string.
+		SetCandidateWindowPos();
 		pdoc->TentativeStart(); // TentativeActive from now on.
 
 		std::vector<int> imeIndicator = MapImeIndicators(imc.GetImeAttributes());
 
-		const bool tmpRecordingMacro = recordingMacro;
-		recordingMacro = false;
 		const int codePage = CodePageOfDocument();
 		const std::wstring_view wsv = wcs;
 		for (size_t i = 0; i < wsv.size(); ) {
 			const size_t ucWidth = UTF16CharLength(wsv[i]);
 			const std::string docChar = StringEncode(wsv.substr(i, ucWidth), codePage);
 
-			AddCharUTF(docChar.c_str(), static_cast<unsigned int>(docChar.size()));
+			InsertCharacter(docChar, CharacterSource::tentativeInput);
 
 			DrawImeIndicator(imeIndicator[i], static_cast<unsigned int>(docChar.size()));
 			i += ucWidth;
 		}
-		recordingMacro = tmpRecordingMacro;
 
-		// Move IME caret from current last position to imeCaretPos.
-		const int imeEndToImeCaretU16 = imc.GetImeCaretPos() - static_cast<unsigned int>(wcs.size());
-		const Sci::Position imeCaretPosDoc = pdoc->GetRelativePositionUTF16(CurrentPosition(), imeEndToImeCaretU16);
+		// Japanese IME after pressing Tab replaces input string with first candidate item (target string);
+		// when selecting other candidate item, previous item will be replaced with current one.
+		// After candidate item been added, it's looks like been full selected, it's better to keep caret
+		// at end of "selection" (end of input) instead of jump to beginning of input ("selection").
+		const bool onlyTarget = std::all_of(imeIndicator.begin(), imeIndicator.end(), [](int i) noexcept {
+			return i == SC_INDICATOR_TARGET;
+		});
+		if (!onlyTarget) {
+			// CS_NOMOVECARET: keep caret at beginning of composition string which already moved in InsertCharacter().
+			// GCS_CURSORPOS: current caret position is provided by IME.
+			Sci::Position imeEndToImeCaretU16 = -static_cast<Sci::Position>(wcs.size());
+			if (!(lParam & CS_NOMOVECARET) && (lParam & GCS_CURSORPOS)) {
+				imeEndToImeCaretU16 += imc.GetImeCaretPos();
+			}
+			if (imeEndToImeCaretU16 != 0) {
+				// Move back IME caret from current last position to imeCaretPos.
+				const Sci::Position currentPos = CurrentPosition();
+				const Sci::Position imeCaretPosDoc = pdoc->GetRelativePositionUTF16(currentPos, imeEndToImeCaretU16);
 
-		MoveImeCarets(- CurrentPosition() + imeCaretPosDoc);
+				MoveImeCarets(-currentPos + imeCaretPosDoc);
+
+				if (std::find(imeIndicator.begin(), imeIndicator.end(), SC_INDICATOR_TARGET) != imeIndicator.end()) {
+					// set candidate window left aligned to beginning of target string.
+					SetCandidateWindowPos();
+				}
+			}
+		}
 
 		if (KoreanIME()) {
 			view.imeCaretBlockOverride = true;
 		}
 	} else if (lParam & GCS_RESULTSTR) {
-		AddWString(imc.GetCompositionString(GCS_RESULTSTR));
+		AddWString(imc.GetCompositionString(GCS_RESULTSTR), CharacterSource::imeResult);
 	}
 	EnsureCaretVisible();
-	SetCandidateWindowPos();
 	ShowCaretAtCurrentPosition();
 	return 0;
 }
@@ -1210,34 +1242,31 @@ UINT ScintillaWin::CodePageOfDocument() const {
 }
 
 sptr_t ScintillaWin::GetTextLength() {
-	if (pdoc->Length() == 0)
-		return 0;
-	std::string docBytes(pdoc->Length(), '\0');
-	pdoc->GetCharRange(&docBytes[0], 0, pdoc->Length());
-	if (IsUnicodeMode()) {
-		return UTF16Length(std::string_view(&docBytes[0], docBytes.size()));
-	} else {
-		return WideCharLenFromMultiByte(CodePageOfDocument(), docBytes);
-	}
+	return pdoc->CountUTF16(0, pdoc->Length());
 }
 
 sptr_t ScintillaWin::GetText(uptr_t wParam, sptr_t lParam) {
+	if (lParam == 0) {
+		return pdoc->CountUTF16(0, pdoc->Length());
+	}
+	if (wParam == 0) {
+		return 0;
+	}
 	wchar_t *ptr = static_cast<wchar_t *>(PtrFromSPtr(lParam));
 	if (pdoc->Length() == 0) {
 		*ptr = L'\0';
 		return 0;
 	}
-	std::string docBytes(pdoc->Length(), '\0');
-	pdoc->GetCharRange(&docBytes[0], 0, pdoc->Length());
+	const Sci::Position lengthWanted = wParam - 1;
+	Sci::Position sizeRequestedRange = pdoc->GetRelativePositionUTF16(0, lengthWanted);
+	if (sizeRequestedRange < 0) {
+		// Requested more text than there is in the document.
+		sizeRequestedRange = pdoc->CountUTF16(0, pdoc->Length());
+	}
+	std::string docBytes(sizeRequestedRange, '\0');
+	pdoc->GetCharRange(&docBytes[0], 0, sizeRequestedRange);
 	if (IsUnicodeMode()) {
-                const std::string_view sv(&docBytes[0], docBytes.size());
-		const size_t lengthUTF16 = UTF16Length(sv);
-		if (lParam == 0)
-			return lengthUTF16;
-		if (wParam == 0)
-			return 0;
-		size_t uLen = UTF16FromUTF8(sv,
-			ptr, wParam - 1);
+		const size_t uLen = UTF16FromUTF8(docBytes, ptr, lengthWanted);
 		ptr[uLen] = L'\0';
 		return uLen;
 	} else {
@@ -1245,8 +1274,8 @@ sptr_t ScintillaWin::GetText(uptr_t wParam, sptr_t lParam) {
 		// Convert to Unicode using the current Scintilla code page
 		const UINT cpSrc = CodePageOfDocument();
 		int lengthUTF16 = WideCharLenFromMultiByte(cpSrc, docBytes);
-		if (lengthUTF16 >= static_cast<int>(wParam))
-			lengthUTF16 = static_cast<int>(wParam)-1;
+		if (lengthUTF16 > lengthWanted)
+			lengthUTF16 = static_cast<int>(lengthWanted);
 		WideCharFromMultiByte(cpSrc, docBytes, ptr, lengthUTF16);
 		ptr[lengthUTF16] = L'\0';
 		return lengthUTF16;
@@ -1407,7 +1436,9 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 		case WM_LBUTTONDOWN: {
 			// For IME, set the composition string as the result string.
 			IMContext imc(MainHWND());
-			::ImmNotifyIME(imc.hIMC, NI_COMPOSITIONSTR, CPS_COMPLETE, 0);
+			if (imc.hIMC) {
+				::ImmNotifyIME(imc.hIMC, NI_COMPOSITIONSTR, CPS_COMPLETE, 0);
+			}
 			//
 			//Platform::DebugPrintf("Buttdown %d %x %x %x %x %x\n",iMessage, wParam, lParam,
 			//	KeyboardIsKeyDown(VK_SHIFT),
@@ -1491,7 +1522,7 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 					lastHighSurrogateChar = 0;
 					wclen = 2;
 				}
-				AddWString(std::wstring_view(wcs, wclen));
+				AddWString(std::wstring_view(wcs, wclen), CharacterSource::directInput);
 			}
 			return 0;
 
@@ -1503,7 +1534,7 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 			} else {
 				wchar_t wcs[3] = {0};
 				const unsigned int wclen = UTF16FromUTF32Character(static_cast<unsigned int>(wParam), wcs);
-				AddWString(std::wstring_view(wcs, wclen));
+				AddWString(std::wstring_view(wcs, wclen), CharacterSource::directInput);
 				return FALSE;
 			}
 
@@ -1911,6 +1942,11 @@ void ScintillaWin::NotifyCaretMove() {
 
 void ScintillaWin::UpdateSystemCaret() {
 	if (hasFocus) {
+		if (pdoc->TentativeActive()) {
+			// ongoing inline mode IME composition, don't inform IME of system caret position.
+			// fix candidate window for Google Japanese IME moved on typing on Win7.
+			return;
+		}
 		if (HasCaretSizeChanged()) {
 			DestroySystemCaret();
 			CreateSystemCaret();
@@ -2718,6 +2754,9 @@ void ScintillaWin::ImeStartComposition() {
 
 /** Called when IME Window closed. */
 void ScintillaWin::ImeEndComposition() {
+	// clear IME composition state.
+	view.imeCaretBlockOverride = false;
+	pdoc->TentativeUndo();
 	ShowCaretAtCurrentPosition();
 }
 
@@ -3421,14 +3460,12 @@ sptr_t DirectFunction(
 
 }
 
-
 LRESULT PASCAL ScintillaWin::SWndProc(
 	HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
-	// Platform::DebugPrintf("S W:%x M:%x WP:%x L:%x\n", hWnd, iMessage, wParam,
-	// lParam);
+	//Platform::DebugPrintf("S W:%x M:%x WP:%x L:%x\n", hWnd, iMessage, wParam, lParam);
 
 	// Find C++ object associated with window.
-	ScintillaWin* sci = static_cast<ScintillaWin*>(PointerFromWindow(hWnd));
+	ScintillaWin *sci = static_cast<ScintillaWin *>(PointerFromWindow(hWnd));
 	// sci will be zero if WM_CREATE not seen yet
 	if (sci == nullptr) {
 		try {

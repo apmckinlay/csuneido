@@ -100,10 +100,10 @@ Timer::Timer() noexcept :
 Idler::Idler() noexcept :
 		state(false), idlerID(0) {}
 
-static constexpr bool IsAllSpacesOrTabs(const char *s, unsigned int len) noexcept {
-	for (unsigned int i = 0; i < len; i++) {
+static constexpr bool IsAllSpacesOrTabs(std::string_view sv) noexcept {
+	for (const char ch : sv) {
 		// This is safe because IsSpaceOrTab() will return false for null terminators
-		if (!IsSpaceOrTab(s[i]))
+		if (!IsSpaceOrTab(ch))
 			return false;
 	}
 	return true;
@@ -167,8 +167,7 @@ Editor::Editor() : durationWrapOneLine(0.00001, 0.000001, 0.0001) {
 	multiPasteMode = SC_MULTIPASTE_ONCE;
 	virtualSpaceOptions = SCVS_NONE;
 
-	targetStart = 0;
-	targetEnd = 0;
+	targetRange = SelectionSegment();
 	searchFlags = 0;
 
 	topLine = 0;
@@ -594,8 +593,11 @@ void Editor::SetRectangularRange() {
 		const Sci::Line lineCaret =
 			pdoc->SciLineFromPosition(sel.Rectangular().caret.Position());
 		const int increment = (lineCaret > lineAnchorRect) ? 1 : -1;
+		AutoSurface surface(this);
 		for (Sci::Line line=lineAnchorRect; line != lineCaret+increment; line += increment) {
-			SelectionRange range(SPositionFromLineX(line, xCaret), SPositionFromLineX(line, xAnchor));
+			SelectionRange range(
+				view.SPositionFromLineX(surface, *this, line, xCaret, vs),
+				view.SPositionFromLineX(surface, *this, line, xAnchor, vs));
 			if ((virtualSpaceOptions & SCVS_RECTANGULARSELECTION) == 0)
 				range.ClearVirtualSpace();
 			if (line == lineAnchorRect)
@@ -752,7 +754,7 @@ void Editor::MultipleSelectAdd(AddNumber addNumber) {
 		const Range rangeMainSelection(sel.RangeMain().Start().Position(), sel.RangeMain().End().Position());
 		const std::string selectedText = RangeText(rangeMainSelection.start, rangeMainSelection.end);
 
-		const Range rangeTarget(targetStart, targetEnd);
+		const Range rangeTarget(targetRange.start.Position(), targetRange.end.Position());
 		std::vector<Range> searchRanges;
 		// Search should be over the target range excluding the current selection so
 		// may need to search 2 ranges, after the selection then before the selection.
@@ -1598,17 +1600,17 @@ bool Editor::WrapLines(WrapScope ws) {
 }
 
 void Editor::LinesJoin() {
-	if (!RangeContainsProtected(targetStart, targetEnd)) {
+	if (!RangeContainsProtected(targetRange.start.Position(), targetRange.end.Position())) {
 		UndoGroup ug(pdoc);
 		bool prevNonWS = true;
-		for (Sci::Position pos = targetStart; pos < targetEnd; pos++) {
+		for (Sci::Position pos = targetRange.start.Position(); pos < targetRange.end.Position(); pos++) {
 			if (pdoc->IsPositionInLineEnd(pos)) {
-				targetEnd -= pdoc->LenChar(pos);
+				targetRange.end.Add(-pdoc->LenChar(pos));
 				pdoc->DelChar(pos);
 				if (prevNonWS) {
 					// Ensure at least one space separating previous lines
 					const Sci::Position lengthInserted = pdoc->InsertString(pos, " ", 1);
-					targetEnd += lengthInserted;
+					targetRange.end.Add(lengthInserted);
 				}
 			} else {
 				prevNonWS = pdoc->CharAt(pos) != ' ';
@@ -1628,13 +1630,13 @@ const char *Editor::StringFromEOLMode(int eolMode) noexcept {
 }
 
 void Editor::LinesSplit(int pixelWidth) {
-	if (!RangeContainsProtected(targetStart, targetEnd)) {
+	if (!RangeContainsProtected(targetRange.start.Position(), targetRange.end.Position())) {
 		if (pixelWidth == 0) {
 			const PRectangle rcText = GetTextRectangle();
 			pixelWidth = static_cast<int>(rcText.Width());
 		}
-		const Sci::Line lineStart = pdoc->SciLineFromPosition(targetStart);
-		Sci::Line lineEnd = pdoc->SciLineFromPosition(targetEnd);
+		const Sci::Line lineStart = pdoc->SciLineFromPosition(targetRange.start.Position());
+		Sci::Line lineEnd = pdoc->SciLineFromPosition(targetRange.end.Position());
 		const char *eol = StringFromEOLMode(pdoc->eolMode);
 		UndoGroup ug(pdoc);
 		for (Sci::Line line = lineStart; line <= lineEnd; line++) {
@@ -1648,11 +1650,11 @@ void Editor::LinesSplit(int pixelWidth) {
 					const Sci::Position lengthInserted = pdoc->InsertString(
 						posLineStart + lengthInsertedTotal + ll->LineStart(subLine),
 						eol, strlen(eol));
-					targetEnd += lengthInserted;
+					targetRange.end.Add(lengthInserted);
 					lengthInsertedTotal += lengthInserted;
 				}
 			}
-			lineEnd = pdoc->SciLineFromPosition(targetEnd);
+			lineEnd = pdoc->SciLineFromPosition(targetRange.end.Position());
 		}
 	}
 }
@@ -1891,7 +1893,7 @@ void Editor::AddChar(char ch) {
 	char s[2];
 	s[0] = ch;
 	s[1] = '\0';
-	AddCharUTF(s, 1);
+	InsertCharacter(std::string_view(s, 1), CharacterSource::directInput);
 }
 
 void Editor::FilterSelections() {
@@ -1901,9 +1903,9 @@ void Editor::FilterSelections() {
 	}
 }
 
-// AddCharUTF inserts an array of bytes which may or may not be in UTF-8.
-void Editor::AddCharUTF(const char *s, unsigned int len, bool treatAsDBCS) {
-	if (len == 0) {
+// InsertCharacter inserts a character encoded in document code page.
+void Editor::InsertCharacter(std::string_view sv, CharacterSource charSource) {
+	if (sv.empty()) {
 		return;
 	}
 	FilterSelections();
@@ -1943,7 +1945,7 @@ void Editor::AddCharUTF(const char *s, unsigned int len, bool treatAsDBCS) {
 					}
 				}
 				positionInsert = RealizeVirtualSpace(positionInsert, currentSel->caret.VirtualSpace());
-				const Sci::Position lengthInserted = pdoc->InsertString(positionInsert, s, len);
+				const Sci::Position lengthInserted = pdoc->InsertString(positionInsert, sv.data(), sv.length());
 				if (lengthInserted > 0) {
 					currentSel->caret.SetPosition(positionInsert + lengthInserted);
 					currentSel->anchor.SetPosition(positionInsert + lengthInserted);
@@ -1972,32 +1974,33 @@ void Editor::AddCharUTF(const char *s, unsigned int len, bool treatAsDBCS) {
 	// Avoid blinking during rapid typing:
 	ShowCaretAtCurrentPosition();
 	if ((caretSticky == SC_CARETSTICKY_OFF) ||
-		((caretSticky == SC_CARETSTICKY_WHITESPACE) && !IsAllSpacesOrTabs(s, len))) {
+		((caretSticky == SC_CARETSTICKY_WHITESPACE) && !IsAllSpacesOrTabs(sv))) {
 		SetLastXChosen();
 	}
 
-	int ch = static_cast<unsigned char>(s[0]);
-	if (treatAsDBCS || pdoc->dbcsCodePage != SC_CP_UTF8) {
-		if (len > 1) {
+	int ch = static_cast<unsigned char>(sv[0]);
+	if (pdoc->dbcsCodePage != SC_CP_UTF8) {
+		if (sv.length() > 1) {
 			// DBCS code page or DBCS font character set.
-			ch = (ch << 8) | static_cast<unsigned char>(s[1]);
+			ch = (ch << 8) | static_cast<unsigned char>(sv[1]);
 		}
 	} else {
-		if ((ch < 0xC0) || (1 == len)) {
+		if ((ch < 0xC0) || (1 == sv.length())) {
 			// Handles UTF-8 characters between 0x01 and 0x7F and single byte
 			// characters when not in UTF-8 mode.
 			// Also treats \0 and naked trail bytes 0x80 to 0xBF as valid
 			// characters representing themselves.
 		} else {
 			unsigned int utf32[1] = { 0 };
-			UTF32FromUTF8(std::string_view(s, len), utf32, std::size(utf32));
+			UTF32FromUTF8(sv, utf32, std::size(utf32));
 			ch = utf32[0];
 		}
 	}
-	NotifyChar(ch);
+	NotifyChar(ch, charSource);
 
-	if (recordingMacro) {
-		NotifyMacroRecord(SCI_REPLACESEL, 0, reinterpret_cast<sptr_t>(s));
+	if (recordingMacro && charSource != CharacterSource::tentativeInput) {
+		std::string copy(sv); // ensure NUL-terminated
+		NotifyMacroRecord(SCI_REPLACESEL, 0, reinterpret_cast<sptr_t>(copy.data()));
 	}
 }
 
@@ -2341,10 +2344,11 @@ void Editor::NotifyErrorOccurred(Document *, void *, int status) {
 	errorStatus = status;
 }
 
-void Editor::NotifyChar(int ch) {
+void Editor::NotifyChar(int ch, CharacterSource charSource) {
 	SCNotification scn = {};
 	scn.nmhdr.code = SCN_CHARADDED;
 	scn.ch = ch;
+	scn.characterSource = static_cast<int>(charSource);
 	NotifyParent(scn);
 }
 
@@ -3090,7 +3094,7 @@ void Editor::NewLine() {
 	for (size_t i = 0; i < countInsertions; i++) {
 		const char *eol = StringFromEOLMode(pdoc->eolMode);
 		while (*eol) {
-			NotifyChar(*eol);
+			NotifyChar(*eol, CharacterSource::directInput);
 			if (recordingMacro) {
 				char txt[2];
 				txt[0] = *eol;
@@ -4151,12 +4155,12 @@ Sci::Position Editor::SearchInTarget(const char *text, Sci::Position length) {
 	if (!pdoc->HasCaseFolder())
 		pdoc->SetCaseFolder(CaseFolderForEncoding());
 	try {
-		const Sci::Position pos = pdoc->FindText(targetStart, targetEnd, text,
+		const Sci::Position pos = pdoc->FindText(targetRange.start.Position(), targetRange.end.Position(), text,
 				searchFlags,
 				&lengthFound);
 		if (pos != -1) {
-			targetStart = pos;
-			targetEnd = pos + lengthFound;
+			targetRange.start.SetPosition(pos);
+			targetRange.end.SetPosition(pos + lengthFound);
 		}
 		return pos;
 	} catch (RegexError &) {
@@ -5244,8 +5248,7 @@ void Editor::SetDocPointer(Document *document) {
 
 	// Ensure all positions within document
 	sel.Clear();
-	targetStart = 0;
-	targetEnd = 0;
+	targetRange = SelectionSegment();
 
 	braces[0] = Sci::invalidPosition;
 	braces[1] = Sci::invalidPosition;
@@ -5580,11 +5583,20 @@ Sci::Position Editor::ReplaceTarget(bool replacePatterns, const char *text, Sci:
 			return 0;
 		}
 	}
-	if (targetStart != targetEnd)
-		pdoc->DeleteChars(targetStart, targetEnd - targetStart);
-	targetEnd = targetStart;
-	const Sci::Position lengthInserted = pdoc->InsertString(targetStart, text, length);
-	targetEnd = targetStart + lengthInserted;
+
+	// Remove the text inside the range
+	if (targetRange.Length() > 0)
+		pdoc->DeleteChars(targetRange.start.Position(), targetRange.Length());
+	targetRange.end = targetRange.start;
+
+	// Realize virtual space of target start
+	Sci::Position startAfterSpaceInsertion = RealizeVirtualSpace(targetRange.start.Position(), targetRange.start.VirtualSpace());
+	targetRange.start.SetPosition(startAfterSpaceInsertion);
+	targetRange.end = targetRange.start;
+
+	// Insert the new text
+	const Sci::Position lengthInserted = pdoc->InsertString(targetRange.start.Position(), text, length);
+	targetRange.end.SetPosition(targetRange.start.Position() + lengthInserted);
 	return length;
 }
 
@@ -5977,41 +5989,50 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 		break;
 
 	case SCI_SETTARGETSTART:
-		targetStart = static_cast<Sci::Position>(wParam);
+		targetRange.start.SetPosition(static_cast<Sci::Position>(wParam));
 		break;
 
 	case SCI_GETTARGETSTART:
-		return targetStart;
+		return targetRange.start.Position();
+
+	case SCI_SETTARGETSTARTVIRTUALSPACE:
+		targetRange.start.SetVirtualSpace(static_cast<Sci::Position>(wParam));
+		break;
+
+	case SCI_GETTARGETSTARTVIRTUALSPACE:
+		return targetRange.start.VirtualSpace();
 
 	case SCI_SETTARGETEND:
-		targetEnd = static_cast<Sci::Position>(wParam);
+		targetRange.end.SetPosition(static_cast<Sci::Position>(wParam));
 		break;
 
 	case SCI_GETTARGETEND:
-		return targetEnd;
+		return targetRange.end.Position();
+
+	case SCI_SETTARGETENDVIRTUALSPACE:
+		targetRange.end.SetVirtualSpace(static_cast<Sci::Position>(wParam));
+		break;
+
+	case SCI_GETTARGETENDVIRTUALSPACE:
+		return targetRange.end.VirtualSpace();
 
 	case SCI_SETTARGETRANGE:
-		targetStart = static_cast<Sci::Position>(wParam);
-		targetEnd = lParam;
+		targetRange.start.SetPosition(static_cast<Sci::Position>(wParam));
+		targetRange.end.SetPosition(lParam);
 		break;
 
 	case SCI_TARGETWHOLEDOCUMENT:
-		targetStart = 0;
-		targetEnd = pdoc->Length();
+		targetRange.start.SetPosition(0);
+		targetRange.end.SetPosition(pdoc->Length());
 		break;
 
 	case SCI_TARGETFROMSELECTION:
-		if (sel.MainCaret() < sel.MainAnchor()) {
-			targetStart = sel.MainCaret();
-			targetEnd = sel.MainAnchor();
-		} else {
-			targetStart = sel.MainAnchor();
-			targetEnd = sel.MainCaret();
-		}
+		targetRange.start = sel.RangeMain().Start();
+		targetRange.end = sel.RangeMain().End();
 		break;
 
 	case SCI_GETTARGETTEXT: {
-			std::string text = RangeText(targetStart, targetEnd);
+			std::string text = RangeText(targetRange.start.Position(), targetRange.end.Position());
 			return BytesResult(lParam, reinterpret_cast<const unsigned char *>(text.c_str()), text.length());
 		}
 
@@ -6531,6 +6552,13 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 
 	case SCI_GETTABWIDTH:
 		return pdoc->tabInChars;
+
+	case SCI_SETTABMINIMUMWIDTH:
+		SetAppearance(view.tabWidthMinimumPixels, static_cast<int>(wParam));
+		break;
+
+	case SCI_GETTABMINIMUMWIDTH:
+		return view.tabWidthMinimumPixels;
 
 	case SCI_CLEARTABSTOPS:
 		if (view.ClearTabstops(static_cast<Sci::Line>(wParam))) {
@@ -7322,7 +7350,7 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 		return vs.caretcolour.AsInteger();
 
 	case SCI_SETCARETSTYLE:
-		if (wParam <= (CARETSTYLE_BLOCK | CARETSTYLE_OVERSTRIKE_BLOCK))
+		if (wParam <= (CARETSTYLE_BLOCK | CARETSTYLE_OVERSTRIKE_BLOCK | CARETSTYLE_BLOCK_AFTER))
 			vs.caretStyle = static_cast<int>(wParam);
 		else
 			/* Default to the line caret */
@@ -7356,7 +7384,7 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 		break;
 
 	case SCI_INDICSETSTYLE:
-		if (wParam <= INDIC_MAX) {
+		if (wParam <= INDICATOR_MAX) {
 			vs.indicators[wParam].sacNormal.style = static_cast<int>(lParam);
 			vs.indicators[wParam].sacHover.style = static_cast<int>(lParam);
 			InvalidateStyleRedraw();
@@ -7364,10 +7392,10 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 		break;
 
 	case SCI_INDICGETSTYLE:
-		return (wParam <= INDIC_MAX) ? vs.indicators[wParam].sacNormal.style : 0;
+		return (wParam <= INDICATOR_MAX) ? vs.indicators[wParam].sacNormal.style : 0;
 
 	case SCI_INDICSETFORE:
-		if (wParam <= INDIC_MAX) {
+		if (wParam <= INDICATOR_MAX) {
 			vs.indicators[wParam].sacNormal.fore = ColourDesired(static_cast<int>(lParam));
 			vs.indicators[wParam].sacHover.fore = ColourDesired(static_cast<int>(lParam));
 			InvalidateStyleRedraw();
@@ -7375,67 +7403,67 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 		break;
 
 	case SCI_INDICGETFORE:
-		return (wParam <= INDIC_MAX) ? vs.indicators[wParam].sacNormal.fore.AsInteger() : 0;
+		return (wParam <= INDICATOR_MAX) ? vs.indicators[wParam].sacNormal.fore.AsInteger() : 0;
 
 	case SCI_INDICSETHOVERSTYLE:
-		if (wParam <= INDIC_MAX) {
+		if (wParam <= INDICATOR_MAX) {
 			vs.indicators[wParam].sacHover.style = static_cast<int>(lParam);
 			InvalidateStyleRedraw();
 		}
 		break;
 
 	case SCI_INDICGETHOVERSTYLE:
-		return (wParam <= INDIC_MAX) ? vs.indicators[wParam].sacHover.style : 0;
+		return (wParam <= INDICATOR_MAX) ? vs.indicators[wParam].sacHover.style : 0;
 
 	case SCI_INDICSETHOVERFORE:
-		if (wParam <= INDIC_MAX) {
+		if (wParam <= INDICATOR_MAX) {
 			vs.indicators[wParam].sacHover.fore = ColourDesired(static_cast<int>(lParam));
 			InvalidateStyleRedraw();
 		}
 		break;
 
 	case SCI_INDICGETHOVERFORE:
-		return (wParam <= INDIC_MAX) ? vs.indicators[wParam].sacHover.fore.AsInteger() : 0;
+		return (wParam <= INDICATOR_MAX) ? vs.indicators[wParam].sacHover.fore.AsInteger() : 0;
 
 	case SCI_INDICSETFLAGS:
-		if (wParam <= INDIC_MAX) {
+		if (wParam <= INDICATOR_MAX) {
 			vs.indicators[wParam].SetFlags(static_cast<int>(lParam));
 			InvalidateStyleRedraw();
 		}
 		break;
 
 	case SCI_INDICGETFLAGS:
-		return (wParam <= INDIC_MAX) ? vs.indicators[wParam].Flags() : 0;
+		return (wParam <= INDICATOR_MAX) ? vs.indicators[wParam].Flags() : 0;
 
 	case SCI_INDICSETUNDER:
-		if (wParam <= INDIC_MAX) {
+		if (wParam <= INDICATOR_MAX) {
 			vs.indicators[wParam].under = lParam != 0;
 			InvalidateStyleRedraw();
 		}
 		break;
 
 	case SCI_INDICGETUNDER:
-		return (wParam <= INDIC_MAX) ? vs.indicators[wParam].under : 0;
+		return (wParam <= INDICATOR_MAX) ? vs.indicators[wParam].under : 0;
 
 	case SCI_INDICSETALPHA:
-		if (wParam <= INDIC_MAX && lParam >=0 && lParam <= 255) {
+		if (wParam <= INDICATOR_MAX && lParam >=0 && lParam <= 255) {
 			vs.indicators[wParam].fillAlpha = static_cast<int>(lParam);
 			InvalidateStyleRedraw();
 		}
 		break;
 
 	case SCI_INDICGETALPHA:
-		return (wParam <= INDIC_MAX) ? vs.indicators[wParam].fillAlpha : 0;
+		return (wParam <= INDICATOR_MAX) ? vs.indicators[wParam].fillAlpha : 0;
 
 	case SCI_INDICSETOUTLINEALPHA:
-		if (wParam <= INDIC_MAX && lParam >=0 && lParam <= 255) {
+		if (wParam <= INDICATOR_MAX && lParam >=0 && lParam <= 255) {
 			vs.indicators[wParam].outlineAlpha = static_cast<int>(lParam);
 			InvalidateStyleRedraw();
 		}
 		break;
 
 	case SCI_INDICGETOUTLINEALPHA:
-		return (wParam <= INDIC_MAX) ? vs.indicators[wParam].outlineAlpha : 0;
+		return (wParam <= INDICATOR_MAX) ? vs.indicators[wParam].outlineAlpha : 0;
 
 	case SCI_SETINDICATORCURRENT:
 		pdoc->DecorationSetCurrentIndicator(static_cast<int>(wParam));
@@ -7570,7 +7598,7 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 		break;
 
 	case SCI_BRACEHIGHLIGHTINDICATOR:
-		if (lParam >= 0 && lParam <= INDIC_MAX) {
+		if (lParam >= 0 && lParam <= INDICATOR_MAX) {
 			vs.braceHighlightIndicatorSet = wParam != 0;
 			vs.braceHighlightIndicator = static_cast<int>(lParam);
 		}
@@ -7581,7 +7609,7 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 		break;
 
 	case SCI_BRACEBADLIGHTINDICATOR:
-		if (lParam >= 0 && lParam <= INDIC_MAX) {
+		if (lParam >= 0 && lParam <= INDICATOR_MAX) {
 			vs.braceBadLightIndicatorSet = wParam != 0;
 			vs.braceBadLightIndicator = static_cast<int>(lParam);
 		}
@@ -8146,8 +8174,14 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 	case SCI_GETSELECTIONNSTART:
 		return sel.Range(wParam).Start().Position();
 
+	case SCI_GETSELECTIONNSTARTVIRTUALSPACE:
+		return sel.Range(wParam).Start().VirtualSpace();
+
 	case SCI_GETSELECTIONNEND:
 		return sel.Range(wParam).End().Position();
+
+	case SCI_GETSELECTIONNENDVIRTUALSPACE:
+		return sel.Range(wParam).End().VirtualSpace();
 
 	case SCI_SETRECTANGULARSELECTIONCARET:
 		if (!sel.IsRectangular())

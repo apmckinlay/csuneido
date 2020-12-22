@@ -91,10 +91,10 @@
 #define IS_WIDGET_REALIZED(w) (gtk_widget_get_realized(GTK_WIDGET(w)))
 #define IS_WIDGET_MAPPED(w) (gtk_widget_get_mapped(GTK_WIDGET(w)))
 
-#define SC_INDICATOR_INPUT INDIC_IME
-#define SC_INDICATOR_TARGET INDIC_IME+1
-#define SC_INDICATOR_CONVERTED INDIC_IME+2
-#define SC_INDICATOR_UNKNOWN INDIC_IME_MAX
+#define SC_INDICATOR_INPUT INDICATOR_IME
+#define SC_INDICATOR_TARGET INDICATOR_IME+1
+#define SC_INDICATOR_CONVERTED INDICATOR_IME+2
+#define SC_INDICATOR_UNKNOWN INDICATOR_IME_MAX
 
 static GdkWindow *WindowFromWidget(GtkWidget *w) noexcept {
 	return gtk_widget_get_window(w);
@@ -172,6 +172,7 @@ ScintillaGTK::ScintillaGTK(_ScintillaObject *sci_) :
 	atomSought(nullptr),
 	im_context(nullptr),
 	lastNonCommonScript(PANGO_SCRIPT_INVALID_CODE),
+	lastWheelMouseTime(0),
 	lastWheelMouseDirection(0),
 	wheelMouseIntensity(0),
 	smoothScrollY(0),
@@ -201,8 +202,6 @@ ScintillaGTK::ScintillaGTK(_ScintillaObject *sci_) :
 #else
 	linesPerScroll = 4;
 #endif
-	lastWheelMouseTime.tv_sec = 0;
-	lastWheelMouseTime.tv_usec = 0;
 
 	Init();
 }
@@ -433,6 +432,11 @@ public:
 		uniStr = g_utf8_to_ucs4_fast(str, strlen(str), &uniStrLen);
 		pscript = pango_script_for_unichar(uniStr[0]);
 	}
+	// Deleted so PreEditString objects can not be copied.
+	PreEditString(const PreEditString&) = delete;
+	PreEditString(PreEditString&&) = delete;
+	PreEditString&operator=(const PreEditString&) = delete;
+	PreEditString&operator=(PreEditString&&) = delete;
 	~PreEditString() {
 		g_free(str);
 		g_free(uniStr);
@@ -752,16 +756,16 @@ std::string ConvertText(const char *s, size_t len, const char *charSetDest,
 // Returns the target converted to UTF8.
 // Return the length in bytes.
 Sci::Position ScintillaGTK::TargetAsUTF8(char *text) const {
-	const Sci::Position targetLength = targetEnd - targetStart;
+	const Sci::Position targetLength = targetRange.Length();
 	if (IsUnicodeMode()) {
 		if (text) {
-			pdoc->GetCharRange(text, targetStart, targetLength);
+			pdoc->GetCharRange(text, targetRange.start.Position(), targetLength);
 		}
 	} else {
 		// Need to convert
 		const char *charSetBuffer = CharacterSetID();
 		if (*charSetBuffer) {
-			std::string s = RangeText(targetStart, targetEnd);
+			std::string s = RangeText(targetRange.start.Position(), targetRange.end.Position());
 			std::string tmputf = ConvertText(&s[0], targetLength, "UTF-8", charSetBuffer, false);
 			if (text) {
 				memcpy(text, tmputf.c_str(), tmputf.length());
@@ -769,7 +773,7 @@ Sci::Position ScintillaGTK::TargetAsUTF8(char *text) const {
 			return tmputf.length();
 		} else {
 			if (text) {
-				pdoc->GetCharRange(text, targetStart, targetLength);
+				pdoc->GetCharRange(text, targetRange.start.Position(), targetLength);
 			}
 		}
 	}
@@ -1202,6 +1206,11 @@ struct CaseMapper {
 			mapped = g_utf8_strdown(sUTF8.c_str(), sUTF8.length());
 		}
 	}
+	// Deleted so CaseMapper objects can not be copied.
+	CaseMapper(const CaseMapper&) = delete;
+	CaseMapper(CaseMapper&&) = delete;
+	CaseMapper&operator=(const CaseMapper&) = delete;
+	CaseMapper&operator=(CaseMapper&&) = delete;
 	~CaseMapper() {
 		g_free(mapped);
 	}
@@ -1883,13 +1892,8 @@ gint ScintillaGTK::ScrollEvent(GtkWidget *widget, GdkEventScroll *event) {
 			cLineScroll = 4;
 		sciThis->wheelMouseIntensity = cLineScroll;
 #else
-		int timeDelta = 1000000;
-		GTimeVal curTime;
-		g_get_current_time(&curTime);
-		if (curTime.tv_sec == sciThis->lastWheelMouseTime.tv_sec)
-			timeDelta = curTime.tv_usec - sciThis->lastWheelMouseTime.tv_usec;
-		else if (curTime.tv_sec == sciThis->lastWheelMouseTime.tv_sec + 1)
-			timeDelta = 1000000 + (curTime.tv_usec - sciThis->lastWheelMouseTime.tv_usec);
+		const gint64 curTime = g_get_monotonic_time();
+		const gint64 timeDelta = curTime - sciThis->lastWheelMouseTime;
 		if ((event->direction == sciThis->lastWheelMouseDirection) && (timeDelta < 250000)) {
 			if (sciThis->wheelMouseIntensity < 12)
 				sciThis->wheelMouseIntensity++;
@@ -1900,11 +1904,11 @@ gint ScintillaGTK::ScrollEvent(GtkWidget *widget, GdkEventScroll *event) {
 				cLineScroll = 4;
 			sciThis->wheelMouseIntensity = cLineScroll;
 		}
+		sciThis->lastWheelMouseTime = curTime;
 #endif
 		if (event->direction == GDK_SCROLL_UP || event->direction == GDK_SCROLL_LEFT) {
 			cLineScroll *= -1;
 		}
-		g_get_current_time(&sciThis->lastWheelMouseTime);
 		sciThis->lastWheelMouseDirection = event->direction;
 
 		// Note:  Unpatched versions of win32gtk don't set the 'state' value so
@@ -2259,9 +2263,9 @@ void ScintillaGTK::MoveImeCarets(int pos) {
 void ScintillaGTK::DrawImeIndicator(int indicator, int len) {
 	// Emulate the visual style of IME characters with indicators.
 	// Draw an indicator on the character before caret by the character bytes of len
-	// so it should be called after addCharUTF().
+	// so it should be called after InsertCharacter().
 	// It does not affect caret positions.
-	if (indicator < 8 || indicator > INDIC_MAX) {
+	if (indicator < 8 || indicator > INDICATOR_MAX) {
 		return;
 	}
 	pdoc->DecorationSetCurrentIndicator(indicator);
@@ -2351,7 +2355,7 @@ void ScintillaGTK::CommitThis(char *commitStr) {
 			if (!IsUnicodeMode())
 				docChar = ConvertText(u8Char, u8CharLen, charSetSource, "UTF-8", true);
 
-			AddCharUTF(docChar.c_str(), docChar.size());
+			InsertCharacter(docChar, CharacterSource::directInput);
 		}
 		g_free(uniStr);
 		ShowCaretAtCurrentPosition();
@@ -2403,8 +2407,6 @@ void ScintillaGTK::PreeditChangedInlineThis() {
 
 		std::vector<int> indicator = MapImeIndicators(preeditStr.attrs, preeditStr.str);
 
-		const bool tmpRecordingMacro = recordingMacro;
-		recordingMacro = false;
 		for (glong i = 0; i < preeditStr.uniStrLen; i++) {
 			gchar u8Char[UTF8MaxBytes+2] = {0};
 			const gint u8CharLen = g_unichar_to_utf8(preeditStr.uniStr[i], u8Char);
@@ -2412,11 +2414,10 @@ void ScintillaGTK::PreeditChangedInlineThis() {
 			if (!IsUnicodeMode())
 				docChar = ConvertText(u8Char, u8CharLen, charSetSource, "UTF-8", true);
 
-			AddCharUTF(docChar.c_str(), docChar.size());
+			InsertCharacter(docChar, CharacterSource::tentativeInput);
 
 			DrawImeIndicator(indicator[i], docChar.size());
 		}
-		recordingMacro = tmpRecordingMacro;
 
 		// Move caret to ime cursor position.
 		const int imeEndToImeCaretU32 = preeditStr.cursor_pos - preeditStr.uniStrLen;
